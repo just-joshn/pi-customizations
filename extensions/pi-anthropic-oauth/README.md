@@ -14,7 +14,7 @@ pi -e .
 
 Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`). Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
 
-To install the package, run `pi install` with this directory's path.
+To install the package, run `pi install npm:@justjoshn/pi-anthropic-oauth`, or `pi install` with this directory's path.
 
 ## Use a setup token
 

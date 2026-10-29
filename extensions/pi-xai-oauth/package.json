@@ -1,5 +1,5 @@
 {
-  "name": "pi-xai-oauth",
+  "name": "@justjoshn/pi-xai-oauth",
   "version": "0.1.0",
   "description": "Use a SuperGrok or X Premium subscription in Pi with every Grok Build model, including grok-4.7-build-fast.",
   "type": "module",
@@ -9,6 +9,9 @@
   ],
   "engines": {
     "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "pi": {
     "extensions": [

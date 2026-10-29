@@ -1,5 +1,5 @@
 {
-  "name": "pi-antigravity-oauth",
+  "name": "@justjoshn/pi-antigravity-oauth",
   "version": "0.1.0",
   "description": "Use a Google Antigravity subscription in Pi through Google OAuth and the Cloud Code Assist API.",
   "type": "module",
@@ -9,6 +9,9 @@
   ],
   "engines": {
     "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "pi": {
     "extensions": [

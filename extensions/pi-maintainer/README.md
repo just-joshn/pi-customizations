@@ -6,7 +6,13 @@ Parity is measured, not asserted. `parity/ledger.json` holds one row per observa
 
 ## Install
 
-From the `pi-customizations` repository root:
+Install the published package:
+
+```sh
+pi install npm:@justjoshn/pi-maintainer
+```
+
+Or install it from the `pi-customizations` repository root:
 
 ```sh
 bun install

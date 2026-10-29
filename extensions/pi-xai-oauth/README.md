@@ -14,7 +14,7 @@ pi -e .
 
 Then run `/login`, choose **Sign in with an account**, and choose **Grok Build**. Pi then asks whether to use a browser or a device code. The browser is Grok Build's default: Pi prints the authorize URL, and approving it there sends the browser back to a loopback `/callback` on this machine. The device-code option shows a code and a link to xAI's verification page, and suits a remote or headless machine. Either way, approve with the account that holds the subscription. This login is separate from the login for the built-in `xai` provider, because Pi stores one credential for each provider.
 
-Pick a `grok-build` model with `/model`. To keep the package for later sessions, run `pi install` with the path to this directory.
+Pick a `grok-build` model with `/model`. To keep the package for later sessions, run `pi install npm:@justjoshn/pi-xai-oauth`, or `pi install` with the path to this directory.
 
 ## Pick a model and an effort
 

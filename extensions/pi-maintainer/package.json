@@ -1,5 +1,5 @@
 {
-  "name": "pi-maintainer",
+  "name": "@justjoshn/pi-maintainer",
   "version": "0.1.0",
   "description": "Aider's precise code editing, Git integration, repository map, and automated lint and test, rebuilt on Pi's own extension mechanisms.",
   "type": "module",
@@ -9,6 +9,9 @@
   ],
   "engines": {
     "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "pi": {
     "extensions": [

@@ -11,7 +11,7 @@
       },
     },
     "extensions/pi-anthropic-oauth": {
-      "name": "pi-anthropic-oauth",
+      "name": "@justjoshn/pi-anthropic-oauth",
       "version": "0.1.0",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.4.0",
@@ -27,7 +27,7 @@
       },
     },
     "extensions/pi-antigravity-oauth": {
-      "name": "pi-antigravity-oauth",
+      "name": "@justjoshn/pi-antigravity-oauth",
       "version": "0.1.0",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.4.0",
@@ -43,7 +43,7 @@
       },
     },
     "extensions/pi-maintainer": {
-      "name": "pi-maintainer",
+      "name": "@justjoshn/pi-maintainer",
       "version": "0.1.0",
       "dependencies": {
         "diff-match-patch": "1.0.5",
@@ -69,7 +69,7 @@
       },
     },
     "extensions/pi-pstack": {
-      "name": "pi-pstack",
+      "name": "@justjoshn/pi-pstack",
       "version": "0.15.36-pi.1",
       "dependencies": {
         "@anthropic-ai/sandbox-runtime": "0.0.79",
@@ -94,7 +94,7 @@
       },
     },
     "extensions/pi-rea": {
-      "name": "pi-rea",
+      "name": "@justjoshn/pi-rea",
       "version": "0.1.0",
       "dependencies": {
         "@babel/parser": "8.0.4",
@@ -115,7 +115,7 @@
       },
     },
     "extensions/pi-xai-oauth": {
-      "name": "pi-xai-oauth",
+      "name": "@justjoshn/pi-xai-oauth",
       "version": "0.1.0",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.4.0",
@@ -227,6 +227,18 @@
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.6.0", "", {}, "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw=="],
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
+
+    "@justjoshn/pi-anthropic-oauth": ["@justjoshn/pi-anthropic-oauth@workspace:extensions/pi-anthropic-oauth"],
+
+    "@justjoshn/pi-antigravity-oauth": ["@justjoshn/pi-antigravity-oauth@workspace:extensions/pi-antigravity-oauth"],
+
+    "@justjoshn/pi-maintainer": ["@justjoshn/pi-maintainer@workspace:extensions/pi-maintainer"],
+
+    "@justjoshn/pi-pstack": ["@justjoshn/pi-pstack@workspace:extensions/pi-pstack"],
+
+    "@justjoshn/pi-rea": ["@justjoshn/pi-rea@workspace:extensions/pi-rea"],
+
+    "@justjoshn/pi-xai-oauth": ["@justjoshn/pi-xai-oauth@workspace:extensions/pi-xai-oauth"],
 
     "@oxc-project/types": ["@oxc-project/types@0.151.0", "", {}, "sha512-J1yXrIlNDZVzE3ada310xeAw7nH8yCAyLPuUIsjKatFPmfn5bS1oW+cM+QsGOtVWd5nhSpbwZWx/rue+r5Z+PA=="],
 
@@ -511,18 +523,6 @@
     "partial-json": ["partial-json@0.1.7", "", {}, "sha512-Njv/59hHaokb/hRUjce3Hdv12wd60MtM9Z5Olmn+nehe0QDAsRtRbJPvJ0Z91TusF0SuZRIvnM+S4l6EIP8leA=="],
 
     "path-key": ["path-key@3.1.1", "", {}, "sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q=="],
-
-    "pi-anthropic-oauth": ["pi-anthropic-oauth@workspace:extensions/pi-anthropic-oauth"],
-
-    "pi-antigravity-oauth": ["pi-antigravity-oauth@workspace:extensions/pi-antigravity-oauth"],
-
-    "pi-maintainer": ["pi-maintainer@workspace:extensions/pi-maintainer"],
-
-    "pi-pstack": ["pi-pstack@workspace:extensions/pi-pstack"],
-
-    "pi-rea": ["pi-rea@workspace:extensions/pi-rea"],
-
-    "pi-xai-oauth": ["pi-xai-oauth@workspace:extensions/pi-xai-oauth"],
 
     "picocolors": ["picocolors@1.1.1", "", {}, "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA=="],
 

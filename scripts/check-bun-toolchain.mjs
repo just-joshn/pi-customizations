@@ -16,8 +16,9 @@ const FOREIGN_LAUNCH = /\b(?:execFileSync|execFile|execSync|exec|spawnSync|spawn
 const SKIP_SEGMENTS = new Set([...SKIP_DIRECTORIES, 'skills']);
 // Parity capture/evidence trees deliberately record foreign package managers from other hosts.
 const SKIP_PREFIXES = ['parity'];
-// A detector's own fixtures have to contain what it detects.
-const SKIP_FILES = new Set(['scripts/check-bun-toolchain.selftest.mjs']);
+// A detector's own fixtures have to contain what it detects, and the install-source
+// proof publishes to a throwaway Verdaccio with the npm that Pi itself drives.
+const SKIP_FILES = new Set(['scripts/check-bun-toolchain.selftest.mjs', 'scripts/verify-install-sources.mjs']);
 
 function walk(root, directory = root, found = []) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
