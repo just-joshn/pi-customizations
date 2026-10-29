@@ -1,5 +1,5 @@
 {
-  "name": "pi-pstack",
+  "name": "@justjoshn/pi-pstack",
   "version": "0.15.36-pi.1",
   "description": "pstack 0.15.36 for Pi: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, and visualize",
   "type": "module",
@@ -10,6 +10,10 @@
   ],
   "engines": {
     "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
   },
   "pi": {
     "extensions": [

@@ -1,5 +1,5 @@
 {
-  "name": "pi-rea",
+  "name": "@justjoshn/pi-rea",
   "version": "0.1.0",
   "description": "REA (Reverse Engineer Anything) for Pi: REA's published tool contract, its Evidence and session kernel, and its workflow skill, reimplemented on Pi's extension mechanisms.",
   "type": "module",
@@ -10,6 +10,9 @@
   ],
   "engines": {
     "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "pi": {
     "extensions": [
