@@ -4,6 +4,15 @@
   "description": "Use a Google Antigravity subscription in Pi through Google OAuth and the Cloud Code Assist API.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-antigravity-oauth"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-antigravity-oauth#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package"
   ],

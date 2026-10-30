@@ -4,6 +4,15 @@
   "description": "REA (Reverse Engineer Anything) for Pi: REA's published tool contract, its Evidence and session kernel, and its workflow skill, reimplemented on Pi's extension mechanisms.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-rea"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-rea#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package",
     "reverse-engineering"

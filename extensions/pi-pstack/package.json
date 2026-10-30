@@ -4,6 +4,15 @@
   "description": "pstack 0.15.36 for Pi: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, and visualize",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-pstack"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-pstack#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package",
     "pstack"
