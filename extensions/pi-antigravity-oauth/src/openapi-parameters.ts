@@ -34,7 +34,7 @@ export function sanitizeOpenApiParameters(schema: unknown): unknown {
     delete next['type'];
     if (concrete.length < union.length) next['nullable'] = true;
     if (concrete.length === 1) next['type'] = concrete[0];
-    else for (const key of ['items', 'properties', 'required', 'additionalProperties']) delete next[key];
+    else for (const key of ['items', 'properties', 'required']) delete next[key];
   }
   if (constValue !== undefined) {
     next['enum'] = mergeEnum(next['enum'], constValue);
