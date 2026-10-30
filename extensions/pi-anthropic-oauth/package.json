@@ -1,9 +1,18 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Provider CLI.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-anthropic-oauth"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-anthropic-oauth#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package"
   ],
@@ -21,7 +30,8 @@
   "files": [
     "src",
     "README.md",
-    "docs/claude-oauth-parity.md"
+    "docs/claude-oauth-parity.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",

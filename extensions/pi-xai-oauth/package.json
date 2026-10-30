@@ -1,9 +1,18 @@
 {
   "name": "@justjoshn/pi-xai-oauth",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Use a SuperGrok or X Premium subscription in Pi with every Grok Build model, including grok-4.7-build-fast.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-xai-oauth"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-xai-oauth#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package"
   ],
@@ -20,7 +29,8 @@
   },
   "files": [
     "src",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",

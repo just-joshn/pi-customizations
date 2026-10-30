@@ -1,9 +1,18 @@
 {
   "name": "@justjoshn/pi-maintainer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Aider's precise code editing, Git integration, repository map, and automated lint and test, rebuilt on Pi's own extension mechanisms.",
   "type": "module",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-maintainer"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-maintainer#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
   "keywords": [
     "pi-package"
   ],
@@ -21,7 +30,8 @@
   "files": [
     "src",
     "NOTICE",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",
