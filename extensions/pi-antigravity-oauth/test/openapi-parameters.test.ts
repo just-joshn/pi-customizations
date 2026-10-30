@@ -100,6 +100,17 @@ test('a type union of several types drops the type so any value is accepted', ()
   ).toEqual({ type: 'array', items: { nullable: true } });
 });
 
+test('a type union of several types drops the object-only keys Cloud Code rejects without OBJECT', () => {
+  expect(
+    sanitizeOpenApiParameters({
+      type: ['object', 'string'],
+      properties: { a: { type: 'string' } },
+      required: ['a'],
+      additionalProperties: false,
+    }),
+  ).toEqual({ additionalProperties: false });
+});
+
 test('a property named type keeps its schema', () => {
   const schema = { type: 'object', properties: { type: { type: 'string', enum: ['a', 'b'] } } };
   expect(sanitizeOpenApiParameters(schema)).toEqual(schema);
