@@ -77,3 +77,30 @@ test('anyOf and allOf are preserved while nested keys are sanitized', () => {
     allOf: [{ type: 'object', properties: { n: { enum: [1] } } }],
   });
 });
+
+test('exclusive numeric bounds are removed', () => {
+  expect(
+    sanitizeOpenApiParameters({
+      type: 'object',
+      properties: { limit: { type: 'integer', exclusiveMinimum: 0, exclusiveMaximum: 10, minimum: 1 } },
+    }),
+  ).toEqual({ type: 'object', properties: { limit: { type: 'integer', minimum: 1 } } });
+});
+
+test('a type union with null becomes the single type plus nullable', () => {
+  expect(sanitizeOpenApiParameters({ type: ['string', 'null'] })).toEqual({ type: 'string', nullable: true });
+});
+
+test('a type union of several types drops the type so any value is accepted', () => {
+  expect(
+    sanitizeOpenApiParameters({
+      type: 'array',
+      items: { type: ['null', 'boolean', 'object', 'array', 'number', 'string'], items: {} },
+    }),
+  ).toEqual({ type: 'array', items: { nullable: true } });
+});
+
+test('a property named type keeps its schema', () => {
+  const schema = { type: 'object', properties: { type: { type: 'string', enum: ['a', 'b'] } } };
+  expect(sanitizeOpenApiParameters(schema)).toEqual(schema);
+});
