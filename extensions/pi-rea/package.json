@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-rea",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "REA (Reverse Engineer Anything) for Pi: REA's published tool contract, its Evidence and session kernel, and its workflow skill, reimplemented on Pi's extension mechanisms.",
   "type": "module",
   "license": "MIT",
@@ -40,7 +40,8 @@
     "skills",
     "prompts",
     "README.md",
-    "THIRD_PARTY_NOTICES.md"
+    "THIRD_PARTY_NOTICES.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "generate:contracts": "bun scripts/generate-contracts.ts",

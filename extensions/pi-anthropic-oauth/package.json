@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Provider CLI.",
   "type": "module",
   "license": "MIT",
@@ -30,7 +30,8 @@
   "files": [
     "src",
     "README.md",
-    "docs/claude-oauth-parity.md"
+    "docs/claude-oauth-parity.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",
