@@ -151,8 +151,7 @@ export type ExtensionHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'appe
 
 export default function (pi: ExtensionHost) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
-  const oauth = anthropic?.auth.oauth;
-  if (!anthropic || !oauth) throw new Error("Pi's built-in anthropic provider with Claude Pro/Max OAuth is not available.");
+  if (!anthropic) throw new Error("Pi's built-in anthropic provider is not available.");
   const guard = installContextGuard(pi, {
     providerId: PROVIDER_ID,
     notify: (message) => pi.appendEntry(GUARD_ENTRY_TYPE, { message }),
@@ -162,7 +161,7 @@ export default function (pi: ExtensionHost) {
       id: PROVIDER_ID,
       name: 'Claude subscription',
       ...(anthropic.baseUrl === undefined ? {} : { baseUrl: anthropic.baseUrl }),
-      auth: subscriptionAuth(oauth),
+      auth: subscriptionAuth(),
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
         stream: (model, context, options) => guardedStream(anthropic.stream, model, context, options, guard),

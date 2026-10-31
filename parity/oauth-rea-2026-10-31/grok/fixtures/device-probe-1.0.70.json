@@ -1,0 +1,9 @@
+{
+  "grokVersion": "1.0.70",
+  "command": "GROK_HOME=<temp> grok login --device-auth (killed after prompt)",
+  "verificationUriPattern": "https://accounts.x.ai/oauth2/device?user_code={code}",
+  "verificationHost": "accounts.x.ai",
+  "verificationPath": "/oauth2/device",
+  "sampleUriRedacted": "https://accounts.x.ai/oauth2/device?user_code=<redacted>",
+  "notes": "user_code redacted; host/path measured 2026-10-31"
+}

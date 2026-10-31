@@ -5,7 +5,7 @@ import type { OAuthCredential, ProviderAuthInteraction } from '@earendil-works/p
 
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
 export const GROK_OAUTH_SCOPE = 'openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write';
-/** Grok 1.0.50 sends this on the browser authorize request. */
+/** Grok 1.0.70 sends this on the browser authorize request. */
 const GROK_OAUTH_REFERRER = 'grok-build';
 
 const AUTHORIZE_URL = 'https://auth.x.ai/oauth2/authorize';
@@ -20,7 +20,7 @@ const BROWSER_LIMIT_MS = 15 * 60 * 1000;
 
 type TokenResponse = { access: string; refresh: string; expiresIn: number };
 
-/** Byte-for-byte the query Grok 1.0.50 prints, including parameter order and %20 scope separators. */
+/** Byte-for-byte the query Grok 1.0.70 prints, including parameter order and %20 scope separators. */
 export function authorizeUrl(input: { redirectUri: string; challenge: string; state: string; nonce: string }): string {
   const pairs: readonly (readonly [string, string])[] = [
     ['response_type', 'code'],

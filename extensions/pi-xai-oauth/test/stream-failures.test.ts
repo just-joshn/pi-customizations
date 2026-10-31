@@ -62,7 +62,7 @@ test('aborting mid-stream ends as aborted with Grok headers still applied', asyn
   expect(message).toMatchObject({ stopReason: 'aborted', errorMessage: expect.any(String) });
   expect(server.requests).toHaveLength(1);
   expect(server.requests[0]?.headers).toMatchObject({
-    'x-grok-client-version': '1.0.50',
+    'x-grok-client-version': '1.0.70',
     'x-xai-token-auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7-build-fast',
     'x-grok-context-window': '256000',

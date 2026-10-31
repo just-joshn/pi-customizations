@@ -1,0 +1,236 @@
+{
+  "hits": [
+    {
+      "path": "/v1internal:loadCodeAssist",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{\"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}"
+    },
+    {
+      "path": "/v1internal:retrieveUserQuotaSummary",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:fetchAvailableModels",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:fetchUserInfo",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:retrieveUserQuotaSummary",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:listExperiments",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:loadCodeAssist",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{\"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}"
+    },
+    {
+      "path": "/v1internal:retrieveUserQuotaSummary",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:listExperiments",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{}"
+    },
+    {
+      "path": "/v1internal:onboardUser",
+      "method": "POST",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": "application/json",
+      "body_prefix": "{\"tierId\":\"free-tier\", \"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}"
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    },
+    {
+      "path": "/v1internal/",
+      "method": "GET",
+      "user-agent": "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)",
+      "authorization_present": true,
+      "content_type": null,
+      "body_prefix": ""
+    }
+  ]
+}

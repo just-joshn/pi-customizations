@@ -1,0 +1,35 @@
+{
+  "token_url": "https://platform.claude.com/v1/oauth/token",
+  "authorization_code_grant": {
+    "content_type": "application/json",
+    "timeout_ms": 30000,
+    "body_fields": [
+      "grant_type",
+      "code",
+      "redirect_uri",
+      "client_id",
+      "code_verifier",
+      "state",
+      "expires_in?"
+    ],
+    "grant_type": "authorization_code",
+    "offset": 220545746
+  },
+  "refresh_token_grant": {
+    "content_type": "application/json",
+    "timeout_ms": 30000,
+    "body_fields": [
+      "grant_type",
+      "refresh_token",
+      "client_id",
+      "scope",
+      "expires_in?"
+    ],
+    "grant_type": "refresh_token",
+    "default_scope_source": "Zxt() without org:create_api_key",
+    "offset": 220546563
+  },
+  "access_token_expiry_store": "Date.now() + expires_in * 1000 (no store-time skew)",
+  "proactive_refresh_predicate": "AA(expiresAt): Date.now()+300000 >= expiresAt",
+  "aa_offset": 220551335
+}

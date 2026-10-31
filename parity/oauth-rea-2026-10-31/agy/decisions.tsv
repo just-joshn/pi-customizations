@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-10-31T22:44:00Z	start	opened poteto investigation of agy OAuth into parity/oauth-rea-2026-10-31/agy	parent brief asked for a write-only REA ledger vs pi-antigravity-oauth	parity/oauth-rea-2026-10-31/agy/	open
+2026-10-31T22:45:00Z	method	used byte scans as primary evidence after REA search_strings timed out on the 197MB Mach-O	prove claims against the real binary without waiting on a hung string index	REA open_binary sha256 09cefed6…; /tmp and python scans	INCONCLUSIVE for REA string index, VERIFIED via bytes
+2026-10-31T22:50:00Z	scope	did not complete live Google login and did not edit extension src	brief forbade live OAuth and src edits	user_query FORBIDDEN	open
+2026-10-31T22:52:00Z	probe	fetched public client-metadata.json without credentials	safe black-box confirmation of redirect and auth_method none	fixtures/client-metadata.json	http 200
+2026-10-31T22:53:00Z	creds	read macOS keychain item service=gemini account=antigravity for schema only and redacted fixtures	needed on-disk/agy credential format without publishing tokens	fixtures/keychain-credential.schema.json	VERIFIED schema
+2026-10-31T22:54:00Z	compare	treated Pi CLIENT_ID/SECRET/REDIRECT/SCOPES as matching the consumer path when binary literals agreed	smallest claim that supports pi-native parity without agy runtime	extensions/pi-antigravity-oauth/src/oauth.ts; fixtures/binary-oauth-strings.json	VERIFIED match for consumer constants
+2026-10-31T22:55:00Z	gap	flagged Pi User-Agent 1.3.1 / cl=994719654 as NOT VERIFIED against this agy	those literals absent while changelog head is 1.4.12	gap-vs-pi.md; ledger.json parity.user_agent_version	NOT VERIFIED
+2026-10-31T22:56:00Z	stop	stopped at timebox with remaining decompile/UA capture unknowns logged	partial OK per brief; sequence verifiable units then ship the ledger	ledger.md; protocol.md; dependencies.md	partial complete

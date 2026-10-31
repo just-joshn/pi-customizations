@@ -156,8 +156,8 @@ test('the request carries only the headers the Antigravity CLI sends', async () 
 });
 
 test("the user agent names the host in Go's os and arch spelling", () => {
-  expect(userAgent('darwin', 'arm64')).toBe('antigravity/cli/1.3.1 (aidev_client; os_type=darwin; arch=arm64; cl=994719654; auth_method=consumer)');
-  expect(userAgent('win32', 'x64')).toBe('antigravity/cli/1.3.1 (aidev_client; os_type=windows; arch=amd64; cl=994719654; auth_method=consumer)');
+  expect(userAgent('darwin', 'arm64')).toBe('antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)');
+  expect(userAgent('win32', 'x64')).toBe('antigravity/cli/1.4.11 (aidev_client; os_type=windows; arch=amd64; cl=1010154931; auth_method=consumer)');
 });
 
 test('a Claude effort is sent as a thinking level with a zero budget and no beta header', async () => {

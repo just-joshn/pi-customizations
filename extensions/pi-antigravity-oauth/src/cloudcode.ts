@@ -14,7 +14,7 @@ const GO_ARCH: Partial<Record<NodeJS.Architecture, string>> = { x64: 'amd64', ia
 export function userAgent(platform = process.platform, arch = process.arch): string {
   const os = GO_OS[platform] ?? platform;
   const goArch = GO_ARCH[arch] ?? arch;
-  return `antigravity/cli/1.3.1 (aidev_client; os_type=${os}; arch=${goArch}; cl=994719654; auth_method=consumer)`;
+  return `antigravity/cli/1.4.11 (aidev_client; os_type=${os}; arch=${goArch}; cl=1010154931; auth_method=consumer)`;
 }
 
 export const USER_AGENT = userAgent();

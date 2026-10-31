@@ -1,0 +1,15 @@
+{
+  "source": "~/.pi/agent/auth.json key google-antigravity (2026-10-31)",
+  "payload_example_redacted": {
+    "type": "oauth",
+    "access": "<redacted>",
+    "refresh": "<redacted>",
+    "expires": 1793485949697,
+    "projectId": "aicode-consumers",
+    "email": "<redacted email>"
+  },
+  "notes": [
+    "Pi-native store. Not agy keychain.",
+    "projectId filled via loadCodeAssist during /login."
+  ]
+}
