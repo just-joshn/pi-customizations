@@ -1,8 +1,8 @@
 # Antigravity CLI (agy) OAuth protocol
 
-Target binary. `/Users/josh-desktop/.local/bin/agy` Mach-O arm64, sha256 `09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd`, about 197MB. Changelog head shows `1.4.12`. Exact embedded CLI version string for User-Agent was not located as a contiguous `antigravity/cli/X.Y.Z` literal.
+Target binary. `/Users/josh-desktop/.local/bin/agy` Mach-O arm64, sha256 `34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3`. Changelog and live wire User-Agent are `1.4.12` with `cl=1010700967` (fixtures/captured-user-agent-1.4.12.json). Exact embedded CLI version string was not located as a contiguous `antigravity/cli/X.Y.Z` literal; the wire value comes from a live Cloud Code sink capture.
 
-Evidence basis. Byte scans of the Mach-O, one public HTTPS GET of client metadata, one macOS keychain metadata read of the existing `gemini`/`antigravity` item, and comparison to `extensions/pi-antigravity-oauth`. No live Google login was completed.
+Evidence basis. Byte scans of the Mach-O, one public HTTPS GET of client metadata, one macOS keychain metadata read of the existing `gemini`/`antigravity` item, live CLOUD_CODE_URL sink capture of User-Agent, and comparison to `extensions/pi-antigravity-oauth`. No live Google login was completed in the initial ledger pass.
 
 ## Endpoints
 

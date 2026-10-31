@@ -23,13 +23,9 @@ Pi baseline read. `src/oauth.ts`, `src/cloudcode.ts`, `src/models.ts`, `src/stre
 
 ## Deltas that matter for parity
 
-### 1. User-Agent version and changelist are stale in Pi
+### 1. User-Agent version and changelist (resolved)
 
-Pi hardcodes `antigravity/cli/1.3.1` and `cl=994719654`. This agy binary's changelog head is `1.4.12`. Neither `1.3.1` nor `994719654` appear as literals. `aidev_client` and `auth_method=%s` / `os_type=%s` do.
-
-Impact. Server-side allowlists or telemetry may treat Pi as an old CLI. Unknown whether requests fail.
-
-Parity work. Capture one real agy Cloud Code request User-Agent (black-box proxy or local MITM on a throwaway session), then update `userAgent()` to match. Do not guess the cl= value.
+Live sink capture on agy 1.4.12 (sha256 `34423fc9…`) shows `antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)`. Pi `userAgent()` now emits that version and cl. Evidence. `fixtures/captured-user-agent-1.4.12.json`.
 
 ### 2. Credential store shapes differ (expected)
 
@@ -89,7 +85,7 @@ Auth for catalog and stream is bearer + UA + project in body. Envelope fields (`
 
 ## Suggested parity checklist (implementation later, not this write)
 
-1. Capture agy User-Agent from a real Cloud Code call. Update Pi.
+1. ~~Capture agy User-Agent from a real Cloud Code call. Update Pi.~~ Done. Pi pinned to measured 1.4.12 / cl=1010700967.
 2. Optionally add keychain import for existing agy sessions.
 3. Confirm whether token POST includes `client_secret` under auth method none.
 4. Optionally align tokeninfo validation.
