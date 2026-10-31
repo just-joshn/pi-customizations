@@ -7,8 +7,50 @@ import { loadSkills, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const PSTACK_HIDDEN = 57;
-const TEAM_KIT = ['control-cli', 'control-ui', 'deslop'];
+const SKILL_COUNT = 79;
+const HIDDEN_COUNT = 61;
+const TEAM_KIT = [
+  'check-compiler-errors',
+  'control-cli',
+  'control-ui',
+  'deslop',
+  'fix-ci',
+  'fix-merge-conflicts',
+  'get-pr-comments',
+  'loop-on-ci',
+  'make-pr-easy-to-review',
+  'new-branch-and-pr',
+  'pr-review-canvas',
+  'review-and-ship',
+  'run-smoke-tests',
+  'thermo-nuclear-code-quality-review',
+  'verify-this',
+  'weekly-review',
+  'what-did-i-get-done',
+  'workflow-from-chats',
+  'no-inline-imports',
+  'typescript-exhaustive-switch',
+];
+const INVOCABLE = [
+  'check-compiler-errors',
+  'control-cli',
+  'control-ui',
+  'create-skill',
+  'deslop',
+  'fix-ci',
+  'fix-merge-conflicts',
+  'get-pr-comments',
+  'loop-on-ci',
+  'make-pr-easy-to-review',
+  'new-branch-and-pr',
+  'review-and-ship',
+  'run-smoke-tests',
+  'setup-pstack',
+  'verify-this',
+  'weekly-review',
+  'what-did-i-get-done',
+  'workflow-from-chats',
+];
 const STANDARD_FIELDS = new Set(['name', 'description', 'license', 'compatibility', 'metadata', 'allowed-tools', 'disable-model-invocation']);
 const SHIPPED_ROOTS = ['skills', 'agents', 'docs', 'automations', 'README.md'];
 
@@ -42,7 +84,7 @@ const CURSOR_HOST_TERMS =
   /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|Alt\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cloud agent|cloud VM|cursor-team-kit|Grok Bot/i;
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
-  { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of deslop, control-cli, and control-ui' },
+  { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
 ];
 
 function hostTermLines(file: string, text: string): string[] {
@@ -54,10 +96,10 @@ function hostTermLines(file: string, text: string): string[] {
 }
 
 describe('shipped resources', () => {
-  test('loads 62 skills with no diagnostics and names equal to directories (RES-001)', () => {
+  test('loads every skill with no diagnostics and names equal to directories (RES-001)', () => {
     const { skills, diagnostics } = loadPackageSkills();
     expect(diagnostics).toEqual([]);
-    expect(skills).toHaveLength(62);
+    expect(skills).toHaveLength(SKILL_COUNT);
     const renamed = skills.filter((skill) => skill.name !== skill.filePath.split('/').at(-2));
     expect(renamed.map((skill) => skill.name)).toEqual([]);
     expect(skills.map((skill) => skill.name)).toEqual(expect.arrayContaining(['poteto-mode', 'make-bot-ui', 'how', 'setup-pstack', 'create-skill', 'ketchup-video', 'statechart', ...TEAM_KIT]));
@@ -77,15 +119,20 @@ describe('shipped resources', () => {
     expect(typescript['metadata']).toEqual({ paths: ['**/*.ts', '**/*.tsx'] });
   });
 
-  test('hides 57 pstack skills from model invocation and keeps the rest invocable (RES-003, RES-005)', () => {
+  test('hides workflow skills from model invocation and keeps team-kit plus setup invocable (RES-003, RES-005)', () => {
     const { skills } = loadPackageSkills();
     const invocable = skills.filter((skill) => !skill.disableModelInvocation).map((skill) => skill.name);
-    expect(invocable.toSorted()).toEqual(['control-cli', 'control-ui', 'create-skill', 'deslop', 'setup-pstack']);
-    expect(skills.filter((skill) => skill.disableModelInvocation)).toHaveLength(PSTACK_HIDDEN);
+    expect(invocable.toSorted()).toEqual(INVOCABLE.toSorted());
+    expect(skills.filter((skill) => skill.disableModelInvocation)).toHaveLength(HIDDEN_COUNT);
   });
 
-  test('ships the two subagent definitions (RES-006)', () => {
-    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual(['comment-sicko.md', 'poteto-agent.md']);
+  test('ships pstack and team-kit subagent definitions (RES-006)', () => {
+    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual([
+      'ci-watcher.md',
+      'comment-sicko.md',
+      'poteto-agent.md',
+      'thermo-nuclear-code-quality-review.md',
+    ]);
   });
 
   test('poteto-mode tells delegates where bundled skills live, and every principle it names is at ../<name>/SKILL.md (RES-010)', () => {

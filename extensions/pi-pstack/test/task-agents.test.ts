@@ -6,9 +6,15 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { findAgent, loadAgentDefinitions } from '../src/task/agents.ts';
 
 describe('subagent definitions', () => {
-  test('ships generalPurpose plus the two pstack agents (TASK-006)', () => {
+  test('ships generalPurpose plus pstack and team-kit agents (TASK-006)', () => {
     const agents = loadAgentDefinitions();
-    expect(agents.map((agent) => agent.type)).toEqual(['generalPurpose', 'comment-sicko', 'poteto-agent']);
+    expect(agents.map((agent) => agent.type)).toEqual([
+      'generalPurpose',
+      'ci-watcher',
+      'comment-sicko',
+      'poteto-agent',
+      'thermo-nuclear-code-quality-review',
+    ]);
   });
 
   test('reads agent frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)', () => {
@@ -28,7 +34,9 @@ describe('subagent definitions', () => {
   });
 
   test('rejects an unknown type with the valid list (TASK-006)', () => {
-    expect(() => findAgent(loadAgentDefinitions(), 'explore')).toThrow('Unknown subagent_type "explore". Available subagent types: generalPurpose, comment-sicko, poteto-agent.');
+    expect(() => findAgent(loadAgentDefinitions(), 'explore')).toThrow(
+      'Unknown subagent_type "explore". Available subagent types: generalPurpose, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.',
+    );
   });
 
   test('the pre-0.15.20 display name is no longer a type, as upstream renamed the agent id (TASK-006)', () => {

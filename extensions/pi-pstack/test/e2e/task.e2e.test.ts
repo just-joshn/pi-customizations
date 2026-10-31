@@ -223,7 +223,9 @@ describe('subagent types', () => {
 
   test('an unknown type fails with the valid list (TASK-006)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say X', subagent_type: 'explore' });
-    expect(result.text).toBe('Unknown subagent_type "explore". Available subagent types: generalPurpose, comment-sicko, poteto-agent.');
+    expect(result.text).toBe(
+      'Unknown subagent_type "explore". Available subagent types: generalPurpose, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.',
+    );
   });
 
   test('a subagent of a subagent cannot launch more (TASK-011)', async () => {
