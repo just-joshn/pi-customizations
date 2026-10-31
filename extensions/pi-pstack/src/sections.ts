@@ -90,6 +90,7 @@ export function hostSection(facts: HostFacts): string {
           "- Isolated workers (Task environment \"cloud\") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.",
         ]
       : []),
+    '- Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`): place imports at the top of a module, never inline in bodies or type positions unless a circular dependency forces it and is documented; in switches over discriminated unions or enums, use a `never` check in the default case so new variants fail at compile time until handled.',
   ].join('\n');
 }
 
