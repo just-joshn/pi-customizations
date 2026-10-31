@@ -1,14 +1,25 @@
-import type { ApiKeyAuth, AuthEvent, AuthResult, OAuthAuth, ProviderAuth, ProviderAuthInteraction, ProviderEnv } from '@earendil-works/pi-ai';
+import type { ApiKeyAuth, AuthResult, OAuthAuth, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
+import { createClaudeOAuth } from './oauth.ts';
 
-const CLAUDE_CODE_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
-const ANTHROPIC_OAUTH_TOKEN_ALIAS = 'ANTHROPIC_OAUTH_TOKEN';
-const AMBIENT_TOKEN_VARIABLES: readonly string[] = [...CLAUDE_CODE_TOKEN_VARIABLES, ANTHROPIC_OAUTH_TOKEN_ALIAS];
+export {
+  CLAUDE_AUTHORIZE_ORIGIN,
+  CLAUDE_AUTHORIZE_PATH,
+  CLAUDE_AUTHORIZE_QUERY_ORDER,
+  CLAUDE_AUTHORIZE_URL,
+  CLAUDE_COPY_CODE_REDIRECT_URI,
+  CLAUDE_LOGIN_SCOPES,
+  CLAUDE_OAUTH_CLIENT_ID,
+  CLAUDE_OAUTH_SCOPES,
+  CLAUDE_REFRESH_SCOPE,
+  CLAUDE_REFRESH_SCOPES,
+  CLAUDE_TOKEN_URL,
+  buildAuthorizeUrl,
+  createClaudeOAuth,
+  createPkcePair,
+} from './oauth.ts';
+
+const AMBIENT_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
 const OAUTH_ACCESS_TOKEN = /^sk-ant-oat01-[A-Za-z0-9_-]+$/;
-
-export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
-export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
-export const CLAUDE_OAUTH_SCOPES = 'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
-const CLAUDE_COPY_CODE_LOGIN = 'copy_code';
 
 function tokenAuth(value: string, source: string, env?: ProviderEnv): AuthResult | undefined {
   if (!value) return undefined;
@@ -31,60 +42,41 @@ const subscriptionToken: ApiKeyAuth = {
   },
 };
 
-export function rewriteClaudeAuthorizeUrl(url: string): string {
-  const parsed = new URL(url);
-  const next = new URL(`${CLAUDE_AUTHORIZE_ORIGIN}${CLAUDE_AUTHORIZE_PATH}`);
-  next.search = parsed.search;
-  next.searchParams.set('scope', CLAUDE_OAUTH_SCOPES);
-  return next.toString();
-}
-
-function withForcedPasteCodeLogin(interaction: ProviderAuthInteraction): ProviderAuthInteraction {
-  return {
-    signal: interaction.signal,
-    prompt: async (prompt) => {
-      // Answer only the method option Pi offers, so a selector for something else
-      // reaches the user instead of being answered with a stale id.
-      if (prompt.type === 'select' && prompt.options.some((option) => option.id === CLAUDE_COPY_CODE_LOGIN)) return CLAUDE_COPY_CODE_LOGIN;
-      return interaction.prompt(prompt);
-    },
-    notify: (event: AuthEvent) => {
-      if (event.type === 'auth_url') {
-        interaction.notify({ ...event, url: rewriteClaudeAuthorizeUrl(event.url) });
-        return;
-      }
-      interaction.notify(event);
-    },
+function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
+  return async (interaction, options) => {
+    interaction.signal.throwIfAborted();
+    try {
+      return await oauth.login(interaction, options);
+    } catch (error) {
+      interaction.signal.throwIfAborted();
+      if (error instanceof Error && error.message === 'Login cancelled') throw error;
+      throw new Error('Claude subscription login failed. Try /login again.');
+    }
   };
 }
 
-export function subscriptionAuth(oauth: OAuthAuth): ProviderAuth {
+function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
+  return async (credential, signal) => {
+    signal.throwIfAborted();
+    try {
+      return await oauth.refresh(credential, signal);
+    } catch {
+      signal.throwIfAborted();
+      throw new Error('Claude subscription token refresh failed. Retry or use /login to sign in again.');
+    }
+  };
+}
+
+/** Ambient setup-token auth plus the Pi-native Claude OAuth client. */
+export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth()): ProviderAuth {
   return {
     apiKey: subscriptionToken,
     oauth: {
       ...oauth,
       name: 'Claude subscription (Provider CLI)',
       loginLabel: 'Claude subscription (Provider CLI)',
-      login: async (interaction, options) => {
-        interaction.signal.throwIfAborted();
-        try {
-          return await oauth.login(withForcedPasteCodeLogin(interaction), options);
-        } catch (error) {
-          interaction.signal.throwIfAborted();
-          // Pi backs out of /login only when the error message is exactly this.
-          if (error instanceof Error && error.message === 'Login cancelled') throw error;
-          throw new Error('Claude subscription login failed. Try /login again.');
-        }
-      },
-      refresh: async (credential, signal) => {
-        signal.throwIfAborted();
-        try {
-          return await oauth.refresh(credential, signal);
-        } catch {
-          signal.throwIfAborted();
-          throw new Error('Claude subscription token refresh failed. Retry or use /login to sign in again.');
-        }
-      },
+      login: wrapLoginErrors(oauth),
+      refresh: wrapRefreshErrors(oauth),
     },
   };
 }

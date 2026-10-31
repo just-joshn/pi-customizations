@@ -1,0 +1,6 @@
+claude/carves/
+claude/carve-*.txt
+claude/pi-anthropic-oauth-builtin.js
+claude/string-offsets.json
+agy/fixtures/sink-port.txt
+agy/fixtures/agy-print-stderr.txt

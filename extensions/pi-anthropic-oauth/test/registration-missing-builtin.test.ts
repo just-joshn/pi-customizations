@@ -9,16 +9,18 @@ vi.mock(import('@earendil-works/pi-ai/providers/all'), async (importOriginal) =>
   return { ...actual, builtinProviders: vi.fn(actual.builtinProviders) };
 });
 
-const MISSING = "Pi's built-in anthropic provider with Claude Pro/Max OAuth is not available.";
+const MISSING = "Pi's built-in anthropic provider is not available.";
 
 test('loading fails when Pi has no anthropic provider', () => {
   vi.mocked(builtinProviders).mockReturnValueOnce([]);
   expect(() => captureProvider(extension)).toThrow(MISSING);
 });
 
-test('loading fails when the anthropic provider has no OAuth', () => {
+test('loading still works when the anthropic provider has no OAuth', () => {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   if (!anthropic) throw new Error('Pi has no anthropic provider to strip');
   vi.mocked(builtinProviders).mockReturnValueOnce([{ ...anthropic, auth: anthropic.auth.apiKey === undefined ? {} : { apiKey: anthropic.auth.apiKey } }]);
-  expect(() => captureProvider(extension)).toThrow(MISSING);
+  const provider = captureProvider(extension);
+  expect(provider.auth.oauth?.login).toBeTypeOf('function');
+  expect(provider.auth.oauth?.loginLabel).toBe('Claude subscription (Provider CLI)');
 });

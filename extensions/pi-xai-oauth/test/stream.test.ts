@@ -50,7 +50,7 @@ test('native streaming sends one request to the responses endpoint', ({ exchange
 
 test('native streaming preserves the Grok Build identity and bearer token', ({ exchange }) => {
   expect(exchange.requests[0]?.headers).toMatchObject({
-    'x-grok-client-version': '1.0.50',
+    'x-grok-client-version': '1.0.70',
     'x-xai-token-auth': 'xai-grok-cli',
     'x-grok-model-override': 'grok-4.7-build-fast',
     'x-grok-context-window': '256000',

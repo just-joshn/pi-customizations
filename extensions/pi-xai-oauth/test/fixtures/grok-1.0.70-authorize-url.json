@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-10-31T00:00:00Z",
+  "grokVersion": "1.0.70",
+  "grokCommit": "",
+  "command": "GROK_HOME=<empty temp dir> grok login --oauth against grok-1.0.70-macos-aarch64, killed after it printed its sign-in prompt",
+  "method": "The URL is read from the CLI's own stdout prompt in parity/oauth-rea-2026-10-31/grok/login-probe.txt. No browser was opened, no code was approved. Parameter set, order, client_id, scope, and referrer match the 1.0.50 capture; only redirect_uri port, code_challenge, state, and nonce differ per run.",
+  "authorizeUrl": "https://auth.x.ai/oauth2/authorize?response_type=code&client_id=b1a00492-073a-47ea-816f-4c329264a828&redirect_uri=http%3A%2F%2F127.0.0.1%3A57413%2Fcallback&scope=openid%20profile%20email%20offline_access%20grok-cli%3Aaccess%20api%3Aaccess%20conversations%3Aread%20conversations%3Awrite%20workspaces%3Aread%20workspaces%3Awrite&code_challenge=DxmLKvanNGaTCaRh-PUApaV3UTegjGyjbhi5C7fiVMk&code_challenge_method=S256&state=01a19422-0357-73a3-9fa9-87f09d1fb583&nonce=01a19422-0358-7801-b44f-e07215e3ff36&referrer=grok-build",
+  "queryParameterOrder": ["response_type", "client_id", "redirect_uri", "scope", "code_challenge", "code_challenge_method", "state", "nonce", "referrer"],
+  "stableParameters": {
+    "response_type": "code",
+    "client_id": "b1a00492-073a-47ea-816f-4c329264a828",
+    "scope": "openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write",
+    "code_challenge_method": "S256",
+    "referrer": "grok-build"
+  },
+  "perRunParameters": ["redirect_uri", "code_challenge", "state", "nonce"],
+  "redirectUriPattern": "http://127.0.0.1:{port}/callback",
+  "stateAndNonceShape": "UUID; both values in one run share a timestamp prefix",
+  "notes": "No access token, refresh token, email, or user id is recorded. The authorize URL is a request the CLI would open; it was never approved. The 1.0.50 fixture remains as historical reference."
+}

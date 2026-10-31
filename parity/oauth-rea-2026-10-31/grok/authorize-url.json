@@ -1,0 +1,46 @@
+{
+  "source": "grok login --oauth",
+  "grokVersion": "1.0.70",
+  "capturedAt": "2026-10-31",
+  "authorizeUrl": "https://auth.x.ai/oauth2/authorize?response_type=code&client_id=b1a00492-073a-47ea-816f-4c329264a828&redirect_uri=http%3A%2F%2F127.0.0.1%3A57413%2Fcallback&scope=openid%20profile%20email%20offline_access%20grok-cli%3Aaccess%20api%3Aaccess%20conversations%3Aread%20conversations%3Awrite%20workspaces%3Aread%20workspaces%3Awrite&code_challenge=DxmLKvanNGaTCaRh-PUApaV3UTegjGyjbhi5C7fiVMk&code_challenge_method=S256&state=01a19422-0357-73a3-9fa9-87f09d1fb583&nonce=01a19422-0358-7801-b44f-e07215e3ff36&referrer=grok-build",
+  "origin": "https://auth.x.ai",
+  "path": "/oauth2/authorize",
+  "queryPairs": [
+    [
+      "response_type",
+      "code"
+    ],
+    [
+      "client_id",
+      "b1a00492-073a-47ea-816f-4c329264a828"
+    ],
+    [
+      "redirect_uri",
+      "http://127.0.0.1:57413/callback"
+    ],
+    [
+      "scope",
+      "openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write"
+    ],
+    [
+      "code_challenge",
+      "DxmLKvanNGaTCaRh-PUApaV3UTegjGyjbhi5C7fiVMk"
+    ],
+    [
+      "code_challenge_method",
+      "S256"
+    ],
+    [
+      "state",
+      "01a19422-0357-73a3-9fa9-87f09d1fb583"
+    ],
+    [
+      "nonce",
+      "01a19422-0358-7801-b44f-e07215e3ff36"
+    ],
+    [
+      "referrer",
+      "grok-build"
+    ]
+  ]
+}

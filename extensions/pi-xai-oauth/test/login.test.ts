@@ -11,7 +11,7 @@ const TOKEN = {
   expires_in: 21600,
 };
 
-const CAPTURE = JSON.parse(readFileSync(new URL('./fixtures/grok-1.0.50-authorize-url.json', import.meta.url), 'utf8')) as {
+const CAPTURE = JSON.parse(readFileSync(new URL('./fixtures/grok-1.0.70-authorize-url.json', import.meta.url), 'utf8')) as {
   readonly authorizeUrl: string;
 };
 
@@ -53,7 +53,7 @@ function tokenFetch(handler: (url: string, body: URLSearchParams) => unknown) {
   return calls;
 }
 
-test('the authorize URL matches the captured Grok 1.0.50 request byte for byte', () => {
+test('the authorize URL matches the captured Grok 1.0.70 request byte for byte', () => {
   const captured = new URL(CAPTURE.authorizeUrl);
   const url = authorizeUrl({
     redirectUri: captured.searchParams.get('redirect_uri') ?? '',

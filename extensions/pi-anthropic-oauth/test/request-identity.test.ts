@@ -18,7 +18,7 @@ test('the billing block reaches the wire byte for byte', async ({ models, model,
   await collect(models.streamSimple(model, prompt));
   expect(systemBlocks(soleRequest(server).body)[0]).toStrictEqual({
     type: 'text',
-    text: 'x-anthropic-billing-header: cc_version=2.1.311.972; cc_entrypoint=sdk-cli;',
+    text: 'x-anthropic-billing-header: cc_version=2.1.312.0cd; cc_entrypoint=sdk-cli;',
   });
 });
 
@@ -28,7 +28,7 @@ test('the non-simple stream carries the billing block', async ({ models, model, 
 });
 
 test.for([
-  { header: 'user-agent', value: 'claude-cli/2.1.311 (external, sdk-cli)' },
+  { header: 'user-agent', value: 'claude-cli/2.1.312 (external, sdk-cli)' },
   { header: 'x-app', value: 'cli' },
   { header: 'anthropic-version', value: '2023-06-01' },
   { header: 'anthropic-beta', value: 'claude-code-20250219,oauth-2025-04-20' },

@@ -12,7 +12,7 @@ From this directory, start Pi:
 pi -e .
 ```
 
-Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`). Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
+Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login uses this package's Pi-native OAuth client. It opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), exchanges the code with an independent OAuth `state`, and refreshes with Claude's measured refresh scopes. Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
 
 To install the package, run `pi install npm:@justjoshn/pi-anthropic-oauth`, or `pi install` with this directory's path.
 
@@ -26,7 +26,7 @@ Start Pi with the provider selected:
 pi -e . --provider claude-subscription --model claude-sonnet-4-6
 ```
 
-When both `ANTHROPIC_AUTH_TOKEN` and `CLAUDE_CODE_OAUTH_TOKEN` are set, the auth token wins, matching Claude Code `2.1.311` print mode and `auth status`. The provider also accepts an OAuth-shaped `ANTHROPIC_OAUTH_TOKEN`, but only after those two. Claude Code's CLI does not consult that variable. API keys are rejected on these paths. Ambient tokens are not copied into Pi's credential store and cannot refresh themselves.
+When both `ANTHROPIC_AUTH_TOKEN` and `CLAUDE_CODE_OAUTH_TOKEN` are set, the auth token wins, matching Claude Code `2.1.312` print mode and `auth status`. The provider does not read `ANTHROPIC_OAUTH_TOKEN`. Claude Code's CLI does not consult that variable either. API keys are rejected on these paths. Ambient tokens are not copied into Pi's credential store and cannot refresh themselves.
 
 Pi's stored credential takes precedence over ambient tokens. Use Pi's `/logout` if you want to stop using the stored credential. A failed refresh retains that credential rather than silently switching accounts.
 
@@ -38,13 +38,13 @@ Use Pi's `models.json` for explicit header overrides. For example:
 {
   "providers": {
     "claude-subscription": {
-      "headers": { "user-agent": "claude-cli/2.1.311 (external, sdk-cli)" }
+      "headers": { "user-agent": "claude-cli/2.1.312 (external, sdk-cli)" }
     }
   }
 }
 ```
 
-The default identity matches the locally captured Claude Code `2.1.311` SDK request for `Reply LOCAL_OK.`. Additional synthetic text captures agree with the existing billing rule at tested length boundaries and for Unicode; this does not establish its private implementation or arbitrary-input parity. The target derives the billing fingerprint from the request's first user text. Header overrides do not change the pinned version used in that fingerprint.
+The default identity matches the locally captured Claude Code `2.1.312` SDK request for `Reply LOCAL_OK.`. Additional synthetic text captures agree with the existing billing rule at tested length boundaries and for Unicode; this does not establish its private implementation or arbitrary-input parity. The target derives the billing fingerprint from the first user text that is not duck-typed `isMeta` or `isCompactSummary`. Header overrides do not change the pinned version used in that fingerprint. Ambient auth is oauth-only (`ANTHROPIC_AUTH_TOKEN` then `CLAUDE_CODE_OAUTH_TOKEN`). API keys are rejected.
 
 Pi still controls thinking, output limits, tool execution, retries, compaction, model selection, and usage accounting. The package does not replace Pi's prompt or Bash-output policy.
 
@@ -88,7 +88,7 @@ Capture the installed Claude Code reference with Python 3:
 python3 scripts/capture-claude.py
 ```
 
-The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. These settings alone do not enforce network or credential isolation. Historical evidence captures for older fixtures additionally used an OS sandbox. The `2.1.311` capture used the isolated home and loopback gateway without that sandbox. The historical `2.1.288` and `2.1.296` fixtures are preserved. The script prints only the selected request fields in `test/fixtures/claude-code-2.1.311.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
+The capture runs Claude Code with an isolated home, safe mode, no tools, no session persistence, a synthetic OAuth token, and a local Messages endpoint. These settings alone do not enforce network or credential isolation. Historical evidence captures for older fixtures additionally used an OS sandbox. The `2.1.312` capture used the isolated home and loopback gateway without that sandbox. The historical `2.1.288`, `2.1.296`, and `2.1.311` fixtures are preserved. The script prints only the selected request fields in `test/fixtures/claude-code-2.1.312.json`. No auth headers, account identifiers, complete prompts, or credential contents appear in the output. `CLAUDE_BIN` can select a different Claude executable.
 
 When refreshing the identity, recapture the reference and update `src/identity.ts` and its literal regression vectors together. Do not import Claude Code internals or execute Claude Code from the extension factory.
 

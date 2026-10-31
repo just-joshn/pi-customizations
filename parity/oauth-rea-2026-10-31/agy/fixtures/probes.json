@@ -1,0 +1,41 @@
+{
+  "probes": [
+    {
+      "name": "client-metadata-get",
+      "request": {
+        "method": "GET",
+        "url": "https://antigravity.google/oauth/client-metadata.json"
+      },
+      "result": {
+        "http_status": 200,
+        "fixture": "client-metadata.json"
+      }
+    },
+    {
+      "name": "tokeninfo-no-token",
+      "request": {
+        "method": "GET",
+        "url": "https://www.googleapis.com/oauth2/v3/tokeninfo"
+      },
+      "result": {
+        "http_status": 400,
+        "body": {
+          "error_description": "Either access_token, id_token, or token_handle required"
+        }
+      }
+    },
+    {
+      "name": "agy-help",
+      "request": {
+        "command": "agy --help"
+      },
+      "result": {
+        "fixture_note": "see ../help.txt; no login subcommand listed in top-level flags"
+      }
+    }
+  ],
+  "forbidden_not_run": [
+    "full Google OAuth authorization_code exchange",
+    "authenticated Cloud Code RPCs with live bearer"
+  ]
+}

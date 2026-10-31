@@ -1,0 +1,87 @@
+{
+  "binary": {
+    "path": "/Users/josh-desktop/.local/bin/agy",
+    "sha256": "09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd"
+  },
+  "endpoints": [
+    "https://accounts.google.com/o/oauth2/auth",
+    "https://oauth2.googleapis.com/token",
+    "https://www.googleapis.com/oauth2/v2/userinfo",
+    "https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=%s",
+    "https://antigravity.google/oauth-callback",
+    "https://antigravity.google/oauth/client-metadata.json",
+    "https://auth.cloud.google/authorize",
+    "https://sts.googleapis.com/v1/oauthtoken",
+    "https://daily-cloudcode-pa.googleapis.com",
+    "https://cloudcode-pa.googleapis.com",
+    "https://autopush-cloudcode-pa.sandbox.googleapis.com",
+    "https://preprod-daily-cloudcode-pa.sandbox.googleapis.com"
+  ],
+  "client_ids": [
+    "<google-oauth-client-id> (consumer; see extensions/pi-antigravity-oauth/src/oauth.ts)",
+    "<google-oauth-client-id> (alternate; redacted)",
+    "<google-oauth-client-id> (alternate; redacted)"
+  ],
+  "client_secrets_public_installed_app": [
+    {
+      "value": "<google-oauth-client-secret>",
+      "note": "consumer secret matches extensions/pi-antigravity-oauth/src/oauth.ts; literal redacted for push protection"
+    },
+    {
+      "value": "<google-oauth-client-secret>",
+      "note": "adjacent to auth.cloud.google/authorize; redacted"
+    },
+    {
+      "value": "<google-oauth-client-secret>",
+      "note": "role unknown; redacted"
+    }
+  ],
+  "scopes_present": [
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/cclog",
+    "https://www.googleapis.com/auth/experimentsandconfigs",
+    "https://www.googleapis.com/auth/aicode",
+    "openid"
+  ],
+  "pkce": [
+    "code_challenge",
+    "code_challenge_method",
+    "code_verifier",
+    "S256"
+  ],
+  "grants": [
+    "authorization_code",
+    "refresh_token",
+    "urn:ietf:params:oauth:grant-type:device_code"
+  ],
+  "v1internal_auth_related": [
+    "/v1internal:loadCodeAssist",
+    "/v1internal:fetchAvailableModels",
+    "/v1internal:streamGenerateContent",
+    "/v1internal:fetchUserInfo",
+    "/v1internal:listCloudAICompanionProjects",
+    "/v1internal:onboardUser",
+    "/v1internal:retrieveUserQuota",
+    "/v1internal:retrieveUserQuotaSummary"
+  ],
+  "auth_provider_symbols": [
+    "codeassistclient.(*AntigravityHubAuthProvider).SetTokenInfo",
+    "codeassistclient.(*AntigravityHubAuthProvider).OAuthTokenInfo",
+    "codeassistclient.(*AntigravityHubAuthProvider).GetTokenSource",
+    "codeassistclient.(*AntigravityHubAuthProvider).SetProjectID",
+    "codeassistclient.(*AntigravityHubAuthProvider).SetWIFProvider"
+  ],
+  "ua_fragments": [
+    "aidev_client",
+    "os_type=%s",
+    "auth_method=%s",
+    "User-Agent"
+  ],
+  "cred_storage_fragments": [
+    "go-keyring-base64",
+    "zalando/go_keyring",
+    "ANTIGRAVITY_GEMINI_DIR/run/credentials-cache"
+  ]
+}

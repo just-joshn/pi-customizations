@@ -1,4 +1,5 @@
 import { expect } from 'vitest';
+import { CLAUDE_OAUTH_CLIENT_ID, CLAUDE_REFRESH_SCOPE } from '../src/auth.ts';
 import { ask } from './support/context.ts';
 import { OAUTH_ACCESS_TOKEN, OAUTH_REFRESH_TOKEN, oauthCredential, REFRESHED_ACCESS_TOKEN, REFRESHED_REFRESH_TOKEN } from './support/credentials.ts';
 import { test } from './support/fixtures.ts';
@@ -17,7 +18,18 @@ test('an unexpired credential is used as stored', async ({ models, model, server
 test('an expired credential refreshes against the token endpoint', async ({ models, model, credentials, tokenEndpoint }) => {
   await credentials.modify(model.provider, async () => oauthCredential({ expires: Date.now() + EXPIRED }));
   await collect(models.streamSimple(model, ask('hi')));
-  expect(tokenEndpoint.requests).toMatchObject([{ url: TOKEN_URL, body: { grant_type: 'refresh_token', refresh_token: OAUTH_REFRESH_TOKEN } }]);
+  expect(tokenEndpoint.requests).toMatchObject([
+    {
+      url: TOKEN_URL,
+      body: {
+        grant_type: 'refresh_token',
+        refresh_token: OAUTH_REFRESH_TOKEN,
+        client_id: CLAUDE_OAUTH_CLIENT_ID,
+        scope: CLAUDE_REFRESH_SCOPE,
+      },
+    },
+  ]);
+  expect(CLAUDE_REFRESH_SCOPE).not.toContain('org:create_api_key');
 });
 
 test('the request after a refresh uses the new access token', async ({ models, model, server, credentials, tokenEndpoint }) => {

@@ -1,0 +1,26 @@
+{
+  "note": "Capture fixture is Claude Code 2.1.311. Binary under RE is 2.1.312. UA/billing version strings in bunfs are 2.1.312. Headers shape below remains current except the version digits.",
+  "fixture_version": "2.1.311",
+  "binary_version": "2.1.312",
+  "headers": {
+    "user-agent": "claude-cli/2.1.311 (external, sdk-cli)",
+    "x-app": "cli",
+    "anthropic-version": "2023-06-01",
+    "anthropic-beta": "claude-code-20250219,oauth-2025-04-20,interleaved-thinking-2025-05-14,context-management-2025-06-27,thinking-token-count-2026-05-13,effort-2025-11-24,extended-cache-ttl-2025-04-11"
+  },
+  "billing": "x-anthropic-billing-header: cc_version=2.1.311.f5c; cc_entrypoint=sdk-cli;",
+  "bunfs_ua_template": "claude-cli/${VERSION} (external, ${entrypoint})",
+  "bunfs_ua_offset": 220841200,
+  "bunfs_billing_builder_offset": 221569559,
+  "bunfs_fingerprint_offset": 225802147,
+  "fingerprint": {
+    "salt": "59cf53e54c78",
+    "indices": [
+      4,
+      7,
+      20
+    ],
+    "algo": "sha256(salt + sample + VERSION).hex.slice(0,3)"
+  },
+  "evidence": "extensions/pi-anthropic-oauth/test/fixtures/claude-code-2.1.311.json plus bunfs carves"
+}
