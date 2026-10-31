@@ -20,4 +20,4 @@ You are a **Task subagent**. The parent agent already collected git output and c
 
 ## Parent orchestration
 
-Typical flow: in **one** message, run two `Task` calls in parallel — `subagent_type: "shell"` and `subagent_type: "explore"` — to collect `git diff <base>...HEAD` output and full contents of changed files (default base `main`). Then invoke this agent with `subagent_type: "thermo-nuclear-code-quality-review"` and a user prompt containing `### Git / diff output` and `### Changed file contents`.
+Typical flow: collect `git diff <base>...HEAD` (default base `main`) and the full contents of changed files with this chat's own tools (`bash`, `read`, `grep`), or with one `Task` `generalPurpose` / `poteto-agent` helper when the tree is large. Then invoke this agent with `subagent_type: "thermo-nuclear-code-quality-review"` and a user prompt containing `### Git / diff output` and `### Changed file contents`. Do not invent Task types such as `shell` or `explore`; only the types in `<pstack_subagents>` exist.

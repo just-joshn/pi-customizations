@@ -206,4 +206,18 @@ describe('shipped resources', () => {
     expect(hostTermLines('README.md', 'Theirs are in `licenses/cursor-team-kit.LICENSE`, and Cursor reads them.')).toHaveLength(1);
     expect(shippedFiles(() => true)).toContain('README.md');
   });
+
+  test('ships every team-kit soft-dep skill and agent as a literal inventory (RES-013)', () => {
+    const missing = TEAM_KIT.filter((name) => !existsSync(join(root, 'skills', name, 'SKILL.md')));
+    expect(missing).toEqual([]);
+    expect(existsSync(join(root, 'agents/ci-watcher.md'))).toBe(true);
+    expect(existsSync(join(root, 'agents/thermo-nuclear-code-quality-review.md'))).toBe(true);
+  });
+
+  test('thermo-nuclear agent does not name Task types Pi lacks (RES-014)', () => {
+    const text = readFileSync(join(root, 'agents/thermo-nuclear-code-quality-review.md'), 'utf8');
+    expect(text).not.toMatch(/subagent_type:\s*"shell"/);
+    expect(text).not.toMatch(/subagent_type:\s*"explore"/);
+    expect(text).toContain('generalPurpose');
+  });
 });

@@ -59,10 +59,21 @@ Intentionally **not** shipped: Claude Code harness mapping notes from upstream. 
 ## Parity predicate (this run)
 
 1. Every pstack 0.15.36 skill and agent exists under pi-pstack (Pi-adapted text allowed).
-2. Every team-kit 1.2.0 skill, agent, and rule exists as a Pi skill or agent (rules become skills).
+2. Every team-kit 1.2.0 skill, agent, and rule exists as a Pi skill or agent (rules become skills). Former always-apply rules are also injected into the host system-prompt section.
 3. Host features named in playbooks exist as Pi extension tools/commands.
 4. The package has no runtime dependency on the marketplace `pstack` plugin; RES-011 style checks hold.
-5. `bun run test` in `extensions/pi-pstack` is green.
+5. `bun run test` in `extensions/pi-pstack` is green, including RES-013 inventory asserts against the literal team-kit name set.
+
+## Accepted Pi mappings (not missing inventory)
+
+These are intentional Pi-native equivalents, recorded so a trail review does not treat them as open gaps:
+
+- `environment: "cloud"` → isolated local git worktree on `pstack/<agent id>` (same isolation contract for uncommitted parent state).
+- Sticky host mode attachment → `/mode <skill>`.
+- Always-apply team-kit rules → host section line plus `/no-inline-imports` and `/typescript-exhaustive-switch` skills.
+- Hosted automations editor → `subscribe_timer` / `subscribe_webhook` in a long-lived Pi session.
+- Built-in PR composer → `gh` / `origin` as the playbooks already name.
+- Image tool → Pi codemode `generateImages` or Mermaid when unset.
 
 ## REA coverage notes
 
