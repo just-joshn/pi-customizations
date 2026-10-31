@@ -32,17 +32,13 @@ Token endpoint uses `application/x-www-form-urlencoded` (binary literal).
 
 ### User-Agent
 
-Binary contains `aidev_client`, format pieces `os_type=%s`, `auth_method=%s`, and `User-Agent`. No contiguous literal matching Pi's full string was found.
+Binary contains `aidev_client`, format pieces `os_type=%s`, `auth_method=%s`, and `User-Agent`. No contiguous literal matching the full string was found in the Mach-O. Live sink capture supplies the wire value.
 
-Pi currently sends.
+Measured agy 1.4.12 (sha256 `34423fc9…`) and Pi both send.
 
-`antigravity/cli/1.3.1 (aidev_client; os_type=<go-os>; arch=<go-arch>; cl=994719654; auth_method=consumer)`
+`antigravity/cli/1.4.12 (aidev_client; os_type=<go-os>; arch=<go-arch>; cl=1010700967; auth_method=consumer)`
 
-Gaps versus binary evidence.
-
-- `1.3.1` and `cl=994719654` are absent as literals in this agy build. Changelog head is `1.4.12`. Label. Pi UA version/cl likely stale relative to this binary.
-- Keychain `auth_method` is `consumer`, matching Pi's `auth_method=consumer`.
-- Exact runtime format remains INCONCLUSIVE without a captured request.
+Evidence. `fixtures/captured-user-agent-1.4.12.json`. Keychain `auth_method` is `consumer`, matching the template.
 
 ### Authorization
 

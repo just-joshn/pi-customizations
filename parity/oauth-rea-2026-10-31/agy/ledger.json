@@ -2,7 +2,7 @@
   "subject": "agy-oauth",
   "binary": {
     "path": "/Users/josh-desktop/.local/bin/agy",
-    "sha256": "09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd",
+    "sha256": "34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3",
     "format": "mach-o",
     "arch": "arm64"
   },
@@ -140,7 +140,7 @@
       "id": "deps.user_agent",
       "requirement": "User-Agent matches antigravity/cli/<ver> (aidev_client; os_type=…; arch=…; cl=…; auth_method=consumer)",
       "status": "VERIFIED",
-      "evidence": ["fixtures/captured-user-agent.json", "antigravity/cli/1.4.11 (aidev_client; os_type=darwin; arch=arm64; cl=1010154931; auth_method=consumer)", "pi userAgent()"]
+      "evidence": ["fixtures/captured-user-agent-1.4.12.json", "antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)", "pi userAgent()"]
     },
     {
       "id": "deps.catalog_auth",
@@ -188,8 +188,8 @@
       "id": "parity.user_agent_version",
       "requirement": "Pi User-Agent version/cl matches this agy build",
       "status": "VERIFIED",
-      "evidence": ["fixtures/captured-user-agent.json UA 1.4.11 cl=1010154931", "agy --version 1.4.11", "pi cloudcode.ts userAgent 1.4.11 cl=1010154931"],
-      "notes": "Pinned to measured live UA. Changelog head may say 1.4.12."
+      "evidence": ["fixtures/captured-user-agent-1.4.12.json UA 1.4.12 cl=1010700967", "binary sha256 34423fc9…", "pi cloudcode.ts userAgent 1.4.12 cl=1010700967"],
+      "notes": "Pinned to measured live sink UA from agy 1.4.12."
     },
     {
       "id": "parity.no_runtime_agy",

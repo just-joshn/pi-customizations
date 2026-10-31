@@ -1,6 +1,6 @@
 # Ledger. agy OAuth parity
 
-Binary. `/Users/josh-desktop/.local/bin/agy` sha256 `09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd`.
+Binary. `/Users/josh-desktop/.local/bin/agy` sha256 `34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3`.
 
 Compared to. `extensions/pi-antigravity-oauth`.
 
@@ -37,7 +37,7 @@ Machine-readable rows. `ledger.json`.
 | oauth.ide_type_antigravity | VERIFIED | loadCodeAssist body ideType ANTIGRAVITY |
 | oauth.sts_wif | VERIFIED | STS/WIF present, unused by consumer keychain |
 | deps.bearer_header | VERIFIED | Bearer access token |
-| deps.user_agent | VERIFIED | Live UA antigravity/cli/1.4.11 cl=1010154931 |
+| deps.user_agent | VERIFIED | Live UA antigravity/cli/1.4.12 cl=1010700967 |
 | deps.catalog_auth | VERIFIED | fetchAvailableModels |
 | deps.stream_auth | VERIFIED | streamGenerateContent |
 | deps.cloud_code_url | VERIFIED | daily-cloudcode-pa + CLOUD_CODE_URL |
@@ -45,7 +45,7 @@ Machine-readable rows. `ledger.json`.
 | deps.cred_no_project_in_keychain | VERIFIED | No projectId in keychain blob |
 | deps.claude_on_disk | NOT APPLICABLE | Claude credential files are not an Antigravity oauth dependency |
 | parity.pi_matches_consumer_oauth | VERIFIED | Pi constants match consumer oauth |
-| parity.user_agent_version | VERIFIED | Pi UA 1.4.11 / cl=1010154931 matches measured agy |
+| parity.user_agent_version | VERIFIED | Pi UA 1.4.12 / cl=1010700967 matches measured agy |
 | parity.no_runtime_agy | VERIFIED | Pi login is self-contained |
 
 ## Top gaps
