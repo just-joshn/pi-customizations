@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-/**
- * Gate for tip ↔ pi-pstack parity inventory.
- *
- * Tip skills root resolution (first hit wins):
- *   1. PSTACK_TIP_SKILLS — absolute path to a tip skills directory
- *   2. TIP_SKILLS_CANDIDATES below
- *   3. Newest hash under ~/.cursor/plugins/cache/cursor-public/pstack
- */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,8 +7,92 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const PI_PSTACK = join(REPO_ROOT, 'extensions/pi-pstack');
 const PI_SKILLS = join(PI_PSTACK, 'skills');
 
+const PSTACK_SKILLS = [
+  'architect',
+  'arena',
+  'automate-me',
+  'benchmark-checklist',
+  'blast-radius',
+  'bro',
+  'correct',
+  'create-formal-verification-skill',
+  'create-verification-skill',
+  'figure-it-out',
+  'how',
+  'in-your-own-words',
+  'interrogate',
+  'ketchup',
+  'ketchup-video',
+  'maintain-formal-verification-skill',
+  'maintain-verification-skill',
+  'make-bot-ui',
+  'no-comments',
+  'poteto-help',
+  'poteto-mode',
+  'principle-attack-the-premise',
+  'principle-boundary-discipline',
+  'principle-build-the-lever',
+  'principle-encode-lessons-in-structure',
+  'principle-exhaust-the-design-space',
+  'principle-experience-first',
+  'principle-explain-the-number',
+  'principle-fix-root-causes',
+  'principle-foundational-thinking',
+  'principle-guard-the-context-window',
+  'principle-laziness-protocol',
+  'principle-make-operations-idempotent',
+  'principle-migrate-callers-then-delete-legacy-apis',
+  'principle-minimize-reader-load',
+  'principle-model-the-domain',
+  'principle-never-block-on-the-human',
+  'principle-outcome-oriented-execution',
+  'principle-prove-it-works',
+  'principle-redesign-from-first-principles',
+  'principle-separate-before-serializing-shared-state',
+  'principle-sequence-verifiable-units',
+  'principle-subtract-before-you-add',
+  'principle-test-behavior-not-implementation',
+  'principle-type-system-discipline',
+  'recall',
+  'reflect',
+  'setup-pstack',
+  'sharpen',
+  'show-me-your-work',
+  'statechart',
+  'swarm',
+  'tdd',
+  'teach',
+  'technical-writing',
+  'typescript-best-practices',
+  'unslop',
+  'why',
+];
+
+const TEAM_KIT_SKILLS = [
+  'check-compiler-errors',
+  'control-cli',
+  'control-ui',
+  'deslop',
+  'fix-ci',
+  'fix-merge-conflicts',
+  'get-pr-comments',
+  'loop-on-ci',
+  'make-pr-easy-to-review',
+  'new-branch-and-pr',
+  'no-inline-imports',
+  'pr-review-canvas',
+  'review-and-ship',
+  'run-smoke-tests',
+  'thermo-nuclear-code-quality-review',
+  'typescript-exhaustive-switch',
+  'verify-this',
+  'weekly-review',
+  'what-did-i-get-done',
+  'workflow-from-chats',
+];
+
 const SOFT_DEPS = ['deslop', 'control-cli', 'control-ui', 'create-skill', 'no-comments', 'benchmark-checklist'];
-const FORBIDDEN_UPSTREAM = ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'docs/harness'];
+const FORBIDDEN_UPSTREAM = ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'scripts/patches.json', 'docs/harness'];
 const HOST_TOOL_FILES = {
   Task: 'src/task/tool.ts',
   TodoWrite: 'src/todo.ts',
@@ -30,28 +106,11 @@ const HOST_TOOL_FILES = {
 const CREATE_SKILL_MIN_BYTES = 12 * 1024;
 const DURABLE_ARTIFACTS = ['src/subscriptions/durable-store.ts', 'src/subscriptions/supervisor.ts', 'src/subscriptions/supervisor-main.ts', 'src/subscriptions/ensure-supervisor.ts', 'bin/pstack-routines-supervisor'];
 
-const TIP_SKILLS_CANDIDATES = ['/tmp/cursor-plugins-rea/pstack/skills', '/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills'];
-
 function skillDirs(skillsRoot) {
   return readdirSync(skillsRoot, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .toSorted();
-}
-
-function resolveTipSkillsRoot() {
-  const fromEnv = process.env['PSTACK_TIP_SKILLS'];
-  if (typeof fromEnv === 'string' && fromEnv !== '' && existsSync(fromEnv)) return fromEnv;
-  for (const candidate of TIP_SKILLS_CANDIDATES) {
-    if (existsSync(candidate)) return candidate;
-  }
-  const cacheRoot = '/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack';
-  if (!existsSync(cacheRoot)) return null;
-  for (const hash of readdirSync(cacheRoot).toSorted()) {
-    const skills = join(cacheRoot, hash, 'skills');
-    if (existsSync(skills)) return skills;
-  }
-  return null;
 }
 
 function check(name, ok, detail) {
@@ -62,25 +121,22 @@ function runChecks() {
   const failures = [];
   const checks = [];
 
-  const tipRoot = resolveTipSkillsRoot();
-  if (tipRoot === null) {
-    const result = check('tip-skills-inventory', false, 'no tip skills root found under PSTACK_TIP_SKILLS, /tmp/cursor-plugins-rea, or installed cache');
-    checks.push(result);
-    failures.push(result.name);
-  } else {
-    const tipSkills = skillDirs(tipRoot);
-    const missing = tipSkills.filter((name) => !existsSync(join(PI_SKILLS, name)));
+  {
+    const expected = [...PSTACK_SKILLS, ...TEAM_KIT_SKILLS, 'create-skill'].toSorted();
+    const present = skillDirs(PI_SKILLS);
+    const missing = expected.filter((name) => !existsSync(join(PI_SKILLS, name, 'SKILL.md')));
+    const ok = missing.length === 0 && present.length === expected.length;
     const result = check(
-      'tip-skills-inventory',
-      missing.length === 0,
-      missing.length === 0 ? `${tipSkills.length} tip skills present under extensions/pi-pstack/skills (source: ${tipRoot})` : `missing under extensions/pi-pstack/skills: ${missing.join(', ')} (source: ${tipRoot})`,
+      'standalone-skills-inventory',
+      ok,
+      ok ? `${present.length} self-contained skills present under extensions/pi-pstack/skills (58 pstack + 20 team-kit + create-skill)` : `missing or mismatched skills: ${missing.join(', ')}`,
     );
     checks.push(result);
     if (!result.ok) failures.push(result.name);
   }
 
   {
-    const missing = SOFT_DEPS.filter((name) => !existsSync(join(PI_SKILLS, name)));
+    const missing = SOFT_DEPS.filter((name) => !existsSync(join(PI_SKILLS, name, 'SKILL.md')));
     const result = check('soft-deps-present', missing.length === 0, missing.length === 0 ? `all soft-deps present: ${SOFT_DEPS.join(', ')}` : `missing soft-deps: ${missing.join(', ')}`);
     checks.push(result);
     if (!result.ok) failures.push(result.name);
@@ -88,7 +144,19 @@ function runChecks() {
 
   {
     const present = FORBIDDEN_UPSTREAM.filter((rel) => existsSync(join(PI_PSTACK, rel)));
-    const result = check('no-upstream-sync-machinery', present.length === 0, present.length === 0 ? `absent: ${FORBIDDEN_UPSTREAM.join(', ')}` : `forbidden paths still present: ${present.join(', ')}`);
+    const manifests = ['package.json', 'skills/poteto-mode/scripts/package.json', 'skills/statechart/scripts/package.json'];
+    const badDeps = [];
+    for (const rel of manifests) {
+      const pkg = JSON.parse(readFileSync(join(PI_PSTACK, rel), 'utf8'));
+      if (typeof pkg.name === 'string' && pkg.name.includes('cursor')) badDeps.push(`${rel} name ${pkg.name}`);
+      for (const field of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+        for (const dep of Object.keys(pkg[field] ?? {})) {
+          if (dep === 'pstack' || dep.includes('cursor')) badDeps.push(`${rel} ${field}.${dep}`);
+        }
+      }
+    }
+    const ok = present.length === 0 && badDeps.length === 0;
+    const result = check('zero-cursor-pstack-dependencies', ok, ok ? `0 Cursor pstack dependencies across ${manifests.join(', ')}; absent: ${FORBIDDEN_UPSTREAM.join(', ')}` : `violations: ${[...present, ...badDeps].join(', ')}`);
     checks.push(result);
     if (!result.ok) failures.push(result.name);
   }

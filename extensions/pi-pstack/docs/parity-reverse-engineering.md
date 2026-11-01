@@ -2,7 +2,7 @@
 
 ## Goal
 
-Reconstruct the software architecture of `pstack` `0.15.36` and all of its dependencies with the REA MCP server, then map every upstream capability and dependency to Pi's native extension mechanisms in `pi-pstack`.
+Reconstruct the software architecture of `pstack` `0.15.36` and all of its dependencies with the REA MCP server, then map every upstream capability and dependency to Pi's native extension mechanisms in `pi-pstack` with zero dependencies on the upstream `pstack` plugin.
 
 ## Sources and REA evidence ledger
 
@@ -83,8 +83,9 @@ REA analysis of `pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2ab
 
 1. Every `pstack` `0.15.36` skill (58) and agent (2) exists under `pi-pstack`.
 2. Every `team-kit` `1.2.0` skill (18), agent (2), and rule (2, as skills plus always-applied host prompt rules) plus `create-skill` (1) exists under `pi-pstack` (79 total skills, 4 agent files).
-3. Every host mechanism named in playbooks runs on Pi's native extension APIs (`ExtensionAPI`, `SessionManager`, `stripFrontmatter`, `detectSupportedImageMimeTypeFromFile`, `truncateHead`, `createBashTool`, `registerMessageRenderer`, `registerTool`, `registerCommand`).
-4. `bun run typecheck`, `bun run test`, `node parity/scripts/check-parity-predicate.mjs`, and `node scripts/check-pi-mechanisms.mjs` pass.
+3. `pi-pstack` has zero runtime, manifest, script, or verification-gate dependencies on an upstream `pstack` plugin checkout or cache (`RES-011` in `test/resources.test.ts` and `zero-cursor-pstack-dependencies` in `parity/scripts/check-parity-predicate.mjs`).
+4. Every host mechanism named in playbooks runs on Pi's native extension APIs (`ExtensionAPI`, `parseSessionEntries`, `SessionManager`, `stripFrontmatter`, `detectSupportedImageMimeTypeFromFile`, `truncateHead`, `createBashTool`, `registerMessageRenderer`, `registerTool`, `registerCommand`).
+5. `bun run typecheck`, `bun run test`, `node parity/scripts/check-parity-predicate.mjs`, and `node scripts/check-pi-mechanisms.mjs` pass.
 
 ## REA coverage notes
 

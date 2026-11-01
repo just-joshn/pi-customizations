@@ -2,7 +2,7 @@
 
 ## Goal
 
-Reconstruct the software architecture of the upstream Cursor plugin `pstack` (`https://github.com/cursor/plugins/tree/main/pstack`, version `0.15.36`) and all of its dependencies using the REA MCP server, then map every upstream capability and dependency to Pi's native extension mechanisms in `extensions/pi-pstack`.
+Reconstruct the software architecture of the upstream Cursor plugin `pstack` (`https://github.com/cursor/plugins/tree/main/pstack`, version `0.15.36`) and all of its dependencies using the REA MCP server, then map every upstream capability and dependency to Pi's native extension mechanisms in `extensions/pi-pstack` with zero runtime, package, or verification dependencies on the Cursor `pstack` plugin.
 
 ## Sources and REA evidence ledger
 
