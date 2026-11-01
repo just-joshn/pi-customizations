@@ -88,6 +88,8 @@ The tests use native Pi providers, authentication, and streams against local HTT
 
 These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.4.0` test dependency. The `1.4.0` receipts and the historical `1.0.0`, `1.0.1`, and `1.1.0` receipts live under `docs/verification/`.
 
+A live Anthropic authorize→exchange probe exists as `bun run live:exchange`. It stays off in CI. It runs only when `parity/oauth-rea-2026-10-31/claude/gates.md` marks `ANTH-LIVE-021` as `approved` and `PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE=1`. A successful run writes a redacted receipt under `parity/oauth-rea-2026-10-31/claude/receipts/`.
+
 Capture the installed Claude Code reference with Python 3:
 
 ```bash

@@ -24,7 +24,7 @@ Status vocabulary. **VERIFIED** = measured Claude fact matched by Pi behavior or
 | OAUTH-013..015 | VERIFIED | Streaming / request paths | No oauth protocol delta |
 | OAUTH-016..019 | OUT OF BAND | Context / prompt / catalog | Outside oauth+deps |
 | OAUTH-020 | UNIT | Keychain + `.credentials.json` `claudeAiOauth` layout | Unit `claude-credentials-import`: one-shot/opt-in reader. Prefer keychain on darwin (`security find-generic-password -s HW() -a iO()`), else plaintext `join(dN(),".credentials.json")`. Map fields into Pi `auth.json` oauth credential. Never read Claude binary. Pi store remains authoritative after import |
-| OAUTH-021 | UNIT (gated) | Live exchange acceptance | Unit `oauth-live-exchange-gate`: operator-approved probe against Anthropic using existing stub tests as CI; live run writes redacted receipt under `parity/` only behind gates.md |
+| OAUTH-021 | UNIT (gated, lever shipped) | Live exchange acceptance | Gate + env probe shipped (`src/oauth-live-gate.ts`, `scripts/oauth-live-exchange.ts`, `claude/gates.md`). CI stays on stubs. Live Anthropic HTTP 200 receipt still needs operator `status: approved` + `PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE=1`. |
 | OAUTH-022 | VERIFIED | Package lifecycle | N/A |
 | OAUTH-023 | UNIT | Non-macOS storage | Same import unit: plaintext path is cross-platform; wincred/libsecret are optional backends mirroring Claude when those bunfs paths are carved later |
 | OAUTH-024 | OUT OF BAND | Telemetry / plugins marketplace | Keep out |

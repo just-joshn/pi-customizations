@@ -40,7 +40,8 @@
     "prove:paths": "node --experimental-strip-types scripts/prove-request-paths.ts",
     "prove:context-guard": "node --experimental-strip-types scripts/prove-context-guard.ts --expect green",
     "prove:native": "node --experimental-strip-types scripts/prove-native.ts",
-    "prove": "bun run prove:paths && bun run prove:context-guard && bun run prove:native"
+    "prove": "bun run prove:paths && bun run prove:context-guard && bun run prove:native",
+    "live:exchange": "node --experimental-strip-types scripts/oauth-live-exchange.ts"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

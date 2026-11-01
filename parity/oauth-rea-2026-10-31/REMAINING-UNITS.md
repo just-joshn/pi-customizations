@@ -47,9 +47,9 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 
 1. **ID.** ANTH-LIVE-021 (OAUTH-021)
 2. **Observed CLI fact.** Live exchange was never completed in the RE brief (`claude/decisions.tsv` verify row INCONCLUSIVE).
-3. **Current Pi state.** Stub token exchange covered in `test/oauth-authorize-url.test.ts`, `test/oauth-loopback.test.ts`, `test/login-method.test.ts`. No operator-gated live Anthropic receipt.
-4. **Smallest Pi-native change.** Add gated live probe (env flag + `gates.md`) that runs authorize→exchange against Anthropic once, writes a redacted receipt under `parity/`, keeps CI on stubs.
-5. **Verification.** `bun run test` stub path always green. Live script only behind gate; assert HTTP 200 token JSON shape matches `claude/fixtures/token-endpoints-2.1.312.json` fields.
+3. **Current Pi state.** Stub token exchange covered in package tests. Gated live lever shipped: `extensions/pi-anthropic-oauth/src/oauth-live-gate.ts`, `scripts/oauth-live-exchange.ts`, `claude/gates.md` (status parked), shape assert vs `token-endpoints-2.1.312.json` `authorization_code_response_fields`, example receipt under `claude/receipts/`. No live Anthropic HTTP 200 receipt yet.
+4. **Smallest Pi-native change.** Done for the gate lever. Operator still sets `status: approved` + `PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE=1`, runs `bun run live:exchange`, then parks the gate again.
+5. **Verification.** `bun run test` stub path green (`test/oauth-live-gate.test.ts`). Live script refuses without both gates. Live acceptance stays INCONCLUSIVE until an operator receipt lands.
 6. **Wire impact.** med (acceptance of the grant path)
 
 #### ANTH-ERR-011
