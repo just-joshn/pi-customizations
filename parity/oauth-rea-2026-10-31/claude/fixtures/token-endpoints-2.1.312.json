@@ -15,6 +15,11 @@
     "grant_type": "authorization_code",
     "offset": 220545746
   },
+  "authorization_code_response_fields": {
+    "required": ["access_token", "expires_in", "refresh_token"],
+    "optional": ["refresh_token_expires_in"],
+    "note": "login authorization_code grant; Pi credentialFrom requires refresh_token"
+  },
   "refresh_token_grant": {
     "content_type": "application/json",
     "timeout_ms": 30000,

@@ -183,9 +183,16 @@ interface TokenResponse {
   access_token: string;
   refresh_token?: string;
   expires_in: number;
+  refresh_token_expires_in?: number;
 }
 
-async function postToken(body: Record<string, string>, signal: AbortSignal): Promise<TokenResponse> {
+type PostedToken = {
+  status: number;
+  data: TokenResponse;
+  body: unknown;
+};
+
+async function postToken(body: Record<string, string>, signal: AbortSignal): Promise<PostedToken> {
   const response = await fetch(CLAUDE_TOKEN_URL, {
     method: 'POST',
     headers: {
@@ -199,16 +206,17 @@ async function postToken(body: Record<string, string>, signal: AbortSignal): Pro
   if (!response.ok) {
     throw new Error(tokenEndpointHttpError(body['grant_type'] ?? '', response.status, response.statusText));
   }
-  let data: Partial<TokenResponse>;
+  let parsed: unknown;
   try {
-    data = JSON.parse(text) as Partial<TokenResponse>;
+    parsed = JSON.parse(text) as unknown;
   } catch {
     throw new Error(`Token endpoint returned invalid JSON. url=${CLAUDE_TOKEN_URL}`);
   }
+  const data = parsed as Partial<TokenResponse>;
   if (typeof data.access_token !== 'string' || typeof data.expires_in !== 'number') {
     throw new Error('Token endpoint response lacks an access token');
   }
-  return data as TokenResponse;
+  return { status: response.status, data: data as TokenResponse, body: parsed };
 }
 
 function expiresAt(expiresIn: number): number {
@@ -226,11 +234,17 @@ function credentialFrom(token: TokenResponse, refreshFallback?: string): OAuthCr
   };
 }
 
-async function exchangeAuthorizationCode(
+export type AuthorizationCodeExchangeResult = {
+  credential: OAuthCredential;
+  httpStatus: number;
+  body: unknown;
+};
+
+async function postAuthorizationCode(
   input: { code: string; state: string; redirectUri: string; verifier: string },
   signal: AbortSignal,
-): Promise<OAuthCredential> {
-  const token = await postToken(
+): Promise<PostedToken> {
+  return postToken(
     {
       grant_type: 'authorization_code',
       code: input.code,
@@ -241,7 +255,26 @@ async function exchangeAuthorizationCode(
     },
     signal,
   );
-  return credentialFrom(token);
+}
+
+export async function exchangeAuthorizationCode(
+  input: { code: string; state: string; redirectUri: string; verifier: string },
+  signal: AbortSignal,
+): Promise<OAuthCredential> {
+  const posted = await postAuthorizationCode(input, signal);
+  return credentialFrom(posted.data);
+}
+
+export async function exchangeAuthorizationCodeResult(
+  input: { code: string; state: string; redirectUri: string; verifier: string },
+  signal: AbortSignal,
+): Promise<AuthorizationCodeExchangeResult> {
+  const posted = await postAuthorizationCode(input, signal);
+  return {
+    credential: credentialFrom(posted.data),
+    httpStatus: posted.status,
+    body: posted.body,
+  };
 }
 
 async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<ClaudeLoginMethod> {
@@ -441,7 +474,7 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
     },
     refresh: async (credential, signal) => {
       signal.throwIfAborted();
-      const token = await postToken(
+      const posted = await postToken(
         {
           grant_type: 'refresh_token',
           refresh_token: credential.refresh,
@@ -450,7 +483,7 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
         },
         signal,
       );
-      return credentialFrom(token, credential.refresh);
+      return credentialFrom(posted.data, credential.refresh);
     },
     async toAuth(credential) {
       return { apiKey: credential.access };

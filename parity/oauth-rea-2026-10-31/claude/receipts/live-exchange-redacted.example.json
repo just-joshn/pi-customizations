@@ -1,0 +1,28 @@
+{
+  "unit": "ANTH-LIVE-021",
+  "probed_at": "2026-11-01T00:00:00.000Z",
+  "token_url": "https://platform.claude.com/v1/oauth/token",
+  "http_status": 200,
+  "grant_type": "authorization_code",
+  "response": {
+    "keys": [
+      "access_token",
+      "expires_in",
+      "refresh_token",
+      "refresh_token_expires_in"
+    ],
+    "access_token": {
+      "present": true,
+      "length": 21,
+      "redacted": "[redacted]"
+    },
+    "expires_in": 3600,
+    "refresh_token": {
+      "present": true,
+      "length": 21,
+      "redacted": "[redacted]"
+    },
+    "refresh_token_expires_in": 2592000
+  },
+  "shape_ok": true
+}
