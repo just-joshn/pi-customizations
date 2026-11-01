@@ -7,6 +7,7 @@ src/stream.ts
 src/cloudcode.ts
 src/openapi-parameters.ts
 src/oauth.ts
+src/keychain.ts
 src/pi-ai/constrained-sampling.ts
 src/pi-ai/estimate.ts
 src/pi-ai/genai.ts

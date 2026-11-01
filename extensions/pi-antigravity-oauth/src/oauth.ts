@@ -2,8 +2,17 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { CLOUD_CODE_URL, encodeApiKey, errorText, postCloudCode } from './cloudcode.ts';
+import { readAgyKeychainPassword, tokensFromGoKeyringPassword, type ImportedAgyTokens } from './keychain.ts';
 
 export type AntigravityCredential = OAuthCredential & { projectId: string; email?: string | undefined };
+
+export const LOGIN_BROWSER = 'browser';
+export const LOGIN_KEYCHAIN = 'keychain';
+
+export interface AntigravityOAuthOptions {
+  offerKeychainImport?: boolean;
+  readKeychainPassword?: () => Promise<string>;
+}
 
 export interface OAuthEndpoints {
   authUrl: string;
@@ -100,7 +109,7 @@ export function projectFromLoadCodeAssist(data: unknown): string | undefined {
   return typeof id === 'string' && id ? id : undefined;
 }
 
-async function discoverProject(endpoint: string, token: string, signal: AbortSignal): Promise<string> {
+export async function discoverProject(endpoint: string, token: string, signal: AbortSignal): Promise<string> {
   const load = () => postCloudCode(endpoint, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY, signal);
   let project = projectFromLoadCodeAssist(await load());
   if (project) return project;
@@ -108,6 +117,28 @@ async function discoverProject(endpoint: string, token: string, signal: AbortSig
   project = projectFromLoadCodeAssist(await load());
   if (!project) throw new Error('Cloud Code named no Antigravity project for this account after onboarding.');
   return project;
+}
+
+export function credentialFromImportedTokens(tokens: ImportedAgyTokens, projectId: string): AntigravityCredential {
+  return {
+    type: 'oauth',
+    access: tokens.access,
+    refresh: tokens.refresh,
+    expires: tokens.expires,
+    projectId,
+    ...(tokens.email && { email: tokens.email }),
+  };
+}
+
+export async function importAgyKeychainCredential(
+  endpoints: Pick<OAuthEndpoints, 'cloudCode'>,
+  password: string,
+  signal: AbortSignal,
+  now = Date.now(),
+): Promise<AntigravityCredential> {
+  const tokens = tokensFromGoKeyringPassword(password, now);
+  const projectId = await discoverProject(endpoints.cloudCode, tokens.access, signal);
+  return credentialFromImportedTokens(tokens, projectId);
 }
 
 function authorizationUrl(authUrl: string, challenge: string, state: string): string {
@@ -151,12 +182,37 @@ async function authorize(endpoints: OAuthEndpoints, interaction: ProviderAuthInt
   };
 }
 
-export function createAntigravityOAuth(endpoints: OAuthEndpoints = GOOGLE_OAUTH): OAuthAuth {
+async function loginWithMethod(endpoints: OAuthEndpoints, interaction: ProviderAuthInteraction, options: AntigravityOAuthOptions): Promise<AntigravityCredential> {
+  if (options.offerKeychainImport) {
+    const method = await interaction.prompt({
+      type: 'select',
+      message: 'How do you want to sign in to Google Antigravity?',
+      options: [
+        { id: LOGIN_BROWSER, label: 'Sign in with Google in the browser', description: 'Paste the authorization code Antigravity shows' },
+        {
+          id: LOGIN_KEYCHAIN,
+          label: 'Import from the Antigravity CLI keychain',
+          description: 'Reuse the gemini/antigravity item already on this Mac',
+        },
+      ],
+    });
+    if (method === LOGIN_KEYCHAIN) {
+      interaction.notify({ type: 'progress', message: 'Reading the Antigravity keychain credential' });
+      const password = await (options.readKeychainPassword ?? readAgyKeychainPassword)();
+      interaction.notify({ type: 'progress', message: 'Finding your Antigravity project' });
+      return importAgyKeychainCredential(endpoints, password, interaction.signal);
+    }
+    if (method !== LOGIN_BROWSER) throw new Error(`Unknown Google Antigravity login method: ${method}`);
+  }
+  return authorize(endpoints, interaction);
+}
+
+export function createAntigravityOAuth(endpoints: OAuthEndpoints = GOOGLE_OAUTH, options: AntigravityOAuthOptions = {}): OAuthAuth {
   return {
     name: 'Google Antigravity',
     loginLabel: 'Sign in with Google (Antigravity)',
     isSubscription: true,
-    login: (interaction) => authorize(endpoints, interaction),
+    login: (interaction) => loginWithMethod(endpoints, interaction, options),
     async refresh(credential, signal) {
       const current = parseCredential(credential);
       const token = await requestToken(endpoints.tokenUrl, { grant_type: 'refresh_token', refresh_token: current.refresh }, signal);
