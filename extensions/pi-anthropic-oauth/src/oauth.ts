@@ -39,6 +39,7 @@ export const CLAUDE_REFRESH_SCOPE = CLAUDE_REFRESH_SCOPES.join(' ');
 
 export const CLAUDE_COPY_CODE_REDIRECT_URI = 'https://platform.claude.com/oauth/code/callback';
 export const CLAUDE_TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
+export const CLAUDE_REVOKE_URL = `${CLAUDE_TOKEN_URL}/revoke`;
 export const CLAUDE_LOOPBACK_CALLBACK_PATH = '/callback';
 
 const LOOPBACK_BIND_HOST = '127.0.0.1';
@@ -82,8 +83,27 @@ export const CLAUDE_AUTHORIZE_QUERY_ORDER = [
 ] as const;
 
 const TOKEN_TIMEOUT_MS = 30_000;
+const REVOKE_TIMEOUT_MS = 5_000;
 const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
 const CALLBACK_REJECTED = 'Claude OAuth callback was rejected';
+
+export async function revokeAccessToken(access: string, signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted();
+  try {
+    await fetch(CLAUDE_REVOKE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: access,
+        token_type_hint: 'access_token',
+        client_id: CLAUDE_OAUTH_CLIENT_ID,
+      }),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(REVOKE_TIMEOUT_MS)]),
+    });
+  } catch {
+    signal.throwIfAborted();
+  }
+}
 
 type ClaudeLoginMethod = 'copy-code' | 'loopback' | 'import';
 

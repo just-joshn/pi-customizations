@@ -12,12 +12,14 @@ export {
   CLAUDE_OAUTH_SCOPES,
   CLAUDE_REFRESH_SCOPE,
   CLAUDE_REFRESH_SCOPES,
+  CLAUDE_REVOKE_URL,
   CLAUDE_TOKEN_URL,
   LOGIN_CANCELLED,
   LOGIN_TIMED_OUT,
   buildAuthorizeUrl,
   createClaudeOAuth,
   createPkcePair,
+  revokeAccessToken,
 } from './oauth.ts';
 
 const AMBIENT_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
