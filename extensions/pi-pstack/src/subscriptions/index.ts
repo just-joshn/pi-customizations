@@ -404,7 +404,11 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     if (isSupervisorLive(workspaceCwd)) return true;
     const ensure =
       options.ensureSupervisor ??
-      ((cwd: string) => defaultEnsureSupervisor(cwd, { routinesPort: options.routinesPort }));
+      ((cwd: string) =>
+        defaultEnsureSupervisor(
+          cwd,
+          options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort },
+        ));
     const started = ensure(workspaceCwd);
     const afterEnsure = (): boolean | Promise<boolean> => {
       if (isSupervisorLive(workspaceCwd)) return true;

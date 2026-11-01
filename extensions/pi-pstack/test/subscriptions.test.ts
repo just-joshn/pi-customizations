@@ -68,8 +68,9 @@ function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entri
   const fresh: { prompt: string; name: string }[] = [];
   registerSubscriptions(fake.pi, {
     runFresh: (prompt, name) => void fresh.push({ prompt, name }),
+    // Port 0 keeps the default in-process path. Omit routinesDir so it matches the package default
+    // (join(agentDir, 'pstack', 'routines')); a custom dir blocks supervisor handoff by design.
     routinesPort: 0,
-    routinesDir: join(agentDir, 'routines'),
     ensureSupervisor: () => {},
     supervisorReadyMs: 0,
     ...options,
@@ -418,7 +419,6 @@ describe('persistence', () => {
     // Concrete port + default routinesDir so handoff is allowed (port 0 / custom dir stay in-process).
     const fake = setup({
       routinesPort: 48_913,
-      routinesDir: undefined,
       ensureSupervisor: (cwd) => {
         ensuredFor = cwd;
         acquireSupervisorLock(cwd);
