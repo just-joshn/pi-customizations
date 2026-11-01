@@ -14,7 +14,7 @@
 | Installed cache | `~/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a` (skill `SKILL.md` = tip 58/58) |
 | Team-kit | tip `cursor-team-kit` **1.2.0** |
 | Design | `parity/pi-pstack-0.15.36/design.md` |
-| Package | `extensions/pi-pstack` `@justjoshn/pi-pstack@0.15.36-pi.3` |
+| Package | `extensions/pi-pstack` `@justjoshn/pi-pstack@0.15.36-pi.4` |
 | REA bundle | `parity/evidence/rea-pstack-0.15.36/evidence-bundle.json` (~85 MB; 2 artifacts, 4 records; summarized via keys + `phase-a-frame.md`) |
 
 ## Deliverables (this directory)
@@ -51,6 +51,6 @@ pstack 0.15.36 is a skill/agent/automation/doc tree plus poteto-mode and statech
 
 ## Key judgment
 
-Inventory coverage for tip 0.15.36 and poteto soft-deps is **closed** in pi-pstack. The largest remaining user-visible parity risks are **routine durability with the Pi process**, **optional image generation**, and **create-skill guidance depth**, not missing skill paths or missing team-kit soft-dep bytes.
+Inventory coverage for tip 0.15.36 and poteto soft-deps is **closed** in pi-pstack. Gap-list items 1–3 (durable supervisor, image-gen substitute gate, create-skill depth) are **CLOSED**. Remaining residuals are host-catalog model diversity, local worktree vs cloud VM isolation strength, optional image-model config quality, and Pi public-API maintainer debt (`gap-list.md` §4–6). Absolute zero-exceptions Cursor identity is not claimed.
 
-**Parity acceptance.** Not claimed. This unit only wrote evidence under `parity/evidence/rea-pstack-0.15.36/dependency-inventory/`.
+**Parity acceptance.** In-scope Phase A/E plugin parity is recorded in `../phase-e-verify.md`. This inventory unit does not claim bit-identical Cursor platform behavior.

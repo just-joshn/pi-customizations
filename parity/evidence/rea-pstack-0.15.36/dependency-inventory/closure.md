@@ -1,6 +1,6 @@
 # Dependency closure: pstack 0.15.36
 
-Measured against tip `/tmp/cursor-plugins-rea` @ `ae5650febf4320793844c12c4adaa937f417f8da` (plugin version **0.15.36**; tip advanced from inventory lock `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe` only for unrelated `lark-base` / third_party; `pstack/` and `cursor-team-kit/` trees unchanged), installed cache `~/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a` (byte-identical skill set to tip; tip vs cache skill `SKILL.md` equal **58/58**; cache-only file `.cache-complete`), and `extensions/pi-pstack` `@justjoshn/pi-pstack@0.15.36-pi.3`. Refresh evidence: `../rea-deps/refresh-ae5650f.md`.
+Measured against tip `/tmp/cursor-plugins-rea` @ `ae5650febf4320793844c12c4adaa937f417f8da` (plugin version **0.15.36**; tip advanced from inventory lock `4dd1d05818d19792e7cd6e818f1667f95f7e1dbe` only for unrelated `lark-base` / third_party; `pstack/` and `cursor-team-kit/` trees unchanged), installed cache `~/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a` (byte-identical skill set to tip; tip vs cache skill `SKILL.md` equal **58/58**; cache-only file `.cache-complete`), and `extensions/pi-pstack` `@justjoshn/pi-pstack@0.15.36-pi.4`. Refresh evidence: `../rea-deps/refresh-ae5650f.md`.
 
 Disposition vocabulary matches the unit brief.
 
