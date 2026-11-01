@@ -9,14 +9,13 @@ const FINGERPRINT_INDICES = [4, 7, 20];
 
 type FingerprintFlags = {
   isMeta?: boolean;
-  isCompactSummary?: boolean;
 };
 
 function fingerprintSample(context: TranscriptContext): string {
   const firstUser = context.messages.find((message) => {
     if (message.role !== 'user') return false;
     const flags = message as FingerprintFlags;
-    return flags.isMeta !== true && flags.isCompactSummary !== true;
+    return flags.isMeta !== true;
   });
   const content = firstUser?.content;
   if (typeof content === 'string') return content;

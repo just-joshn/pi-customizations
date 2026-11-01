@@ -41,10 +41,12 @@ test('billing skips a leading isMeta user for the fingerprint sample', async ({ 
   expect(systemTexts(soleRequest(server).body)[0]).toBe(CAPTURED_BILLING);
 });
 
-test('billing skips a leading isCompactSummary user for the fingerprint sample', async ({ models, model, server }) => {
+test('billing samples a leading isCompactSummary user for the fingerprint', async ({ models, model, server }) => {
   const summary = Object.assign(user('changed first message'), { isCompactSummary: true });
   await collect(models.streamSimple(model, { messages: [summary, user('Reply LOCAL_OK.')] }));
-  expect(systemTexts(soleRequest(server).body)[0]).toBe(CAPTURED_BILLING);
+  expect(systemTexts(soleRequest(server).body)[0]).toBe(
+    'x-anthropic-billing-header: cc_version=2.1.316.c94; cc_entrypoint=sdk-cli;',
+  );
 });
 
 test('concurrent requests keep identity request-local', async ({ models, model, server }) => {
