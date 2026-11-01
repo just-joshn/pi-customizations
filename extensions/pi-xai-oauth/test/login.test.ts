@@ -177,14 +177,15 @@ test('device login polls until the token endpoint completes', async () => {
   const deviceStart = calls.find((call) => call.url.endsWith('/device/code'));
   expect(deviceStart).toBeDefined();
   expect(deviceStart?.headers.get('x-grok-client-version')).toBe(GROK_CLIENT_VERSION);
-  expect(deviceStart?.headers.get('x-grok-client-surface')).toBe('grok-build');
+  expect(deviceStart?.headers.get('x-grok-client-surface')).toBe('ui');
   expect(deviceStart?.body.get('client_id')).toBe(GROK_OAUTH_CLIENT_ID);
   expect(deviceStart?.body.get('scope')).toBe(GROK_OAUTH_SCOPE);
+  expect(deviceStart?.body.get('referrer')).toBe('grok-build');
   const tokenPolls = calls.filter((call) => call.url.endsWith('/oauth2/token'));
   expect(tokenPolls.length).toBeGreaterThan(0);
   for (const poll of tokenPolls) {
-    expect(poll.headers.get('x-grok-client-version')).toBeNull();
-    expect(poll.headers.get('x-grok-client-surface')).toBeNull();
+    expect(poll.headers.get('x-grok-client-version')).toBe(GROK_CLIENT_VERSION);
+    expect(poll.headers.get('x-grok-client-surface')).toBe('ui');
   }
 });
 
