@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, utimes } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, onTestFinished, test, vi } from 'vitest';
@@ -90,6 +90,16 @@ test('in-process latch still singleflights when wrapped around the file lock', a
   const [a, b, c] = await Promise.all([work(), work(), work()]);
   expect(starts).toBe(1);
   expect([a, b, c]).toStrictEqual([1, 1, 1]);
+});
+
+test('a stale lock directory is removed and the section runs', async () => {
+  const target = await tempAuthPath();
+  const lockPath = refreshLockPathFor(target);
+  await mkdir(lockPath);
+  const abandoned = new Date(Date.now() - 60_000);
+  await utimes(lockPath, abandoned, abandoned);
+  const options = { staleMs: 1_000, retryDelayMs: () => 0 };
+  await expect(withRefreshFileLock(target, async () => 'ran', options)).resolves.toBe('ran');
 });
 
 test('default retry delay stays in Claude 1000..2000 ms range', () => {
