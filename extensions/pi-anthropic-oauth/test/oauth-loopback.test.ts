@@ -1,9 +1,18 @@
 import type { AuthEvent, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
-import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_CLIENT_ID, subscriptionAuth } from '../src/auth.ts';
+import {
+  CLAUDE_AUTHORIZE_ORIGIN,
+  CLAUDE_AUTHORIZE_PATH,
+  CLAUDE_OAUTH_CLIENT_ID,
+  LOGIN_CANCELLED,
+  LOGIN_TIMED_OUT,
+  subscriptionAuth,
+} from '../src/auth.ts';
 import { test } from './network-guard.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
+
+const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
 
 function interaction(select: 'copy-code' | 'loopback', manual?: string): {
   login: ProviderAuthInteraction;
@@ -95,4 +104,21 @@ test('loopback login rejects a callback with the wrong state', async () => {
   const error = await failure;
   expect(error).toBeInstanceOf(Error);
   expect((error as Error).message).toBe('Claude subscription login failed. Try /login again.');
+});
+
+test('loopback listen timeout is not login cancellation', async () => {
+  vi.useFakeTimers();
+  try {
+    expect(LOGIN_TIMED_OUT).not.toBe(LOGIN_CANCELLED);
+    const oauth = subscriptionAuth().oauth;
+    if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
+    const { login, events } = interaction('loopback');
+    const pending = oauth.login(login);
+    await waitForUrl(events);
+    const failure = expect(pending).rejects.toThrow(LOGIN_TIMED_OUT);
+    await vi.advanceTimersByTimeAsync(LOOPBACK_LIMIT_MS);
+    await failure;
+  } finally {
+    vi.useRealTimers();
+  }
 });
