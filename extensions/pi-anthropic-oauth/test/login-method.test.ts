@@ -3,10 +3,10 @@ import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES, su
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
-test('subscription login defaults to paste-code authorize', async () => {
+test('subscription login offers paste, loopback, and Claude Code import, then defaults to paste-code authorize', async () => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-  let selected: string | undefined;
+  let selectOptions: { id: string; label: string }[] | undefined;
   let authorizeUrl: URL | undefined;
   const fetchCalls: unknown[] = [];
   const original = globalThis.fetch;
@@ -22,14 +22,18 @@ test('subscription login defaults to paste-code authorize', async () => {
       },
       prompt: async (prompt) => {
         if (prompt.type === 'select') {
-          selected = prompt.options[0]?.id;
+          selectOptions = prompt.options.map((option) => ({ id: option.id, label: option.label }));
           return prompt.options[0]?.id ?? '';
         }
         if (!authorizeUrl) throw new Error('No authorization URL was shown');
         return `local-code#${authorizeUrl.searchParams.get('state')}`;
       },
     });
-    expect(selected).toBe('copy-code');
+    expect(selectOptions).toEqual([
+      { id: 'copy-code', label: 'Paste code' },
+      { id: 'loopback', label: 'Browser callback' },
+      { id: 'import', label: 'Import from Claude Code' },
+    ]);
     expect(authorizeUrl?.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
     expect(authorizeUrl?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
     expect(authorizeUrl?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);

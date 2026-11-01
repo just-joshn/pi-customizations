@@ -50,10 +50,24 @@ function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
     } catch (error) {
       interaction.signal.throwIfAborted();
       if (error instanceof Error && error.message === 'Login cancelled') throw error;
+      if (error instanceof Error && /Claude Code credentials/.test(error.message)) throw error;
       throw new Error('Claude subscription login failed. Try /login again.');
     }
   };
 }
+
+export {
+  CLAUDE_CREDENTIALS_FILENAME,
+  CLAUDE_KEYCHAIN_SERVICE_DEFAULT,
+  claudeConfigDir,
+  claudeCredentialsPath,
+  claudeKeychainAccount,
+  claudeKeychainService,
+  importClaudeAiOauth,
+  parseClaudeCredentialsJson,
+  resolveClaudeCredentialsLayout,
+  toPiOAuthCredential,
+} from './claude-credentials.ts';
 
 function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
   return async (credential, signal) => {
@@ -80,3 +94,5 @@ export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth()): Provid
     },
   };
 }
+
+export type { ClaudeOAuthOptions } from './oauth.ts';

@@ -3,6 +3,8 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 
 import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
+import { importClaudeAiOauth } from './claude-credentials.ts';
+
 /** Claude Code 2.1.312 cai authorize origin and path. */
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
@@ -55,7 +57,7 @@ const TOKEN_TIMEOUT_MS = 30_000;
 const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
 const CALLBACK_REJECTED = 'Claude OAuth callback was rejected';
 
-type ClaudeLoginMethod = 'copy-code' | 'loopback';
+type ClaudeLoginMethod = 'copy-code' | 'loopback' | 'import';
 
 function base64url(bytes: Buffer): string {
   return bytes.toString('base64').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
@@ -201,9 +203,14 @@ async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<
         label: 'Browser callback',
         description: 'Uses a localhost callback when the browser can reach this machine.',
       },
+      {
+        id: 'import',
+        label: 'Import from Claude Code',
+        description: 'Copy an existing Claude Code keychain or .credentials.json session into Pi auth.json.',
+      },
     ],
   });
-  if (method === 'copy-code' || method === 'loopback') return method;
+  if (method === 'copy-code' || method === 'loopback' || method === 'import') return method;
   throw new Error('Login cancelled');
 }
 
@@ -336,7 +343,24 @@ function closeServer(
   return new Promise((resolve) => server.close(() => resolve()));
 }
 
-export function createClaudeOAuth(): OAuthAuth {
+export type ClaudeOAuthOptions = {
+  /** Override for tests. Defaults to reading Claude Code keychain / `.credentials.json`. */
+  importCredentials?: () => Promise<OAuthCredential>;
+};
+
+async function loginImport(
+  interaction: ProviderAuthInteraction,
+  importCredentials: () => Promise<OAuthCredential>,
+): Promise<OAuthCredential> {
+  interaction.notify({
+    type: 'progress',
+    message: 'Importing Claude Code credentials into Pi auth storage...',
+  });
+  return importCredentials();
+}
+
+export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
+  const importCredentials = options.importCredentials ?? (() => importClaudeAiOauth());
   return {
     name: 'Claude subscription (Provider CLI)',
     loginLabel: 'Claude subscription (Provider CLI)',
@@ -345,6 +369,7 @@ export function createClaudeOAuth(): OAuthAuth {
       interaction.signal.throwIfAborted();
       const method = await chooseLoginMethod(interaction);
       interaction.signal.throwIfAborted();
+      if (method === 'import') return loginImport(interaction, importCredentials);
       if (method === 'loopback') return loginLoopback(interaction);
       return loginCopyCode(interaction);
     },
