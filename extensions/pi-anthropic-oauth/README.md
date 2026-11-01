@@ -12,12 +12,13 @@ From this directory, start Pi:
 pi -e .
 ```
 
-Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Pi asks how to obtain tokens:
+Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login uses this package's Pi-native OAuth client. Choose **Paste code** (default), **Browser callback**, or **Import from Claude Code**.
 
-- **Paste code.** Opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), exchanges the code with an independent OAuth `state`, and refreshes with Claude's measured refresh scopes. Complete sign-in in the browser, then paste the code into Pi.
+- **Paste code.** Opens Claude Code's copy-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), then you paste the code Anthropic shows.
+- **Browser callback.** Binds an ephemeral `http://localhost:{port}/callback` and uses that same `redirect_uri` on authorize and token exchange.
 - **Import from Claude Code.** Reads an existing Claude Code session from the macOS Keychain item `Claude Code-credentials` (account is your `USER`) when present, otherwise from `~/.claude/.credentials.json` (or `CLAUDE_CONFIG_DIR` / `CLAUDE_SECURESTORAGE_CONFIG_DIR`). It maps `claudeAiOauth` into a Pi oauth credential and writes only Pi's store. It never runs the `claude` binary and never writes Claude's credential files.
 
-Select a `claude-subscription` model with `/model`.
+Paste code and browser callback both exchange with an independent OAuth `state` and refresh with Claude's measured refresh scopes. Select a `claude-subscription` model with `/model`.
 
 To install the package, run `pi install npm:@justjoshn/pi-anthropic-oauth`, or `pi install` with this directory's path.
 

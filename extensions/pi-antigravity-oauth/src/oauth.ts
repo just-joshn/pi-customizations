@@ -90,6 +90,9 @@ export async function fetchEmail(userInfoUrl: string, token: string, signal?: Ab
 
 export const LOAD_CODE_ASSIST_BODY = { metadata: { ideType: 'ANTIGRAVITY' } };
 
+// Measured from agy CLOUD_CODE_URL sink capture (parity/oauth-rea-2026-10-31/agy/fixtures/captured-user-agent.json).
+export const ONBOARD_USER_BODY = { tierId: 'free-tier', metadata: { ideType: 'ANTIGRAVITY' } };
+
 export function projectFromLoadCodeAssist(data: unknown): string | undefined {
   const project = (data as { cloudaicompanionProject?: unknown } | null)?.cloudaicompanionProject;
   if (typeof project === 'string' && project) return project;
@@ -98,8 +101,12 @@ export function projectFromLoadCodeAssist(data: unknown): string | undefined {
 }
 
 async function discoverProject(endpoint: string, token: string, signal: AbortSignal): Promise<string> {
-  const project = projectFromLoadCodeAssist(await postCloudCode(endpoint, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY, signal));
-  if (!project) throw new Error('Cloud Code named no Antigravity project for this account. Sign in once with the Antigravity CLI, then run /login again.');
+  const load = () => postCloudCode(endpoint, 'loadCodeAssist', token, LOAD_CODE_ASSIST_BODY, signal);
+  let project = projectFromLoadCodeAssist(await load());
+  if (project) return project;
+  await postCloudCode(endpoint, 'onboardUser', token, ONBOARD_USER_BODY, signal);
+  project = projectFromLoadCodeAssist(await load());
+  if (!project) throw new Error('Cloud Code named no Antigravity project for this account after onboarding.');
   return project;
 }
 

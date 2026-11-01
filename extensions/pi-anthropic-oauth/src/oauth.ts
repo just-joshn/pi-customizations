@@ -1,4 +1,5 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
 import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
@@ -38,6 +39,7 @@ export const CLAUDE_REFRESH_SCOPE = CLAUDE_REFRESH_SCOPES.join(' ');
 
 export const CLAUDE_COPY_CODE_REDIRECT_URI = 'https://platform.claude.com/oauth/code/callback';
 export const CLAUDE_TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
+export const CLAUDE_LOOPBACK_CALLBACK_PATH = '/callback';
 
 /** Append order from Claude Y9r for the standard cai login. */
 export const CLAUDE_AUTHORIZE_QUERY_ORDER = [
@@ -52,6 +54,10 @@ export const CLAUDE_AUTHORIZE_QUERY_ORDER = [
 ] as const;
 
 const TOKEN_TIMEOUT_MS = 30_000;
+const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
+const CALLBACK_REJECTED = 'Claude OAuth callback was rejected';
+
+type ClaudeLoginMethod = 'copy-code' | 'loopback' | 'import';
 
 function base64url(bytes: Buffer): string {
   return bytes.toString('base64').replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
@@ -164,9 +170,54 @@ function credentialFrom(token: TokenResponse, refreshFallback?: string): OAuthCr
   };
 }
 
+async function exchangeAuthorizationCode(
+  input: { code: string; state: string; redirectUri: string; verifier: string },
+  signal: AbortSignal,
+): Promise<OAuthCredential> {
+  const token = await postToken(
+    {
+      grant_type: 'authorization_code',
+      code: input.code,
+      redirect_uri: input.redirectUri,
+      client_id: CLAUDE_OAUTH_CLIENT_ID,
+      code_verifier: input.verifier,
+      state: input.state,
+    },
+    signal,
+  );
+  return credentialFrom(token);
+}
+
+async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<ClaudeLoginMethod> {
+  const method = await interaction.prompt({
+    type: 'select',
+    message: 'Sign in to Claude subscription',
+    options: [
+      {
+        id: 'copy-code',
+        label: 'Paste code',
+        description: 'Default. Complete login in the browser, then paste the code.',
+      },
+      {
+        id: 'loopback',
+        label: 'Browser callback',
+        description: 'Uses a localhost callback when the browser can reach this machine.',
+      },
+      {
+        id: 'import',
+        label: 'Import from Claude Code',
+        description: 'Copy an existing Claude Code keychain or .credentials.json session into Pi auth.json.',
+      },
+    ],
+  });
+  if (method === 'copy-code' || method === 'loopback' || method === 'import') return method;
+  throw new Error('Login cancelled');
+}
+
 async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
   const { verifier, challenge, state } = createPkcePair();
-  const url = buildAuthorizeUrl({ challenge, state });
+  const redirectUri = CLAUDE_COPY_CODE_REDIRECT_URI;
+  const url = buildAuthorizeUrl({ challenge, state, redirectUri });
   interaction.notify({
     type: 'auth_url',
     url,
@@ -182,18 +233,114 @@ async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAut
   if (parsed.state && parsed.state !== state) throw new Error('OAuth state mismatch');
   if (!parsed.code) throw new Error('Missing authorization code');
   interaction.notify({ type: 'progress', message: 'Exchanging authorization code for tokens...' });
-  const token = await postToken(
-    {
-      grant_type: 'authorization_code',
-      code: parsed.code,
-      redirect_uri: CLAUDE_COPY_CODE_REDIRECT_URI,
-      client_id: CLAUDE_OAUTH_CLIENT_ID,
-      code_verifier: verifier,
-      state: parsed.state ?? state,
-    },
+  return exchangeAuthorizationCode(
+    { code: parsed.code, state: parsed.state ?? state, redirectUri, verifier },
     interaction.signal,
   );
-  return credentialFrom(token);
+}
+
+async function loginLoopback(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
+  const { verifier, challenge, state } = createPkcePair();
+  const callback = await listenForCallback(state, interaction.signal);
+  try {
+    const url = buildAuthorizeUrl({ challenge, state, redirectUri: callback.redirectUri });
+    interaction.notify({
+      type: 'auth_url',
+      url,
+      instructions: 'Approve access in the browser. Pi listens on localhost for the callback.',
+    });
+    const code = await callback.code;
+    interaction.notify({ type: 'progress', message: 'Exchanging authorization code for tokens...' });
+    return exchangeAuthorizationCode(
+      { code, state, redirectUri: callback.redirectUri, verifier },
+      interaction.signal,
+    );
+  } finally {
+    await callback.close();
+  }
+}
+
+function sameSecret(left: string, right: string): boolean {
+  const leftBytes = Buffer.from(left);
+  const rightBytes = Buffer.from(right);
+  return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
+}
+
+function listenForCallback(
+  expectedState: string,
+  signal: AbortSignal,
+): Promise<{ redirectUri: string; code: Promise<string>; close: () => Promise<void> }> {
+  signal.throwIfAborted();
+  const server = createServer();
+  let settle: (code: string) => void = () => undefined;
+  let fail: (error: Error) => void = () => undefined;
+  const code = new Promise<string>((resolve, reject) => {
+    settle = resolve;
+    fail = reject;
+  });
+  const timeout = setTimeout(() => fail(new Error('Login cancelled')), LOOPBACK_LIMIT_MS);
+  const onAbort = () => fail(new Error('Login cancelled'));
+  signal.addEventListener('abort', onAbort, { once: true });
+  server.on('request', (request, response) => handleCallback(request, response, expectedState, settle, fail));
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      if (address === null || typeof address === 'string') {
+        reject(new Error('Login callback could not bind'));
+        return;
+      }
+      resolve({
+        redirectUri: `http://localhost:${address.port}${CLAUDE_LOOPBACK_CALLBACK_PATH}`,
+        code,
+        close: () => closeServer(server, timeout, signal, onAbort),
+      });
+    });
+  });
+}
+
+function handleCallback(
+  request: IncomingMessage,
+  response: ServerResponse,
+  expectedState: string,
+  settle: (code: string) => void,
+  fail: (error: Error) => void,
+): void {
+  const url = new URL(request.url ?? '/', 'http://localhost');
+  if (url.pathname !== CLAUDE_LOOPBACK_CALLBACK_PATH) {
+    response.writeHead(404).end();
+    return;
+  }
+  const denial = url.searchParams.get('error');
+  if (denial) {
+    const description = url.searchParams.get('error_description');
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Access denied</title><h1>Access denied</h1><p>Close this window and try again.</p>');
+    fail(new Error(`${CALLBACK_REJECTED}: ${denial}${description ? `: ${description}` : ''}`));
+    return;
+  }
+  const state = url.searchParams.get('state') ?? '';
+  const code = url.searchParams.get('code') ?? '';
+  if (!sameSecret(state, expectedState) || code.length === 0) {
+    response.writeHead(400, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Sign-in failed</title><p>Sign-in failed. Return to Pi and try again.</p>');
+    fail(new Error(CALLBACK_REJECTED));
+    return;
+  }
+  response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+  response.end('<!doctype html><title>Signed in</title><p>Signed in. You can close this tab.</p>');
+  settle(code);
+}
+
+function closeServer(
+  server: ReturnType<typeof createServer>,
+  timeout: ReturnType<typeof setTimeout>,
+  signal: AbortSignal,
+  onAbort: () => void,
+): Promise<void> {
+  clearTimeout(timeout);
+  signal.removeEventListener('abort', onAbort);
+  return new Promise((resolve) => server.close(() => resolve()));
 }
 
 export type ClaudeOAuthOptions = {
@@ -220,26 +367,11 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
     isSubscription: true,
     login: async (interaction, _options?: LoginOptions) => {
       interaction.signal.throwIfAborted();
-      const method = await interaction.prompt({
-        type: 'select',
-        message: 'Claude subscription login',
-        options: [
-          {
-            id: 'paste',
-            label: 'Paste code',
-            description: 'Sign in in the browser, then paste the code Anthropic shows.',
-          },
-          {
-            id: 'import',
-            label: 'Import from Claude Code',
-            description: 'Copy an existing Claude Code keychain or .credentials.json session into Pi auth.json.',
-          },
-        ],
-      });
+      const method = await chooseLoginMethod(interaction);
       interaction.signal.throwIfAborted();
       if (method === 'import') return loginImport(interaction, importCredentials);
-      if (method === 'paste') return loginCopyCode(interaction);
-      throw new Error('Login cancelled');
+      if (method === 'loopback') return loginLoopback(interaction);
+      return loginCopyCode(interaction);
     },
     refresh: async (credential, signal) => {
       signal.throwIfAborted();
