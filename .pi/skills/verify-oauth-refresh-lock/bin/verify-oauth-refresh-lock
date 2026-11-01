@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const SKILL_ROOT = resolve(__dirname, '..');
+const SPEC_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshLock.tla');
+const CONFIG_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshLock.cfg');
+
+function findJava() {
+  if (process.env.JAVA_HOME && existsSync(join(process.env.JAVA_HOME, 'bin/java'))) {
+    return join(process.env.JAVA_HOME, 'bin/java');
+  }
+  try {
+    const javaPath = execFileSync('which', ['java'], { encoding: 'utf8' }).trim();
+    if (javaPath && existsSync(javaPath)) return javaPath;
+  } catch {
+    // try fallbacks below
+  }
+  const miseJava = join(homedir(), '.local/share/mise/installs/java/temurin-25/bin/java');
+  if (existsSync(miseJava)) return miseJava;
+  throw new Error('Java not found. Install Java or ensure `java` is on PATH.');
+}
+
+function findTla2Tools() {
+  if (process.env.TLA2TOOLS_JAR && existsSync(process.env.TLA2TOOLS_JAR)) {
+    return process.env.TLA2TOOLS_JAR;
+  }
+  const candidates = [
+    join(homedir(), '.cache/tla2tools/1.7.4/tla2tools.jar'),
+    join(homedir(), '.local/share/mise/installs/http-tla2tools/1.7.4/tla2tools.jar'),
+    join(homedir(), '.local/share/mise/shims/tla2tools.jar'),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  throw new Error('tla2tools.jar not found. Run with TLA2TOOLS_JAR set or install via mise / statechart.');
+}
+
+function main() {
+  const java = findJava();
+  const jar = findTla2Tools();
+
+  process.stdout.write(`[verify-oauth-refresh-lock] Checking OAuthRefreshLock with TLC...\n`);
+  process.stdout.write(`  Spec: ${SPEC_FILE}\n`);
+  process.stdout.write(`  Config: ${CONFIG_FILE}\n`);
+
+  const args = [
+    '-XX:+UseParallelGC',
+    '-cp',
+    jar,
+    'tlc2.TLC',
+    '-workers',
+    '1',
+    '-fp',
+    '0',
+    '-nowarning',
+    '-config',
+    CONFIG_FILE,
+    SPEC_FILE,
+  ];
+
+  const result = spawnSync(java, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const output = (result.stdout ?? '') + (result.stderr ?? '');
+
+  if (result.status === 0 && output.includes('Model checking completed. No error has been found.')) {
+    const match = output.match(/(\d+) states generated, (\d+) distinct states found/);
+    const generated = match ? match[1] : 'unknown';
+    const distinct = match ? match[2] : 'unknown';
+
+    process.stdout.write(`\n✓ TLC verified all properties cleanly across full state space:\n`);
+    process.stdout.write(`  - Invariants: MutualExclusion, SingleRefreshWhenNoCrash, LockHolderConsistent, UpdatedTokenOnSuccess\n`);
+    process.stdout.write(`  - Deadlock: checked (free of deadlocks)\n`);
+    process.stdout.write(`  - Coverage: ${generated} states generated, ${distinct} distinct states verified\n`);
+    process.exit(0);
+  } else {
+    process.stderr.write(`\n✗ Formal verification failed! Counterexample trace:\n\n`);
+    process.stderr.write(output);
+    process.exit(1);
+  }
+}
+
+main();
