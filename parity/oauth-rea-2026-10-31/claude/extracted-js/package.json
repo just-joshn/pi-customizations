@@ -1,0 +1,6 @@
+{
+  "name": "claude-code-oauth-carves",
+  "version": "2.1.312",
+  "private": true,
+  "description": "Offline bunfs carves from Claude Code 2.1.312 for REA JS analysis; not executable."
+}

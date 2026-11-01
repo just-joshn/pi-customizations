@@ -1,0 +1,19 @@
+{
+  "version": "2.1.312",
+  "binary_sha256": "6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620",
+  "export_name": "ALLOWED_OAUTH_BASE_URLS",
+  "minified_binding": "P5e",
+  "offset": 217352359,
+  "role": "allowlist for CLAUDE_CODE_CUSTOM_OAUTH_URL overrides only; not the prod authorize/token hosts",
+  "values": [
+    "https://beacon.claude-ai.staging.ant.dev",
+    "https://claude.fedstart.com",
+    "https://claude-staging.fedstart.com"
+  ],
+  "error_on_miss": "CLAUDE_CODE_CUSTOM_OAUTH_URL is not an approved endpoint.",
+  "evidence": {
+    "carve": "carves/tight-P5e-ALLOWED@217352359.txt",
+    "export_carve": "carves/tight-ALLOWED_export@244131473.txt",
+    "module_sha256": "baf9e4972910bb78249e74c630bd39c7ecef4a76605a128392b812a9f71d0f59"
+  }
+}
