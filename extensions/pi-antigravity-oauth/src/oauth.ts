@@ -18,6 +18,7 @@ export interface OAuthEndpoints {
   authUrl: string;
   tokenUrl: string;
   userInfoUrl: string;
+  tokenInfoUrl: string;
   cloudCode: string;
 }
 
@@ -26,6 +27,7 @@ export const GOOGLE_OAUTH: OAuthEndpoints = {
   authUrl: 'https://accounts.google.com/o/oauth2/auth',
   tokenUrl: 'https://oauth2.googleapis.com/token',
   userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
+  tokenInfoUrl: 'https://www.googleapis.com/oauth2/v3/tokeninfo',
   cloudCode: CLOUD_CODE_URL,
 };
 
@@ -97,6 +99,24 @@ export async function fetchEmail(userInfoUrl: string, token: string, signal?: Ab
   }
 }
 
+export async function validateAccessToken(tokenInfoUrl: string, access: string, signal?: AbortSignal): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${tokenInfoUrl}?access_token=${encodeURIComponent(access)}`, {
+      ...(signal !== undefined && { signal }),
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new Error(`failed to call tokeninfo: ${detail}`);
+  }
+  if (!response.ok) throw new Error(`tokeninfo returned status ${response.status}`);
+}
+
+function isOpaqueInvalidTokenError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /invalid_token|invalid_grant/i.test(message);
+}
+
 export const LOAD_CODE_ASSIST_BODY = { metadata: { ideType: 'ANTIGRAVITY' } };
 
 // Measured from agy CLOUD_CODE_URL sink capture (parity/oauth-rea-2026-10-31/agy/fixtures/captured-user-agent.json).
@@ -131,14 +151,19 @@ export function credentialFromImportedTokens(tokens: ImportedAgyTokens, projectI
 }
 
 export async function importAgyKeychainCredential(
-  endpoints: Pick<OAuthEndpoints, 'cloudCode'>,
+  endpoints: Pick<OAuthEndpoints, 'cloudCode' | 'tokenInfoUrl'>,
   password: string,
   signal: AbortSignal,
   now = Date.now(),
 ): Promise<AntigravityCredential> {
   const tokens = tokensFromGoKeyringPassword(password, now);
-  const projectId = await discoverProject(endpoints.cloudCode, tokens.access, signal);
-  return credentialFromImportedTokens(tokens, projectId);
+  try {
+    const projectId = await discoverProject(endpoints.cloudCode, tokens.access, signal);
+    return credentialFromImportedTokens(tokens, projectId);
+  } catch (error) {
+    await validateAccessToken(endpoints.tokenInfoUrl, tokens.access, signal);
+    throw error;
+  }
 }
 
 function authorizationUrl(authUrl: string, challenge: string, state: string): string {
@@ -215,8 +240,14 @@ export function createAntigravityOAuth(endpoints: OAuthEndpoints = GOOGLE_OAUTH,
     login: (interaction) => loginWithMethod(endpoints, interaction, options),
     async refresh(credential, signal) {
       const current = parseCredential(credential);
-      const token = await requestToken(endpoints.tokenUrl, { grant_type: 'refresh_token', refresh_token: current.refresh }, signal);
-      return { ...current, access: token.access_token, refresh: token.refresh_token ?? current.refresh, expires: expiresAt(token) };
+      try {
+        const token = await requestToken(endpoints.tokenUrl, { grant_type: 'refresh_token', refresh_token: current.refresh }, signal);
+        return { ...current, access: token.access_token, refresh: token.refresh_token ?? current.refresh, expires: expiresAt(token) };
+      } catch (error) {
+        if (!isOpaqueInvalidTokenError(error)) throw error;
+        await validateAccessToken(endpoints.tokenInfoUrl, current.access, signal);
+        throw error;
+      }
     },
     async toAuth(credential) {
       const { access, projectId } = parseCredential(credential);

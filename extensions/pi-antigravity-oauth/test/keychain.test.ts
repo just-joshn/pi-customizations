@@ -64,12 +64,19 @@ function goKeyringPassword(payload: unknown = FIXTURE_PAYLOAD): string {
 async function cloudCode(project: unknown = { cloudaicompanionProject: 'aicode-consumers' }): Promise<FakeServer> {
   return fakeServer((request, res) => {
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, project);
+    if (request.path.startsWith('/tokeninfo')) return json(res, 200, { aud: 'test' });
     return json(res, 404, {});
   });
 }
 
 function endpoints(server: FakeServer): OAuthEndpoints {
-  return { authUrl: `${server.url}/auth`, tokenUrl: `${server.url}/token`, userInfoUrl: `${server.url}/userinfo`, cloudCode: `${server.url}/cc` };
+  return {
+    authUrl: `${server.url}/auth`,
+    tokenUrl: `${server.url}/token`,
+    userInfoUrl: `${server.url}/userinfo`,
+    tokenInfoUrl: `${server.url}/tokeninfo`,
+    cloudCode: `${server.url}/cc`,
+  };
 }
 
 function interaction(answer: (prompt: AuthPrompt) => Promise<string>): { value: ProviderAuthInteraction; events: AuthEvent[] } {
@@ -163,6 +170,22 @@ test('importAgyKeychainCredential fills projectId through loadCodeAssist', async
       email: 'dev@example.com',
     });
     expect(Object.keys(credential).sort()).toEqual(['access', 'email', 'expires', 'projectId', 'refresh', 'type']);
+  } finally {
+    server.close();
+  }
+});
+
+test('importAgyKeychainCredential surfaces tokeninfo when Cloud Code rejects the access token', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 401, { error: { message: 'invalid_token' } });
+    if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
+    return json(res, 404, {});
+  });
+  try {
+    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
+      'tokeninfo returned status 400',
+    );
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=ya29.fixture-access'))).toBe(true);
   } finally {
     server.close();
   }
