@@ -1,12 +1,16 @@
 {
   "documentedAt": "2026-10-31",
-  "source": "strings adjacency in grok-1.0.70-macos-aarch64 (device_code.rs blob)",
+  "supersedes": "PR #119 adjacency-only reading that set x-grok-client-surface to grok-build",
+  "source": "ADRP/ADD surface table recovery and device start form pack in grok-1.0.70-macos-aarch64",
   "binarySha256": "5c8a688251bf61e35370b828b6a353b0a20fcc3f64000de8a91d426039f29cec",
   "endpoint": "https://auth.x.ai/oauth2/device/code",
-  "notes": "Contiguous blob next to Device code request failed: /oauth2/device/code, x-grok-client-version, 1.0.70, x-grok-client-surface, scope, grok-build. Surface value is grok-build. Token poll not in this blob.",
+  "notes": "Default surface is ui (enum ui|cli|headless, dominant branch index 0). grok-build is the referrer form field, not a surface value. Full deepen evidence: device-headers-surface-1.0.70.json. Device token poll also sends the same version and surface headers.",
   "headers": {
     "x-grok-client-version": "1.0.70",
-    "x-grok-client-surface": "grok-build"
+    "x-grok-client-surface": "ui"
   },
-  "fields": ["client_id", "scope"]
+  "fields": ["client_id", "scope", "referrer"],
+  "fieldValues": {
+    "referrer": "grok-build"
+  }
 }

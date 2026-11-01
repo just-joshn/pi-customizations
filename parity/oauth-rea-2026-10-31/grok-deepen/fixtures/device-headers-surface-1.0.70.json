@@ -1,0 +1,76 @@
+{
+  "artifact": {
+    "path": "/Users/josh-desktop/.grok/downloads/grok-1.0.70-macos-aarch64",
+    "sha256": "5c8a688251bf61e35370b828b6a353b0a20fcc3f64000de8a91d426039f29cec",
+    "version": "1.0.70"
+  },
+  "method": "static",
+  "evidence": {
+    "stringBlobFileOffset": 137726690,
+    "stringBlobVa": "0x108358ae2",
+    "packedLiterals": [
+      "/oauth2/device/code",
+      "x-grok-client-version",
+      "1.0.70",
+      "x-grok-client-surface",
+      "scope",
+      "grok-build"
+    ],
+    "deviceStartSite": {
+      "surfaceHeaderLoad": "0x1043dbfe4",
+      "versionHeaderInsert": "0x1043dbf9c",
+      "headerInsertCallee": "0x1044bc04c",
+      "surfaceIndexStore": "0x1043dbd8c",
+      "surfaceIndexFieldOffset": "0x4a0"
+    },
+    "surfaceValueTable": {
+      "lenTableVa": "0x108365108",
+      "ptrTableVa": "0x10a2aefd8",
+      "entries": [
+        { "index": 0, "value": "ui" },
+        { "index": 1, "value": "cli" },
+        { "index": 2, "value": "headless" }
+      ]
+    },
+    "deviceStartSurfaceSelection": {
+      "dominantBranch": {
+        "at": "0x1043dbd58",
+        "setsIndex": 0,
+        "value": "ui",
+        "condition": "mode discriminant at [x19+0x398] != 2 (b.ne)"
+      },
+      "alternateBranch": {
+        "at": "0x1043dbd30",
+        "setsIndex": 1,
+        "value": "cli",
+        "condition": "mode discriminant == 2 and runtime check with w0=2"
+      }
+    },
+    "deviceStartFormFields": [
+      { "name": "client_id", "nameLen": 9, "value": "<runtime client id>" },
+      { "name": "scope", "nameLen": 5, "value": "<runtime scope string>" },
+      { "name": "referrer", "nameLen": 8, "value": "grok-build", "valueLen": 10 }
+    ],
+    "deviceStartHeaders": [
+      { "name": "x-grok-client-version", "value": "1.0.70", "valueLen": 6 },
+      {
+        "name": "x-grok-client-surface",
+        "value": "ui",
+        "notes": "Measured default branch index 0. Alternate branch may send cli. headless exists in the table but this site stores only 0 or 1."
+      }
+    ],
+    "deviceTokenPollSite": {
+      "surfaceHeaderLoad": "0x1043c3370",
+      "alsoSends": ["x-grok-client-version=1.0.70", "x-grok-client-surface from [x19+0x202]"],
+      "formIncludes": [
+        "grant_type=urn:ietf:params:oauth:grant-type:device_code",
+        "device_code",
+        "client_id"
+      ]
+    },
+    "notSurface": {
+      "grok-build": "Authorize query referrer and device form referrer field value. Not a surface-table entry."
+    }
+  },
+  "measuredSurfaceOnDeviceStartDefault": "ui"
+}

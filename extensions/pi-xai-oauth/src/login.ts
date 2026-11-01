@@ -7,7 +7,8 @@ import { GROK_CLIENT_VERSION } from './request.ts';
 
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
 export const GROK_OAUTH_SCOPE = 'openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write';
-const GROK_CLIENT_SURFACE = 'grok-build';
+const GROK_REFERRER = 'grok-build';
+const GROK_CLIENT_SURFACE = 'ui';
 
 const AUTHORIZE_URL = 'https://auth.x.ai/oauth2/authorize';
 /** Pi refreshes a stored token this early, so a first login must expire this early too. */
@@ -18,7 +19,7 @@ const CALLBACK_PATH = '/callback';
 const CALLBACK_REJECTED = 'xAI OAuth callback was rejected';
 const DEVICE_HOST = 'accounts.x.ai';
 const BROWSER_LIMIT_MS = 15 * 60 * 1000;
-const DEVICE_START_HEADERS = {
+const DEVICE_CLIENT_HEADERS = {
   'x-grok-client-version': GROK_CLIENT_VERSION,
   'x-grok-client-surface': GROK_CLIENT_SURFACE,
 } as const;
@@ -36,7 +37,7 @@ export function authorizeUrl(input: { redirectUri: string; challenge: string; st
     ['code_challenge_method', 'S256'],
     ['state', input.state],
     ['nonce', input.nonce],
-    ['referrer', GROK_CLIENT_SURFACE],
+    ['referrer', GROK_REFERRER],
   ];
   return `${AUTHORIZE_URL}?${pairs.map(([name, value]) => `${name}=${encodeURIComponent(value)}`).join('&')}`;
 }
@@ -91,7 +92,7 @@ async function browserLogin(interaction: ProviderAuthInteraction): Promise<OAuth
 }
 
 async function deviceLogin(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
-  const started = await postForm(DEVICE_URL, { client_id: GROK_OAUTH_CLIENT_ID, scope: GROK_OAUTH_SCOPE }, interaction.signal, DEVICE_START_HEADERS);
+  const started = await postForm(DEVICE_URL, { client_id: GROK_OAUTH_CLIENT_ID, scope: GROK_OAUTH_SCOPE, referrer: GROK_REFERRER }, interaction.signal, DEVICE_CLIENT_HEADERS);
   if (!started.ok) throw tokenError('device authorization', started.status, started.body);
   const device = deviceFrom(started.body);
   interaction.notify({
@@ -105,7 +106,7 @@ async function deviceLogin(interaction: ProviderAuthInteraction): Promise<OAuthC
   let interval = device.intervalSeconds;
   while (Date.now() < deadline) {
     throwIfCancelled(interaction.signal);
-    const polled = await postForm(TOKEN_URL, { grant_type: 'urn:ietf:params:oauth:grant-type:device_code', client_id: GROK_OAUTH_CLIENT_ID, device_code: device.deviceCode }, interaction.signal);
+    const polled = await postForm(TOKEN_URL, { grant_type: 'urn:ietf:params:oauth:grant-type:device_code', client_id: GROK_OAUTH_CLIENT_ID, device_code: device.deviceCode }, interaction.signal, DEVICE_CLIENT_HEADERS);
     const outcome = pollOutcome(polled.status, polled.body);
     if (outcome === 'complete') return credentialFrom(tokensFrom(polled.body));
     if (outcome === 'failed') throw tokenError('device token polling', polled.status, polled.body);
