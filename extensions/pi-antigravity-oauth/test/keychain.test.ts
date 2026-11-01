@@ -191,6 +191,70 @@ test('importAgyKeychainCredential surfaces tokeninfo when Cloud Code rejects the
   }
 });
 
+test('importAgyKeychainCredential keeps an aborted discovery as AbortError and skips tokeninfo', async () => {
+  const server = await fakeServer(() => {});
+  const controller = new AbortController();
+  const pending = importAgyKeychainCredential(endpoints(server), goKeyringPassword(), controller.signal);
+  const aborted = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
+  try {
+    await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
+    controller.abort();
+    await aborted;
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
+  } finally {
+    server.close();
+  }
+});
+
+test('importAgyKeychainCredential returns an auth-like abort reason without calling tokeninfo', async () => {
+  const server = await fakeServer(() => {});
+  const controller = new AbortController();
+  const reason = new Error('invalid_token');
+  const pending = importAgyKeychainCredential(endpoints(server), goKeyringPassword(), controller.signal);
+  const aborted = expect(pending).rejects.toBe(reason);
+  try {
+    await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
+    controller.abort(reason);
+    await aborted;
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
+  } finally {
+    server.close();
+  }
+});
+
+test('importAgyKeychainCredential rethrows a missing project without calling tokeninfo', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, {});
+    if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
+    if (request.path.startsWith('/tokeninfo')) return json(res, 500, { error: 'unavailable' });
+    return json(res, 404, {});
+  });
+  try {
+    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
+      'Cloud Code named no Antigravity project for this account after onboarding.',
+    );
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
+  } finally {
+    server.close();
+  }
+});
+
+test('importAgyKeychainCredential rethrows a Cloud Code outage without calling tokeninfo', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 503, { error: { message: 'unavailable' } });
+    if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
+    return json(res, 404, {});
+  });
+  try {
+    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
+      'loadCodeAssist failed (503): unavailable',
+    );
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
+  } finally {
+    server.close();
+  }
+});
+
 test('login can import the keychain credential when opted in', async () => {
   const server = await cloudCode();
   try {
