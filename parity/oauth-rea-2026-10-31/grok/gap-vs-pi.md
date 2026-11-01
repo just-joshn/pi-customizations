@@ -20,7 +20,7 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
    Live device start returns `verification_uri=https://accounts.x.ai/oauth2/device`. Pi `DEVICE_HOST` matches. Fixtures `device-probe-1.0.70.json`, `device-code-request-1.0.70.json`.
 
 6. **Device start form.**
-   IdP accepts Pi-style `client_id` + `scope` without Grok client-version/surface headers.
+   The IdP accepts `client_id` and `scope` without client-version or surface headers. Pi sends `DEVICE_CLIENT_HEADERS` on that request. Closed gap 1 records the header values.
 
 7. **Catalog physical ids.**
    Live bearer `GET /v1/models` returns `grok-4.7`, `grok-4.7-build-fast`, `grok-4.6`, `grok-4.5`. Matches Pi `BASELINE`. Fixture `fixtures/models-1.0.70.json`. Binary string absence of `grok-4.7-build-fast` was a false lead.
@@ -33,11 +33,9 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
 
 ## Remaining gaps (ordered by oauth-deps impact)
 
-### 1. Optional device request header fidelity
+### 1. Optional device request header fidelity (CLOSED)
 
-**Gap.** Binary concatenates `/oauth2/device/code`, `x-grok-client-version`, `1.0.70`, `x-grok-client-surface` in login code. Pi device POST sends only form fields (no those headers). IdP does **not** require them (live 200 without).
-
-**Pi-native fix path.** In `login.ts` `deviceLogin` / `postForm` (or a device-only header map), send `x-grok-client-version: GROK_CLIENT_VERSION`. Add `x-grok-client-surface` only after a wire capture names the value (mitm of `grok login --device-auth`, or REA decompile of `device_code.rs` setters). Keep form as `client_id` + `scope`. Tests: extend device login fake to assert headers. No binary read at runtime.
+**Measured.** The 1.0.70 surface recovery (`../grok-deepen/fixtures/device-headers-surface-1.0.70.json`, `../grok-deepen/fixtures/device-start-headers-1.0.70.json`) names the default `x-grok-client-surface` as `ui`. The device form field `referrer` is `grok-build`. Pi `login.ts` sets `GROK_CLIENT_SURFACE` to `ui` and sends `DEVICE_CLIENT_HEADERS` on device start and on the device token poll. `login.test.ts` asserts both requests. The IdP still returns HTTP 200 when those headers are absent.
 
 ### 2. Inference header set beyond models gate (CLOSED)
 
@@ -71,6 +69,6 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
 
 ## Smallest remaining work (extension unit later)
 
-1. Device surface/referrer split tracked as **XAI-SURFACE-UI** (not reopened here).
+1. Device surface `ui` and referrer `grok-build` landed in PR #122 (`GROK_CLIENT_SURFACE`, `DEVICE_CLIENT_HEADERS`).
 2. No catalog edit. Live ids match.
 3. Responses header and refresh prove units are closed.

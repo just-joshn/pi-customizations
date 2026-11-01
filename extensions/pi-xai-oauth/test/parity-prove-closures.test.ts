@@ -79,7 +79,9 @@ test('grokHeaders still emit the measured Pi identity set', () => {
   expect(Object.keys(headers)).toStrictEqual(['x-grok-client-version', 'X-XAI-Token-Auth', 'x-grok-model-override', 'x-grok-context-window']);
 });
 
-test('refresh live capture posts the public PKCE refresh form Pi host uses', () => {
+// This test reads the copied capture only. This package does not post a refresh grant.
+// provider.test.ts asserts createGrokBuildProvider keeps the xAI client's refresh. That function is refreshXaiToken in @earendil-works/pi-ai.
+test('copied refresh fixture records the live public PKCE form', () => {
   expect(refresh.response.status).toBe(200);
   expect(refresh.requestFieldNames).toStrictEqual(['grant_type', 'client_id', 'refresh_token']);
   expect(refresh.requestFields.grant_type).toBe('refresh_token');
