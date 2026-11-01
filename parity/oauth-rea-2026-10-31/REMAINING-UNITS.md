@@ -24,18 +24,17 @@ Every OPEN row has a concrete Pi-native fix path. None are marked impossible.
 
 | Package | OPEN units |
 | --- | ---: |
-| `pi-anthropic-oauth` | 8 |
+| `pi-anthropic-oauth` | 7 |
 | `pi-antigravity-oauth` | 2 |
 | `pi-xai-oauth` | 1 |
-| **Total OPEN** | **11** |
+| **Total OPEN** | **10** |
 
-Top 5 by wire impact (what the remote sees or how auth recovers).
+Open units by wire impact (what the remote sees or how auth recovers).
 
 1. **XAI-SURFACE-UI** (high fidelity). PR #119 sent device surface `grok-build`; deepen RE shows default surface is `ui` and `grok-build` is referrer only. Owner in flight for D1–D3.
 2. **ANTH-LIVE-021** (med). Live Anthropic exchange still gated. Needed to close acceptance of authorize+exchange.
 3. **ANTH-ERR-011** (low). Exchange error strings still generic versus Claude `error_strings`.
 4. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
-5. **ANTH-ALLOWLIST** (low). Custom oauth base allowlist unused on prod cai.
 
 ---
 
@@ -70,14 +69,6 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 5. **Verification.** Fake HTTP tests for each endpoint. Skip until product asks for account sync.
 6. **Wire impact.** low (not on Messages inference)
 
-#### ANTH-ALLOWLIST
-
-1. **ID.** ANTH-ALLOWLIST (DEP-ALLOWED-BASES)
-2. **Observed CLI fact.** `ALLOWED_OAUTH_BASE_URLS` three hosts for `CLAUDE_CODE_CUSTOM_OAUTH_URL` only (`claude/fixtures/allowed-oauth-bases-2.1.312.json`).
-3. **Current Pi state.** No custom oauth base support.
-4. **Smallest Pi-native change.** Optional allowlist gate (default off) if Pi ever reads a custom oauth URL env. Same three hosts + Claude miss error string.
-5. **Verification.** Table test of allow/deny hosts. Prod cai path unchanged.
-6. **Wire impact.** low (irrelevant for prod cai)
 
 #### ANTH-FILE-LOCK
 
@@ -119,6 +110,7 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 
 | ID | Evidence in Pi | Ledger / PR |
 | --- | --- | --- |
+| ANTH-ALLOWLIST | `allowed-oauth-bases.ts` + `resolveClaudeOAuthEndpoints`; table tests | this PR |
 | ANTH-UA-316 / OAUTH-002 / DEP-UA at 2.1.316 | `identity.ts` pin `2.1.316` + UA/billing tests | PR #115 |
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
 | billing-sample-isMeta-only | Billing fingerprint samples compact summaries; docs aligned | PR #117; docs #118 |
@@ -264,7 +256,7 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 1. Land **XAI-SURFACE-UI** (D1–D3) correcting PR #119 surface value.
 2. Capture agy token POST → land **AGY-TOKEN-SECRET-WIRE**.
 3. Gated **ANTH-LIVE-021**.
-4. Optional fidelity pack: **ANTH-ERR-011**, Anthropic allowlist/profile/lock, agy tokeninfo/device.
+4. Optional fidelity pack: **ANTH-ERR-011**, Anthropic profile/lock, agy tokeninfo/device.
 5. Remaining prove-only closures: **AGY-EXPIRY-NUMERIC**, **AGY-SCOPE-ORDER**.
 6. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
 

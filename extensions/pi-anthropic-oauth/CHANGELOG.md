@@ -2,6 +2,7 @@
 
 ## [0.1.3]
 
+- Gate `CLAUDE_CODE_CUSTOM_OAUTH_URL` with Claude's three-host `ALLOWED_OAUTH_BASE_URLS` allowlist. Unset keeps prod cai endpoints.
 - Pin request identity to Claude Code `2.1.316` (user agent and billing fingerprint version).
 
 ## [0.1.2]
