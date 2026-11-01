@@ -108,3 +108,17 @@ The required behavior is failure reporting without token-endpoint response bodie
 The required behavior is Claude Code `2.1.316` cai authorize, seven login scopes, independent PKCE state, paste-code redirect, JSON token exchange, and refresh with Zxt scopes.
 
 `src/oauth.ts` implements that protocol as a Pi `OAuthAuth` client. `subscriptionAuth` wraps it for labels and error sanitization. Pi stores credentials and decides when to refresh from `credential.expires`. The package no longer rewrites Pi's built-in Anthropic authorize URL.
+
+### Body attestation and first-party request identity
+
+The required behavior is the first-party wire Claude Code `2.1.316` sends, not the gateway-mode wire. The earlier fixtures were captured with a localhost `ANTHROPIC_BASE_URL`, which makes Claude pick its gateway provider and omit `cch`, the attribution fields, the extra headers and four betas. A capture through a local TLS proxy that presents `api.anthropic.com` shows the first-party form. The capture used a synthetic token and the proxy answered every request itself.
+
+`src/attestation.ts` reproduces the native HTTP layer. For a `/v1/messages` request it finds `"system":[`, finds `cch=00000` within 300 bytes, hashes the body with XXH64 and writes the low 20 bits as five hex digits over the placeholder. The hash skips the `"model":"` value, `"max_tokens":<digits>,`, a `"fallbacks":[...]` array and a `"fallback_credit_token":"..."` value. The first two skips are verified against two captured bodies and against the running binary under LLDB (`test/fixtures/claude-cch-2.1.316.json`). The `fallbacks` and `fallback_credit_token` skips come from the binary's disassembly and no capture exercised them.
+
+`src/attesting-fetch.ts` applies it in the `fetch` option Pi passes to the Anthropic provider, merges the beta header, adds `x-client-request-id`, and keeps the response `request-id` for the next block's `cc_prev_req`. `src/request-session.ts` keeps one prompt id per user turn. `cc_prompt_index` is always 0 because Pi has no queued mid-turn prompts.
+
+Not matched, by choice: Claude's `diagnostics`, `context_management` and `metadata.user_id` body fields, its tool and system prompt content, and the `x-stainless-*` headers (those come from the SDK build Pi ships).
+
+Claude has no libsecret or Windows credential-vault reader. `secret-tool`, `cmdkey` and `CredRead` appear in the 2.1.316 binary only inside the command-safety denylist, and the `tengu_windows_credman` store is the same `.credentials.json` file store behind a state cache. Plaintext import is therefore the whole non-macOS surface.
+
+Pi has no logout hook for extensions, and Pi's `/logout` only deletes the stored credential. `revokeAccessToken` and `revokeRefreshToken` are exported for a host or command to call.
