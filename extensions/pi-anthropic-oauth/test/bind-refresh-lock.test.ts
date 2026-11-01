@@ -44,12 +44,13 @@ async function refreshLockDuringFetch(lockPath: string): Promise<'present' | 'ab
   }
 }
 
-test('bindSubscriptionRefreshLock(undefined) refreshes without a refresh file lock', async ({ networkGuard }) => {
+async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void): Promise<'present' | 'absent'> {
   const dir = await mkdtemp(join(tmpdir(), 'pi-anth-bind-lock-'));
   onTestFinished(async () => {
     await rm(dir, { recursive: true, force: true });
   });
   agentDir.state.current = dir;
+  agentDir.getAgentDir.mockClear();
   const provider = captureProvider(extension);
   if (agentDir.getAgentDir.mock.calls.length === 0) throw new Error('getAgentDir mock did not intercept the extension default path');
 
@@ -57,10 +58,9 @@ test('bindSubscriptionRefreshLock(undefined) refreshes without a refresh file lo
   const toAuth = provider.auth.oauth?.toAuth;
   if (!toAuth) throw new Error('provider oauth toAuth is missing');
   await toAuth(credential);
-  bindSubscriptionRefreshLock(undefined);
+  bind();
 
-  const authPath = join(dir, 'auth.json');
-  const lockPath = refreshLockPathFor(authPath);
+  const lockPath = refreshLockPathFor(join(dir, 'auth.json'));
   let tokenRequests = 0;
   let lockDuringRefresh: 'present' | 'absent' | undefined;
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
@@ -92,5 +92,21 @@ test('bindSubscriptionRefreshLock(undefined) refreshes without a refresh file lo
   expect(message.stopReason).toBe('stop');
   expect(server.requests).toHaveLength(2);
   expect(tokenRequests).toBe(1);
+  if (lockDuringRefresh === undefined) throw new Error('token refresh did not observe the lock');
+  return lockDuringRefresh;
+}
+
+test('bindSubscriptionRefreshLock(undefined) skips the file lock', async ({ networkGuard }) => {
+  const lockDuringRefresh = await refreshWithoutStore(networkGuard, () => {
+    bindSubscriptionRefreshLock(undefined);
+  });
   expect(lockDuringRefresh).toBe('absent');
+});
+
+test('bindSubscriptionRefreshLock() keeps the file lock', async ({ networkGuard }) => {
+  const lockDuringRefresh = await refreshWithoutStore(networkGuard, () => {
+    bindSubscriptionRefreshLock(undefined);
+    bindSubscriptionRefreshLock();
+  });
+  expect(lockDuringRefresh).toBe('present');
 });
