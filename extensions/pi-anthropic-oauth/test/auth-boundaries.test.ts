@@ -153,8 +153,39 @@ test('a state mismatch never exchanges the authorization code', async ({ provide
         return 'local-code#wrong-state';
       },
     }),
-  ).rejects.toThrow('Claude subscription login failed');
+  ).rejects.toThrow('That code is not from this sign-in. Paste the code shown after opening the address above.');
   expect(tokenEndpoint.requests).toStrictEqual([]);
+});
+
+test('a pasted code without a state is rejected with Claude wording and never exchanged', async ({ provider, tokenEndpoint }) => {
+  const oauth = provider.auth.oauth;
+  if (!oauth) throw new Error('No OAuth');
+  await expect(
+    oauth.login({
+      signal: new AbortController().signal,
+      notify: () => undefined,
+      prompt: async (prompt) => (prompt.type === 'select' ? 'copy-code' : 'local-code'),
+    }),
+  ).rejects.toThrow('Invalid code. Please make sure the full code was copied.');
+  expect(tokenEndpoint.requests).toStrictEqual([]);
+});
+
+test('the paste prompt is the text Claude Code shows', async ({ provider }) => {
+  const oauth = provider.auth.oauth;
+  if (!oauth) throw new Error('No OAuth');
+  const messages: string[] = [];
+  await oauth
+    .login({
+      signal: new AbortController().signal,
+      notify: () => undefined,
+      prompt: async (prompt) => {
+        if (prompt.type === 'select') return 'copy-code';
+        messages.push(prompt.message);
+        throw new Error('Login cancelled');
+      },
+    })
+    .catch(() => undefined);
+  expect(messages).toStrictEqual(['Paste code here if prompted > ']);
 });
 
 test('failed refresh keeps account ownership', async ({ provider, credentials }) => {

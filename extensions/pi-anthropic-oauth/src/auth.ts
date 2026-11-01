@@ -1,7 +1,8 @@
 import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
-import { createClaudeOAuth, isClaudeTokenEndpointError, LOGIN_CANCELLED, LOGIN_TIMED_OUT } from './oauth.ts';
+import { createClaudeOAuth, isClaudeTokenEndpointError, LOGIN_CANCELLED, LOGIN_TIMED_OUT, PASTE_INVALID_CODE, PASTE_WRONG_SIGNIN } from './oauth.ts';
 
 export {
+  buildAuthorizeUrl,
   CLAUDE_AUTHORIZE_ORIGIN,
   CLAUDE_AUTHORIZE_PATH,
   CLAUDE_AUTHORIZE_QUERY_ORDER,
@@ -14,11 +15,13 @@ export {
   CLAUDE_REFRESH_SCOPES,
   CLAUDE_REVOKE_URL,
   CLAUDE_TOKEN_URL,
-  LOGIN_CANCELLED,
-  LOGIN_TIMED_OUT,
-  buildAuthorizeUrl,
   createClaudeOAuth,
   createPkcePair,
+  LOGIN_CANCELLED,
+  LOGIN_TIMED_OUT,
+  PASTE_INVALID_CODE,
+  PASTE_PROMPT,
+  PASTE_WRONG_SIGNIN,
   revokeAccessToken,
   revokeRefreshToken,
 } from './oauth.ts';
@@ -56,6 +59,7 @@ function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
       interaction.signal.throwIfAborted();
       if (error instanceof Error && error.message === LOGIN_CANCELLED) throw error;
       if (error instanceof Error && error.message === LOGIN_TIMED_OUT) throw error;
+      if (error instanceof Error && (error.message === PASTE_INVALID_CODE || error.message === PASTE_WRONG_SIGNIN)) throw error;
       if (error instanceof Error && /Claude Code credentials/.test(error.message)) throw error;
       if (error instanceof Error && isClaudeTokenEndpointError(error.message)) throw error;
       throw new Error('Claude subscription login failed. Try /login again.');
