@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { taskCardText } from '../src/task/card.ts';
+import { taskCardText, taskNotificationCardText } from '../src/task/card.ts';
 
 const result = (model: unknown, text: string) => ({ content: [{ type: 'text' as const, text }], details: { subagentType: 'poteto-agent', model } });
 
@@ -31,4 +31,13 @@ test('a cloud agent card names its worktree branch (TASK-010)', () => {
 test('the card leads with the Task description, as Cursor names the subagent by it', () => {
   const details = { subagentType: 'poteto-agent', model: null, description: 'Audit skill corpus' };
   expect(taskCardText({ content: [{ type: 'text', text: 'done' }], details }, true).split('\n')[0]).toBe("Audit skill corpus · poteto-agent · Pi's default model");
+});
+
+test('formats background notification header with collapsible detail', () => {
+  const long = Array.from({ length: 15 }, (_, index) => `line ${index}`).join('\n');
+  const details = { status: 'success' as const, agentId: '11111111-2222-4333-8444-555555555555', title: 'Audit repo', detail: long };
+  const collapsed = taskNotificationCardText({ content: 'raw', details }, false).split('\n');
+  expect(collapsed[0]).toBe('Audit repo · success · agent 11111111-2222-4333-8444-555555555555');
+  expect(collapsed.at(-1)).toBe('… 5 more lines');
+  expect(taskNotificationCardText({ content: 'raw', details }, true).split('\n')).toHaveLength(16);
 });

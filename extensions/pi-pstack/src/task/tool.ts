@@ -9,12 +9,12 @@ import { childIdentity, childVariables } from '../child-env.ts';
 import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
-import { renderTaskCard } from './card.ts';
+import { renderTaskCard, renderTaskNotification } from './card.ts';
 import { backgroundText, bounded, foregroundText, steerText, worktreeLine, worktreePreface } from './format.ts';
 import { type AvailableModel, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { type AgentRecord, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
-import { type BackgroundNotice, createSubagentRegistry } from './registry.ts';
-import { type ChildHandle, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
+import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
+import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
 import { addWorktree, planWorktree, type Worktree } from './worktree.ts';
 
@@ -213,13 +213,12 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   };
 }
 
-function launchChild(plan: Launch, prompt: string, signal: AbortSignal | undefined) {
+function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | undefined) {
   const readonly = runsReadonly(plan);
   const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace)) };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
   const args = childArgs({ sessionDir: subagentDir(plan.workspace), agentId: plan.agentId, readonly, restoreTools, trusted: plan.trusted, ...(plan.model === undefined ? {} : { model: plan.model }) });
-  const input = withAttachments(prompt, plan.attachments);
   return startChild({ command: piCommand(), args, prompt: input.text, images: input.images, cwd: plan.worktree?.cwd ?? plan.workspace, env, ...(signal === undefined ? {} : { signal }) });
 }
 
@@ -250,10 +249,11 @@ function recordResume(plan: Launch): void {
  * Starts the child, then points the run lock at it and records the agent. A child that never started (no pid) has no
  * transcript and changes no record, so a new agent's ID never becomes resumable; a fork's copied transcript is removed with it.
  */
-function start(plan: Launch, prompt: string, signal: AbortSignal | undefined, lock: RunLock): ChildHandle {
+function start(plan: Launch, rawInput: ChildInput, signal: AbortSignal | undefined, lock: RunLock): ChildHandle {
   let handle: ChildHandle | undefined;
   try {
-    handle = launchChild(plan, plan.kind === 'fresh' && plan.worktree !== undefined ? worktreePreface(plan.worktree, prompt) : prompt, signal);
+    const input = plan.kind === 'fresh' && plan.worktree !== undefined ? { ...rawInput, text: worktreePreface(plan.worktree, rawInput.text) } : rawInput;
+    handle = launchChild(plan, input, signal);
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
       if (plan.kind === 'resume') recordResume(plan);
@@ -381,7 +381,7 @@ async function steerRunning(params: TaskInput, running: { handle: ChildHandle; r
   const agentId = params.resume ?? '';
   if ((params.readonly === true || planMode) && !running.readonly)
     throw new Error(`Agent ${agentId} is running with write access, so a readonly call cannot message it${planMode ? ' (plan mode makes every Task call readonly)' : ''}. Wait for its completion notification, or stop it with stop_agent.`);
-  const input = withAttachments(params.prompt, resolveAttachments(params.file_attachments ?? [], ctx.cwd));
+  const input = await withAttachments(params.prompt, resolveAttachments(params.file_attachments ?? [], ctx.cwd));
   await running.handle.steer(input.text, input.images).catch((error: Error) => {
     throw new Error(`Agent ${agentId} finished before the message reached it (${error.message}). Resume it once its result arrives.`);
   });
@@ -421,6 +421,7 @@ export interface TaskHandle {
 
 export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHandle {
   const registry = createSubagentRegistry(pi);
+  pi.registerMessageRenderer?.(NOTIFICATION_TYPE, (message, renderOptions) => renderTaskNotification(message, renderOptions));
   let sessionCtx: ExtensionContext | undefined;
   pi.on('agent_before_settle', (event, ctx) => registry.beforeSettle(ctx, event.outcome));
   pi.on('session_shutdown', (event, ctx) => {
@@ -452,11 +453,12 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       taskPreflight(params, options.depth);
       const running = params.resume === undefined ? undefined : registry.get(validateAgentId(params.resume));
       if (running !== undefined) return steerRunning(params, running, ctx, options.planMode?.() === true);
+      const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
+      const input = attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
       const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
-      // Awaiting yields to a parallel Task call, so only a fresh isolated agent awaits before it is tracked.
       if (plan.kind === 'fresh' && plan.worktree !== undefined) await createWorktree(plan, lock, signal);
       const background = params.run_in_background ?? plan.agent.background;
-      const handle = start(plan, params.prompt, background ? undefined : signal, lock);
+      const handle = start(plan, input, background ? undefined : signal, lock);
       if (background) {
         registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, params.prompt, ctx, toolCallId));
         return { content: [{ type: 'text', text: backgroundText(plan.agentId, transcriptOf(plan), plan.notes) }], details: details(plan, true, 'running', handle.pid) };
@@ -476,7 +478,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     taskPreflight(params, options.depth);
     const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
     await createWorktree(plan, lock, undefined);
-    const handle = start(plan, prompt, undefined, lock);
+    const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock);
     registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, prompt, ctx, `pstack-${plan.agentId}`));
     return plan.agentId;
   }

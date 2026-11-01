@@ -127,12 +127,7 @@ describe('shipped resources', () => {
   });
 
   test('ships pstack and team-kit subagent definitions (RES-006)', () => {
-    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual([
-      'ci-watcher.md',
-      'comment-sicko.md',
-      'poteto-agent.md',
-      'thermo-nuclear-code-quality-review.md',
-    ]);
+    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual(['ci-watcher.md', 'comment-sicko.md', 'poteto-agent.md', 'thermo-nuclear-code-quality-review.md']);
   });
 
   test('poteto-mode tells delegates where bundled skills live, and every principle it names is at ../<name>/SKILL.md (RES-010)', () => {

@@ -47,17 +47,26 @@ describe('attachments (TASK-016)', () => {
   });
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test('builds the message Pi builds from @file arguments: the prompt, each text file in a <file> block, images as attachments', () => {
+  test('builds the message Pi builds from @file arguments: the prompt, each text file in a <file> block, images as attachments', async () => {
     const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489', 'hex');
     writeFileSync(join(dir, 'note.txt'), '\uFEFFhello\n');
     writeFileSync(join(dir, 'empty.txt'), '');
     writeFileSync(join(dir, 'shot.png'), png);
-    const input = withAttachments('  look at these\n', [join(dir, 'note.txt'), join(dir, 'empty.txt'), join(dir, 'shot.png')]);
+    const input = await withAttachments('  look at these\n', [join(dir, 'note.txt'), join(dir, 'empty.txt'), join(dir, 'shot.png')]);
     expect(input).toEqual({
       text: `look at these<file name="${join(dir, 'note.txt')}">\nhello\n\n</file>\n<file name="${join(dir, 'shot.png')}"></file>\n`,
       images: [{ type: 'image', mimeType: 'image/png', data: png.toString('base64') }],
     });
-    expect(withAttachments('plain', [])).toEqual({ text: 'plain', images: [] });
+    await expect(withAttachments('plain', [])).resolves.toEqual({ text: 'plain', images: [] });
+  });
+
+  test('uses Pi detectSupportedImageMimeTypeFromFile rules so a truncated BM prefix is treated as text', async () => {
+    writeFileSync(join(dir, 'fake.bmp'), 'BM-not-a-bitmap');
+    const input = await withAttachments('check', [join(dir, 'fake.bmp')]);
+    expect(input).toEqual({
+      text: `check<file name="${join(dir, 'fake.bmp')}">\nBM-not-a-bitmap\n</file>\n`,
+      images: [],
+    });
   });
 });
 
