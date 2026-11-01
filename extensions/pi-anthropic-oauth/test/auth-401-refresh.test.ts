@@ -11,10 +11,10 @@ function authorization(request: RecordedRequest): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function rejectStaleBearerThenSucceed(staleAccess: string) {
+function rejectStaleBearerThenSucceed(staleAccess: string, status = 401, message = 'invalid bearer token') {
   return (res: Parameters<ReturnType<typeof errorReply>>[0], request: RecordedRequest) => {
     if (authorization(request) === `Bearer ${staleAccess}`) {
-      errorReply(401, 'invalid bearer token')(res, request);
+      errorReply(status, message)(res, request);
       return;
     }
     sseReply(textMessage('ok'))(res, request);
@@ -54,4 +54,19 @@ test('a second 401 after refresh is not retried again', async ({ models, model, 
   expect(message.errorMessage).toMatch(/^401\b/);
   expect(tokenEndpoint.requests).toHaveLength(1);
   expect(server.requests).toHaveLength(2);
+});
+
+test('a 403 with revoked OAuth body refreshes once then retries the request', async ({ models, model, server, credentials, tokenEndpoint }) => {
+  server.respond(rejectStaleBearerThenSucceed(OAUTH_ACCESS_TOKEN, 403, 'OAuth token has been revoked'));
+  const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0 }));
+  expect(message.stopReason).toBe('stop');
+  expect(server.requests).toHaveLength(2);
+  expect(authorization(server.requests[0]!)).toBe(`Bearer ${OAUTH_ACCESS_TOKEN}`);
+  expect(authorization(server.requests[1]!)).toBe(`Bearer ${REFRESHED_ACCESS_TOKEN}`);
+  expect(tokenEndpoint.requests).toHaveLength(1);
+  await expect(credentials.read(model.provider)).resolves.toMatchObject({
+    type: 'oauth',
+    access: REFRESHED_ACCESS_TOKEN,
+    refresh: REFRESHED_REFRESH_TOKEN,
+  });
 });

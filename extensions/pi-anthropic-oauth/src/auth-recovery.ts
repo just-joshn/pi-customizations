@@ -25,13 +25,26 @@ function withBearer(headers: RequestHeaders | undefined, access: string): Header
   return next;
 }
 
-/** One forced refresh under an in-process latch, then one HTTP retry on 401. */
+/** Claude FE phrases that force refresh on HTTP 403 (fixture + 2.1.316 SDK string). */
+const REVOKED_OAUTH_TOKEN = /OAuth (?:access )?token has been revoked/;
+
+async function isAuthRecoveryTrigger(response: Response): Promise<boolean> {
+  if (response.status === 401) return true;
+  if (response.status !== 403) return false;
+  try {
+    return REVOKED_OAUTH_TOKEN.test(await response.clone().text());
+  } catch {
+    return false;
+  }
+}
+
+/** One forced refresh under an in-process latch, then one HTTP retry on 401 or revoked 403. */
 export function createAuthRecovery(input: { providerId: string; oauth: OAuthAuth }): AuthRecovery {
   let store: CredentialStore | undefined;
   let remembered: OAuthCredential | undefined;
   const latch = createRefreshLatch<string | undefined>();
 
-  async function refreshAfter401(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
+  async function refreshAfterAuthFailure(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
     return latch.run(async () => {
       if (store) {
         const post = await store.modify(
@@ -67,14 +80,14 @@ export function createAuthRecovery(input: { providerId: string; oauth: OAuthAuth
     wrapFetch(base) {
       return async (inputUrl, init) => {
         const response = await base(inputUrl, init);
-        if (response.status !== 401) return response;
+        if (!(await isAuthRecoveryTrigger(response))) return response;
         const failedAccess = bearerAccess(init?.headers);
         if (!failedAccess) return response;
         const signal = init?.signal ?? AbortSignal.timeout(REFRESH_TIMEOUT_MS);
         if (signal.aborted) return response;
         let access: string | undefined;
         try {
-          access = await refreshAfter401(failedAccess, signal);
+          access = await refreshAfterAuthFailure(failedAccess, signal);
         } catch {
           return response;
         }
