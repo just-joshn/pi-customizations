@@ -5,7 +5,7 @@ Prior statuses are from `parity/pi-xai-oauth/ledger.md`. This file records what 
 | ID | Prior status | 1.0.70 status | Why |
 |---|---|---|---|
 | XAI-001 | VERIFIED | VERIFIED (evidence refresh) | Authorize order, client, scope, referrer, `%20` match 1.0.70 probe. Update evidence pointer from 1.0.50 fixture to also cite `oauth-rea-2026-10-31/grok/login-probe.txt`. Test still passes against stable fields. |
-| XAI-002 | VERIFIED | VERIFIED (re-evidence) | Live device start on 1.0.70 returns `verification_uri=https://accounts.x.ai/oauth2/device`. Pi-style form works without client-surface headers. Cite `fixtures/device-code-request-1.0.70.json`. |
+| XAI-002 | VERIFIED | VERIFIED (re-evidence) | Live device start on 1.0.70 returns `verification_uri=https://accounts.x.ai/oauth2/device`. The IdP accepts a start without client headers. Pi sends surface `ui` on start and on poll. Cite `fixtures/device-code-request-1.0.70.json` and `../grok-deepen/fixtures/device-start-headers-1.0.70.json`. |
 | XAI-003 | INCONCLUSIVE | INCONCLUSIVE | Unchanged. Full scope still requested. Server grant/require still unobserved (no live token). |
 | XAI-004 | VERIFIED | VERIFIED | `GROK_AUTH_EARLY_INVALIDATION_SECS` default 300 still documented. Pi 300s skew still correct. |
 | XAI-005 | VERIFIED | VERIFIED (not re-run) | Hot Reload / auth.json docs remain. Logout mode not re-probed. |
@@ -32,7 +32,7 @@ Prior statuses are from `parity/pi-xai-oauth/ledger.md`. This file records what 
 
 | Candidate | Behavior | Status |
 |---|---|---|
-| XAI-024? | Device (and maybe inference) may send `x-grok-client-surface` | UNKNOWN. String-only. |
+| XAI-024? | Device start and device token poll send `x-grok-client-surface` | Measured default `ui`. Referrer is `grok-build`. Inference is outside this fixture. |
 | XAI-025? | Sampler may send `x-grok-max-completion-tokens` / `x-models-etag` | UNKNOWN. String-only. |
 | XAI-026? | Fast catalog id may be `grok-4.7-high-fast` | **REJECTED.** Live catalog still uses `grok-4.7-build-fast`. Docs flat-id example is not the physical catalog id. |
 
@@ -41,4 +41,4 @@ Prior statuses are from `parity/pi-xai-oauth/ledger.md`. This file records what 
 Keep XAI-006 verified. Cite 1.0.70 binary and the bumped constant.
 Restore XAI-012 verified from `fixtures/models-1.0.70.json`.
 Keep authorize login rows verified with the 1.0.70 probe / `grok-1.0.70-authorize-url.json`.
-Optional wire-fidelity only: device `x-grok-client-surface` value still unknown.
+Device `x-grok-client-surface` default is `ui`. Pi `DEVICE_CLIENT_HEADERS` sends it on device start and on the device token poll.

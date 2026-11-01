@@ -33,7 +33,8 @@ Measured probe order (byte order of query names): `response_type`, `client_id`, 
 | Verification host/path | `https://accounts.x.ai/oauth2/device` (live start + prior killed prompt) |
 | Start form that works | `client_id` + `scope` only → HTTP 200 |
 | Binary adjacent names | `x-grok-client-version` `1.0.70` `x-grok-client-surface` next to `/oauth2/device/code` |
-| Extra headers required by IdP? | **No.** Pi-style POST without them succeeds. Surface value still unknown. |
+| Default surface | `ui` on device start and on the device token poll. `grok-build` is the `referrer` field. Evidence is `../grok-deepen/fixtures/device-start-headers-1.0.70.json`. Pi `DEVICE_CLIENT_HEADERS` sends both headers. |
+| Extra headers required by IdP? | **No.** A start without them still returns HTTP 200. |
 
 Fixtures: `fixtures/device-probe-1.0.70.json`, `fixtures/device-code-request-1.0.70.json`.
 
@@ -80,7 +81,7 @@ Pi `grokHeaders()` also sends `x-grok-context-window` and optional `x-grok-conv-
 | `x-grok-model-override` | 3 | Inference docs say yes |
 | `x-grok-conv-id` | 1 | Not for models |
 | `x-grok-context-window` | 1 | Not for models; sampler sibling of max-completion-tokens |
-| `x-grok-client-surface` | 1 | Device-adjacent; IdP does not require |
+| `x-grok-client-surface` | 1 | Default value `ui`. The IdP does not require it. |
 | `x-grok-deployment-id` | 1 | Sampler table; unknown |
 | `x-grok-max-completion-tokens` | 1 | Sampler; unknown |
 | `x-models-etag` | 1 | Catalog caching GUESS; response `ETag` observed |

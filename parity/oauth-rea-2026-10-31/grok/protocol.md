@@ -69,7 +69,7 @@ String evidence in the binary:
 
 Verification host measured on 1.0.70 live device start: `https://accounts.x.ai/oauth2/device` (`fixtures/device-code-request-1.0.70.json`, also `fixtures/device-probe-1.0.70.json`).
 
-Device request sits next to header name fragments `x-grok-client-version` / `1.0.70` / `x-grok-client-surface` in one concatenated blob. Live IdP accepts Pi-style `client_id` + `scope` without those headers (HTTP 200). Exact Grok CLI surface header value remains unknown (GUESS until wire or decompile).
+Device request sits next to header name fragments `x-grok-client-version` / `1.0.70` / `x-grok-client-surface` in one concatenated blob. The IdP accepts a start with `client_id` and `scope` and no client headers (HTTP 200). The 1.0.70 surface recovery names the default surface `ui`. `grok-build` is the device form field `referrer`. Pi `DEVICE_CLIENT_HEADERS` sends `x-grok-client-version` `1.0.70` and `x-grok-client-surface` `ui` on device start and on the device token poll. Evidence is `../grok-deepen/fixtures/device-start-headers-1.0.70.json` and `../grok-deepen/fixtures/device-headers-surface-1.0.70.json`.
 
 ## Token response and refresh skew
 
