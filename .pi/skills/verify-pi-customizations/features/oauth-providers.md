@@ -7,12 +7,13 @@ OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`
 - `claude-provider` exposes Claude subscription models in Pi model pickers and `--list-models` output.
 - `antigravity-provider` exposes Google Antigravity subscription models in Pi model pickers and `--list-models` output.
 - `grok-build-provider` exposes Grok Build subscription models in Pi model pickers and `--list-models` output.
-- `auth-discovery` uses Pi's native credential resolution. Claude also accepts subscription tokens from `CLAUDE_CODE_OAUTH_TOKEN`, `ANTHROPIC_OAUTH_TOKEN`, and `ANTHROPIC_AUTH_TOKEN` when no stored credential owns the provider. The Antigravity provider reads `projectId` from its credential record.
+- `auth-discovery` uses Pi's native credential resolution. Claude also accepts subscription tokens from `CLAUDE_CODE_OAUTH_TOKEN` and `ANTHROPIC_AUTH_TOKEN` when no stored credential owns the provider. The Antigravity provider reads `projectId` from its credential record.
 
 ## How to get to it (user POV)
 
 - Run `pi --list-models claude-subscription` with `pi-anthropic-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
 - Run `pi --list-models google-antigravity` with `pi-antigravity-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
+- Run `pi --list-models grok-build` with `pi-xai-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
 - Select provider models in Pi interactive model picker (`/model`).
 
 ## Driving it with control-pi
@@ -20,12 +21,13 @@ OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`
 Preconditions:
 
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
-- For the two manual `pi --list-models` commands below, the `auth.json` in your normal Pi data directory must contain a matching OAuth credential record. The driver creates a separate temporary `auth.json` fixture for its own checks.
+- For the manual `pi --list-models` commands below, the `auth.json` in your normal Pi data directory must contain a matching OAuth credential record. The driver creates a separate temporary `auth.json` fixture for its own checks.
 
-- **List Claude models manually.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes Claude Opus models from the installed Pi Anthropic catalog. Exact model IDs depend on the Pi version.
-- **List Antigravity models manually.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3-flash-agent`, `claude-opus-4-6-thinking`, and other Antigravity models.
+- **List Claude models manually.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes Claude Opus and Sonnet models from the installed Pi Anthropic catalog. Exact model IDs depend on the Pi version.
+- **List Antigravity models manually.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3.8-flash`, `claude-opus-5-5`, and other Antigravity catalog models.
+- **List Grok Build models manually.** Execute `pi --no-extensions -e extensions/pi-xai-oauth --list-models grok-build`. The model list includes `grok-4.7`, `grok-4.7-build-fast`, `grok-4.6`, `grok-4.5`, and reasoning tier aliases.
 - **Run verification.** Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers`.
-- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/oauth-providers/claude-models.txt` and `antigravity-models.txt`. The fixture drive proves model listing only. It does not prove login, token validity, token refresh, or a successful model response.
+- **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/oauth-providers/claude-models.txt`, `antigravity-models.txt`, and `grok-build-models.txt`. The fixture drive proves model listing only. It does not prove login, token validity, token refresh, or a successful model response.
 
 ## Gotchas
 
