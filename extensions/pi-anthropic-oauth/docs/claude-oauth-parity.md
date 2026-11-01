@@ -37,7 +37,7 @@ The current identity reference is locally installed Claude Code `2.1.316`, captu
 
 The current pinned version is `2.1.316`. The target rule samples JavaScript string indices `4`, `7`, and `20` from the first non-meta user text, substituting `0` for missing characters, and hashes its pinned salt, that sample, and the version with SHA-256, using the first three hexadecimal characters. Independent current text captures match this rule for the prompts listed in `test/claude-parity.test.ts`.
 
-Pi's normalized request transcript supplies the user messages. The fingerprint skips a duck-typed `isMeta === true` or `isCompactSummary === true` user message (Pi's `UserMessage` type has neither field). Compaction and branch changes therefore use the first eligible user text in the new request context.
+Pi's normalized request transcript supplies the user messages. The fingerprint skips a duck-typed `isMeta === true` user message (Pi's `UserMessage` type has no such field). Compaction and branch changes therefore use the first eligible user text in the new request context.
 
 This identity is captured Claude Code attribution, not native Pi attribution. The local captures do not establish permission under Anthropic's current terms. Review those terms before using a subscription with this client.
 

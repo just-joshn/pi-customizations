@@ -50,7 +50,7 @@ Use Pi's `models.json` for explicit header overrides. For example:
 }
 ```
 
-The default identity matches the pinned Claude Code `2.1.316` request for `Reply LOCAL_OK.`. Additional synthetic text captures agree with the existing billing rule at tested length boundaries and for Unicode; this does not establish its private implementation or arbitrary-input parity. The target derives the billing fingerprint from the first user text that is not duck-typed `isMeta` or `isCompactSummary`. Header overrides do not change the pinned version used in that fingerprint. Ambient auth is oauth-only (`ANTHROPIC_AUTH_TOKEN` then `CLAUDE_CODE_OAUTH_TOKEN`). API keys are rejected.
+The default identity matches the pinned Claude Code `2.1.316` request for `Reply LOCAL_OK.`. Additional synthetic text captures agree with the existing billing rule at tested length boundaries and for Unicode; this does not establish its private implementation or arbitrary-input parity. The target derives the billing fingerprint from the first user text that is not duck-typed `isMeta`. Header overrides do not change the pinned version used in that fingerprint. Ambient auth is oauth-only (`ANTHROPIC_AUTH_TOKEN` then `CLAUDE_CODE_OAUTH_TOKEN`). API keys are rejected.
 
 Pi still controls thinking, output limits, tool execution, retries, compaction, model selection, and usage accounting. The package does not replace Pi's prompt or Bash-output policy.
 
