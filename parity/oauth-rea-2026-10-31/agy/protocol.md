@@ -1,8 +1,15 @@
 # Antigravity CLI (agy) OAuth protocol
 
-Target binary. `/Users/josh-desktop/.local/bin/agy` Mach-O arm64, sha256 `34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3`. Changelog and live wire User-Agent are `1.4.12` with `cl=1010700967` (fixtures/captured-user-agent-1.4.12.json). Exact embedded CLI version string was not located as a contiguous `antigravity/cli/X.Y.Z` literal; the wire value comes from a live Cloud Code sink capture.
+Target binary. `/Users/josh-desktop/.local/bin/agy` Mach-O arm64, sha256 `34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3` (197589952 bytes). Drifted from prior ledger hash `09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd`.
 
-Evidence basis. Byte scans of the Mach-O, one public HTTPS GET of client metadata, one macOS keychain metadata read of the existing `gemini`/`antigravity` item, live CLOUD_CODE_URL sink capture of User-Agent, and comparison to `extensions/pi-antigravity-oauth`. No live Google login was completed in the initial ledger pass.
+Identity.
+
+- Changelog / version literal `1.4.12` in binary (offset near build metadata).
+- REA `inspect_go_binary` (evidence `ev_0a28b636…`). `go1.28-20261025-RC00 cl/1006921819` (+a87c0aebd5; X:fieldtrack,boringcrypto,simd,nogolistexportnewformat). That toolchain changelist is **not** the User-Agent `cl=`.
+- Live Cloud Code UA (fixture). `antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)` in `fixtures/captured-user-agent-1.4.12.json`.
+- Binary contains literal `1010700967` (11 hits, google3 / SrcFS / changelist metadata). Contiguous `antigravity/cli/` product string is **absent**. UA is assembled at runtime from fragments (`aidev_client`, `os_type=%s`, `auth_method=%s`, `cl=%d`, `User-Agent`, `%s/%s (%s)`).
+
+Evidence basis. Byte scans of this Mach-O (`fixtures/binary-oauth-strings.json`, `fixtures/binary-identity-34423fc9.json`), REA open + Go buildinfo, retained live sink captures, public client-metadata GET, macOS keychain schema, read-only compare to `extensions/pi-antigravity-oauth`. REA `search_strings` timed out on this ~197MB image (same limit as prior pass). No live Google login this unit.
 
 ## Endpoints
 
@@ -13,19 +20,19 @@ Evidence basis. Byte scans of the Mach-O, one public HTTPS GET of client metadat
 | Userinfo | `https://www.googleapis.com/oauth2/v2/userinfo` | VERIFIED in binary |
 | Tokeninfo | `https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=%s` | VERIFIED format string in binary |
 | OAuth callback page | `https://antigravity.google/oauth-callback` | VERIFIED in binary |
-| Client metadata (RFC 7591 style) | `https://antigravity.google/oauth/client-metadata.json` | VERIFIED in binary and by live GET 200 |
+| Client metadata (RFC 7591 style) | `https://antigravity.google/oauth/client-metadata.json` | VERIFIED in binary and by live GET 200 (`fixtures/client-metadata.json`) |
 | Alternate authorize (non-accounts) | `https://auth.cloud.google/authorize` | VERIFIED in binary. Guess. Separate Cloud/WIF path, not the consumer installed-app flow Pi mirrors. |
 | STS token exchange | `https://sts.googleapis.com/v1/oauthtoken` | VERIFIED in binary. Adjacent to WIF / external_account strings. |
-| Cloud Code (default used by Pi) | `https://daily-cloudcode-pa.googleapis.com` | VERIFIED in binary. Pi and agy honor `CLOUD_CODE_URL` override (`Overriding CloudCodeServerURL via CLOUD_CODE_URL`). |
+| Cloud Code (default used by Pi) | `https://daily-cloudcode-pa.googleapis.com` | VERIFIED in binary. Pi and agy honor `CLOUD_CODE_URL` (`Overriding CloudCodeServerURL via CLOUD_CODE_URL`). |
 | Cloud Code (prod and sandboxes) | `https://cloudcode-pa.googleapis.com`, `https://autopush-cloudcode-pa.sandbox.googleapis.com`, `https://preprod-daily-cloudcode-pa.sandbox.googleapis.com` | VERIFIED in binary |
 
 ## Client identity
 
-Primary installed-app client id matches `CLIENT_ID` in `extensions/pi-antigravity-oauth/src/oauth.ts`.
+Primary installed-app client id matches `CLIENT_ID` in `extensions/pi-antigravity-oauth/src/oauth.ts` (present at file offset 58045220).
 
-Additional client ids exist in the same binary for other products or flows. Literals are redacted here for GitHub push protection.
+Two additional `.apps.googleusercontent.com` client ids remain in the same binary for other products or flows. Literals redacted in fixtures for GitHub push protection.
 
-Public client metadata document (fetched 2026-10-31, no auth).
+Public client metadata document (`fixtures/client-metadata.json`).
 
 ```json
 {
@@ -39,11 +46,11 @@ Public client metadata document (fetched 2026-10-31, no auth).
 }
 ```
 
-Note. Metadata advertises `token_endpoint_auth_method: none` (public client). The binary still embeds GOCSPX client secrets. Pi sends `client_id` and `client_secret` on token POSTs. Whether agy's consumer path still posts the secret is INCONCLUSIVE without a captured token exchange.
+Note. Metadata advertises `token_endpoint_auth_method: none` (public client). The binary still embeds three GOCSPX client secrets. Pi sends `client_id` and `client_secret` on token POSTs. Whether agy's consumer path still posts the secret is a concrete follow-up (needs a captured token exchange). Not claimed impossible.
 
 ## Client secrets (public installed-app style)
 
-Three installed-app client-secret literals appear in rodata. The consumer secret matches `CLIENT_SECRET` in `extensions/pi-antigravity-oauth/src/oauth.ts`. The other two sit near Cloud authorize and MCP/crash-log strings. Literals are redacted here for GitHub push protection.
+Three installed-app client-secret literals appear in rodata (offsets 57359801, 57359941, 57362321). The consumer secret at 57359941 matches `CLIENT_SECRET` in `extensions/pi-antigravity-oauth/src/oauth.ts`. The other two sit near Cloud Code / MCP strings. Literals redacted in fixtures.
 
 ## Redirect
 
@@ -53,25 +60,23 @@ Binary success string. `OAuth: authenticated successfully as %s`. Callback error
 
 ## Scopes
 
-These scope URLs are present as literals.
+These scope URLs are present as literals (each count ≥1 except openid which has neighbors).
 
 - `https://www.googleapis.com/auth/cloud-platform`
-- `https://www.googleapis.com/auth/userinfo.email` (immediately after `cloud-platform` in rodata)
+- `https://www.googleapis.com/auth/userinfo.email`
 - `https://www.googleapis.com/auth/userinfo.profile`
 - `https://www.googleapis.com/auth/cclog`
 - `https://www.googleapis.com/auth/experimentsandconfigs`
 - `https://www.googleapis.com/auth/aicode`
-- `openid` (present, but many false neighbors in the string table)
+- `openid`
 
-Drive-related `googleapis.com/auth/drive*` strings also exist. Guess. Other Google client libraries inside the binary, not the Antigravity consumer login scope set.
-
-Exact ordered scope list for the AntigravityHubAuthProvider login Config is INCONCLUSIVE from strings alone. Pi's ordered set matches the Antigravity-relevant literals above.
+Exact ordered scope list for the AntigravityHubAuthProvider login Config is not proven by adjacency (offsets are not a single contiguous slice). Pi's ordered set matches the Antigravity-relevant literals above. Follow-up. Decompile Config builder if order must be proven.
 
 ## PKCE
 
 VERIFIED literals. `code_challenge`, `code_challenge_method`, `code_verifier`, `S256`.
 
-Authorization request also has `access_type` and `consent` nearby in the string table. Pi uses `access_type=offline`, `prompt=consent`, `response_type=code`, `code_challenge_method=S256`. That match is VERIFIED for Pi and STRONGLY SUPPORTED for agy, but the exact AuthCodeURL builder was not decompiled (REA string search timed out on this binary size).
+`access_type` appears (4 hits). Pi uses `access_type=offline`, `prompt=consent`, `response_type=code`, `code_challenge_method=S256`. That match is VERIFIED for Pi. STRONGLY SUPPORTED for agy from string inventory. Exact AuthCodeURL builder was not decompiled (REA string index times out on this size).
 
 ## Token grant and refresh
 
@@ -85,15 +90,21 @@ Token POST content type present. `application/x-www-form-urlencoded`.
 
 After login, email comes from userinfo. Binary has v2 userinfo URL and success format `OAuth: authenticated successfully as %s`. Keychain payload field `id_token_email` stores the email (measured). Pi calls v2 userinfo and stores `email` on the credential.
 
-Tokeninfo v3 is also used (`failed to call tokeninfo`, `tokeninfo returned status %d`). Guess. Validation or diagnostics, not the primary email source.
+Tokeninfo v3 is also referenced (`failed to call tokeninfo`, `tokeninfo returned status %d`). Guess. Validation or diagnostics, not the primary email source.
 
 ## Project discovery
 
 Cloud Code method `loadCodeAssist` is present, including protobuf `LoadCodeAssistRequest` with `metadata` / `ClientMetadata` and response field `cloudaicompanionProject`.
 
-Pi sends `{ metadata: { ideType: 'ANTIGRAVITY' } }` and reads `cloudaicompanionProject` as string or `{ id }`. Binary has `ANTIGRAVITY` and `ClientMetadata_IdeType` / `ideType`. Exact JSON body agy posts was not captured. Label. INFERRED match to Pi.
+**Measured wire body** (live sink, this binary generation). Exact JSON.
 
-Related methods also present. `listCloudAICompanionProjects`, `onboardUser`, `fetchUserInfo`.
+```json
+{"metadata":{"ideType":"ANTIGRAVITY"}}
+```
+
+Source. `fixtures/captured-user-agent-1.4.12.json` `body_prefix` on `/v1internal:loadCodeAssist`. Matches Pi `LOAD_CODE_ASSIST_BODY`.
+
+Related methods also present. `listCloudAICompanionProjects`, `onboardUser`, `fetchUserInfo`, `listExperiments`.
 
 ## Auth provider surface inside agy
 
