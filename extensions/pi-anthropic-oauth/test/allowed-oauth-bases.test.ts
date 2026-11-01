@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { expect, test, vi } from 'vitest';
 import {
   ALLOWED_OAUTH_BASE_URLS,
@@ -13,6 +17,20 @@ import {
   prodClaudeOAuthEndpoints,
   resolveClaudeOAuthEndpoints,
 } from '../src/oauth.ts';
+
+const ALLOWLIST_FIXTURE = join(
+  fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)),
+  'allowed-oauth-bases-2.1.312.json',
+);
+
+const PROD_LOGIN_SCOPE =
+  'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
+const PROD_REFRESH_SCOPE =
+  'user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload user:plugins';
+const CUSTOM_LOGIN_SCOPE =
+  'org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload';
+const CUSTOM_REFRESH_SCOPE =
+  'user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload';
 
 test.for([
   { name: 'beacon staging', raw: 'https://beacon.claude-ai.staging.ant.dev' },
@@ -39,12 +57,13 @@ test.for([
   expect(() => resolveCustomOAuthBase(raw)).toThrow(CUSTOM_OAUTH_URL_UNAPPROVED);
 });
 
-test('allowlist matches the Claude 2.1.316 fixture hosts in order', () => {
-  expect([...ALLOWED_OAUTH_BASE_URLS]).toStrictEqual([
-    'https://beacon.claude-ai.staging.ant.dev',
-    'https://claude.fedstart.com',
-    'https://claude-staging.fedstart.com',
-  ]);
+test('allowlist matches allowed-oauth-bases-2.1.312.json hosts in order', async () => {
+  const fixture = JSON.parse(await readFile(ALLOWLIST_FIXTURE, 'utf8')) as {
+    version: string;
+    values: readonly string[];
+  };
+  expect(fixture.version).toBe('2.1.312');
+  expect([...ALLOWED_OAUTH_BASE_URLS]).toStrictEqual([...fixture.values]);
 });
 
 test('readCustomOAuthBaseFromEnv ignores missing env', () => {
@@ -57,20 +76,76 @@ test('unset custom URL resolves to prod cai endpoints', () => {
     authorizeUrl: CLAUDE_AUTHORIZE_URL,
     tokenUrl: CLAUDE_TOKEN_URL,
     copyCodeRedirectUri: CLAUDE_COPY_CODE_REDIRECT_URI,
+    loginScope: PROD_LOGIN_SCOPE,
+    refreshScope: PROD_REFRESH_SCOPE,
   });
 });
 
-test('allowlisted custom URL rewrites authorize, token, and paste-code redirect', () => {
+test('allowlisted custom URL resolves the custom oauth profile', () => {
   const base = 'https://claude.fedstart.com';
   expect(resolveClaudeOAuthEndpoints(base)).toStrictEqual({
     authorizeUrl: `${base}/oauth/authorize`,
     tokenUrl: `${base}/v1/oauth/token`,
     copyCodeRedirectUri: `${base}/oauth/code/callback`,
+    loginScope: CUSTOM_LOGIN_SCOPE,
+    refreshScope: CUSTOM_REFRESH_SCOPE,
   });
 });
 
 test('createClaudeOAuth rejects an unapproved custom base at construction', () => {
   expect(() => createClaudeOAuth({ customOAuthUrl: 'https://evil.example' })).toThrow(CUSTOM_OAUTH_URL_UNAPPROVED);
+});
+
+test('custom copy-code flow stays on the allowlisted host', async () => {
+  const base = 'https://claude.fedstart.com';
+  const tokenBody = {
+    access_token: 'sk-ant-oat01-custom-host',
+    refresh_token: 'sk-ant-ort01-custom-host',
+    expires_in: 3600,
+  };
+  const calls: { url: string; body: Record<string, string> }[] = [];
+  vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
+    calls.push({ url: String(input), body: JSON.parse(String(init?.body)) as Record<string, string> });
+    return Response.json(tokenBody);
+  });
+  try {
+    const oauth = createClaudeOAuth({ customOAuthUrl: base });
+    let authorizeUrl: URL | undefined;
+    const credential = await oauth.login({
+      signal: new AbortController().signal,
+      notify: (event) => {
+        if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
+      },
+      prompt: async (prompt) => {
+        if (prompt.type === 'select') return 'copy-code';
+        if (!authorizeUrl) throw new Error('No authorization URL was shown');
+        return `local-code#${authorizeUrl.searchParams.get('state')}`;
+      },
+    });
+    expect(credential).toMatchObject({
+      type: 'oauth',
+      access: tokenBody.access_token,
+      refresh: tokenBody.refresh_token,
+    });
+    expect(authorizeUrl?.origin).toBe(base);
+    expect(authorizeUrl?.pathname).toBe('/oauth/authorize');
+    expect(authorizeUrl?.searchParams.get('redirect_uri')).toBe(`${base}/oauth/code/callback`);
+    expect(authorizeUrl?.searchParams.get('scope')).toBe(CUSTOM_LOGIN_SCOPE);
+    await oauth.refresh(credential, new AbortController().signal);
+    expect(calls.map((call) => call.url)).toEqual([`${base}/v1/oauth/token`, `${base}/v1/oauth/token`]);
+    expect(calls[0]?.body).toMatchObject({
+      grant_type: 'authorization_code',
+      code: 'local-code',
+      redirect_uri: `${base}/oauth/code/callback`,
+    });
+    expect(calls[1]?.body).toMatchObject({
+      grant_type: 'refresh_token',
+      scope: CUSTOM_REFRESH_SCOPE,
+      refresh_token: tokenBody.refresh_token,
+    });
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });
 
 test('createClaudeOAuth with empty customOAuthUrl forces prod even when env is set', () => {

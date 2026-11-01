@@ -32,6 +32,18 @@ test('CI default leaves the live exchange env disabled', () => {
   expect(isLiveExchangeEnvEnabled({ [LIVE_EXCHANGE_ENV]: 'true' })).toBe(true);
 });
 
+test('a hyphenated ANTH-LIVE-021 lookalike is not the live gate', () => {
+  const markdown = `## ${LIVE_EXCHANGE_GATE_ID}-typo\n\n- status: approved\n`;
+  expect(() => parseLiveExchangeGateStatus(markdown)).toThrow(
+    `gates.md is missing section ## ${LIVE_EXCHANGE_GATE_ID}`,
+  );
+});
+
+test('the exact ANTH-LIVE-021 heading is used when a hyphenated lookalike comes first', () => {
+  const markdown = `## ${LIVE_EXCHANGE_GATE_ID}-typo\n\n- status: approved\n\n## ${LIVE_EXCHANGE_GATE_ID}\n\n- status: parked\n`;
+  expect(parseLiveExchangeGateStatus(markdown)).toBe('parked');
+});
+
 test('gates.md parks ANTH-LIVE-021 until an operator approves it', async () => {
   const markdown = await readFile(GATES, 'utf8');
   expect(parseLiveExchangeGateStatus(markdown)).toBe('parked');

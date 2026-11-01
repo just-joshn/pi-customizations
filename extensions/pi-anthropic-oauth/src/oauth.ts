@@ -47,13 +47,25 @@ export type ClaudeOAuthEndpoints = {
   authorizeUrl: string;
   tokenUrl: string;
   copyCodeRedirectUri: string;
+  loginScope: string;
+  refreshScope: string;
 };
+
+function oauthScopes(pluginsScopeRegistered: boolean): Pick<ClaudeOAuthEndpoints, 'loginScope' | 'refreshScope'> {
+  const list = (scopes: readonly string[]) =>
+    (pluginsScopeRegistered ? scopes : scopes.filter((scope) => scope !== 'user:plugins')).join(' ');
+  return {
+    loginScope: list(CLAUDE_LOGIN_SCOPES),
+    refreshScope: list(CLAUDE_REFRESH_SCOPES),
+  };
+}
 
 export function prodClaudeOAuthEndpoints(): ClaudeOAuthEndpoints {
   return {
     authorizeUrl: CLAUDE_AUTHORIZE_URL,
     tokenUrl: CLAUDE_TOKEN_URL,
     copyCodeRedirectUri: CLAUDE_COPY_CODE_REDIRECT_URI,
+    ...oauthScopes(true),
   };
 }
 
@@ -64,6 +76,7 @@ export function resolveClaudeOAuthEndpoints(customOAuthUrl?: string): ClaudeOAut
     authorizeUrl: `${base}/oauth/authorize`,
     tokenUrl: `${base}/v1/oauth/token`,
     copyCodeRedirectUri: `${base}/oauth/code/callback`,
+    ...oauthScopes(false),
   };
 }
 
@@ -164,13 +177,14 @@ export function buildAuthorizeUrl(input: {
   state: string;
   redirectUri?: string;
   authorizeUrl?: string;
+  scope?: string;
 }): string {
   const params = new URLSearchParams();
   params.append('code', 'true');
   params.append('client_id', CLAUDE_OAUTH_CLIENT_ID);
   params.append('response_type', 'code');
   params.append('redirect_uri', input.redirectUri ?? CLAUDE_COPY_CODE_REDIRECT_URI);
-  params.append('scope', CLAUDE_OAUTH_SCOPES);
+  params.append('scope', input.scope ?? CLAUDE_OAUTH_SCOPES);
   params.append('code_challenge', input.challenge);
   params.append('code_challenge_method', 'S256');
   params.append('state', input.state);
@@ -237,7 +251,7 @@ async function postToken(
     signal: AbortSignal.any([signal, AbortSignal.timeout(TOKEN_TIMEOUT_MS)]),
   });
   const text = await response.text();
-  if (!response.ok) {
+  if (response.status !== 200) {
     throw new Error(tokenEndpointHttpError(body['grant_type'] ?? '', response.status, response.statusText));
   }
   let parsed: unknown;
@@ -338,18 +352,26 @@ async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<
   throw new Error(LOGIN_CANCELLED);
 }
 
+function loginAuthorizeUrl(
+  endpoints: ClaudeOAuthEndpoints,
+  input: { challenge: string; state: string; redirectUri: string },
+): string {
+  return buildAuthorizeUrl({
+    challenge: input.challenge,
+    state: input.state,
+    redirectUri: input.redirectUri,
+    authorizeUrl: endpoints.authorizeUrl,
+    scope: endpoints.loginScope,
+  });
+}
+
 async function loginCopyCode(
   interaction: ProviderAuthInteraction,
   endpoints: ClaudeOAuthEndpoints,
 ): Promise<OAuthCredential> {
   const { verifier, challenge, state } = createPkcePair();
   const redirectUri = endpoints.copyCodeRedirectUri;
-  const url = buildAuthorizeUrl({
-    challenge,
-    state,
-    redirectUri,
-    authorizeUrl: endpoints.authorizeUrl,
-  });
+  const url = loginAuthorizeUrl(endpoints, { challenge, state, redirectUri });
   interaction.notify({
     type: 'auth_url',
     url,
@@ -384,11 +406,10 @@ async function loginLoopback(
   const { verifier, challenge, state } = createPkcePair();
   const callback = await listenForCallback(state, interaction.signal);
   try {
-    const url = buildAuthorizeUrl({
+    const url = loginAuthorizeUrl(endpoints, {
       challenge,
       state,
       redirectUri: callback.redirectUri,
-      authorizeUrl: endpoints.authorizeUrl,
     });
     interaction.notify({
       type: 'auth_url',
@@ -546,7 +567,7 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
           grant_type: 'refresh_token',
           refresh_token: credential.refresh,
           client_id: CLAUDE_OAUTH_CLIENT_ID,
-          scope: CLAUDE_REFRESH_SCOPE,
+          scope: endpoints.refreshScope,
         },
         signal,
         endpoints.tokenUrl,

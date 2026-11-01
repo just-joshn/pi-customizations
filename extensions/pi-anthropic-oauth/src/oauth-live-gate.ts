@@ -57,9 +57,12 @@ export function isLiveExchangeEnvEnabled(env: NodeJS.ProcessEnv = process.env): 
 }
 
 export function parseLiveExchangeGateStatus(gatesMarkdown: string): LiveGateStatus {
-  const section = gatesMarkdown.match(/##\s+ANTH-LIVE-021\b([\s\S]*?)(?=\n##\s|\s*$)/);
-  if (!section) throw new Error(`gates.md is missing section ## ${LIVE_EXCHANGE_GATE_ID}`);
-  const status = section[1]?.match(/^\s*-\s*status:\s*(parked|approved)\s*$/m)?.[1];
+  const heading = new RegExp(`^## ${LIVE_EXCHANGE_GATE_ID}[ \\t]*$`, 'm').exec(gatesMarkdown);
+  if (!heading) throw new Error(`gates.md is missing section ## ${LIVE_EXCHANGE_GATE_ID}`);
+  const rest = gatesMarkdown.slice(heading.index + heading[0].length);
+  const nextHeading = rest.search(/\n## /);
+  const section = nextHeading === -1 ? rest : rest.slice(0, nextHeading);
+  const status = section.match(/^\s*-\s*status:\s*(parked|approved)\s*$/m)?.[1];
   if (status !== 'parked' && status !== 'approved') {
     throw new Error(`gates.md ${LIVE_EXCHANGE_GATE_ID} needs "- status: parked|approved"`);
   }
