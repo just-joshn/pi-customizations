@@ -24,18 +24,18 @@ Every OPEN row has a concrete Pi-native fix path. None are marked impossible.
 
 | Package | OPEN units |
 | --- | ---: |
-| `pi-anthropic-oauth` | 9 |
+| `pi-anthropic-oauth` | 8 |
 | `pi-antigravity-oauth` | 2 |
 | `pi-xai-oauth` | 1 |
-| **Total OPEN** | **12** |
+| **Total OPEN** | **11** |
 
 Top 5 by wire impact (what the remote sees or how auth recovers).
 
 1. **XAI-SURFACE-UI** (high fidelity). PR #119 sent device surface `grok-build`; deepen RE shows default surface is `ui` and `grok-build` is referrer only. Owner in flight for D1–D3.
 2. **ANTH-LIVE-021** (med). Live Anthropic exchange still gated. Needed to close acceptance of authorize+exchange.
 3. **ANTH-ERR-011** (low). Exchange error strings still generic versus Claude `error_strings`.
-4. **ANTH-REVOKE** (low). No revoke helper; logout clears local store only.
-5. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
+4. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
+5. **ANTH-ALLOWLIST** (low). Custom oauth base allowlist unused on prod cai.
 
 ---
 
@@ -60,15 +60,6 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 4. **Smallest Pi-native change.** Map known status/body pairs in `postToken` (or wrappers) to the Claude strings. Keep a generic fallback.
 5. **Verification.** Unit test fake token endpoint 401/other → exact Claude strings; cancel/timeout still pass through.
 6. **Wire impact.** low (operator UX only)
-
-#### ANTH-REVOKE
-
-1. **ID.** ANTH-REVOKE (DEP-REVOKE)
-2. **Observed CLI fact.** `POST ${TOKEN_URL}/revoke` (`claude/fixtures/oauth-config-2.1.312.json`; `/revoke` still in 2.1.316 @ `132181500`).
-3. **Current Pi state.** No revoke helper. Logout clears Pi `auth.json` only (`README.md`).
-4. **Smallest Pi-native change.** Add `revokeAccessToken(access, signal)` posting to `https://platform.claude.com/v1/oauth/token/revoke`. Call from logout hook if Pi exposes one; otherwise export for the command path.
-5. **Verification.** Fake revoke endpoint test asserts method/URL/body. Optional integration with `/logout`.
-6. **Wire impact.** low (logout only)
 
 #### ANTH-PROFILE
 
@@ -131,6 +122,8 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 | ANTH-UA-316 / OAUTH-002 / DEP-UA at 2.1.316 | `identity.ts` pin `2.1.316` + UA/billing tests | PR #115 |
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
 | billing-sample-isMeta-only | Billing fingerprint samples compact summaries; docs aligned | PR #117; docs #118 |
+| ANTH-REVOKE access | `revokeAccessToken` POST /revoke | PR #124 |
+| ANTH-REVOKE-REFRESH | `revokeRefreshToken` POST /revoke `token_type_hint=refresh_token` | PR #125 |
 | OAUTH-001 beta Bearer | Builtin anthropic oauth betas; `test/request-identity.test.ts` | gap VERIFIED |
 | OAUTH-003 billing salt/indices | `identity.ts:billingBlock` | gap VERIFIED |
 | OAUTH-004 anthropic-version/beta capture | fixtures + request-identity | gap VERIFIED |
@@ -271,7 +264,7 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 1. Land **XAI-SURFACE-UI** (D1–D3) correcting PR #119 surface value.
 2. Capture agy token POST → land **AGY-TOKEN-SECRET-WIRE**.
 3. Gated **ANTH-LIVE-021**.
-4. Optional fidelity pack: **ANTH-ERR-011**, **ANTH-REVOKE**, Anthropic allowlist/profile/lock, agy tokeninfo/device.
+4. Optional fidelity pack: **ANTH-ERR-011**, Anthropic allowlist/profile/lock, agy tokeninfo/device.
 5. Remaining prove-only closures: **AGY-EXPIRY-NUMERIC**, **AGY-SCOPE-ORDER**.
 6. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
 

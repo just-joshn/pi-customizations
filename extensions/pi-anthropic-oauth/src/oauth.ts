@@ -87,15 +87,17 @@ const REVOKE_TIMEOUT_MS = 5_000;
 const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
 const CALLBACK_REJECTED = 'Claude OAuth callback was rejected';
 
-export async function revokeAccessToken(access: string, signal: AbortSignal): Promise<void> {
+type ClaudeRevokeHint = 'access_token' | 'refresh_token';
+
+async function revokeOAuthToken(token: string, signal: AbortSignal, hint: ClaudeRevokeHint): Promise<void> {
   signal.throwIfAborted();
   try {
     await fetch(CLAUDE_REVOKE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        token: access,
-        token_type_hint: 'access_token',
+        token,
+        token_type_hint: hint,
         client_id: CLAUDE_OAUTH_CLIENT_ID,
       }),
       signal: AbortSignal.any([signal, AbortSignal.timeout(REVOKE_TIMEOUT_MS)]),
@@ -103,6 +105,14 @@ export async function revokeAccessToken(access: string, signal: AbortSignal): Pr
   } catch {
     signal.throwIfAborted();
   }
+}
+
+export async function revokeAccessToken(access: string, signal: AbortSignal): Promise<void> {
+  await revokeOAuthToken(access, signal, 'access_token');
+}
+
+export async function revokeRefreshToken(refresh: string, signal: AbortSignal): Promise<void> {
+  await revokeOAuthToken(refresh, signal, 'refresh_token');
 }
 
 type ClaudeLoginMethod = 'copy-code' | 'loopback' | 'import';
