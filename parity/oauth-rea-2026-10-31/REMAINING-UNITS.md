@@ -26,15 +26,14 @@ Every OPEN row has a concrete Pi-native fix path. None are marked impossible.
 | --- | ---: |
 | `pi-anthropic-oauth` | 7 |
 | `pi-antigravity-oauth` | 2 |
-| `pi-xai-oauth` | 1 |
-| **Total OPEN** | **10** |
+| `pi-xai-oauth` | 0 |
+| **Total OPEN** | **9** |
 
 Open units by wire impact (what the remote sees or how auth recovers).
 
-1. **XAI-SURFACE-UI** (high fidelity). PR #119 sent device surface `grok-build`; deepen RE shows default surface is `ui` and `grok-build` is referrer only. Owner in flight for D1–D3.
-2. **ANTH-LIVE-021** (med). Live Anthropic exchange still gated. Needed to close acceptance of authorize+exchange.
-3. **ANTH-ERR-011** (low). Exchange error strings still generic versus Claude `error_strings`.
-4. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
+1. **ANTH-LIVE-021** (med). Live Anthropic exchange still gated. Needed to close acceptance of authorize+exchange.
+2. **ANTH-ERR-011** (low). Exchange error strings still generic versus Claude `error_strings`.
+3. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
 
 ---
 
@@ -205,22 +204,12 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ## `pi-xai-oauth`
 
-### OPEN
-
-#### XAI-SURFACE-UI
-
-1. **ID.** XAI-SURFACE-UI (deepen UNIT-D1 / D2 / D3)
-2. **Observed CLI fact.** Device start default `x-grok-client-surface: ui` (enum `ui`|`cli`|`headless`). `grok-build` is authorize + device form **referrer**, not a surface value. Device start form includes `referrer=grok-build`. Device token poll also sends version + surface headers. Evidence: `grok-deepen/fixtures/device-headers-surface-1.0.70.json`, `grok-deepen/gap-vs-pi.md`.
-3. **Current Pi state.** After PR #119, `login.ts` sets `GROK_CLIENT_SURFACE = 'grok-build'` for both authorize referrer and device surface header. Device form omits `referrer`. Token poll omits version/surface headers. Stale fixture `device-start-headers-1.0.70.json` claims surface `grok-build`.
-4. **Smallest Pi-native change.** Split referrer vs surface constants. Surface header `ui`. Form `referrer=grok-build`. Pass device headers on token poll. Rewrite the stale adjacency fixture.
-5. **Verification.** Extend `test/login.test.ts` for surface `ui`, form referrer, poll headers. Owner: feat/xai-surface-ui-referrer-split.
-6. **Wire impact.** high fidelity (IdP accepted without correct surface; wire must still match)
-
 ### VERIFIED closed (do not re-do)
 
 | ID | Evidence in Pi | Ledger |
 | --- | --- | --- |
-| XAI-DEVICE-HDR | Device start sends version (+ surface) headers | PR #119 (presence only; value corrected by XAI-SURFACE-UI) |
+| XAI-SURFACE-UI | `login.ts` sets `GROK_CLIENT_SURFACE` to `ui` and `GROK_REFERRER` to `grok-build`. Device start sends referrer. Device poll sends version and surface headers. | PR #122. Docs #130. |
+| XAI-DEVICE-HDR | Device start sends version (+ surface) headers | PR #119 (header presence). The surface value `ui` landed in PR #122. |
 | XAI-RESP-HDR-PROVE | Live responses ablation; Pi set accepted; no speculative headers | `grok/fixtures/responses-headers-1.0.70.json`; `test/parity-prove-closures.test.ts` |
 | XAI-VERSION-FLOOR-PROVE | Responses `1.0.12` → 426, `1.0.13`/`1.0.70` → 200 | same fixture + `GROK_CLIENT_VERSION` |
 | XAI-REFRESH-CAPTURE | Live refresh form `grant_type`/`client_id`/`refresh_token`; matches Pi host | `grok/fixtures/refresh-token-1.0.70.json`; same test |
@@ -253,12 +242,11 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ## Suggested implementation order
 
-1. Land **XAI-SURFACE-UI** (D1–D3) correcting PR #119 surface value.
-2. Capture agy token POST → land **AGY-TOKEN-SECRET-WIRE**.
-3. Gated **ANTH-LIVE-021**.
-4. Optional fidelity pack: **ANTH-ERR-011**, Anthropic profile/lock, agy tokeninfo/device.
-5. Remaining prove-only closures: **AGY-EXPIRY-NUMERIC**, **AGY-SCOPE-ORDER**.
-6. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
+1. Capture agy token POST → land **AGY-TOKEN-SECRET-WIRE**.
+2. Gated **ANTH-LIVE-021**.
+3. Optional fidelity pack: **ANTH-ERR-011**, Anthropic profile/lock, agy tokeninfo/device.
+4. Remaining prove-only closures: **AGY-EXPIRY-NUMERIC**, **AGY-SCOPE-ORDER**.
+5. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
 
 ## Update 2026-11-01 (claude-2.1.316 RE + landings through #119)
 
@@ -271,4 +259,10 @@ Open units by wire impact (what the remote sees or how auth recovers).
 ## Update 2026-11-01 (xAI prove-only closures)
 
 - XAI-RESP-HDR-PROVE, XAI-VERSION-FLOOR-PROVE, XAI-REFRESH-CAPTURE VERIFIED closed by live fixtures + `test/parity-prove-closures.test.ts`. No extension `src` drift.
-- Remaining `pi-xai-oauth` OPEN unit: **XAI-SURFACE-UI** only. OPEN total **12**.
+- At that refresh the remaining `pi-xai-oauth` OPEN unit was **XAI-SURFACE-UI** only. OPEN total **12**.
+
+## Update 2026-11-01 (XAI-SURFACE-UI closed)
+
+- XAI-SURFACE-UI is VERIFIED closed by PR #122. `login.ts` sets `GROK_CLIENT_SURFACE` to `ui`. `grok-build` is `GROK_REFERRER` on the authorize query and on the device start form.
+- Docs PR #130 records that split in the grok notes.
+- `pi-xai-oauth` has no OPEN units. OPEN total **9**.
