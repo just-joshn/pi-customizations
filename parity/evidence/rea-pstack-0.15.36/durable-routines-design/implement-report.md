@@ -4,7 +4,7 @@
 
 **Pick.** Implemented Approach A from `recommended.md`. Chat dual-writes desired state; `pstack-routines-supervisor` alone arms timers, polls, and the routines port.
 
-Principles applied (leaf skills read this session). Foundational Thinking (types and store before reconcile). Laziness Protocol (reuse cron / github / RoutineServer; no second DSL). Separate Before Serializing Shared State (desired registry vs `runtime/delivery`). Make Operations Idempotent (createDesired name rule, claim keys, once claim skips re-spawn, second supervisor start exits 0). Sequence Verifiable Units (store → supervisor → dual-write → docs). Prove It Works (unit claim/spawn proofs; full chat-exit smoke left OPEN). Unslop (README / overnight / report prose).
+Principles applied (leaf skills read this session). Foundational Thinking (types and store before reconcile). Laziness Protocol (reuse cron / github / RoutineServer; no second DSL). Separate Before Serializing Shared State (desired registry vs `runtime/delivery`). Make Operations Idempotent (createDesired name rule, claim keys, once claim skips re-spawn, second supervisor start exits 0). Sequence Verifiable Units (store → supervisor → dual-write → docs). Prove It Works (unit claim/spawn proofs; chat-exit smoke later VERIFIED in `chat-exit-smoke.md`). Unslop (README / overnight / report prose).
 
 ## Files changed
 
@@ -62,31 +62,9 @@ bun run test
 8. Print/JSON subscribe rejection still covered by existing subscription tests.
 9. Credential keys stay in `routines/<slug>/credentials.json` only (not in registry JSON).
 
-## OPEN (needs human / live model)
+## Chat-exit smoke (supersedes prior OPEN)
 
-Full experiment `durable-timer-survives-chat-exit` from `recommended.md` was not run end-to-end with a real Pi chat and model.
-
-Exact commands when a human can run them:
-
-```sh
-export PI_CODING_AGENT_DIR="$(mktemp -d)"
-FIX="$(mktemp -d)"
-# terminal A
-pstack-routines-supervisor --workspace "$FIX"
-# assert: $PI_CODING_AGENT_DIR/pstack/durable/--…--/runtime/supervisor.lock names a live pid
-
-# terminal B (interactive/RPC Pi in $FIX with pi-pstack loaded)
-# subscribe_timer name=durable-smoke delaySeconds=15 once=true sessionStrategy=new_session
-# prompt that writes $FIX/marker.txt
-# exit the chat completely
-
-# wait ~20s
-test -f "$FIX/marker.txt"
-# and delivery ledger lastClaimKey ends with :once
-# and subscriptions.json no longer lists durable-smoke
-```
-
-Webhook companion (same harness). `subscribe_webhook` then kill chat, POST with key from credentials.json, expect 200 and one spawn/park without the interactive process.
+Real-bin smoke later closed this gap. See `chat-exit-smoke.md` (paths A/B VERIFIED after the supervisor keep-alive fix). Gap-list item 1 is CLOSED.
 
 ## Defaults kept
 
@@ -97,4 +75,4 @@ Webhook companion (same harness). `subscribe_webhook` then kill chat, POST with 
 - No Cursor plugin / hosted automation dependency
 
 ## Parent follow-up (HOST-008)
-HOST-008 scrubbed `PACKAGE_ROOT` and agent dir before `/cursor/i`. Parent re-ran `bun run typecheck` and `bun run test`: **37 files, 484/484 passed** (2026-10-31). Live chat-exit smoke remains OPEN as above.
+HOST-008 scrubbed `PACKAGE_ROOT` and agent dir before `/cursor/i`. Later package suite on this branch: **38 files, 491/491 passed**. Chat-exit smoke VERIFIED per `chat-exit-smoke.md`.
