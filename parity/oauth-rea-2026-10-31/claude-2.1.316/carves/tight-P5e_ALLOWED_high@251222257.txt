@@ -1,0 +1,15 @@
+# name=P5e_ALLOWED_high offset=251222257 window_start=251221757 window_len=3000 window_sha256=3a90655f44820f35ef5ceceebf7554bdc805643492323762920816c0552e5908
+redits?returnUrl=/oauth/code/success%3Fapp%3Dclaude-code`,CLAUDEAI_SUCCESS_URL:`${o}/oauth/code/success?app=claude-code`,MANUAL_REDIRECT_URL:`${o}/oauth/code/callback`,CLIENT_ID:"22422756-60c9-4084-8eb7-27705fd5cf9a",DESIGN_CLIENT_ID:"00000000-0000-4000-8000-000000000000",OAUTH_FILE_SUFFIX:"-local-oauth",PLUGINS_SCOPE_REGISTERED:!0,PROJECTS_SCOPES_REGISTERED:!0,HYBRID_SETTINGS_SCOPE_REGISTERED:!0,MCP_PROXY_URL:"http://localhost:8205",MCP_PROXY_PATH:"/v1/toolbox/shttp/mcp/{server_id}"}}var _Ye=["https://beacon.claude-ai.staging.ant.dev","https://claude.fedstart.com","https://claude-staging.fedstart.com"];function _co(){switch(E()){case"local":return i();case"staging":return u??a;case"prod":return a}}function nn(){let t=_co(),e=process.env.CLAUDE_CODE_CUSTOM_OAUTH_URL;if(e){let _=e.replace(/\/$/,"");if(!_Ye.includes(_))throw Error("CLAUDE_CODE_CUSTOM_OAUTH_URL is not an approved endpoint.");t={...t,BASE_API_URL:_,CONSOLE_AUTHORIZE_URL:`${_}/oauth/authorize`,CLAUDE_AI_AUTHORIZE_URL:`${_}/oauth/authorize`,CLAUDE_AI_ORIGIN:_,TOKEN_URL:`${_}/v1/oauth/token`,API_KEY_URL:`${_}/api/oauth/claude_cli/create_api_key`,ROLES_URL:`${_}/api/oauth/claude_cli/roles`,CONSOLE_SUCCESS_URL:`${_}/oauth/code/success?app=claude-code`,CLAUDEAI_SUCCESS_URL:`${_}/oauth/code/success?app=claude-code`,MANUAL_REDIRECT_URL:`${_}/oauth/code/callback`,OAUTH_FILE_SUFFIX:"-custom-oauth",PLUGINS_SCOPE_REGISTERED:!1,PROJECTS_SCOPES_REGISTERED:!1,HYBRID_SETTINGS_SCOPE_REGISTERED:!1}}let o=process.env.CLAUDE_CODE_OAUTH_CLIENT_ID;if(o)t={...t,CLIENT_ID:o,PLUGINS_SCOPE_REGISTERED:!1,PROJECTS_SCOPES_REGISTERED:!1,HYBRID_SETTINGS_SCOPE_REGISTERED:!1};return t}
+export{pke,JU,oSs,Qhe,sSs,sC,v6,oHn,Xwr,f0t,Jwr,Qwr,cpt,jc,m0t,hco,Aje,yco,iSs,yYe,_Ye,_co,nn};
+.// @bun @bytecode
+// (c) Anthropic PBC. All rights reserved. Use is subject to the Legal Agreements outlined here: https://code.claude.com/docs/en/legal-and-compliance.
+
+// Version: 2.1.316
+var yQt="pasted_content",aHn=4,lHi='<pasted_content id="',ESs=`">
+`,dHi='</pasted_content id="';function lEr(t){return`<pasted_content id="${t}">
+`}function lHn(t){return`</pasted_content id="${t}">
+`}function vSs(t){if(t.length!==4)return!1;for(let e=0;e<t.length;e++){let n=t.charCodeAt(e);if(!(n>=48&&n<=57||n>=97&&n<=102))return!1}return!0}var kSs=/[([{"'`]/,CSs=/[)\]}"'`.,;:!?]/;function TSs(t,e=0,n=t.length){let s=e;while(s<n&&CSs.test(t[s]))s++;return s>=n||/\s/.test(t[s])}function C0t(t){let e=[],n=0,s=0;for(;;){let c=t.indexOf('<pasted_content id="',s);if(c===-1)break;let r=c+20,o=t.slice(r,r+4);if(!vSs(o)||!t.startsWith(`">
+`,r+4)){s=r;continue}let i=r+4+3,f=lHn(o).slice(0,-1),l=t.indexOf(`
+${f}`,i-1)+1;if(l===0)break;let d=c;for(let a=0;a<2&&d>n&&t[d-1]===`
+`;a++)d--;if(d>n)e.push({kind:"text",text:t.slice(n,d)});n=l+f.length;for(let a=0;a<2&&t[n]===`
+`;a++)n++;e.push({kind:"block",id:o,body:t.slice(i,l-1),raw:t.slice(d,n)}),s=n}if(n<t.length)e.push({kind:"text",text:t.slice(n)});return e}function cHi(t){let e=C0t(t);if(!e.some((n)=>n.kind==="b

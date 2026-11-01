@@ -24,16 +24,15 @@ Every OPEN row has a concrete Pi-native fix path. None are marked impossible.
 
 | Package | OPEN units |
 | --- | ---: |
-| `pi-anthropic-oauth` | 7 |
-| `pi-antigravity-oauth` | 2 |
+| `pi-anthropic-oauth` | 5 |
+| `pi-antigravity-oauth` | 0 |
 | `pi-xai-oauth` | 0 |
-| **Total OPEN** | **9** |
+| **Total OPEN** | **5** |
 
-Open units by wire impact (what the remote sees or how auth recovers).
+Top by wire impact (what the remote sees or how auth recovers).
 
-1. **ANTH-LIVE-021** (med). Live Anthropic exchange still gated. Needed to close acceptance of authorize+exchange.
-2. **ANTH-ERR-011** (low). Exchange error strings still generic versus Claude `error_strings`.
-3. **AGY-TOKENINFO** (low). Optional Google tokeninfo v3 validation after refresh/import.
+1. **ANTH-FILE-LOCK** (low). Cross-process refresh lockfile. PR #128.
+2. Remaining anthropic fidelity: PROFILE, WINCRED, COPY-025, BILLING-SUFFIX.
 
 ---
 
@@ -41,23 +40,7 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ### OPEN
 
-#### ANTH-LIVE-021
 
-1. **ID.** ANTH-LIVE-021 (OAUTH-021)
-2. **Observed CLI fact.** Live exchange was never completed in the RE brief (`claude/decisions.tsv` verify row INCONCLUSIVE).
-3. **Current Pi state.** Stub token exchange covered in package tests. Gated live lever shipped: `extensions/pi-anthropic-oauth/src/oauth-live-gate.ts`, `scripts/oauth-live-exchange.ts`, `claude/gates.md` (status parked), shape assert vs `token-endpoints-2.1.312.json` `authorization_code_response_fields`, example receipt under `claude/receipts/`. No live Anthropic HTTP 200 receipt yet.
-4. **Smallest Pi-native change.** Done for the gate lever. Operator still sets `status: approved` + `PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE=1`, runs `bun run live:exchange`, then parks the gate again.
-5. **Verification.** `bun run test` stub path green (`test/oauth-live-gate.test.ts`). Live script refuses without both gates. Live acceptance stays INCONCLUSIVE until an operator receipt lands.
-6. **Wire impact.** med (acceptance of the grant path)
-
-#### ANTH-ERR-011
-
-1. **ID.** ANTH-ERR-011 (OAUTH-011 / DEP-ERROR-STRINGS)
-2. **Observed CLI fact.** Exchange 401 → `Authentication failed: Invalid authorization code`; other exchange → `Token exchange failed (${status})…`; revoked SDK phrase listed (`claude/fixtures/refresh-lifecycle-2.1.312.json` `error_strings`).
-3. **Current Pi state.** `auth.ts:wrapLoginErrors` / `wrapRefreshErrors` map most failures to generic Pi messages. `oauth.ts:postToken` throws `HTTP request failed. status=…`.
-4. **Smallest Pi-native change.** Map known status/body pairs in `postToken` (or wrappers) to the Claude strings. Keep a generic fallback.
-5. **Verification.** Unit test fake token endpoint 401/other → exact Claude strings; cancel/timeout still pass through.
-6. **Wire impact.** low (operator UX only)
 
 #### ANTH-PROFILE
 
@@ -68,7 +51,14 @@ Open units by wire impact (what the remote sees or how auth recovers).
 5. **Verification.** Fake HTTP tests for each endpoint. Skip until product asks for account sync.
 6. **Wire impact.** low (not on Messages inference)
 
+#### ANTH-FILE-LOCK
 
+1. **ID.** ANTH-FILE-LOCK (DEP-REFRESH-LOCK)
+2. **Observed CLI fact.** Cross-process refresh lock with `ELOCKED` ≤5 retries (`claude/fixtures/refresh-lifecycle-2.1.312.json`; 2.1.316 `carve-ELOCKED@*`).
+3. **Current Pi state.** In-process latch only (`refresh-latch.ts` + `CredentialStore.modify`). No Claude-style lockfile.
+4. **Smallest Pi-native change.** Optional file lock around refresh when multiple Pi processes share one `auth.json`. Singleflight already covers one process.
+5. **Verification.** Two-process (or two-store) test that contended refresh does not double-POST.
+6. **Wire impact.** low (multi-process only)
 
 #### ANTH-WINCRED
 
@@ -101,13 +91,14 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 | ID | Evidence in Pi | Ledger / PR |
 | --- | --- | --- |
-| ANTH-FILE-LOCK | Bound store uses `store.modify` and skips the file lock. Otherwise `claude-subscription-refresh.lock`, post-lock re-read, and stale mtime. `ELOCKED` retries follow the 2.1.312 fixture. | PR #128 |
 | ANTH-ALLOWLIST | `allowed-oauth-bases.ts` + `resolveClaudeOAuthEndpoints`; table tests | PR #127 |
 | ANTH-UA-316 / OAUTH-002 / DEP-UA at 2.1.316 | `identity.ts` pin `2.1.316` + UA/billing tests | PR #115 |
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
 | billing-sample-isMeta-only | Billing fingerprint samples compact summaries; docs aligned | PR #117; docs #118 |
+| ANTH-ERR-011 / OAUTH-011 | `postToken` + wrapper pass-through Claude exchange/refresh strings | PR #120 |
 | ANTH-REVOKE access | `revokeAccessToken` POST /revoke | PR #124 |
-| ANTH-REVOKE-REFRESH | `revokeRefreshToken` POST /revoke `token_type_hint=refresh_token` | PR #125 |
+| ANTH-REVOKE refresh | `revokeRefreshToken` hint refresh_token | PR #125 |
+| ANTH-LIVE-021 | gated live authorize→exchange probe (parked) | PR #126 |
 | OAUTH-001 beta Bearer | Builtin anthropic oauth betas; `test/request-identity.test.ts` | gap VERIFIED |
 | OAUTH-003 billing salt/indices | `identity.ts:billingBlock` | gap VERIFIED |
 | OAUTH-004 anthropic-version/beta capture | fixtures + request-identity | gap VERIFIED |
@@ -133,55 +124,17 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ### OPEN
 
-#### AGY-TOKEN-SECRET-WIRE
-
-1. **ID.** AGY-TOKEN-SECRET-WIRE
-2. **Observed CLI fact.** Public metadata `token_endpoint_auth_method: none` (`agy/fixtures/client-metadata.json`). Binary still embeds consumer `GOCSPX-K58…` (`agy/gap-vs-pi.md` §1, `agy/ledger.md` follow-up 1).
-3. **Current Pi state.** `oauth.ts:requestToken` always appends `client_id` and `client_secret`.
-4. **Smallest Pi-native change.** Capture one throwaway PKCE token exchange (live login gate) or decompile the token Config. If agy omits secret, stop sending it. If agy sends it, keep current form and document the metadata mismatch.
-5. **Verification.** Redacted fixture under `agy/fixtures/` of token POST field names. Test asserts Pi form matches that set (`test/oauth.test.ts` already pins current secret-present form).
-6. **Wire impact.** high (token endpoint field set)
-
-#### AGY-TOKENINFO
-
-1. **ID.** AGY-TOKENINFO
-2. **Observed CLI fact.** Binary references Google tokeninfo v3 (`agy/protocol.md`, `agy/ledger.json` `follow.tokeninfo_optional`).
-3. **Current Pi state.** No tokeninfo call. Email from userinfo v2 (`oauth.ts:fetchEmail`).
-4. **Smallest Pi-native change.** Optional tokeninfo check after refresh only if a failure mode needs it.
-5. **Verification.** Fake tokeninfo 200/4xx tests. Default login path unchanged.
-6. **Wire impact.** low
-
-#### AGY-SCOPE-ORDER
-
-1. **ID.** AGY-SCOPE-ORDER
-2. **Observed CLI fact.** All Pi scopes exist as binary literals; contiguous ordered slice not proven (`agy/gap-vs-pi.md` §4).
-3. **Current Pi state.** `oauth.ts:SCOPES` join order used in authorize URL.
-4. **Smallest Pi-native change.** Decompile AntigravityHubAuthProvider authorize Config if a server starts rejecting scope order. Otherwise leave.
-5. **Verification.** Authorize URL golden test already in `test/oauth.test.ts`. Update only if decompile shows a different order.
-6. **Wire impact.** low
-
-#### AGY-EXPIRY-NUMERIC
-
-1. **ID.** AGY-EXPIRY-NUMERIC
-2. **Observed CLI fact.** `expiryDelta` from golang.org/x/oauth2. Library default 10s. Numeric next to symbol not proven (`agy/protocol.md`).
-3. **Current Pi state.** `EXPIRY_DELTA_MS = 10_000` in `oauth.ts` and `keychain.ts`.
-4. **Smallest Pi-native change.** Confirm via decompile or observed refresh timing. Change constant only if measured value differs.
-5. **Verification.** Unit assert on `expiresAt` skew; optional timing probe receipt.
-6. **Wire impact.** low
-
-#### AGY-DEVICE-CODE
-
-1. **ID.** AGY-DEVICE-CODE
-2. **Observed CLI fact.** Binary contains `urn:ietf:params:oauth:grant-type:device_code` (`agy/protocol.md`). Primary CLI UX remains paste callback.
-3. **Current Pi state.** Authorization-code + paste only (`oauth.ts:authorize`).
-4. **Smallest Pi-native change.** Add device-code login method only if product wants headless parity with that binary path. Capture device start/poll shape first.
-5. **Verification.** Fake device endpoint poll loop tests (same pattern as `pi-xai-oauth`).
-6. **Wire impact.** low
+_None. pi-antigravity-oauth oauth+deps units closed._
 
 ### VERIFIED closed (do not re-do)
 
 | ID | Evidence in Pi | Ledger / PR |
 | --- | --- | --- |
+| AGY-SCOPE-ORDER | `oauth.ts:SCOPES` matches measured consumer order (5-slice + aicode + openid) | agy-deepen `fixtures/consumer-scope-order.json`; `check-consumer-scope-order.py` exit 0 |
+| AGY-TOKEN-SECRET-WIRE | `requestToken` posts `client_secret`; AuthStyleInParams + GOCSPX | agy-deepen VERIFIED (keep secret; metadata none is other client) |
+| AGY-TOKENINFO | `validateAccessToken` GET tokeninfo on invalid_token refresh/import | PR #123 |
+| AGY-EXPIRY-NUMERIC | `EXPIRY_DELTA_MS = 10_000` | agy-deepen VERIFIED (library default 10s) |
+| AGY-DEVICE-CODE | auth-code paste only | NOT APPLICABLE (zero jetski DeviceAuth callers) |
 | Consumer auth/token/userinfo URLs | `GOOGLE_OAUTH` | ledger VERIFIED |
 | Redirect + client id/secret K58 | `oauth.ts` constants | ledger VERIFIED |
 | Scopes + PKCE S256 | `SCOPES`, authorize URL | ledger VERIFIED |
@@ -197,15 +150,19 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ## `pi-xai-oauth`
 
+### OPEN
+
+_None. pi-xai-oauth oauth+deps units closed._
+
 ### VERIFIED closed (do not re-do)
 
 | ID | Evidence in Pi | Ledger |
 | --- | --- | --- |
-| XAI-SURFACE-UI | `login.ts` sets `GROK_CLIENT_SURFACE` to `ui` and `GROK_REFERRER` to `grok-build`. Device start sends referrer. Device poll sends version and surface headers. | PR #122. Docs #130. |
-| XAI-DEVICE-HDR | Device start sends version (+ surface) headers | PR #119 (header presence). The surface value `ui` landed in PR #122. |
-| XAI-RESP-HDR-PROVE | Live responses ablation; Pi set accepted; no speculative headers | `grok/fixtures/responses-headers-1.0.70.json`; `test/parity-prove-closures.test.ts` |
-| XAI-VERSION-FLOOR-PROVE | Responses `1.0.12` → 426, `1.0.13`/`1.0.70` → 200 | same fixture + `GROK_CLIENT_VERSION` |
-| XAI-REFRESH-CAPTURE | Live refresh form `grant_type`/`client_id`/`refresh_token`; matches Pi host | `grok/fixtures/refresh-token-1.0.70.json`; same test |
+| XAI-DEVICE-HDR | Device start sends version (+ surface) headers | PR #119 |
+| XAI-SURFACE-UI | surface `ui`; referrer `grok-build`; poll headers | PR #122 |
+| XAI-RESP-HDR-PROVE | Live responses ablation; Pi set accepted | PR #121; fixtures + `test/parity-prove-closures.test.ts` |
+| XAI-VERSION-FLOOR-PROVE | 1.0.12→426; 1.0.13/1.0.70→200; pin 1.0.70 | PR #121 |
+| XAI-REFRESH-CAPTURE | refresh form grant_type/client_id/refresh_token | PR #121 |
 | XAI-001 authorize URL / scope / referrer | `login.ts:authorizeUrl`, fixture | VERIFIED |
 | XAI-002 device host + start form | `DEVICE_HOST`, live device fixture | VERIFIED |
 | XAI-004 refresh skew 300s | `REFRESH_SKEW_MS` | VERIFIED |
@@ -235,11 +192,11 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 ## Suggested implementation order
 
-1. Capture agy token POST → land **AGY-TOKEN-SECRET-WIRE**.
-2. Gated **ANTH-LIVE-021**.
-3. Optional fidelity pack: **ANTH-ERR-011**, Anthropic profile/lock, agy tokeninfo/device.
-4. Remaining prove-only closures: **AGY-EXPIRY-NUMERIC**, **AGY-SCOPE-ORDER**.
-5. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
+1. Land **AGY-TOKENINFO** (deps validation helper).
+3. Gated **ANTH-LIVE-021**.
+4. Optional fidelity pack: **ANTH-REVOKE**, Anthropic allowlist/profile/lock.
+5. Prove-only: **AGY-SCOPE-ORDER**.
+6. Defer **ANTH-BILLING-SUFFIX**, **ANTH-COPY-025**, **ANTH-WINCRED**, **ANTH-PROFILE** until product or capture requires them.
 
 ## Update 2026-11-01 (claude-2.1.316 RE + landings through #119)
 
@@ -247,15 +204,28 @@ Open units by wire impact (what the remote sees or how auth recovers).
 - ANTH-401-403 VERIFIED closed by PR #116.
 - billing-sample-isMeta-only VERIFIED closed by PR #117; docs PR #118.
 - XAI-DEVICE-HDR VERIFIED closed by PR #119 (header presence). Reopened value/form/poll gaps as **XAI-SURFACE-UI** after deepen RE.
-- Main tip at refresh: `2e8866c0`. OPEN total **18** after XAI-SURFACE-UI.
+- AGY-TOKEN-SECRET-WIRE / AGY-EXPIRY-NUMERIC VERIFIED closed by agy-deepen (Pi already matches; keep `client_secret`). AGY-DEVICE-CODE NOT APPLICABLE.
+- ANTH-ERR-011 VERIFIED closed by PR #120.
+- XAI-RESP-HDR-PROVE / XAI-VERSION-FLOOR-PROVE / XAI-REFRESH-CAPTURE VERIFIED closed by PR #121.
+- XAI-SURFACE-UI VERIFIED closed by PR #122.
+- Main tip after #122: `4601a4bc`. OPEN total **10**. `pi-xai-oauth` OPEN **0**.
 
-## Update 2026-11-01 (xAI prove-only closures)
+- AGY-TOKENINFO VERIFIED closed by PR #123. Main tip after merge: `6efe382e`. OPEN total **9**.
 
-- XAI-RESP-HDR-PROVE, XAI-VERSION-FLOOR-PROVE, XAI-REFRESH-CAPTURE VERIFIED closed by live fixtures + `test/parity-prove-closures.test.ts`. No extension `src` drift.
-- At that refresh the remaining `pi-xai-oauth` OPEN unit was **XAI-SURFACE-UI** only. OPEN total **12**.
+- ANTH-REVOKE (access helper) VERIFIED closed by PR #124. Refresh-token logout path still OPEN for 100% logout parity. Main `660aec75`. OPEN **8**.
 
-## Update 2026-11-01 (XAI-SURFACE-UI closed)
+- ANTH-REVOKE-REFRESH VERIFIED closed by PR #125 (`392439d6`). OPEN **7**.
 
-- XAI-SURFACE-UI is VERIFIED closed by PR #122. `login.ts` sets `GROK_CLIENT_SURFACE` to `ui`. `grok-build` is `GROK_REFERRER` on the authorize query and on the device start form.
-- Docs PR #130 records that split in the grok notes.
-- `pi-xai-oauth` has no OPEN units. OPEN total **9**.
+- ANTH-LIVE-021 VERIFIED closed by PR #126 (probe shipped; live acceptance still parked until operator run). OPEN **6**.
+- ANTH-ALLOWLIST VERIFIED closed by PR #127 (`2f25719b`). OPEN **5**. Custom-base revoke URL and `-custom-oauth` storage suffix stay open in `notes.md`.
+
+## Update 2026-10-31 (real first-party wire capture, Claude 2.1.316)
+
+The "VERIFIED" Messages-wire rows above came from a gateway-mode capture (localhost base URL). A first-party capture through a local TLS proxy showed `cch` attestation, attribution fields, `x-claude-code-prompt-id`, `x-claude-code-request-class`, `x-client-request-id` and four extra betas. Closed in `pi-anthropic-oauth` by this change.
+
+- ANTH-BILLING-SUFFIX closed. `cc_gateway` applies only to gateway providers and `cc_project` only to Claude Projects attribution. Neither occurs on first-party OAuth traffic.
+- ANTH-CUSTOM-REVOKE, ANTH-CUSTOM-SUFFIX closed. `CLAUDE_CODE_OAUTH_CLIENT_ID` also closed.
+- ANTH-COPY-025 closed (strings from the 2.1.316 paste handler).
+- ANTH-PROFILE closed (`src/oauth-account.ts`: profile, validate, roles, create_api_key).
+- ANTH-WINCRED closed as NOT APPLICABLE. Claude reads no libsecret or Windows vault. See `extensions/pi-anthropic-oauth/docs/claude-oauth-parity.md`.
+- `pi-antigravity-oauth` and `pi-xai-oauth` were not re-captured on the real wire in this pass. Their ledgers stay as recorded.

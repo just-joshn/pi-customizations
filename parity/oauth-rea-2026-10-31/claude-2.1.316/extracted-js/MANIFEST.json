@@ -1,0 +1,20 @@
+{
+  "binary_sha256": "64c327e92b2c5e0f78c0a980c5a518121e1f0d140ca771ca5dd4488d1a2dcb3f",
+  "version": "2.1.316",
+  "note": "Bun SEA JS carved offline; REA extract_artifact unsupported for mach-o.",
+  "modules": {
+    "chunk-oauth-config.js": "b4d4210495c307d52b20806e6b10474c367fcf4aeef6d921273dff53abf525f8",
+    "chunk-oauth-login-pkce.js": "35fc610868b4ce7e239721991f5db8a34c3e40d068f89c814789de94f2ea00c4",
+    "chunk-oauth-paste.js": "8ca72c074f0cbcdcb25ad758185d9306075d6c0a684ab2cd9c7cac61bf069540",
+    "chunk-oauth-token.js": "775ad9e7c2dbfc8d76234e5fd2d876b0a89c9ee008bc8aa1c6731a35455104a1"
+  },
+  "rea": {
+    "open_binary_sha256": "64c327e92b2c5e0f78c0a980c5a518121e1f0d140ca771ca5dd4488d1a2dcb3f",
+    "inspect_macho_parent": "ev_1780f897cd8420a45521c14364214c664b1392075868f4db73d8dddfac312c36",
+    "inspect_macho_summary": "ev_311291cf1a6472290976a3eff220b454fc3d5f68a610dd5932b2e40a36abf68c",
+    "analyze_javascript_parent": "ev_d7c5e4394f965167dcc5503d39f1995dcec33e7691ae2adb4d26ad9f10cd4195",
+    "analyze_javascript_summary": "ev_4b4bcac5eaf854ccb73ce8eb3387be1b845c629f77268f9f14278a62a88a1815",
+    "extracted_js_digest": "daa92fe2def82a1f0681c6c0d39986639b1543f08e54ad6d19bbbba6aa5a43cf",
+    "macho_uuid": "4C4C448E-5555-3144-A1C7-456A93B4DC4F"
+  }
+}
