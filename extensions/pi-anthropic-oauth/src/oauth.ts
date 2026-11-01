@@ -3,6 +3,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 
 import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
+import { resolveCustomOAuthBase } from './allowed-oauth-bases.ts';
 import { importClaudeAiOauth } from './claude-credentials.ts';
 
 /** Claude Code 2.1.316 cai authorize origin and path. */
@@ -41,6 +42,30 @@ export const CLAUDE_COPY_CODE_REDIRECT_URI = 'https://platform.claude.com/oauth/
 export const CLAUDE_TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
 export const CLAUDE_REVOKE_URL = `${CLAUDE_TOKEN_URL}/revoke`;
 export const CLAUDE_LOOPBACK_CALLBACK_PATH = '/callback';
+
+export type ClaudeOAuthEndpoints = {
+  authorizeUrl: string;
+  tokenUrl: string;
+  copyCodeRedirectUri: string;
+};
+
+export function prodClaudeOAuthEndpoints(): ClaudeOAuthEndpoints {
+  return {
+    authorizeUrl: CLAUDE_AUTHORIZE_URL,
+    tokenUrl: CLAUDE_TOKEN_URL,
+    copyCodeRedirectUri: CLAUDE_COPY_CODE_REDIRECT_URI,
+  };
+}
+
+export function resolveClaudeOAuthEndpoints(customOAuthUrl?: string): ClaudeOAuthEndpoints {
+  const base = resolveCustomOAuthBase(customOAuthUrl);
+  if (!base) return prodClaudeOAuthEndpoints();
+  return {
+    authorizeUrl: `${base}/oauth/authorize`,
+    tokenUrl: `${base}/v1/oauth/token`,
+    copyCodeRedirectUri: `${base}/oauth/code/callback`,
+  };
+}
 
 const LOOPBACK_BIND_HOST = '127.0.0.1';
 /** Anthropic's authorize redirect_uri expects localhost, not the bind address. */
@@ -134,7 +159,12 @@ export function createPkcePair(): { verifier: string; challenge: string; state: 
   return { verifier, challenge: pkceChallenge(verifier), state: randomToken() };
 }
 
-export function buildAuthorizeUrl(input: { challenge: string; state: string; redirectUri?: string }): string {
+export function buildAuthorizeUrl(input: {
+  challenge: string;
+  state: string;
+  redirectUri?: string;
+  authorizeUrl?: string;
+}): string {
   const params = new URLSearchParams();
   params.append('code', 'true');
   params.append('client_id', CLAUDE_OAUTH_CLIENT_ID);
@@ -144,7 +174,7 @@ export function buildAuthorizeUrl(input: { challenge: string; state: string; red
   params.append('code_challenge', input.challenge);
   params.append('code_challenge_method', 'S256');
   params.append('state', input.state);
-  return `${CLAUDE_AUTHORIZE_URL}?${params.toString()}`;
+  return `${input.authorizeUrl ?? CLAUDE_AUTHORIZE_URL}?${params.toString()}`;
 }
 
 function parseAuthorizationInput(input: string): { code?: string; state?: string } {
@@ -192,8 +222,12 @@ type PostedToken = {
   body: unknown;
 };
 
-async function postToken(body: Record<string, string>, signal: AbortSignal): Promise<PostedToken> {
-  const response = await fetch(CLAUDE_TOKEN_URL, {
+async function postToken(
+  body: Record<string, string>,
+  signal: AbortSignal,
+  tokenUrl: string = CLAUDE_TOKEN_URL,
+): Promise<PostedToken> {
+  const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -210,7 +244,7 @@ async function postToken(body: Record<string, string>, signal: AbortSignal): Pro
   try {
     parsed = JSON.parse(text) as unknown;
   } catch {
-    throw new Error(`Token endpoint returned invalid JSON. url=${CLAUDE_TOKEN_URL}`);
+    throw new Error(`Token endpoint returned invalid JSON. url=${tokenUrl}`);
   }
   const data = parsed as Partial<TokenResponse>;
   if (typeof data.access_token !== 'string' || typeof data.expires_in !== 'number') {
@@ -241,7 +275,7 @@ export type AuthorizationCodeExchangeResult = {
 };
 
 async function postAuthorizationCode(
-  input: { code: string; state: string; redirectUri: string; verifier: string },
+  input: { code: string; state: string; redirectUri: string; verifier: string; tokenUrl?: string },
   signal: AbortSignal,
 ): Promise<PostedToken> {
   return postToken(
@@ -254,11 +288,12 @@ async function postAuthorizationCode(
       state: input.state,
     },
     signal,
+    input.tokenUrl,
   );
 }
 
 export async function exchangeAuthorizationCode(
-  input: { code: string; state: string; redirectUri: string; verifier: string },
+  input: { code: string; state: string; redirectUri: string; verifier: string; tokenUrl?: string },
   signal: AbortSignal,
 ): Promise<OAuthCredential> {
   const posted = await postAuthorizationCode(input, signal);
@@ -303,10 +338,18 @@ async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<
   throw new Error(LOGIN_CANCELLED);
 }
 
-async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
+async function loginCopyCode(
+  interaction: ProviderAuthInteraction,
+  endpoints: ClaudeOAuthEndpoints,
+): Promise<OAuthCredential> {
   const { verifier, challenge, state } = createPkcePair();
-  const redirectUri = CLAUDE_COPY_CODE_REDIRECT_URI;
-  const url = buildAuthorizeUrl({ challenge, state, redirectUri });
+  const redirectUri = endpoints.copyCodeRedirectUri;
+  const url = buildAuthorizeUrl({
+    challenge,
+    state,
+    redirectUri,
+    authorizeUrl: endpoints.authorizeUrl,
+  });
   interaction.notify({
     type: 'auth_url',
     url,
@@ -323,16 +366,30 @@ async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAut
   if (!parsed.code) throw new Error('Missing authorization code');
   interaction.notify({ type: 'progress', message: 'Exchanging authorization code for tokens...' });
   return exchangeAuthorizationCode(
-    { code: parsed.code, state: parsed.state ?? state, redirectUri, verifier },
+    {
+      code: parsed.code,
+      state: parsed.state ?? state,
+      redirectUri,
+      verifier,
+      tokenUrl: endpoints.tokenUrl,
+    },
     interaction.signal,
   );
 }
 
-async function loginLoopback(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
+async function loginLoopback(
+  interaction: ProviderAuthInteraction,
+  endpoints: ClaudeOAuthEndpoints,
+): Promise<OAuthCredential> {
   const { verifier, challenge, state } = createPkcePair();
   const callback = await listenForCallback(state, interaction.signal);
   try {
-    const url = buildAuthorizeUrl({ challenge, state, redirectUri: callback.redirectUri });
+    const url = buildAuthorizeUrl({
+      challenge,
+      state,
+      redirectUri: callback.redirectUri,
+      authorizeUrl: endpoints.authorizeUrl,
+    });
     interaction.notify({
       type: 'auth_url',
       url,
@@ -341,7 +398,13 @@ async function loginLoopback(interaction: ProviderAuthInteraction): Promise<OAut
     const code = await callback.code;
     interaction.notify({ type: 'progress', message: 'Exchanging authorization code for tokens...' });
     return exchangeAuthorizationCode(
-      { code, state, redirectUri: callback.redirectUri, verifier },
+      {
+        code,
+        state,
+        redirectUri: callback.redirectUri,
+        verifier,
+        tokenUrl: endpoints.tokenUrl,
+      },
       interaction.signal,
     );
   } finally {
@@ -445,6 +508,7 @@ function closeServer(
 export type ClaudeOAuthOptions = {
   /** Override for tests. Defaults to reading Claude Code keychain / `.credentials.json`. */
   importCredentials?: () => Promise<OAuthCredential>;
+  customOAuthUrl?: string;
 };
 
 async function loginImport(
@@ -460,6 +524,9 @@ async function loginImport(
 
 export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
   const importCredentials = options.importCredentials ?? (() => importClaudeAiOauth());
+  const endpoints = resolveClaudeOAuthEndpoints(
+    options.customOAuthUrl ?? process.env['CLAUDE_CODE_CUSTOM_OAUTH_URL'],
+  );
   return {
     name: 'Claude subscription (Provider CLI)',
     loginLabel: 'Claude subscription (Provider CLI)',
@@ -469,8 +536,8 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
       const method = await chooseLoginMethod(interaction);
       interaction.signal.throwIfAborted();
       if (method === 'import') return loginImport(interaction, importCredentials);
-      if (method === 'loopback') return loginLoopback(interaction);
-      return loginCopyCode(interaction);
+      if (method === 'loopback') return loginLoopback(interaction, endpoints);
+      return loginCopyCode(interaction, endpoints);
     },
     refresh: async (credential, signal) => {
       signal.throwIfAborted();
@@ -482,6 +549,7 @@ export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
           scope: CLAUDE_REFRESH_SCOPE,
         },
         signal,
+        endpoints.tokenUrl,
       );
       return credentialFrom(posted.data, credential.refresh);
     },
