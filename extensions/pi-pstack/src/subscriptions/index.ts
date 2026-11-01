@@ -7,7 +7,7 @@ import { Value } from 'typebox/value';
 import { isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
 import { type CronSchedule, cronMatches, parseCron } from './cron.ts';
-import { isSupervisorLive, removeDesired, upsertDesired } from './durable-store.ts';
+import { acquireSupervisorLock, createDesired, dropExpired, isSupervisorLive, readRegistry, releaseSupervisorLock, removeDesired, upsertDesired } from './durable-store.ts';
 import type { DurableSubscription } from './durable-types.ts';
 import { defaultEnsureSupervisor, waitForSupervisor } from './ensure-supervisor.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, targetText } from './github.ts';
@@ -180,22 +180,26 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   const server = new RoutineServer(options.routinesPort ?? envPort());
   let active = false;
   let workspaceCwd = process.cwd();
+  /** True when this chat process holds supervisor.lock for in-process arming (handoff fallback). */
+  let chatHoldsSupervisorLock = false;
 
   const persist = () => pi.appendEntry(SUBSCRIPTIONS_ENTRY, { subscriptions: [...live.values()].map((entry) => entry.sub) });
 
   const byName = (name: string) => [...live.values()].find((entry) => entry.sub.name === name);
 
+  const toDurable = (sub: Subscription, ownerSessionFile?: string): DurableSubscription => ({
+    id: sub.id,
+    name: sub.name,
+    createdAt: sub.createdAt,
+    expiresAt: sub.expiresAt,
+    config: sub.config,
+    ...(ownerSessionFile === undefined ? {} : { ownerSessionFile }),
+    detachedDelivery: 'spawn',
+  });
+
+  /** Restore / force-write path: upsert by id. */
   const mirrorUpsert = (sub: Subscription, ownerSessionFile?: string) => {
-    const durable: DurableSubscription = {
-      id: sub.id,
-      name: sub.name,
-      createdAt: sub.createdAt,
-      expiresAt: sub.expiresAt,
-      config: sub.config,
-      ...(ownerSessionFile === undefined ? {} : { ownerSessionFile }),
-      detachedDelivery: 'spawn',
-    };
-    upsertDesired(workspaceCwd, durable, workspaceCwd);
+    upsertDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
   };
 
   const mirrorRemove = (id: string) => {
@@ -204,6 +208,16 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
 
   const routinesPort = () => options.routinesPort ?? envPort();
   const expectedWebhookUrl = (slug: string) => `http://127.0.0.1:${routinesPort()}/routines/${slug}`;
+
+  /**
+   * Hand off only when the supervisor can serve the same port/dir as this session.
+   * Port 0 (ephemeral) or a custom routinesDir cannot match a detached supervisor.
+   */
+  const canHandoffToSupervisor = () => {
+    if (options.routinesPort === 0) return false;
+    if (options.routinesDir !== undefined && options.routinesDir !== routinesDir()) return false;
+    return true;
+  };
 
   /** Runs fn at `at`, chaining timeouts so waits past setTimeout's limit stay correct. */
   const at = (entry: Live, when: number, fn: () => void) => {
@@ -386,8 +400,11 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   });
 
   const takeSupervisorHandoff = (): boolean | Promise<boolean> => {
+    if (!canHandoffToSupervisor()) return false;
     if (isSupervisorLive(workspaceCwd)) return true;
-    const ensure = options.ensureSupervisor ?? defaultEnsureSupervisor;
+    const ensure =
+      options.ensureSupervisor ??
+      ((cwd: string) => defaultEnsureSupervisor(cwd, { routinesPort: options.routinesPort }));
     const started = ensure(workspaceCwd);
     const afterEnsure = (): boolean | Promise<boolean> => {
       if (isSupervisorLive(workspaceCwd)) return true;
@@ -399,6 +416,24 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     return Promise.resolve(started).then(afterEnsure);
   };
 
+  /**
+   * When falling back to in-process arming, hold supervisor.lock so a late supervisor
+   * sees alreadyRunning and exits. If the supervisor won the race, treat as supervisorOwns.
+   */
+  const claimInProcessOwnership = (): boolean => {
+    if (chatHoldsSupervisorLock) return true;
+    const lock = acquireSupervisorLock(workspaceCwd);
+    if (!lock.acquired) return false;
+    chatHoldsSupervisorLock = true;
+    return true;
+  };
+
+  const releaseInProcessOwnership = () => {
+    if (!chatHoldsSupervisorLock) return;
+    releaseSupervisorLock(workspaceCwd);
+    chatHoldsSupervisorLock = false;
+  };
+
   const create = async (ctx: ExtensionContext, tool: string, name: string, config: Config, hours: number | undefined) => {
     if (isOneShot(ctx.mode)) throw oneShotError(tool);
     if (name.trim() === '') throw new Error('name must not be empty.');
@@ -408,18 +443,40 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       if (existing.sub.config.kind !== config.kind) throw new Error(`A ${existing.sub.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
       return { created: false, ...view(existing), ...status(existing) };
     }
+    const durableSame = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
+    if (durableSame !== undefined) {
+      if (durableSame.config.kind !== config.kind) throw new Error(`A ${durableSame.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
+      const ghost: Live = { sub: durableSame, timers: new Set() };
+      if (durableSame.config.kind === 'webhook') ghost.url = expectedWebhookUrl(durableSame.config.slug);
+      return { created: false, ...view(ghost), ...status(ghost) };
+    }
     if (config.kind === 'webhook') {
       const clash = [...live.values()].find((entry) => entry.sub.config.kind === 'webhook' && entry.sub.config.slug === config.slug);
       if (clash !== undefined) throw new Error(`Routine "${clash.sub.name}" already uses the slug ${config.slug}.`);
     }
     const now = Date.now();
-    const entry: Live = { sub: { id: `sub-${randomBytes(4).toString('hex')}`, name, createdAt: now, expiresAt: expiryOf(now, hours), config }, timers: new Set() };
+    const sub: Subscription = { id: `sub-${randomBytes(4).toString('hex')}`, name, createdAt: now, expiresAt: expiryOf(now, hours), config };
+    const ownerSessionFile = ctx.sessionManager.getSessionFile?.() ?? undefined;
+    const { created } = createDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
+    if (!created) {
+      const hit = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
+      if (hit !== undefined) {
+        if (hit.config.kind !== config.kind) throw new Error(`A ${hit.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
+        const ghost: Live = { sub: hit, timers: new Set() };
+        if (hit.config.kind === 'webhook') ghost.url = expectedWebhookUrl(hit.config.slug);
+        return { created: false, ...view(ghost), ...status(ghost) };
+      }
+      return { created: false, name, kind: config.kind };
+    }
+    const entry: Live = { sub, timers: new Set() };
     live.set(entry.sub.id, entry);
     persist();
-    mirrorUpsert(entry.sub, ctx.sessionManager.getSessionFile?.() ?? undefined);
 
     const handoff = takeSupervisorHandoff();
-    const supervisorOwns = typeof handoff === 'boolean' ? handoff : await handoff;
+    let supervisorOwns = typeof handoff === 'boolean' ? handoff : await handoff;
+    if (!supervisorOwns) {
+      if (!claimInProcessOwnership()) supervisorOwns = true;
+    }
 
     try {
       if (supervisorOwns) {
@@ -477,6 +534,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     const baselines = new Map<string, Map<number, PrSnapshot>>();
     for (const [id, entry] of live) if (entry.baseline !== undefined) baselines.set(id, new Map(entry.baseline));
     stopAll();
+    releaseInProcessOwnership();
     active = true;
     if (isOneShot(ctx.mode)) return;
     workspaceCwd = ctx.cwd || process.cwd();
@@ -494,7 +552,10 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     if (live.size !== stored.length) persist();
     for (const id of expiredIds) mirrorRemove(id);
     for (const entry of live.values()) mirrorUpsert(entry.sub, ctx.sessionManager.getSessionFile?.() ?? undefined);
-    const supervisorOwns = isSupervisorLive(workspaceCwd);
+    let supervisorOwns = canHandoffToSupervisor() && isSupervisorLive(workspaceCwd);
+    if (!supervisorOwns && live.size > 0) {
+      if (!claimInProcessOwnership()) supervisorOwns = true;
+    }
     for (const entry of live.values()) {
       if (supervisorOwns) {
         if (entry.sub.config.kind === 'webhook') entry.url = expectedWebhookUrl(entry.sub.config.slug);
@@ -523,6 +584,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     shutdown: () => {
       active = false;
       stopAll();
+      releaseInProcessOwnership();
     },
   };
 }

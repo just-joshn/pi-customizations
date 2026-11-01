@@ -42,6 +42,14 @@ describe('ensure-supervisor', () => {
     expect(acquireSupervisorLock(cwd)).toEqual({ acquired: false, alreadyRunning: true, pid: process.pid });
   });
 
+  test('defaultEnsureSupervisor swallows spawn errors from a missing bin', async () => {
+    const missing = join(cwd, 'no-such-supervisor-bin');
+    expect(() => defaultEnsureSupervisor(cwd, { binPath: missing, routinesPort: 47_913 })).not.toThrow();
+    // Without an error listener, Node can surface ENOENT as an uncaughtException after the call returns.
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    expect(isSupervisorLive(cwd)).toBe(false);
+  });
+
   test('the real supervisor bin stays alive past 1s until SIGTERM (SUP-BIN-001)', async () => {
     const child = spawn(supervisorBinPath(), ['--workspace', cwd], {
       env: { ...process.env, PI_CODING_AGENT_DIR: agentDir },

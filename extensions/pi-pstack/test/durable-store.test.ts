@@ -120,6 +120,17 @@ describe('durable store', () => {
     writeFileSync(supervisorLockPath(cwd), `${JSON.stringify({ pid: 2_147_483_647, startedAt: 1 })}\n`);
     expect(isSupervisorLive(cwd)).toBe(false);
     expect(acquireSupervisorLock(cwd, process.pid, 30)).toEqual({ acquired: true });
+    expect(JSON.parse(readFileSync(supervisorLockPath(cwd), 'utf8'))).toMatchObject({ pid: process.pid, startedAt: 30 });
+    releaseSupervisorLock(cwd);
+  });
+
+  test('stale takeover is exclusive: a second acquirer sees alreadyRunning after wx win', () => {
+    // Cross-process unlink/wx races need two OS processes; this pins the contract that
+    // acquire never non-exclusively overwrites a holder that already won wx.
+    ensureDurableDirs(cwd);
+    writeFileSync(supervisorLockPath(cwd), `${JSON.stringify({ pid: 2_147_483_647, startedAt: 1 })}\n`);
+    expect(acquireSupervisorLock(cwd, process.pid, 40)).toEqual({ acquired: true });
+    expect(acquireSupervisorLock(cwd, process.pid + 1, 50)).toEqual({ acquired: false, alreadyRunning: true, pid: process.pid });
     releaseSupervisorLock(cwd);
   });
 });

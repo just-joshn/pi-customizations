@@ -114,12 +114,14 @@ export function isSupervisorLive(cwd: string): boolean {
 
 /**
  * Takes supervisor.lock when free or stale. Second live start returns alreadyRunning.
+ * Only creates with O_EXCL (`wx`); never overwrites via rename. Stale path: re-read,
+ * confirm the same dead pid, unlink, retry wx in a bounded loop.
  * Does not bind ports; caller owns that after a successful acquire.
  */
 export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt = Date.now()): { acquired: true } | { acquired: false; alreadyRunning: true; pid: number } {
   mkdirSync(durableRuntimeDir(cwd), { recursive: true, mode: 0o700 });
   const path = supervisorLockPath(cwd);
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < 16; attempt += 1) {
     try {
       writeFileSync(path, `${JSON.stringify({ pid, startedAt })}\n`, { flag: 'wx', mode: 0o600 });
       return { acquired: true };
@@ -128,17 +130,21 @@ export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt 
     }
     const lock = readLock(cwd);
     if (lock !== undefined && alive(lock.pid)) return { acquired: false, alreadyRunning: true, pid: lock.pid };
+    // Stale or unreadable: confirm the dead pid is unchanged, then unlink and retry wx.
+    const still = readLock(cwd);
     if (lock !== undefined) {
-      const still = readLock(cwd);
-      if (still !== undefined && still.pid === lock.pid) rmSync(path, { force: true });
-    } else {
+      if (still === undefined || still.pid !== lock.pid || alive(still.pid)) continue;
       rmSync(path, { force: true });
+      continue;
     }
+    if (still !== undefined && alive(still.pid)) return { acquired: false, alreadyRunning: true, pid: still.pid };
+    rmSync(path, { force: true });
   }
   const lock = readLock(cwd);
   if (lock !== undefined && alive(lock.pid)) return { acquired: false, alreadyRunning: true, pid: lock.pid };
-  writeAtomic(path, `${JSON.stringify({ pid, startedAt })}\n`);
-  return { acquired: true };
+  // Exhausted exclusive attempts; refuse non-exclusive overwrite (would race a live taker).
+  if (lock !== undefined) return { acquired: false, alreadyRunning: true, pid: lock.pid };
+  return { acquired: false, alreadyRunning: true, pid: 0 };
 }
 
 export function releaseSupervisorLock(cwd: string, pid = process.pid): void {
@@ -163,7 +169,8 @@ export function writeDelivery(cwd: string, ledger: DeliveryLedger): void {
 
 /**
  * Claims a fire key. Returns claimed:false when the ledger already holds this key (idempotent skip).
- * Once keys that are already claimed stay claimed forever so a crash after claim does not re-spawn.
+ * Callers that claim-before-deliver for once wakes should clear the once claim on deliver failure
+ * so reconcile can retry (at-least-once); lastError stays on the ledger.
  */
 export function claimDelivery(cwd: string, subscriptionId: string, claimKey: string, at = Date.now()): { claimed: boolean; ledger: DeliveryLedger } {
   const existing = readDelivery(cwd, subscriptionId);

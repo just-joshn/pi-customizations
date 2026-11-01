@@ -168,6 +168,13 @@ export function createSupervisor(options: SupervisorOptions) {
     }
   };
 
+  const clearOnceClaim = (subscriptionId: string, claimKey: string) => {
+    const existing = readDelivery(cwd, subscriptionId);
+    if (existing === undefined || existing.lastClaimKey !== claimKey) return;
+    // Drop the forever once key so reconcile / retry can claim again; keep lastError.
+    writeDelivery(cwd, { ...existing, lastClaimKey: `${subscriptionId}:retry` });
+  };
+
   const fireTimer = async (entry: Armed, config: TimerConfig) => {
     const atMs = now();
     const key = timerClaimKey(entry.sub, config, atMs);
@@ -180,6 +187,7 @@ export function createSupervisor(options: SupervisorOptions) {
     try {
       await deliver(entry.sub, timerDeliveryPrompt(entry.sub, config));
     } catch {
+      if (config.once) clearOnceClaim(entry.sub.id, key);
       return;
     }
     if (config.once) removeOnce(entry.sub.id);
@@ -203,9 +211,11 @@ export function createSupervisor(options: SupervisorOptions) {
         if (minute !== entry.lastCronMinute && cronMatches(schedule, new Date(atMs))) {
           entry.lastCronMinute = minute;
           void fireTimer(entry, config);
-          if (config.once) return;
         }
-        if (armed.get(entry.sub.id) === entry) at(entry, (minute + 1) * MINUTE_MS, tick);
+        // Once success disarms; once deliver failure clears the claim and the next minute retries.
+        if (armed.get(entry.sub.id) === entry && !(config.once && onceClaimSettled(cwd, entry.sub))) {
+          at(entry, (minute + 1) * MINUTE_MS, tick);
+        }
       };
       at(entry, (Math.floor(now() / MINUTE_MS) + 1) * MINUTE_MS, tick);
       return;
@@ -222,7 +232,13 @@ export function createSupervisor(options: SupervisorOptions) {
         return;
       }
       void fireTimer(entry, config).then(() => {
-        if (armed.get(entry.sub.id) === entry && !config.once) at(entry, next(), fire);
+        if (armed.get(entry.sub.id) !== entry) return;
+        if (!config.once) {
+          at(entry, next(), fire);
+          return;
+        }
+        // At-least-once: deliver failure cleared the once claim; retry shortly.
+        if (!onceClaimSettled(cwd, entry.sub)) at(entry, now() + 1_000, fire);
       });
     };
     at(entry, next(), fire);
@@ -238,7 +254,9 @@ export function createSupervisor(options: SupervisorOptions) {
     const { claimed } = claimDelivery(cwd, entry.sub.id, key, now());
     if (!claimed) return;
     const content = [`[routine] ${entry.sub.name}`, prompt, webhookEventBlock(event)].join('\n\n');
-    void deliver(entry.sub, content);
+    void deliver(entry.sub, content).catch(() => {
+      // deliver already wrote lastError; swallow so the POST handler has no unhandled rejection.
+    });
   };
 
   const armWebhook = async (entry: Armed, slug: string, prompt: string) => {

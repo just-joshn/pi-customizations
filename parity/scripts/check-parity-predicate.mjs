@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+/**
+ * Gate for tip ↔ pi-pstack parity inventory.
+ *
+ * Tip skills root resolution (first hit wins):
+ *   1. PSTACK_TIP_SKILLS — absolute path to a tip skills directory
+ *   2. TIP_SKILLS_CANDIDATES below
+ *   3. Newest hash under ~/.cursor/plugins/cache/cursor-public/pstack
+ */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,15 +14,24 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const PI_PSTACK = join(REPO_ROOT, 'extensions/pi-pstack');
 const PI_SKILLS = join(PI_PSTACK, 'skills');
-const PI_SRC = join(PI_PSTACK, 'src');
 
 const SOFT_DEPS = ['deslop', 'control-cli', 'control-ui', 'create-skill', 'no-comments', 'benchmark-checklist'];
 const FORBIDDEN_UPSTREAM = ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'docs/harness'];
-const HOST_TOOLS = ['Task', 'TodoWrite', 'AskQuestion', 'visualize', 'subscribe_github_pr', 'subscribe_timer', 'subscribe_webhook', 'Loop'];
+const HOST_TOOL_FILES = {
+  Task: 'src/task/tool.ts',
+  TodoWrite: 'src/todo.ts',
+  AskQuestion: 'src/ask.ts',
+  visualize: 'src/visualize.ts',
+  subscribe_github_pr: 'src/subscriptions/index.ts',
+  subscribe_timer: 'src/subscriptions/index.ts',
+  subscribe_webhook: 'src/subscriptions/index.ts',
+  Loop: 'src/loop.ts',
+};
 const CREATE_SKILL_MIN_BYTES = 12 * 1024;
 const DURABLE_ARTIFACTS = [
   'src/subscriptions/durable-store.ts',
   'src/subscriptions/supervisor.ts',
+  'src/subscriptions/supervisor-main.ts',
   'src/subscriptions/ensure-supervisor.ts',
   'bin/pstack-routines-supervisor',
 ];
@@ -32,6 +49,8 @@ function skillDirs(skillsRoot) {
 }
 
 function resolveTipSkillsRoot() {
+  const fromEnv = process.env['PSTACK_TIP_SKILLS'];
+  if (typeof fromEnv === 'string' && fromEnv !== '' && existsSync(fromEnv)) return fromEnv;
   for (const candidate of TIP_SKILLS_CANDIDATES) {
     if (existsSync(candidate)) return candidate;
   }
@@ -44,18 +63,6 @@ function resolveTipSkillsRoot() {
   return null;
 }
 
-function collectSrcText(dir) {
-  const chunks = [];
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) chunks.push(collectSrcText(path));
-    else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.js'))) {
-      chunks.push(readFileSync(path, 'utf8'));
-    }
-  }
-  return chunks.join('\n');
-}
-
 function check(name, ok, detail) {
   return { name, ok, detail };
 }
@@ -66,7 +73,7 @@ function runChecks() {
 
   const tipRoot = resolveTipSkillsRoot();
   if (tipRoot === null) {
-    const result = check('tip-skills-inventory', false, 'no tip skills root found under /tmp/cursor-plugins-rea or installed cache');
+    const result = check('tip-skills-inventory', false, 'no tip skills root found under PSTACK_TIP_SKILLS, /tmp/cursor-plugins-rea, or installed cache');
     checks.push(result);
     failures.push(result.name);
   } else {
@@ -108,24 +115,29 @@ function runChecks() {
   }
 
   {
-    if (!existsSync(PI_SRC)) {
-      const result = check('host-tools-registered', false, `missing src tree: ${PI_SRC}`);
-      checks.push(result);
-      failures.push(result.name);
-    } else {
-      const srcText = collectSrcText(PI_SRC);
-      const missingMentions = HOST_TOOLS.filter((tool) => !srcText.includes(tool));
-      const supervisorBin = join(PI_PSTACK, 'bin/pstack-routines-supervisor');
-      const binOk = existsSync(supervisorBin);
-      const ok = missingMentions.length === 0 && binOk;
-      const parts = [];
-      if (missingMentions.length > 0) parts.push(`src missing mentions: ${missingMentions.join(', ')}`);
-      if (!binOk) parts.push('missing bin/pstack-routines-supervisor');
-      if (ok) parts.push(`src mentions ${HOST_TOOLS.join(', ')}; durable supervisor bin exists`);
-      const result = check('host-tools-registered', ok, parts.join('; '));
-      checks.push(result);
-      if (!result.ok) failures.push(result.name);
+    const missing = [];
+    for (const [tool, rel] of Object.entries(HOST_TOOL_FILES)) {
+      const path = join(PI_PSTACK, rel);
+      if (!existsSync(path)) {
+        missing.push(`${tool} (missing ${rel})`);
+        continue;
+      }
+      const text = readFileSync(path, 'utf8');
+      if (!text.includes(`name: '${tool}'`)) missing.push(`${tool} in ${rel}`);
     }
+    const supervisorBin = join(PI_PSTACK, 'bin/pstack-routines-supervisor');
+    const binOk = existsSync(supervisorBin);
+    const binText = binOk ? readFileSync(supervisorBin, 'utf8') : '';
+    const binMentionsMain = binText.includes('supervisor-main');
+    const ok = missing.length === 0 && binOk && binMentionsMain;
+    const parts = [];
+    if (missing.length > 0) parts.push(`registration missing: ${missing.join(', ')}`);
+    if (!binOk) parts.push('missing bin/pstack-routines-supervisor');
+    else if (!binMentionsMain) parts.push('bin does not mention supervisor-main');
+    if (ok) parts.push(`registered ${Object.keys(HOST_TOOL_FILES).join(', ')}; durable supervisor bin targets supervisor-main`);
+    const result = check('host-tools-registered', ok, parts.join('; '));
+    checks.push(result);
+    if (!result.ok) failures.push(result.name);
   }
 
   {

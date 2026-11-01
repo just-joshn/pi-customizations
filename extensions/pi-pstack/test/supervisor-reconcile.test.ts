@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { claimDelivery, createDesired, ensureDurableDirs, readDelivery, readRegistry, writeRegistry } from '../src/subscriptions/durable-store.ts';
 import type { DurableSubscription } from '../src/subscriptions/durable-types.ts';
-import { createSupervisor, timerClaimKey, webhookClaimKey } from '../src/subscriptions/supervisor.ts';
+import { createSupervisor, onceClaimSettled, timerClaimKey, webhookClaimKey } from '../src/subscriptions/supervisor.ts';
 import { ensureCredentials } from '../src/subscriptions/webhook.ts';
 
 const NOW = Date.UTC(2026, 9, 31, 12, 0, 0);
@@ -72,6 +72,35 @@ describe('supervisor reconcile', () => {
     expect(fires).toHaveLength(1);
     expect(readRegistry(cwd).subscriptions).toEqual([]);
 
+    supervisor.stop();
+  });
+
+  test('once deliver failure clears the once claim and retries (at-least-once)', async () => {
+    ensureDurableDirs(cwd);
+    createDesired(cwd, onceTimer());
+    let attempts = 0;
+    const fires: string[] = [];
+    const supervisor = createSupervisor({
+      workspaceCwd: cwd,
+      routinesDir: routines,
+      routinesPort: 0,
+      reconcileIntervalMs: 60_000,
+      runFresh: async (_prompt, name) => {
+        attempts += 1;
+        if (attempts === 1) throw new Error('spawn failed');
+        fires.push(name);
+      },
+    });
+    expect(await supervisor.start()).toEqual({ started: true });
+    await vi.advanceTimersByTimeAsync(15_000);
+    await vi.waitFor(() => expect(attempts).toBe(1));
+    expect(onceClaimSettled(cwd, onceTimer())).toBe(false);
+    expect(readDelivery(cwd, 'sub-once1')).toMatchObject({ lastClaimKey: 'sub-once1:retry', lastError: { text: expect.stringContaining('spawn failed') } });
+    expect(readRegistry(cwd).subscriptions).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(readRegistry(cwd).subscriptions).toEqual([]));
+    expect(fires).toEqual(['durable-smoke']);
+    expect(attempts).toBe(2);
     supervisor.stop();
   });
 

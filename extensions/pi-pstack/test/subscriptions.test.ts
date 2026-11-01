@@ -415,7 +415,10 @@ describe('persistence', () => {
     const { acquireSupervisorLock, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
     vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });
     let ensuredFor: string | undefined;
+    // Concrete port + default routinesDir so handoff is allowed (port 0 / custom dir stay in-process).
     const fake = setup({
+      routinesPort: 48_913,
+      routinesDir: undefined,
       ensureSupervisor: (cwd) => {
         ensuredFor = cwd;
         acquireSupervisorLock(cwd);
@@ -431,6 +434,42 @@ describe('persistence', () => {
     expect(fake.fresh).toEqual([]);
   });
 
+  test('create returns created:false when durable already has the same name from another session', async () => {
+    const { createDesired, readRegistry } = await import('../src/subscriptions/durable-store.ts');
+    const fake = setup();
+    createDesired(fake.cwd, {
+      id: 'sub-other',
+      name: 'shared',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 7 * 24 * 3_600_000,
+      config: { kind: 'timer', prompt: 'theirs', delaySeconds: 30, once: false, strategy: 'wake_self' },
+      detachedDelivery: 'spawn',
+    });
+    const before = structuredClone(readRegistry(fake.cwd));
+    const again = await fake.call('subscribe_timer', { name: 'shared', prompt: 'ours', delaySeconds: 10 });
+    expect(again.details).toMatchObject({ created: false, id: 'sub-other', prompt: 'theirs' });
+    expect(readRegistry(fake.cwd)).toEqual(before);
+  });
+
+  test('in-process fallback holds supervisor.lock so a late supervisor cannot double-arm', async () => {
+    const { acquireSupervisorLock, isSupervisorLive, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
+    const fake = setup({
+      ensureSupervisor: () => {},
+      supervisorReadyMs: 0,
+    });
+    const result = await fake.call('subscribe_timer', { name: 'local', prompt: 'go', delaySeconds: 600 });
+    expect(result.details['durability']).toMatch(/in-process/);
+    expect(isSupervisorLive(fake.cwd)).toBe(true);
+    expect(acquireSupervisorLock(fake.cwd, process.pid + 99, 1)).toEqual({
+      acquired: false,
+      alreadyRunning: true,
+      pid: process.pid,
+    });
+    fake.emit('session_shutdown');
+    expect(isSupervisorLive(fake.cwd)).toBe(false);
+    releaseSupervisorLock(fake.cwd);
+  });
+
   test('restore stays passive when supervisor.lock is live (no in-process arm)', async () => {
     const { acquireSupervisorLock, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
     vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });
@@ -440,6 +479,9 @@ describe('persistence', () => {
     const stored = first.entries.filter((entry) => entry.customType === SUBSCRIPTIONS_ENTRY);
 
     const second = setup({}, structuredClone(stored));
+    // setup() already restored in-process; release that lock, then hold it as the supervisor before re-restore.
+    second.emit('session_shutdown');
+    second.fresh.length = 0;
     acquireSupervisorLock(second.cwd);
     onTestFinished(() => releaseSupervisorLock(second.cwd));
     second.emit('session_start');

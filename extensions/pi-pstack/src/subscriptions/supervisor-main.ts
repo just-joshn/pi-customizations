@@ -2,6 +2,8 @@
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 
+import { PACKAGE_ROOT } from '../paths.ts';
+import { piCommand } from '../pi-command.ts';
 import { createSupervisor } from './supervisor.ts';
 
 function usage(): never {
@@ -26,17 +28,27 @@ function parseArgs(argv: string[]): { workspace: string } {
   return { workspace: resolve(workspace) };
 }
 
+/** Spawns a headless Pi print run; resolves only when the child exits 0. */
 function runFresh(prompt: string, name: string, meta: { subscriptionId: string; cwd: string }): Promise<void> {
   return new Promise((resolvePromise, reject) => {
-    const child = spawn('pi', ['--mode', 'json', '-p', prompt], {
+    const command = piCommand();
+    const child = spawn(command[0]!, [...command.slice(1), '--mode', 'json', '-e', PACKAGE_ROOT, '-p', prompt], {
       cwd: meta.cwd,
       env: process.env,
       stdio: 'ignore',
-      detached: true,
     });
-    child.unref();
     child.once('error', (error) => reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): ${error.message}`)));
-    child.once('spawn', () => resolvePromise());
+    child.once('exit', (code, signal) => {
+      if (signal != null) {
+        reject(new Error(`Fire for "${name}" (${meta.subscriptionId}) exited from signal ${signal}`));
+        return;
+      }
+      if (code !== 0) {
+        reject(new Error(`Fire for "${name}" (${meta.subscriptionId}) exited with code ${code ?? 'null'}`));
+        return;
+      }
+      resolvePromise();
+    });
   });
 }
 

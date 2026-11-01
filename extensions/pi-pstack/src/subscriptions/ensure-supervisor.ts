@@ -11,16 +11,31 @@ export function supervisorBinPath(): string {
   return join(dirname(fileURLToPath(import.meta.url)), '../../bin/pstack-routines-supervisor');
 }
 
+export type EnsureSupervisorSpawnOptions = {
+  /** Concrete port override forwarded as PSTACK_ROUTINES_PORT (ignored when 0 / unset). */
+  routinesPort?: number;
+  /** Bin path override; production leaves this unset. */
+  binPath?: string;
+};
+
 /**
  * Spawns `pstack-routines-supervisor --workspace <cwd>` detached when no live lock exists.
  * Idempotent when the supervisor is already running for that workspace.
+ * Spawn errors (missing bin) are swallowed so the interactive Pi process cannot crash.
  */
-export function defaultEnsureSupervisor(cwd: string): void {
+export function defaultEnsureSupervisor(cwd: string, options: EnsureSupervisorSpawnOptions = {}): void {
   if (isSupervisorLive(cwd)) return;
-  const child = spawn(supervisorBinPath(), ['--workspace', cwd], {
+  const env = { ...process.env };
+  if (options.routinesPort !== undefined && options.routinesPort > 0) {
+    env['PSTACK_ROUTINES_PORT'] = String(options.routinesPort);
+  }
+  const child = spawn(options.binPath ?? supervisorBinPath(), ['--workspace', cwd], {
     detached: true,
     stdio: 'ignore',
-    env: process.env,
+    env,
+  });
+  child.on('error', () => {
+    // Missing bin or other spawn failure: chat falls back to in-process arming.
   });
   child.unref();
 }
