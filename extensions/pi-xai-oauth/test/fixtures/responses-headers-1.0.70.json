@@ -1,0 +1,33 @@
+{
+  "capturedAt": "2026-11-01T00:59:23Z",
+  "endpoint": "https://cli-chat-proxy.grok.com/v1/responses",
+  "method": "POST",
+  "minimumClientVersion": "1.0.13",
+  "piHeaders": {
+    "x-grok-client-version": "1.0.70",
+    "X-XAI-Token-Auth": "xai-grok-cli",
+    "x-grok-model-override": "grok-4.7",
+    "x-grok-context-window": "256000"
+  },
+  "authGateProbes": [
+    { "name": "pi_full_headers", "status": 200 },
+    { "name": "missing_version", "status": 426 },
+    { "name": "missing_token_auth", "status": 200 },
+    { "name": "missing_model_override", "status": 200 },
+    { "name": "missing_context_window", "status": 200 },
+    { "name": "wrong_token_auth", "status": 401 },
+    { "name": "bearer_and_version_only", "status": 200 },
+    { "name": "bearer_only", "status": 426 },
+    { "name": "version_1.0.12", "status": 426, "clientVersionSent": "1.0.12" },
+    { "name": "version_1.0.13", "status": 200, "clientVersionSent": "1.0.13" },
+    { "name": "version_1.0.70", "status": 200, "clientVersionSent": "1.0.70" }
+  ],
+  "conclusions": {
+    "requiredForResponses": ["Authorization", "x-grok-client-version>=1.0.13"],
+    "optionalFidelity": ["X-XAI-Token-Auth", "x-grok-model-override", "x-grok-context-window"],
+    "wrongTokenAuthRejects": true,
+    "speculativeHeadersNotRequired": true,
+    "piCurrentSetAccepted": true
+  },
+  "source": "parity/oauth-rea-2026-10-31/grok/fixtures/responses-headers-1.0.70.json"
+}

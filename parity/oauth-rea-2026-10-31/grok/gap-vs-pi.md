@@ -39,17 +39,13 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
 
 **Pi-native fix path.** In `login.ts` `deviceLogin` / `postForm` (or a device-only header map), send `x-grok-client-version: GROK_CLIENT_VERSION`. Add `x-grok-client-surface` only after a wire capture names the value (mitm of `grok login --device-auth`, or REA decompile of `device_code.rs` setters). Keep form as `client_id` + `scope`. Tests: extend device login fake to assert headers. No binary read at runtime.
 
-### 2. Inference header set beyond models gate
+### 2. Inference header set beyond models gate (CLOSED)
 
-**Gap.** Models accepts bearer alone. Inference docs still require bearer + `X-XAI-Token-Auth` + `x-grok-model-override`. Pi also sends `x-grok-context-window` and optional `x-grok-conv-id`. New 1.0.70 names (`x-grok-max-completion-tokens`, `x-models-etag`, `x-grok-deployment-id`, …) are string-only.
+**Measured.** Live `POST /v1/responses` (`fixtures/responses-headers-1.0.70.json`). Required: bearer + `x-grok-client-version` ≥ `1.0.13`. Wrong `X-XAI-Token-Auth` → 401. Omitting token-auth, model-override, or context-window still returned 200. Pi’s current `grokHeaders()` set was accepted. No speculative headers added.
 
-**Pi-native fix path.** Keep current `grokHeaders()` for known required inference headers. Prove any addition with a responses POST fixture (fake or live) that shows 401/400 without it. Do not add speculative headers. Optional: one live `POST /v1/responses` with stored bearer to confirm 1.0.70 still accepts Pi’s current set (same pattern as models probes).
+### 3. Client-version floor on inference (CLOSED)
 
-### 3. Client-version floor on inference (not models)
-
-**Gap.** Models accepts `1.0.12`. Historical gate was HTTP 426 below `1.0.13` on inference. Not re-probed on responses this pass.
-
-**Pi-native fix path.** Keep sending `1.0.70`. Optional prove: responses POST with `1.0.12` expecting 426 vs `1.0.70` expecting stream start. Constant already correct.
+**Measured.** Responses `1.0.12` → HTTP 426 naming minimum `1.0.13`. `1.0.13` and `1.0.70` → 200. Pi already sends `1.0.70`.
 
 ### 4. Package-level 401 retry (intentional)
 
@@ -57,11 +53,9 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
 
 **Pi-native fix path.** None required for oauth wire parity. If product wants CLI-like auto retry, implement in Pi auth/provider layer with tests, not by shelling to grok.
 
-### 5. Live refresh POST body (low risk)
+### 5. Live refresh POST body (CLOSED)
 
-**Gap.** Refresh grant fields not wire-captured on 1.0.70 (token not near expiry). Binary names `grant_type` / `refresh_token` near OIDC refresh. Pi host performs refresh.
-
-**Pi-native fix path.** When a stored token is near expiry, capture one refresh form (redacted) under `parity/…/fixtures/` and assert Pi host fields match. No extension change unless host form drifts.
+**Measured.** Live refresh at `https://auth.x.ai/oauth2/token` (`fixtures/refresh-token-1.0.70.json`). Form fields: `grant_type=refresh_token`, `client_id`, `refresh_token`. No `client_secret`. Matches Pi host `refreshXaiToken`.
 
 ## Already aligned (summary)
 
@@ -77,6 +71,6 @@ Goal for 100% oauth and oauth-dependency parity without depending on the grok bi
 
 ## Smallest remaining work (extension unit later)
 
-1. Optional device headers once surface value is measured.
-2. Optional responses header acceptance probe.
-3. No catalog edit. Live ids match.
+1. Device surface/referrer split tracked as **XAI-SURFACE-UI** (not reopened here).
+2. No catalog edit. Live ids match.
+3. Responses header and refresh prove units are closed.
