@@ -1,0 +1,21 @@
+{
+  "version": "2.1.312",
+  "binary_sha256": "6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620",
+  "manual_prompt": "Paste code here if prompted > ",
+  "parser": "trim line, split on first '#', require both code and state halves",
+  "rejects": [
+    "empty",
+    "missing '#' halves",
+    "state !== expectedState"
+  ],
+  "reject_messages": [
+    "Invalid code. Please make sure the full code was copied.",
+    "That code is not from this sign-in. Paste the code shown after opening the address above."
+  ],
+  "does_not_accept_in_H": [
+    "raw code without #state",
+    "full redirect URL"
+  ],
+  "note": "Pi parseAuthorizationInput accepts URL, code#state, querystring, or raw code. Claude H() paste path is code#state only. Listener path is separate automatic callback.",
+  "evidence": "carves/tight-paste-H-fn.txt"
+}

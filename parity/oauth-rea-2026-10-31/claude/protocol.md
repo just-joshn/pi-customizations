@@ -1,6 +1,8 @@
 # Claude Code 2.1.312 OAuth protocol
 
-Measured from offline bunfs carves of `/Users/josh-desktop/.local/share/claude/versions/2.1.312` (sha256 `6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620`) and `login-probe.txt`. No live token exchange was completed.
+Measured from offline bunfs carves of `/Users/josh-desktop/.local/share/claude/versions/2.1.312` (sha256 `6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620`), REA `open_binary` / `inspect_macho` / carved-module `analyze_javascript_application`, and `login-probe.txt`. No live token exchange was completed.
+
+REA Evidence (session receipts). `open_binary` sha256 match. `inspect_artifact` parent `ev_22c9cd75ed32b5c0b17273c9cd8cb869e1af5da2844c6b42639e27a99275faef` (root Mach-O only; SEA not unpacked by `extract_artifact`). `inspect_macho` parent `ev_a0dbfded35ee358702abf318c766830ab52646626260ef56f4a2422fb4e81a59` (arm64, uuid `4C4C44F7-5555-3144-A118-0ED0722B1D91`). Carved JS summary parent `ev_06a800b189d56b1b0f44ad163095500cc968f12b88a268c4cae061317b08878a` (directory digest `0897055e04687c0e8a1d7b76b70a2f0307ecc65a3372f17c2b65e9b312a4b554`). Bun SEA JS lives under `/$bunfs/root/`; REA cannot extract Mach-O SEA, so modules were carved offline into `extracted-js/`.
 
 ## Authorize URL
 
@@ -8,7 +10,7 @@ Measured from offline bunfs carves of `/Users/josh-desktop/.local/share/claude/v
 
 **Console login** uses `https://platform.claude.com/oauth/authorize` (`CONSOLE_AUTHORIZE_URL`).
 
-Evidence. bunfs config object at file offset `217350283`. Login probe printed the cai URL. Builder `Y9r` at `220544799` picks cai when `loginWithClaudeAi` is true.
+Evidence. bunfs config object at file offset `217350283` (`carves/tight-TOKEN_CONFIG@217350283.txt`, window sha256 `4fee18256b02f580…`). Login probe printed the cai URL. Builder `Y9r` at `220544799` picks cai when `loginWithClaudeAi` is true (`carves/tight-Y9r_full@220544799.txt`).
 
 ## Query params (append order)
 
@@ -26,7 +28,7 @@ Evidence. bunfs config object at file offset `217350283`. Login probe printed th
 10. optional `login_hint`
 11. optional `login_method`
 
-Evidence. `Y9r` body at `220545000`. Login probe order matches items 1 through 8.
+Evidence. `Y9r` body at `220545000`. Optional appends at `220545511` / `220545551` / `220545594`. Login probe order matches items 1 through 8. Fixture `fixtures/authorize-url-2.1.312.json`.
 
 ## Client id
 
@@ -34,7 +36,7 @@ Prod client id. `9d1c250a-e61b-44d9-88ed-5944d1962f5e` (`CLIENT_ID`).
 
 Design client id (separate). `59637612-477b-4836-a601-b0589eda7704` (`DESIGN_CLIENT_ID`). Not used by the standard cai login path.
 
-Local oauth override uses a different client id. Not the prod path.
+Local oauth override uses client id `22422756-60c9-4084-8eb7-27705fd5cf9a`. Custom URL path can override via `CLAUDE_CODE_OAUTH_CLIENT_ID` (forces plugins/projects/hybrid scope flags off).
 
 Evidence. config at `217350283`. Probe carries the prod id.
 
@@ -50,11 +52,13 @@ Login scope list from `gto()` (unique of `n` then `Zxt()`):
 6. `user:file_upload`
 7. `user:plugins` (when `PLUGINS_SCOPE_REGISTERED`, true in prod)
 
-`Zxt()` alone (refresh default) omits `org:create_api_key`.
+`Zxt()` alone (refresh default / `claudeAiLoginScopes` export) omits `org:create_api_key`.
 
 Inference-only login can request only `user:inference` (`xk`).
 
-Evidence. scope helpers at `217349591`. Probe scope string matches the seven-scope list.
+`hls` / `firstPartyRefreshScopes` = unique(`Zxt()` + preservable project scopes from prior token).
+
+Evidence. scope helpers at `217349591` (`carves/tight-bu_beta_scopes@217349591.txt`). Probe scope string matches the seven-scope list.
 
 ## Redirect URIs
 
@@ -68,19 +72,34 @@ Evidence. `Y9r` / `tXo` at `220545000`. `o$` login class at `221658382`. Probe p
 
 ## PKCE
 
-- Verifier. `randomBytes(32)` then custom base64url (`+`/`/`/`=` stripped).
-- Challenge. `sha256(verifier)` then same base64url.
+Library. Node `crypto` inside the bun SEA (`import{createHash as T,randomBytes as E}from"crypto"` at `221657206`).
+
+Helpers in the login module:
+
+- `b(buf)`. `buf.toString("base64")` then `replaceAll("+","-")`, `replaceAll("/","_")`, `replaceAll("=","")`.
+- Verifier `L()`. `b(E(32))`.
+- Challenge `O(verifier)`. `b(sha256(verifier))`.
 - Method. `S256`.
 
-Evidence. helpers `L`, `O`, `b` at `221658382`.
+State is **not** PKCE. `y()` is a second `b(E(32))`.
 
-## State
+Evidence. `carves/tight-pkce_helpers@221657206.txt` (window sha256 `a66617dbc8156086…`). Fixture `fixtures/pkce-2.1.312.json`. Module carve `extracted-js/chunk-oauth-login-pkce.js` sha256 `586516f2081cb38f1c220d2976bdbb191771a0ca53b551622e54bd2331658634`.
 
-State is a **second** `randomBytes(32)` base64url value (`y()`). It is **not** the PKCE verifier.
+## State and paste parser
 
-Callback / paste must match that state. Exchange posts the same `state` with the code.
+State is a **second** `randomBytes(32)` base64url value (`y()`). Callback / paste must match that state. Exchange posts the same `state` with the code.
 
-Evidence. `o$.startOAuthFlow` at `221658382`. Exchange body at `220545746`.
+Manual paste path `H()` (TTY readline):
+
+1. `trim` the line.
+2. `split("#")` into `[code, state]`.
+3. Reject if either half missing (`Invalid code. Please make sure the full code was copied.`).
+4. Reject if `state !== expectedState` (`That code is not from this sign-in…`).
+5. Deliver `{authorizationCode, state}`.
+
+`H()` does **not** accept raw code-only, query strings, or redirect URLs. The automatic listener path is separate (`waitForAuthorizationCode` / `authCodeListener`).
+
+Evidence. `carves/tight-paste-H-fn.txt`. Fixture `fixtures/paste-code-parser-2.1.312.json`.
 
 ## Token URL
 
@@ -88,7 +107,9 @@ Evidence. `o$.startOAuthFlow` at `221658382`. Exchange body at `220545746`.
 
 POST JSON. `Content-Type: application/json`. Timeout 30000 ms.
 
-Evidence. config `217350283`. `tXo` / `eie` at `220545650`.
+Revoke. `POST ${TOKEN_URL}/revoke` with `token`, `token_type_hint` (default `refresh_token`), `client_id`, timeout 5000 ms (`X9r` near `220548305`).
+
+Evidence. config `217350283`. `tXo` / `eie` at `220545650`. Fixture `fixtures/token-endpoints-2.1.312.json`.
 
 ## Authorization code grant
 
@@ -102,9 +123,9 @@ Body fields:
 - `state`
 - optional `expires_in`
 
-401 maps to "Authentication failed: Invalid authorization code".
+401 maps to `Authentication failed: Invalid authorization code` (metric `oauth_exchange_invalid_code`). Other non-200: `Token exchange failed (${status}): ${statusText}`.
 
-Evidence. `tXo` at `220545746`.
+Evidence. `tXo` at `220545746`. `carves/tight-Invalid_authorization_code@220546212.txt`.
 
 ## Refresh grant
 
@@ -119,10 +140,11 @@ Body fields:
 Response handling stores:
 
 - `access` expiry as `Date.now() + expires_in * 1000` (no store-time skew)
-- optional refresh expiry via `q9r(refresh_token_expires_in, false)`
+- optional refresh expiry via `q9r(refresh_token_expires_in, false)` as `refreshTokenExpiresAt`
 - rotates `refresh_token` when returned, else keeps the old one
+- merges into `claudeAiOauth` via `TA(..., "refresh")`
 
-Evidence. `eie` at `220546563`.
+Evidence. `eie` at `220546563`. `TA` at `220790005`. Fixture `fixtures/refresh-lifecycle-2.1.312.json`.
 
 ## Expiry skew
 
@@ -132,22 +154,37 @@ Proactive refresh predicate `AA(expiresAt)`:
 
 Null `expiresAt` is treated as not expired for this check.
 
-Evidence. `AA` at `220551335`. Used from refresh path near `220813447` (`AA(G.expiresAt)`).
+Evidence. `AA` at `220551392` (`carves/tight-AA_body@220551392.txt`).
+
+## ALLOWED_OAUTH_BASE_URLS
+
+Export alias `P5e as ALLOWED_OAUTH_BASE_URLS` from `/$bunfs/root/chunk-7rmk5fgf.js`.
+
+Membership (custom `CLAUDE_CODE_CUSTOM_OAUTH_URL` allowlist only; **not** prod authorize hosts):
+
+1. `https://beacon.claude-ai.staging.ant.dev`
+2. `https://claude.fedstart.com`
+3. `https://claude-staging.fedstart.com`
+
+Miss throws `CLAUDE_CODE_CUSTOM_OAUTH_URL is not an approved endpoint.`
+
+Evidence. `P5e` at `217352359` (`carves/tight-P5e-ALLOWED@217352359.txt`). Export table at `244131473`. Fixture `fixtures/allowed-oauth-bases-2.1.312.json`.
 
 ## Related oauth HTTP (not the token URL)
 
-Also present in prod config:
+Also present in prod config / helpers:
 
 - Profile. `${BASE_API_URL}/api/oauth/profile` with Bearer
 - Validate. `${BASE_API_URL}/api/oauth/validate` with Bearer
-- Create API key. `${BASE_API_URL}/api/oauth/claude_cli/create_api_key`
-- Roles. `${BASE_API_URL}/api/oauth/claude_cli/roles`
+- Create API key. `https://api.anthropic.com/api/oauth/claude_cli/create_api_key`
+- Roles. `https://api.anthropic.com/api/oauth/claude_cli/roles`
+- Revoke. `${TOKEN_URL}/revoke`
 - Client metadata URL string. `https://claude.ai/oauth/claude-code-client-metadata`
 
-Evidence. config and profile helpers around `217350283` / `220541000`.
+Evidence. config and profile helpers around `217350283` / `220541816`. Fixture `fixtures/oauth-config-2.1.312.json`.
 
-## Unknowns
+## Residual unknowns
 
-- Exact `ALLOWED_OAUTH_BASE_URLS` membership list (export name at `244131473`; body not fully recovered).
-- Whether paste input accepts `code#state`, raw code, or redirect URL forms beyond what `waitForAuthorizationCode` implements (listener path recovered; paste parser body not fully isolated).
-- Live server acceptance of refresh `scope` without `org:create_api_key` was not exercised.
+- Live Anthropic acceptance of refresh `scope` without `org:create_api_key` (policy blocked live exchange). Local stub path exists in extension tests.
+- Whether non-TTY paste fallbacks accept forms beyond `H()` (TTY path recovered completely).
+- Windows Credential Manager / Linux secret-service backends beyond plaintext `.credentials.json` (macOS keychain + plaintext recovered).

@@ -1,65 +1,70 @@
 # Gaps versus Pi anthropic oauth
 
-Compared to `parity/pi-anthropic-oauth/ledger.json` and `extensions/pi-anthropic-oauth/src/{auth,identity}.ts` plus Pi builtin `dist/auth/oauth/anthropic.js` (copied as `pi-anthropic-oauth-builtin.js`). Goal. 100% pi-native parity without depending on the claude binary at runtime.
+Compared to `extensions/pi-anthropic-oauth/src/{auth,oauth,identity}.ts` and prior ledger notes. Claude reference. installed `2.1.312` sha256 `6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620`. Goal. 100% pi-native oauth+deps parity without spawning claude at runtime.
 
-Claude reference. installed `2.1.312`. Extension identity pins `2.1.312`.
+Status vocabulary. **VERIFIED** = measured Claude fact matched by Pi behavior or deliberate documented equivalent. **UNIT** = concrete pi-native implementation description (not started or partial). No gap is marked impossible.
 
 ## Ledger rows
 
-| ID | Ledger status | Claude 2.1.312 fact | Pi / extension delta for 100% |
+| ID | Status | Claude 2.1.312 fact | Pi delta / unit |
 | --- | --- | --- | --- |
-| OAUTH-001 | VERIFIED | OAuth path sends Bearer + `anthropic-beta: oauth-2025-04-20`, no x-api-key when `kt()` oauth mode | Keep. Dual-header API-key case stays OAUTH-010. |
-| OAUTH-002 | VERIFIED | UA template `claude-cli/${VERSION} (external, ${entrypoint})`. Version in binary is `2.1.312` | Extension pins `2.1.312` with captured fixture `claude-code-2.1.312.json`. |
-| OAUTH-003 | VERIFIED | Fingerprint salt `59cf53e54c78`, indices `[4,7,20]`, bunfs `qf`/`dH`. First user skips `isMeta` | Extension matches salt/indices/version. Skips duck-typed `isMeta` and `isCompactSummary` user messages. Optional suffixes (`cc_prev_req`, gateway, project) stay Claude-only. |
-| OAUTH-004 | VERIFIED | Not re-checked this session | No new oauth delta. |
-| OAUTH-005 | VERIFIED (local stub) | Copy-code authorize + PKCE + exchange recovered. State is independent of verifier | Extension `src/oauth.ts` uses independent `state`. Exchange posts that state. Persistence stays Pi store (OAUTH-020). |
-| OAUTH-006 | NATIVE DIFFERENCE | Claude builds both manual and loopback URLs. Subscription probe printed manual redirect | Extension copy-code only. Loopback remains optional Claude path, not required for `--claudeai` print parity. |
-| OAUTH-007 | VERIFIED (local) | cai authorize + seven scopes including `user:plugins` confirmed on 2.1.312 probe and bunfs | Extension owns cai URL + plugins scope in `src/oauth.ts`. No longer depends on rewriting Pi builtin authorize. |
-| OAUTH-008 | VERIFIED (local stub) | Refresh posts `scope: Zxt().join(" ")` (no `org:create_api_key`). Store expiry without skew. Refresh when `now+300000>=expiresAt` | Extension refresh POST includes Zxt scopes. Stores absolute expiry; Pi resolver still refreshes ~5m early. |
-| OAUTH-009 | VERIFIED | Ambient setup token path still present | Keep. |
-| OAUTH-010 ambient | VERIFIED | `ha` prefers `ANTHROPIC_AUTH_TOKEN` over `CLAUDE_CODE_OAUTH_TOKEN`. `ANTHROPIC_OAUTH_TOKEN` absent in bunfs | Extension order matches. Alias removed. |
-| OAUTH-010 dual-header | NOT APPLICABLE | Dual Bearer+x-api-key is Claude API-key mode | This provider is oauth-only and rejects API keys. |
-| OAUTH-011 | INCONCLUSIVE | Exchange 401 message and refresh error strings recovered | Extension wraps errors into generic messages. Claude wording differs. |
-| OAUTH-012 | NOT VERIFIED | Tool collision outside oauth protocol | Unchanged known Pi limitation. |
-| OAUTH-013..015 | VERIFIED | Streaming / paths | No oauth protocol delta. |
-| OAUTH-016..017 | NOT VERIFIED | Context accounting | Outside oauth protocol. |
-| OAUTH-018..019 | NOT VERIFIED | Prompt / catalog | Outside oauth protocol. |
-| OAUTH-020 | NOT VERIFIED | Keychain + `.credentials.json` under config dir | Deliberate. Pi `auth.json` stays authoritative. Documented non-goal unless sync is requested. |
-| OAUTH-021 | INCONCLUSIVE | No live exchange | Still blocked by policy. |
-| OAUTH-022 | VERIFIED | Package lifecycle | N/A. |
-| OAUTH-023 | INCONCLUSIVE | macOS RE only | Linux/Windows storage still unknown. |
-| OAUTH-024 | N/A | Telemetry / plugins | Keep out of scope. |
-| OAUTH-025 | INCONCLUSIVE | Terms | Unchanged. |
-| OAUTH-026 | VERIFIED | Auth token outranks setup token in `ha` | Extension order already matches. |
+| OAUTH-001 | VERIFIED | Bearer + `anthropic-beta` includes `oauth-2025-04-20`; no x-api-key in oauth mode | Keep |
+| OAUTH-002 | VERIFIED | UA `claude-cli/2.1.312 (external, sdk-cli)` for SDK-shaped traffic | Extension pins version+entrypoint |
+| OAUTH-003 | VERIFIED | Billing salt/indices; skip isMeta/isCompactSummary | `billingBlock` matches core form |
+| OAUTH-004 | VERIFIED | anthropic-version / beta list from capture fixture 2.1.312 | Capture fixture in extension tests |
+| OAUTH-005 | VERIFIED | Copy-code PKCE + independent state + exchange posts state | `src/oauth.ts` |
+| OAUTH-006 | UNIT | Manual + loopback authorize URLs | Unit `oauth-loopback-listener`: bind ephemeral port, build `http://localhost:${port}/callback`, exchange with matching redirect when automatic; keep copy-code default |
+| OAUTH-007 | VERIFIED | cai authorize + seven scopes incl. plugins | Owned in `src/oauth.ts` |
+| OAUTH-008 | VERIFIED | Refresh Zxt scopes; absolute expiry; AA 5m check | Extension refresh + Pi resolver window |
+| OAUTH-009 | VERIFIED | Ambient setup token | `CLAUDE_CODE_OAUTH_TOKEN` in ambient list |
+| OAUTH-010 ambient | VERIFIED | AUTH_TOKEN before CLAUDE_CODE_OAUTH_TOKEN; no ANTHROPIC_OAUTH_TOKEN | Matches |
+| OAUTH-010 dual-header | NOT APPLICABLE | Dual Bearer+x-api-key is API-key mode | Oauth-only provider rejects API keys |
+| OAUTH-011 | UNIT | Specific exchange/refresh/revoked strings | Unit `oauth-error-text`: map 401 exchange to `Authentication failed: Invalid authorization code`; map refresh failures to Claude metric-backed messages; keep generic wrapper as default until enabled |
+| OAUTH-012 | OUT OF BAND | Tool name collision | Not oauth wire. Track under tools ledger, not this unit |
+| OAUTH-013..015 | VERIFIED | Streaming / request paths | No oauth protocol delta |
+| OAUTH-016..019 | OUT OF BAND | Context / prompt / catalog | Outside oauth+deps |
+| OAUTH-020 | UNIT | Keychain + `.credentials.json` `claudeAiOauth` layout | Unit `claude-credentials-import`: one-shot/opt-in reader. Prefer keychain on darwin (`security find-generic-password -s HW() -a iO()`), else plaintext `join(dN(),".credentials.json")`. Map fields into Pi `auth.json` oauth credential. Never read Claude binary. Pi store remains authoritative after import |
+| OAUTH-021 | UNIT (gated) | Live exchange acceptance | Unit `oauth-live-exchange-gate`: operator-approved probe against Anthropic using existing stub tests as CI; live run writes redacted receipt under `parity/` only behind gates.md |
+| OAUTH-022 | VERIFIED | Package lifecycle | N/A |
+| OAUTH-023 | UNIT | Non-macOS storage | Same import unit: plaintext path is cross-platform; wincred/libsecret are optional backends mirroring Claude when those bunfs paths are carved later |
+| OAUTH-024 | OUT OF BAND | Telemetry / plugins marketplace | Keep out |
+| OAUTH-025 | UNIT | Terms / legal copy | Unit `oauth-login-copy`: optional notify strings from recovered paste prompts; no legal acceptance flow required for Pi |
+| OAUTH-026 | VERIFIED | Auth token outranks setup token | Matches |
+| DEP-PKCE | VERIFIED | node crypto PKCE | Matches |
+| DEP-ALLOWED-BASES | UNIT | Custom URL allowlist P5e | Unit `oauth-custom-url-allowlist` (default off) |
+| DEP-LATCH | UNIT | oauthRefreshLatch singleflight | Unit `oauth-refresh-singleflight` around refresh+401 retry |
+| DEP-401 | UNIT | FE one-shot refresh retry | Wire into provider HTTP 401 handler calling Pi `oauth.refresh` once |
+| DEP-REVOKE | UNIT | `${TOKEN_URL}/revoke` | Unit `oauth-revoke` on logout |
+| DEP-PROFILE | UNIT | profile/validate/roles HTTP | Only if account sync is product-desired; not required for inference |
 
-## Exact deltas in `extensions/pi-anthropic-oauth/src`
+## Exact deltas still open in `extensions/pi-anthropic-oauth` (no extension edits this unit)
 
-### `src/auth.ts` / `src/oauth.ts`
+Ordered by **wire impact** (what Anthropic sees on the next request):
 
-1. **Authorize.** Extension owns cai authorize, seven login scopes, and copy-code redirect in `src/oauth.ts`.
-2. **State vs PKCE.** Independent `state` and exchange body match Claude.
-3. **Refresh `scope`.** Refresh POST includes Zxt scopes. Absolute expiry store; Pi refresh window supplies the 5m buffer.
-4. **`ANTHROPIC_OAUTH_TOKEN`.** Removed from ambient resolution.
-5. **API key dual-header / API-key preference.** Not applicable. This subscription provider is oauth-only and rejects API keys. Claude's dual Bearer+x-api-key path is API-key mode.
-6. **Error text.** Extension sanitizes. Claude returns more specific exchange/refresh strings.
-7. **Storage.** Extension never reads Keychain / `.credentials.json`. Deliberate.
-8. **Loopback callback.** Not implemented. Copy-code only.
+1. **401 refresh retry + singleflight** (`DEP-401` / `DEP-LATCH`). Without this, concurrent expired-token requests can stampede refresh or fail once where Claude recovers.
+2. **Loopback callback** (`OAUTH-006`). Copy-code already works; loopback changes redirect_uri on the authorize+exchange pair when automatic.
+3. **Billing optional suffixes** (low). Core `cc_version`+`cc_entrypoint` already match; gateway/project suffixes are Claude-host specific.
+4. **Error string mapping** (`OAUTH-011`). Does not change grant success; improves operator UX only.
+5. **Credentials import** (`OAUTH-020`). Offline convenience; zero wire impact after tokens are in Pi store.
+6. **Revoke / profile HTTP** (`DEP-REVOKE` / `DEP-PROFILE`). Logout and account metadata only.
+7. **Custom oauth URL allowlist** (`DEP-ALLOWED-BASES`). Irrelevant for prod cai.
 
-### `src/identity.ts`
+## Closed this deepening pass
 
-1. **Version.** `2.1.312` matches binary and capture.
-2. **Fingerprint core.** Salt and indices match bunfs. Good.
-3. **`isMeta` skip.** Extension skips duck-typed `isMeta` and `isCompactSummary` user messages, matching Claude `dH` plus Elt compact skip.
-4. **Billing suffixes.** Claude may append first-party / gateway / project fields. Extension emits the short `cc_version` + `cc_entrypoint` form only.
-5. **UA entrypoint.** Fixture assumes `sdk-cli`. Extension hardcodes that UA string. Claude derives entrypoint from env. Fine for Pi SDK-shaped traffic if left pinned.
+- `ALLOWED_OAUTH_BASE_URLS` membership recovered (`P5e`).
+- PKCE library and helpers recovered (`crypto` + `b`/`L`/`O`/`y`).
+- Paste `H()` grammar recovered (`code#state` only).
+- Credentials JSON `claudeAiOauth` / `TA` merge fields recovered.
+- Keychain service/account helpers recovered (`HW`/`iO`/`KPe`/`dN`).
+- Refresh latch + FE 401 path recovered.
+- `x-app: cli` confirmed for 2.1.312 via capture fixture + bunfs literal.
+- Revoke endpoint recovered.
+- Every prior "impossible"/"won't" framing replaced with a named pi-native unit.
 
-### Pi builtin `anthropic.js` (not used by this package for OAuth)
+## Top gaps by wire impact
 
-The extension no longer wraps builtin Anthropic OAuth. Upstream Pi still differs on cai URL, plugins scope, independent state, refresh `scope`, and store-time skew. Those gaps matter only for Pi's own `anthropic` provider, not `claude-subscription`.
-
-## Top gaps for pi-anthropic-oauth (priority)
-
-1. Optional. Keychain / `.credentials.json` import (only if sharing is desired).
-2. Optional. Loopback callback alongside copy-code.
-3. Live exchange / 401 recovery still unverified against Anthropic (policy).
-4. Closed this unit. `isMeta`/`isCompactSummary` billing skip, OAUTH-010 ambient VERIFIED, dual-header NOT APPLICABLE, independent OAuth `state`, Zxt refresh scope, cai authorize + plugins, drop `ANTHROPIC_OAUTH_TOKEN`, absolute expiry store.
+1. 401 refresh retry + in-process singleflight.
+2. Optional loopback redirect pair.
+3. Optional Claude error-string mapping (UX).
+4. Optional credentials import (local only).
+5. Optional revoke/profile helpers.
