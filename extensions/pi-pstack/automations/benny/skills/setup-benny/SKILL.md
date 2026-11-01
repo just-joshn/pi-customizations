@@ -15,7 +15,7 @@ Benny needs external configuration and two live automations. Each automation is 
 - Timer mode (default): `subscribe_timer` with a 5-field `cron`. Each fire wakes the owning session, which sweeps the source channel, claims one report, and hands it to one background `Task` on the automation's configured model. The run's result arrives as a Task notification.
 - Webhook mode: `subscribe_webhook`. Each POST to the local routine URL wakes the owning session with a `[routine]` turn, and the prompt hands the event to one background `Task` on the automation's configured model.
 
-Subscriptions live in the Pi process. They stop when that session exits, return when it is resumed, and expire (default seven days). Tell the user this before creating anything.
+Creating a subscription auto-starts `pstack-routines-supervisor`, so timers and webhook routines keep firing after this chat exits. Subscriptions expire after seven days unless renewed. Tell the user this before creating anything. For fires that survive a reboot, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` (resolve the script from the pi-pstack package root) and run it when they say yes.
 
 Do not create or update a subscription until the user explicitly asks. Never put a secret value in pack files, prompts, memory, or committed configuration.
 
@@ -169,7 +169,7 @@ Ask whether this is first-time creation or configuration of existing subscriptio
 
 Read `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source for either path. Use it to understand the two triggers, tools, instructions, outcomes, and shared rules.
 
-The owning session must be interactive or RPC, rooted in the target repository, and expected to keep running. A print or JSON run cannot own a subscription. Suggest a dedicated tmux window, such as `tmux new -s benny 'cd <target-repository> && pi'`. In both trigger modes, each fire hands its report to one background `Task` with the automation's configured `model`, so one owning session serves both automations, whatever model that session runs on.
+The owning session must be interactive or RPC and rooted in the target repository. A print or JSON run cannot create a subscription. Creating the subscription auto-starts `pstack-routines-supervisor`, so the chat does not need to stay open for later fires. In both trigger modes, each fire hands its report to one background `Task` with the automation's configured `model`. After both subscriptions exist, ask whether to install the reboot unit with `packaging/install-supervisor-unit.sh --workspace <target-repository>`, and run it only when the user says yes.
 
 ### First-time creation
 
@@ -229,7 +229,7 @@ To renew an expiring subscription, do the same with the unchanged prompt. Do not
 
 ### Creation boundary
 
-Create Benny's automations only with pi-pstack's `subscribe_timer` and `subscribe_webhook` tools in the owning session. Never start a scheduler outside Pi, such as `cron` or `launchd`, and never expose the routine listener beyond `127.0.0.1` from this setup.
+Create Benny's automations only with pi-pstack's `subscribe_timer` and `subscribe_webhook` tools in the owning session. Do not invent a separate `cron` or `launchd` schedule for Benny. The opt-in `packaging/install-supervisor-unit.sh` install is the reboot path for the durable supervisor, not a Benny schedule. Never expose the routine listener beyond `127.0.0.1` from this setup.
 
 Do not let either automation handle normal traffic until the thread-safety test passes.
 

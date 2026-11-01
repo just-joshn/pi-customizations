@@ -73,7 +73,7 @@ i want this setup session to run in the target repository, so a fresh subagent i
 
 if pi-pstack or any shared dependency does not resolve, stop and explain what failed. do not move `.pi/automations/benny/skills/` into `.pi/skills/` or expect its files to appear in the slash-skill list.
 
-tell me that subscriptions live in the pi process: the session that creates them must keep running, for example in tmux, and they expire after seven days unless renewed. do not create or update a subscription until i explicitly ask.
+tell me that creating a subscription auto-starts `pstack-routines-supervisor`, so fires keep working after this chat exits, and that subscriptions expire after seven days unless renewed. for reboot survival, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` and run it when i say yes. do not create or update a subscription until i explicitly ask.
 
 for first-time creation, create the triage subscription first, check it with `list_subscriptions`, and confirm one harmless fire before creating the repro subscription.
 

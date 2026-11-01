@@ -7,6 +7,9 @@ import { Value } from 'typebox/value';
 import { isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
 import { type CronSchedule, cronMatches, parseCron } from './cron.ts';
+import { acquireSupervisorLock, createDesired, dropExpired, isSupervisorLive, readRegistry, releaseSupervisorLock, removeDesired, upsertDesired } from './durable-store.ts';
+import type { DurableSubscription } from './durable-types.ts';
+import { defaultEnsureSupervisor, waitForSupervisor } from './ensure-supervisor.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, targetText } from './github.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, routineSlug, type WebhookEvent, webhookEventBlock } from './webhook.ts';
 
@@ -63,6 +66,13 @@ export interface SubscriptionOptions {
   /** Routines listener port; defaults to PSTACK_ROUTINES_PORT, else 47913. 0 picks a free port. */
   routinesPort?: number;
   routinesDir?: string;
+  /**
+   * Starts the durable supervisor for this workspace when no live lock exists.
+   * Default spawns `pstack-routines-supervisor` detached so timers and routines survive chat exit.
+   */
+  ensureSupervisor?: (cwd: string) => Promise<void> | void;
+  /** How long create/restore wait for supervisor.lock after ensure (ms). Default 2000. */
+  supervisorReadyMs?: number;
 }
 
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -169,10 +179,45 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   const dir = options.routinesDir ?? routinesDir();
   const server = new RoutineServer(options.routinesPort ?? envPort());
   let active = false;
+  let workspaceCwd = process.cwd();
+  /** True when this chat process holds supervisor.lock for in-process arming (handoff fallback). */
+  let chatHoldsSupervisorLock = false;
 
   const persist = () => pi.appendEntry(SUBSCRIPTIONS_ENTRY, { subscriptions: [...live.values()].map((entry) => entry.sub) });
 
   const byName = (name: string) => [...live.values()].find((entry) => entry.sub.name === name);
+
+  const toDurable = (sub: Subscription, ownerSessionFile?: string): DurableSubscription => ({
+    id: sub.id,
+    name: sub.name,
+    createdAt: sub.createdAt,
+    expiresAt: sub.expiresAt,
+    config: sub.config,
+    ...(ownerSessionFile === undefined ? {} : { ownerSessionFile }),
+    detachedDelivery: 'spawn',
+  });
+
+  /** Restore / force-write path: upsert by id. */
+  const mirrorUpsert = (sub: Subscription, ownerSessionFile?: string) => {
+    upsertDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
+  };
+
+  const mirrorRemove = (id: string) => {
+    removeDesired(workspaceCwd, id);
+  };
+
+  const routinesPort = () => options.routinesPort ?? envPort();
+  const expectedWebhookUrl = (slug: string) => `http://127.0.0.1:${routinesPort()}/routines/${slug}`;
+
+  /**
+   * Hand off only when the supervisor can serve the same port/dir as this session.
+   * Port 0 (ephemeral) or a custom routinesDir cannot match a detached supervisor.
+   */
+  const canHandoffToSupervisor = () => {
+    if (options.routinesPort === 0) return false;
+    if (options.routinesDir !== undefined && options.routinesDir !== routinesDir()) return false;
+    return true;
+  };
 
   /** Runs fn at `at`, chaining timeouts so waits past setTimeout's limit stay correct. */
   const at = (entry: Live, when: number, fn: () => void) => {
@@ -205,7 +250,10 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     // A restored entry reuses the id. Only that object may drop the subscription.
     if (!owns(entry)) return;
     live.delete(entry.sub.id);
-    if (save) persist();
+    if (save) {
+      persist();
+      mirrorRemove(entry.sub.id);
+    }
   };
 
   /** True (and the subscription gone) once it has expired. */
@@ -346,35 +394,109 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     return { ...base, target: entry.url ?? `(not listening) /routines/${config.slug}`, url: entry.url, credentialFile: credentialFile(dir, config.slug), slug: config.slug, prompt: config.prompt, sessionStrategy: 'wake_self' as Strategy };
   };
 
+  const status = (entry: Live) => ({
+    ...(entry.lastEvent === undefined ? {} : { lastEvent: `${iso(entry.lastEvent.at)} ${entry.lastEvent.text}` }),
+    ...(entry.lastError === undefined ? {} : { lastError: `${iso(entry.lastError.at)} ${entry.lastError.text}` }),
+  });
+
+  const takeSupervisorHandoff = (): boolean | Promise<boolean> => {
+    if (!canHandoffToSupervisor()) return false;
+    if (isSupervisorLive(workspaceCwd)) return true;
+    const ensure =
+      options.ensureSupervisor ??
+      ((cwd: string) =>
+        defaultEnsureSupervisor(
+          cwd,
+          options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort },
+        ));
+    const started = ensure(workspaceCwd);
+    const afterEnsure = (): boolean | Promise<boolean> => {
+      if (isSupervisorLive(workspaceCwd)) return true;
+      const readyMs = options.supervisorReadyMs ?? 2_000;
+      if (readyMs <= 0) return false;
+      return waitForSupervisor(workspaceCwd, readyMs);
+    };
+    if (started === undefined) return afterEnsure();
+    return Promise.resolve(started).then(afterEnsure);
+  };
+
+  /**
+   * When falling back to in-process arming, hold supervisor.lock so a late supervisor
+   * sees alreadyRunning and exits. If the supervisor won the race, treat as supervisorOwns.
+   */
+  const claimInProcessOwnership = (): boolean => {
+    if (chatHoldsSupervisorLock) return true;
+    const lock = acquireSupervisorLock(workspaceCwd);
+    if (!lock.acquired) return false;
+    chatHoldsSupervisorLock = true;
+    return true;
+  };
+
+  const releaseInProcessOwnership = () => {
+    if (!chatHoldsSupervisorLock) return;
+    releaseSupervisorLock(workspaceCwd);
+    chatHoldsSupervisorLock = false;
+  };
+
   const create = async (ctx: ExtensionContext, tool: string, name: string, config: Config, hours: number | undefined) => {
     if (isOneShot(ctx.mode)) throw oneShotError(tool);
     if (name.trim() === '') throw new Error('name must not be empty.');
+    workspaceCwd = ctx.cwd || process.cwd();
     const existing = byName(name);
     if (existing !== undefined) {
       if (existing.sub.config.kind !== config.kind) throw new Error(`A ${existing.sub.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
       return { created: false, ...view(existing), ...status(existing) };
+    }
+    const durableSame = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
+    if (durableSame !== undefined) {
+      if (durableSame.config.kind !== config.kind) throw new Error(`A ${durableSame.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
+      const ghost: Live = { sub: durableSame, timers: new Set() };
+      if (durableSame.config.kind === 'webhook') ghost.url = expectedWebhookUrl(durableSame.config.slug);
+      return { created: false, ...view(ghost), ...status(ghost) };
     }
     if (config.kind === 'webhook') {
       const clash = [...live.values()].find((entry) => entry.sub.config.kind === 'webhook' && entry.sub.config.slug === config.slug);
       if (clash !== undefined) throw new Error(`Routine "${clash.sub.name}" already uses the slug ${config.slug}.`);
     }
     const now = Date.now();
-    const entry: Live = { sub: { id: `sub-${randomBytes(4).toString('hex')}`, name, createdAt: now, expiresAt: expiryOf(now, hours), config }, timers: new Set() };
+    const sub: Subscription = { id: `sub-${randomBytes(4).toString('hex')}`, name, createdAt: now, expiresAt: expiryOf(now, hours), config };
+    const ownerSessionFile = ctx.sessionManager.getSessionFile?.() ?? undefined;
+    const { created } = createDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
+    if (!created) {
+      const hit = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
+      if (hit !== undefined) {
+        if (hit.config.kind !== config.kind) throw new Error(`A ${hit.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
+        const ghost: Live = { sub: hit, timers: new Set() };
+        if (hit.config.kind === 'webhook') ghost.url = expectedWebhookUrl(hit.config.slug);
+        return { created: false, ...view(ghost), ...status(ghost) };
+      }
+      return { created: false, name, kind: config.kind };
+    }
+    const entry: Live = { sub, timers: new Set() };
     live.set(entry.sub.id, entry);
+    persist();
+
+    const handoff = takeSupervisorHandoff();
+    let supervisorOwns = typeof handoff === 'boolean' ? handoff : await handoff;
+    if (!supervisorOwns) {
+      if (!claimInProcessOwnership()) supervisorOwns = true;
+    }
+
     try {
-      await arm(entry);
+      if (supervisorOwns) {
+        if (config.kind === 'webhook') {
+          ensureCredentials(dir, config.slug);
+          entry.url = expectedWebhookUrl(config.slug);
+        }
+      } else {
+        await arm(entry);
+      }
     } catch (error) {
-      remove(entry, false);
+      remove(entry);
       throw error;
     }
-    persist();
-    return { created: true, ...view(entry), ...status(entry) };
+    return { created: true, ...view(entry), ...status(entry), ...(supervisorOwns ? {} : { durability: 'in-process; start pstack-routines-supervisor for chat-exit survival' }) };
   };
-
-  const status = (entry: Live) => ({
-    ...(entry.lastEvent === undefined ? {} : { lastEvent: `${iso(entry.lastEvent.at)} ${entry.lastEvent.text}` }),
-    ...(entry.lastError === undefined ? {} : { lastError: `${iso(entry.lastError.at)} ${entry.lastError.text}` }),
-  });
 
   const listText = () => {
     if (live.size === 0) return 'No subscriptions.';
@@ -416,18 +538,37 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     const baselines = new Map<string, Map<number, PrSnapshot>>();
     for (const [id, entry] of live) if (entry.baseline !== undefined) baselines.set(id, new Map(entry.baseline));
     stopAll();
+    releaseInProcessOwnership();
     active = true;
     if (isOneShot(ctx.mode)) return;
+    workspaceCwd = ctx.cwd || process.cwd();
     const stored = subscriptionsFromBranch(ctx.sessionManager.getBranch());
     const now = Date.now();
+    const expiredIds: string[] = [];
     for (const sub of stored) {
-      if (sub.expiresAt <= now) continue;
+      if (sub.expiresAt <= now) {
+        expiredIds.push(sub.id);
+        continue;
+      }
       const baseline = baselines.get(sub.id);
       live.set(sub.id, { sub, timers: new Set(), ...(baseline === undefined ? {} : { baseline }) });
     }
     if (live.size !== stored.length) persist();
+    for (const id of expiredIds) mirrorRemove(id);
+    for (const entry of live.values()) mirrorUpsert(entry.sub, ctx.sessionManager.getSessionFile?.() ?? undefined);
+    let supervisorOwns = canHandoffToSupervisor() && isSupervisorLive(workspaceCwd);
+    if (!supervisorOwns && live.size > 0) {
+      if (!claimInProcessOwnership()) supervisorOwns = true;
+    }
     for (const entry of live.values()) {
+      if (supervisorOwns) {
+        if (entry.sub.config.kind === 'webhook') entry.url = expectedWebhookUrl(entry.sub.config.slug);
+        continue;
+      }
       arm(entry).catch(() => undefined);
+    }
+    if (!supervisorOwns && live.size > 0) {
+      ctx.ui?.notify?.('Subscriptions are armed in this process. Start pstack-routines-supervisor so timers and routines keep firing after this chat exits.', 'info');
     }
   };
 
@@ -447,6 +588,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     shutdown: () => {
       active = false;
       stopAll();
+      releaseInProcessOwnership();
     },
   };
 }

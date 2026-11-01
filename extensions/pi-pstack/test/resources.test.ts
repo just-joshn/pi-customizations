@@ -207,6 +207,28 @@ describe('shipped resources', () => {
     expect(shippedFiles(() => true)).toContain('README.md');
   });
 
+  test('create-skill covers builtin interview depth in Pi terms (gap-list item 3)', () => {
+    const text = readFileSync(join(root, 'skills/create-skill/SKILL.md'), 'utf8');
+    expect(text.startsWith('---\nname: create-skill\n')).toBe(true);
+    for (const heading of [
+      '## Before you begin: gather requirements',
+      '### Verbatim text from the user',
+      '## Writing effective descriptions',
+      '### Tune the description (trigger loop)',
+      '## Core authoring principles',
+      '## Common patterns',
+      '## Anti-patterns to avoid',
+      '### Phase 4: Draft, test, iterate',
+      '## Summary checklist',
+    ]) {
+      expect(text, heading).toContain(heading);
+    }
+    expect(text).toContain('~/.pi/agent/skills/');
+    expect(text).toContain('.pi/skills/');
+    expect(hostTermLines('skills/create-skill/SKILL.md', text)).toEqual([]);
+    expect(Buffer.byteLength(text)).toBeGreaterThan(12_000);
+  });
+
   test('ships every team-kit soft-dep skill and agent as a literal inventory (RES-013)', () => {
     const missing = TEAM_KIT.filter((name) => !existsSync(join(root, 'skills', name, 'SKILL.md')));
     expect(missing).toEqual([]);

@@ -55,3 +55,21 @@ describe('subscriptions line (C-H2)', () => {
     expect(hostSection(facts(ALL_TOOLS))).toContain('Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`)');
   });
 });
+
+describe('image generation substitute (gap-list item 2)', () => {
+  test('host section names the codemode and image-model gate and the Mermaid or table substitute', () => {
+    const host = hostSection(facts(ALL_TOOLS));
+    expect(host).toContain(
+      "- Image generation: codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+    );
+  });
+});
+
+describe('media in a reply', () => {
+  test('teaches system-player open for watchable video while staying honest about no inline playback', () => {
+    const host = hostSection(facts(ALL_TOOLS));
+    expect(host).toContain(
+      "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
+    );
+  });
+});

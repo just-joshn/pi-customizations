@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.pstack.routines-supervisor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/absolute/path/to/node_modules/@justjoshn/pi-pstack/bin/pstack-routines-supervisor</string>
+    <string>--workspace</string>
+    <string>/absolute/path/to/your/repo</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/absolute/path/to/your/repo</string>
+  <key>KeepAlive</key>
+  <true/>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/pstack-routines-supervisor.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/pstack-routines-supervisor.err</string>
+</dict>
+</plist>

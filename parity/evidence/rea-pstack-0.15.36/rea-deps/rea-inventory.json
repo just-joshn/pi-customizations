@@ -1,0 +1,1122 @@
+{
+  "generated_at": "2026-11-01T00:04:14.218644+00:00",
+  "scope": {
+    "tip_clone": "/tmp/cursor-plugins-rea",
+    "installed_cache": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a",
+    "plugin_versions": {
+      "pstack": "0.15.36",
+      "cursor-team-kit": "1.2.0"
+    },
+    "owned_path": "/Users/josh-desktop/src/personal/feat-cursor-cli-parity/parity/evidence/rea-pstack-0.15.36/rea-deps"
+  },
+  "targets": [
+    {
+      "id": "cursor-team-kit",
+      "path": "/tmp/cursor-plugins-rea/cursor-team-kit",
+      "file_count": 29,
+      "md_count": 21,
+      "js_ts_count": 1,
+      "characterization": "Primarily skill/agent/rule Markdown. One executable JS surface: skills/pr-review-canvas/renderer.js (+ template.html/styles.css companion assets).",
+      "rea": {
+        "analyze_javascript_application": {
+          "input_path": "/tmp/cursor-plugins-rea/cursor-team-kit/skills/pr-review-canvas",
+          "parent_evidence_id": "ev_9245e935737d48bc5e9d89b9f670502f63c2372b37ecdf48fc2798e2129baf25",
+          "summary_evidence_id": "ev_71569d2f24a30a048849a35ddeb427f4cdfbe5b150a67ef14d91db40a9f3370c",
+          "artifact_sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a",
+          "parse_stats": {
+            "relevant_files": 2,
+            "parsed_javascript_files": 1,
+            "parse_failures": 0,
+            "visited_ast_nodes": 1420,
+            "findings": 1,
+            "text_bytes_read": 7275,
+            "child_process_relations": 0
+          },
+          "limitations_notable": [
+            "template.html inline JavaScript body starting at line 10 was not analyzed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pstack/poteto-mode/scripts",
+      "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts",
+      "file_count": 18,
+      "js_ts_count": 13,
+      "cache_vs_tip": "byte-identical (18/18)",
+      "rea": {
+        "analyze_javascript_application": {
+          "parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+          "summary_evidence_id": "ev_31a7a84cc2c6e08446dbe116810fa9395d7eaefa6fba207b348070655da705e2",
+          "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+          "cache_prior_evidence_id": "ev_e7997bf5f5d5720f0d9b60e160d787ed3367ca4c508569742334efc29baa46ad",
+          "parse_stats": {
+            "relevant_files": 15,
+            "parsed_javascript_files": 13,
+            "skipped_javascript_files": 0,
+            "parse_failures": 0,
+            "visited_ast_nodes": 20230,
+            "findings": 272,
+            "text_bytes_read": 134972,
+            "child_process_relations": 3,
+            "configuration_relations": 4,
+            "semantic_unknowns": 3303
+          }
+        }
+      },
+      "entrypoints": [
+        {
+          "path": "watch-pr/watch-pr",
+          "shebang": "#!/usr/bin/env bun",
+          "role": "CLI launcher; calls bootstrap then cli"
+        },
+        {
+          "path": "check-plan.mjs",
+          "shebang": "#!/usr/bin/env node",
+          "role": "plan markdown checker"
+        },
+        {
+          "path": "worktree-audit.sh",
+          "shebang": "#!/usr/bin/env bash",
+          "role": "bash audit helper (not JS)"
+        },
+        {
+          "path": "bootstrap.ts",
+          "role": "ensures commander via bun install --frozen-lockfile; Bun.spawnSync"
+        },
+        {
+          "path": "watch-pr/cli.ts",
+          "role": "commander-based watch-pr CLI"
+        }
+      ],
+      "child_process_and_config": [
+        "bootstrap.ts uses Bun.spawnSync([bun, install, --frozen-lockfile]) then re-execs self",
+        "watch-pr/github.ts spawns external CLI (gh) via node:child_process.spawn for PR/check/comment reads",
+        "check-plan.test.ts / github.test.ts spawn node/bun for tests",
+        "Runtime npm dep: commander@14.0.0 (locked). Dev: bun-types@1.3.14, typescript@7.0.2"
+      ]
+    },
+    {
+      "id": "pstack/statechart/scripts",
+      "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts",
+      "file_count": 405,
+      "js_ts_count": 48,
+      "cache_vs_tip": "byte-identical (405/405)",
+      "suffix_histogram": {
+        ".ts": 39,
+        ".mjs": 9,
+        ".tla": 39,
+        ".out": 134,
+        ".cfg": 34,
+        ".mmd": 36,
+        ".md": 33,
+        ".dot": 33,
+        ".exit": 44,
+        ".java": 1,
+        ".json": 2
+      },
+      "rea": {
+        "production_pass": {
+          "parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+          "summary_evidence_id": "ev_67bb1b71252e68b82262dae4b6084f006c8a1ad70d35129899a2b67d60462125",
+          "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+          "parsed_javascript_files": 26,
+          "parse_failures": 0,
+          "visited_ast_nodes": 26853,
+          "findings": 489,
+          "child_process_relations": 17,
+          "cache_prior_evidence_id": "ev_a2a56d841317ca3a28aedb8733992b202274f89eb589a569df3771fb299abae7"
+        },
+        "tests_pass": {
+          "parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+          "summary_evidence_id": "ev_4e572a96cf1df05c2220beffc59ce58b01e2d41112ad40fd932dd918114ade71",
+          "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+          "parsed_javascript_files": 22,
+          "parse_failures": 0,
+          "visited_ast_nodes": 30293,
+          "findings": 312,
+          "child_process_relations": 9
+        }
+      },
+      "entrypoints": [
+        {
+          "path": "statechart",
+          "shebang": "#!/bin/sh",
+          "role": "shell wrapper"
+        },
+        {
+          "path": "statechart.ts",
+          "shebang": "#!/usr/bin/env node",
+          "role": "CLI; parseArgs; spawns worker.ts"
+        },
+        {
+          "path": "worker.ts",
+          "role": "compile/check pipeline worker"
+        },
+        {
+          "path": "run.ts",
+          "role": "TLC/Java orchestration via execFile/spawn; mise java@temurin-25"
+        }
+      ],
+      "child_process_and_config": [
+        "run.ts resolves TLC via mise (tlc tool) or TLA2TOOLS/JAVA env; JAVA_TOOL=java@temurin-25",
+        "run.ts execFile/spawn java -jar tla2tools for tlc2.TLC; kill process groups via /bin/sh",
+        "statechart.ts spawns worker and janitor child processes",
+        "npm: fast-check@4.5.3 as devDependency only (no lockfile in tree)"
+      ]
+    }
+  ],
+  "cache_vs_tip": {
+    "poteto-mode/scripts": "identical",
+    "statechart/scripts": "identical",
+    "pstack_plugin_root": {
+      "tip_files": 573,
+      "cache_files": 574,
+      "only_cache": [
+        ".cache-complete"
+      ],
+      "note": "Installed cache has marker file .cache-complete; all shared content hashes match tip."
+    },
+    "detail_file": "hash-compare-cache-vs-tip.json"
+  },
+  "js_ts_coverage": {
+    "total_js_ts_under_tip_pstack_and_team_kit": 62,
+    "analyzed": 62,
+    "not_applicable_non_js_team_kit_files": 28,
+    "files": [
+      {
+        "rel": "skills/poteto-mode/scripts/bootstrap.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/bootstrap.ts",
+        "sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+        "bytes": 1737,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "bootstrap.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/check-plan.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/check-plan.mjs",
+        "sha256": "e3d4e9ca638c6fb4a2b52c434c17c7af30da4fdd44605ccfe9906f82fe37b555",
+        "bytes": 8179,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "check-plan.mjs"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/check-plan.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/check-plan.test.ts",
+        "sha256": "848d321f2b76299d1b2d7bb46c929dbaebef08ca4ba8669dbe09d1d5c86f96e2",
+        "bytes": 3876,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "check-plan.test.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "sha256": "a35592b4c6da96caf8d47987e9cd503fab6c7774ab87d11a43f24b4b5df2a9d1",
+        "bytes": 6161,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/cli.test.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "bytes": 6983,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/cli.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "sha256": "cf0c5ee61b4a73444c1b775cfb6c81a40d312e055dd21a1f5eae6276e54de13f",
+        "bytes": 3357,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/fakes.test-helper.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "sha256": "9d9f644388f3516364d47f5eb96c1f977dd6f560bd6005b660d90d3b367cf4b9",
+        "bytes": 16206,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/github.test.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/github.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/github.ts",
+        "sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "bytes": 25642,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/github.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "sha256": "7ee38c20ed605f4a255f1f78e5a4be56b3563fcd8d3d65cfeea58d44c3f58d53",
+        "bytes": 14759,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/policy.test.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "sha256": "2d4823aeea788acab258ec60eb52e7b9e3a23a6649850af128d6ada5c33d7778",
+        "bytes": 25407,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/policy.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/render.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/render.ts",
+        "sha256": "2b709e86628d5b8fdb61f860e60ababc342b0626c67576305442cf548283a604",
+        "bytes": 7083,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/render.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "sha256": "621af4c9a664fbf699a9737efccdc248abb416df8819c9dc5f824beae2b9b1d6",
+        "bytes": 2258,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/types.compile.ts"
+      },
+      {
+        "rel": "skills/poteto-mode/scripts/watch-pr/types.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts/watch-pr/types.ts",
+        "sha256": "daa66c56220bae084c18cc6d3b0a2c66c0e72206d298e40973b44ee085ce16d2",
+        "bytes": 12688,
+        "tree": "pstack",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+        "artifact_sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+        "pass": "poteto-mode/scripts full tree",
+        "local_rel": "watch-pr/types.ts"
+      },
+      {
+        "rel": "skills/statechart/scripts/backends/cfg.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/backends/cfg.ts",
+        "sha256": "aea4d8766d214e7fa08f4881f1037319655e75eb56652e1b6d5d4f13a162e3e1",
+        "bytes": 1230,
+        "tree": "pstack",
+        "local_rel": "backends/cfg.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/backends/mermaid.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/backends/mermaid.ts",
+        "sha256": "75704b2704a9399a39479ff704a580d5b9a1d0fede01fe771df28bf799b434b6",
+        "bytes": 7437,
+        "tree": "pstack",
+        "local_rel": "backends/mermaid.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/backends/plain-text.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/backends/plain-text.ts",
+        "sha256": "e2bedb855eb3806ec3fe7a7bfa49baa309fb4cf0da425b5fe1e0686268ce255a",
+        "bytes": 2343,
+        "tree": "pstack",
+        "local_rel": "backends/plain-text.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/backends/report.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/backends/report.ts",
+        "sha256": "730b4048578ab0468e1581f16fec60b246e321161effb68e481efb373f0f2501",
+        "bytes": 7060,
+        "tree": "pstack",
+        "local_rel": "backends/report.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/config.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/config.ts",
+        "sha256": "5eeab1e755f20a2c83b408c6503fdc9c6b10c971d8dedad3f912bd15f9763daf",
+        "bytes": 10698,
+        "tree": "pstack",
+        "local_rel": "frontends/config.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/dot.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/dot.ts",
+        "sha256": "4eef9ec848557dcd01ca8dbbec75b71c0653c1b73583108bafbb6f559f6d677b",
+        "bytes": 2484,
+        "tree": "pstack",
+        "local_rel": "frontends/dot.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/marks.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/marks.ts",
+        "sha256": "eb0120e61a4004a435c7b7c46916da9dc8b2fa8696ed0d3eb64dc953fed3ab11",
+        "bytes": 3257,
+        "tree": "pstack",
+        "local_rel": "frontends/marks.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/messages.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/messages.ts",
+        "sha256": "36bfc6fb3ffa86897661efb2aa67bd95b55a4da9a3e952831f6e0668826b4b92",
+        "bytes": 1842,
+        "tree": "pstack",
+        "local_rel": "frontends/messages.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/spec.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/spec.ts",
+        "sha256": "450cdfc8d0577a96818ca3697efebbbf70b530a4ba7e3eee03cf1ba8d3f1a0fd",
+        "bytes": 4198,
+        "tree": "pstack",
+        "local_rel": "frontends/spec.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/trace.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/trace.ts",
+        "sha256": "7d083cf89b81c41556fc3fd5f07019886e0f6783c632475e7181ac4b81887367",
+        "bytes": 988,
+        "tree": "pstack",
+        "local_rel": "frontends/trace.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/value.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/value.ts",
+        "sha256": "7c54be394b7a10f60591858a0f08fb1e8dc0941df1f38ede07fbe7719ff56da0",
+        "bytes": 4757,
+        "tree": "pstack",
+        "local_rel": "frontends/value.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/verdict.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/verdict.ts",
+        "sha256": "0d0a9d6b6d6da5a7c48851b86d9d041f22982404dda6288795a1715138d7008b",
+        "bytes": 1756,
+        "tree": "pstack",
+        "local_rel": "frontends/verdict.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/frontends/view.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/frontends/view.ts",
+        "sha256": "2c0af8939321c5aaed4b6ecac8ce6a98d0e6774d8bd15d4b02fe4f406b8c9620",
+        "bytes": 4354,
+        "tree": "pstack",
+        "local_rel": "frontends/view.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/ir.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/ir.ts",
+        "sha256": "5602beca4e4ac08421cfa07e4da989f0e75439f1d136cc923226909e771dc7ff",
+        "bytes": 15141,
+        "tree": "pstack",
+        "local_rel": "ir.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/annotate.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/annotate.ts",
+        "sha256": "dc8eeee09c3a9a0c060f32fb1d554e01bd80e5265751cdeb041ef3e19561b92a",
+        "bytes": 3738,
+        "tree": "pstack",
+        "local_rel": "passes/annotate.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/label.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/label.ts",
+        "sha256": "b5ef402369c5e7846be1fd39165e95cbfe715fc36eb9331a0401b26523c539c9",
+        "bytes": 8555,
+        "tree": "pstack",
+        "local_rel": "passes/label.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/lift.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/lift.ts",
+        "sha256": "8977dddc6c93bb2e3914d5b50760eb66876107ba51e2b8cf9e18611b4c40c89c",
+        "bytes": 2888,
+        "tree": "pstack",
+        "local_rel": "passes/lift.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/loop-check.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/loop-check.ts",
+        "sha256": "07d459385849aa35834040bf34e279c39baba68244ec9da17c57703a6ee8e2d4",
+        "bytes": 2149,
+        "tree": "pstack",
+        "local_rel": "passes/loop-check.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/paths.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/paths.ts",
+        "sha256": "9af1066b007ef86cb05c5e278eef09f090f1e46eb91d356e5146edbd4fee4ec7",
+        "bytes": 1900,
+        "tree": "pstack",
+        "local_rel": "passes/paths.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/reach.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/reach.ts",
+        "sha256": "b52b38f926814937b733221b40bd31075a69a2fb91ecbce2164752a8684bc5d6",
+        "bytes": 4063,
+        "tree": "pstack",
+        "local_rel": "passes/reach.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/region-check.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/region-check.ts",
+        "sha256": "8a6e0618740a14bb7048f6563b4324958177f4685d4d6d90364cc6245b1498b4",
+        "bytes": 3525,
+        "tree": "pstack",
+        "local_rel": "passes/region-check.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/passes/regions.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/passes/regions.ts",
+        "sha256": "d740ebfdbb5ec7b4984412a635a596b43af7a77b8bcb49a1463c8afa75299f72",
+        "bytes": 9475,
+        "tree": "pstack",
+        "local_rel": "passes/regions.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/pipeline.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/pipeline.ts",
+        "sha256": "8aa8d9295ab6762f7f2ffae91a0aee98b1a1314747c875edba4598fdab8ed543",
+        "bytes": 2931,
+        "tree": "pstack",
+        "local_rel": "pipeline.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/run.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/run.ts",
+        "sha256": "f330e0a3b0a9f8181c2e52252c4a47db3f0a64f79a7cca5490263e33a5f13c72",
+        "bytes": 17319,
+        "tree": "pstack",
+        "local_rel": "run.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/statechart.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/statechart.ts",
+        "sha256": "1c653f05d0cd0f3298455701f36e3d7d1f837f93e6e642f7c20afb5d613c2d12",
+        "bytes": 6044,
+        "tree": "pstack",
+        "local_rel": "statechart.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/chart.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/chart.test.ts",
+        "sha256": "3f9022fcc981d17f58b5e7a9302e766241f81a477bda70c3e621d7a1d95f19c1",
+        "bytes": 39702,
+        "tree": "pstack",
+        "local_rel": "test/chart.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/cli.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/cli.test.ts",
+        "sha256": "8a3b028dafe2065029a66242f7a3832d18058e772a0dfc1b2c170511ffee8e07",
+        "bytes": 50337,
+        "tree": "pstack",
+        "local_rel": "test/cli.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/config-fuzz.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/config-fuzz.test.ts",
+        "sha256": "a258744d47529418d32de0fd47aa2d013298581b73064f7ba4d628e4d5471321",
+        "bytes": 8719,
+        "tree": "pstack",
+        "local_rel": "test/config-fuzz.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/CounterView/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/CounterView/view.mjs",
+        "sha256": "5f6114fd8ca165604456048f2d7e2c29f667eb4537076647aaf3bb856f1c826e",
+        "bytes": 67,
+        "tree": "pstack",
+        "local_rel": "test/corpus/CounterView/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/Login/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/Login/view.mjs",
+        "sha256": "f59cef65025cb9aacade3fa5027c5cba15a44cabbfe64084f6dedcb173cf93e7",
+        "bytes": 47,
+        "tree": "pstack",
+        "local_rel": "test/corpus/Login/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/LoginGuarded/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/LoginGuarded/view.mjs",
+        "sha256": "9a45c5718c3eb1171b0a2271e79612e6af833038f13ab8e16b37f15947d53cca",
+        "bytes": 75,
+        "tree": "pstack",
+        "local_rel": "test/corpus/LoginGuarded/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/LoginParallel/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/LoginParallel/view.mjs",
+        "sha256": "9a45c5718c3eb1171b0a2271e79612e6af833038f13ab8e16b37f15947d53cca",
+        "bytes": 75,
+        "tree": "pstack",
+        "local_rel": "test/corpus/LoginParallel/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/MediaPlayer/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/MediaPlayer/view.mjs",
+        "sha256": "019383f6b4f753b5721485f3cff9b3762e046f4cea134f26a709e9ce4c43dde9",
+        "bytes": 195,
+        "tree": "pstack",
+        "local_rel": "test/corpus/MediaPlayer/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/MediaPlayerFixed/view.mjs",
+        "sha256": "019383f6b4f753b5721485f3cff9b3762e046f4cea134f26a709e9ce4c43dde9",
+        "bytes": 195,
+        "tree": "pstack",
+        "local_rel": "test/corpus/MediaPlayerFixed/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/MediaPlayerProps/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/MediaPlayerProps/view.mjs",
+        "sha256": "019383f6b4f753b5721485f3cff9b3762e046f4cea134f26a709e9ce4c43dde9",
+        "bytes": 195,
+        "tree": "pstack",
+        "local_rel": "test/corpus/MediaPlayerProps/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/TwoPhase/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/TwoPhase/view.mjs",
+        "sha256": "25bc78b0ee8c7ab24ed1f0dbe78ed60adce0f086579c03bf8c97d02c448c7f26",
+        "bytes": 90,
+        "tree": "pstack",
+        "local_rel": "test/corpus/TwoPhase/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/view.mjs",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus/TwoPhaseFixed/view.mjs",
+        "sha256": "25bc78b0ee8c7ab24ed1f0dbe78ed60adce0f086579c03bf8c97d02c448c7f26",
+        "bytes": 90,
+        "tree": "pstack",
+        "local_rel": "test/corpus/TwoPhaseFixed/view.mjs",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/corpus.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/corpus.test.ts",
+        "sha256": "5686aa487dfec3e0a06b3c15390dbc3ab5953ced532c5eee7d5c5e2f54f492c7",
+        "bytes": 12763,
+        "tree": "pstack",
+        "local_rel": "test/corpus.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/differential.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/differential.test.ts",
+        "sha256": "d4d64a7d17b4630616e797f1b184848c2a8b7712777d9982cafee81dc6046a9f",
+        "bytes": 18644,
+        "tree": "pstack",
+        "local_rel": "test/differential.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/java.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/java.ts",
+        "sha256": "4fef906fe1dcfdb98dafbd3ecdae1e82589908529ffc11b6bbdcfb8aef505932",
+        "bytes": 2639,
+        "tree": "pstack",
+        "local_rel": "test/java.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/labels.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/labels.ts",
+        "sha256": "5a884161428fc00229d9a0e896001df4b262b56a441b6b3d66d1b59b06050650",
+        "bytes": 19769,
+        "tree": "pstack",
+        "local_rel": "test/labels.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/messages.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/messages.test.ts",
+        "sha256": "e7ca0ea446907074452df5388719598bb297d7f8ee50145b8b8f2a41c0c4c92f",
+        "bytes": 7763,
+        "tree": "pstack",
+        "local_rel": "test/messages.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/pipeline.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/pipeline.test.ts",
+        "sha256": "0f091c3e6e104fd545e113ad437df8d4856618a775073a37d41050ebf663e479",
+        "bytes": 9720,
+        "tree": "pstack",
+        "local_rel": "test/pipeline.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/plain-tlc.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/plain-tlc.test.ts",
+        "sha256": "f6b042300e66840809e26ba8fef0c7e2bc8bb6b59f3b910ea65dea176e97bf1c",
+        "bytes": 7180,
+        "tree": "pstack",
+        "local_rel": "test/plain-tlc.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/render.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/render.test.ts",
+        "sha256": "9cb369e5f4c464ca540ccc3de4fdd76670b84e54f06955ccb46908826579ac23",
+        "bytes": 3257,
+        "tree": "pstack",
+        "local_rel": "test/render.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/tlc-out.test.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/tlc-out.test.ts",
+        "sha256": "8a87d6cf32e7225aa0c8031e61b8a2912d8fbb3847a7ec2cd76e26c14e931478",
+        "bytes": 3630,
+        "tree": "pstack",
+        "local_rel": "test/tlc-out.test.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/test/tlc.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/test/tlc.ts",
+        "sha256": "73f5cf9dca5ca55aa65d5b342405e31f6eff858ed2bc2124c3e3fbb328259cca",
+        "bytes": 5743,
+        "tree": "pstack",
+        "local_rel": "test/tlc.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart tests+corpus selective"
+      },
+      {
+        "rel": "skills/statechart/scripts/worker.ts",
+        "path": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts/worker.ts",
+        "sha256": "1f18ed5ef806982e05e8a40fc217e88257700b28b63cb4acbd647872f85f782b",
+        "bytes": 1095,
+        "tree": "pstack",
+        "local_rel": "worker.ts",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+        "artifact_sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+        "pass": "statechart production selective"
+      },
+      {
+        "rel": "skills/pr-review-canvas/renderer.js",
+        "path": "/tmp/cursor-plugins-rea/cursor-team-kit/skills/pr-review-canvas/renderer.js",
+        "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+        "bytes": 6762,
+        "tree": "cursor-team-kit",
+        "local_rel": "skills/pr-review-canvas/renderer.js",
+        "status": "analyzed",
+        "rea_parent_evidence_id": "ev_9245e935737d48bc5e9d89b9f670502f63c2372b37ecdf48fc2798e2129baf25",
+        "artifact_sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a",
+        "pass": "pr-review-canvas directory",
+        "notes": "Only JS under cursor-team-kit. template.html inline script not analyzed by REA (explicit limitation)."
+      }
+    ],
+    "team_kit_non_js": [
+      {
+        "rel": ".cursor-plugin/plugin.json",
+        "bytes": 899,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "LICENSE",
+        "bytes": 1063,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "README.md",
+        "bytes": 2526,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "agents/ci-watcher.md",
+        "bytes": 984,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "agents/thermo-nuclear-code-quality-review.md",
+        "bytes": 1874,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "assets/avatar.png",
+        "bytes": 59641,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "rules/no-inline-imports.mdc",
+        "bytes": 314,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "rules/typescript-exhaustive-switch.mdc",
+        "bytes": 297,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/check-compiler-errors/SKILL.md",
+        "bytes": 535,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/control-cli/SKILL.md",
+        "bytes": 4333,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/control-ui/SKILL.md",
+        "bytes": 4802,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/deslop/SKILL.md",
+        "bytes": 719,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/fix-ci/SKILL.md",
+        "bytes": 901,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/fix-merge-conflicts/SKILL.md",
+        "bytes": 988,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/get-pr-comments/SKILL.md",
+        "bytes": 529,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/loop-on-ci/SKILL.md",
+        "bytes": 1611,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/make-pr-easy-to-review/SKILL.md",
+        "bytes": 2275,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/new-branch-and-pr/SKILL.md",
+        "bytes": 665,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/pr-review-canvas/SKILL.md",
+        "bytes": 9088,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/pr-review-canvas/styles.css",
+        "bytes": 5788,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/pr-review-canvas/template.html",
+        "bytes": 513,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/review-and-ship/SKILL.md",
+        "bytes": 1398,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/run-smoke-tests/SKILL.md",
+        "bytes": 967,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/thermo-nuclear-code-quality-review/SKILL.md",
+        "bytes": 12437,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/verify-this/SKILL.md",
+        "bytes": 2805,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/weekly-review/SKILL.md",
+        "bytes": 902,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/what-did-i-get-done/SKILL.md",
+        "bytes": 1012,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      },
+      {
+        "rel": "skills/workflow-from-chats/SKILL.md",
+        "bytes": 2685,
+        "status": "not-applicable",
+        "reason": "Markdown/skill/agent/rule/asset/HTML/CSS/plugin manifest; no executable JS/TS application graph. Inventory only."
+      }
+    ]
+  },
+  "rea_evidence_ids": {
+    "poteto_analyze": "ev_bb6921081714f8586c50c52171136fc109653f2ad139b1bb7853e6e806392169",
+    "poteto_summary": "ev_31a7a84cc2c6e08446dbe116810fa9395d7eaefa6fba207b348070655da705e2",
+    "poteto_cache_analyze": "ev_e7997bf5f5d5720f0d9b60e160d787ed3367ca4c508569742334efc29baa46ad",
+    "statechart_prod_analyze": "ev_afb3204398463f9aa8e37fbb08a83a8433bf72075db54d96932673abf15b5895",
+    "statechart_prod_summary": "ev_67bb1b71252e68b82262dae4b6084f006c8a1ad70d35129899a2b67d60462125",
+    "statechart_tests_analyze": "ev_9760595a778499e21f3989e883713d1cdf4d8015258177ad6b180938f454d422",
+    "statechart_tests_summary": "ev_4e572a96cf1df05c2220beffc59ce58b01e2d41112ad40fd932dd918114ade71",
+    "statechart_cache_analyze": "ev_a2a56d841317ca3a28aedb8733992b202274f89eb589a569df3771fb299abae7",
+    "teamkit_canvas_analyze": "ev_9245e935737d48bc5e9d89b9f670502f63c2372b37ecdf48fc2798e2129baf25",
+    "teamkit_canvas_summary": "ev_71569d2f24a30a048849a35ddeb427f4cdfbe5b150a67ef14d91db40a9f3370c"
+  },
+  "digests": {
+    "poteto_scripts_dir": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07",
+    "statechart_scripts_dir": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33",
+    "pr_review_canvas_dir": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+  },
+  "export_note": "Did not write the 85MB evidence-bundle.json into this owned path. Digests and evidence_ids above are sufficient for inspect_analysis_view against the live REA session; parent path already has evidence-bundle.json if a full dump is needed."
+}

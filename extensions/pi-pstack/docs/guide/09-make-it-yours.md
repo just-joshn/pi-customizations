@@ -93,7 +93,7 @@ Read every output yourself before accepting the verdict. If you disagree with th
 
 ## Build a bot UI with `/make-bot-ui`
 
-One situational skill is for driving a Pi session from a page. [`/make-bot-ui`](../../skills/make-bot-ui/SKILL.md) builds a small page whose buttons wake this Pi session through a pi-pstack webhook routine (`subscribe_webhook`). For example, you could swipe through a review queue and have each swipe ask the session to act on that item. The session that owns the routine is the bot, so keep it running. A server on your machine holds the webhook's sender key, so the key never reaches the browser or the chat. The skill also covers exposing the page on Tailscale.
+One situational skill is for driving agent work from a page. [`/make-bot-ui`](../../skills/make-bot-ui/SKILL.md) builds a small page whose buttons POST to a pi-pstack webhook routine (`subscribe_webhook`). For example, you could swipe through a review queue and have each swipe ask an agent to act on that item. Creating the subscription auto-starts `pstack-routines-supervisor`, so fires keep working after the setup chat exits. For reboot survival, run `packaging/install-supervisor-unit.sh --workspace <repo>`. A server on your machine holds the webhook's sender key, so the key never reaches the browser or the chat. The skill also covers exposing the page on Tailscale.
 
 **Pitfall:** don't edit a skill mid-task because it's misbehaving. Fix it in its own PR and keep the task moving. A skill edit that ships tangled into feature work is invisible to review and impossible to evaluate.
 

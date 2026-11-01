@@ -1,0 +1,30 @@
+{
+  "path": "B-library-with-keepalive",
+  "verdict": "VERIFIED",
+  "note": "createSupervisor in-process with a ref setInterval keep-alive. Proves reconcile/fire/claim/once-remove and webhook idempotency when the process does not exit.",
+  "afterTimer": {
+    "started": {
+      "started": true
+    },
+    "markerExists": true,
+    "delivery": {
+      "subscriptionId": "sub-34b7cb53",
+      "lastClaimKey": "sub-34b7cb53:once",
+      "lastClaimAt": 1793494075964
+    },
+    "subscriptionsLeft": 0,
+    "fires": 1
+  },
+  "afterHook": {
+    "firstStatus": 200,
+    "secondStatus": 200,
+    "spawnDelta": 1,
+    "webhookMarker": true,
+    "hookClaim": "sub-7c67d1ee:sha256:5b871adb197c8d0d5961b9c660416758a58ebd630603814a81a386fc0f4535e3",
+    "expectedClaim": "sub-7c67d1ee:sha256:5b871adb197c8d0d5961b9c660416758a58ebd630603814a81a386fc0f4535e3"
+  },
+  "timerId": "sub-34b7cb53",
+  "hookId": "sub-7c67d1ee",
+  "routinesDirUsed": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/chat-exit-lib-9eK5P1/agent/routines",
+  "pathsNote": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/chat-exit-lib-9eK5P1/agent/pstack/routines"
+}

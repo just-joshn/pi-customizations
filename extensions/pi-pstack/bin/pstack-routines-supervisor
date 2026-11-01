@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Starts the durable routines supervisor for one workspace.
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+entry="$here/../src/subscriptions/supervisor-main.ts"
+if command -v bun >/dev/null 2>&1; then
+  exec bun "$entry" "$@"
+fi
+exec node --experimental-strip-types "$entry" "$@"

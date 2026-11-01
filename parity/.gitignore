@@ -21,3 +21,7 @@ research/**/npm/
 # Nested checkouts / fixture gitdirs (not part of this repo)
 research/source-lock-refresh-*/cursor-plugins/
 evidence/**/.git/
+
+# REA MCP evidence bundles (regenerable; tens–hundreds of MB)
+# Patterns are relative to parity/, so do not prefix with parity/.
+evidence/**/evidence-bundle*.json

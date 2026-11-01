@@ -1,0 +1,12 @@
+{
+  "supersedes": "npm-closure.json packages[pr-review-canvas].pi_pstack.vendors_matching_scripts",
+  "claimed": false,
+  "measured": true,
+  "evidence": {
+    "pi_path": "extensions/pi-pstack/skills/pr-review-canvas/renderer.js",
+    "tip_path": "/tmp/cursor-plugins-rea/cursor-team-kit/skills/pr-review-canvas/renderer.js",
+    "sha256": "d78d36a46b0aeae755e2edd9b712970fd181183bb1c320d10caa8d9f776695c6",
+    "also_present": ["SKILL.md", "styles.css", "template.html"]
+  },
+  "result": "no product change required; inventory note was wrong"
+}

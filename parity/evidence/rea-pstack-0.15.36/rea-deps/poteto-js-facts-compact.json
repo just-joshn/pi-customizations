@@ -1,0 +1,387 @@
+{
+  "count": 32,
+  "items": [
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"ChecksUnavailable\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"ChecksUnavailable\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "c9db6bb9362c6e319e395b358b113ebc72ab06b6c5e3a095093f6ebfdafe1c57",
+        "namespace": "package-json",
+        "key": "package.json"
+      },
+      "keys": [
+        "name"
+      ],
+      "analysis_status": null,
+      "snippet": {
+        "name": "@cursor-skill/poteto-mode-tools"
+      }
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "e3d4e9ca638c6fb4a2b52c434c17c7af30da4fdd44605ccfe9906f82fe37b555",
+        "namespace": "unresolved-semantic-module",
+        "key": "external:node:process"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "e3d4e9ca638c6fb4a2b52c434c17c7af30da4fdd44605ccfe9906f82fe37b555",
+        "namespace": "source-module",
+        "key": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07:check-plan.mjs"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "content-digest",
+        "stability": "global-exact",
+        "sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+        "namespace": "unresolved-semantic-module",
+        "key": "external:node:path"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "source-module",
+        "key": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07:watch-pr/cli.ts"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"PR_CHECK_ROLLUP_QUERY\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "content-digest",
+        "stability": "global-exact",
+        "sha256": "e3d4e9ca638c6fb4a2b52c434c17c7af30da4fdd44605ccfe9906f82fe37b555"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"orderStack\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"orderStack\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"GhGitHubReader\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"GhGitHubReader\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "source-module",
+        "key": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07:watch-pr/github.ts"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"parseFastCheck\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"parseFastCheck\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "unresolved-reference",
+        "key": "static-import:node:child_process"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "unresolved-reference",
+        "key": "static-import:commander"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/cli.ts\",\"parseArgs\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/cli.ts\",\"parseArgs\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+        "namespace": "unresolved-semantic-module",
+        "key": "external:node:crypto"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "unresolved-reference",
+        "key": "static-import:node:timers/promises"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "content-digest",
+        "stability": "global-exact",
+        "sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "e3d4e9ca638c6fb4a2b52c434c17c7af30da4fdd44605ccfe9906f82fe37b555",
+        "namespace": "unresolved-semantic-module",
+        "key": "external:node:fs"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"REVIEW_THREADS_QUERY\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"buildReviewThreads\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"buildReviewThreads\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "ccd2ed08fd9da9d0d942e5f2491cfc74bb92d8a08fa51755e0da1ac8de287361",
+        "namespace": "unresolved-reference",
+        "key": "static-import:node:fs"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "89c08863089181a232be782c4b2ed90a1552f44aeecb0dcb7aac2c623620e680",
+        "namespace": "unresolved-semantic-module",
+        "key": "external:node:timers/promises"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"resolveReviewThreads\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    },
+    {
+      "path": {
+        "strategy": "artifact-local-key",
+        "stability": "artifact-version",
+        "artifact_sha256": "7ba193190d488c8ce0982c85234ebea026e9a595703e99a3c3df0fcd640ddd18",
+        "namespace": "module-export",
+        "key": "[\"ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07\",\"watch-pr/github.ts\",\"resolveReviewThreads\"]"
+      },
+      "keys": [],
+      "analysis_status": null,
+      "snippet": {}
+    }
+  ]
+}

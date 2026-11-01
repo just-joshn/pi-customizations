@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
 import { routineSlug } from '../src/subscriptions/webhook.ts';
 
@@ -19,7 +19,7 @@ interface Tool {
   execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<{ content: { text: string }[]; details: unknown }>;
 }
 
-function fakePi(entries: { type: string; customType?: string; data?: unknown }[] = []) {
+function fakePi(entries: { type: string; customType?: string; data?: unknown }[] = [], cwd = join(tmpdir(), 'pstack-sub-cwd')) {
   const handlers = new Map<string, Handler[]>();
   const tools = new Map<string, Tool>();
   const commands = new Map<string, { handler: (args: string, ctx: unknown) => Promise<void> }>();
@@ -32,7 +32,13 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown }[]
     sendMessage: (message: Sent['message'], options: unknown) => sent.push({ message, options }),
     appendEntry: (customType: string, data: unknown) => entries.push({ type: 'custom', customType, data: structuredClone(data) }),
   } as unknown as ExtensionAPI;
-  const ctx = (mode = 'rpc', hasUI = true) => ({ mode, hasUI, ui: { notify: (text: string) => notices.push(text) }, sessionManager: { getBranch: () => entries } });
+  const ctx = (mode = 'rpc', hasUI = true) => ({
+    mode,
+    hasUI,
+    cwd,
+    ui: { notify: (text: string) => notices.push(text) },
+    sessionManager: { getBranch: () => entries, getSessionFile: () => join(cwd, 'session.jsonl') },
+  });
   const emit = (name: string, mode = 'rpc') => {
     for (const handler of handlers.get(name) ?? []) handler({}, ctx(mode));
   };
@@ -44,18 +50,33 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown }[]
     await commands.get(name)?.handler('', ctx('rpc', hasUI));
     return notices.at(-1) ?? '';
   };
-  return { pi, entries, sent, emit, call, command };
+  return { pi, entries, sent, notices, emit, call, command, cwd };
 }
 
 type Fake = ReturnType<typeof fakePi>;
 const wakes = (fake: Fake) => fake.sent.map((item) => item.message.content);
 
 function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entries'], mode = 'rpc') {
-  const fake = fakePi(entries);
+  const agentDir = mkdtempSync(join(tmpdir(), 'pstack-sub-agent-'));
+  vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
+  onTestFinished(() => {
+    vi.unstubAllEnvs();
+    rmSync(agentDir, { recursive: true, force: true });
+  });
+  const cwd = join(agentDir, 'workspace');
+  const fake = fakePi(entries, cwd);
   const fresh: { prompt: string; name: string }[] = [];
-  registerSubscriptions(fake.pi, { runFresh: (prompt, name) => void fresh.push({ prompt, name }), routinesPort: 0, routinesDir: join(tmpdir(), 'unused-routines'), ...options });
+  registerSubscriptions(fake.pi, {
+    runFresh: (prompt, name) => void fresh.push({ prompt, name }),
+    // Port 0 keeps the default in-process path. Omit routinesDir so it matches the package default
+    // (join(agentDir, 'pstack', 'routines')); a custom dir blocks supervisor handoff by design.
+    routinesPort: 0,
+    ensureSupervisor: () => {},
+    supervisorReadyMs: 0,
+    ...options,
+  });
   fake.emit('session_start', mode);
-  return { ...fake, fresh };
+  return { ...fake, fresh, agentDir };
 }
 
 describe('subscribe_timer', () => {
@@ -375,6 +396,99 @@ describe('one-shot print and JSON runs', () => {
 
 describe('persistence', () => {
   afterEach(() => vi.useRealTimers());
+
+  test('create dual-writes the durable registry; re-subscribe does not rewrite it; unsubscribe removes it', async () => {
+    const { readRegistry } = await import('../src/subscriptions/durable-store.ts');
+    const fake = setup();
+    const first = await fake.call('subscribe_timer', { name: 'tick', prompt: 'first', delaySeconds: 10 });
+    expect(readRegistry(fake.cwd).subscriptions).toEqual([
+      expect.objectContaining({ id: first.details['id'], name: 'tick', config: expect.objectContaining({ prompt: 'first' }) }),
+    ]);
+    const before = structuredClone(readRegistry(fake.cwd));
+    const again = await fake.call('subscribe_timer', { name: 'tick', prompt: 'second', cron: '* * * * *' });
+    expect(again.details).toMatchObject({ created: false, id: first.details['id'] });
+    expect(readRegistry(fake.cwd)).toEqual(before);
+    await fake.call('unsubscribe', { subscription: 'tick' });
+    expect(readRegistry(fake.cwd).subscriptions).toEqual([]);
+  });
+
+  test('create calls ensureSupervisor and skips in-process arm when the lock becomes live', async () => {
+    const { acquireSupervisorLock, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
+    vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });
+    let ensuredFor: string | undefined;
+    // Concrete port + default routinesDir so handoff is allowed (port 0 / custom dir stay in-process).
+    const fake = setup({
+      routinesPort: 48_913,
+      ensureSupervisor: (cwd) => {
+        ensuredFor = cwd;
+        acquireSupervisorLock(cwd);
+      },
+      supervisorReadyMs: 0,
+    });
+    onTestFinished(() => releaseSupervisorLock(fake.cwd));
+    const result = await fake.call('subscribe_timer', { name: 'handed', prompt: 'go', delaySeconds: 5, once: true, sessionStrategy: 'new_session' });
+    expect(ensuredFor).toBe(fake.cwd);
+    expect(result.details).toMatchObject({ created: true, name: 'handed' });
+    expect(result.details['durability']).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(fake.fresh).toEqual([]);
+  });
+
+  test('create returns created:false when durable already has the same name from another session', async () => {
+    const { createDesired, readRegistry } = await import('../src/subscriptions/durable-store.ts');
+    const fake = setup();
+    createDesired(fake.cwd, {
+      id: 'sub-other',
+      name: 'shared',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 7 * 24 * 3_600_000,
+      config: { kind: 'timer', prompt: 'theirs', delaySeconds: 30, once: false, strategy: 'wake_self' },
+      detachedDelivery: 'spawn',
+    });
+    const before = structuredClone(readRegistry(fake.cwd));
+    const again = await fake.call('subscribe_timer', { name: 'shared', prompt: 'ours', delaySeconds: 10 });
+    expect(again.details).toMatchObject({ created: false, id: 'sub-other', prompt: 'theirs' });
+    expect(readRegistry(fake.cwd)).toEqual(before);
+  });
+
+  test('in-process fallback holds supervisor.lock so a late supervisor cannot double-arm', async () => {
+    const { acquireSupervisorLock, isSupervisorLive, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
+    const fake = setup({
+      ensureSupervisor: () => {},
+      supervisorReadyMs: 0,
+    });
+    const result = await fake.call('subscribe_timer', { name: 'local', prompt: 'go', delaySeconds: 600 });
+    expect(result.details['durability']).toMatch(/in-process/);
+    expect(isSupervisorLive(fake.cwd)).toBe(true);
+    expect(acquireSupervisorLock(fake.cwd, process.pid + 99, 1)).toEqual({
+      acquired: false,
+      alreadyRunning: true,
+      pid: process.pid,
+    });
+    fake.emit('session_shutdown');
+    expect(isSupervisorLive(fake.cwd)).toBe(false);
+    releaseSupervisorLock(fake.cwd);
+  });
+
+  test('restore stays passive when supervisor.lock is live (no in-process arm)', async () => {
+    const { acquireSupervisorLock, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
+    vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });
+    const first = setup();
+    await first.call('subscribe_timer', { name: 'long', prompt: 'still here', delaySeconds: 5, once: true, sessionStrategy: 'new_session' });
+    first.emit('session_shutdown');
+    const stored = first.entries.filter((entry) => entry.customType === SUBSCRIPTIONS_ENTRY);
+
+    const second = setup({}, structuredClone(stored));
+    // setup() already restored in-process; release that lock, then hold it as the supervisor before re-restore.
+    second.emit('session_shutdown');
+    second.fresh.length = 0;
+    acquireSupervisorLock(second.cwd);
+    onTestFinished(() => releaseSupervisorLock(second.cwd));
+    second.emit('session_start');
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(second.fresh).toEqual([]);
+    expect((await second.call('list_subscriptions', {})).text).toContain('timer "long"');
+  });
 
   test('subscriptions restore from the branch and re-arm; expired ones drop', async () => {
     vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });

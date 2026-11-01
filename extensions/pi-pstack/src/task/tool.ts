@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, rmSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { join } from 'node:path';
 
 import { getSupportedThinkingLevels, StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { childIdentity, childVariables } from '../child-env.ts';
 import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
+import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
 import { renderTaskCard } from './card.ts';
 import { backgroundText, bounded, foregroundText, steerText, worktreeLine, worktreePreface } from './format.ts';
@@ -100,13 +101,6 @@ export interface Launch {
 }
 
 const runsReadonly = (plan: Launch) => plan.readonly || plan.planMode;
-
-/** The running pi script, so children match the parent's Pi version; falls back to `pi` on PATH. */
-function piCommand(): string[] {
-  const script = process.argv[1];
-  if (script !== undefined && !script.startsWith('/$bunfs/') && existsSync(script)) return [process.execPath, script];
-  return /^(node|bun)(\.exe)?$/.test(basename(process.execPath).toLowerCase()) ? ['pi'] : [process.execPath];
-}
 
 export function availableModels(ctx: ExtensionContext): AvailableModel[] {
   return ctx.modelRegistry.getAvailable().map((model) => ({ provider: model.provider, id: model.id, reasoning: model.reasoning, levels: getSupportedThinkingLevels(model) }));

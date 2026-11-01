@@ -1,0 +1,51 @@
+{
+  "comparisons": [
+    {
+      "label": "poteto-mode/scripts",
+      "tip_root": "/tmp/cursor-plugins-rea/pstack/skills/poteto-mode/scripts",
+      "cache_root": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+      "tip_file_count": 18,
+      "cache_file_count": 18,
+      "identical_count": 18,
+      "changed_count": 0,
+      "only_tip_count": 0,
+      "only_cache_count": 0,
+      "changed": [],
+      "only_tip": [],
+      "only_cache": [],
+      "trees_byte_identical": true
+    },
+    {
+      "label": "statechart/scripts",
+      "tip_root": "/tmp/cursor-plugins-rea/pstack/skills/statechart/scripts",
+      "cache_root": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/statechart/scripts",
+      "tip_file_count": 405,
+      "cache_file_count": 405,
+      "identical_count": 405,
+      "changed_count": 0,
+      "only_tip_count": 0,
+      "only_cache_count": 0,
+      "changed": [],
+      "only_tip": [],
+      "only_cache": [],
+      "trees_byte_identical": true
+    },
+    {
+      "label": "pstack-plugin-root-select",
+      "tip_root": "/tmp/cursor-plugins-rea/pstack",
+      "cache_root": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a",
+      "tip_file_count": 573,
+      "cache_file_count": 574,
+      "identical_count": 573,
+      "changed_count": 0,
+      "only_tip_count": 0,
+      "only_cache_count": 1,
+      "changed": [],
+      "only_tip": [],
+      "only_cache": [
+        ".cache-complete"
+      ],
+      "trees_byte_identical": false
+    }
+  ]
+}

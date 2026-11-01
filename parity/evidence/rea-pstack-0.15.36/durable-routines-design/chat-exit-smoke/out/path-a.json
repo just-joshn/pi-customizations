@@ -1,0 +1,150 @@
+{
+  "path": "A-real-bin",
+  "stdout": "pstack-routines-supervisor started for /var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/chat-exit-bin-gEuEPF/workspace (pid 17020).",
+  "stderr": "",
+  "samples": [
+    {
+      "ms": 250,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lockLive": false
+    },
+    {
+      "ms": 500,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 750,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 1000,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 1250,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 1500,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 1750,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 2000,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 2250,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 2500,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 2750,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    },
+    {
+      "ms": 3000,
+      "pid": 17020,
+      "alive": true,
+      "exitCode": null,
+      "lock": {
+        "pid": 17020,
+        "startedAt": 1793494071241
+      },
+      "lockLive": true
+    }
+  ],
+  "aliveAfter500ms": true,
+  "stayedAlivePastDelay": true,
+  "markerExists": true,
+  "delivery": {
+    "subscriptionId": "sub-ce8ceea5",
+    "lastClaimKey": "sub-ce8ceea5:once",
+    "lastClaimAt": 1793494072918
+  },
+  "subscriptionsLeft": 0,
+  "spawnCount": 1,
+  "registryPath": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/chat-exit-bin-gEuEPF/agent/pstack/durable/--var-folders-11-m_kwnqr97632l_cjt0mhytvh0000gn-T-chat-exit-bin-gEuEPF-workspace--/subscriptions.json",
+  "root": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/chat-exit-bin-gEuEPF",
+  "verdict": "VERIFIED",
+  "timerId": "sub-ce8ceea5",
+  "failureReason": null
+}

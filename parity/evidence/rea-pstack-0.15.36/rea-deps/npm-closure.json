@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-11-01T00:04:14.218644+00:00",
+  "packages": [
+    {
+      "tree": "pstack/skills/poteto-mode/scripts",
+      "manifest": "@cursor-skill/poteto-mode-tools",
+      "lockfile": "bun.lock",
+      "dependencies": {
+        "commander": {
+          "declared": "14.0.0",
+          "locked": "commander@14.0.0",
+          "integrity_sha512": "2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA=="
+        }
+      },
+      "devDependencies": {
+        "bun-types": {
+          "declared": "latest",
+          "locked": "bun-types@1.3.14"
+        },
+        "typescript": {
+          "declared": "latest",
+          "locked": "typescript@7.0.2"
+        },
+        "@types/node": {
+          "locked_transitive": "@types/node@26.1.2"
+        },
+        "undici-types": {
+          "locked_transitive": "undici-types@8.3.0"
+        }
+      },
+      "runtime_non_npm": [
+        "bun",
+        "gh (spawned by watch-pr/github.ts)"
+      ],
+      "pi_pstack": {
+        "vendors_matching_scripts": true,
+        "path": "extensions/pi-pstack/skills/poteto-mode/scripts",
+        "package_name": "@pi-pstack/poteto-mode-tools",
+        "script_source_parity": {
+          "ts_js_mjs_identical_to_tip": true,
+          "changed_files": [
+            "package.json (name only)",
+            "bun.lock (name only)",
+            "worktree-audit.sh (Pi transcript paths)"
+          ],
+          "detail_file": "pi-vs-tip-scripts.json"
+        }
+      }
+    },
+    {
+      "tree": "pstack/skills/statechart/scripts",
+      "manifest": "@cursor-skill/statechart",
+      "lockfile": null,
+      "dependencies": {},
+      "devDependencies": {
+        "fast-check": {
+          "declared": "4.5.3",
+          "locked": null,
+          "note": "No bun.lock/package-lock in tree; version only pinned in package.json"
+        }
+      },
+      "runtime_non_npm": [
+        "node",
+        "mise",
+        "java@temurin-25 (via mise) or JAVA env",
+        "tla2tools.jar / TLC (via mise or TLA2TOOLS)"
+      ],
+      "pi_pstack": {
+        "vendors_matching_scripts": true,
+        "path": "extensions/pi-pstack/skills/statechart/scripts",
+        "package_name": "@pi-pstack/statechart",
+        "script_source_parity": {
+          "all_files_identical_except": [
+            "package.json (name only)"
+          ],
+          "detail_file": "pi-vs-tip-scripts.json"
+        }
+      }
+    },
+    {
+      "tree": "cursor-team-kit/skills/pr-review-canvas",
+      "manifest": null,
+      "lockfile": null,
+      "dependencies": {},
+      "devDependencies": {},
+      "runtime_non_npm": [
+        "browser DOM for renderer.js + template.html"
+      ],
+      "pi_pstack": {
+        "vendors_matching_scripts": false,
+        "note": "team-kit is a separate Cursor plugin dependency of pstack workflows (deslop, control-cli/ui). pi-pstack does not vendor renderer.js under this unit's scan; treat as soft skill dependency for PR canvas UX, not core poteto/statechart runtime."
+      }
+    }
+  ],
+  "summary": {
+    "npm_runtime_closure_for_pstack_executables": [
+      "commander@14.0.0"
+    ],
+    "npm_dev_closure": [
+      "bun-types@1.3.14",
+      "typescript@7.0.2",
+      "fast-check@4.5.3",
+      "@types/node@26.1.2",
+      "undici-types@8.3.0"
+    ],
+    "pi_pstack_vendors_poteto_and_statechart_scripts": true,
+    "pi_pstack_vendors_team_kit_renderer": false
+  }
+}
