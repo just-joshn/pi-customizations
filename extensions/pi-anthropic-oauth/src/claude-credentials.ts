@@ -1,16 +1,25 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { open } from 'node:fs/promises';
 import { homedir as osHomedir, userInfo } from 'node:os';
 import { join } from 'node:path';
-import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 
 import type { OAuthCredential } from '@earendil-works/pi-ai';
 
 const execFileAsync = promisify(execFile);
 
-/** Prod OAUTH_FILE_SUFFIX is empty; custom oauth builds use `-custom-oauth`. */
+/** Prod OAUTH_FILE_SUFFIX is empty. */
 export const CLAUDE_OAUTH_FILE_SUFFIX = '';
+/** Claude `JU()`: any `CLAUDE_CODE_CUSTOM_OAUTH_URL` selects the custom storage suffix. */
+export const CLAUDE_CUSTOM_OAUTH_FILE_SUFFIX = '-custom-oauth';
+const KEYCHAIN_TIMEOUT_MS = 2_000;
+const MAX_CREDENTIALS_BYTES = 1_048_576;
+
+export function claudeOauthFileSuffix(env: NodeJS.ProcessEnv = process.env): string {
+  return env['CLAUDE_CODE_CUSTOM_OAUTH_URL'] ? CLAUDE_CUSTOM_OAUTH_FILE_SUFFIX : CLAUDE_OAUTH_FILE_SUFFIX;
+}
 /** Default keychain service suffix from Claude Code `KPe`. */
 export const CLAUDE_KEYCHAIN_SERVICE_SUFFIX = '-credentials';
 export const CLAUDE_KEYCHAIN_SERVICE_DEFAULT = `Claude Code${CLAUDE_OAUTH_FILE_SUFFIX}${CLAUDE_KEYCHAIN_SERVICE_SUFFIX}`;
@@ -59,10 +68,9 @@ export function claudeConfigDir(env: NodeJS.ProcessEnv = process.env, homedir: (
 export function claudeKeychainService(env: NodeJS.ProcessEnv = process.env, homedir: () => string = osHomedir): string {
   const secure = envValue(env, 'CLAUDE_SECURESTORAGE_CONFIG_DIR');
   const configDir = claudeConfigDir(env, homedir);
-  const useDefaultService =
-    secure !== undefined ? !secure : envValue(env, 'CLAUDE_CONFIG_DIR') === undefined;
+  const useDefaultService = secure !== undefined ? !secure : envValue(env, 'CLAUDE_CONFIG_DIR') === undefined;
   const hashSuffix = useDefaultService ? '' : `-${createHash('sha256').update(configDir).digest('hex').slice(0, 8)}`;
-  return `Claude Code${CLAUDE_OAUTH_FILE_SUFFIX}${CLAUDE_KEYCHAIN_SERVICE_SUFFIX}${hashSuffix}`;
+  return `Claude Code${claudeOauthFileSuffix(env)}${CLAUDE_KEYCHAIN_SERVICE_SUFFIX}${hashSuffix}`;
 }
 
 /** Claude `iO()` keychain account. */
@@ -130,9 +138,7 @@ export function parseClaudeCredentialsJson(raw: string): ClaudeAiOauth {
     accessToken,
     refreshToken,
     expiresAt,
-    ...(Array.isArray(scopes) && scopes.every((entry) => typeof entry === 'string')
-      ? { scopes: scopes as string[] }
-      : {}),
+    ...(Array.isArray(scopes) && scopes.every((entry) => typeof entry === 'string') ? { scopes: scopes as string[] } : {}),
   };
 }
 
@@ -150,7 +156,7 @@ async function defaultReadKeychain(service: string, account: string): Promise<st
   try {
     const { stdout } = await execFileAsync('security', ['find-generic-password', '-a', account, '-w', '-s', service], {
       encoding: 'utf8',
-      timeout: 15_000,
+      timeout: KEYCHAIN_TIMEOUT_MS,
     });
     const value = stdout.trim();
     return value.length > 0 ? value : undefined;
@@ -159,14 +165,22 @@ async function defaultReadKeychain(service: string, account: string): Promise<st
   }
 }
 
+/** Claude's file store: O_NOFOLLOW, regular files only, at most 1 MiB. A symlink, directory or oversized file reads as absent. */
 async function defaultReadPlaintext(path: string): Promise<string | undefined> {
+  let handle: Awaited<ReturnType<typeof open>>;
   try {
-    return await readFile(path, 'utf8');
+    handle = await open(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   } catch (error) {
-    if (error && typeof error === 'object' && 'code' in error && (error.code === 'ENOENT' || error.code === 'ENOTDIR')) {
-      return undefined;
-    }
+    const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
+    if (code === 'ENOENT' || code === 'ENOTDIR' || code === 'ELOOP' || code === 'EISDIR') return undefined;
     throw error;
+  }
+  try {
+    const stat = await handle.stat();
+    if (!stat.isFile() || stat.size > MAX_CREDENTIALS_BYTES) return undefined;
+    return await handle.readFile('utf8');
+  } finally {
+    await handle.close();
   }
 }
 

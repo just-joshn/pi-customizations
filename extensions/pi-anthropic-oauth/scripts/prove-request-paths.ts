@@ -9,7 +9,7 @@ import { RpcClient } from '@earendil-works/pi-coding-agent';
 import { CLAUDE_USER_AGENT } from '../src/identity.ts';
 import { oauthCredential } from '../test/support/credentials.ts';
 import { type RecordedRequest, sseReply, startMessagesServer } from '../test/support/messages-server.ts';
-import { systemTexts } from '../test/support/request-body.ts';
+import { rawSystemTexts, systemTexts } from '../test/support/request-body.ts';
 import { textMessage } from '../test/support/sse.ts';
 import { ROUTER_MODEL, ROUTER_PROVIDER } from './request-event-probe.ts';
 
@@ -22,7 +22,7 @@ const extension = fileURLToPath(new URL('../src/index.ts', import.meta.url));
 const probe = fileURLToPath(new URL('./request-event-probe.ts', import.meta.url));
 const cliPath = process.env['PI_OAUTH_CLI_PATH'] ?? join(dirname(fileURLToPath(import.meta.resolve('@earendil-works/pi-coding-agent'))), 'bundle/cli.js');
 const { stdout: cliVersion } = await promisify(execFile)(process.execPath, [cliPath, '--version']);
-const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.311\.[a-f0-9]{3}; cc_entrypoint=sdk-cli;$/;
+const BILLING_PATTERN = /^x-anthropic-billing-header: cc_version=2\.1\.316\.[a-f0-9]{3}; cc_entrypoint=sdk-cli; cch=[a-f0-9]{5};/;
 
 interface Scenario {
   readonly name: string;
@@ -38,7 +38,7 @@ interface PathReport {
 }
 
 function carriesBillingBlock(request: RecordedRequest): boolean {
-  return BILLING_PATTERN.test(systemTexts(request.body)[0] ?? '');
+  return BILLING_PATTERN.test(rawSystemTexts(request.body)[0] ?? '');
 }
 
 async function readLines(path: string): Promise<readonly string[]> {

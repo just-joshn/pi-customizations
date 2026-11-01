@@ -31,7 +31,11 @@ test.for([
   { header: 'user-agent', value: 'claude-cli/2.1.316 (external, sdk-cli)' },
   { header: 'x-app', value: 'cli' },
   { header: 'anthropic-version', value: '2023-06-01' },
-  { header: 'anthropic-beta', value: 'claude-code-20250219,oauth-2025-04-20' },
+  {
+    header: 'anthropic-beta',
+    value:
+      'claude-code-20250219,oauth-2025-04-20,context-management-2025-06-27,prompt-caching-scope-2026-01-05,thinking-token-count-2026-05-13,advanced-tool-use-2025-11-20,effort-2025-11-24,extended-cache-ttl-2025-04-11,cache-diagnosis-2026-04-07',
+  },
   { header: 'authorization', value: `Bearer ${OAUTH_ACCESS_TOKEN}` },
 ])('the $header header is $value', async ({ header, value }, { models, model, server }) => {
   await collect(models.streamSimple(model, prompt));

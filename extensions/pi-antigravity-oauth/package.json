@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-antigravity-oauth",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Use a Google Antigravity subscription in Pi through Google OAuth and the Cloud Code Assist API.",
   "type": "module",
   "license": "MIT",

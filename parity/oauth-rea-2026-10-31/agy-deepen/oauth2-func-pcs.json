@@ -1,0 +1,92 @@
+[
+  {
+    "pc": "0x1003d8590",
+    "entryoff": "0x3d73d0",
+    "name": "google3/third_party/golang/oauth2/internal/internal.(*LazyAuthStyleCache).Get",
+    "func_file_off": "0x622bb30"
+  },
+  {
+    "pc": "0x1003d86c0",
+    "entryoff": "0x3d7500",
+    "name": "google3/third_party/golang/oauth2/internal/internal.(*AuthStyleCache).lookupAuthStyle",
+    "func_file_off": "0x622bb88"
+  },
+  {
+    "pc": "0x1003d8800",
+    "entryoff": "0x3d7640",
+    "name": "google3/third_party/golang/oauth2/internal/internal.(*AuthStyleCache).setAuthStyle",
+    "func_file_off": "0x622bbe0"
+  },
+  {
+    "pc": "0x1003d8970",
+    "entryoff": "0x3d77b0",
+    "name": "google3/third_party/golang/oauth2/internal/internal.newTokenRequest",
+    "func_file_off": "0x622bc38"
+  },
+  {
+    "pc": "0x1003d8e40",
+    "entryoff": "0x3d7c80",
+    "name": "google3/third_party/golang/oauth2/internal/internal.RetrieveToken",
+    "func_file_off": "0x622bc90"
+  },
+  {
+    "pc": "0x1003d9050",
+    "entryoff": "0x3d7e90",
+    "name": "google3/third_party/golang/oauth2/internal/internal.doTokenRoundTrip",
+    "func_file_off": "0x622bce8"
+  },
+  {
+    "pc": "0x1003d9c30",
+    "entryoff": "0x3d8a70",
+    "name": "google3/third_party/golang/oauth2/internal/internal.(*AuthStyleCache).lookupAuthStyle.deferwrap1",
+    "func_file_off": "0x622bd98"
+  },
+  {
+    "pc": "0x1003d9ca0",
+    "entryoff": "0x3d8ae0",
+    "name": "google3/third_party/golang/oauth2/internal/internal.(*AuthStyleCache).setAuthStyle.deferwrap1",
+    "func_file_off": "0x622bdf0"
+  },
+  {
+    "pc": "0x1003db5f0",
+    "entryoff": "0x3da430",
+    "name": "google3/third_party/golang/oauth2/oauth2.(*Config).AuthCodeURL",
+    "func_file_off": "0x622c100"
+  },
+  {
+    "pc": "0x1003dbf10",
+    "entryoff": "0x3dad50",
+    "name": "google3/third_party/golang/oauth2/oauth2.(*Config).Exchange",
+    "func_file_off": "0x622c1b0"
+  },
+  {
+    "pc": "0x1003dc2a0",
+    "entryoff": "0x3db0e0",
+    "name": "google3/third_party/golang/oauth2/oauth2.(*Config).TokenSource",
+    "func_file_off": "0x622c260"
+  },
+  {
+    "pc": "0x1003dc3c0",
+    "entryoff": "0x3db200",
+    "name": "google3/third_party/golang/oauth2/oauth2.(*tokenRefresher).Token",
+    "func_file_off": "0x622c2b8"
+  },
+  {
+    "pc": "0x1003dd240",
+    "entryoff": "0x3dc080",
+    "name": "google3/third_party/golang/oauth2/oauth2.retrieveToken",
+    "func_file_off": "0x622c718"
+  },
+  {
+    "pc": "0x10055cce0",
+    "entryoff": "0x55bb20",
+    "name": "google3/third_party/golang/oauth2/google/internal/externalaccountauthorizeduser/externalaccountauthorizeduser.(*Config).TokenSource",
+    "func_file_off": "0x62c3b00"
+  },
+  {
+    "pc": "0x10055ddc0",
+    "entryoff": "0x55cc00",
+    "name": "google3/third_party/golang/oauth2/jwt/jwt.(*Config).TokenSource",
+    "func_file_off": "0x62c3f08"
+  }
+]

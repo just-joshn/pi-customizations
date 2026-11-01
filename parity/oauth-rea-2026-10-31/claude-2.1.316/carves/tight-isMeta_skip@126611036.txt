@@ -1,0 +1,119 @@
+# name=isMeta_skip offset=126611036 window_start=126609036 window_len=7000 window_sha256=196912a631b55136afdbf2456520f633fbf9dfc3105a2d6e1b8a54391d813d8a
+{j�.footnote...�)�..heading....�S)�.regular....���..semibold..��S^.flexDirection......���(.flexWrap
+..�nZ�.alignItems..	..�5 3.alignSelf......�$	�.justifyContent.....����.gap....�.��.width......���G.height.....� ��.minWidth	..�g��.minHeight......�..�.margin..	..��\�.marginTop......�3}�.marginBottom
+..��-�.marginLeft.....��>�.marginRight....���.padding.
+..�~��.paddingTop....���@.paddingBottom......��J�.paddingLeft....�zQS.paddingRight...�ܨb.weight.....��)�.dir....�a<�.isFilled...���*.hook_event_name....�uu�.transcript_path....�!6f.scratchpad_dir..	..�]�n.prompt_id......�@�<.permission_mode....�q��.agent_id...��ߑ.served_call....�ﾎ.caller_session_id......���0.argumentHint...�bM�.presentation...���.previous	..�A��.component...	..�*d..requestId......�.:..already_read_file.....��5�.pdf_reference......�A��.mention....�.�4.detail.....���..any kind...����.^[^....�lr�.[^]*[...	..�.}�.an object......�D.e.missing....��<X.a string	..�ʛ�.a boolean......��!.viewport...�Ϯ�.UserMessage....��ާ.AssistantMessage...��.N.ToolUse.
+..��Ƶ.ToolResult..	..�*.L.ToolGroup.....�.B..CommandOutput......�Ɩ..TurnDuration
+..�....InfoNotice.....��&T.Placed..
+..�.	$.isExpanded.....�%.�.]|.....�Oih.hover......�͖..press......��~2.group......��H�.part...���..raster.....�ˋ�.IHDR%..�.�N.^\/(?!\.{1,2}$)[A-Za-z0-9._-]{1,254}$......�@_*.rgba...�z�<.shm....��.d.placeholder....�.��.submitLabel....��1�.cells......����.a Button...�.��.an Input...��'�.a Select
+..�8�..a Markdown..f..���Q.returned a Button without an onPress function; a render hook draws one with <Button key label onPress>..a..�'��.returned an Input without an onSubmit function; a render hook draws one with <Input key onSubmit>...j..����.returned a Select without an onSelect function; a render hook draws one with <Select key options onSelect>..{..��R+.returned a pressable Markdown without an onLinkPress function; a render hook draws one with <Markdown key text onLinkPress>....��;�.bodyRows...���.contentRows....�/�z.pointer....���U.isMeta.....��N$.door
+..����.rateLimits.....�ٴL.cost	..�U�q.ifVersion......�ʝ�.tool_use_id.
+..��.�.isTeammate.....���..parentModel...�.��.parentAgentId......� mR.subagentType	..�P,I.$shadowed......����.requestMeta....��4}.consent....����.anthropic/sources......�W�>.claude/plugins.....�Ee..com.anthropic/sources-relay....���3.com.anthropic/plugin-meta-cut......��LZ.claude/omitted.....�.n=.setting....�.l�.ceiling....��N�.approver
+..�xl�.isReadOnly.....�g	M.end_turn
+..��.�.max_tokens....�&X&.stop_sequence...
+..��..pause_turn.....���.model_context_window_exceeded......����.answer.....�B��.isShown.�..��.:.(fn => {
+  try {
+    return typeof fn === 'function' &&
+      Object.prototype.toString.call(fn) === '[object AsyncGeneratorFunction]'
+  } catch {
+    return false
+  }
+})..4..��!.(async (it, method, arg) => {
+  const isObject =
+    it !== null && (typeof it === 'object' || typeof it === 'function')
+  if (!isObject) {
+    throw new TypeError(
+      'a hook on a streaming event returns its async generator; got ' +
+        (it === null ? 'null' : typeof it),
+    )
+  }
+  const pull = it[method]
+  if (typeof pull !== 'function') {
+    if (method === 'return') return { __proto__: null, done: true, value: arg }
+    throw new TypeError(
+      'a hook on a streaming event returns its async generator; got an ' +
+        'object without ' + method + '()',
+    )
+  }
+  const step = await Reflect.apply(pull, it, [arg])
+  const isStep = step !== null && typeof step === 'object'
+  return {
+    __proto__: null,
+    done: !isStep || step.done === true,
+    value: isStep ? step.value : undefined,
+  }
+})2..�ˡ^.(kindOf => {
+  // Taken now, before any plugin runs: the global's bindings are the
+  // plugin's to replace.
+  const apply = Reflect.apply
+  const listed = Object.keys
+  const listedAll = Reflect.ownKeys
+  const describe = Reflect.getOwnPropertyDescriptor
+  const define = Reflect.defineProperty
+  const isList = Array.isArray
+  const freeze = Object.freeze
+  const parentOf = Reflect.getPrototypeOf
+  const getterOf = (holder, name) => describe(holder, name).get
+  // Their methods are called on instances made here, which no plugin holds,
+  // and found on prototypes frozen before this script ran.
+  const Seen = WeakMap
+  const Done = WeakSet
+  const Pairs = Map
+  const eachPair = Map.prototype.forEach
+  const setPair = Map.prototype.set
+  const Members = Set
+  const eachMember = Set.prototype.forEach
+  const addMember = Set.prototype.add
+  const Moment = Date
+  const timeOf = Date.prototype.getTime
+  const Pattern = RegExp
+  const sourceOf = getterOf(RegExp.prototype, 'source')
+  const flagsOf = getterOf(RegExp.prototype, 'flags')
+  const Failure = Error
+  const Boxed = Object
+  const Veil = Proxy
+  const Octets = Uint8Array
+  const Window = DataView
+  const typed = Reflect.getPrototypeOf(Uint8Array.prototype)
+  const nameOf = getterOf(typed, Symbol.toStringTag)
+  const setBytes = typed.set
+  const typedBuffer = getterOf(typed, 'buffer')
+  const typedOffset = getterOf(typed, 'byteOffset')
+  const typedLength = getterOf(typed, 'length')
+  const windowBuffer = getterOf(DataView.prototype, 'buffer')
+  const windowOffset = getterOf(DataView.prototype, 'byteOffset')
+  const windowLength = getterOf(DataView.prototype, 'byteLength')
+  const VIEWS = Object.freeze({
+    __proto__: null,
+    Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array,
+    Int32Array, Uint32Array, Float32Array, Float64Array, BigInt64Array,
+    BigUint64Array,
+    ...(typeof Float16Array === 'function' && { Float16Array }),
+  })
+  const ROOT = Object.prototype
+  const MISTAKE = TypeError.prototype
+  const RANGE = RangeError.prototype
+  const TEXTS = Object.freeze(['name', 'message', 'stack'])
+  // A record or a list of ours is written by assignment, which asks its
+  // prototypes first: they are frozen by now, or nothing is made here.
+  if (!Object.isFrozen(Object.prototype) || !Object.isFrozen(Array.prototype)) {
+    throw new TypeError('the walks of what leaves are made after the hardening')
+  }
+  // The keys the root prototype holds, and will ever hold: under one of
+  // them an assignment to a record of ours would find an accessor.
+  const ROOTED = (() => {
+    const held = { __proto__: null }
+    const names = Reflect.ownKeys(Object.prototype)
+    for (let at = 0; at < names.length; at += 1) held[names[at]] = true
+    return Object.freeze(held)
+  })()
+  // Three stand-ins, made here and held by no plugin. Each is to the two
+  // readers beyond (a structured clone of ours; another environment's walk by
+  // keys) what it stands for: a function is refused by one and dropped by the
+  // other, a Proxy refused by one and read by the other, a dead one by none.
+  const REFUSED = Object.freeze(() => {})
+  const NO_TRAPS = Object.freeze({ __proto__: null })
+  // Why a walk refused the whole, by the stand-in it answers for it: as
+  // REFUSED to both readers, and to `refusal` the end of a sentence.
+  const REASONS = new Seen()
+  const refusing = re

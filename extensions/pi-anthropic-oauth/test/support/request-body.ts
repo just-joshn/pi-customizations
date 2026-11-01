@@ -1,6 +1,13 @@
 import type { MessagesServer, RecordedRequest } from './messages-server.ts';
 
 export const BILLING_TEXT = 'x-anthropic-billing-header: cc_version=2.1.316.2e4; cc_entrypoint=sdk-cli;';
+const ATTRIBUTION_TAIL = /(cc_entrypoint=sdk-cli;).*$/;
+
+/** The billing block up to the entrypoint, without the per-request attribution tail. */
+export function billingCore(text: string): string {
+  return text.replace(ATTRIBUTION_TAIL, '$1');
+}
+
 export const PROVIDER_PREAMBLE = "You are Claude Code, Anthropic's official CLI for Claude.";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -14,7 +21,13 @@ export function soleRequest(server: MessagesServer): RecordedRequest {
 }
 
 export function systemBlocks(body: unknown): readonly unknown[] {
-  return isRecord(body) && Array.isArray(body['system']) ? body['system'] : [];
+  const blocks = isRecord(body) && Array.isArray(body['system']) ? body['system'] : [];
+  return blocks.map((block) => (isRecord(block) && typeof block['text'] === 'string' && block['text'].startsWith('x-anthropic-billing-header:') ? { ...block, text: billingCore(block['text']) } : block));
+}
+
+export function rawSystemTexts(body: unknown): readonly string[] {
+  const blocks = isRecord(body) && Array.isArray(body['system']) ? body['system'] : [];
+  return blocks.flatMap((block) => (isRecord(block) && typeof block['text'] === 'string' ? [block['text']] : []));
 }
 
 export function systemTexts(body: unknown): readonly string[] {

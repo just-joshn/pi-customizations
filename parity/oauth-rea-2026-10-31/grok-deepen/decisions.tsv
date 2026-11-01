@@ -1,0 +1,11 @@
+ts	phase	decision	why	evidence	result
+2026-11-01T00:28:00Z	start	opened grok-deepen oauth wire recovery under poteto-mode	parent asked surface value, device headers, inference set, refresh body, gap ledger only under grok-deepen	agent unit grok-deepen	open
+2026-11-01T00:30:00Z	rea	bound open_binary on grok then fell back to host ADRP scan when search_strings/xrefs timed out and session was stolen by agy	prove-it-works needs string+code refs; file sha256 still 5c8a6882…	REA open_binary; python ADRP on downloads/grok-1.0.70-macos-aarch64	static host RE
+2026-11-01T00:45:00Z	surface	declared device-start default x-grok-client-surface value ui	surface table idx0=ui idx1=cli idx2=headless; device site stores 0 on dominant b.ne branch before header insert	fixtures/device-headers-surface-1.0.70.json; VA 0x1043dbd8c / 0x1043dbfe4	MEASURED ui
+2026-11-01T00:46:00Z	surface	rejected Pi GROK_CLIENT_SURFACE=grok-build as the surface header value	grok-build is referrer form/query value, absent from surface enum table	login.ts GROK_CLIENT_SURFACE; binary form pack referrer+grok-build	GAP UNIT-D1
+2026-11-01T00:47:00Z	device	recorded device start headers version+surface and form client_id+scope+referrer	ADRP neighborhood packs both header inserts and three form fields	0x1043dbf9c…0x1043dc080	MEASURED
+2026-11-01T00:48:00Z	device	recorded device token poll also sends version+surface	second surface site builds device_code grant form	0x1043c3370	MEASURED UNIT-D3
+2026-11-01T00:50:00Z	inference	kept docs-required inference headers as Bearer + X-XAI-Token-Auth + model-override	embedded proxy Required headers table; sampler names stay optional until reject probe	fixtures/inference-headers-1.0.70.json	UNIT-I1 optional
+2026-11-01T00:52:00Z	refresh	recovered static refresh POST fields grant_type/refresh_token/client_id	oidc_refresher site packs those three; principal_* optional; no client_secret	fixtures/refresh-body-1.0.70.json; 0x1042c3b8c	UNIT-R1 host
+2026-11-01T00:54:00Z	gap	ordered remaining Pi UNITs D1 surface, D2 referrer form, D3 poll headers, I1 optional probe, R1 host	against current login.ts/request.ts; no extension edits this unit	gap-vs-pi.md	remaining concrete UNITs
+2026-11-01T00:55:00Z	delivery	wrote fixtures gap-vs-pi decisions under grok-deepen only	parent write scope	parity/oauth-rea-2026-10-31/grok-deepen/*	files written

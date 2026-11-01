@@ -1,0 +1,9 @@
+ts	phase	decision	why	evidence	result
+2026-11-01T01:10:00Z	start	opened AGY-TOKEN-SECRET-WIRE deepen in agy-deepen/	metadata auth_method none vs Pi always posting client_secret	REMAINING-UNITS.md; agy/protocol.md follow-up	open
+2026-11-01T01:12:00Z	method	prefer pclntab + ADRP string loads after Ghidra import timed out at 330s	prove Config fields without waiting on full 198MB analysis	REA provider_timeout; __lrodata_gopcln 173378 funcs	INCONCLUSIVE ghidra; VERIFIED gosym
+2026-11-01T01:18:00Z	fact	consumer getOauthParams loads client_id len 73 and GOCSPX-K58 secret len 35	attack premise that auth_method none means empty ClientSecret	0x10273e6e0 ADRP; fixtures/token-post-auth-style.json	VERIFIED secret in Config
+2026-11-01T01:19:00Z	fact	authclient.getOAuthConfig loads the same consumer id/secret pair	language-server path agrees with CLI auth path	0x1021ebfe0; disasm-authclient-getOAuthConfig.txt	VERIFIED
+2026-11-01T01:20:00Z	fact	embedded google Endpoint AuthStyle word is 1 (InParams)	newTokenRequest puts client_id/secret in form body under InParams	DATA_CONST @ file 195463856; oauth2 google.Endpoint	VERIFIED
+2026-11-01T01:21:00Z	fact	newTokenRequest references client_secret form key; upstream only Sets when ClientSecret!=empty	Config secret + InParams => secret on wire for code and refresh	0x1003d8970; oauth2 internal/token.go v0.27.0	VERIFIED present on wire
+2026-11-01T01:22:00Z	close	Pi already posts client_secret; no code change; no PR	laziness; prove-it-works against binary Config not metadata alone	oauth.ts requestToken; REPORT.md	ALIGNED evidence-only
+2026-11-01T01:33:22Z	close	consumer scope order matches Pi SCOPES; no reorder	base slice len 5 plus append aicode then openid; consumer method is not gcp	fixtures/consumer-scope-order.json; getScopesByAuthMethod 0x10273e8c0; ConsumerOAuthScopes 0x10278e6a0	VERIFIED Pi matches

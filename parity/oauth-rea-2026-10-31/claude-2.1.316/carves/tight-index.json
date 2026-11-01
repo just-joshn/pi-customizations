@@ -1,0 +1,242 @@
+[
+  {
+    "name": "TOKEN_CONFIG_low",
+    "offset": 125777944,
+    "start": 125775944,
+    "len": 8000,
+    "sha": "404962962fce02cbe8b52bd8e08a39780e5c3d9da3b0f267355c12a4cbd8c937",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-TOKEN_CONFIG_low@125777944.txt"
+  },
+  {
+    "name": "TOKEN_CONFIG_high",
+    "offset": 251220243,
+    "start": 251218243,
+    "len": 8000,
+    "sha": "31dbb0a1c7ba11017c9df0a7519a115356229bca6cf1ad91f9455ad3f9441831",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-TOKEN_CONFIG_high@251220243.txt"
+  },
+  {
+    "name": "scopes_low",
+    "offset": 125776548,
+    "start": 125775048,
+    "len": 5500,
+    "sha": "03163fb3228fb802f3b3ffb44ef1114bfda7f21702c520cc153b1e3cb689bb27",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-scopes_low@125776548.txt"
+  },
+  {
+    "name": "scopes_high",
+    "offset": 251219526,
+    "start": 251218026,
+    "len": 5500,
+    "sha": "7cc710c0c5d89380bad3a5b33607cf337aebf6f6ff0c073471138205bbb8c7fd",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-scopes_high@251219526.txt"
+  },
+  {
+    "name": "P5e_ALLOWED_high",
+    "offset": 251222257,
+    "start": 251221757,
+    "len": 3000,
+    "sha": "3a90655f44820f35ef5ceceebf7554bdc805643492323762920816c0552e5908",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-P5e_ALLOWED_high@251222257.txt"
+  },
+  {
+    "name": "P5e_ALLOWED_low",
+    "offset": 125777604,
+    "start": 125777104,
+    "len": 3000,
+    "sha": "8b6030324c455489609453131aaf2f3871327ef08218866b0bcc178d60f77942",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-P5e_ALLOWED_low@125777604.txt"
+  },
+  {
+    "name": "ALLOWED_export",
+    "offset": 277754380,
+    "start": 277753980,
+    "len": 1600,
+    "sha": "7f19c033401d153a12916f23505368c37c758ed411b94847edaa95211593482a",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-ALLOWED_export@277754380.txt"
+  },
+  {
+    "name": "Invalid_authorization_code",
+    "offset": 254429404,
+    "start": 254428604,
+    "len": 2800,
+    "sha": "fc680212d9b865ac0806b677a1bf209afc4bd619cd3708360bc88b8a283b66b5",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-Invalid_authorization_code@254429404.txt"
+  },
+  {
+    "name": "paste_Invalid_code",
+    "offset": 265858764,
+    "start": 265857264,
+    "len": 4000,
+    "sha": "42e58b10f3c4a5d0f6d43406fe82b033528d8b6926da325894ed5cc224dcfd3e",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-paste_Invalid_code@265858764.txt"
+  },
+  {
+    "name": "paste_split_hash",
+    "offset": 265858725,
+    "start": 265857925,
+    "len": 2800,
+    "sha": "f8d68c9a3f26eb45036ace5605ce3f45570a33836e755a34f676ea8783b29137",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-paste_split_hash@265858725.txt"
+  },
+  {
+    "name": "waitForAuthCode",
+    "offset": 265850499,
+    "start": 265848999,
+    "len": 5500,
+    "sha": "806970044f43ef618d9774fd4b0192ca4a008f1570384a0fb30dd5d82ef4d48a",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-waitForAuthCode@265850499.txt"
+  },
+  {
+    "name": "useManualRedirect",
+    "offset": 254428906,
+    "start": 254427406,
+    "len": 5000,
+    "sha": "7d1a0ecc04fc90a03e0ee995eda531c37b905d06ae512734b91a4e49deee68e8",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-useManualRedirect@254428906.txt"
+  },
+  {
+    "name": "refresh_token_expires",
+    "offset": 254430178,
+    "start": 254428678,
+    "len": 5000,
+    "sha": "986542bb6c1ace5358ca571fe63b68aa99d270ad33dd2e87c8f06dd7d85f8d2b",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-refresh_token_expires@254430178.txt"
+  },
+  {
+    "name": "token_type_hint_revoke",
+    "offset": 254432363,
+    "start": 254430863,
+    "len": 4000,
+    "sha": "e3ca6226d330e58f694e973d44474adc4a0cb9da4609732501141eda76ba32de",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-token_type_hint_revoke@254432363.txt"
+  },
+  {
+    "name": "oauthRefreshLatch",
+    "offset": 254728986,
+    "start": 254727486,
+    "len": 5500,
+    "sha": "7db1f3d6a9274d4f1634b4cc5eaea951388327b8c20f8370d31abe388906a202",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-oauthRefreshLatch@254728986.txt"
+  },
+  {
+    "name": "claudeAiOauth_store",
+    "offset": 254675417,
+    "start": 254673917,
+    "len": 5500,
+    "sha": "62666217ff6193200ad7831e9942f8d8a819fd5541f47ecf588429ece7b6c43d",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-claudeAiOauth_store@254675417.txt"
+  },
+  {
+    "name": "credentials_json",
+    "offset": 254684129,
+    "start": 254682629,
+    "len": 4500,
+    "sha": "b9562adaf13cdc54dcdbacb55852d9c6e578f29adbc50954b121b553d0105170",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-credentials_json@254684129.txt"
+  },
+  {
+    "name": "find_generic_password",
+    "offset": 254671373,
+    "start": 254669373,
+    "len": 6000,
+    "sha": "6aea076293c6327e142a76175a5036aaeb7d3e6c86a74e510ed146ca5d347103",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-find_generic_password@254671373.txt"
+  },
+  {
+    "name": "cc_version",
+    "offset": 255553965,
+    "start": 255553165,
+    "len": 2800,
+    "sha": "181e2a73b7e8b845f43d9c678d804c5e0d53bd2a3c0b1041b3278df4f054a93c",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-cc_version@255553965.txt"
+  },
+  {
+    "name": "billing_salt",
+    "offset": 259517590,
+    "start": 259516790,
+    "len": 3300,
+    "sha": "982c8468fb092aa7d921adbc6e4351e7b6a0a8087858bfe237c7f5e9596ecd76",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-billing_salt@259517590.txt"
+  },
+  {
+    "name": "x_app",
+    "offset": 254512046,
+    "start": 254511246,
+    "len": 2800,
+    "sha": "af5292c4a7949c7a5ed30fb88099eba185fd35dd9b4671f4898d5c616395d528",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-x_app@254512046.txt"
+  },
+  {
+    "name": "oauth_profile",
+    "offset": 254425030,
+    "start": 254423530,
+    "len": 5500,
+    "sha": "702cf066845cba019f44ea004ff25f5a22db968d32797208827abcc6f813c762",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-oauth_profile@254425030.txt"
+  },
+  {
+    "name": "ha_AUTH_TOKEN",
+    "offset": 128213407,
+    "start": 128211907,
+    "len": 5000,
+    "sha": "4b7f00a5703438c92d9f6bdd1cba1248a74742e54ca3be4f51bc241ae3cf06f9",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-ha_AUTH_TOKEN@128213407.txt"
+  },
+  {
+    "name": "ELOCKED",
+    "offset": 254462037,
+    "start": 254461237,
+    "len": 3300,
+    "sha": "353e9c30b26a2f9d3e76f4d75c5c857e63fc4cbaa532f5acbc6f0cfe403ba6b0",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-ELOCKED@254462037.txt"
+  },
+  {
+    "name": "pkce_crypto_near_paste",
+    "offset": 265850499,
+    "start": 265842499,
+    "len": 10000,
+    "sha": "b114cf4f44a9c39b84e17101fa2b6226d238501d0c9932abdec43e0a9945c7ea",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-pkce_crypto_near_paste@265850499.txt"
+  },
+  {
+    "name": "loginWithClaudeAi_builder",
+    "offset": 254428061,
+    "start": 254426061,
+    "len": 7000,
+    "sha": "cee3351cb672c8c866f5e3d07fdfa349f5c75844947063e71ec960c452f16e3c",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-loginWithClaudeAi_builder@254428061.txt"
+  },
+  {
+    "name": "expiresAt_store",
+    "offset": 254626032,
+    "start": 254625032,
+    "len": 3500,
+    "sha": "c07a488abebc185bc9b0feb3c248dde0cf32c2e1b69adabd439ca7e442d0a8b5",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-expiresAt_store@254626032.txt"
+  },
+  {
+    "name": "refreshTokenExpiresAt",
+    "offset": 254431543,
+    "start": 254430543,
+    "len": 3500,
+    "sha": "81bacc73c9d38664001102f17001f7899b22240474a9d70253eb0dd271d56f91",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-refreshTokenExpiresAt@254431543.txt"
+  },
+  {
+    "name": "CUSTOM_OAUTH_ERR",
+    "offset": 251222599,
+    "start": 251222199,
+    "len": 1200,
+    "sha": "cb5f9f35909b011775e1a0108d989384bc09f5784fe68734b7acbaaa11f07abb",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-CUSTOM_OAUTH_ERR@251222599.txt"
+  },
+  {
+    "name": "PLUGINS_SCOPE",
+    "offset": 251219842,
+    "start": 251219442,
+    "len": 2400,
+    "sha": "5c6e12ce3e339fcf7ce0b8e1477b7bd6fb8c1c57a9d3851548485eeedc2ed3a1",
+    "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/oauth-rea-2026-10-31/claude-2.1.316/carves/tight-PLUGINS_SCOPE@251219842.txt"
+  }
+]
