@@ -1,5 +1,5 @@
 import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
-import { createClaudeOAuth, LOGIN_CANCELLED, LOGIN_TIMED_OUT } from './oauth.ts';
+import { createClaudeOAuth, isClaudeTokenEndpointError, LOGIN_CANCELLED, LOGIN_TIMED_OUT } from './oauth.ts';
 
 export {
   CLAUDE_AUTHORIZE_ORIGIN,
@@ -54,6 +54,7 @@ function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
       if (error instanceof Error && error.message === LOGIN_CANCELLED) throw error;
       if (error instanceof Error && error.message === LOGIN_TIMED_OUT) throw error;
       if (error instanceof Error && /Claude Code credentials/.test(error.message)) throw error;
+      if (error instanceof Error && isClaudeTokenEndpointError(error.message)) throw error;
       throw new Error('Claude subscription login failed. Try /login again.');
     }
   };
@@ -77,8 +78,9 @@ function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
     signal.throwIfAborted();
     try {
       return await oauth.refresh(credential, signal);
-    } catch {
+    } catch (error) {
       signal.throwIfAborted();
+      if (error instanceof Error && isClaudeTokenEndpointError(error.message)) throw error;
       throw new Error('Claude subscription token refresh failed. Retry or use /login to sign in again.');
     }
   };

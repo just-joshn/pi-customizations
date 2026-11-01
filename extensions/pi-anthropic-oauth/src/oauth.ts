@@ -48,6 +48,27 @@ const LOOPBACK_REDIRECT_HOST = 'localhost';
 export const LOGIN_CANCELLED = 'Login cancelled';
 export const LOGIN_TIMED_OUT = 'Login timed out';
 
+export const EXCHANGE_INVALID_CODE = 'Authentication failed: Invalid authorization code';
+
+export function exchangeHttpError(status: number, statusText: string): string {
+  if (status === 401) return EXCHANGE_INVALID_CODE;
+  return `Token exchange failed (${status}): ${statusText}`;
+}
+
+export function refreshHttpError(statusText: string): string {
+  return `Token refresh failed: ${statusText}`;
+}
+
+export function tokenEndpointHttpError(grantType: string, status: number, statusText: string): string {
+  if (grantType === 'authorization_code') return exchangeHttpError(status, statusText);
+  if (grantType === 'refresh_token') return refreshHttpError(statusText);
+  return `HTTP request failed. status=${status}; url=${CLAUDE_TOKEN_URL}`;
+}
+
+export function isClaudeTokenEndpointError(message: string): boolean {
+  return message === EXCHANGE_INVALID_CODE || /^Token exchange failed \(\d+\):/.test(message) || message.startsWith('Token refresh failed:');
+}
+
 /** Append order from Claude Y9r for the standard cai login. */
 export const CLAUDE_AUTHORIZE_QUERY_ORDER = [
   'code',
@@ -146,7 +167,7 @@ async function postToken(body: Record<string, string>, signal: AbortSignal): Pro
   });
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(`HTTP request failed. status=${response.status}; url=${CLAUDE_TOKEN_URL}`);
+    throw new Error(tokenEndpointHttpError(body['grant_type'] ?? '', response.status, response.statusText));
   }
   let data: Partial<TokenResponse>;
   try {

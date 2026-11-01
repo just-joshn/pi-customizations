@@ -134,10 +134,19 @@ test('login uses Claude paste-code authorize URL with independent exchange state
 });
 
 test('refresh errors do not expose server tokens', async ({ provider }) => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ access_token: 'sensitive-server-value' }, { status: 400 })));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ access_token: 'sensitive-server-value' }), {
+        status: 400,
+        statusText: 'Bad Request',
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ),
+  );
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth login');
   const failure = oauth.refresh({ type: 'oauth', access: OAUTH_ACCESS_TOKEN, refresh: 'local-refresh', expires: 0 }, new AbortController().signal);
-  await expect(failure).rejects.toThrow('Claude subscription token refresh failed');
+  await expect(failure).rejects.toThrow('Token refresh failed: Bad Request');
   await expect(failure).rejects.not.toThrow('sensitive-server-value');
 });
