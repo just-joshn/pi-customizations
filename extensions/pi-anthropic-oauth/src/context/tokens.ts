@@ -1,5 +1,5 @@
 // Claude Code's token accounting, extracted from the installed 2.1.311 bundle
-// and unchanged in 2.1.312. One definition of "how this provider counts
+// and unchanged through 2.1.316. One definition of "how this provider counts
 // tokens" for the whole extension.
 import type { Api, AssistantMessage, ImageContent, Message, Model, SystemMessage, TextContent, ThinkingContent, ToolCall } from '@earendil-works/pi-ai';
 

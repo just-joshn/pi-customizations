@@ -102,7 +102,7 @@ async function runScenario(scenario: Scenario): Promise<object> {
         sessionHeaders: sessionIds,
       };
 
-      if (systemTexts(server.requests[0]?.body)[0] !== 'x-anthropic-billing-header: cc_version=2.1.312.74c; cc_entrypoint=sdk-cli;') throw new Error('The first prompt did not get its captured fingerprint.');
+      if (systemTexts(server.requests[0]?.body)[0] !== 'x-anthropic-billing-header: cc_version=2.1.316.437; cc_entrypoint=sdk-cli;') throw new Error('The first prompt did not get its captured fingerprint.');
       if (agentLoopRequests !== PROMPTS.length || agentLoopProviders.length !== PROMPTS.length) throw new Error('Each agent-loop prompt should send one request and fire one before_provider_request event.');
       if (compactionRequests.length === 0) throw new Error('Compaction sent no request to the gateway.');
       if (routedRequests.length !== 1) throw new Error('The routed prompt should send one request to the gateway.');
