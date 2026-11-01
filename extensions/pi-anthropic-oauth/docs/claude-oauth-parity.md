@@ -30,7 +30,7 @@ The current identity reference is locally installed Claude Code `2.1.311`, captu
 | Prompt shape, thinking display, output limits, and tool results | NATIVE DIFFERENCE | Pi owns these. The captured Claude SDK preamble, omitted-thinking display, and output limit are not imposed on Pi. Bash uses Pi's native output policy, including 40,000-character inline output in the CLI probe. |
 | Optional Claude beta flags and account metadata | NATIVE DIFFERENCE | Pi sends features it implements. Claude-specific safeguards, plugin protocols, account/device telemetry, previous-request IDs, and private workload flags are not copied or fabricated. Captured Claude `2.1.311` requests may list additional betas; this provider does not advertise betas for features Pi does not implement. |
 | Model catalog and entitlement filtering | NATIVE DIFFERENCE | The provider uses Pi's bundled Anthropic catalog at registration. It does not copy Claude aliases or maintain a second live model catalog. |
-| Claude Code credential-file and Keychain sharing | NATIVE DIFFERENCE | Pi's credential store is authoritative. The extension does not read, import, mutate, or synchronize Claude Code credentials. |
+| Claude Code credential-file and Keychain import | OPT-IN IMPORT | `/login` can import `claudeAiOauth` from the macOS Keychain or `.credentials.json` into Pi `auth.json`. Pi's store is authoritative afterward. The extension never writes Claude's store and never shells to `claude`. |
 | Live login, subscription entitlement, billing attribution, and cache acceptance | INCONCLUSIVE | No complete live login or authenticated Anthropic inference was performed in this update. Local shape equality cannot establish server acceptance or subscription billing. |
 
 ## Request identity

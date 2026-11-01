@@ -148,7 +148,7 @@ test('a state mismatch never exchanges the authorization code', async ({ provide
     oauth.login({
       signal: new AbortController().signal,
       notify: () => undefined,
-      prompt: async () => 'local-code#wrong-state',
+      prompt: async (prompt) => (prompt.type === 'select' ? 'paste' : 'local-code#wrong-state'),
     }),
   ).rejects.toThrow('Claude subscription login failed');
   expect(tokenEndpoint.requests).toStrictEqual([]);

@@ -91,7 +91,8 @@ test('login uses Claude paste-code authorize URL with independent exchange state
     notify: (event) => {
       if (event.type === 'auth_url') urls = [...urls, new URL(event.url)];
     },
-    prompt: async () => {
+    prompt: async (prompt) => {
+      if (prompt.type === 'select') return 'paste';
       const [url] = urls;
       if (!url) throw new Error('No authorization URL was shown');
       return `local-code#${url.searchParams.get('state')}`;

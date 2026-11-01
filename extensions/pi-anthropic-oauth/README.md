@@ -2,7 +2,7 @@
 
 Use a Claude subscription in Pi through its native provider, login, credential storage, and Anthropic streaming mechanisms.
 
-The package registers `claude-subscription`. Existing credentials and saved model selections keep that provider ID. It does not read Claude Code's credential files or macOS Keychain.
+The package registers `claude-subscription`. Existing credentials and saved model selections keep that provider ID. After login, Pi's `auth.json` is the only store this package uses for requests and refresh.
 
 ## Sign in through Pi
 
@@ -12,7 +12,12 @@ From this directory, start Pi:
 pi -e .
 ```
 
-Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login uses this package's Pi-native OAuth client. It opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), exchanges the code with an independent OAuth `state`, and refreshes with Claude's measured refresh scopes. Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
+Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Pi asks how to obtain tokens:
+
+- **Paste code.** Opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), exchanges the code with an independent OAuth `state`, and refreshes with Claude's measured refresh scopes. Complete sign-in in the browser, then paste the code into Pi.
+- **Import from Claude Code.** Reads an existing Claude Code session from the macOS Keychain item `Claude Code-credentials` (account is your `USER`) when present, otherwise from `~/.claude/.credentials.json` (or `CLAUDE_CONFIG_DIR` / `CLAUDE_SECURESTORAGE_CONFIG_DIR`). It maps `claudeAiOauth` into a Pi oauth credential and writes only Pi's store. It never runs the `claude` binary and never writes Claude's credential files.
+
+Select a `claude-subscription` model with `/model`.
 
 To install the package, run `pi install npm:@justjoshn/pi-anthropic-oauth`, or `pi install` with this directory's path.
 

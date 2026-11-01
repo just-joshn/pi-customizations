@@ -2,6 +2,8 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
+import { importClaudeAiOauth } from './claude-credentials.ts';
+
 /** Claude Code 2.1.312 cai authorize origin and path. */
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
@@ -194,14 +196,50 @@ async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAut
   return credentialFrom(token);
 }
 
-export function createClaudeOAuth(): OAuthAuth {
+export type ClaudeOAuthOptions = {
+  /** Override for tests. Defaults to reading Claude Code keychain / `.credentials.json`. */
+  importCredentials?: () => Promise<OAuthCredential>;
+};
+
+async function loginImport(
+  interaction: ProviderAuthInteraction,
+  importCredentials: () => Promise<OAuthCredential>,
+): Promise<OAuthCredential> {
+  interaction.notify({
+    type: 'progress',
+    message: 'Importing Claude Code credentials into Pi auth storage...',
+  });
+  return importCredentials();
+}
+
+export function createClaudeOAuth(options: ClaudeOAuthOptions = {}): OAuthAuth {
+  const importCredentials = options.importCredentials ?? (() => importClaudeAiOauth());
   return {
     name: 'Claude subscription (Provider CLI)',
     loginLabel: 'Claude subscription (Provider CLI)',
     isSubscription: true,
     login: async (interaction, _options?: LoginOptions) => {
       interaction.signal.throwIfAborted();
-      return loginCopyCode(interaction);
+      const method = await interaction.prompt({
+        type: 'select',
+        message: 'Claude subscription login',
+        options: [
+          {
+            id: 'paste',
+            label: 'Paste code',
+            description: 'Sign in in the browser, then paste the code Anthropic shows.',
+          },
+          {
+            id: 'import',
+            label: 'Import from Claude Code',
+            description: 'Copy an existing Claude Code keychain or .credentials.json session into Pi auth.json.',
+          },
+        ],
+      });
+      interaction.signal.throwIfAborted();
+      if (method === 'import') return loginImport(interaction, importCredentials);
+      if (method === 'paste') return loginCopyCode(interaction);
+      throw new Error('Login cancelled');
     },
     refresh: async (credential, signal) => {
       signal.throwIfAborted();

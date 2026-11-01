@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2]
+
+- Add an opt-in `/login` choice that imports Claude Code `claudeAiOauth` from the macOS Keychain or `.credentials.json` into Pi `auth.json`.
+
 ## [0.1.1]
 
 - Replace the Pi builtin Anthropic OAuth wrap with a Pi-native Claude OAuth client (cai authorize, independent state, plugins login scope, Zxt refresh scope, copy-code).

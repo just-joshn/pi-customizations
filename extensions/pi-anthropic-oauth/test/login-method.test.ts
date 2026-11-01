@@ -3,10 +3,10 @@ import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES, su
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
-test('subscription login skips a method selector and uses paste-code authorize', async () => {
+test('subscription login offers paste and Claude Code import, then uses paste-code authorize', async () => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-  let selectSeen = false;
+  let selectOptions: { id: string; label: string }[] | undefined;
   let authorizeUrl: URL | undefined;
   const fetchCalls: unknown[] = [];
   const original = globalThis.fetch;
@@ -22,14 +22,17 @@ test('subscription login skips a method selector and uses paste-code authorize',
       },
       prompt: async (prompt) => {
         if (prompt.type === 'select') {
-          selectSeen = true;
-          return 'browser';
+          selectOptions = prompt.options.map((option) => ({ id: option.id, label: option.label }));
+          return 'paste';
         }
         if (!authorizeUrl) throw new Error('No authorization URL was shown');
         return `local-code#${authorizeUrl.searchParams.get('state')}`;
       },
     });
-    expect(selectSeen).toBe(false);
+    expect(selectOptions).toEqual([
+      { id: 'paste', label: 'Paste code' },
+      { id: 'import', label: 'Import from Claude Code' },
+    ]);
     expect(authorizeUrl?.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
     expect(authorizeUrl?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
     expect(authorizeUrl?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);
@@ -56,7 +59,8 @@ test('subscription login posts the independent state with the authorization code
       notify: (event) => {
         if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
       },
-      prompt: async () => {
+      prompt: async (prompt) => {
+        if (prompt.type === 'select') return 'paste';
         if (!authorizeUrl) throw new Error('No authorization URL was shown');
         const state = authorizeUrl.searchParams.get('state');
         if (!state) throw new Error('Authorize URL lacks state');
