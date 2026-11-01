@@ -5,7 +5,7 @@ import type { LoginOptions, OAuthAuth, OAuthCredential, ProviderAuthInteraction 
 
 import { importClaudeAiOauth } from './claude-credentials.ts';
 
-/** Claude Code 2.1.312 cai authorize origin and path. */
+/** Claude Code 2.1.316 cai authorize origin and path. */
 export const CLAUDE_AUTHORIZE_ORIGIN = 'https://claude.com';
 export const CLAUDE_AUTHORIZE_PATH = '/cai/oauth/authorize';
 export const CLAUDE_AUTHORIZE_URL = `${CLAUDE_AUTHORIZE_ORIGIN}${CLAUDE_AUTHORIZE_PATH}`;

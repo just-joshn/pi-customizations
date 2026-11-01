@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3]
+
+- Pin request identity to Claude Code `2.1.316` (user agent and billing fingerprint version).
+
 ## [0.1.2]
 
 - Add an opt-in `/login` choice that imports Claude Code `claudeAiOauth` from the macOS Keychain or `.credentials.json` into Pi `auth.json`.
