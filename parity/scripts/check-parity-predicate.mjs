@@ -79,17 +79,17 @@ const TEAM_KIT_SKILLS = [
   'loop-on-ci',
   'make-pr-easy-to-review',
   'new-branch-and-pr',
-  'no-inline-imports',
   'pr-review-canvas',
   'review-and-ship',
   'run-smoke-tests',
   'thermo-nuclear-code-quality-review',
-  'typescript-exhaustive-switch',
   'verify-this',
   'weekly-review',
   'what-did-i-get-done',
   'workflow-from-chats',
 ];
+
+const TEAM_KIT_RULES_AS_SKILLS = ['no-inline-imports', 'typescript-exhaustive-switch'];
 
 const SOFT_DEPS = ['deslop', 'control-cli', 'control-ui', 'create-skill', 'no-comments', 'benchmark-checklist'];
 const FORBIDDEN_UPSTREAM = ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'scripts/patches.json', 'docs/harness'];
@@ -113,6 +113,16 @@ function skillDirs(skillsRoot) {
     .toSorted();
 }
 
+function walkRuntimeFiles(dir, out = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === 'coverage' || entry.name === '.audit' || entry.name === 'test' || entry.name === '.DS_Store') continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) walkRuntimeFiles(full, out);
+    else if (/\.(?:ts|mjs|js|json|md|sh|lock|yaml)$/.test(entry.name) || dir.endsWith('/bin') || dir.endsWith('/scripts')) out.push(full);
+  }
+  return out;
+}
+
 function check(name, ok, detail) {
   return { name, ok, detail };
 }
@@ -122,14 +132,15 @@ function runChecks() {
   const checks = [];
 
   {
-    const expected = [...PSTACK_SKILLS, ...TEAM_KIT_SKILLS, 'create-skill'].toSorted();
+    const expected = [...PSTACK_SKILLS, ...TEAM_KIT_SKILLS, ...TEAM_KIT_RULES_AS_SKILLS, 'create-skill'].toSorted();
     const present = skillDirs(PI_SKILLS);
     const missing = expected.filter((name) => !existsSync(join(PI_SKILLS, name, 'SKILL.md')));
-    const ok = missing.length === 0 && present.length === expected.length;
+    const countsOk = PSTACK_SKILLS.length === 58 && TEAM_KIT_SKILLS.length === 18 && TEAM_KIT_RULES_AS_SKILLS.length === 2;
+    const ok = countsOk && missing.length === 0 && present.length === expected.length;
     const result = check(
       'standalone-skills-inventory',
       ok,
-      ok ? `${present.length} self-contained skills present under extensions/pi-pstack/skills (58 pstack + 20 team-kit + create-skill)` : `missing or mismatched skills: ${missing.join(', ')}`,
+      ok ? `${present.length} self-contained skills present under extensions/pi-pstack/skills (58 pstack + 18 team-kit skills + 2 team-kit rules + create-skill)` : `missing or mismatched skills: ${missing.join(', ')}`,
     );
     checks.push(result);
     if (!result.ok) failures.push(result.name);
@@ -155,8 +166,18 @@ function runChecks() {
         }
       }
     }
+    const pluginPathPattern = /\.cursor\/plugins|\.cursor-plugin|@cursor-skill|cursor-public|cursor-plugins/i;
+    const runtimeFiles = walkRuntimeFiles(PI_PSTACK);
+    for (const file of runtimeFiles) {
+      const text = readFileSync(file, 'utf8');
+      if (pluginPathPattern.test(text)) badDeps.push(`plugin path ref in ${file.slice(PI_PSTACK.length + 1)}`);
+    }
     const ok = present.length === 0 && badDeps.length === 0;
-    const result = check('zero-cursor-pstack-dependencies', ok, ok ? `0 Cursor pstack dependencies across ${manifests.join(', ')}; absent: ${FORBIDDEN_UPSTREAM.join(', ')}` : `violations: ${[...present, ...badDeps].join(', ')}`);
+    const result = check(
+      'zero-cursor-pstack-dependencies',
+      ok,
+      ok ? `0 Cursor pstack dependencies across ${manifests.length} manifests and ${runtimeFiles.length} runtime/shipped files; absent: ${FORBIDDEN_UPSTREAM.join(', ')}` : `violations: ${[...present, ...badDeps].join(', ')}`,
+    );
     checks.push(result);
     if (!result.ok) failures.push(result.name);
   }
