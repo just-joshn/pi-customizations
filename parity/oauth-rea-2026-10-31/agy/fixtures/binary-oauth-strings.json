@@ -1,7 +1,15 @@
 {
   "binary": {
     "path": "/Users/josh-desktop/.local/bin/agy",
-    "sha256": "09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd"
+    "sha256": "34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3",
+    "bytes": 197589952,
+    "format": "mach-o",
+    "arch": "arm64",
+    "go_buildinfo": "go1.28-20261025-RC00 cl/1006921819",
+    "go_buildinfo_evidence": "rea inspect_go_binary ev_0a28b63695668a67d1f4236905cb51bee21518075464f802dcae0c0401a5c498",
+    "changelog_version_literal": "1.4.12",
+    "ua_cl_literal_count": 11,
+    "note": "UA product string antigravity/cli/<ver> is not a contiguous literal; measured at runtime in captured-user-agent-1.4.12.json. Toolchain cl/1006921819 != UA cl=1010700967."
   },
   "endpoints": [
     "https://accounts.google.com/o/oauth2/auth",
@@ -18,22 +26,39 @@
     "https://preprod-daily-cloudcode-pa.sandbox.googleapis.com"
   ],
   "client_ids": [
-    "<google-oauth-client-id> (consumer; see extensions/pi-antigravity-oauth/src/oauth.ts)",
-    "<google-oauth-client-id> (alternate; redacted)",
-    "<google-oauth-client-id> (alternate; redacted)"
+    {
+      "role": "consumer",
+      "value": "<google-oauth-client-id>",
+      "matches_pi": true,
+      "note": "1071006060591-tmhssin2h21lcre235vtolojh4g403ep\u2026 see extensions/pi-antigravity-oauth/src/oauth.ts"
+    },
+    {
+      "role": "alternate",
+      "value": "<google-oauth-client-id>",
+      "note": "1098991175725-\u2026 redacted"
+    },
+    {
+      "role": "alternate",
+      "value": "<google-oauth-client-id>",
+      "note": "884354919052-\u2026 redacted"
+    }
   ],
   "client_secrets_public_installed_app": [
     {
+      "role": "consumer",
       "value": "<google-oauth-client-secret>",
-      "note": "consumer secret matches extensions/pi-antigravity-oauth/src/oauth.ts; literal redacted for push protection"
+      "matches_pi": true,
+      "note": "GOCSPX-K58\u2026 matches Pi CLIENT_SECRET; literal redacted for push protection"
     },
     {
+      "role": "alternate_near_cloud_authorize",
       "value": "<google-oauth-client-secret>",
-      "note": "adjacent to auth.cloud.google/authorize; redacted"
+      "note": "GOCSPX-9YQ\u2026 adjacent to https://cloud\u2026; redacted"
     },
     {
+      "role": "alternate",
       "value": "<google-oauth-client-secret>",
-      "note": "role unknown; redacted"
+      "note": "GOCSPX-j7R\u2026; redacted"
     }
   ],
   "scopes_present": [
@@ -63,6 +88,7 @@
     "/v1internal:fetchUserInfo",
     "/v1internal:listCloudAICompanionProjects",
     "/v1internal:onboardUser",
+    "/v1internal:listExperiments",
     "/v1internal:retrieveUserQuota",
     "/v1internal:retrieveUserQuotaSummary"
   ],
@@ -71,17 +97,23 @@
     "codeassistclient.(*AntigravityHubAuthProvider).OAuthTokenInfo",
     "codeassistclient.(*AntigravityHubAuthProvider).GetTokenSource",
     "codeassistclient.(*AntigravityHubAuthProvider).SetProjectID",
-    "codeassistclient.(*AntigravityHubAuthProvider).SetWIFProvider"
+    "codeassistclient.(*AntigravityHubAuthProvider).SetWIFProvider",
+    "codeassistclient.(*AntigravityHubAuthProvider).GetSavedWIFProvider"
   ],
-  "ua_fragments": [
-    "aidev_client",
-    "os_type=%s",
-    "auth_method=%s",
-    "User-Agent"
-  ],
+  "ua_fragments": {
+    "aidev_client": 1,
+    "os_type=%s": 1,
+    "auth_method=%s": 1,
+    "cl=%d": 1,
+    "User-Agent": 8,
+    "contiguous_antigravity/cli/": 0,
+    "measured_live": "fixtures/captured-user-agent-1.4.12.json"
+  },
   "cred_storage_fragments": [
     "go-keyring-base64",
     "zalando/go_keyring",
     "ANTIGRAVITY_GEMINI_DIR/run/credentials-cache"
-  ]
+  ],
+  "prior_binary_sha256": "09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd",
+  "drift_note": "Hash changed from 09cefed6\u2026 to 34423fc9\u2026. OAuth endpoint/client/scope literals still present. UA cl literal 1010700967 present; old Pi cl 1010154931/994719654 absent."
 }

@@ -1,6 +1,6 @@
 # OAuth-dependent Cloud Code auth (agy)
 
-Covers how a bearer token from the OAuth flow is applied to Cloud Code Assist and related surfaces. Evidence from the same agy Mach-O and from on-disk / keychain state. No live authenticated Cloud Code calls were made.
+Covers how a bearer token from the OAuth flow is applied to Cloud Code Assist and related surfaces. Evidence from Mach-O sha256 `34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3`, live sink fixtures, and on-disk / keychain state. No new live authenticated Cloud Code calls were made in this unit (fixtures retained from prior capture against this generation).
 
 ## Request auth encoding
 
@@ -8,9 +8,10 @@ Covers how a bearer token from the OAuth flow is applied to Cloud Code Assist an
 
 Cloud Code RPCs use bearer access tokens.
 
-- Literal `Bearer ` is present.
+- Literal `Bearer ` is present (10 hits).
 - Pi encodes `Authorization: Bearer ${token}` in `cloudCodeHeaders`.
 - agy keychain stores `token.token_type` as `Bearer`.
+- Live sink rows mark `authorization_present: true` (`fixtures/captured-user-agent-1.4.12.json`).
 
 ### Pi-native apiKey bridge (not agy)
 
@@ -24,21 +25,37 @@ Pi does not read the macOS keychain. After login, `toAuth` packs.
 
 ### Content type
 
-JSON RPCs. `Content-Type: application/json` (Pi). Binary has extensive JSON and protobuf clients for `v1internal`.
-
-Token endpoint uses `application/x-www-form-urlencoded` (binary literal).
+JSON RPCs. Live sink. `content_type: application/json` on loadCodeAssist / listExperiments. Token endpoint uses `application/x-www-form-urlencoded` (binary literal).
 
 ## Headers
 
 ### User-Agent
 
-Binary contains `aidev_client`, format pieces `os_type=%s`, `auth_method=%s`, and `User-Agent`. No contiguous literal matching the full string was found in the Mach-O. Live sink capture supplies the wire value.
+**VERIFIED** against live sink for this binary.
 
-Measured agy 1.4.12 (sha256 `34423fc9…`) and Pi both send.
+```
+antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)
+```
 
-`antigravity/cli/1.4.12 (aidev_client; os_type=<go-os>; arch=<go-arch>; cl=1010700967; auth_method=consumer)`
+Fixture. `fixtures/captured-user-agent-1.4.12.json` (also older `fixtures/captured-user-agent.json` for prior 1.4.11 / cl=1010154931).
 
-Evidence. `fixtures/captured-user-agent-1.4.12.json`. Keychain `auth_method` is `consumer`, matching the template.
+Binary fragments supporting the template.
+
+| Fragment | Count |
+| --- | --- |
+| `aidev_client` | 1 |
+| `os_type=%s` | 1 |
+| `auth_method=%s` | 1 |
+| `cl=%d` | 1 |
+| `User-Agent` | 8 |
+| `antigravity/cli/` contiguous | 0 |
+| literal `1010700967` | 11 |
+
+Pi `userAgent()` in `extensions/pi-antigravity-oauth/src/cloudcode.ts` and `test/stream.test.ts` already pin `1.4.12` / `cl=1010700967`. Match. VERIFIED.
+
+Do not confuse with Go toolchain buildinfo `cl/1006921819` (`fixtures/binary-identity-34423fc9.json`, REA go evidence).
+
+Keychain `auth_method` is `consumer`, matching Pi's `auth_method=consumer`.
 
 ### Authorization
 
@@ -55,13 +72,9 @@ Method. `POST /v1internal:fetchAvailableModels`
 Binary references.
 
 - `/v1internal:fetchAvailableModels`
-- `CodeAssistClient.fetchAvailableModels` / `fetchAvailableModelsFromBAIC`
 - Failure strings `FetchAvailableModels failed: %v`, `Failed to poll FetchAvailableModels`
-- Skip path when auth mode unspecified. Returns empty response.
 
-Pi body. `{ project: <projectId> }` with bearer token. Matches the need for a project id discovered via `loadCodeAssist`.
-
-Auth dependency. Valid consumer access token plus known project. Refresh via Google token endpoint when expired.
+Prior sink (1.4.11 fixture) captured authenticated `fetchAvailableModels` with empty body `{}` and bearer. Pi body. `{ project: <projectId> }` with bearer token. Auth dependency. Valid consumer access token plus known project. Refresh via Google token endpoint when expired.
 
 ## Streaming auth
 
@@ -69,13 +82,25 @@ Method. `POST /v1internal:streamGenerateContent?alt=sse`
 
 Binary has `streamGenerateContent` and related generate/chat stream methods.
 
-Pi envelope fields (from extension, not re-proven in binary this pass).
+Pi envelope fields (from extension).
 
 - `project`, `requestId`, `request`, `model`
 - `userAgent: "antigravity"`
 - `requestType: "agent"`
 
-Auth. Same bearer + User-Agent as catalog. Empty-stream retries keep the transcript and salt `requestId`.
+Auth. Same bearer + User-Agent as catalog. Empty-stream retries keep the transcript and salt `requestId`. Envelope field parity beyond auth is separate wire work (see gap list).
+
+## loadCodeAssist (oauth-adjacent project discovery)
+
+**VERIFIED** body for this binary generation.
+
+```json
+{"metadata":{"ideType":"ANTIGRAVITY"}}
+```
+
+Measured on multiple `/v1internal:loadCodeAssist` rows in `fixtures/captured-user-agent-1.4.12.json`. Matches Pi `LOAD_CODE_ASSIST_BODY`. Response field `cloudaicompanionProject` remains the project source (binary + Pi).
+
+Also observed on this UA. `POST /v1internal:listExperiments` with body `{}` (same UA and bearer).
 
 ## STS / WIF (oauth dependency branch)
 
@@ -88,6 +113,8 @@ Present in binary.
 - String `m stored for WIF credential` near client-metadata URL
 
 Guess. Enterprise / workforce identity federation path, not required for consumer Google login that Pi implements. Consumer keychain payload uses `auth_method: consumer` with a normal Google refresh token, not an STS subject token.
+
+Follow-up only if Pi must support enterprise WIF. Concrete. Capture a WIF login and map STS request fields. Not required for consumer parity.
 
 ## Credential storage
 
@@ -138,15 +165,13 @@ Provider key `google-antigravity`.
 }
 ```
 
-Pi owns persistence. agy keychain is not read at runtime by the extension.
+Pi owns persistence. agy keychain is not read at runtime by the extension. Optional follow-up. Import path that reads go-keyring payload and runs `loadCodeAssist` to fill `projectId`.
 
 ### Claude credential files
 
-Acceptance asked for Claude/agy on-disk formats if present.
-
-- Under `~/.claude/` no oauth token JSON analogous to agy's keychain blob was found this pass (settings, sessions, policy files only).
-- Pi stores a separate `claude-subscription` oauth entry in `auth.json` (`access`, `refresh`, `expires` only). That is Pi's Claude path, not agy's Google path.
-- agy changelog mentions `agy plugin import claude` for plugin import. Not an oauth credential store.
+- Under `~/.claude/` no oauth token JSON analogous to agy's keychain blob was found for Antigravity.
+- Pi stores a separate `claude-subscription` oauth entry in `auth.json`. That is Pi's Claude path, not agy's Google path.
+- Status. NOT APPLICABLE to Antigravity oauth deps.
 
 ## Cloud Code host selection
 
@@ -155,3 +180,19 @@ Default host Pi uses. `https://daily-cloudcode-pa.googleapis.com`.
 agy. Same host string present. Override via `CLOUD_CODE_URL` with log `Overriding CloudCodeServerURL via CLOUD_CODE_URL environment variable: %q`.
 
 Prod and sandbox hosts also embedded for other channels.
+
+## Dependency status matrix (this binary)
+
+| Dep | Status | Evidence / follow-up |
+| --- | --- | --- |
+| Bearer Authorization | VERIFIED | binary + keychain + sink |
+| User-Agent 1.4.12 / cl=1010700967 | VERIFIED | sink fixture + Pi match |
+| loadCodeAssist body | VERIFIED | sink body_prefix |
+| fetchAvailableModels auth | VERIFIED | method + prior sink + Pi |
+| streamGenerateContent auth | VERIFIED | method + Pi headers |
+| CLOUD_CODE_URL / daily host | VERIFIED | binary + Pi |
+| Keychain consumer store | VERIFIED | schema fixture |
+| Token POST includes client_secret | FOLLOW-UP | capture token exchange under auth_method none |
+| Tokeninfo validation | FOLLOW-UP optional | Pi omits; agy has strings |
+| STS/WIF consumer path | NOT REQUIRED | enterprise-only; concrete capture if needed |
+| Keychain import into Pi | FOLLOW-UP optional | pi-native reader + loadCodeAssist |

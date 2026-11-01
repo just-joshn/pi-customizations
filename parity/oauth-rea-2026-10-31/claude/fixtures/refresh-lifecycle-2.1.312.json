@@ -1,0 +1,40 @@
+{
+  "version": "2.1.312",
+  "binary_sha256": "6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620",
+  "proactive_predicate": "AA(expiresAt): Date.now()+300000 >= expiresAt",
+  "aa_offset": 220551392,
+  "store_access_expiry": "Date.now() + expires_in * 1000",
+  "refresh_token_expires": "q9r(refresh_token_expires_in, false) stored as refreshTokenExpiresAt",
+  "in_process_latch": {
+    "name": "oauthRefreshLatch",
+    "offset": 220844698,
+    "behavior": "gateToSessionOAuthCredential path sets R.attempted=true; concurrent forced refresh shares one ck() via Nqt(R, ()=>ck(...)); some outcomes clear attempted"
+  },
+  "file_lock": {
+    "telemetry_prefix": "tengu_oauth_token_refresh_lock_*",
+    "contended_code": "ELOCKED",
+    "retries": "up to 5 with 1000+random*1000 ms delay"
+  },
+  "http_401_wrapper": {
+    "name": "FE",
+    "offset": 220842900,
+    "triggers": [
+      "status===401",
+      "status===403 with body including 'OAuth token has been revoked' when also403Revoked"
+    ],
+    "forced_refresh": "ck(accessToken, credentials)"
+  },
+  "error_strings": {
+    "exchange_401": "Authentication failed: Invalid authorization code",
+    "exchange_other": "Token exchange failed (${status}): ${statusText}",
+    "refresh_invalid_grant_metric": "oauth_refresh_invalid_grant",
+    "revoked_sdk": "OAuth access token has been revoked"
+  },
+  "evidence": [
+    "carves/tight-AA_body@220551392.txt",
+    "carves/tight-oauthRefreshLatch@220844698.txt",
+    "carves/tight-FE_401@220842900.txt",
+    "carves/tight-ck_forced_refresh@220802281.txt",
+    "carves/tight-Invalid_authorization_code@220546212.txt"
+  ]
+}

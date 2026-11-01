@@ -1,0 +1,16 @@
+{
+  "version": "2.1.312",
+  "binary_sha256": "6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620",
+  "library": "node:crypto (imported as crypto in bun SEA)",
+  "imports": "import{createHash as T,randomBytes as E}from\"crypto\"",
+  "offset": 221657206,
+  "helpers": {
+    "b": "base64url via toString('base64') then replaceAll +/ /, = strip",
+    "L": "verifier = b(E(32))",
+    "O": "challenge = b(sha256(verifier))",
+    "y": "state = b(E(32)) independent of verifier"
+  },
+  "method": "S256",
+  "evidence_carve": "carves/tight-pkce_helpers@221657206.txt",
+  "module_sha256": "8202e5d3d858f1c4ed11e1e224ffbda9b24c6389631680954982f748b276840b"
+}

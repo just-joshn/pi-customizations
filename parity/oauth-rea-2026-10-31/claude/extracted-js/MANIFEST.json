@@ -1,0 +1,22 @@
+{
+  "binary_sha256": "6b5ec691195e551b02c41df9f7d723f4ea61eaa03c2df90acefe3736f1aeb620",
+  "note": "Bun SEA JS carved from Mach-O; REA extract_artifact unsupported for mach-o. Modules named after /$bunfs/root/ chunks when known.",
+  "modules": {
+    "chunk-7rmk5fgf-oauth-config.js": "baf9e4972910bb78249e74c630bd39c7ecef4a76605a128392b812a9f71d0f59",
+    "chunk-oauth-login-pkce.js": "8202e5d3d858f1c4ed11e1e224ffbda9b24c6389631680954982f748b276840b",
+    "chunk-secure-storage.js": "9c8c6dc3d756a7bdcb2bf40628c19c3beb8766d67ddbe05183df63bfb130d3d2"
+  },
+  "ALLOWED_OAUTH_BASE_URLS": [
+    "https://beacon.claude-ai.staging.ant.dev",
+    "https://claude.fedstart.com",
+    "https://claude-staging.fedstart.com"
+  ],
+  "P5e_offset": 217352359,
+  "pkce_offset": 221657206,
+  "rea": {
+    "inspect_artifact_parent": "ev_22c9cd75ed32b5c0b17273c9cd8cb869e1af5da2844c6b42639e27a99275faef",
+    "inspect_macho_parent": "ev_a0dbfded35ee358702abf318c766830ab52646626260ef56f4a2422fb4e81a59",
+    "analyze_javascript_parent": "ev_06a800b189d56b1b0f44ad163095500cc968f12b88a268c4cae061317b08878a",
+    "extracted_js_digest": "0897055e04687c0e8a1d7b76b70a2f0307ecc65a3372f17c2b65e9b312a4b554"
+  }
+}

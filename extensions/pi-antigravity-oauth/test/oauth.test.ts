@@ -116,10 +116,50 @@ test('login reads the project with the CLI loadCodeAssist body and the email fro
   }
 });
 
-test('login fails when Cloud Code names no project', async () => {
-  const server = await google({});
+test('login onboards when loadCodeAssist names no project, then reloads the project', async () => {
+  let loads = 0;
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/token') return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/cc/v1internal:loadCodeAssist') {
+      loads += 1;
+      return json(res, 200, loads === 1 ? {} : { cloudaicompanionProject: 'onboarded-project' });
+    }
+    if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
+    return json(res, 404, {});
+  });
   try {
-    await expect(createAntigravityOAuth(endpoints(server)).login(pasteCode().value)).rejects.toThrow('Cloud Code named no Antigravity project for this account. Sign in once with the Antigravity CLI, then run /login again.');
+    const credential = await createAntigravityOAuth(endpoints(server)).login(pasteCode().value);
+    const onboard = server.requests.find((request) => request.path.endsWith('onboardUser'));
+    expect(onboard?.body).toBe('{"tierId":"free-tier","metadata":{"ideType":"ANTIGRAVITY"}}');
+    expect(onboard?.headers.authorization).toBe('Bearer ya29.first');
+    expect(server.requests.filter((request) => request.path.endsWith('loadCodeAssist'))).toHaveLength(2);
+    expect(credential['projectId']).toBe('onboarded-project');
+  } finally {
+    server.close();
+  }
+});
+
+test('login fails without mentioning the Antigravity CLI when onboarding still yields no project', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path === '/token') return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
+    if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, {});
+    if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
+    return json(res, 404, {});
+  });
+  try {
+    const error = await createAntigravityOAuth(endpoints(server))
+      .login(pasteCode().value)
+      .then(
+        () => {
+          throw new Error('expected login to fail');
+        },
+        (err: unknown) => err,
+      );
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe('Cloud Code named no Antigravity project for this account after onboarding.');
+    expect((error as Error).message).not.toMatch(/Antigravity CLI|\bagy\b/);
   } finally {
     server.close();
   }

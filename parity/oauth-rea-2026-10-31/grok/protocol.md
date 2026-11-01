@@ -67,9 +67,9 @@ String evidence in the binary:
 - Source path `crates/codegen/xai-grok-login/src/device_code.rs`
 - User-code format check `[A-Z0-9-]`
 
-Verification host was not re-captured on 1.0.70. Prior 1.0.50 fixture used `https://accounts.x.ai/oauth2/device`. Embedded docs still mention `accounts.x.ai`. Treat the 1.0.50 verification host as still likely (GUESS) until a fresh device probe.
+Verification host measured on 1.0.70 live device start: `https://accounts.x.ai/oauth2/device` (`fixtures/device-code-request-1.0.70.json`, also `fixtures/device-probe-1.0.70.json`).
 
-Device request also sits next to header name fragments `x-grok-client-version` / `1.0.70` / `x-grok-client-surface` in one concatenated blob. Exact device-request headers and the surface value were not wire-captured (GUESS).
+Device request sits next to header name fragments `x-grok-client-version` / `1.0.70` / `x-grok-client-surface` in one concatenated blob. Live IdP accepts Pi-style `client_id` + `scope` without those headers (HTTP 200). Exact Grok CLI surface header value remains unknown (GUESS until wire or decompile).
 
 ## Token response and refresh skew
 
