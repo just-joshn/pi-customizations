@@ -55,3 +55,12 @@ describe('subscriptions line (C-H2)', () => {
     expect(hostSection(facts(ALL_TOOLS))).toContain('Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`)');
   });
 });
+
+describe('image generation substitute (gap-list item 2)', () => {
+  test('host section names the codemode and image-model gate and the Mermaid or table substitute', () => {
+    const host = hostSection(facts(ALL_TOOLS));
+    expect(host).toContain(
+      "- Image generation: codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+    );
+  });
+});

@@ -23,6 +23,19 @@ export function routinesDir(): string {
   return join(stateDir(), 'routines');
 }
 
+/** Desired-state registry and supervisor runtime for one workspace. */
+export function durableDir(cwd: string): string {
+  return join(stateDir(), 'durable', workspaceSlug(cwd));
+}
+
+export function durableRegistryPath(cwd: string): string {
+  return join(durableDir(cwd), 'subscriptions.json');
+}
+
+export function durableRuntimeDir(cwd: string): string {
+  return join(durableDir(cwd), 'runtime');
+}
+
 /**
  * Pi's rule for a session folder name, so per-workspace state lines up with `<agentDir>/sessions/<slug>`. The live
  * `sessionManager.getSessionDir()` needs a session and names the current one, which is `<workspace>/subagents` in a

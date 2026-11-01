@@ -63,7 +63,9 @@ describe('host map (HOST-001)', () => {
     const prompt = await systemPrompt(['--no-session']);
     const names = ['pstack_host', 'pstack_subagents', 'pstack_models', 'pstack_mode', 'pstack_plan', 'pstack_loop'];
     const pstack = names.map((name) => new RegExp(`<${name}>\\n([\\s\\S]*?)\\n</${name}>`).exec(prompt)?.[1] ?? '').join('\n');
-    expect(pstack).not.toMatch(/cursor/i);
+    // Absolute paths are allowed in the host map; a checkout folder may contain "cursor" (this repo does).
+    const scrubbed = pstack.replaceAll(PACKAGE_ROOT, '<PACKAGE_ROOT>').replaceAll(sandbox.agentDir, '<AGENT_DIR>');
+    expect(scrubbed).not.toMatch(/cursor/i);
   });
 
   test('tells a one-shot run it cannot subscribe, and a long-lived session how subscriptions wake it (HOST-010)', async () => {

@@ -1,0 +1,15 @@
+# Does not require root. Reboot survival needs linger enabled for the user when no login session is open.
+
+[Unit]
+Description=pstack durable routines supervisor
+After=default.target
+
+[Service]
+Type=simple
+WorkingDirectory=/absolute/path/to/your/repo
+ExecStart=/absolute/path/to/node_modules/@justjoshn/pi-pstack/bin/pstack-routines-supervisor --workspace /absolute/path/to/your/repo
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

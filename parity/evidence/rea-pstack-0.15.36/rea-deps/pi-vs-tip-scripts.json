@@ -1,0 +1,30 @@
+[
+  {
+    "label": "poteto-mode/scripts",
+    "tip_count": 18,
+    "pi_count": 18,
+    "identical": 15,
+    "changed": 3,
+    "only_tip": [],
+    "only_pi": [],
+    "changed_files": [
+      "worktree-audit.sh",
+      "package.json",
+      "bun.lock"
+    ],
+    "byte_identical_intersection": false
+  },
+  {
+    "label": "statechart/scripts",
+    "tip_count": 405,
+    "pi_count": 405,
+    "identical": 404,
+    "changed": 1,
+    "only_tip": [],
+    "only_pi": [],
+    "changed_files": [
+      "package.json"
+    ],
+    "byte_identical_intersection": false
+  }
+]

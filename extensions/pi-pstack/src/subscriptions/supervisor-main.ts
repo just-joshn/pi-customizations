@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+import { spawn } from 'node:child_process';
+import { resolve } from 'node:path';
+
+import { createSupervisor } from './supervisor.ts';
+
+function usage(): never {
+  console.error('Usage: pstack-routines-supervisor --workspace <cwd>');
+  process.exit(2);
+}
+
+function parseArgs(argv: string[]): { workspace: string } {
+  let workspace: string | undefined;
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === '--workspace') {
+      workspace = argv[index + 1];
+      index += 1;
+      continue;
+    }
+    if (arg === '--help' || arg === '-h') usage();
+    console.error(`Unknown argument: ${arg}`);
+    usage();
+  }
+  if (workspace === undefined || workspace.trim() === '') usage();
+  return { workspace: resolve(workspace) };
+}
+
+function runFresh(prompt: string, name: string, meta: { subscriptionId: string; cwd: string }): Promise<void> {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn('pi', ['--mode', 'json', '-p', prompt], {
+      cwd: meta.cwd,
+      env: process.env,
+      stdio: 'ignore',
+      detached: true,
+    });
+    child.unref();
+    child.once('error', (error) => reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): ${error.message}`)));
+    child.once('spawn', () => resolvePromise());
+  });
+}
+
+async function main(): Promise<void> {
+  const { workspace } = parseArgs(process.argv.slice(2));
+  const supervisor = createSupervisor({ workspaceCwd: workspace, runFresh });
+  const result = await supervisor.start();
+  if (!result.started) {
+    console.log(`pstack-routines-supervisor already running for ${workspace} (pid ${result.pid}).`);
+    process.exit(0);
+  }
+  console.log(`pstack-routines-supervisor started for ${workspace} (pid ${process.pid}).`);
+  await new Promise<void>((resolve) => {
+    const shutdown = () => {
+      supervisor.stop();
+      resolve();
+    };
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+    process.on('SIGHUP', () => {
+      void supervisor.reconcile();
+    });
+  });
+}
+
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});
