@@ -41,6 +41,13 @@ export const CLAUDE_COPY_CODE_REDIRECT_URI = 'https://platform.claude.com/oauth/
 export const CLAUDE_TOKEN_URL = 'https://platform.claude.com/v1/oauth/token';
 export const CLAUDE_LOOPBACK_CALLBACK_PATH = '/callback';
 
+const LOOPBACK_BIND_HOST = '127.0.0.1';
+/** Anthropic's authorize redirect_uri expects localhost, not the bind address. */
+const LOOPBACK_REDIRECT_HOST = 'localhost';
+
+export const LOGIN_CANCELLED = 'Login cancelled';
+export const LOGIN_TIMED_OUT = 'Login timed out';
+
 /** Append order from Claude Y9r for the standard cai login. */
 export const CLAUDE_AUTHORIZE_QUERY_ORDER = [
   'code',
@@ -76,7 +83,6 @@ export function createPkcePair(): { verifier: string; challenge: string; state: 
   return { verifier, challenge: pkceChallenge(verifier), state: randomToken() };
 }
 
-/** Builds the cai authorize URL with Claude's append order and encoding. */
 export function buildAuthorizeUrl(input: { challenge: string; state: string; redirectUri?: string }): string {
   const params = new URLSearchParams();
   params.append('code', 'true');
@@ -154,7 +160,6 @@ async function postToken(body: Record<string, string>, signal: AbortSignal): Pro
   return data as TokenResponse;
 }
 
-/** Claude stores absolute expiry. Pi's resolver still refreshes about five minutes early. */
 function expiresAt(expiresIn: number): number {
   return Date.now() + expiresIn * 1000;
 }
@@ -211,7 +216,7 @@ async function chooseLoginMethod(interaction: ProviderAuthInteraction): Promise<
     ],
   });
   if (method === 'copy-code' || method === 'loopback' || method === 'import') return method;
-  throw new Error('Login cancelled');
+  throw new Error(LOGIN_CANCELLED);
 }
 
 async function loginCopyCode(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
@@ -266,32 +271,42 @@ function sameSecret(left: string, right: string): boolean {
   return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
 }
 
+/** Typed stand-in for Promise.withResolvers (ES2024); repo lib is ES2023. */
+function deferredString(): {
+  promise: Promise<string>;
+  resolve: (value: string) => void;
+  reject: (error: Error) => void;
+} {
+  let resolve!: (value: string) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<string>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
 function listenForCallback(
   expectedState: string,
   signal: AbortSignal,
 ): Promise<{ redirectUri: string; code: Promise<string>; close: () => Promise<void> }> {
   signal.throwIfAborted();
   const server = createServer();
-  let settle: (code: string) => void = () => undefined;
-  let fail: (error: Error) => void = () => undefined;
-  const code = new Promise<string>((resolve, reject) => {
-    settle = resolve;
-    fail = reject;
-  });
-  const timeout = setTimeout(() => fail(new Error('Login cancelled')), LOOPBACK_LIMIT_MS);
-  const onAbort = () => fail(new Error('Login cancelled'));
+  const { promise: code, resolve: settle, reject: fail } = deferredString();
+  const timeout = setTimeout(() => fail(new Error(LOGIN_TIMED_OUT)), LOOPBACK_LIMIT_MS);
+  const onAbort = () => fail(new Error(LOGIN_CANCELLED));
   signal.addEventListener('abort', onAbort, { once: true });
   server.on('request', (request, response) => handleCallback(request, response, expectedState, settle, fail));
   return new Promise((resolve, reject) => {
     server.once('error', reject);
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(0, LOOPBACK_BIND_HOST, () => {
       const address = server.address();
       if (address === null || typeof address === 'string') {
         reject(new Error('Login callback could not bind'));
         return;
       }
       resolve({
-        redirectUri: `http://localhost:${address.port}${CLAUDE_LOOPBACK_CALLBACK_PATH}`,
+        redirectUri: `http://${LOOPBACK_REDIRECT_HOST}:${address.port}${CLAUDE_LOOPBACK_CALLBACK_PATH}`,
         code,
         close: () => closeServer(server, timeout, signal, onAbort),
       });
@@ -306,7 +321,7 @@ function handleCallback(
   settle: (code: string) => void,
   fail: (error: Error) => void,
 ): void {
-  const url = new URL(request.url ?? '/', 'http://localhost');
+  const url = new URL(request.url ?? '/', `http://${LOOPBACK_REDIRECT_HOST}`);
   if (url.pathname !== CLAUDE_LOOPBACK_CALLBACK_PATH) {
     response.writeHead(404).end();
     return;

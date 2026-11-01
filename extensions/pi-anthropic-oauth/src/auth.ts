@@ -1,5 +1,5 @@
 import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
-import { createClaudeOAuth } from './oauth.ts';
+import { createClaudeOAuth, LOGIN_CANCELLED, LOGIN_TIMED_OUT } from './oauth.ts';
 
 export {
   CLAUDE_AUTHORIZE_ORIGIN,
@@ -13,6 +13,8 @@ export {
   CLAUDE_REFRESH_SCOPE,
   CLAUDE_REFRESH_SCOPES,
   CLAUDE_TOKEN_URL,
+  LOGIN_CANCELLED,
+  LOGIN_TIMED_OUT,
   buildAuthorizeUrl,
   createClaudeOAuth,
   createPkcePair,
@@ -49,7 +51,8 @@ function wrapLoginErrors(oauth: OAuthAuth): OAuthAuth['login'] {
       return await oauth.login(interaction, options);
     } catch (error) {
       interaction.signal.throwIfAborted();
-      if (error instanceof Error && error.message === 'Login cancelled') throw error;
+      if (error instanceof Error && error.message === LOGIN_CANCELLED) throw error;
+      if (error instanceof Error && error.message === LOGIN_TIMED_OUT) throw error;
       if (error instanceof Error && /Claude Code credentials/.test(error.message)) throw error;
       throw new Error('Claude subscription login failed. Try /login again.');
     }
@@ -85,7 +88,6 @@ export type SubscriptionAuthOptions = {
   onCredential?: (credential: OAuthCredential) => void;
 };
 
-/** Ambient setup-token auth plus the Pi-native Claude OAuth client. */
 export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): ProviderAuth {
   const refresh = wrapRefreshErrors(oauth);
   return {
