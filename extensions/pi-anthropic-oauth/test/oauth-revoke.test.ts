@@ -1,6 +1,6 @@
 import { expect, vi } from 'vitest';
-import { CLAUDE_OAUTH_CLIENT_ID, CLAUDE_REVOKE_URL, revokeAccessToken } from '../src/oauth.ts';
-import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
+import { CLAUDE_OAUTH_CLIENT_ID, CLAUDE_REVOKE_URL, revokeAccessToken, revokeRefreshToken } from '../src/oauth.ts';
+import { OAUTH_ACCESS_TOKEN, OAUTH_REFRESH_TOKEN } from './support/credentials.ts';
 import { test } from './network-guard.ts';
 
 test('revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and client_id', async () => {
@@ -22,9 +22,32 @@ test('revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and
   });
 });
 
+test('revokeRefreshToken POSTs Claude revoke URL with refresh_token hint', async () => {
+  const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200, headers: { 'request-id': 'req_refresh' } }));
+  vi.stubGlobal('fetch', fetchMock);
+
+  await revokeRefreshToken(OAUTH_REFRESH_TOKEN, new AbortController().signal);
+
+  expect(fetchMock).toHaveBeenCalledOnce();
+  const [url, init] = fetchMock.mock.calls[0]!;
+  expect(String(url)).toBe(CLAUDE_REVOKE_URL);
+  expect(init?.method).toBe('POST');
+  expect(init?.headers).toEqual({ 'Content-Type': 'application/json' });
+  expect(JSON.parse(String(init?.body))).toEqual({
+    token: OAUTH_REFRESH_TOKEN,
+    token_type_hint: 'refresh_token',
+    client_id: CLAUDE_OAUTH_CLIENT_ID,
+  });
+});
+
 test('revokeAccessToken swallows network failures so logout can continue', async () => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
   await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, new AbortController().signal)).resolves.toBeUndefined();
+});
+
+test('revokeRefreshToken swallows network failures so logout can continue', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, new AbortController().signal)).resolves.toBeUndefined();
 });
 
 test('revokeAccessToken aborts before fetch when the signal is already aborted', async () => {
@@ -33,6 +56,15 @@ test('revokeAccessToken aborts before fetch when the signal is already aborted',
   const controller = new AbortController();
   controller.abort();
   await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toThrow();
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+test('revokeRefreshToken aborts before fetch when the signal is already aborted', async () => {
+  const fetchMock = vi.fn();
+  vi.stubGlobal('fetch', fetchMock);
+  const controller = new AbortController();
+  controller.abort();
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toThrow();
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -47,4 +79,17 @@ test('revokeAccessToken rethrows when the caller aborts during fetch', async () 
     }),
   );
   await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toThrow();
+});
+
+test('revokeRefreshToken rethrows when the caller aborts during fetch', async () => {
+  const controller = new AbortController();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(async (_input: unknown, init?: RequestInit) => {
+      controller.abort();
+      init?.signal?.throwIfAborted();
+      return new Response(null, { status: 200 });
+    }),
+  );
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toThrow();
 });

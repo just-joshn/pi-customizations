@@ -20,6 +20,7 @@ export {
   createClaudeOAuth,
   createPkcePair,
   revokeAccessToken,
+  revokeRefreshToken,
 } from './oauth.ts';
 
 const AMBIENT_TOKEN_VARIABLES: readonly string[] = ['ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN'];
