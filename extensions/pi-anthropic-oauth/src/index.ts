@@ -1,11 +1,14 @@
 import { join } from 'node:path';
+
 import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import { getAgentDir, type ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { createAuthRecovery, type AuthRecovery } from './auth-recovery.ts';
+import { type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { attestingFetch } from './attesting-fetch.ts';
 import { createClaudeOAuth, subscriptionAuth } from './auth.ts';
+import { type AuthRecovery, createAuthRecovery } from './auth-recovery.ts';
 import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
 import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
+import { attributionFor } from './request-session.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
 
@@ -105,15 +108,21 @@ function requestOverrides(
   capture: (payload: unknown) => void,
   recovery: AuthRecovery,
 ): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers' | 'fetch'> {
-  const block = billingBlock(context);
+  const attribution = attributionFor(options?.sessionId, context);
+  const block = billingBlock(context, attribution);
   const configuredHeaders = new Set([model.headers, options?.headers].flatMap((headers) => Object.keys(headers ?? {}).map((name) => name.toLowerCase())));
-  const defaults = { 'user-agent': CLAUDE_USER_AGENT, ...(options?.sessionId ? { 'x-claude-code-session-id': options.sessionId } : {}) };
+  const defaults = {
+    'user-agent': CLAUDE_USER_AGENT,
+    'x-claude-code-prompt-id': attribution.promptId,
+    'x-claude-code-request-class': 'main',
+    ...(options?.sessionId ? { 'x-claude-code-session-id': options.sessionId } : {}),
+  };
   const headers = Object.fromEntries(Object.entries(defaults).filter(([name]) => !configuredHeaders.has(name)));
   const baseFetch = options?.fetch ?? globalThis.fetch;
   return {
     headers: { ...headers, ...options?.headers },
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
-    fetch: recovery.wrapFetch(baseFetch.bind(globalThis)),
+    fetch: recovery.wrapFetch(attestingFetch(baseFetch.bind(globalThis), options?.sessionId)),
     onPayload: async (payload, delegatedModel) => {
       capture(undefined);
       const fitted = guard.fit(withUniqueToolNames(payload), model);
@@ -159,9 +168,16 @@ function guardedStream<TOptions extends StreamOptions>(
     Object.assign(
       {},
       options,
-      requestOverrides(model, context, options, guard, (payload) => {
-        observed = payload;
-      }, recovery),
+      requestOverrides(
+        model,
+        context,
+        options,
+        guard,
+        (payload) => {
+          observed = payload;
+        },
+        recovery,
+      ),
     ),
   );
   void streamed.result().then(
@@ -191,9 +207,10 @@ export default function (pi: ExtensionHost) {
   const auth = subscriptionAuth(oauth, {
     onCredential: (credential) => recovery?.remember(credential),
   });
+  if (!auth.oauth) throw new Error('Claude subscription OAuth is not initialized.');
   recovery = createAuthRecovery({
     providerId: PROVIDER_ID,
-    oauth: auth.oauth!,
+    oauth: auth.oauth,
     refreshLockTarget: defaultAuthJsonPath(),
   });
   activeRecovery = recovery;

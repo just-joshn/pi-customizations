@@ -5,7 +5,7 @@ import { test } from './network-guard.ts';
 import { oauthCredential } from './support/credentials.ts';
 import { captureProvider } from './support/load-extension.ts';
 import { promptCarrying } from './support/payload-probe.ts';
-import { BILLING_TEXT } from './support/request-body.ts';
+import { BILLING_TEXT, systemBlocks } from './support/request-body.ts';
 import { collect, textOf } from './support/run-stream.ts';
 
 vi.mock(import('@earendil-works/pi-ai/providers/all'), async (importOriginal) => {
@@ -40,7 +40,9 @@ const accepted = [
 
 test.for(accepted)('$name gets the billing block first', async ({ payload, sent }) => {
   const { message } = await send(payload);
-  expect(JSON.parse(textOf(message))).toStrictEqual(sent);
+  const received: unknown = JSON.parse(textOf(message));
+  const system = systemBlocks(received);
+  expect({ ...(received as object), ...(system.length > 0 ? { system } : {}) }).toStrictEqual(sent);
 });
 
 const rejected = [
