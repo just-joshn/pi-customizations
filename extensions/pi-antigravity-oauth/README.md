@@ -14,7 +14,9 @@ From this directory:
 pi -e .
 ```
 
-Then run `/login` and choose **Sign in with Google (Antigravity)**. Pi opens Google's consent page. Google then sends the browser to `https://antigravity.google/oauth-callback`, which shows an authorization code. Paste that code into Pi. This is the same page and the same paste step that `agy` uses, so the browser can run on any machine.
+Then run `/login` and choose **Sign in with Google (Antigravity)**. On macOS, Pi asks whether to sign in through the browser or to import the existing Antigravity CLI keychain item (`service=gemini`, `account=antigravity`, `go-keyring-base64` JSON). Import is opt-in. It never runs `agy`. After a successful import, Pi calls `loadCodeAssist` for `projectId` and stores the result in `auth.json` as the usual `google-antigravity` oauth credential.
+
+Browser login opens Google's consent page. Google then sends the browser to `https://antigravity.google/oauth-callback`, which shows an authorization code. Paste that code into Pi. This is the same page and the same paste step that `agy` uses, so the browser can run on any machine.
 
 Pick a model with `/model` and an effort with Pi's thinking level. `agy` lists one model id per effort, such as `claude-sonnet-5-5-low`, and asks for `--model claude-sonnet-5-5 --effort low`. Pi shows the same split. The model is `claude-sonnet-5-5`, and the thinking levels `low`, `medium`, and `high` choose the effort. A level the model lacks moves to the nearest one it has. Every Antigravity model thinks, so thinking `off` selects the lowest effort.
 
