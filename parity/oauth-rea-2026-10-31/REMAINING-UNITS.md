@@ -110,7 +110,7 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 | ID | Evidence in Pi | Ledger / PR |
 | --- | --- | --- |
-| ANTH-ALLOWLIST | `allowed-oauth-bases.ts` + `resolveClaudeOAuthEndpoints`; table tests | this PR |
+| ANTH-ALLOWLIST | `allowed-oauth-bases.ts` + `resolveClaudeOAuthEndpoints`; table tests | PR #127 |
 | ANTH-UA-316 / OAUTH-002 / DEP-UA at 2.1.316 | `identity.ts` pin `2.1.316` + UA/billing tests | PR #115 |
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
 | billing-sample-isMeta-only | Billing fingerprint samples compact summaries; docs aligned | PR #117; docs #118 |
