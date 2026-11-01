@@ -1,5 +1,5 @@
 import { type Api, createModels, InMemoryCredentialStore, type Model, type MutableModels, type Provider } from '@earendil-works/pi-ai';
-import extension, { bindSubscriptionCredentials } from '../../src/index.ts';
+import extension, { bindSubscriptionCredentials, bindSubscriptionRefreshLock } from '../../src/index.ts';
 import { test as base } from '../network-guard.ts';
 import { oauthCredential } from './credentials.ts';
 import { captureProvider } from './load-extension.ts';
@@ -30,6 +30,7 @@ export const test = base.extend<Fixtures>({
     const credentials = new InMemoryCredentialStore();
     await credentials.modify(provider.id, async () => oauthCredential());
     bindSubscriptionCredentials(credentials);
+    bindSubscriptionRefreshLock(undefined);
     await use(credentials);
   },
   models: async ({ provider, credentials }, use) => {

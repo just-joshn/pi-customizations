@@ -1,10 +1,13 @@
 import type { CredentialStore, FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
+import { withRefreshFileLock, type RefreshFileLockOptions } from './refresh-file-lock.ts';
 import { createRefreshLatch } from './refresh-latch.ts';
 
 const REFRESH_TIMEOUT_MS = 15_000;
 
 export type AuthRecovery = {
   bindCredentials(store: CredentialStore): void;
+  /** Optional auth.json path for cross-process refresh locking. */
+  bindRefreshLockTarget(targetPath: string | undefined): void;
   remember(credential: OAuthCredential): void;
   wrapFetch(base: FetchFunction): FetchFunction;
 };
@@ -39,40 +42,57 @@ async function isAuthRecoveryTrigger(response: Response): Promise<boolean> {
 }
 
 /** One forced refresh under an in-process latch, then one HTTP retry on 401 or revoked 403. */
-export function createAuthRecovery(input: { providerId: string; oauth: OAuthAuth }): AuthRecovery {
+export function createAuthRecovery(input: {
+  providerId: string;
+  oauth: OAuthAuth;
+  /** When set, wrap each latched refresh in a Claude-style lockfile around this path. */
+  refreshLockTarget?: string;
+  refreshLockOptions?: RefreshFileLockOptions;
+}): AuthRecovery {
   let store: CredentialStore | undefined;
   let remembered: OAuthCredential | undefined;
+  let refreshLockTarget = input.refreshLockTarget;
   const latch = createRefreshLatch<string | undefined>();
 
+  async function runRefreshWork(work: () => Promise<string | undefined>, signal: AbortSignal): Promise<string | undefined> {
+    if (!refreshLockTarget) return work();
+    return withRefreshFileLock(refreshLockTarget, work, input.refreshLockOptions, signal);
+  }
+
   async function refreshAfterAuthFailure(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
-    return latch.run(async () => {
-      if (store) {
-        const post = await store.modify(
-          input.providerId,
-          async (current) => {
-            if (current?.type !== 'oauth') return undefined;
-            if (current.access !== failedAccess) return undefined;
-            return input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
-          },
-          { signal },
-        );
-        if (post?.type === 'oauth') {
-          remembered = post;
-          return post.access;
+    return latch.run(() =>
+      runRefreshWork(async () => {
+        if (store) {
+          const post = await store.modify(
+            input.providerId,
+            async (current) => {
+              if (current?.type !== 'oauth') return undefined;
+              if (current.access !== failedAccess) return undefined;
+              return input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
+            },
+            { signal },
+          );
+          if (post?.type === 'oauth') {
+            remembered = post;
+            return post.access;
+          }
+          return undefined;
         }
-        return undefined;
-      }
-      if (!remembered) return undefined;
-      if (remembered.access !== failedAccess) return remembered.access;
-      const next = await input.oauth.refresh(remembered, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
-      remembered = next;
-      return next.access;
-    });
+        if (!remembered) return undefined;
+        if (remembered.access !== failedAccess) return remembered.access;
+        const next = await input.oauth.refresh(remembered, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
+        remembered = next;
+        return next.access;
+      }, signal),
+    );
   }
 
   return {
     bindCredentials(next) {
       store = next;
+    },
+    bindRefreshLockTarget(targetPath) {
+      refreshLockTarget = targetPath;
     },
     remember(credential) {
       remembered = credential;

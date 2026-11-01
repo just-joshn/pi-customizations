@@ -1,6 +1,7 @@
+import { join } from 'node:path';
 import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { getAgentDir, type ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { createAuthRecovery, type AuthRecovery } from './auth-recovery.ts';
 import { createClaudeOAuth, subscriptionAuth } from './auth.ts';
 import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
@@ -10,9 +11,21 @@ export const PROVIDER_ID = 'claude-subscription';
 
 let activeRecovery: AuthRecovery | undefined;
 
+function defaultAuthJsonPath(): string {
+  return join(getAgentDir(), 'auth.json');
+}
+
 /** Bind the CredentialStore Models uses so 401 recovery persists rotated tokens. */
 export function bindSubscriptionCredentials(store: CredentialStore): void {
   activeRecovery?.bindCredentials(store);
+}
+
+/**
+ * Bind the shared auth.json path for cross-process refresh locking.
+ * Pass `undefined` to disable (in-process latch only). Defaults to `<agentDir>/auth.json`.
+ */
+export function bindSubscriptionRefreshLock(authJsonPath: string | undefined = defaultAuthJsonPath()): void {
+  activeRecovery?.bindRefreshLockTarget(authJsonPath);
 }
 
 // Provider CLI writes its prompt cache with a one-hour lifetime, and Pi's own
@@ -175,7 +188,11 @@ export default function (pi: ExtensionHost) {
   const auth = subscriptionAuth(oauth, {
     onCredential: (credential) => recovery?.remember(credential),
   });
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth! });
+  recovery = createAuthRecovery({
+    providerId: PROVIDER_ID,
+    oauth: auth.oauth!,
+    refreshLockTarget: defaultAuthJsonPath(),
+  });
   activeRecovery = recovery;
   const guard = installContextGuard(pi, {
     providerId: PROVIDER_ID,

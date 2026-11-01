@@ -70,14 +70,6 @@ Open units by wire impact (what the remote sees or how auth recovers).
 6. **Wire impact.** low (not on Messages inference)
 
 
-#### ANTH-FILE-LOCK
-
-1. **ID.** ANTH-FILE-LOCK (DEP-REFRESH-LOCK)
-2. **Observed CLI fact.** Cross-process refresh lock with `ELOCKED` ≤5 retries (`claude/fixtures/refresh-lifecycle-2.1.312.json`; 2.1.316 `carve-ELOCKED@*`).
-3. **Current Pi state.** In-process latch only (`refresh-latch.ts` + `CredentialStore.modify`). No Claude-style lockfile.
-4. **Smallest Pi-native change.** Optional file lock around refresh when multiple Pi processes share one `auth.json`. Singleflight already covers one process.
-5. **Verification.** Two-process (or two-store) test that contended refresh does not double-POST.
-6. **Wire impact.** low (multi-process only)
 
 #### ANTH-WINCRED
 
@@ -110,6 +102,7 @@ Open units by wire impact (what the remote sees or how auth recovers).
 
 | ID | Evidence in Pi | Ledger / PR |
 | --- | --- | --- |
+| ANTH-FILE-LOCK | `refresh-file-lock.ts` + auth-recovery wrap; latch preserved | this PR |
 | ANTH-ALLOWLIST | `allowed-oauth-bases.ts` + `resolveClaudeOAuthEndpoints`; table tests | PR #127 |
 | ANTH-UA-316 / OAUTH-002 / DEP-UA at 2.1.316 | `identity.ts` pin `2.1.316` + UA/billing tests | PR #115 |
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
