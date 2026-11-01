@@ -12,7 +12,7 @@ From this directory, start Pi:
 pi -e .
 ```
 
-Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login uses this package's Pi-native OAuth client. It opens Claude Code's paste-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), exchanges the code with an independent OAuth `state`, and refreshes with Claude's measured refresh scopes. Complete sign-in in the browser, then paste the code into Pi. Select a `claude-subscription` model with `/model`.
+Run `/login`, choose **Claude subscription**, then **Claude subscription (Provider CLI)**. Login uses this package's Pi-native OAuth client. Choose **Paste code** (default) or **Browser callback**. Paste code opens Claude Code's copy-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), then you paste the code Anthropic shows. Browser callback binds an ephemeral `http://localhost:{port}/callback` and uses that same `redirect_uri` on authorize and token exchange. Both paths exchange with an independent OAuth `state` and refresh with Claude's measured refresh scopes. Select a `claude-subscription` model with `/model`.
 
 To install the package, run `pi install npm:@justjoshn/pi-anthropic-oauth`, or `pi install` with this directory's path.
 
