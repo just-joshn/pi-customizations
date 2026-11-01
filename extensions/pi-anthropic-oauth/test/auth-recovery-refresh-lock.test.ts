@@ -1,4 +1,4 @@
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
@@ -164,4 +164,38 @@ test('two recoveries without a store send one refresh POST after the lock', asyn
   expect(responses.map((response) => response.status)).toStrictEqual([200, 200]);
   expect(posts.count).toBe(1);
   await expect(stat(join(dir, 'auth.json.lock'))).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+test('expired leftover share file still refreshes once and retries 200', async () => {
+  const dir = await tempDir();
+  const authPath = join(dir, 'auth.json');
+  const leftover: OAuthCredential = {
+    type: 'oauth',
+    access: 'leftover-access',
+    refresh: 'leftover-refresh',
+    expires: Date.now() - 60_000,
+  };
+  await writeFile(join(dir, 'claude-subscription-refresh.json'), `${JSON.stringify(leftover)}\n`);
+  const posts = { count: 0 };
+  const oauth = {
+    refresh: async (credential: OAuthCredential) => {
+      posts.count += 1;
+      return rotated(credential);
+    },
+  } as unknown as OAuthAuth;
+  const recovery = createAuthRecovery({
+    providerId: PROVIDER_ID,
+    oauth,
+    refreshLockTarget: authPath,
+  });
+  recovery.remember(staleCredential());
+  const response = await recovery.wrapFetch(async (_input, init) => {
+    const authorization = new Headers(init?.headers).get('authorization');
+    return new Response('', { status: authorization === 'Bearer new-access' ? 200 : 401 });
+  })('https://api.anthropic.invalid/v1/messages', {
+    headers: { authorization: 'Bearer old-access' },
+    signal: AbortSignal.timeout(3_000),
+  });
+  expect(posts.count).toBe(1);
+  expect(response.status).toBe(200);
 });
