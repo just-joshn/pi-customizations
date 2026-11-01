@@ -46,7 +46,7 @@ describe('ensure-supervisor', () => {
     const missing = join(cwd, 'no-such-supervisor-bin');
     expect(() => defaultEnsureSupervisor(cwd, { binPath: missing, routinesPort: 47_913 })).not.toThrow();
     // Without an error listener, Node can surface ENOENT as an uncaughtException after the call returns.
-    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    await expect(waitForSupervisor(cwd, 50)).resolves.toBe(false);
     expect(isSupervisorLive(cwd)).toBe(false);
   });
 
@@ -59,8 +59,8 @@ describe('ensure-supervisor', () => {
       child.kill('SIGKILL');
     });
     await expect.poll(() => isSupervisorLive(cwd), { timeout: 5_000 }).toBe(true);
-    await new Promise((resolve) => setTimeout(resolve, 1_200));
-    expect(isSupervisorLive(cwd)).toBe(true);
+    const liveSince = Date.now();
+    await expect.poll(() => isSupervisorLive(cwd) && Date.now() - liveSince >= 1_000, { timeout: 5_000 }).toBe(true);
     expect(child.exitCode).toBeNull();
     child.kill('SIGTERM');
     await expect.poll(() => child.exitCode !== null || child.signalCode !== null, { timeout: 5_000 }).toBe(true);

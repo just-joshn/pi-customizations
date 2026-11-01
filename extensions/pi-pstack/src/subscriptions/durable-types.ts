@@ -32,3 +32,11 @@ export type SupervisorLock = {
   pid: number;
   startedAt: number;
 };
+
+export type ParkedWake = {
+  subscriptionId: string;
+  name: string;
+  at: number;
+  content: string;
+  ownerSessionFile?: string;
+};

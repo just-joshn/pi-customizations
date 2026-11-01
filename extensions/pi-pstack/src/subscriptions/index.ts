@@ -2,12 +2,13 @@ import { randomBytes } from 'node:crypto';
 
 import { StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { Text } from '@earendil-works/pi-tui';
 import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
 import { type CronSchedule, cronMatches, parseCron } from './cron.ts';
-import { acquireSupervisorLock, createDesired, dropExpired, isSupervisorLive, readRegistry, releaseSupervisorLock, removeDesired, upsertDesired } from './durable-store.ts';
+import { acquireSupervisorLock, createDesired, drainInbox, dropExpired, isSupervisorLive, readDelivery, readRegistry, releaseSupervisorLock, removeDesired, upsertDesired } from './durable-store.ts';
 import type { DurableSubscription } from './durable-types.ts';
 import { defaultEnsureSupervisor, waitForSupervisor } from './ensure-supervisor.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, targetText } from './github.ts';
@@ -394,21 +395,20 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
     return { ...base, target: entry.url ?? `(not listening) /routines/${config.slug}`, url: entry.url, credentialFile: credentialFile(dir, config.slug), slug: config.slug, prompt: config.prompt, sessionStrategy: 'wake_self' as Strategy };
   };
 
-  const status = (entry: Live) => ({
-    ...(entry.lastEvent === undefined ? {} : { lastEvent: `${iso(entry.lastEvent.at)} ${entry.lastEvent.text}` }),
-    ...(entry.lastError === undefined ? {} : { lastError: `${iso(entry.lastError.at)} ${entry.lastError.text}` }),
-  });
+  const status = (entry: Live) => {
+    const delivery = readDelivery(workspaceCwd, entry.sub.id);
+    const event = entry.lastEvent ?? (delivery === undefined ? undefined : { at: delivery.lastClaimAt, text: 'fired' });
+    const error = entry.lastError ?? delivery?.lastError;
+    return {
+      ...(event === undefined ? {} : { lastEvent: `${iso(event.at)} ${event.text}` }),
+      ...(error === undefined ? {} : { lastError: `${iso(error.at)} ${error.text}` }),
+    };
+  };
 
   const takeSupervisorHandoff = (): boolean | Promise<boolean> => {
     if (!canHandoffToSupervisor()) return false;
     if (isSupervisorLive(workspaceCwd)) return true;
-    const ensure =
-      options.ensureSupervisor ??
-      ((cwd: string) =>
-        defaultEnsureSupervisor(
-          cwd,
-          options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort },
-        ));
+    const ensure = options.ensureSupervisor ?? ((cwd: string) => defaultEnsureSupervisor(cwd, options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort }));
     const started = ensure(workspaceCwd);
     const afterEnsure = (): boolean | Promise<boolean> => {
       if (isSupervisorLive(workspaceCwd)) return true;
@@ -519,10 +519,12 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   const routinesText = () => {
     const routines = [...live.values()].filter((entry) => entry.sub.config.kind === 'webhook');
     if (routines.length === 0) return 'No webhook routines.';
+    const supervisorListening = canHandoffToSupervisor() && isSupervisorLive(workspaceCwd);
     return routines
       .map((entry) => {
         const item = view(entry) as ReturnType<typeof view> & { url?: string; credentialFile?: string };
-        const enabled = entry.url !== undefined && server.isListening() ? 'enabled' : `disabled${entry.lastError === undefined ? '' : ` (${entry.lastError.text})`}`;
+        const error = entry.lastError ?? readDelivery(workspaceCwd, entry.sub.id)?.lastError;
+        const enabled = entry.url !== undefined && (server.isListening() || supervisorListening) ? 'enabled' : `disabled${error === undefined ? '' : ` (${error.text})`}`;
         return [`${item.name} [${enabled}]`, `  url: ${item.url ?? 'none'}`, `  credential file: ${item.credentialFile}`, `  expires: ${item.expiresAt}`].join('\n');
       })
       .join('\n');
@@ -567,6 +569,12 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       }
       arm(entry).catch(() => undefined);
     }
+    const ownerSessionFile = ctx.sessionManager.getSessionFile?.() ?? undefined;
+    for (const parked of drainInbox(workspaceCwd, ownerSessionFile)) {
+      const entry = live.get(parked.subscriptionId);
+      if (entry !== undefined) entry.lastEvent = { at: parked.at, text: 'fired' };
+      pi.sendMessage({ customType: WAKE_TYPE, content: parked.content, display: true, details: { id: parked.subscriptionId, kind: entry?.sub.config.kind ?? 'timer', name: parked.name } }, { triggerTurn: true, deliverAs: 'followUp' });
+    }
     if (!supervisorOwns && live.size > 0) {
       ctx.ui?.notify?.('Subscriptions are armed in this process. Start pstack-routines-supervisor so timers and routines keep firing after this chat exits.', 'info');
     }
@@ -593,9 +601,18 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   };
 }
 
+const WAKE_COLLAPSED_LINES = 10;
+
+export function subscriptionWakeText(message: { content: string | { type: string; text?: string }[] }, expanded: boolean): string {
+  const raw = typeof message.content === 'string' ? message.content : message.content.map((part) => (part.type === 'text' ? (part.text ?? '') : '')).join('\n');
+  const lines = raw.split('\n');
+  return (expanded || lines.length <= WAKE_COLLAPSED_LINES ? lines : [...lines.slice(0, WAKE_COLLAPSED_LINES), `… ${lines.length - WAKE_COLLAPSED_LINES} more lines`]).join('\n');
+}
+
 /** Subscriptions (GitHub PR polls, timers, webhook routines) that wake this session or start fresh ones. */
 export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOptions): ReturnType<typeof createSubscriptions> {
   const subs = createSubscriptions(pi, options);
+  pi.registerMessageRenderer?.(WAKE_TYPE, (message, renderOptions) => new Text(subscriptionWakeText(message, renderOptions.expanded), 0, 0));
   pi.on('session_start', (_event, ctx) => subs.restore(ctx));
   pi.on('session_tree', (_event, ctx) => subs.restore(ctx));
   pi.on('session_shutdown', () => subs.shutdown());
@@ -607,6 +624,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
       'Watch GitHub pull requests with gh and wake this session when one changes: state (merged, closed, reopened), head SHA, mergeability, review decision, new reviews or comments, or a check concluding. The first poll only records a baseline. Polls every minute until unsubscribed or expired.',
     promptSnippet: 'Wake this session when a GitHub PR changes',
     parameters: GithubParams,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     async execute(_id, params, _signal, _onUpdate, ctx) {
       const target =
         params.scope === 'pr'
@@ -627,6 +645,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
       'Fire a prompt on a 5-field cron schedule (local time) or after delaySeconds (repeating unless once). wake_self wakes this session with the prompt; new_session runs it in a fresh background subagent. Re-subscribing an existing name returns created: false and changes nothing.',
     promptSnippet: 'Schedule a prompt with cron or a delay',
     parameters: TimerParams,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute(_id, params, _signal, _onUpdate, ctx) {
       if (isOneShot(ctx.mode)) throw oneShotError('subscribe_timer');
       if ((params.cron === undefined) === (params.delaySeconds === undefined)) throw new Error('Pass exactly one of cron or delaySeconds.');
@@ -649,6 +668,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
       'Create a webhook routine: a local URL (http://127.0.0.1:<port>/routines/<slug>) that wakes this session with a [routine] turn when a sender POSTs a JSON object with the routine key in X-Automation-Key or Authorization: Bearer. The result gives the URL and the credential file holding the key (field "key"); the key itself is never shown. Copy it from that file into the sender without printing it.',
     promptSnippet: 'Create a webhook routine that wakes this session',
     parameters: WebhookParams,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute(_id, params, _signal, _onUpdate, ctx) {
       if (isOneShot(ctx.mode)) throw oneShotError('subscribe_webhook');
       return text(await subs.create(ctx, 'subscribe_webhook', params.name, { kind: 'webhook', prompt: params.prompt, slug: routineSlug(params.name) }, params.expiresInHours));
@@ -673,6 +693,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
     description: 'End a subscription by id or name.',
     promptSnippet: 'End a subscription',
     parameters: UnsubscribeParams,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute(_id, params) {
       return text(subs.unsubscribe(params.subscription));
     },

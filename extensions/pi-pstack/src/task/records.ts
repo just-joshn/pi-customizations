@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { SessionManager } from '@earendil-works/pi-coding-agent';
+import { parseSessionEntries, SessionManager } from '@earendil-works/pi-coding-agent';
 import type { ModelSpec } from './models.ts';
 import type { Worktree } from './worktree.ts';
 
@@ -81,13 +81,8 @@ export function transcriptFor(dir: string, agentId: string): string | undefined 
 
 /** The working directory a Pi session file's header names, or undefined without a readable header. */
 function sessionCwd(file: string): string | undefined {
-  try {
-    const header = JSON.parse(readFileSync(file, 'utf8').split('\n', 1)[0] ?? '') as { type?: unknown; cwd?: unknown } | null;
-    return header?.type === 'session' && typeof header.cwd === 'string' ? header.cwd : undefined;
-  } catch (error) {
-    if (error instanceof SyntaxError) return undefined;
-    throw error;
-  }
+  const [header] = parseSessionEntries(readFileSync(file, 'utf8').split('\n', 1)[0] ?? '');
+  return header?.type === 'session' && typeof header.cwd === 'string' && header.cwd !== '' ? header.cwd : undefined;
 }
 
 /**

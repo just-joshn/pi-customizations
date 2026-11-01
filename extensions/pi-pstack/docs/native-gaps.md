@@ -36,7 +36,8 @@ thin adapter over `RpcClient`.
 
 ## 2. The skill block `/mode` sends
 
-`modeSection` (`src/mode.ts:52-58`) builds the block Pi's own `/skill:name` expansion builds
+`modeSection` (`src/mode.ts:52-58`) strips frontmatter with Pi's exported `stripFrontmatter` (`dist/index.d.ts:50`) and
+wraps the body in the `<skill name="..." location="...">` block Pi's own `/skill:name` expansion builds
 (`AgentSession._expandSkillCommand`, `dist/core/agent-session.js:1739`). Pi exports `parseSkillBlock` and
 `formatSkillsForPrompt` (`dist/index.d.ts:3,23`), which parse a block and format the skills catalog; neither formats
 one skill block. **When this goes away.** Pi exports the block formatter and `mode.ts` calls it.

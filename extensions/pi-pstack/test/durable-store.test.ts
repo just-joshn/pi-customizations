@@ -3,12 +3,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { durableRegistryPath } from '../src/paths.ts';
 import {
   acquireSupervisorLock,
   claimDelivery,
   createDesired,
+  drainInbox,
   dropExpired,
   ensureDurableDirs,
+  inboxDir,
   isSupervisorLive,
   readDelivery,
   readRegistry,
@@ -19,7 +22,6 @@ import {
   writeRegistry,
 } from '../src/subscriptions/durable-store.ts';
 import type { DurableSubscription } from '../src/subscriptions/durable-types.ts';
-import { durableRegistryPath } from '../src/paths.ts';
 
 const NOW = Date.UTC(2026, 9, 31, 12, 0, 0);
 
@@ -70,9 +72,7 @@ describe('durable store', () => {
   test('upsertDesired replaces by id and drops a colliding name', () => {
     createDesired(cwd, timer());
     upsertDesired(cwd, timer({ id: 'sub-aaaa', config: { kind: 'timer', prompt: 'updated', delaySeconds: 15, once: true, strategy: 'new_session' } }));
-    expect(readRegistry(cwd).subscriptions).toEqual([
-      expect.objectContaining({ id: 'sub-aaaa', config: expect.objectContaining({ prompt: 'updated' }) }),
-    ]);
+    expect(readRegistry(cwd).subscriptions).toEqual([expect.objectContaining({ id: 'sub-aaaa', config: expect.objectContaining({ prompt: 'updated' }) })]);
   });
 
   test('removeDesired drops by id', () => {
@@ -132,5 +132,16 @@ describe('durable store', () => {
     expect(acquireSupervisorLock(cwd, process.pid, 40)).toEqual({ acquired: true });
     expect(acquireSupervisorLock(cwd, process.pid + 1, 50)).toEqual({ acquired: false, alreadyRunning: true, pid: process.pid });
     releaseSupervisorLock(cwd);
+  });
+
+  test('drainInbox claims matching parked wakes once while keeping other sessions', () => {
+    ensureDurableDirs(cwd);
+    const mine = { subscriptionId: 'sub-1', name: 'mine', at: 100, content: '[timer] mine', ownerSessionFile: '/s/mine.jsonl' };
+    const theirs = { subscriptionId: 'sub-2', name: 'theirs', at: 200, content: '[timer] theirs', ownerSessionFile: '/s/theirs.jsonl' };
+    writeFileSync(join(inboxDir(cwd), 'sub-1-100.json'), JSON.stringify(mine));
+    writeFileSync(join(inboxDir(cwd), 'sub-2-200.json'), JSON.stringify(theirs));
+    expect(drainInbox(cwd, '/s/mine.jsonl')).toEqual([mine]);
+    expect(drainInbox(cwd, '/s/mine.jsonl')).toEqual([]);
+    expect(drainInbox(cwd, '/s/theirs.jsonl')).toEqual([theirs]);
   });
 });

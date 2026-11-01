@@ -179,7 +179,9 @@ export class RoutineServer {
       size += chunk.length;
       if (size > MAX_BODY_BYTES) {
         done = true;
-        reply(response, 413, `Body over ${MAX_BODY_BYTES} bytes.`);
+        response.writeHead(413, { 'content-type': 'application/json', connection: 'close' });
+        response.write(`${JSON.stringify({ error: `Body over ${MAX_BODY_BYTES} bytes.` })}\n`);
+        request.once('end', () => response.end());
         request.resume();
         return;
       }

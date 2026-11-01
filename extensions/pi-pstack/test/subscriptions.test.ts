@@ -401,9 +401,7 @@ describe('persistence', () => {
     const { readRegistry } = await import('../src/subscriptions/durable-store.ts');
     const fake = setup();
     const first = await fake.call('subscribe_timer', { name: 'tick', prompt: 'first', delaySeconds: 10 });
-    expect(readRegistry(fake.cwd).subscriptions).toEqual([
-      expect.objectContaining({ id: first.details['id'], name: 'tick', config: expect.objectContaining({ prompt: 'first' }) }),
-    ]);
+    expect(readRegistry(fake.cwd).subscriptions).toEqual([expect.objectContaining({ id: first.details['id'], name: 'tick', config: expect.objectContaining({ prompt: 'first' }) })]);
     const before = structuredClone(readRegistry(fake.cwd));
     const again = await fake.call('subscribe_timer', { name: 'tick', prompt: 'second', cron: '* * * * *' });
     expect(again.details).toMatchObject({ created: false, id: first.details['id'] });
@@ -488,6 +486,30 @@ describe('persistence', () => {
     await vi.advanceTimersByTimeAsync(10_000);
     expect(second.fresh).toEqual([]);
     expect((await second.call('list_subscriptions', {})).text).toContain('timer "long"');
+  });
+
+  test('passive supervisor view surfaces delivery state plus parked wakes on restore', async () => {
+    const { acquireSupervisorLock, ensureDurableDirs, inboxDir, releaseSupervisorLock, writeDelivery } = await import('../src/subscriptions/durable-store.ts');
+    vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) });
+    const fake = setup({
+      routinesPort: 48_914,
+      ensureSupervisor: (cwd) => {
+        acquireSupervisorLock(cwd);
+      },
+      supervisorReadyMs: 0,
+    });
+    onTestFinished(() => releaseSupervisorLock(fake.cwd));
+    const created = await fake.call('subscribe_webhook', { name: 'Bot UI', prompt: 'handle post' });
+    const subId = String(created.details['id']);
+    expect(await fake.command('routines')).toContain('Bot UI [enabled]');
+
+    ensureDurableDirs(fake.cwd);
+    writeDelivery(fake.cwd, { subscriptionId: subId, lastClaimKey: `${subId}:sha256:abc`, lastClaimAt: Date.now() });
+    expect((await fake.call('list_subscriptions', {})).text).toContain('last event: 2026-01-05T');
+
+    writeFileSync(join(inboxDir(fake.cwd), `${subId}-1.json`), JSON.stringify({ subscriptionId: subId, name: 'Bot UI', at: Date.now(), content: '[routine] Bot UI\n\nhandle post', ownerSessionFile: join(fake.cwd, 'session.jsonl') }));
+    fake.emit('session_start');
+    expect(wakes(fake)).toEqual(['[routine] Bot UI\n\nhandle post']);
   });
 
   test('subscriptions restore from the branch and re-arm; expired ones drop', async () => {

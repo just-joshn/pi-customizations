@@ -1,0 +1,736 @@
+{
+  "kind": "evidence-bundle-summary",
+  "filters": {},
+  "total_retained_records": 29,
+  "matching_records": 29,
+  "unknown_revisions": 2,
+  "records": [
+    {
+      "evidence_id": "ev_1066025d4b0edd77d4d50a798a4cd11b3581a601509962224fa04546d55d549d",
+      "subject": null,
+      "provider": {
+        "id": "rea-javascript-application-workflows",
+        "name": "REA JavaScript application workflows",
+        "version": "1"
+      },
+      "operation": "compare_application_versions",
+      "confidence": "inferred",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 7,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_1091007aca08202f865c78a8dd7452fa09d54fa0dcb807428f4d5c38732cb39f",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "9b47d92dbdc42204b53f020bdc7f802b6f5fff6220ecbe164dcf263906f2f914"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_12653e2b69c57038367443acf5635729793344211a0a13ef80a5c3dfdb1c376f",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 18,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_161a445223f452c7cc7f3104399476f625137fc93a3fc5fe4b9bd485742185c4",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 18,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_16b3d7080fa763f288e7e5a8291873a3bb1130fd1ad6be06070d51e7d753b71b",
+      "subject": {
+        "name": "src",
+        "digest": {
+          "sha256": "ebb60ef861603834b12d5f9a45f4108759d8c29d0605b38e07560456c0605ce8"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/src",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_22556088c77e2fa9073d079a7ed0796b2545e2f36a6223d130b2df64a8b04d12",
+      "subject": null,
+      "provider": {
+        "id": "rea-javascript-application-workflows",
+        "name": "REA JavaScript application workflows",
+        "version": "1"
+      },
+      "operation": "trace_application_feature",
+      "confidence": "inferred",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 5,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_253613b07dd2b9c9934e7f2799a65b207e36d3047d057a5077a70bdd11f539ac",
+      "subject": null,
+      "provider": {
+        "id": "rea-unknown-registry",
+        "name": "REA residual unknown registry",
+        "version": "1"
+      },
+      "operation": "record_unknown",
+      "confidence": "derived",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 2,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_2c3f2ede73725fa0fa715e3992b851b3e526d2df85d8e1ef1de50752d04bf93d",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 18,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_2c98abedf7c1c05212d64174a87f0039f79218f72f4b0f1def35f6f3c2327ac9",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 7,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_47b1b4f41568acc919b7b99f7b18014ab564745436bfc493d9bf88ad56f15f29",
+      "subject": null,
+      "provider": {
+        "id": "rea-javascript-application-workflows",
+        "name": "REA JavaScript application workflows",
+        "version": "1"
+      },
+      "operation": "trace_application_feature",
+      "confidence": "inferred",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 5,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_5068b39b821b4f8848661475ed4d4e141343d183785cd0d1f48cc4c560700b24",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 6,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_5935daf21a6e6160681b399f1cc7482596cfedd3a7494c859a0e369fa6b0a946",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_5cb366a2d252413ad6fc6350f1644aab7f751bfcfdd86e8af41a18851c99ac29",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2abb9162f70c102ccab8860f",
+      "subject": {
+        "name": "src",
+        "digest": {
+          "sha256": "ebb60ef861603834b12d5f9a45f4108759d8c29d0605b38e07560456c0605ce8"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/src",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 6,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_76dece32cf003cb0c2ba0994d5c886d5ff51b2c4dbeabc63e1b01fd5f4df0f42",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_a220a808b81c474aaaa62752f324f54976d47a43ccc4e7100da1cff2b4c470a4",
+      "subject": null,
+      "provider": {
+        "id": "rea-javascript-application-workflows",
+        "name": "REA JavaScript application workflows",
+        "version": "1"
+      },
+      "operation": "compare_application_versions",
+      "confidence": "inferred",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 7,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_a8c8d7db63d2519d306e47d6d724a5119b28a1049a9eddbd73ea6f29dbc94caf",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "9b47d92dbdc42204b53f020bdc7f802b6f5fff6220ecbe164dcf263906f2f914"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 6,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_b2c06c4cca93538bcb8b18f0570627f9149c127b69b3055b7a4d174dca19e6fd",
+      "subject": null,
+      "provider": {
+        "id": "rea-javascript-application-workflows",
+        "name": "REA JavaScript application workflows",
+        "version": "1"
+      },
+      "operation": "trace_application_feature",
+      "confidence": "inferred",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 5,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_bd7036ccd42e670602201871d0feba62dfffde58a1e942edcf879019555c25d2",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_bf12ac9c3d463df579c1009ce80a874431c3cc14c168a783114077161d704139",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 6,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_ce9ee247f111b881d6c100242cfa0560623e65b11248377553e053fb8b6f62f3",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_d63a021f7e544b9403b2a48e25bebe7ad59220b82aa1378ffed159e559c2da19",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 18,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_d6ff54533e36b7719f1b6e18031ee2521ff4368bdabe87f34372f46a1760c3e8",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "5b92deccc760dacf7f0f5278c2c4ecff34b98d87fc70f04fecc2210fcc52980c"
+        },
+        "local_path": "/Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 9,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_d8b696f0eebbd0ee8619cb4a70bcfcec7d85d8f7c397a717799db1217e7ec99b",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_e2dd5f48359956b83e32cdf0ac784c770cb97673cf712a4aaf490a27ecc1e8db",
+      "subject": {
+        "name": "pr-review-canvas",
+        "digest": {
+          "sha256": "2666f69c5a27cb4256a403747f8606c55d68b7ab28556d7f0d3fe6fe359f9b3a"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/skills/pr-review-canvas",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-javascript-application",
+        "name": "REA JavaScript application analyzer",
+        "version": "1"
+      },
+      "operation": "analyze_javascript_application",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 7,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_e43256ff8736be8e4ab9dc0a065c5acc134048f557bf3a9bd0b78ce537a1bc1b",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "2193bf21071d9a8d176d142c5aa0d3257c98de4689e948e21b20957f83616e33"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/statechart/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_e86efe1c81971cd6f76d9ac5946ce901a7b83fbd582a583eee3e71d364b95bea",
+      "subject": null,
+      "provider": {
+        "id": "rea-unknown-registry",
+        "name": "REA residual unknown registry",
+        "version": "1"
+      },
+      "operation": "record_unknown",
+      "confidence": "derived",
+      "authority": "analyst-inference",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 2,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_f5ea22bb2d470f8108ea52961fdbd0f8411142176ac7db78b0bdeca4c0f0e37e",
+      "subject": {
+        "name": "src",
+        "digest": {
+          "sha256": "ebb60ef861603834b12d5f9a45f4108759d8c29d0605b38e07560456c0605ce8"
+        },
+        "local_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/src",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    },
+    {
+      "evidence_id": "ev_f9e9795252c5470742dd90329b7bc1198882f4f5138e369cadb6a0397a0f5ee0",
+      "subject": {
+        "name": "scripts",
+        "digest": {
+          "sha256": "ab08fdd851002bfdd61fcc3c902bf0e6bb2bbd4b0229b5443e30626e3a788e07"
+        },
+        "local_path": "/Users/josh-desktop/.cursor/plugins/cache/cursor-public/pstack/1ba91fc25c0977741dd0e267849e6234b037ed0a/skills/poteto-mode/scripts",
+        "format": "directory",
+        "architecture": null
+      },
+      "provider": {
+        "id": "rea-analysis-view",
+        "name": "REA analysis view projection",
+        "version": "1"
+      },
+      "operation": "inspect_analysis_view",
+      "confidence": "derived",
+      "authority": "shipped-artifact",
+      "analysis_profile_digest": null,
+      "retention": "complete-record",
+      "limitation_count": 17,
+      "native_dossier": {
+        "available": false,
+        "reason": "different-operation"
+      }
+    }
+  ]
+}

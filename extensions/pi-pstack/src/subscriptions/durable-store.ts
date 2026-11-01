@@ -1,8 +1,8 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import { durableDir, durableRegistryPath, durableRuntimeDir } from '../paths.ts';
-import type { DeliveryLedger, DurableRegistry, DurableSubscription, SupervisorLock } from './durable-types.ts';
+import type { DeliveryLedger, DurableRegistry, DurableSubscription, ParkedWake, SupervisorLock } from './durable-types.ts';
 
 function alive(pid: number): boolean {
   try {
@@ -33,7 +33,9 @@ function parseRegistry(raw: unknown, workspaceCwd: string): DurableRegistry {
   const value = raw as Partial<DurableRegistry> | null;
   if (typeof value !== 'object' || value === null || value.version !== 1 || !Array.isArray(value.subscriptions)) return emptyRegistry(workspaceCwd);
   const cwd = typeof value.workspaceCwd === 'string' && value.workspaceCwd !== '' ? value.workspaceCwd : workspaceCwd;
-  const subscriptions = value.subscriptions.filter((item): item is DurableSubscription => typeof item === 'object' && item !== null && typeof (item as DurableSubscription).id === 'string' && typeof (item as DurableSubscription).name === 'string');
+  const subscriptions = value.subscriptions.filter(
+    (item): item is DurableSubscription => typeof item === 'object' && item !== null && typeof (item as DurableSubscription).id === 'string' && typeof (item as DurableSubscription).name === 'string',
+  );
   return { version: 1, workspaceCwd: cwd, subscriptions };
 }
 
@@ -193,4 +195,43 @@ export function ensureDurableDirs(cwd: string): void {
   mkdirSync(durableRuntimeDir(cwd), { recursive: true, mode: 0o700 });
   mkdirSync(join(durableRuntimeDir(cwd), 'delivery'), { recursive: true, mode: 0o700 });
   mkdirSync(inboxDir(cwd), { recursive: true, mode: 0o700 });
+}
+
+function isParkedWake(value: unknown): value is ParkedWake {
+  const candidate = value as Partial<ParkedWake> | null;
+  return (
+    typeof candidate === 'object' &&
+    candidate !== null &&
+    typeof candidate.subscriptionId === 'string' &&
+    typeof candidate.name === 'string' &&
+    Number.isFinite(candidate.at) &&
+    typeof candidate.content === 'string' &&
+    (candidate.ownerSessionFile === undefined || typeof candidate.ownerSessionFile === 'string')
+  );
+}
+
+export function drainInbox(cwd: string, ownerSessionFile?: string): ParkedWake[] {
+  const dir = inboxDir(cwd);
+  if (!existsSync(dir)) return [];
+  const drained: ParkedWake[] = [];
+  for (const name of readdirSync(dir)
+    .filter((entry) => entry.endsWith('.json'))
+    .toSorted()) {
+    const path = join(dir, name);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(readFileSync(path, 'utf8'));
+    } catch {
+      rmSync(path, { force: true });
+      continue;
+    }
+    if (!isParkedWake(parsed)) {
+      rmSync(path, { force: true });
+      continue;
+    }
+    if (ownerSessionFile !== undefined && parsed.ownerSessionFile !== undefined && parsed.ownerSessionFile !== ownerSessionFile) continue;
+    rmSync(path, { force: true });
+    drained.push(parsed);
+  }
+  return drained;
 }

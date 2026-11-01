@@ -127,12 +127,7 @@ describe('shipped resources', () => {
   });
 
   test('ships pstack and team-kit subagent definitions (RES-006)', () => {
-    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual([
-      'ci-watcher.md',
-      'comment-sicko.md',
-      'poteto-agent.md',
-      'thermo-nuclear-code-quality-review.md',
-    ]);
+    expect(readdirSync(join(root, 'agents')).toSorted()).toEqual(['ci-watcher.md', 'comment-sicko.md', 'poteto-agent.md', 'thermo-nuclear-code-quality-review.md']);
   });
 
   test('poteto-mode tells delegates where bundled skills live, and every principle it names is at ../<name>/SKILL.md (RES-010)', () => {
@@ -185,6 +180,14 @@ describe('shipped resources', () => {
     for (const path of ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'scripts/patches.json', 'docs/harness']) expect(existsSync(join(root, path)), path).toBe(false);
     const scripts = (JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { scripts: Record<string, string> }).scripts;
     expect(Object.keys(scripts).filter((name) => name.includes('upstream'))).toEqual([]);
+    for (const rel of ['package.json', 'skills/poteto-mode/scripts/package.json', 'skills/statechart/scripts/package.json']) {
+      const pkg = JSON.parse(readFileSync(join(root, rel), 'utf8')) as Record<string, unknown>;
+      expect(String(pkg['name'])).not.toMatch(/cursor/i);
+      for (const field of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+        const deps = Object.keys((pkg[field] as Record<string, unknown> | undefined) ?? {});
+        expect(deps.filter((dep) => dep === 'pstack' || /cursor/i.test(dep))).toEqual([]);
+      }
+    }
   });
 
   test('shipped text names Pi, not Cursor host features (RES-012)', () => {

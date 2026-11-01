@@ -4,6 +4,7 @@ import { homedir } from 'node:os';
 import { isAbsolute, join, resolve } from 'node:path';
 
 import type { ImageContent, Usage } from '@earendil-works/pi-ai';
+import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
 
@@ -61,15 +62,6 @@ export function resolveAttachments(paths: readonly string[], cwd: string, home: 
   });
 }
 
-const isBmp = (bytes: Buffer) => bytes.length >= 30 && bytes.toString('latin1', 0, 2) === 'BM' && [12, 40, 52, 56, 108, 124].includes(bytes.readUInt32LE(14));
-const IMAGE_TYPES: [string, (bytes: Buffer) => boolean][] = [
-  ['image/png', (bytes) => bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))],
-  ['image/jpeg', (bytes) => bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff && bytes[3] !== 0xf7],
-  ['image/gif', (bytes) => /^GIF8[79]a/.test(bytes.toString('latin1', 0, 6))],
-  ['image/webp', (bytes) => bytes.toString('latin1', 0, 4) === 'RIFF' && bytes.toString('latin1', 8, 12) === 'WEBP'],
-  ['image/bmp', isBmp],
-];
-
 export interface ChildInput {
   text: string;
   images: ImageContent[];
@@ -79,14 +71,14 @@ export interface ChildInput {
  * The first message Pi builds from piped input and `@file` arguments, which RPC mode does not accept: the trimmed
  * prompt, then each non-empty text file in a <file> block, and each image as an attachment with an empty <file> block.
  */
-export function withAttachments(prompt: string, attachments: readonly string[]): ChildInput {
+export async function withAttachments(prompt: string, attachments: readonly string[]): Promise<ChildInput> {
   let text = prompt.trim();
   const images: ImageContent[] = [];
   for (const path of attachments) {
     const bytes = readFileSync(path);
     if (bytes.length === 0) continue;
-    const mimeType = IMAGE_TYPES.find(([, matches]) => matches(bytes))?.[0];
-    if (mimeType === undefined) {
+    const mimeType = await detectSupportedImageMimeTypeFromFile(path);
+    if (mimeType === null) {
       text += `<file name="${path}">\n${bytes.toString('utf8').replace(/^\uFEFF/, '')}\n</file>\n`;
       continue;
     }

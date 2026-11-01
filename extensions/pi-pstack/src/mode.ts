@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ThemeColor } from '@earendil-works/pi-coding-agent';
-import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 
 export const MODE_ENTRY = 'pstack/mode';
 const STATUS_KEY = 'pstack-mode';
@@ -53,8 +53,8 @@ export function modeSection(mode: ActiveMode): string {
   if (mode.path === undefined) return `Mode ${mode.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`;
   if (!existsSync(mode.path)) return `Mode ${mode.skill} is on, but its skill file ${mode.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`;
   // The frontmatter, including `reminder`, stays out of the model's context in a mode (MODE-004).
-  const { body } = parseFrontmatter(readFileSync(mode.path, 'utf8'));
-  return [`Mode ${mode.skill} is on for every turn until the user runs /mode off.`, `<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body.trim(), '</skill>'].join('\n');
+  const body = stripFrontmatter(readFileSync(mode.path, 'utf8')).trim();
+  return [`Mode ${mode.skill} is on for every turn until the user runs /mode off.`, `<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body, '</skill>'].join('\n');
 }
 
 // A mode's badge shows the skill's `icon` (default: lightning) and `color`. Icon names map to terminal glyphs and

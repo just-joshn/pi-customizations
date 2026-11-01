@@ -31,8 +31,12 @@ function parseArgs(argv: string[]): { workspace: string } {
 /** Spawns a headless Pi print run; resolves only when the child exits 0. */
 function runFresh(prompt: string, name: string, meta: { subscriptionId: string; cwd: string }): Promise<void> {
   return new Promise((resolvePromise, reject) => {
-    const command = piCommand();
-    const child = spawn(command[0]!, [...command.slice(1), '--mode', 'json', '-e', PACKAGE_ROOT, '-p', prompt], {
+    const [executable, ...prefix] = piCommand();
+    if (executable === undefined) {
+      reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): no pi command`));
+      return;
+    }
+    const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, '-p', prompt], {
       cwd: meta.cwd,
       env: process.env,
       stdio: 'ignore',
