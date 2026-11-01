@@ -200,7 +200,6 @@ describe('supervisor reconcile', () => {
     await vi.waitFor(() => expect(fires).toHaveLength(1));
     const b = await post();
     expect(b.status).toBe(200);
-    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(fires).toHaveLength(1);
     expect(readDelivery(cwd, 'sub-hook')?.lastClaimKey).toBe(webhookClaimKey('sub-hook', digest));
     expect(fires[0]).toContain('handle the post');

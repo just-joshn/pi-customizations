@@ -35,6 +35,20 @@
       "./skills"
     ]
   },
+  "files": [
+    "src",
+    "skills",
+    "agents",
+    "automations",
+    "bin",
+    "docs",
+    "assets",
+    "licenses",
+    "packaging",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
