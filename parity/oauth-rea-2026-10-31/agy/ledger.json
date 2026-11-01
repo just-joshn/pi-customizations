@@ -3,30 +3,37 @@
   "binary": {
     "path": "/Users/josh-desktop/.local/bin/agy",
     "sha256": "34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3",
+    "prior_sha256": "09cefed6a1d217e14ba1751dce4442b97c2797e88c297c77fda3690f92ceddcd",
     "format": "mach-o",
-    "arch": "arm64"
+    "arch": "arm64",
+    "bytes": 197589952,
+    "go_buildinfo": "go1.28-20261025-RC00 cl/1006921819",
+    "go_buildinfo_evidence_id": "ev_0a28b63695668a67d1f4236905cb51bee21518075464f802dcae0c0401a5c498",
+    "ua_version": "1.4.12",
+    "ua_cl": "1010700967"
   },
   "compared_to": "extensions/pi-antigravity-oauth",
-  "generated_at": "2026-10-31T22:55:00Z",
+  "generated_at": "2026-10-31T23:55:00Z",
   "method": [
-    "Mach-O byte/string scan",
-    "REA open_binary (search_strings timed out)",
+    "Mach-O byte/string scan (fixtures/binary-oauth-strings.json)",
+    "REA open_binary + inspect_go_binary (search_strings timed out on 197MB image)",
+    "Live sink fixtures/captured-user-agent-1.4.12.json",
     "GET https://antigravity.google/oauth/client-metadata.json",
     "security find-generic-password for gemini/antigravity (schema only in fixtures)",
-    "Read Pi extension oauth/cloudcode/models/stream sources"
+    "Read Pi extension oauth/cloudcode/models/stream sources (read-only)"
   ],
   "requirements": [
     {
       "id": "oauth.auth_url",
       "requirement": "Authorization endpoint is accounts.google.com/o/oauth2/auth",
       "status": "VERIFIED",
-      "evidence": ["binary string at offset near 57497028", "pi src/oauth.ts GOOGLE_OAUTH.authUrl"]
+      "evidence": ["fixtures/binary-oauth-strings.json endpoints", "pi src/oauth.ts GOOGLE_OAUTH.authUrl"]
     },
     {
       "id": "oauth.token_url",
       "requirement": "Token endpoint is oauth2.googleapis.com/token",
       "status": "VERIFIED",
-      "evidence": ["binary string", "pi GOOGLE_OAUTH.tokenUrl"]
+      "evidence": ["fixtures/binary-oauth-strings.json", "pi GOOGLE_OAUTH.tokenUrl"]
     },
     {
       "id": "oauth.userinfo_url",
@@ -38,26 +45,26 @@
       "id": "oauth.redirect",
       "requirement": "Redirect URI https://antigravity.google/oauth-callback",
       "status": "VERIFIED",
-      "evidence": ["binary string", "client-metadata redirect_uris", "pi REDIRECT_URI"]
+      "evidence": ["binary string", "fixtures/client-metadata.json redirect_uris", "pi REDIRECT_URI"]
     },
     {
       "id": "oauth.client_id",
-      "requirement": "Installed-app client id <google-oauth-client-id>",
+      "requirement": "Installed-app client id matches Pi CLIENT_ID",
       "status": "VERIFIED",
-      "evidence": ["binary string", "pi CLIENT_ID"]
+      "evidence": ["binary offset 58045220", "pi CLIENT_ID"]
     },
     {
       "id": "oauth.client_secret_k58",
-      "requirement": "Client secret <google-oauth-client-secret> used for Antigravity consumer client",
+      "requirement": "Client secret matches Pi CLIENT_SECRET for Antigravity consumer client",
       "status": "VERIFIED",
-      "evidence": ["binary <google-oauth-client-secret>… literal", "pi CLIENT_SECRET"],
+      "evidence": ["binary offset 57359941 GOCSPX-K58…", "pi CLIENT_SECRET"],
       "notes": "Role among three secrets inferred by Pi match; not proven by decompile of which Config uses which secret."
     },
     {
       "id": "oauth.client_secret_other",
       "requirement": "Document other embedded GOCSPX secrets",
       "status": "VERIFIED",
-      "evidence": ["<google-oauth-client-secret>… near auth.cloud.google/authorize", "<google-oauth-client-secret>… present"]
+      "evidence": ["fixtures/binary-oauth-strings.json client_secrets_public_installed_app"]
     },
     {
       "id": "oauth.client_metadata",
@@ -70,14 +77,14 @@
       "requirement": "Token endpoint auth method is none (public client) per metadata",
       "status": "VERIFIED",
       "evidence": ["fixtures/client-metadata.json token_endpoint_auth_method"],
-      "notes": "Whether agy omits client_secret on wire is INCONCLUSIVE."
+      "notes": "Whether agy omits client_secret on wire is FOLLOW-UP (capture token exchange)."
     },
     {
       "id": "oauth.scopes",
       "requirement": "Scopes include cloud-platform, userinfo.email, userinfo.profile, cclog, experimentsandconfigs, aicode, openid",
       "status": "VERIFIED",
       "evidence": ["each scope URL present in binary", "pi SCOPES"],
-      "notes": "Exact ordered slice assignment INCONCLUSIVE without decompile."
+      "notes": "Exact ordered slice assignment optional follow-up without decompile."
     },
     {
       "id": "oauth.pkce_s256",
@@ -90,7 +97,7 @@
       "requirement": "Authorization requests access_type=offline and prompt=consent",
       "status": "VERIFIED",
       "evidence": [
-        "binary offline/consent substrings",
+        "binary access_type substrings",
         "pi src/oauth.ts authorizationUrl sets access_type=offline and prompt=consent",
         "extensions/pi-antigravity-oauth/test/oauth.test.ts asserts both query params"
       ]
@@ -115,13 +122,16 @@
       "id": "oauth.project_load_code_assist",
       "requirement": "Discover project via Cloud Code loadCodeAssist / cloudaicompanionProject",
       "status": "VERIFIED",
-      "evidence": ["loadCodeAssist", "LoadCodeAssistRequest", "cloudaicompanionProject", "pi discoverProject"]
+      "evidence": ["loadCodeAssist", "cloudaicompanionProject", "pi discoverProject"]
     },
     {
       "id": "oauth.ide_type_antigravity",
       "requirement": "loadCodeAssist metadata.ideType is ANTIGRAVITY",
       "status": "VERIFIED",
-      "evidence": ["fixtures/captured-user-agent.json body_prefix {\"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}", "pi LOAD_CODE_ASSIST_BODY"]
+      "evidence": [
+        "fixtures/captured-user-agent-1.4.12.json body_prefix {\"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}",
+        "pi LOAD_CODE_ASSIST_BODY"
+      ]
     },
     {
       "id": "oauth.sts_wif",
@@ -134,13 +144,17 @@
       "id": "deps.bearer_header",
       "requirement": "Cloud Code calls use Authorization Bearer access token",
       "status": "VERIFIED",
-      "evidence": ["Bearer literal", "keychain token_type Bearer", "pi cloudCodeHeaders"]
+      "evidence": ["Bearer literal", "keychain token_type Bearer", "pi cloudCodeHeaders", "sink authorization_present"]
     },
     {
       "id": "deps.user_agent",
       "requirement": "User-Agent matches antigravity/cli/<ver> (aidev_client; os_type=…; arch=…; cl=…; auth_method=consumer)",
       "status": "VERIFIED",
-      "evidence": ["fixtures/captured-user-agent-1.4.12.json", "antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)", "pi userAgent()"]
+      "evidence": [
+        "fixtures/captured-user-agent-1.4.12.json",
+        "antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)",
+        "pi userAgent()"
+      ]
     },
     {
       "id": "deps.catalog_auth",
@@ -182,20 +196,42 @@
       "id": "parity.pi_matches_consumer_oauth",
       "requirement": "Pi consumer OAuth constants match agy for id/secret/redirect/endpoints/scopes/PKCE",
       "status": "VERIFIED",
-      "evidence": ["gap-vs-pi.md matching table"]
+      "evidence": ["gap-vs-pi.md matching table", "fixtures/binary-oauth-strings.json"]
     },
     {
       "id": "parity.user_agent_version",
       "requirement": "Pi User-Agent version/cl matches this agy build",
       "status": "VERIFIED",
-      "evidence": ["fixtures/captured-user-agent-1.4.12.json UA 1.4.12 cl=1010700967", "binary sha256 34423fc9…", "pi cloudcode.ts userAgent 1.4.12 cl=1010700967"],
-      "notes": "Pinned to measured live sink UA from agy 1.4.12."
+      "evidence": [
+        "fixtures/captured-user-agent-1.4.12.json UA 1.4.12 cl=1010700967",
+        "binary sha256 34423fc9…",
+        "pi cloudcode.ts userAgent 1.4.12 cl=1010700967",
+        "test/stream.test.ts"
+      ],
+      "notes": "UA cl 1010700967 != Go toolchain cl/1006921819."
     },
     {
       "id": "parity.no_runtime_agy",
       "requirement": "Pi can oauth without invoking agy binary",
       "status": "VERIFIED",
       "evidence": ["pi implements full login in src/oauth.ts", "agy not referenced as runtime dependency in extension src"]
+    }
+  ],
+  "follow_ups": [
+    {
+      "id": "follow.token_post_client_secret",
+      "action": "Capture token endpoint form fields for consumer PKCE exchange",
+      "why": "metadata auth_method none vs embedded GOCSPX"
+    },
+    {
+      "id": "follow.keychain_import",
+      "action": "Optional pi-native go-keyring reader + loadCodeAssist for projectId",
+      "why": "reuse existing agy session without re-login"
+    },
+    {
+      "id": "follow.tokeninfo_optional",
+      "action": "Optionally call tokeninfo after refresh",
+      "why": "agy has tokeninfo strings; Pi does not"
     }
   ]
 }

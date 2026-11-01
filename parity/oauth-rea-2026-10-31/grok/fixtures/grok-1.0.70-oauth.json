@@ -1,20 +1,19 @@
 {
-  "capturedAt": "2026-10-31T22:56:19Z",
+  "capturedAt": "2026-10-31T23:59:00Z",
   "grokVersion": "1.0.70",
   "grokCommit": "f50904eaee6c",
   "binaryPath": "/Users/josh-desktop/.grok/downloads/grok-1.0.70-macos-aarch64",
   "binarySha256": "5c8a688251bf61e35370b828b6a353b0a20fcc3f64000de8a91d426039f29cec",
   "binSymlinkSameBytes": true,
-  "notes": "Redacted. No access tokens, refresh tokens, emails, or user ids. Live OAuth and live proxy calls were not completed in this pass. Browser authorize URL comes from a killed login probe. Device, refresh, catalog, and inference wire fields reuse 1.0.50 observations only where labeled.",
+  "notes": "Redacted. No access tokens, refresh tokens, emails, or user ids. Browser authorize from killed login probe. Device start and models list were live-probed without completing interactive login. Deps unit deepened client secret, header gates, and catalog.",
   "rea": {
     "openBinary": {
       "format": "mach-o",
       "architecture": "arm64",
       "sha256": "5c8a688251bf61e35370b828b6a353b0a20fcc3f64000de8a91d426039f29cec"
     },
-    "inspectGoBinary": "no Go build-info record",
-    "inspectRustBinary": "no .dep-v0; rustc commit path hash ded5c06cf21d2b93bffd5d884aa6e96934ee4234 inferred",
-    "searchStrings": "timed out on 179MiB image; host strings(1) used instead"
+    "inspectRustBinary": "no .dep-v0; rustc commit path hash inferred",
+    "searchStrings": "timed out on 179MiB image; host byte scan used instead"
   },
   "browserLogin": {
     "command": "grok login --oauth",
@@ -45,22 +44,32 @@
     "scopeEncoding": "%20",
     "matchesGrok150StableAuthorizeQuery": true,
     "clientIdLiteralInBinary": false,
-    "clientIdRawUuidBytesInBinary": false
+    "clientIdRawUuidBytesInBinary": false,
+    "clientSecretConfigPresent": false,
+    "publicPkceClient": true
   },
   "deviceLogin": {
     "commandHelp": ["--device-auth", "--device-code"],
-    "deviceCodePathInBinary": "/oauth2/device/code",
+    "deviceCodePath": "https://auth.x.ai/oauth2/device/code",
     "tokenPathInBinary": "/oauth2/token",
     "deviceGrantInBinary": "urn:ietf:params:oauth:grant-type:device_code",
-    "verificationUri": "not re-captured; 1.0.50 was https://accounts.x.ai/oauth2/device",
+    "verificationUri": "https://accounts.x.ai/oauth2/device",
+    "liveStartPiStyleForm": {
+      "fields": ["client_id", "scope"],
+      "status": 200,
+      "fixture": "device-code-request-1.0.70.json"
+    },
     "adjacentHeaderFragments": ["x-grok-client-version", "1.0.70", "x-grok-client-surface"],
+    "extraHeadersRequiredByIdP": false,
+    "clientSurfaceValue": null,
     "userCodeFormatHint": "[A-Z0-9-]",
-    "completedInThisPass": false
+    "tokenExchangeCompletedInThisPass": false
   },
   "refresh": {
     "earlyInvalidationEnv": "GROK_AUTH_EARLY_INVALIDATION_SECS",
     "earlyInvalidationDefaultSeconds": 300,
-    "accessTokenLifetimeSeconds": "not re-observed; 1.0.50 device login was 21600"
+    "accessTokenLifetimeSeconds": "not re-observed; 1.0.50 device login was 21600",
+    "refreshGrantNamedInBinary": true
   },
   "authFile": {
     "path": "~/.grok/auth.json",
@@ -73,6 +82,12 @@
     "modelsPath": "/v1/models",
     "clientVersionEmbedded": "1.0.70",
     "tokenAuthValue": "xai-grok-cli",
+    "modelsAuthGates": {
+      "fixture": "models-1.0.70.json",
+      "bearerOnly": 200,
+      "wrongXXaiTokenAuth": 401,
+      "clientVersion1012": 200
+    },
     "headersStillNamed": [
       "authorization",
       "x-xai-token-auth",
@@ -103,16 +118,19 @@
       "x-grok-managed-gateway",
       "x-grok-experiments",
       "x-grok-transient-retry"
-    ],
-    "proxyProbesThisPass": null
+    ]
   },
   "modelsCatalog": {
     "origin": "https://cli-chat-proxy.grok.com/v1/models",
-    "liveFetchThisPass": false,
+    "liveFetchThisPass": true,
+    "credentialSource": "~/.pi/agent/auth.json#grok-build",
+    "interactiveLogin": false,
+    "etag": "\"4849638883941606653\"",
+    "idsLive": ["grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"],
     "idsInBinaryStrings": ["grok-4.7", "grok-4.6", "grok-4.5", "grok-4.7-high-fast"],
     "idsAbsentFromBinaryStrings": ["grok-4.7-build-fast"],
-    "idsFromGrok150Fixture": ["grok-4.7", "grok-4.7-build-fast", "grok-4.6", "grok-4.5"],
-    "note": "Live catalog may have renamed the fast id. Confirm with bearer GET before changing Pi baseline."
+    "note": "Live catalog keeps grok-4.7-build-fast. Binary string absence is not authoritative for catalog ids.",
+    "fixture": "models-1.0.70.json"
   },
   "piXaiOauthAtReportTime": {
     "clientId": "b1a00492-073a-47ea-816f-4c329264a828",
@@ -122,6 +140,6 @@
     "authorizeFixture": "extensions/pi-xai-oauth/test/fixtures/grok-1.0.70-authorize-url.json",
     "refreshSkewMs": 300000,
     "fastModelBaselineId": "grok-4.7-build-fast",
-    "note": "Version and authorize fixture were already bumped in the extension tree when this report finished. Catalog physical fast id still unverified against a live 1.0.70 models body."
+    "note": "Catalog physical fast id verified live against 1.0.70 models body. Extension src not edited in this unit."
   }
 }

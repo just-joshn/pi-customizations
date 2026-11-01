@@ -1,4 +1,5 @@
 {
+  "binary_sha256": "34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3",
   "probes": [
     {
       "name": "client-metadata-get",
@@ -32,10 +33,35 @@
       "result": {
         "fixture_note": "see ../help.txt; no login subcommand listed in top-level flags"
       }
+    },
+    {
+      "name": "rea-inspect-go-binary",
+      "request": {
+        "tool": "inspect_go_binary",
+        "path": "/Users/josh-desktop/.local/bin/agy",
+        "detail": "summary"
+      },
+      "result": {
+        "sha256": "34423fc9b0af3841e7646aa72a2d40ffeab8218b22d1cb99eac7355f9eba31e3",
+        "go_version": "go1.28-20261025-RC00 cl/1006921819",
+        "evidence_id": "ev_0a28b63695668a67d1f4236905cb51bee21518075464f802dcae0c0401a5c498",
+        "fixture": "binary-identity-34423fc9.json"
+      }
+    },
+    {
+      "name": "live-ua-sink-retained",
+      "request": {
+        "note": "prior sink capture retained; not re-run this unit"
+      },
+      "result": {
+        "fixture": "captured-user-agent-1.4.12.json",
+        "user_agent": "antigravity/cli/1.4.12 (aidev_client; os_type=darwin; arch=arm64; cl=1010700967; auth_method=consumer)",
+        "loadCodeAssist_body": "{\"metadata\":{\"ideType\":\"ANTIGRAVITY\"}}"
+      }
     }
   ],
   "forbidden_not_run": [
     "full Google OAuth authorization_code exchange",
-    "authenticated Cloud Code RPCs with live bearer"
+    "new authenticated Cloud Code RPCs with live bearer (fixtures retained)"
   ]
 }
