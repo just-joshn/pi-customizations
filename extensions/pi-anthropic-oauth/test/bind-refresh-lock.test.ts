@@ -1,4 +1,4 @@
-import { mkdtemp, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
@@ -44,7 +44,7 @@ async function refreshLockDuringFetch(lockPath: string): Promise<'present' | 'ab
   }
 }
 
-async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void): Promise<'present' | 'absent'> {
+async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void): Promise<{ lockDuringRefresh: 'present' | 'absent'; sharePath: string }> {
   const dir = await mkdtemp(join(tmpdir(), 'pi-anth-bind-lock-'));
   onTestFinished(async () => {
     await rm(dir, { recursive: true, force: true });
@@ -60,7 +60,9 @@ async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void)
   await toAuth(credential);
   bind();
 
-  const lockPath = refreshLockPathFor(join(dir, 'auth.json'));
+  const authPath = join(dir, 'auth.json');
+  const lockPath = refreshLockPathFor(authPath);
+  const sharePath = join(dir, 'claude-subscription-refresh.json');
   let tokenRequests = 0;
   let lockDuringRefresh: 'present' | 'absent' | undefined;
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
@@ -93,20 +95,22 @@ async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void)
   expect(server.requests).toHaveLength(2);
   expect(tokenRequests).toBe(1);
   if (lockDuringRefresh === undefined) throw new Error('token refresh did not observe the lock');
-  return lockDuringRefresh;
+  return { lockDuringRefresh, sharePath };
 }
 
-test('bindSubscriptionRefreshLock(undefined) skips the file lock', async ({ networkGuard }) => {
-  const lockDuringRefresh = await refreshWithoutStore(networkGuard, () => {
+test('bindSubscriptionRefreshLock(undefined) skips the file lock and writes no share file', async ({ networkGuard }) => {
+  const result = await refreshWithoutStore(networkGuard, () => {
     bindSubscriptionRefreshLock(undefined);
   });
-  expect(lockDuringRefresh).toBe('absent');
+  expect(result.lockDuringRefresh).toBe('absent');
+  await expect(stat(result.sharePath)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
-test('bindSubscriptionRefreshLock() keeps the file lock', async ({ networkGuard }) => {
-  const lockDuringRefresh = await refreshWithoutStore(networkGuard, () => {
+test('bindSubscriptionRefreshLock() keeps the file lock and writes the share file', async ({ networkGuard }) => {
+  const result = await refreshWithoutStore(networkGuard, () => {
     bindSubscriptionRefreshLock(undefined);
     bindSubscriptionRefreshLock();
   });
-  expect(lockDuringRefresh).toBe('present');
+  expect(result.lockDuringRefresh).toBe('present');
+  expect(JSON.parse(await readFile(result.sharePath, 'utf8'))).toMatchObject({ access: REFRESHED_ACCESS_TOKEN });
 });
