@@ -110,7 +110,7 @@ export function createAuthRecovery(input: {
     const run = async () => {
       if (target) {
         const shared = await readSharedCredential(sharePathFor(target, input.refreshLockOptions));
-        if (shared && shared.access !== failedAccess) {
+        if (shared && shared.access !== failedAccess && shared.expires > Date.now()) {
           remembered = shared;
           return shared.access;
         }
