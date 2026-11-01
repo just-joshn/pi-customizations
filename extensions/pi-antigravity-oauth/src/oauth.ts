@@ -161,6 +161,7 @@ export async function importAgyKeychainCredential(
     const projectId = await discoverProject(endpoints.cloudCode, tokens.access, signal);
     return credentialFromImportedTokens(tokens, projectId);
   } catch (error) {
+    if (signal.aborted || !isOpaqueInvalidTokenError(error)) throw error;
     await validateAccessToken(endpoints.tokenInfoUrl, tokens.access, signal);
     throw error;
   }
