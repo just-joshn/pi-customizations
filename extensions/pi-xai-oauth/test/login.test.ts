@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 
 import type { AuthEvent, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
-import { authorizeUrl, GROK_OAUTH_SCOPE, loginGrokBuild } from '../src/login.ts';
+import { authorizeUrl, GROK_OAUTH_CLIENT_ID, GROK_OAUTH_SCOPE, loginGrokBuild } from '../src/login.ts';
+import { GROK_CLIENT_VERSION } from '../src/request.ts';
 import { test } from './network-guard.ts';
 
 const TOKEN = {
@@ -39,13 +40,13 @@ function interaction(select: 'browser' | 'device', manual?: string) {
 }
 
 function tokenFetch(handler: (url: string, body: URLSearchParams) => unknown) {
-  const calls: { url: string; body: URLSearchParams }[] = [];
+  const calls: { url: string; body: URLSearchParams; headers: Headers }[] = [];
   const loopback = globalThis.fetch;
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     const url = String(input);
     if (url.startsWith('http://127.0.0.1') || url.startsWith('http://localhost')) return loopback(input, init);
     const body = new URLSearchParams(String(init?.body ?? ''));
-    calls.push({ url, body });
+    calls.push({ url, body, headers: new Headers(init?.headers) });
     const result = handler(url, body);
     if (result instanceof Response) return result;
     return Response.json(result);
@@ -173,6 +174,18 @@ test('device login polls until the token endpoint completes', async () => {
   expect(credential.access).toBe('access-token');
   expect(events).toContainEqual(expect.objectContaining({ type: 'device_code', verificationUri: 'https://accounts.x.ai/oauth2/device', userCode: 'CODE-CODE' }));
   expect(calls.some((call) => call.body.get('scope') === GROK_OAUTH_SCOPE)).toBe(true);
+  const deviceStart = calls.find((call) => call.url.endsWith('/device/code'));
+  expect(deviceStart).toBeDefined();
+  expect(deviceStart?.headers.get('x-grok-client-version')).toBe(GROK_CLIENT_VERSION);
+  expect(deviceStart?.headers.get('x-grok-client-surface')).toBe('grok-build');
+  expect(deviceStart?.body.get('client_id')).toBe(GROK_OAUTH_CLIENT_ID);
+  expect(deviceStart?.body.get('scope')).toBe(GROK_OAUTH_SCOPE);
+  const tokenPolls = calls.filter((call) => call.url.endsWith('/oauth2/token'));
+  expect(tokenPolls.length).toBeGreaterThan(0);
+  for (const poll of tokenPolls) {
+    expect(poll.headers.get('x-grok-client-version')).toBeNull();
+    expect(poll.headers.get('x-grok-client-surface')).toBeNull();
+  }
 });
 
 test('a fresh login expires five minutes before the server expiry', async () => {

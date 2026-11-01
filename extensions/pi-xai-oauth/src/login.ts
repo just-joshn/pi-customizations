@@ -3,10 +3,11 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 
 import type { OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 
+import { GROK_CLIENT_VERSION } from './request.ts';
+
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
 export const GROK_OAUTH_SCOPE = 'openid profile email offline_access grok-cli:access api:access conversations:read conversations:write workspaces:read workspaces:write';
-/** Grok 1.0.70 sends this on the browser authorize request. */
-const GROK_OAUTH_REFERRER = 'grok-build';
+const GROK_CLIENT_SURFACE = 'grok-build';
 
 const AUTHORIZE_URL = 'https://auth.x.ai/oauth2/authorize';
 /** Pi refreshes a stored token this early, so a first login must expire this early too. */
@@ -17,6 +18,10 @@ const CALLBACK_PATH = '/callback';
 const CALLBACK_REJECTED = 'xAI OAuth callback was rejected';
 const DEVICE_HOST = 'accounts.x.ai';
 const BROWSER_LIMIT_MS = 15 * 60 * 1000;
+const DEVICE_START_HEADERS = {
+  'x-grok-client-version': GROK_CLIENT_VERSION,
+  'x-grok-client-surface': GROK_CLIENT_SURFACE,
+} as const;
 
 type TokenResponse = { access: string; refresh: string; expiresIn: number };
 
@@ -31,7 +36,7 @@ export function authorizeUrl(input: { redirectUri: string; challenge: string; st
     ['code_challenge_method', 'S256'],
     ['state', input.state],
     ['nonce', input.nonce],
-    ['referrer', GROK_OAUTH_REFERRER],
+    ['referrer', GROK_CLIENT_SURFACE],
   ];
   return `${AUTHORIZE_URL}?${pairs.map(([name, value]) => `${name}=${encodeURIComponent(value)}`).join('&')}`;
 }
@@ -86,7 +91,7 @@ async function browserLogin(interaction: ProviderAuthInteraction): Promise<OAuth
 }
 
 async function deviceLogin(interaction: ProviderAuthInteraction): Promise<OAuthCredential> {
-  const started = await postForm(DEVICE_URL, { client_id: GROK_OAUTH_CLIENT_ID, scope: GROK_OAUTH_SCOPE }, interaction.signal);
+  const started = await postForm(DEVICE_URL, { client_id: GROK_OAUTH_CLIENT_ID, scope: GROK_OAUTH_SCOPE }, interaction.signal, DEVICE_START_HEADERS);
   if (!started.ok) throw tokenError('device authorization', started.status, started.body);
   const device = deviceFrom(started.body);
   interaction.notify({
@@ -156,13 +161,18 @@ function pollOutcome(status: number, body: unknown): 'complete' | 'pending' | 's
   return 'failed';
 }
 
-async function postForm(url: string, fields: Record<string, string>, signal: AbortSignal): Promise<{ ok: boolean; status: number; body: unknown }> {
+async function postForm(
+  url: string,
+  fields: Record<string, string>,
+  signal: AbortSignal,
+  extraHeaders: Record<string, string> = {},
+): Promise<{ ok: boolean; status: number; body: unknown }> {
   throwIfCancelled(signal);
   let response: Response;
   try {
     response = await fetch(url, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', ...extraHeaders },
       body: new URLSearchParams(fields),
       redirect: 'error',
       signal,
