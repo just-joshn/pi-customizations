@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-11-01T00:59:23Z",
+  "endpoint": "https://auth.x.ai/oauth2/token",
+  "method": "POST",
+  "contentType": "application/x-www-form-urlencoded",
+  "requestFieldNames": [
+    "grant_type",
+    "client_id",
+    "refresh_token"
+  ],
+  "requestFields": {
+    "grant_type": "refresh_token",
+    "client_id": "b1a00492-073a-47ea-816f-4c329264a828",
+    "refresh_token": "[redacted]"
+  },
+  "response": {
+    "status": 200,
+    "bodyKeys": [
+      "access_token",
+      "expires_in",
+      "refresh_token",
+      "scope",
+      "token_type"
+    ],
+    "expires_in": 21600,
+    "rotated_refresh": true
+  },
+  "credentialSource": "~/.pi/agent/auth.json#grok-build",
+  "piHostForm": {
+    "source": "@earendil-works/pi-ai dist/auth/oauth/xai.js refreshXaiToken",
+    "fieldNames": [
+      "grant_type",
+      "client_id",
+      "refresh_token"
+    ],
+    "grant_type": "refresh_token",
+    "client_id": "b1a00492-073a-47ea-816f-4c329264a828",
+    "notes": "No client_secret. Matches public PKCE client and the live capture."
+  },
+  "notes": "Live refresh POST field names captured with stored Pi grok-build credential. Tokens redacted. Form matches Pi host refreshXaiToken. Closes XAI-REFRESH-CAPTURE."
+}

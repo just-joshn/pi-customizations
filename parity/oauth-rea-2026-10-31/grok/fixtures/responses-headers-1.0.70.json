@@ -1,0 +1,149 @@
+{
+  "capturedAt": "2026-11-01T00:59:23Z",
+  "endpoint": "https://cli-chat-proxy.grok.com/v1/responses",
+  "method": "POST",
+  "credentialSource": "~/.pi/agent/auth.json#grok-build",
+  "interactiveLogin": false,
+  "requestBody": {
+    "model": "grok-4.7",
+    "stream": false,
+    "store": false,
+    "input": [{ "role": "user", "content": "ping" }]
+  },
+  "piHeaders": {
+    "x-grok-client-version": "1.0.70",
+    "X-XAI-Token-Auth": "xai-grok-cli",
+    "x-grok-model-override": "grok-4.7",
+    "x-grok-context-window": "256000"
+  },
+  "minimumClientVersion": "1.0.13",
+  "authGateProbes": [
+    {
+      "name": "pi_full_headers",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "error": null
+    },
+    {
+      "name": "missing_version",
+      "status": 426,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "error": "Your Grok CLI version (none) is outdated. Please update to version 1.0.13 or later via `grok update` or the installation documentation."
+    },
+    {
+      "name": "missing_token_auth",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "error": null
+    },
+    {
+      "name": "missing_model_override",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window"
+      ],
+      "error": null
+    },
+    {
+      "name": "missing_context_window",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-model-override"
+      ],
+      "error": null
+    },
+    {
+      "name": "wrong_token_auth",
+      "status": 401,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "error": "Invalid or expired credentials (auth_kind=bearer, x_xai_token_auth=unknown, upstream=InvalidArgument, reason=no auth context)"
+    },
+    {
+      "name": "bearer_and_version_only",
+      "status": 200,
+      "headers_sent": ["Authorization", "x-grok-client-version"],
+      "error": null
+    },
+    {
+      "name": "bearer_only",
+      "status": 426,
+      "headers_sent": ["Authorization"],
+      "error": "Your Grok CLI version (none) is outdated. Please update to version 1.0.13 or later via `grok update` or the installation documentation."
+    },
+    {
+      "name": "version_1.0.12",
+      "status": 426,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "clientVersionSent": "1.0.12",
+      "error": "Your Grok CLI version (1.0.12) is outdated. Please update to version 1.0.13 or later via `grok update` or the installation documentation."
+    },
+    {
+      "name": "version_1.0.13",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "clientVersionSent": "1.0.13",
+      "error": null
+    },
+    {
+      "name": "version_1.0.70",
+      "status": 200,
+      "headers_sent": [
+        "Authorization",
+        "X-XAI-Token-Auth",
+        "x-grok-client-version",
+        "x-grok-context-window",
+        "x-grok-model-override"
+      ],
+      "clientVersionSent": "1.0.70",
+      "error": null
+    }
+  ],
+  "conclusions": {
+    "requiredForResponses": ["Authorization", "x-grok-client-version>=1.0.13"],
+    "optionalFidelity": ["X-XAI-Token-Auth", "x-grok-model-override", "x-grok-context-window"],
+    "wrongTokenAuthRejects": true,
+    "speculativeHeadersNotRequired": true,
+    "piCurrentSetAccepted": true
+  },
+  "notes": "Live POST /v1/responses against cli-chat-proxy with stored Pi grok-build bearer. Response bodies omitted; error strings kept. Closes XAI-RESP-HDR-PROVE and XAI-VERSION-FLOOR-PROVE. Tokens redacted from this file."
+}
