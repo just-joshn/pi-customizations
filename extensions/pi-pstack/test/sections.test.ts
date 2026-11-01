@@ -64,3 +64,12 @@ describe('image generation substitute (gap-list item 2)', () => {
     );
   });
 });
+
+describe('media in a reply', () => {
+  test('teaches system-player open for watchable video while staying honest about no inline playback', () => {
+    const host = hostSection(facts(ALL_TOOLS));
+    expect(host).toContain(
+      "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
+    );
+  });
+});

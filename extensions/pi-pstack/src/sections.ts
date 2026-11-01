@@ -83,7 +83,7 @@ export function hostSection(facts: HostFacts): string {
     '- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).',
     '- PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.',
     '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',
-    "- Media in a reply: Pi's chat renders no image or video inside a reply. To show the user a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. A video cannot play in Pi, so give the video's path and read one frame from each slide.",
+    "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
     `- pi-pstack's README (${join(facts.packageRoot, 'README.md')}) and guide (${join(facts.packageRoot, 'docs/guide')}) describe installing and using it.`,
     ...(facts.activeTools.includes('Task')
       ? [
