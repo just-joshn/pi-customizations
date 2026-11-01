@@ -123,7 +123,7 @@ Top 5 by wire impact (what the remote sees or how auth recovers).
 | ANTH-401-403 / DEP-401 (401 + revoked 403) | `auth-recovery.ts` + `test/auth-401-refresh.test.ts` | PR #116 |
 | billing-sample-isMeta-only | Billing fingerprint samples compact summaries; docs aligned | PR #117; docs #118 |
 | ANTH-REVOKE access | `revokeAccessToken` POST /revoke | PR #124 |
-| ANTH-REVOKE-REFRESH | `revokeRefreshToken` POST /revoke `token_type_hint=refresh_token` | this PR |
+| ANTH-REVOKE-REFRESH | `revokeRefreshToken` POST /revoke `token_type_hint=refresh_token` | PR #125 |
 | OAUTH-001 beta Bearer | Builtin anthropic oauth betas; `test/request-identity.test.ts` | gap VERIFIED |
 | OAUTH-003 billing salt/indices | `identity.ts:billingBlock` | gap VERIFIED |
 | OAUTH-004 anthropic-version/beta capture | fixtures + request-identity | gap VERIFIED |
