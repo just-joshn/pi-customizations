@@ -1,0 +1,12 @@
+{
+  "documentedAt": "2026-10-31",
+  "source": "strings adjacency in grok-1.0.70-macos-aarch64 (device_code.rs blob)",
+  "binarySha256": "5c8a688251bf61e35370b828b6a353b0a20fcc3f64000de8a91d426039f29cec",
+  "endpoint": "https://auth.x.ai/oauth2/device/code",
+  "notes": "Contiguous blob next to Device code request failed: /oauth2/device/code, x-grok-client-version, 1.0.70, x-grok-client-surface, scope, grok-build. Surface value is grok-build. Token poll not in this blob.",
+  "headers": {
+    "x-grok-client-version": "1.0.70",
+    "x-grok-client-surface": "grok-build"
+  },
+  "fields": ["client_id", "scope"]
+}
