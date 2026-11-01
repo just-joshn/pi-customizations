@@ -3,7 +3,15 @@ import { createHash } from 'node:crypto';
 import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
 import { parseApiKey } from '../src/cloudcode.ts';
-import { createAntigravityOAuth, fetchEmail, GOOGLE_OAUTH, type OAuthEndpoints, parseCredential, projectFromLoadCodeAssist } from '../src/oauth.ts';
+import {
+  createAntigravityOAuth,
+  fetchEmail,
+  GOOGLE_OAUTH,
+  type OAuthEndpoints,
+  parseCredential,
+  projectFromLoadCodeAssist,
+  validateAccessToken,
+} from '../src/oauth.ts';
 import { type FakeServer, fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
 
@@ -15,13 +23,20 @@ async function google(project: unknown = { cloudaicompanionProject: 'aicode-cons
       return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
     }
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    if (request.path.startsWith('/tokeninfo')) return json(res, 200, { aud: 'test' });
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, project);
     return json(res, 404, {});
   });
 }
 
 function endpoints(server: FakeServer): OAuthEndpoints {
-  return { authUrl: `${server.url}/auth`, tokenUrl: `${server.url}/token`, userInfoUrl: `${server.url}/userinfo`, cloudCode: `${server.url}/cc` };
+  return {
+    authUrl: `${server.url}/auth`,
+    tokenUrl: `${server.url}/token`,
+    userInfoUrl: `${server.url}/userinfo`,
+    tokenInfoUrl: `${server.url}/tokeninfo`,
+    cloudCode: `${server.url}/cc`,
+  };
 }
 
 function interaction(answer: (authUrl: URL, prompt: AuthPrompt) => Promise<string>): { value: ProviderAuthInteraction; events: AuthEvent[] } {
@@ -68,6 +83,7 @@ test('the production endpoints match the Antigravity CLI', () => {
     authUrl: 'https://accounts.google.com/o/oauth2/auth',
     tokenUrl: 'https://oauth2.googleapis.com/token',
     userInfoUrl: 'https://www.googleapis.com/oauth2/v2/userinfo',
+    tokenInfoUrl: 'https://www.googleapis.com/oauth2/v3/tokeninfo',
     cloudCode: 'https://daily-cloudcode-pa.googleapis.com',
   });
 });
@@ -227,14 +243,58 @@ test('a refreshed token expires ten seconds before Google says, like golang.org/
   }
 });
 
-test("a failed refresh surfaces Google's error", async () => {
-  const server = await fakeServer((_, res) => json(res, 400, { error: 'invalid_grant' }));
+test("a failed refresh surfaces Google's error when tokeninfo still accepts the access token", async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path.startsWith('/tokeninfo')) return json(res, 200, { aud: 'test' });
+    return json(res, 400, { error: 'invalid_grant' });
+  });
   try {
     const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
-    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow('Google token request failed (400): {"error":"invalid_grant"}');
+    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow(
+      'Google token request failed (400): {"error":"invalid_grant"}',
+    );
+    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=a'))).toBe(true);
   } finally {
     server.close();
   }
+});
+
+test('a failed refresh with an invalid access token surfaces the tokeninfo status', async () => {
+  const server = await fakeServer((request, res) => {
+    if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
+    return json(res, 400, { error: 'invalid_grant' });
+  });
+  try {
+    const stored: OAuthCredential = { type: 'oauth', access: 'ya29.dead', refresh: 'r', expires: 0, projectId: 'p' };
+    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow(
+      'tokeninfo returned status 400',
+    );
+    expect(server.requests.some((request) => request.path === '/tokeninfo?access_token=ya29.dead')).toBe(true);
+  } finally {
+    server.close();
+  }
+});
+
+test.for([
+  { name: 'a 200 tokeninfo body', status: 200, body: { aud: 'client' } },
+  { name: 'a 400 tokeninfo body', status: 400, body: { error: 'invalid_token' } },
+])('validateAccessToken handles $name', async ({ status, body }) => {
+  const server = await fakeServer((_, res) => json(res, status, body));
+  try {
+    const run = validateAccessToken(`${server.url}/tokeninfo`, 'ya29.tok', new AbortController().signal);
+    if (status >= 200 && status < 300) {
+      await expect(run).resolves.toBeUndefined();
+    } else {
+      await expect(run).rejects.toThrow(`tokeninfo returned status ${status}`);
+    }
+    expect(server.requests).toMatchObject([{ method: 'GET', path: '/tokeninfo?access_token=ya29.tok', body: '' }]);
+  } finally {
+    server.close();
+  }
+});
+
+test('validateAccessToken reports a failed fetch like agy', async () => {
+  await expect(validateAccessToken('http://127.0.0.1:1/tokeninfo', 't')).rejects.toThrow(/^failed to call tokeninfo: /);
 });
 
 test('a token response without an access token is rejected', async () => {
