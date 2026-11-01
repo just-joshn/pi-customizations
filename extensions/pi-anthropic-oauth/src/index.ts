@@ -1,11 +1,19 @@
-import { type Api, type AssistantMessage, type AssistantMessageEventStream, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { subscriptionAuth } from './auth.ts';
+import { createAuthRecovery, type AuthRecovery } from './auth-recovery.ts';
+import { createClaudeOAuth, subscriptionAuth } from './auth.ts';
 import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
 import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
+
+let activeRecovery: AuthRecovery | undefined;
+
+/** Bind the CredentialStore Models uses so 401 recovery persists rotated tokens. */
+export function bindSubscriptionCredentials(store: CredentialStore): void {
+  activeRecovery?.bindCredentials(store);
+}
 
 // Provider CLI writes its prompt cache with a one-hour lifetime, and Pi's own
 // default is five minutes. The models declare the lifetime the request really
@@ -73,14 +81,23 @@ function modelForCaseCollisions(model: Model<Api>, context: TranscriptContext): 
   return { ...model, compat: { ...model.compat, supportsMidConvoToolChanges: false } };
 }
 
-function requestOverrides(model: Model<Api>, context: TranscriptContext, options: StreamOptions | undefined, guard: ContextGuard, capture: (payload: unknown) => void): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers'> {
+function requestOverrides(
+  model: Model<Api>,
+  context: TranscriptContext,
+  options: StreamOptions | undefined,
+  guard: ContextGuard,
+  capture: (payload: unknown) => void,
+  recovery: AuthRecovery,
+): Pick<StreamOptions, 'onPayload' | 'cacheRetention' | 'headers' | 'fetch'> {
   const block = billingBlock(context);
   const configuredHeaders = new Set([model.headers, options?.headers].flatMap((headers) => Object.keys(headers ?? {}).map((name) => name.toLowerCase())));
   const defaults = { 'user-agent': CLAUDE_USER_AGENT, ...(options?.sessionId ? { 'x-claude-code-session-id': options.sessionId } : {}) };
   const headers = Object.fromEntries(Object.entries(defaults).filter(([name]) => !configuredHeaders.has(name)));
+  const baseFetch = options?.fetch ?? globalThis.fetch;
   return {
     headers: { ...headers, ...options?.headers },
     cacheRetention: options?.cacheRetention === 'none' ? 'none' : 'long',
+    fetch: recovery.wrapFetch(baseFetch.bind(globalThis)),
     onPayload: async (payload, delegatedModel) => {
       capture(undefined);
       const fitted = guard.fit(withUniqueToolNames(payload), model);
@@ -117,6 +134,7 @@ function guardedStream<TOptions extends StreamOptions>(
   context: TranscriptContext,
   options: TOptions | undefined,
   guard: ContextGuard,
+  recovery: AuthRecovery,
 ): AssistantMessageEventStream {
   let observed: unknown;
   const streamed = streamFn(
@@ -127,7 +145,7 @@ function guardedStream<TOptions extends StreamOptions>(
       options,
       requestOverrides(model, context, options, guard, (payload) => {
         observed = payload;
-      }),
+      }, recovery),
     ),
   );
   void streamed.result().then(
@@ -152,6 +170,13 @@ export type ExtensionHost = Pick<ExtensionAPI, 'registerProvider' | 'on' | 'appe
 export default function (pi: ExtensionHost) {
   const anthropic = builtinProviders().find((provider) => provider.id === 'anthropic');
   if (!anthropic) throw new Error("Pi's built-in anthropic provider is not available.");
+  const oauth = createClaudeOAuth();
+  let recovery: AuthRecovery | undefined;
+  const auth = subscriptionAuth(oauth, {
+    onCredential: (credential) => recovery?.remember(credential),
+  });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth! });
+  activeRecovery = recovery;
   const guard = installContextGuard(pi, {
     providerId: PROVIDER_ID,
     notify: (message) => pi.appendEntry(GUARD_ENTRY_TYPE, { message }),
@@ -161,11 +186,11 @@ export default function (pi: ExtensionHost) {
       id: PROVIDER_ID,
       name: 'Claude subscription',
       ...(anthropic.baseUrl === undefined ? {} : { baseUrl: anthropic.baseUrl }),
-      auth: subscriptionAuth(),
+      auth,
       models: anthropic.getModels().map((model) => ({ ...model, provider: PROVIDER_ID, promptCache: PROMPT_CACHE })),
       api: {
-        stream: (model, context, options) => guardedStream(anthropic.stream, model, context, options, guard),
-        streamSimple: (model, context, options) => guardedStream(anthropic.streamSimple, model, context, options, guard),
+        stream: (model, context, options) => guardedStream(anthropic.stream, model, context, options, guard, recovery),
+        streamSimple: (model, context, options) => guardedStream(anthropic.streamSimple, model, context, options, guard, recovery),
       },
     }),
   );

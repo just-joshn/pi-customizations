@@ -1,4 +1,4 @@
-import type { ApiKeyAuth, AuthResult, OAuthAuth, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
+import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
 import { createClaudeOAuth } from './oauth.ts';
 
 export {
@@ -67,8 +67,13 @@ function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
   };
 }
 
+export type SubscriptionAuthOptions = {
+  onCredential?: (credential: OAuthCredential) => void;
+};
+
 /** Ambient setup-token auth plus the Pi-native Claude OAuth client. */
-export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth()): ProviderAuth {
+export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): ProviderAuth {
+  const refresh = wrapRefreshErrors(oauth);
   return {
     apiKey: subscriptionToken,
     oauth: {
@@ -76,7 +81,15 @@ export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth()): Provid
       name: 'Claude subscription (Provider CLI)',
       loginLabel: 'Claude subscription (Provider CLI)',
       login: wrapLoginErrors(oauth),
-      refresh: wrapRefreshErrors(oauth),
+      refresh: async (credential, signal) => {
+        const next = await refresh(credential, signal);
+        options.onCredential?.(next);
+        return next;
+      },
+      toAuth: async (credential) => {
+        options.onCredential?.(credential);
+        return oauth.toAuth(credential);
+      },
     },
   };
 }
