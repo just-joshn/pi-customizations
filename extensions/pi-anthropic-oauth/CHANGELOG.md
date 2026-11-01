@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.4]
 
 - Write the `cch` body attestation Claude Code 2.1.316's native HTTP layer adds to first-party `/v1/messages` requests: XXH64 (seed `0x4D659218E32A3268`, low 20 bits, five hex digits) over the body with the `model` value, `max_tokens`, `fallbacks` and `fallback_credit_token` removed. It runs in Pi's `fetch` seam. Reproduces both bodies captured from the real binary.
 - Billing block now carries `cch`, `cc_prev_req` (previous response `request-id`), `cc_prompt_id`, `cc_turn_origin`, `cc_prompt_index` and `cc_turn_index`, and requests send `x-claude-code-prompt-id`, `x-claude-code-request-class` and a per-request `x-client-request-id`.
