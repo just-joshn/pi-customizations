@@ -210,14 +210,10 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   const fileStats = await lstat(resolvedPath).catch(() => null);
   if (fileStats === null) {
-    throw analysisInputInvalid('inspect_sqlite_database', [
-      { path: ['path'], reason: 'invalid_value', message: `Selected SQLite database does not exist: ${path}` },
-    ]);
+    throw analysisInputInvalid('inspect_sqlite_database', [{ path: ['path'], reason: 'invalid_value', message: `Selected SQLite database does not exist: ${path}` }]);
   }
   if (fileStats.isSymbolicLink() || !fileStats.isFile()) {
-    throw analysisInputInvalid('inspect_sqlite_database', [
-      { path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` },
-    ]);
+    throw analysisInputInvalid('inspect_sqlite_database', [{ path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` }]);
   }
   let header: Buffer;
   try {

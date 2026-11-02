@@ -68,7 +68,7 @@ export const analysisInputInvalid = (operation: string, issues: readonly Record<
       action: `Read the declared input schema or CLI usage for ${operation}; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.`,
     },
     recovery: { kind: 'inspect_input_contract', operation },
-    details: { operation, issues, ...extraDetails },
+    ...(issues.length === 0 && Object.keys(extraDetails).length === 0 ? {} : { details: { operation, issues, ...extraDetails } }),
   });
 
 export const capabilityUnavailable = (message: string, details?: Record<string, unknown>, remediation?: string): ReaError => build('capability_unavailable', 'unsupported_provider', false, message, details, remediation);

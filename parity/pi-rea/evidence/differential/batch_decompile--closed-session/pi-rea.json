@@ -1,0 +1,63 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_286b6c9eeb9a9245204245f09f1c06c1a2e4e7feeae43c74e5a6e35eb05eec46",
+    "relationship_coverage": null,
+    "subject": null,
+    "provider": {
+      "id": "rea-workflow",
+      "name": "REA composed investigation workflow",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "batch_decompile",
+    "parameters": {
+      "addresses": [
+        "0x1000"
+      ]
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "items": [
+        {
+          "address": "0x1000",
+          "procedure": {
+            "status": "unknown",
+            "error": {
+              "code": "target_unavailable",
+              "category": "unavailable",
+              "message": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
+              "retryable": false,
+              "remediation": {
+                "action": "No app is open. Ask the user which app to investigate, then call open_binary with its local path."
+              }
+            }
+          },
+          "status": "error",
+          "error": {
+            "code": "target_unavailable",
+            "category": "unavailable",
+            "message": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
+            "retryable": false,
+            "remediation": {
+              "action": "No app is open. Ask the user which app to investigate, then call open_binary with its local path."
+            }
+          }
+        }
+      ],
+      "total": 1,
+      "succeeded": 0,
+      "failed": 1
+    },
+    "confidence": "derived",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Derived by an REA composed workflow."
+    ],
+    "locations": [],
+    "evidence_links": []
+  }
+}

@@ -1,26 +1,16 @@
 {
   "kind": "error",
   "body": {
-    "code": "invalid_request",
-    "category": "invalid_input",
-    "message": "The arguments for MCP tool capture_web_screenshot do not match its advertised input schema.",
-    "retryable": false,
+    "code": "provider_unavailable",
+    "category": "unavailable",
+    "message": "capture_web_screenshot could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+    "retryable": true,
     "remediation": {
-      "action": "Read the declared input schema or CLI usage for capture_web_screenshot; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
-    },
-    "recovery": {
-      "kind": "inspect_input_contract",
-      "operation": "capture_web_screenshot"
+      "action": "capture_web_screenshot could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry."
     },
     "details": {
       "operation": "capture_web_screenshot",
-      "issues": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "cdp_endpoint: Invalid CDP endpoint URL"
-        }
-      ]
+      "reason": "endpoint_unreachable"
     }
   }
 }

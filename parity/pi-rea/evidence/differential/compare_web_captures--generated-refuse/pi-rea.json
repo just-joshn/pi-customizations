@@ -1,16 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "provider_unavailable",
-    "category": "unavailable",
-    "message": "compare_web_captures could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
-    "retryable": true,
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool compare_web_captures do not match its advertised input schema.",
+    "retryable": false,
     "remediation": {
-      "action": "compare_web_captures could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry."
+      "action": "Read the declared input schema or CLI usage for compare_web_captures; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "compare_web_captures"
     },
     "details": {
       "operation": "compare_web_captures",
-      "reason": "endpoint_unreachable"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "✖ Invalid input: expected object, received undefined\n  → at before\n✖ Invalid input: expected object, received undefined\n  → at after\n✖ Invalid input: expected object, received undefined\n  → at before_scenario\n✖ Invalid input: expected object, received undefined\n  → at after_scenario"
+        }
+      ]
     }
   }
 }

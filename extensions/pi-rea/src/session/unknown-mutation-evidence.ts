@@ -17,7 +17,12 @@ interface MutationRevision {
   readonly status: string;
 }
 
-const actionProjection = (action: UnknownMutationAction, draft: UnknownDraft, revision: MutationRevision | undefined, updateInput?: Record<string, unknown>): { readonly parameters: Record<string, unknown>; readonly normalized_result: Record<string, unknown> } => {
+const actionProjection = (
+  action: UnknownMutationAction,
+  draft: UnknownDraft,
+  revision: MutationRevision | undefined,
+  updateInput?: Record<string, unknown>,
+): { readonly parameters: Record<string, unknown>; readonly normalized_result: Record<string, unknown> } => {
   const normalized_result = {
     action,
     question: draft.question,

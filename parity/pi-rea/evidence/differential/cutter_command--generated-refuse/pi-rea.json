@@ -1,17 +1,28 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port."
+      "action": "Read the declared input schema or CLI usage for cutter_command; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "cutter_command"
     },
     "details": {
-      "provider_id": "cutter",
       "operation": "cutter_command",
-      "reason": "no_live_bridge_found"
+      "issues": [
+        {
+          "path": [
+            "session_id"
+          ],
+          "reason": "invalid_value",
+          "message": "Cutter bridge session is unavailable or stale; list sessions again and select an available session."
+        }
+      ]
     }
   }
 }

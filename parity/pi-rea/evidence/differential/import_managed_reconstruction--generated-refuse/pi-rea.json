@@ -1,17 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool import_managed_reconstruction do not match its advertised input schema.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for import_managed_reconstruction; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "import_managed_reconstruction"
     },
     "details": {
-      "provider_id": "engine-free",
       "operation": "import_managed_reconstruction",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "static_members.evidence_id: Invalid input: expected string, received undefined, static_members.subject: Invalid input: expected object, received undefined, static_members.provider: Invalid input: expected object, received undefined, static_members.analysis_profile: Invalid input: expected object, received undefined, static_members.predicate_type: Invalid input: expected string, received undefined, static_members.operation: Invalid input: expected string, received undefined, static_members.parameters: Invalid input: expected nonoptional, received undefined, static_members.raw_result: Invalid input: expected nonoptional, received undefined, static_members.normalized_result: Invalid input: expected nonoptional, received undefined, static_members.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", static_members.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", static_members.environment: Invalid input: expected object, received undefined, static_members.limitations: Invalid input: expected array, received undefined, static_members.relationship_coverage: Invalid input: expected object, received undefined, static_members.locations: Invalid input: expected array, received undefined, static_members.evidence_links: Invalid input: expected array, received undefined, decompiler.name: Invalid input: expected string, received undefined, decompiler.family: Invalid option: expected one of \"ilspy\"|\"dnspy\"|\"dnlib\"|\"mono-cecil\"|\"other\", methods: Too small: expected array to have >=1 items"
+        }
+      ]
     }
   }
 }

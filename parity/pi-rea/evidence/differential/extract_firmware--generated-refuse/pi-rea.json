@@ -3,15 +3,15 @@
   "body": {
     "code": "capability_unavailable",
     "category": "unsupported_provider",
-    "message": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool",
+    "message": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool",
     "retryable": false,
     "remediation": {
-      "action": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool"
+      "action": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool"
     },
     "details": {
-      "provider_id": "binwalk",
+      "provider_id": "unblob",
       "operation": "extract_firmware",
-      "reason": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool"
+      "reason": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool"
     }
   }
 }

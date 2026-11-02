@@ -1,8 +1,8 @@
-import { chmodSync, mkdtempSync, writeFileSync, realpathSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { chmodSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { afterEach, expect, onTestFinished, test, vi } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
@@ -101,17 +101,16 @@ const bannerCases = [
 ];
 
 test.for(bannerCases)('inspect_pcap_client refuses $name', async (caseItem) => {
-    const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
-    const tshark = writeFakeTool(directory, 'tshark', caseItem.banner);
-    const capinfos = writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.6.9');
-    stubEnvs({ REA_TSHARK_COMMAND: tshark, REA_CAPINFOS_COMMAND: capinfos });
+  const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
+  const tshark = writeFakeTool(directory, 'tshark', caseItem.banner);
+  const capinfos = writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.6.9');
+  stubEnvs({ REA_TSHARK_COMMAND: tshark, REA_CAPINFOS_COMMAND: capinfos });
 
-    const payload = await payloadOf(() => inspectPcapClient(session()));
+  const payload = await payloadOf(() => inspectPcapClient(session()));
 
-    expect(String(payload['message'])).toContain(caseItem.needle);
-    expect(payload['details']).toMatchObject({ provider_id: 'pcap', operation: 'inspect_pcap_client' });
-  },
-);
+  expect(String(payload['message'])).toContain(caseItem.needle);
+  expect(payload['details']).toMatchObject({ provider_id: 'pcap', operation: 'inspect_pcap_client' });
+});
 
 test('inspect_pcap_capture refuses the unsupported capture host before reading any file', async () => {
   withDarwinPlatform();

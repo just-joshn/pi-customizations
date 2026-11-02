@@ -532,9 +532,7 @@ export const inspectModelArtifactFromPath = async (path: string, options: ModelA
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   const pathStats = await stat(resolvedPath).catch(() => null);
   if (pathStats !== null && !pathStats.isFile()) {
-    throw targetUnavailable(
-      `Cannot open artifact: Selected input must be a regular file: ${path}. Check that the path exists, is readable, and points to a supported file.`,
-    );
+    throw targetUnavailable(`Cannot open artifact: Selected input must be a regular file: ${path}. Check that the path exists, is readable, and points to a supported file.`);
   }
   const noFollow = 'O_NOFOLLOW' in constants ? constants.O_NOFOLLOW : 0;
   let bytes: Buffer;
@@ -546,9 +544,7 @@ export const inspectModelArtifactFromPath = async (path: string, options: ModelA
       await handle.close();
     }
   } catch (error) {
-    throw targetUnavailable(
-      `Cannot open artifact: ${(error as Error).message}. Check that the path exists, is readable, and points to a supported file.`,
-    );
+    throw targetUnavailable(`Cannot open artifact: ${(error as Error).message}. Check that the path exists, is readable, and points to a supported file.`);
   }
 
   if (bytes.length >= 4 && bytes.subarray(0, 4).toString('ascii') === 'GGUF') {

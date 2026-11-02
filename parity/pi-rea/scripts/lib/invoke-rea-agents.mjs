@@ -119,8 +119,7 @@ const classifyMcpToolResponse = (response, stderr = '') => {
 
 export const invokeReaAgentsMcp = (toolName, args, options = {}) => invokeReaAgentsMcpSession([[toolName, args ?? {}]], options).then((results) => results[0]);
 
-export const invokeReaAgentsMcpSession = (calls, options = {}) =>
-  withReaAgentsMcpSession((call) => Promise.all(calls.map(([toolName, args]) => call(toolName, args))), options);
+export const invokeReaAgentsMcpSession = (calls, options = {}) => withReaAgentsMcpSession((call) => Promise.all(calls.map(([toolName, args]) => call(toolName, args))), options);
 
 export const withReaAgentsMcpSession = (run, options = {}) => {
   const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 90_000;

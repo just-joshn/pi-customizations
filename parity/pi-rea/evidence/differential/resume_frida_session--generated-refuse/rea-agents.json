@@ -3,7 +3,7 @@
   "body": {
     "code": "invalid_request",
     "category": "invalid_input",
-    "message": "The arguments for MCP tool resume_frida_session do not match its advertised input schema.",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
     "retryable": false,
     "remediation": {
       "action": "Read the declared input schema or CLI usage for resume_frida_session; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
@@ -16,9 +16,11 @@
       "operation": "resume_frida_session",
       "issues": [
         {
-          "path": [],
+          "path": [
+            "session_id"
+          ],
           "reason": "invalid_value",
-          "message": "session_id: Invalid UUID"
+          "message": "No open Frida session 00000000-0000-4000-8000-000000000000; start one with start_frida_session."
         }
       ]
     }

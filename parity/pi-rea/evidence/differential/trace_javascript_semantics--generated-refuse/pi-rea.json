@@ -1,17 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool trace_javascript_semantics do not match its advertised input schema.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for trace_javascript_semantics; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "trace_javascript_semantics"
     },
     "details": {
-      "provider_id": "engine-free",
       "operation": "trace_javascript_semantics",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "application: Invalid input, query.seed: Invalid input: expected object, received undefined, query.direction: Invalid option: expected one of \"backward-provenance\"|\"forward-influence\"|\"callers\"|\"ownership\""
+        }
+      ]
     }
   }
 }

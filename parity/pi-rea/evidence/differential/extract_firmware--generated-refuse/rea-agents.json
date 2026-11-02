@@ -1,28 +1,17 @@
 {
   "kind": "error",
   "body": {
-    "code": "invalid_request",
-    "category": "invalid_input",
-    "message": "Extraction output root already exists",
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool",
     "retryable": false,
     "remediation": {
-      "action": "Read the declared input schema or CLI usage for extract_firmware; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
-    },
-    "recovery": {
-      "kind": "inspect_input_contract",
-      "operation": "extract_firmware"
+      "action": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool"
     },
     "details": {
+      "provider_id": "unblob",
       "operation": "extract_firmware",
-      "issues": [
-        {
-          "path": [
-            "output_directory"
-          ],
-          "reason": "invalid_value",
-          "message": "Extraction output root already exists"
-        }
-      ]
+      "reason": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool"
     }
   }
 }

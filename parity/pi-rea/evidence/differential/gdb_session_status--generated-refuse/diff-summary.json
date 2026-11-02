@@ -1,68 +1,14 @@
 {
   "id": "gdb_session_status--generated-refuse",
   "tool": "gdb_session_status",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 8,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 8,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details.issues",
-      "right": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "session_id: Invalid UUID"
-        }
-      ],
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "gdb",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "Persistent GDB sessions are available only on Linux because REA verifies live inferior output descriptors through /proc.",
-      "kind": "missing_right"
-    },
-    {
-      "path": "message",
-      "left": "This analysis is unavailable for the current target. Choose another analysis or target.",
-      "right": "The arguments for MCP tool gdb_session_status do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "gdb_session_status"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "This analysis is unavailable for the current target. Choose another analysis or target.",
-      "right": "Read the declared input schema or CLI usage for gdb_session_status; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

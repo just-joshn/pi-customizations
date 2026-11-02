@@ -1,59 +1,14 @@
 {
   "id": "pull_adb_file--generated-refuse",
   "tool": "pull_adb_file",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 7,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 7,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "execution_failure",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "unreadable_output",
-      "kind": "value"
-    },
-    {
-      "path": "details.diagnostics",
-      "left": {
-        "selected_binary": "adb",
-        "path_source": "path",
-        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
-      },
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "adb",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "The output directory is not writable or could not be created: $REPO/parity/pi-rea/fixtures/targets/minimal-elf.bin",
-      "kind": "value"
-    },
-    {
-      "path": "message",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.",
-      "kind": "value"
-    },
-    {
-      "path": "remediation.action",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

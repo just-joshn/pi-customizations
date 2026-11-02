@@ -1,16 +1,22 @@
 {
   "kind": "error",
   "body": {
-    "code": "unreadable_output",
-    "category": "execution_failure",
-    "message": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed.",
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
     "retryable": false,
     "remediation": {
-      "action": "Analysis returned an unreadable result. Run `rea doctor` and review the reported details; repeating the unchanged request is not expected to succeed."
+      "action": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary."
     },
     "details": {
+      "provider_id": "adb",
       "operation": "capture_adb_screen",
-      "reason": "The output directory is not writable or could not be created: /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+      "reason": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+      "diagnostics": {
+        "selected_binary": "adb",
+        "path_source": "path",
+        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
+      }
     }
   }
 }

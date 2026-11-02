@@ -1,10 +1,10 @@
 {
-  "started_at": "2026-11-02T06:50:53.517Z",
+  "started_at": "2026-11-02T07:21:34.736Z",
   "rea_agents": "6.8.0",
   "cases": [
     {
-      "id": "inspect_analysis_view--summary",
-      "tool": "inspect_analysis_view",
+      "id": "project_managed_application_graph--generated-refuse",
+      "tool": "project_managed_application_graph",
       "status": "pass",
       "diff_count": 0,
       "compared_paths": null,
@@ -15,5 +15,5 @@
   "pass": 1,
   "fail": 0,
   "documented": 0,
-  "finished_at": "2026-11-02T06:50:54.670Z"
+  "finished_at": "2026-11-02T07:21:35.865Z"
 }

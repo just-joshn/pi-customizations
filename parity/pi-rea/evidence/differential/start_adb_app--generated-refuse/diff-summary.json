@@ -1,77 +1,14 @@
 {
   "id": "start_adb_app--generated-refuse",
   "tool": "start_adb_app",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 9,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 9,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details.diagnostics",
-      "left": {
-        "selected_binary": "adb",
-        "path_source": "path",
-        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
-      },
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.issues",
-      "right": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "package: Package name must be dot-separated Java identifiers"
-        }
-      ],
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "adb",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "kind": "missing_right"
-    },
-    {
-      "path": "message",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "The arguments for MCP tool start_adb_app do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "start_adb_app"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "Read the declared input schema or CLI usage for start_adb_app; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

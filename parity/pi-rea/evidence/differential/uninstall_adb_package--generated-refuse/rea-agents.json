@@ -1,26 +1,22 @@
 {
   "kind": "error",
   "body": {
-    "code": "invalid_request",
-    "category": "invalid_input",
-    "message": "The arguments for MCP tool uninstall_adb_package do not match its advertised input schema.",
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
     "retryable": false,
     "remediation": {
-      "action": "Read the declared input schema or CLI usage for uninstall_adb_package; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
-    },
-    "recovery": {
-      "kind": "inspect_input_contract",
-      "operation": "uninstall_adb_package"
+      "action": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary."
     },
     "details": {
+      "provider_id": "adb",
       "operation": "uninstall_adb_package",
-      "issues": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "package: Package name must be dot-separated Java identifiers"
-        }
-      ]
+      "reason": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+      "diagnostics": {
+        "selected_binary": "adb",
+        "path_source": "path",
+        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
+      }
     }
   }
 }

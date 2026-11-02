@@ -9,9 +9,9 @@
   },
   "counts": {
     "tools": 229,
-    "implemented": 65,
-    "kernel": 65,
-    "unavailable": 164
+    "implemented": 66,
+    "kernel": 66,
+    "unavailable": 163
   },
   "hostCapabilities": [
     {
@@ -2906,7 +2906,7 @@
     },
     {
       "name": "batch_decompile",
-      "description": "Decompile several procedures at once. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
+      "description": "Decompile several procedures at once.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2943,7 +2943,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "unavailable"
+      "implementation": "kernel"
     },
     {
       "name": "decompile_all",

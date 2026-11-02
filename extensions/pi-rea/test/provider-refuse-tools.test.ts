@@ -23,7 +23,7 @@ const catchPayload = (fn: () => unknown): ReaError['payload'] => {
 };
 
 test('provider refuse table covers the landed fail-closed families', () => {
-  expect(PROVIDER_REFUSE_TOOL_NAMES.length).toBe(164);
+  expect(PROVIDER_REFUSE_TOOL_NAMES.length).toBe(163);
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('read_bytes');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('list_frida_devices');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('list_adb_devices');

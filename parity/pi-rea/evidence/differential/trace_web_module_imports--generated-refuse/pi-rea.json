@@ -1,17 +1,28 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for trace_web_module_imports; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "trace_web_module_imports"
     },
     "details": {
-      "provider_id": "engine-free",
       "operation": "trace_web_module_imports",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [
+            "manifest_path"
+          ],
+          "reason": "invalid_format",
+          "message": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin: Unexpected token '', \"ELF\u0002\u0001\u0001\u0000\u0000\u0000\"... is not valid JSON"
+        }
+      ]
     }
   }
 }

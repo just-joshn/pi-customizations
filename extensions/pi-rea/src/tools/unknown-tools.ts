@@ -57,9 +57,7 @@ export interface UpdateUnknownParams extends Partial<UnknownDraft> {
 
 export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams): AgentToolResult<unknown> => {
   if ((params.status === 'resolved') !== (params.resolution !== null && params.resolution !== undefined)) {
-    throw analysisInputInvalid('update_unknown', [
-      { path: ['resolution'], reason: 'invalid_value', message: 'Only resolved unknowns carry a resolution' },
-    ]);
+    throw analysisInputInvalid('update_unknown', [{ path: ['resolution'], reason: 'invalid_value', message: 'Only resolved unknowns carry a resolution' }]);
   }
   if (typeof params.unknown_id !== 'string' || typeof params.expected_revision !== 'number') {
     throw invalidRequest('update_unknown requires unknown_id and expected_revision.', {

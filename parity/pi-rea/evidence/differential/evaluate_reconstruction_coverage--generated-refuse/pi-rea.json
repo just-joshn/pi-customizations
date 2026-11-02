@@ -1,17 +1,109 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for evaluate_reconstruction_coverage; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "evaluate_reconstruction_coverage"
     },
     "details": {
-      "provider_id": "engine-free",
       "operation": "evaluate_reconstruction_coverage",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [
+            "coverage",
+            "evidence_bundle"
+          ],
+          "reason": "missing_argument",
+          "expected": "nonoptional"
+        },
+        {
+          "path": [
+            "coverage",
+            "artifacts"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "surfaces"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "owners"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "claims"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "verifier_contracts"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "verifier_results"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "residual_unknown_ids"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "contradictions"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "package_proofs"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "coverage",
+            "boundaries"
+          ],
+          "reason": "missing_argument",
+          "expected": "array"
+        }
+      ]
     }
   }
 }

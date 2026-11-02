@@ -1,17 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool compare_process_captures do not match its advertised input schema.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for compare_process_captures; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "compare_process_captures"
     },
     "details": {
-      "provider_id": "compare",
       "operation": "compare_process_captures",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "left.evidence_id: Invalid input: expected string, received undefined, left.subject: Invalid input: expected object, received undefined, left.provider: Invalid input: expected object, received undefined, left.analysis_profile: Invalid input: expected object, received undefined, left.predicate_type: Invalid input: expected string, received undefined, left.operation: Invalid input: expected string, received undefined, left.parameters: Invalid input: expected nonoptional, received undefined, left.raw_result: Invalid input: expected nonoptional, received undefined, left.normalized_result: Invalid input: expected nonoptional, received undefined, left.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", left.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", left.environment: Invalid input: expected object, received undefined, left.limitations: Invalid input: expected array, received undefined, left.relationship_coverage: Invalid input: expected object, received undefined, left.locations: Invalid input: expected array, received undefined, left.evidence_links: Invalid input: expected array, received undefined, right.evidence_id: Invalid input: expected string, received undefined, right.subject: Invalid input: expected object, received undefined, right.provider: Invalid input: expected object, received undefined, right.analysis_profile: Invalid input: expected object, received undefined, right.predicate_type: Invalid input: expected string, received undefined, right.operation: Invalid input: expected string, received undefined, right.parameters: Invalid input: expected nonoptional, received undefined, right.raw_result: Invalid input: expected nonoptional, received undefined, right.normalized_result: Invalid input: expected nonoptional, received undefined, right.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", right.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", right.environment: Invalid input: expected object, received undefined, right.limitations: Invalid input: expected array, received undefined, right.relationship_coverage: Invalid input: expected object, received undefined, right.locations: Invalid input: expected array, received undefined, right.evidence_links: Invalid input: expected array, received undefined"
+        }
+      ]
     }
   }
 }

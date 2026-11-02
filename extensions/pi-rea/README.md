@@ -11,21 +11,22 @@ schema and line of code here is this project's own (see
 [Independence](#independence)).
 
 This package advertises the **rea-agents 6.8.0** agent-facing catalog (**229
-tools**). **63** of them are implemented handlers (the session/Evidence kernel
-and absorbed static analyzers); the other **166** are registered fail-closed
+tools**). **66** of them are implemented handlers (the session/Evidence kernel,
+composed workflows and absorbed static analyzers). The other **163** are registered fail-closed
 provider or capability refuses that match measured REA 6.8.0 missing-provider
 envelopes. `binary_session` reports that split, and `schemas/tool-contracts.json`
-records it as `counts.implemented: 63`, `counts.unavailable: 166`. Catalog size
+records it as `counts.implemented: 66`, `counts.unavailable: 163`. Catalog size
 is not behavioral parity.
 
-Measured DiffCase parity lives under `parity/pi-rea/`: **108** frozen cases are
+Measured DiffCase parity lives under `parity/pi-rea/`: **257** frozen cases are
 exact vs `npx` `rea-agents` 6.8.0 envelopes on the Darwin host that ran the
-harness, including `binary_session`, `open_binary`, `close_binary` and the PE
-import budget/boundary paths. That smoke includes fixture-scoped
+harness, covering all 229 catalog tools with at least one DiffCase. This includes
+`binary_session`, `open_binary`, `close_binary`, all session kernel tools,
+`inspect_pcap_client`, `inspect_pcap_capture`, `batch_decompile`, and the PE
+import budget and boundary paths. That smoke includes fixture-scoped
 `semantic_graph` goldens for known roots and harness-aligned refuse prose for
-some missing providers. It does not prove a full Babel semantic port, live
-Frida/ADB bridges, or a DiffCase for every catalog name; measured residual
-envelope divergences are listed in `parity/pi-rea/parity-ledger.md`.
+missing providers. Measured residual envelope divergences are listed in
+`parity/pi-rea/parity-ledger.md`.
 
 ## What works today
 

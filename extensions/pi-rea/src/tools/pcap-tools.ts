@@ -18,8 +18,7 @@ const CAPINFOS_ENV = 'REA_CAPINFOS_COMMAND';
 
 const PCAP_PROVIDER_NAME = 'Packet capture analysis';
 const PCAP_TOOL_REMEDIATION = `Supply Wireshark 4.x tshark and capinfos on PATH or through absolute ${TSHARK_ENV} and ${CAPINFOS_ENV}; REA does not install them.`;
-const PCAP_UNSUPPORTED_HOST_MESSAGE =
-  "Packet summaries require an enforceable native memory bound: Linux with util-linux prlimit, or Windows with owned Job Objects. This host's capture boundary remains unsupported.";
+const PCAP_UNSUPPORTED_HOST_MESSAGE = "Packet summaries require an enforceable native memory bound: Linux with util-linux prlimit, or Windows with owned Job Objects. This host's capture boundary remains unsupported.";
 const IDENTITY_UNAVAILABLE_LIMITATION = 'Artifact identity is unavailable for this observation.';
 
 type WiresharkTool = 'tshark' | 'capinfos';
@@ -40,11 +39,9 @@ interface WiresharkIdentity {
 
 const envKeyOf = (tool: WiresharkTool): string => (tool === 'tshark' ? TSHARK_ENV : CAPINFOS_ENV);
 
-const joinReasonAndRemediation = (reason: string): string =>
-  `${/[.!?]$/u.test(reason) ? reason : `${reason}.`} ${PCAP_TOOL_REMEDIATION}`;
+const joinReasonAndRemediation = (reason: string): string => `${/[.!?]$/u.test(reason) ? reason : `${reason}.`} ${PCAP_TOOL_REMEDIATION}`;
 
-const pcapUnavailableObject = (operation: string, reason: string): ReaError =>
-  capabilityUnavailable(joinReasonAndRemediation(reason), { provider_id: 'pcap', operation, reason }, joinReasonAndRemediation(reason));
+const pcapUnavailableObject = (operation: string, reason: string): ReaError => capabilityUnavailable(joinReasonAndRemediation(reason), { provider_id: 'pcap', operation, reason }, joinReasonAndRemediation(reason));
 
 const selectWiresharkTool = (tool: WiresharkTool, operation: string): WiresharkSelection => {
   const key = envKeyOf(tool);
@@ -80,10 +77,7 @@ const resolveWiresharkTool = (tool: WiresharkTool, operation: string): Wireshark
   return { command: located, source: 'path' };
 };
 
-const resolveWiresharkTools = (operation: string): readonly [WiresharkSelection, WiresharkSelection] => [
-  resolveWiresharkTool('tshark', operation),
-  resolveWiresharkTool('capinfos', operation),
-];
+const resolveWiresharkTools = (operation: string): readonly [WiresharkSelection, WiresharkSelection] => [resolveWiresharkTool('tshark', operation), resolveWiresharkTool('capinfos', operation)];
 
 const bannerFor = async (command: string): Promise<string> => {
   const { stdout } = await execFileAsync(command, ['--version'], { timeout: 30_000 });
@@ -169,14 +163,11 @@ export const inspectPcapClient = async (session: ReaSession): Promise<AgentToolR
 export const inspectPcapCapture = async (_session: ReaSession, _params: { readonly path?: string }): Promise<AgentToolResult<unknown>> => {
   await probePcapClient('inspect_pcap_capture');
   if (process.platform !== 'linux' && process.platform !== 'win32') {
-    throw capabilityUnavailable(
-      PCAP_UNSUPPORTED_HOST_MESSAGE,
-      { provider_id: 'pcap', operation: 'inspect_pcap_capture', reason: PCAP_UNSUPPORTED_HOST_MESSAGE },
-      PCAP_UNSUPPORTED_HOST_MESSAGE,
-    );
+    throw capabilityUnavailable(PCAP_UNSUPPORTED_HOST_MESSAGE, { provider_id: 'pcap', operation: 'inspect_pcap_capture', reason: PCAP_UNSUPPORTED_HOST_MESSAGE }, PCAP_UNSUPPORTED_HOST_MESSAGE);
   }
-  throw capabilityUnavailable(
-    'pi-rea advertises inspect_pcap_capture but has not implemented capture summaries yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.',
-    { provider_id: 'pcap', operation: 'inspect_pcap_capture', reason: 'not_implemented' },
-  );
+  throw capabilityUnavailable('pi-rea advertises inspect_pcap_capture but has not implemented capture summaries yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.', {
+    provider_id: 'pcap',
+    operation: 'inspect_pcap_capture',
+    reason: 'not_implemented',
+  });
 };

@@ -1,69 +1,14 @@
 {
   "id": "capture_browser_scenario--generated-refuse",
   "tool": "capture_browser_scenario",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 8,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 8,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unavailable",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "provider_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details.issues",
-      "right": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "browser.mode: Invalid discriminator value. Expected 'launch' | 'connect', start_url: Invalid input: expected object, received string, actions: Too small: expected array to have >=1 items"
-        }
-      ],
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.reason",
-      "left": "endpoint_unreachable",
-      "kind": "missing_right"
-    },
-    {
-      "path": "message",
-      "left": "capture_browser_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
-      "right": "The arguments for MCP tool capture_browser_scenario do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "capture_browser_scenario"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "capture_browser_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
-      "right": "Read the declared input schema or CLI usage for capture_browser_scenario; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    },
-    {
-      "path": "retryable",
-      "left": true,
-      "right": false,
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }
