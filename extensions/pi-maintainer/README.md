@@ -1,8 +1,10 @@
 # pi-maintainer
 
-Aider's edit, git, map, and lint features rebuilt on Pi's extension API for [Pi](https://pi.dev) 1.4.0. The target is behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`, as described by the four reconstructions pinned in `parity/sources.json`.
+Aider's edit, git, map, and lint features rebuilt on Pi's extension API for [Pi](https://pi.dev) 1.5.0. The target is behavioral parity with Aider at commit `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`, as described by the four reconstructions pinned in `parity/sources.json`.
 
 Parity is measured, not asserted. `parity/ledger.json` holds one row per observable Aider behavior. `docs/NATIVE-GAPS.md` records every behavior Pi's public API cannot express, with the eight native-gap answers that file defines. `parity/options.json` disposes of every Aider long option as registered or explicitly nonclaimed. `node scripts/check-parity.mjs --final` stays red while a row is open, so a green `--feature <sar>` run means that feature's rows are verified and a red one names what is missing.
+
+The Pi 1.5.0 contract audit retains all 11 open native-gap contracts. `pi.exec` now limits output with `maxBuffer` and reports `truncated`, but still cannot accept a command environment. See [the current native-gap audit](docs/NATIVE-GAPS.md#pi-150-revalidation). This documentation update does not claim new runtime verification or complete Aider parity.
 
 ## Install
 

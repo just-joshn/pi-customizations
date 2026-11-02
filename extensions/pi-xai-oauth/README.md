@@ -4,6 +4,10 @@ This Pi package lets a SuperGrok or X Premium subscription answer in Pi with eve
 
 The provider reuses Pi's own parts. It takes them from Pi's built-in `xai` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's credential store and refresh path keep the token fresh, and Pi's OpenAI Responses implementation builds and streams every request. The package replaces only sign-in, so that it can request the scope Grok Build grants and open the authorize request Grok 1.0.70 opens. It adds three things: the request headers that Grok Build expects, a model list that follows Grok Build's own catalog, and four model ids that pin the fast model's reasoning effort.
 
+## Pi 1.5.0 compatibility
+
+Pi 1.5.0 is the upgrade target. Its public `registerProvider` contract accepts a complete Pi provider, including native authentication, model discovery, and streaming. Virtual models still select a physical model and thinking level. These mechanisms retain Pi's ownership of credentials, transport, and session state. They do not add Grok Build's subscription login, catalog, or request identity to the built-in `xai` provider, so this package still supplies those differences. This documentation audit is not a live login or inference result.
+
 ## Use it
 
 From this directory:
@@ -80,7 +84,7 @@ If Grok Build raises its minimum client version, requests fail with HTTP 426 and
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages that the tests import, pinned to 1.4.0. Pi does not install development dependencies when it loads the package.
+Run `bun install` first. It installs the Pi packages that the tests import, pinned in `package.json` for the Pi 1.5.0 upgrade. Pi does not install development dependencies when it loads the package.
 
 - `bun run typecheck` runs `tsc` in strict mode.
 - `bun run test` runs the provider against local stand-ins for Grok Build. `login.test.ts` compares the authorize request to the captured Grok 1.0.70 URL and runs both login flows against stubbed token endpoints. `catalog.test.ts` parses the model list and computes the metered prices from Pi's real `xai` catalog. `request.test.ts` checks the headers. `provider.test.ts` checks the login, the models, and the alias routes. `live-catalog.test.ts` runs Pi's model refresh against a stubbed `/v1/models`. `stream.test.ts` streams one request through Pi's `Models` to a local Responses server and checks the headers and the body that arrive, including the `models.json` overrides. `registration.test.ts` runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package.

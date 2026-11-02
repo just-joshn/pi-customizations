@@ -2,7 +2,21 @@
 
 Every custom adapter in pi-maintainer, with eight answers recorded before custom logic is added. The answers are, in order: the exact required behavior, the Pi mechanism evaluated, why the public API cannot express the requirement, why omitting the behavior is unacceptable, the smallest adapter, the Pi-owned state that stays authoritative, the verification, and the condition for deleting the adapter.
 
-All citations refer to installed Pi 1.4.0 under `CA` = `@earendil-works/pi-coding-agent/` and to the Aider checkout at `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
+The current contract baseline is installed Pi 1.5.0. `CA` means `@earendil-works/pi-coding-agent/`.
+The detailed 1.4.0 mechanism labels and line coordinates below record the earlier audit. The 1.5.0 revalidation below supersedes their host baseline, not their test receipts.
+Aider citations refer to checkout `5dc9490bb35f9729ef2c95d00a19ccd30c26339c`.
+
+## Pi 1.5.0 revalidation
+
+The installed `CA/docs/extensions.md` and `CA/dist/core/extensions/types.d.ts` retain the same ownership boundaries for settings, branch entries, prompt transforms, confirmations, shutdown, and model metadata. The public API still has no extension settings namespace, dotenv loader, repeatable ordered flag values, reply-text edit protocol, operation journal, branch-state reducer, context-entry provenance, callable test-command setting, console writer, or Git repository API. `withFileMutationQueue` still locks one file. Tool-result usage remains the native path for synchronous nested model accounting. The scripted-provider adapter remains test infrastructure rather than a replacement agent loop.
+
+`CA/dist/core/exec.d.ts` adds `ExecOptions.maxBuffer` and `ExecResult.truncated`. It still has no `env` field. The command-environment adapter remains necessary for literal environment values that stay off argv. Native shell-tool spawn hooks can change their environment, but they do not replace Host.exec's argv execution with separate stdout and stderr.
+
+`CA/dist/core/virtual-models.d.ts` still restricts `ModelRoute` to `model`, `thinkingLevel`, and optional `state`. It cannot turn off caching for one editor continuation. `CA/docs/compaction.md` still defines Pi-owned threshold and overflow recovery, cut selection, and recent-tail retention, not Aider's proceed-anyway gate or recursive half-budget history split.
+
+The package root still exports neither a parser nor a workspace watcher. `CA/examples/extensions/file-trigger.ts` uses Node's `fs.watch` and `sendMessage`, not a public Pi watch API or TreeContext. It does not establish Aider's idle-input interruption or structural slices. The lint PTY, parser, callable-command, and model-prefix requirements remain unsupported.
+
+This documentation audit closes none of the 11 open native-gap ledger contracts. It does not rerun the verification suites cited below or establish complete Aider parity. Pi 1.5.0 package changelog discovery is documented in `CA/docs/packages.md#show-a-changelog` and does not close a parity contract.
 
 ## Settings
 
@@ -116,7 +130,7 @@ The flag adapters share the following gate answers. The table above identifies t
 
 1. **Behavior.** Maintainer subprocesses receive the locally resolved `.env` environment without changing provider credentials in `process.env`, and without placing secret values on the child process argv or in logged command lines.
 2. **Mechanism evaluated.** `pi.exec` with cwd, timeout, and signal.
-3. **Why it cannot.** Pi 1.4.0 `ExecOptions` is `{ signal, timeout, cwd }` only (`CA/dist/core/exec.d.ts:7-14`) and has no environment field. Passing `NAME=value` through `env -i` puts those values on argv, which process listings and command logs can expose.
+3. **Why it cannot.** Pi 1.5.0 `ExecOptions` has `signal`, `timeout`, `cwd`, and `maxBuffer` (`CA/dist/core/exec.d.ts`), but no environment field. `ExecResult.truncated` reports output-cap termination. Passing `NAME=value` through `env -i` puts those values on argv, which process listings and command logs can expose.
 4. **Why not omit.** The architecture requires local dotenv values to reach maintainer commands, and credential material must not appear in argv.
 5. **Adapter.** `src/core/isolated-exec.ts` spawns the command with Node's `env` option, the resolved maintainer environment plus a per-command overlay, and the same cwd, timeout, and abort behavior as `pi.exec`. `Host.exec` merges the overlay over that environment, so `/git`, attribution commits, lint, and shell suggestions all inherit `.env` values. It never constructs shell text and never puts assignments on argv.
 6. **Authoritative Pi state.** Pi still owns session lifecycle, auth, and provider transport. This adapter only runs maintainer Host subprocesses. `process.env` is never written.

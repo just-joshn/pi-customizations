@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Update the host compatibility documentation for Pi 1.5.0. Retain the four native gaps for RPC process control, skill-block formatting, named-ID fork truncation, and workspace folder naming.
+- Keep earlier verification records unchanged. This documentation audit does not claim new runtime-test results or complete upstream parity.
+- Keep the package-root changelog for Pi 1.5.0's extension update notices. Pi displays newer versioned entries after a package version increase. This unreleased entry does not itself trigger a notice.
+
 ## [0.15.36-pi.6]
 
 - Implement version-2 durable subscription registry with transactional file locking, native owner continuation delivery via `pi.sendMessage`, bounded exponential retry on detached failures, per-subscription queue caps, non-blocking GitHub arming, legacy supervisor termination, and in-process fallback isolation.
