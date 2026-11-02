@@ -35,6 +35,6 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 ## Features
 
-- [Pstack command surface](./pstack-commands.md) covers the `/mode` and `/loop` commands, the pstack skill commands, and the bare `/mode` report.
-- [Poteto mode](./poteto-mode.md) covers command and direct-tool mode changes, UI notifications, and branch state persistence.
-- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, and Grok Build.
+- [Pstack command surface](./pstack-commands.md) covers the `/mode`, `/loop`, `/plan`, and `/routines` commands, the pstack skill commands, and the bare `/mode` report.
+- [Poteto mode](./poteto-mode.md) covers `/mode` on/off changes, UI notifications, the footer status, and branch state entries.
+- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, and Grok Build, and the `/antigravity` account command.

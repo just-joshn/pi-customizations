@@ -44,6 +44,7 @@ function createRpcSession(packagePath, cwd) {
   const pendingRequests = new Map();
   const uiNotifications = [];
   const entriesAppended = [];
+  const statusUpdates = [];
   let stderr = '';
   let requestSeq = 0;
   let closedError = null;
@@ -80,6 +81,8 @@ function createRpcSession(packagePath, cwd) {
             }
           } else if (record.type === 'extension_ui_request' && record.method === 'notify') {
             uiNotifications.push({ message: record.message, notifyType: record.notifyType });
+          } else if (record.type === 'extension_ui_request' && record.method === 'setStatus') {
+            statusUpdates.push({ statusKey: record.statusKey, statusText: record.statusText ?? null });
           } else if (record.type === 'entry_appended') {
             entriesAppended.push(record.entry);
           }
@@ -140,6 +143,9 @@ function createRpcSession(packagePath, cwd) {
     },
     get entries() {
       return [...entriesAppended];
+    },
+    get statuses() {
+      return [...statusUpdates];
     },
     get stderr() {
       return stderr;
@@ -214,10 +220,10 @@ async function drivePstackCommands(artifactDir) {
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
     try {
-      // 1. Extension surface: /mode and /loop are registered, pstack skills are loadable.
+      // 1. Extension surface: /mode, /loop, /plan, and /routines are registered, pstack skills are loadable.
       const res = await session.send({ type: 'get_commands' });
       const names = res.commands.map((c) => c.name);
-      for (const expected of ['mode', 'loop']) {
+      for (const expected of ['mode', 'loop', 'plan', 'routines']) {
         assert.ok(names.includes(expected), `Expected extension command /${expected} not registered`);
       }
       for (const expected of ['skill:poteto-mode', 'skill:setup-pstack', 'skill:poteto-help']) {
@@ -261,6 +267,8 @@ async function drivePotetoMode(artifactDir) {
       const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack/mode');
       assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
       assert.equal(onEntry.data?.skill, 'poteto-mode', 'On entry did not record the poteto-mode skill');
+      const modeStatus = () => session.statuses.filter((s) => s.statusKey === 'pstack-mode').at(-1);
+      assert.match(modeStatus()?.statusText ?? '', /mode: poteto-mode/, 'Expected pstack-mode footer status showing poteto-mode');
 
       // 2. Turn the mode off.
       const beforeOff = session.notifications.length;
@@ -269,13 +277,14 @@ async function drivePotetoMode(artifactDir) {
         session.notifications.slice(beforeOff).some((n) => n.message === 'Mode off.'),
         'Expected UI notification "Mode off." not observed',
       );
-      const offEntry = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode').at(-1);
-      assert.ok(offEntry, 'Expected a second pstack/mode entry appended to branch');
-      assert.equal(offEntry.data, null, 'Off entry did not record null mode data');
+      const modeEntries = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode');
+      assert.equal(modeEntries.length, 2, 'Expected exactly two pstack/mode entries (on, then off)');
+      assert.equal(modeEntries[1].data, null, 'Off entry did not record null mode data');
+      assert.equal(modeStatus()?.statusText, null, 'Expected pstack-mode footer status cleared after /mode off');
 
       await writeFile(
         join(outDir, 'mode.json'),
-        `${JSON.stringify({ notifications: session.notifications, entries: session.entries }, null, 2)}\n`,
+        `${JSON.stringify({ notifications: session.notifications, entries: session.entries, statuses: session.statuses }, null, 2)}\n`,
         'utf8',
       );
       process.stdout.write(`✓ Captured poteto mode on/off evidence in ${outDir}\n`);
@@ -329,6 +338,22 @@ async function driveOauthProviders(artifactDir) {
     await writeFile(join(outDir, 'claude-models.txt'), claudeOutput, 'utf8');
     await writeFile(join(outDir, 'antigravity-models.txt'), antigravityOutput, 'utf8');
     await writeFile(join(outDir, 'grok-build-models.txt'), grokOutput, 'utf8');
+
+    const loggedOutDir = join(scratchDir, 'logged-out');
+    await mkdir(loggedOutDir);
+    const session = createRpcSession(antigravityPkg, loggedOutDir);
+    try {
+      const res = await session.send({ type: 'get_commands' });
+      assert.ok(res.commands.some((c) => c.name === 'antigravity'), 'Expected extension command /antigravity not registered');
+      await session.send({ type: 'prompt', message: '/antigravity' });
+      assert.ok(
+        session.notifications.some((n) => n.notifyType === 'error' && n.message === 'Google Antigravity is not logged in. Run /login and choose Google Antigravity.'),
+        'Expected /antigravity logged-out error notification not observed',
+      );
+      await writeFile(join(outDir, 'antigravity-command.json'), `${JSON.stringify({ notifications: session.notifications }, null, 2)}\n`, 'utf8');
+    } finally {
+      await session.close();
+    }
     process.stdout.write(`✓ Captured OAuth provider model registration evidence in ${outDir}\n`);
   } finally {
     await rm(scratchDir, { recursive: true, force: true });
