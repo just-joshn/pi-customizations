@@ -119,6 +119,21 @@ index aa02878..fab16b1 100644
  		},
  	);
  }
+@@ -440,10 +440,10 @@ function rewriteConstAsEnum(schema: unknown, isNameMap = false): unknown {
+ 		}),
+ 	);
+-	if (!isNameMap && "const" in result && result.enum === undefined) {
+-		const value = result.const;
++	if (!isNameMap && "const" in result && result["enum"] === undefined) {
++		const value = result["const"];
+ 		if (typeof value === "string" || typeof value === "number") {
+-			delete result.const;
+-			result.enum = [value];
++			delete result["const"];
++			result["enum"] = [value];
+ 		}
+ 	}
+ 	return result;
 diff --git a/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts b/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts
 index f443a94..3011d2c 100644
 --- a/extensions/pi-antigravity-oauth/src/pi-ai/simple-options.ts
