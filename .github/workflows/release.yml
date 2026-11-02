@@ -1,0 +1,120 @@
+name: release
+
+# Publishes every extension whose package.json version has no release tag yet.
+#
+# Publishing follows npm's trusted publishing (OIDC) flow, which needs no
+# long-lived token: https://docs.npmjs.com/trusted-publishers
+#   - npm CLI >= 11.5.1 and Node >= 22.14.0 (this workflow pins Node 26.13.0,
+#     npm 11.x, matching .github/workflows/pi-pstack.yml).
+#   - permissions: id-token: write (required for OIDC).
+#   - `npm publish` with no auth token; provenance attestations are generated
+#     automatically. https://docs.npmjs.com/generating-provenance-statements
+# One-time setup per package on npmjs.com (package Settings -> Trusted
+# Publisher -> GitHub Actions, workflow filename `release.yml`) is documented
+# in docs/releases.md. If the repository secret NPM_TOKEN exists instead, the
+# workflow uses npm's documented token path:
+#   `npm publish --provenance --access public` (requires registry-url).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'extensions/**'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # Create and push release tags
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0 # Release detection compares package versions against tags
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '26.13.0' # Trusted publishing requires Node >= 22.14.0
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false # Never use caching in release builds
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.2
+      - name: Detect unreleased packages
+        id: detect
+        run: |
+          set -euo pipefail
+          unreleased=""
+          for manifest in extensions/*/package.json; do
+            name=$(jq -r .name "$manifest")
+            if [ "$(jq -r '.private // false' "$manifest")" = "true" ]; then
+              continue
+            fi
+            version=$(jq -r .version "$manifest")
+            base="${name##*/}"
+            tag="${base}-v${version}"
+            dir="${manifest%/package.json}"
+            if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null 2>&1; then
+              echo "already released: ${name}@${version} (${tag})"
+            else
+              echo "unreleased: ${name}@${version}"
+              unreleased="${unreleased}${dir} "
+            fi
+          done
+          echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
+      - name: Install workspace dependencies
+        if: steps.detect.outputs.packages != ''
+        run: bun install --frozen-lockfile
+      - name: Verify and publish unreleased packages
+        if: steps.detect.outputs.packages != ''
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -uo pipefail
+          failed=""
+          for dir in ${{ steps.detect.outputs.packages }}; do
+            name=$(jq -r .name "$dir/package.json")
+            version=$(jq -r .version "$dir/package.json")
+            base="${name##*/}"
+            tag="${base}-v${version}"
+            echo "::group::${name}@${version}"
+            if ! (
+              set -euo pipefail
+              if jq -e '.scripts.typecheck' "$dir/package.json" > /dev/null; then
+                (cd "$dir" && bun run typecheck)
+              fi
+              if jq -e '.scripts.test' "$dir/package.json" > /dev/null; then
+                (cd "$dir" && bun run test)
+              fi
+              if [ "$HAS_NPM_TOKEN" = "true" ]; then
+                (cd "$dir" && NODE_AUTH_TOKEN="${NPM_TOKEN}" npm publish --provenance --access public)
+              else
+                (cd "$dir" && npm publish)
+              fi
+              git tag "$tag"
+              git push origin "refs/tags/${tag}"
+            ); then
+              echo "::error::release failed for ${name}@${version}; fix the package and merge again"
+              failed="${failed}${name} "
+            else
+              echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) as tag \`${tag}\`" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            echo "::endgroup::"
+          done
+          if [ -n "${failed% }" ]; then
+            echo "Failed packages: ${failed% }" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+      - name: Nothing to release
+        if: steps.detect.outputs.packages == ''
+        run: echo "Every extension version already has a release tag." >> "$GITHUB_STEP_SUMMARY"
