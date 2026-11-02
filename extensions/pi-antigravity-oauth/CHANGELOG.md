@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+- Target Pi 1.5.0 development dependencies and import TypeBox directly in standalone tests.
+- Refresh Pi's Google schema conversion and constrained-sampling helpers, preserving the documented strict-TypeScript adaptations.
+- Revalidate the native transport gap against Pi 1.5.0. Live OAuth login and service inference remain unverified.
+
 ## [0.1.3]
 
 - On macOS, `/login` can import the Antigravity CLI keychain credential (`gemini`/`antigravity`) into Pi `auth.json`, then fill `projectId` via `loadCodeAssist`. No `agy` binary is required at runtime.
