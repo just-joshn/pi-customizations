@@ -4,6 +4,10 @@ Use a Claude subscription in Pi through its native provider, login, credential s
 
 The package registers `claude-subscription`. Existing credentials and saved model selections keep that provider ID. After login, Pi's `auth.json` is the only store this package uses for requests and refresh.
 
+## Pi 1.5.0 compatibility
+
+Pi 1.5.0 is the upgrade target. Its public extension API retains provider registration, native authentication, request hooks, virtual models, and tool-result usage. Those contracts do not establish complete Claude Code parity or remove the request-identity and tool-name adapters. The checked-in Pi 1.4.0 receipts remain historical runtime evidence, not Pi 1.5.0 results. See [the native-gap audit](docs/claude-oauth-parity.md#pi-150-contract-audit).
+
 ## Sign in through Pi
 
 From this directory, start Pi:
@@ -60,7 +64,7 @@ Read the [parity matrix](docs/claude-oauth-parity.md) for verified behavior, del
 
 ## Tool-name limits
 
-OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi `1.4.0` sends tool changes inline on capable models. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
+OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi supports inline tool changes on capable models. The Pi `1.4.0` receipts below verify the collision workaround on that host. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
 
 ## Verify the integration
 
@@ -82,11 +86,11 @@ bunx vitest run --sequence.shuffle
 bun run prove
 ```
 
-From the repository root, `make verify-oauth` runs typecheck, coverage, and `bun run prove` for this package. The prove scripts use the pinned `@earendil-works/pi-coding-agent` `1.4.0` CLI bundle and local HTTP peers. They stay offline and do not need a separate `pi` install.
+From the repository root, `make verify-oauth` runs typecheck, coverage, and `bun run prove` for this package. The prove scripts use the pinned `@earendil-works/pi-coding-agent` CLI bundle and local HTTP peers. They stay offline and do not need a separate `pi` install.
 
 The tests use native Pi providers, authentication, and streams against local HTTP peers. `prove-request-paths.ts` verifies normal prompts, compaction, virtual routing, the default identity header on every path, the Claude session header, and `models.json` header overrides. `prove-context-guard.ts` reproduces the cross-provider context-limit wedge with `--expect red` on the parent commit and verifies that the guard keeps every request under the window with `--expect green`. `prove-native.ts` verifies print, JSON, RPC, ambient authentication, session correlation, fork, reload, session replacement, tool execution, native Bash output, and cancellation.
 
-These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi `1.4.0` test dependency. The `1.4.0` receipts and the historical `1.0.0`, `1.0.1`, and `1.1.0` receipts live under `docs/verification/`.
+These probes use disposable Pi directories and synthetic tokens. They do not contact Anthropic for inference or inspect your credentials. Set `PI_OAUTH_CLI_PATH` to an installed Pi's `dist/bundle/cli.js` to repeat them against that host. They otherwise use the package's pinned Pi test dependency. The `1.4.0` receipts and the historical `1.0.0`, `1.0.1`, and `1.1.0` receipts live under `docs/verification/`.
 
 A live Anthropic authorize→exchange probe exists as `bun run live:exchange`. It stays off in CI. It runs only when `parity/oauth-rea-2026-10-31/claude/gates.md` marks `ANTH-LIVE-021` as `approved` and `PI_ANTHROPIC_OAUTH_LIVE_EXCHANGE=1`. A successful run writes a redacted receipt under `parity/oauth-rea-2026-10-31/claude/receipts/`.
 

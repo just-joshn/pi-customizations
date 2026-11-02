@@ -1,6 +1,6 @@
 # pstack for Pi (pi-pstack)
 
-pi-pstack is pstack 0.15.36 for Pi 1.4.0: rigorous agent workflows (`/poteto-mode` and its playbooks), the principle skills, and the review, research, and verification skills, plus the full soft-dependency team-kit set (`deslop`, `control-cli`, `control-ui`, CI/PR helpers, thermo-nuclear review, and the rest) vendored in so you do not install a separate team-kit package. A small extension provides the host features the skills call by name: `/name` skill commands, `/mode`, `/plan`, the `Task` subagent tool with local worktree workers, forks, and `agent_status`, `TodoWrite`, `AskQuestion`, the model rule, `/loop`, subscriptions and webhook routines, and `visualize`.
+pi-pstack is pstack 0.15.36 for Pi 1.5.0: rigorous agent workflows (`/poteto-mode` and its playbooks), the principle skills, and the review, research, and verification skills, plus the full soft-dependency team-kit set (`deslop`, `control-cli`, `control-ui`, CI/PR helpers, thermo-nuclear review, and the rest) vendored in so you do not install a separate team-kit package. A small extension provides the host features the skills call by name: `/name` skill commands, `/mode`, `/plan`, the `Task` subagent tool with local worktree workers, forks, and `agent_status`, `TodoWrite`, `AskQuestion`, the model rule, `/loop`, subscriptions and webhook routines, and `visualize`.
 
 ## Get set up
 
@@ -69,7 +69,7 @@ Subagent transcripts are Pi sessions in `<pstack dir>/workspaces/<workspace fold
 - Event delivery is at-least-once. A process crash after Pi queues a message but before its durable acknowledgement can repeat a wake or a fresh run. Automation prompts must make external actions idempotent. Accepted events remain queued until delivery or cancellation. Expiry stops new occurrences rather than discarding accepted work. Failed detached executions retain their event for retry and expose the error in `list_subscriptions`. Cancelling a subscription drops pending undelivered events, but cannot undo work already handed to Pi.
 - The Benny automation pack under `automations/benny/` runs on pi-pstack subscriptions. Keep its owning Pi session running for immediate handling, or resume that session to handle parked events. It needs a Slack MCP server for its Slack steps.
 - `/plan` uses `bash_readonly` for its shell rather than replacing `bash`, so your shell settings stay as they are outside plan mode.
-- Background subagent token usage is recorded in the child's transcript and in the `usage` field of the notification's details, but does not enter the parent session's totals: Pi 1.4.0 gives extensions no way to add usage outside a tool result.
+- Background subagent token usage is recorded in the child's transcript and in the `usage` field of the notification's details, but does not enter the parent session's totals: Pi 1.5.0 has no public API for adding a background completion's usage to the parent totals. Native tool-result usage covers synchronous nested work, not later notifications.
 - `/reload`, `/new`, and Pi's `/resume` and `/fork` commands stop running background subagents, with a warning that names how many. Continue one later with `Task` `resume` and its agent ID.
 - A print or JSON run waits for its background subagents before it exits, with no timeout of its own, unless it is aborted.
 - Subagents start the same Pi script that runs the parent (`process.argv[1]`), or `pi` from `PATH`. Embedding the package through the SDK in another host is not supported.
@@ -85,7 +85,7 @@ Subagent transcripts are Pi sessions in `<pstack dir>/workspaces/<workspace fold
 
 ## Maintain it
 
-The skills, agents, guide, and automation pack are this package's own files; edit them in place. They track pstack 0.15.36 in behavior. The record of the move to Pi-native text and the host features added for it is at the repository root, in `parity/pi-pstack-0.15.36/` (design and decisions); earlier records are in the root's `parity/pi-pstack-*`. Four mechanisms Pi 1.4.0 does not export keep a hand-written implementation here: [`docs/native-gaps.md`](docs/native-gaps.md) names each one, the evidence, and the public API that would replace it.
+The skills, agents, guide, and automation pack are this package's own files; edit them in place. They track pstack 0.15.36 in behavior. The record of the move to Pi-native text and the host features added for it is at the repository root, in `parity/pi-pstack-0.15.36/` (design and decisions); earlier records are in the root's `parity/pi-pstack-*`. Four mechanisms Pi 1.5.0 does not export keep a hand-written implementation here: [`docs/native-gaps.md`](docs/native-gaps.md) names each one, the evidence, and the public API that would replace it.
 
 ```sh
 bun run typecheck
