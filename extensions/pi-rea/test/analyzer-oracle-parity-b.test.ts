@@ -324,7 +324,7 @@ test.skipIf(sqlite3.status !== 0)('rejects a NULL sqlite_schema table before rep
   const path = join(targets.dir, 'null-schema.db');
   const created = spawnSync('sqlite3', [path, 'CREATE TABLE t (a INTEGER); INSERT INTO t VALUES (1);']);
   expect(created.status).toBe(0);
-  const nulled = spawnSync('sqlite3', [path, "PRAGMA writable_schema=ON; UPDATE sqlite_schema SET sql=NULL WHERE name='t';"]);
+  const nulled = spawnSync('sqlite3', ['-cmd', '.dbconfig defensive off', path, "PRAGMA writable_schema=ON; UPDATE sqlite_schema SET sql=NULL WHERE name='t';"]);
   expect(nulled.status).toBe(0);
 
   let payload: ReaError['payload'] | undefined;
