@@ -56,10 +56,10 @@ TryAcquire(p) ==
           /\ UNCHANGED <<lockState, lockHolder, attempts>>
   /\ UNCHANGED <<localToken, failedAccess, sharedToken, serverToken, refreshCount>>
 
-\* Step 2: Handle EEXIST and check for abandoned lock (refresh-file-lock.ts:94-102)
+\* Step 2: Handle EEXIST, stat the lock directory via lockAbandoned (refresh-file-lock.ts:60-68, 94-102)
 CheckStale(p) ==
   /\ pc[p] = "check_stale"
-  /\ IF lockState = "held" /\ lockHolder /= "none" /\ pc[lockHolder] = "crashed"
+  /\ IF lockState = "free" \/ (lockHolder /= "none" /\ pc[lockHolder] = "crashed")
      THEN /\ pc' = [pc EXCEPT ![p] = "steal_lock"]
           /\ UNCHANGED attempts
      ELSE IF attempts[p] < MaxRetries
@@ -69,7 +69,7 @@ CheckStale(p) ==
                /\ UNCHANGED attempts
   /\ UNCHANGED <<localToken, failedAccess, lockState, lockHolder, sharedToken, serverToken, refreshCount>>
 
-\* Step 3: Remove abandoned lock and retry (refresh-file-lock.ts:96-97)
+\* Step 3: rm(lockPath, { force }) removes whatever directory exists now, then retries mkdir (refresh-file-lock.ts:96-97)
 StealLock(p) ==
   /\ pc[p] = "steal_lock"
   /\ lockState' = "free"

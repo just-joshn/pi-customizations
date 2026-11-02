@@ -23,7 +23,7 @@ To prevent this catastrophic revocation, `pi-anthropic-oauth` implements a cross
 - **Covered files and functions:**
   - `extensions/pi-anthropic-oauth/src/refresh-file-lock.ts`:
     - `withRefreshFileLock` (cross-process directory lock, `EEXIST` backoff, and stale lock stealing)
-    - `lockAbandoned` (`staleMs` mtime comparison)
+    - `lockAbandoned` (`staleMs` mtime comparison, and `true` on `ENOENT`)
     - `refreshLockPathFor` (lock directory location)
     - `defaultRefreshLockRetryDelayMs` (Claude retry delay)
   - `extensions/pi-anthropic-oauth/src/auth-recovery.ts`:
@@ -79,7 +79,7 @@ Refer to `/statechart` by name.
 
 ## Bounds and assumptions
 
-- **State space bound:** Model-checked for 2 concurrent processes (`Processes = {p1, p2}`) racing from token expiration up to 2 retries (`MaxRetries = 2`). Full reachable state space (482 generated states, 304 distinct states) is exhaustively searched.
+- **State space bound:** Model-checked for 2 concurrent processes (`Processes = {p1, p2}`) racing from token expiration up to 2 retries (`MaxRetries = 2`). Full reachable state space (488 generated states, 310 distinct states) is exhaustively searched.
 - **Filesystem atomicity:** Assumes POSIX directory creation (`mkdir`) is atomic and returns `EEXIST` when already created.
 - **Clock and timeout separation:** Assumes `staleMs` (30s) exceeds maximum refresh timeout (15s). A live process never holds the lock longer than `staleMs`.
 - **Out of scope:** Raw TCP network drops, TLS socket resets, or Anthropic upstream service outages.
