@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 
 import { createClaudeOAuth, subscriptionAuth } from '../src/auth.ts';
 import {
@@ -175,12 +175,11 @@ test('subscription login import path returns a Pi oauth credential without fetch
     }),
   ).oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-  const originalFetch = globalThis.fetch;
   let fetchCalls = 0;
-  globalThis.fetch = (async () => {
+  vi.stubGlobal('fetch', async () => {
     fetchCalls += 1;
     throw new Error('import must not contact the token endpoint');
-  }) as typeof fetch;
+  });
   try {
     const progress: string[] = [];
     const credential = await oauth.login({
@@ -197,7 +196,7 @@ test('subscription login import path returns a Pi oauth credential without fetch
     expect(progress.some((message) => /Importing Claude Code/.test(message))).toBe(true);
     expect(credential).toEqual(imported);
   } finally {
-    globalThis.fetch = originalFetch;
+    vi.unstubAllGlobals();
   }
 });
 

@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES, subscriptionAuth } from '../src/auth.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
@@ -9,11 +9,10 @@ test('subscription login offers paste, loopback, and Claude Code import, then de
   let selectOptions: { id: string; label: string }[] | undefined;
   let authorizeUrl: URL | undefined;
   const fetchCalls: unknown[] = [];
-  const original = globalThis.fetch;
-  globalThis.fetch = (async (input, init) => {
+  vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     fetchCalls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : undefined });
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
-  }) as typeof fetch;
+  });
   try {
     const credential = await oauth.login({
       signal: new AbortController().signal,
@@ -49,7 +48,7 @@ test('subscription login offers paste, loopback, and Claude Code import, then de
       },
     ]);
   } finally {
-    globalThis.fetch = original;
+    vi.unstubAllGlobals();
   }
 });
 
@@ -58,11 +57,10 @@ test('subscription login posts the independent state with the authorization code
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let authorizeUrl: URL | undefined;
   let exchangeBody: Record<string, string> | undefined;
-  const original = globalThis.fetch;
-  globalThis.fetch = (async (_input, init) => {
+  vi.stubGlobal('fetch', async (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     exchangeBody = JSON.parse(String(init?.body)) as Record<string, string>;
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
-  }) as typeof fetch;
+  });
   try {
     await oauth.login({
       signal: new AbortController().signal,
@@ -81,7 +79,7 @@ test('subscription login posts the independent state with the authorization code
     expect(exchangeBody?.['code_verifier']).not.toBe(exchangeBody?.['state']);
     expect(exchangeBody?.['redirect_uri']).toBe('https://platform.claude.com/oauth/code/callback');
   } finally {
-    globalThis.fetch = original;
+    vi.unstubAllGlobals();
   }
 });
 
