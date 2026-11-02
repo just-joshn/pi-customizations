@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { getSupportedThinkingLevels, StringEnum } from '@earendil-works/pi-ai';
+import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
 import { childIdentity, childVariables } from '../child-env.ts';
@@ -51,7 +51,8 @@ export const TaskParams = Type.Object({
   ),
   file_attachments: Type.Optional(Type.Array(Type.String(), { description: 'Paths of files or images to attach to the agent first message.' })),
   environment: Type.Optional(
-    StringEnum(['local', 'cloud'] as const, {
+    Type.Enum(['local', 'cloud'] as const, {
+      type: 'string',
       description:
         'local (default) runs the agent in this working directory. cloud runs it on this machine in its own git worktree on a new branch pstack/<agent id>, created from cloud_base_branch or the current HEAD commit, so uncommitted changes do not reach it. The result names the worktree and branch; merge the branch to take its commits. Ignored with resume; not allowed with fork.',
     }),
