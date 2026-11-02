@@ -7,12 +7,13 @@ import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
-import { type CronSchedule, cronMatches, parseCron } from './cron.ts';
-import { acquireSupervisorLock, createDesired, drainInbox, dropExpired, isSupervisorLive, readDelivery, readRegistry, releaseSupervisorLock, removeDesired, upsertDesired } from './durable-store.ts';
-import type { DurableSubscription } from './durable-types.ts';
-import { defaultEnsureSupervisor, waitForSupervisor } from './ensure-supervisor.ts';
-import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, targetText } from './github.ts';
-import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, routineSlug, type WebhookEvent, webhookEventBlock } from './webhook.ts';
+import { parseCron } from './cron.ts';
+import { acquireLease, cancelDesired, canonicalPath, createDesired, deliverOwner, finishFresh, isDesired, isSupervisorLive, type Lease, ownerLockPath, readArm, readRegistry, startFresh, visibleSubscriptions } from './durable-store.ts';
+import type { StoredSubscription } from './durable-types.ts';
+import { defaultEnsureSupervisor, waitForArm, waitForSupervisor } from './ensure-supervisor.ts';
+import { type GhRunner, targetText } from './github.ts';
+import { createSupervisor, type Supervisor } from './supervisor.ts';
+import { credentialFile, routineSlug } from './webhook.ts';
 
 export const SUBSCRIPTIONS_ENTRY = 'pstack/subscriptions';
 export const WAKE_TYPE = 'pstack/subscription';
@@ -20,9 +21,6 @@ export const WAKE_TYPE = 'pstack/subscription';
 const HOUR_MS = 3_600_000;
 const DEFAULT_EXPIRY_MS = 7 * 24 * HOUR_MS;
 const MAX_EXPIRY_HOURS = 30 * 24;
-// setTimeout fires at once past 2^31-1 ms, so long waits are chained in steps of at most this.
-const MAX_STEP_MS = 24 * 24 * HOUR_MS;
-const MINUTE_MS = 60_000;
 
 const TargetSchema = Type.Union([
   Type.Object({ scope: Type.Literal('pr'), prUrl: Type.String() }),
@@ -41,23 +39,6 @@ export type Subscription = Static<typeof SubscriptionSchema>;
 type Config = Subscription['config'];
 type TimerConfig = Extract<Config, { kind: 'timer' }>;
 type Strategy = TimerConfig['strategy'];
-
-interface Note {
-  at: number;
-  text: string;
-}
-
-interface Live {
-  sub: Subscription;
-  timers: Set<ReturnType<typeof setTimeout>>;
-  lastEvent?: Note;
-  lastError?: Note;
-  baseline?: Map<number, PrSnapshot>;
-  polling?: boolean;
-  url?: string;
-  cron?: CronSchedule;
-  lastCronMinute?: number;
-}
 
 export interface SubscriptionOptions {
   /** Runs a prompt in a fresh background session (a `new_session` timer fire). */
@@ -82,12 +63,6 @@ const oneLine = (text: string, max = 200) => {
   return line.length > max ? `${line.slice(0, max - 1)}…` : line;
 };
 const errorText = (error: unknown) => oneLine(error instanceof Error ? error.message : String(error), 500);
-
-function envPort(): number {
-  const raw = process.env['PSTACK_ROUTINES_PORT'];
-  const port = raw === undefined || raw === '' ? DEFAULT_ROUTINES_PORT : Number(raw);
-  return Number.isInteger(port) && port >= 0 && port < 65536 ? port : DEFAULT_ROUTINES_PORT;
-}
 
 function oneShotError(tool: string): Error {
   return new Error(`${tool} needs an interactive or RPC session: print and JSON runs exit when the agent settles, so nothing could wake this run or fire this subscription later. Do the work now instead.`);
@@ -157,7 +132,7 @@ const TimerParams = Type.Object({
   once: Type.Optional(Type.Boolean({ description: 'Fire only once, then end the timer. Default false.' })),
   sessionStrategy: Type.Optional(
     StringEnum(['wake_self', 'new_session'] as const, {
-      description: 'wake_self (default): wake this session with the prompt. new_session: run the prompt in a fresh background subagent each fire; its result arrives as a Task notification.',
+      description: 'wake_self (default) queues the prompt for this owning session. new_session starts fresh work each fire. A live owner gets a background Task notification; offline execution records its outcome in list_subscriptions.',
     }),
   ),
   expiresInHours: Type.Optional(Type.Number({ description: `Hours until the timer ends; default 168 (7 days), at most ${MAX_EXPIRY_HOURS}.` })),
@@ -174,336 +149,217 @@ const UnsubscribeParams = Type.Object({ subscription: Type.String({ description:
 const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }], details: value });
 
 export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptions) {
-  const live = new Map<string, Live>();
-  const gh = options.gh ?? defaultGhRunner;
-  const pollMs = options.pollIntervalMs ?? MINUTE_MS;
   const dir = options.routinesDir ?? routinesDir();
-  const server = new RoutineServer(options.routinesPort ?? envPort());
-  let active = false;
-  let workspaceCwd = process.cwd();
-  /** True when this chat process holds supervisor.lock for in-process arming (handoff fallback). */
-  let chatHoldsSupervisorLock = false;
+  let workspaceCwd = canonicalPath(process.cwd());
+  let owner: { id: string; cwd: string; lease: Lease; notify: (message: string) => void } | undefined;
+  let ownerPoll: ReturnType<typeof setInterval> | undefined;
+  let fallback: Supervisor | undefined;
+  let starting: Promise<void> | undefined;
+  let draining = false;
+  let lastDrainError: string | undefined;
 
-  const persist = () => pi.appendEntry(SUBSCRIPTIONS_ENTRY, { subscriptions: [...live.values()].map((entry) => entry.sub) });
+  const persist = () => pi.appendEntry(SUBSCRIPTIONS_ENTRY, { subscriptions: readRegistry(workspaceCwd).subscriptions.filter((sub) => isDesired(sub)) });
 
-  const byName = (name: string) => [...live.values()].find((entry) => entry.sub.name === name);
-
-  const toDurable = (sub: Subscription, ownerSessionFile?: string): DurableSubscription => ({
-    id: sub.id,
-    name: sub.name,
-    createdAt: sub.createdAt,
-    expiresAt: sub.expiresAt,
-    config: sub.config,
-    ...(ownerSessionFile === undefined ? {} : { ownerSessionFile }),
-    detachedDelivery: 'spawn',
-  });
-
-  /** Restore / force-write path: upsert by id. */
-  const mirrorUpsert = (sub: Subscription, ownerSessionFile?: string) => {
-    upsertDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
-  };
-
-  const mirrorRemove = (id: string) => {
-    removeDesired(workspaceCwd, id);
-  };
-
-  const routinesPort = () => options.routinesPort ?? envPort();
-  const expectedWebhookUrl = (slug: string) => `http://127.0.0.1:${routinesPort()}/routines/${slug}`;
-
-  /**
-   * Hand off only when the supervisor can serve the same port/dir as this session.
-   * Port 0 (ephemeral) or a custom routinesDir cannot match a detached supervisor.
-   */
-  const canHandoffToSupervisor = () => {
-    if (options.routinesPort === 0) return false;
-    if (options.routinesDir !== undefined && options.routinesDir !== routinesDir()) return false;
-    return true;
-  };
-
-  /** Runs fn at `at`, chaining timeouts so waits past setTimeout's limit stay correct. */
-  const at = (entry: Live, when: number, fn: () => void) => {
-    const handle = setTimeout(
-      () => {
-        entry.timers.delete(handle);
-        if (!active || !owns(entry)) return;
-        if (Date.now() < when) at(entry, when, fn);
-        else fn();
-      },
-      Math.min(Math.max(0, when - Date.now()), MAX_STEP_MS),
-    );
-    handle.unref?.();
-    entry.timers.add(handle);
-  };
-
-  const owns = (entry: Live) => live.get(entry.sub.id) === entry;
-
-  const disarm = (entry: Live) => {
-    for (const handle of entry.timers) clearTimeout(handle);
-    entry.timers.clear();
-    if (entry.sub.config.kind === 'webhook') {
-      server.routes.delete(entry.sub.config.slug);
-      if (server.routes.size === 0) server.close();
-    }
-  };
-
-  const remove = (entry: Live, save = true) => {
-    disarm(entry);
-    // A restored entry reuses the id. Only that object may drop the subscription.
-    if (!owns(entry)) return;
-    live.delete(entry.sub.id);
-    if (save) {
-      persist();
-      mirrorRemove(entry.sub.id);
-    }
-  };
-
-  /** True (and the subscription gone) once it has expired. */
-  const expired = (entry: Live) => {
-    if (Date.now() < entry.sub.expiresAt) return false;
-    remove(entry);
-    return true;
-  };
-
-  const wake = (entry: Live, content: string, summary: string) => {
-    if (!active) return;
-    entry.lastEvent = { at: Date.now(), text: oneLine(summary) };
-    pi.sendMessage({ customType: WAKE_TYPE, content, display: true, details: { id: entry.sub.id, kind: entry.sub.config.kind, name: entry.sub.name } }, { triggerTurn: true, deliverAs: 'followUp' });
-  };
-
-  const fireTimer = (entry: Live, config: TimerConfig) => {
-    if (config.strategy === 'wake_self') wake(entry, `[timer] ${entry.sub.name}\n\n${config.prompt}`, 'fired');
-    else {
-      entry.lastEvent = { at: Date.now(), text: 'started a fresh session' };
-      Promise.resolve()
-        .then(() => options.runFresh(config.prompt, entry.sub.name))
-        .catch((error: unknown) => {
-          entry.lastError = { at: Date.now(), text: errorText(error) };
-        });
-    }
-    if (config.once) remove(entry);
-  };
-
-  const armTimer = (entry: Live, config: TimerConfig) => {
-    if (config.cron !== undefined) {
-      const schedule = parseCron(config.cron);
-      const tick = () => {
-        if (expired(entry)) return;
-        const now = Date.now();
-        const minute = Math.floor(now / MINUTE_MS);
-        if (minute !== entry.lastCronMinute && cronMatches(schedule, new Date(now))) {
-          entry.lastCronMinute = minute;
-          fireTimer(entry, config);
-          if (!owns(entry)) return;
-        }
-        at(entry, (minute + 1) * MINUTE_MS, tick);
-      };
-      at(entry, (Math.floor(Date.now() / MINUTE_MS) + 1) * MINUTE_MS, tick);
-      return;
-    }
-    const period = (config.delaySeconds ?? 1) * 1_000;
-    const next = () => {
-      const { createdAt } = entry.sub;
-      // A once timer that came due while Pi was not running fires on restore; a repeating one resumes its cadence.
-      if (config.once) return createdAt + period;
-      return createdAt + (Math.floor(Math.max(0, Date.now() - createdAt) / period) + 1) * period;
-    };
-    const fire = () => {
-      if (expired(entry)) return;
-      fireTimer(entry, config);
-      if (owns(entry)) at(entry, next(), fire);
-    };
-    at(entry, next(), fire);
-  };
-
-  const poll = async (entry: Live, target: Static<typeof TargetSchema>) => {
-    if (entry.polling === true || !active || expired(entry)) return;
-    entry.polling = true;
+  const drain = () => {
+    const session = owner;
+    if (session === undefined || draining) return;
+    draining = true;
     try {
-      const after = await fetchPrs(gh, target);
-      if (!active || !owns(entry)) return;
-      if (entry.baseline !== undefined) {
-        const blocks = await pollChanges(gh, target, entry.baseline, after);
-        if (blocks.length > 0 && owns(entry))
-          wake(
-            entry,
-            [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'),
-            blocks
-              .map((block) =>
-                block
-                  .replace(/ \(https?:\/\/\S+\)/, '')
-                  .replace(/\n- /g, ': ')
-                  .replace(/\n/g, '; '),
-              )
-              .join(' | '),
-          );
-      }
-      if (!owns(entry)) return;
-      entry.baseline = after;
-      delete entry.lastError;
-    } catch (error) {
-      entry.lastError = { at: Date.now(), text: errorText(error) };
-    } finally {
-      entry.polling = false;
-    }
-  };
-
-  const armGithub = async (entry: Live, target: Static<typeof TargetSchema>) => {
-    const loop = () => {
-      void poll(entry, target).then(() => {
-        if (active && owns(entry)) at(entry, Date.now() + pollMs, loop);
+      const eligible = () => owner === session;
+      const registry = readRegistry(session.cwd);
+      const pending = registry.pending.filter((event) => {
+        if (event.retryAt !== undefined && Date.now() < event.retryAt) return false;
+        return registry.subscriptions.some((sub) => sub.id === event.subscriptionId && sub.ownerSessionId === session.id);
       });
-    };
-    await poll(entry, target);
-    if (active && owns(entry)) at(entry, Date.now() + pollMs, loop);
-  };
-
-  const onWebhook = (entry: Live, prompt: string) => (event: WebhookEvent) => {
-    if (!owns(entry) || expired(entry)) return;
-    wake(entry, [`[routine] ${entry.sub.name}`, prompt, webhookEventBlock(event)].join('\n\n'), `POST, body sha256 ${event.bodyDigest.slice(0, 12)}`);
-  };
-
-  const armWebhook = async (entry: Live, slug: string, prompt: string) => {
-    const credentialFile = ensureCredentials(dir, slug);
-    server.routes.set(slug, { slug, credentialFile, onEvent: onWebhook(entry, prompt) });
-    try {
-      entry.url = await server.url(slug);
-      delete entry.lastError;
-    } catch (error) {
-      server.routes.delete(slug);
-      entry.lastError = { at: Date.now(), text: errorText(error) };
-      throw error;
+      if (pending.length === 0) return;
+      deliverOwner(session.cwd, session.id, eligible, (sub, event) => {
+        pi.sendMessage({ customType: WAKE_TYPE, content: event.content, display: true, details: { id: sub.id, eventId: event.id, kind: sub.config.kind, name: sub.name } }, { triggerTurn: true, deliverAs: 'followUp' });
+      });
+      for (const event of pending) {
+        const claim = startFresh(session.cwd, event.id, session.id, eligible, (sub, pending) => options.runFresh(pending.content, sub.name));
+        if (claim !== undefined)
+          void claim.result
+            .then(
+              () => finishFresh(session.cwd, event.id, claim.token),
+              (cause: unknown) => finishFresh(session.cwd, event.id, claim.token, cause),
+            )
+            .catch((cause: unknown) => session.notify(`Subscription result could not be saved. ${errorText(cause)}`));
+      }
+      lastDrainError = undefined;
+    } catch (cause) {
+      const message = errorText(cause);
+      if (message !== lastDrainError) session.notify(`Subscription owner delivery failed. ${message}`);
+      lastDrainError = message;
+    } finally {
+      draining = false;
     }
   };
 
-  const expiryTimer = (entry: Live) => at(entry, entry.sub.expiresAt, () => expired(entry));
-
-  const arm = async (entry: Live) => {
-    const { config } = entry.sub;
-    expiryTimer(entry);
-    if (config.kind === 'timer') armTimer(entry, config);
-    else if (config.kind === 'github') await armGithub(entry, config.target);
-    else await armWebhook(entry, config.slug, config.prompt);
+  const ensureEngine = async () => {
+    if (starting !== undefined) return starting;
+    const cwd = workspaceCwd;
+    const session = owner;
+    const attempt = (async () => {
+      if (fallback !== undefined) {
+        await fallback.reconcile();
+        return;
+      }
+      if (isSupervisorLive(cwd)) return;
+      const canDetach = options.routinesDir === undefined || options.routinesDir === routinesDir();
+      if (canDetach) {
+        const ensure = options.ensureSupervisor ?? ((workspace: string) => defaultEnsureSupervisor(workspace, options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort }));
+        await ensure(cwd);
+        if (owner !== session || session === undefined) return;
+        if (isSupervisorLive(cwd) || (await waitForSupervisor(cwd, options.supervisorReadyMs ?? 2_000))) return;
+      }
+      if (owner !== session || session === undefined) return;
+      const engine = createSupervisor({
+        workspaceCwd: cwd,
+        runFresh: options.runFresh,
+        isDaemon: false,
+        ownerSessionId: session.id,
+        ...(options.gh === undefined ? {} : { gh: options.gh }),
+        ...(options.pollIntervalMs === undefined ? {} : { pollIntervalMs: options.pollIntervalMs }),
+        ...(options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort }),
+        ...(options.routinesDir === undefined ? {} : { routinesDir: options.routinesDir }),
+        onAccepted: drain,
+      });
+      fallback = engine;
+      try {
+        const result = await engine.start();
+        if (owner !== session) engine.stop();
+        if (!result.started && fallback === engine) fallback = undefined;
+      } catch (cause) {
+        engine.stop();
+        if (fallback === engine) fallback = undefined;
+        throw cause;
+      }
+    })().finally(() => {
+      if (starting === attempt) starting = undefined;
+    });
+    starting = attempt;
+    return attempt;
   };
 
-  const view = (entry: Live) => {
-    const { sub } = entry;
-    const { config } = sub;
+  const view = (sub: StoredSubscription) => {
+    const config = sub.config;
     const base = { id: sub.id, name: sub.name, kind: config.kind, createdAt: iso(sub.createdAt), expiresAt: iso(sub.expiresAt) };
     if (config.kind === 'timer')
       return { ...base, target: timerTarget(config), prompt: config.prompt, sessionStrategy: config.strategy, ...(config.cron === undefined ? { delaySeconds: config.delaySeconds } : { cron: config.cron }), once: config.once };
     if (config.kind === 'github') return { ...base, target: targetText(config.target), ...config.target, sessionStrategy: 'wake_self' as Strategy };
-    return { ...base, target: entry.url ?? `(not listening) /routines/${config.slug}`, url: entry.url, credentialFile: credentialFile(dir, config.slug), slug: config.slug, prompt: config.prompt, sessionStrategy: 'wake_self' as Strategy };
+    const arm = readArm(workspaceCwd, sub);
+    const url = arm?.state === 'ready' ? arm.url : undefined;
+    return { ...base, target: url ?? `(not listening) /routines/${config.slug}`, url, credentialFile: credentialFile(dir, config.slug), slug: config.slug, prompt: config.prompt, sessionStrategy: 'wake_self' as Strategy };
   };
 
-  const status = (entry: Live) => {
-    const delivery = readDelivery(workspaceCwd, entry.sub.id);
-    const event = entry.lastEvent ?? (delivery === undefined ? undefined : { at: delivery.lastClaimAt, text: 'fired' });
-    const error = entry.lastError ?? delivery?.lastError;
-    return {
-      ...(event === undefined ? {} : { lastEvent: `${iso(event.at)} ${event.text}` }),
-      ...(error === undefined ? {} : { lastError: `${iso(error.at)} ${error.text}` }),
-    };
+  const status = (sub: StoredSubscription) => ({
+    ...(sub.lastEvent === undefined ? {} : { lastEvent: `${iso(sub.lastEvent.at)} ${sub.lastEvent.text}` }),
+    ...(sub.lastError === undefined ? {} : { lastError: `${iso(sub.lastError.at)} ${sub.lastError.text}` }),
+    ...(sub.lastOutcome === undefined ? {} : { lastOutcome: `${iso(sub.lastOutcome.at)} ${sub.lastOutcome.text}` }),
+  });
+
+  const shutdown = () => {
+    if (ownerPoll !== undefined) clearInterval(ownerPoll);
+    ownerPoll = undefined;
+    starting = undefined;
+    const previous = owner;
+    owner = undefined;
+    previous?.lease.release();
+    fallback?.stop();
+    fallback = undefined;
   };
 
-  const takeSupervisorHandoff = (): boolean | Promise<boolean> => {
-    if (!canHandoffToSupervisor()) return false;
-    if (isSupervisorLive(workspaceCwd)) return true;
-    const ensure = options.ensureSupervisor ?? ((cwd: string) => defaultEnsureSupervisor(cwd, options.routinesPort === undefined ? {} : { routinesPort: options.routinesPort }));
-    const started = ensure(workspaceCwd);
-    const afterEnsure = (): boolean | Promise<boolean> => {
-      if (isSupervisorLive(workspaceCwd)) return true;
-      const readyMs = options.supervisorReadyMs ?? 2_000;
-      if (readyMs <= 0) return false;
-      return waitForSupervisor(workspaceCwd, readyMs);
-    };
-    if (started === undefined) return afterEnsure();
-    return Promise.resolve(started).then(afterEnsure);
-  };
-
-  /**
-   * When falling back to in-process arming, hold supervisor.lock so a late supervisor
-   * sees alreadyRunning and exits. If the supervisor won the race, treat as supervisorOwns.
-   */
-  const claimInProcessOwnership = (): boolean => {
-    if (chatHoldsSupervisorLock) return true;
-    const lock = acquireSupervisorLock(workspaceCwd);
-    if (!lock.acquired) return false;
-    chatHoldsSupervisorLock = true;
-    return true;
-  };
-
-  const releaseInProcessOwnership = () => {
-    if (!chatHoldsSupervisorLock) return;
-    releaseSupervisorLock(workspaceCwd);
-    chatHoldsSupervisorLock = false;
+  const restore = (ctx: ExtensionContext) => {
+    if (isOneShot(ctx.mode)) {
+      shutdown();
+      return;
+    }
+    const cwd = canonicalPath(ctx.cwd || process.cwd());
+    const id = ctx.sessionManager.getSessionId();
+    if (owner?.id === id && owner.cwd === cwd) {
+      drain();
+      return;
+    }
+    shutdown();
+    workspaceCwd = cwd;
+    const lease = acquireLease(ownerLockPath(cwd, id));
+    if (lease === undefined) {
+      ctx.ui.notify('Subscription owner delivery unavailable. Another live process owns this exact session.', 'error');
+      if (ownerPoll === undefined) {
+        ownerPoll = setInterval(() => {
+          if (owner === undefined) restore(ctx);
+          else drain();
+        }, 250);
+        ownerPoll.unref?.();
+      }
+      return;
+    }
+    const notify = ctx.ui.notify.bind(ctx.ui);
+    owner = { id, cwd, lease, notify: (message) => notify(message, 'error') };
+    drain();
+    ownerPoll = setInterval(drain, 250);
+    ownerPoll.unref?.();
+    const registry = readRegistry(cwd);
+    if (subscriptionsFromBranch(ctx.sessionManager.getBranch()).some((sub) => !registry.subscriptions.some((stored) => stored.id === sub.id))) {
+      notify('Historical subscription receipts are inactive. Recreate missing subscriptions with the subscribe tools.', 'info');
+    }
+    if (registry.subscriptions.some((sub) => isDesired(sub))) {
+      void ensureEngine().catch((cause: unknown) => notify(`Subscriptions could not start. ${errorText(cause)}`, 'error'));
+    }
   };
 
   const create = async (ctx: ExtensionContext, tool: string, name: string, config: Config, hours: number | undefined) => {
     if (isOneShot(ctx.mode)) throw oneShotError(tool);
     if (name.trim() === '') throw new Error('name must not be empty.');
-    workspaceCwd = ctx.cwd || process.cwd();
-    const existing = byName(name);
-    if (existing !== undefined) {
-      if (existing.sub.config.kind !== config.kind) throw new Error(`A ${existing.sub.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
-      return { created: false, ...view(existing), ...status(existing) };
-    }
-    const durableSame = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
-    if (durableSame !== undefined) {
-      if (durableSame.config.kind !== config.kind) throw new Error(`A ${durableSame.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
-      const ghost: Live = { sub: durableSame, timers: new Set() };
-      if (durableSame.config.kind === 'webhook') ghost.url = expectedWebhookUrl(durableSame.config.slug);
-      return { created: false, ...view(ghost), ...status(ghost) };
-    }
-    if (config.kind === 'webhook') {
-      const clash = [...live.values()].find((entry) => entry.sub.config.kind === 'webhook' && entry.sub.config.slug === config.slug);
-      if (clash !== undefined) throw new Error(`Routine "${clash.sub.name}" already uses the slug ${config.slug}.`);
-    }
+    const cwd = canonicalPath(ctx.cwd || process.cwd());
+    const id = ctx.sessionManager.getSessionId();
+    if (owner?.id !== id || owner.cwd !== cwd) restore(ctx);
+    if (owner === undefined) throw new Error('Subscription owner delivery unavailable for this session.');
+    const session = owner;
     const now = Date.now();
-    const sub: Subscription = { id: `sub-${randomBytes(4).toString('hex')}`, name, createdAt: now, expiresAt: expiryOf(now, hours), config };
-    const ownerSessionFile = ctx.sessionManager.getSessionFile?.() ?? undefined;
-    const { created } = createDesired(workspaceCwd, toDurable(sub, ownerSessionFile), workspaceCwd);
-    if (!created) {
-      const hit = dropExpired(readRegistry(workspaceCwd)).subscriptions.find((entry) => entry.name === name);
-      if (hit !== undefined) {
-        if (hit.config.kind !== config.kind) throw new Error(`A ${hit.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
-        const ghost: Live = { sub: hit, timers: new Set() };
-        if (hit.config.kind === 'webhook') ghost.url = expectedWebhookUrl(hit.config.slug);
-        return { created: false, ...view(ghost), ...status(ghost) };
-      }
-      return { created: false, name, kind: config.kind };
-    }
-    const entry: Live = { sub, timers: new Set() };
-    live.set(entry.sub.id, entry);
-    persist();
-
-    const handoff = takeSupervisorHandoff();
-    let supervisorOwns = typeof handoff === 'boolean' ? handoff : await handoff;
-    if (!supervisorOwns) {
-      if (!claimInProcessOwnership()) supervisorOwns = true;
-    }
-
+    const file = ctx.sessionManager.getSessionFile();
+    const result = createDesired(cwd, {
+      id: `sub-${randomBytes(12).toString('hex')}`,
+      name,
+      createdAt: now,
+      expiresAt: expiryOf(now, hours),
+      config,
+      ownerSessionId: id,
+      ...(file === undefined ? {} : { ownerSessionFile: canonicalPath(file) }),
+    });
+    let sub = result.subscription;
+    if (sub.config.kind !== config.kind) throw new Error(`A ${sub.config.kind} subscription is already named "${name}". Pick another name or unsubscribe it first.`);
     try {
-      if (supervisorOwns) {
-        if (config.kind === 'webhook') {
-          ensureCredentials(dir, config.slug);
-          entry.url = expectedWebhookUrl(config.slug);
-        }
-      } else {
-        await arm(entry);
+      await ensureEngine();
+      if (owner !== session) throw new Error(`Subscription ${sub.id} owner session changed while arming.`);
+      await waitForArm(cwd, sub, options.supervisorReadyMs ?? 2_000);
+      if (owner !== session) throw new Error(`Subscription ${sub.id} owner session changed while arming.`);
+    } catch (cause) {
+      if (result.created) {
+        cancelDesired(cwd, sub.id);
+        if (owner === session) await fallback?.reconcile();
       }
-    } catch (error) {
-      remove(entry);
-      throw error;
+      throw cause;
     }
-    return { created: true, ...view(entry), ...status(entry), ...(supervisorOwns ? {} : { durability: 'in-process; start pstack-routines-supervisor for chat-exit survival' }) };
+    sub = readRegistry(cwd).subscriptions.find((entry) => entry.id === sub.id) ?? sub;
+    if (result.created) persist();
+    return {
+      created: result.created,
+      ...view(sub),
+      ...status(sub),
+      ...(fallback === undefined ? {} : { durability: 'in-process; start pstack-routines-supervisor for chat-exit survival' }),
+      ...(sub.ownerSessionFile === undefined && !(sub.config.kind === 'timer' && sub.config.strategy === 'new_session') ? { ownerWarning: 'Owner session is unsaved. Offline owner wakes cannot resume after this process exits.' } : {}),
+    };
   };
 
   const listText = () => {
-    if (live.size === 0) return 'No subscriptions.';
-    return [...live.values()]
-      .map((entry) => {
-        const item = view(entry);
-        const state = status(entry);
+    const registry = readRegistry(workspaceCwd);
+    const visible = visibleSubscriptions(registry);
+    if (visible.length === 0) return 'No subscriptions.';
+    return visible
+      .map((sub) => {
+        const item = view(sub);
+        const state = status(sub);
         return [
           `${item.id} ${item.kind} "${item.name}"`,
           `  target: ${item.target}`,
@@ -511,94 +367,35 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
           `  created: ${item.createdAt}  expires: ${item.expiresAt}`,
           `  last event: ${state.lastEvent ?? 'none'}`,
           ...(state.lastError === undefined ? [] : [`  last error: ${state.lastError}`]),
+          ...(state.lastOutcome === undefined ? [] : [`  last outcome: ${state.lastOutcome}`]),
+          ...(registry.pending.some((event) => event.subscriptionId === sub.id) ? ['  delivery: pending'] : []),
         ].join('\n');
       })
       .join('\n');
   };
 
   const routinesText = () => {
-    const routines = [...live.values()].filter((entry) => entry.sub.config.kind === 'webhook');
+    const routines = visibleSubscriptions(readRegistry(workspaceCwd)).filter((sub) => sub.config.kind === 'webhook');
     if (routines.length === 0) return 'No webhook routines.';
-    const supervisorListening = canHandoffToSupervisor() && isSupervisorLive(workspaceCwd);
     return routines
-      .map((entry) => {
-        const item = view(entry) as ReturnType<typeof view> & { url?: string; credentialFile?: string };
-        const error = entry.lastError ?? readDelivery(workspaceCwd, entry.sub.id)?.lastError;
-        const enabled = entry.url !== undefined && (server.isListening() || supervisorListening) ? 'enabled' : `disabled${error === undefined ? '' : ` (${error.text})`}`;
+      .map((sub) => {
+        const item = view(sub) as ReturnType<typeof view> & { url?: string; credentialFile?: string };
+        const arm = readArm(workspaceCwd, sub);
+        const enabled = isDesired(sub) && arm?.state === 'ready' ? 'enabled' : `disabled${sub.lastError === undefined ? '' : ` (${sub.lastError.text})`}`;
         return [`${item.name} [${enabled}]`, `  url: ${item.url ?? 'none'}`, `  credential file: ${item.credentialFile}`, `  expires: ${item.expiresAt}`].join('\n');
       })
       .join('\n');
   };
 
-  const stopAll = () => {
-    for (const entry of live.values()) disarm(entry);
-    live.clear();
-    server.close();
+  const unsubscribe = async (key: string) => {
+    const sub = cancelDesired(workspaceCwd, key);
+    if (sub === undefined) throw new Error(`No subscription has the id or name "${key}". list_subscriptions shows them.`);
+    await fallback?.reconcile();
+    persist();
+    return { removed: true, id: sub.id, name: sub.name, kind: sub.config.kind };
   };
 
-  const restore = (ctx: ExtensionContext) => {
-    const baselines = new Map<string, Map<number, PrSnapshot>>();
-    for (const [id, entry] of live) if (entry.baseline !== undefined) baselines.set(id, new Map(entry.baseline));
-    stopAll();
-    releaseInProcessOwnership();
-    active = true;
-    if (isOneShot(ctx.mode)) return;
-    workspaceCwd = ctx.cwd || process.cwd();
-    const stored = subscriptionsFromBranch(ctx.sessionManager.getBranch());
-    const now = Date.now();
-    const expiredIds: string[] = [];
-    for (const sub of stored) {
-      if (sub.expiresAt <= now) {
-        expiredIds.push(sub.id);
-        continue;
-      }
-      const baseline = baselines.get(sub.id);
-      live.set(sub.id, { sub, timers: new Set(), ...(baseline === undefined ? {} : { baseline }) });
-    }
-    if (live.size !== stored.length) persist();
-    for (const id of expiredIds) mirrorRemove(id);
-    for (const entry of live.values()) mirrorUpsert(entry.sub, ctx.sessionManager.getSessionFile?.() ?? undefined);
-    let supervisorOwns = canHandoffToSupervisor() && isSupervisorLive(workspaceCwd);
-    if (!supervisorOwns && live.size > 0) {
-      if (!claimInProcessOwnership()) supervisorOwns = true;
-    }
-    for (const entry of live.values()) {
-      if (supervisorOwns) {
-        if (entry.sub.config.kind === 'webhook') entry.url = expectedWebhookUrl(entry.sub.config.slug);
-        continue;
-      }
-      arm(entry).catch(() => undefined);
-    }
-    const ownerSessionFile = ctx.sessionManager.getSessionFile?.() ?? undefined;
-    for (const parked of drainInbox(workspaceCwd, ownerSessionFile)) {
-      const entry = live.get(parked.subscriptionId);
-      if (entry !== undefined) entry.lastEvent = { at: parked.at, text: 'fired' };
-      pi.sendMessage({ customType: WAKE_TYPE, content: parked.content, display: true, details: { id: parked.subscriptionId, kind: entry?.sub.config.kind ?? 'timer', name: parked.name } }, { triggerTurn: true, deliverAs: 'followUp' });
-    }
-    if (!supervisorOwns && live.size > 0) {
-      ctx.ui?.notify?.('Subscriptions are armed in this process. Start pstack-routines-supervisor so timers and routines keep firing after this chat exits.', 'info');
-    }
-  };
-
-  const unsubscribe = (key: string) => {
-    const entry = live.get(key) ?? byName(key);
-    if (entry === undefined) throw new Error(`No subscription has the id or name "${key}". list_subscriptions shows them.`);
-    remove(entry);
-    return { removed: true, id: entry.sub.id, name: entry.sub.name, kind: entry.sub.config.kind };
-  };
-
-  return {
-    create,
-    unsubscribe,
-    listText,
-    routinesText,
-    restore,
-    shutdown: () => {
-      active = false;
-      stopAll();
-      releaseInProcessOwnership();
-    },
-  };
+  return { create, unsubscribe, listText, routinesText, restore, shutdown };
 }
 
 const WAKE_COLLAPSED_LINES = 10;
@@ -642,7 +439,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
     name: 'subscribe_timer',
     label: 'Subscribe: timer',
     description:
-      'Fire a prompt on a 5-field cron schedule (local time) or after delaySeconds (repeating unless once). wake_self wakes this session with the prompt; new_session runs it in a fresh background subagent. Re-subscribing an existing name returns created: false and changes nothing.',
+      'Fire a prompt on a 5-field cron schedule (local time) or after delaySeconds (repeating unless once). wake_self queues the prompt for this owning session, including while offline. new_session uses a background Task while the owner is live, or a detached run with recorded status while offline. Re-subscribing an existing name returns created: false and changes nothing.',
     promptSnippet: 'Schedule a prompt with cron or a delay',
     parameters: TimerParams,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -678,7 +475,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
   pi.registerTool({
     name: 'list_subscriptions',
     label: 'Subscriptions',
-    description: "List this session's subscriptions (GitHub PR watches, timers, webhook routines) with id, kind, target, strategy, created and expiry times, and the last event or error.",
+    description: "List this workspace's subscriptions (GitHub PR watches, timers, webhook routines) with id, kind, target, strategy, created and expiry times, and the last event or error.",
     promptSnippet: 'List subscriptions',
     parameters: Type.Object({}),
     annotations: { readOnlyHint: true, openWorldHint: false },
@@ -695,7 +492,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
     parameters: UnsubscribeParams,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute(_id, params) {
-      return text(subs.unsubscribe(params.subscription));
+      return text(await subs.unsubscribe(params.subscription));
     },
   });
 

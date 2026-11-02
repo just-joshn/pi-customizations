@@ -19,12 +19,12 @@ Open a todolist with one entry per phase before launching anything.
 
 1. State the done predicate and the artifact or report the swarm must return.
 2. Choose the shape. Partition into slices, race N workers on identical briefs, or mix both. For a race or mixed shape, declare `first pass`, `rank all`, or `best-of` before spawning.
-3. Pick the worker model from the `swarm workers` line in `~/.pi/agent/pstack/pstack-models.md`. If the rule or that line is missing, use `grok-4.7:xhigh`. For `auto` or `inherit-parent`, omit `model` so the workers run on the parent model. If the Task tool rejects a slug, use the default and say so. If it rejects the default, use the closest valid slug of the same family from its error message. For a model race, name each arm's model up front. Pick each subagent's reasoning level (the `:<level>` suffix), and fast or standard speed when the model has a `-fast` variant, for the job, per the Subagents section of the **poteto-mode** skill.
+3. Pick the worker model from the `swarm workers` line in the model rule at the path the system prompt names. If the rule or that line is missing, use `grok-4.7:xhigh`. For `auto` or `inherit-parent`, omit `model` so the workers run on the parent model. If the Task tool rejects a slug, use the default and say so. If it rejects the default, use the closest valid slug of the same family from its error message. For a model race, name each arm's model up front. Pick each subagent's reasoning level (the `:<level>` suffix), and fast or standard speed when the model has a `-fast` variant, for the job, per the Subagents section of the **poteto-mode** skill.
 4. Give each worker its own writable output when it writes. When workers verify or measure commits, each brief names the exact SHAs. A measurement brief also names the method (sample count, what one sample is, order). The worker records both in its result.
 
 ## Phase B: Fan out
 
-Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user's computer.
+Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Both environments run on the user's computer. `cloud` gives each worker a separate git worktree, not a VM or a credential boundary. Use `environment: "local"` only when the worker needs the existing checkout or its uncommitted state. For concurrent runtime lanes, each brief must assign distinct ports, output directories, and writable cache paths. If the task requires stronger machine isolation, report that requirement as unavailable rather than claiming a worktree provides it.
 
 When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.
 

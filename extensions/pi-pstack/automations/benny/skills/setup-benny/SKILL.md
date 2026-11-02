@@ -15,7 +15,7 @@ Benny needs external configuration and two live automations. Each automation is 
 - Timer mode (default): `subscribe_timer` with a 5-field `cron`. Each fire wakes the owning session, which sweeps the source channel, claims one report, and hands it to one background `Task` on the automation's configured model. The run's result arrives as a Task notification.
 - Webhook mode: `subscribe_webhook`. Each POST to the local routine URL wakes the owning session with a `[routine]` turn, and the prompt hands the event to one background `Task` on the automation's configured model.
 
-Creating a subscription auto-starts `pstack-routines-supervisor`, so timers and webhook routines keep firing after this chat exits. Subscriptions expire after seven days unless renewed. Tell the user this before creating anything. For fires that survive a reboot, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` (resolve the script from the pi-pstack package root) and run it when they say yes.
+Creating a subscription auto-starts `pstack-routines-supervisor`. Benny's `wake_self` timers and webhook routines target the owning session. While it is offline, wakes park until that session is restored. Only `new_session` timers can start detached work while the owner is offline. Subscriptions expire after seven days unless renewed. Tell the user this before creating anything. For fires that survive a reboot, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` (resolve the script from the pi-pstack package root) and run it when they say yes.
 
 Do not create or update a subscription until the user explicitly asks. Never put a secret value in pack files, prompts, memory, or committed configuration.
 
@@ -38,7 +38,7 @@ If this file is already being read from the target destination, treat the copy a
 
 Confirm that pi-pstack is installed in Pi. A personal install (`pi install <path-to-pi-pstack>`) serves every repository on this machine. A project install (`pi install -l <path-to-pi-pstack>`) writes the target repository's `.pi/settings.json`; preserve every unrelated setting and package entry when that file exists, and validate it after editing.
 
-This setup session must run in the target repository, because a `Task` subagent starts in its parent's working directory. If it does not, stop and tell the user to start Pi in the target repository and point it at `FOR_AGENTS.md` again. Start a fresh `Task` subagent with `readonly: true`. Ask it which of these skills its system prompt lists as installed:
+This setup session must run in the target repository, because a `Task` subagent starts in its parent's working directory. If it does not, stop and tell the user to start Pi in the target repository and point it at `FOR_AGENTS.md` again. Start a fresh `Task` subagent with `readonly: true`. Ask it to resolve `<SKILLS>` from its own system prompt and read each required `<SKILLS>/<name>/SKILL.md` file below. It must report each absolute path and confirm the file's frontmatter names the required skill. Hidden skills need not appear in Pi's automatic skill catalog.
 
 - `how`
 - `why`
@@ -51,7 +51,7 @@ This setup session must run in the target repository, because a `Task` subagent 
 - `principle-fix-root-causes`
 - `principle-prove-it-works`
 
-Do not count a skill this session read by hand. The check must show that a fresh subagent in the target repository receives pi-pstack.
+Do not count a skill this session read by hand or a catalog listing alone. The check must show that a fresh subagent in the target repository receives pi-pstack's host instructions and can read every required installed file.
 
 If pi-pstack or any shared dependency does not resolve, stop and explain the failure.
 
@@ -169,7 +169,7 @@ Ask whether this is first-time creation or configuration of existing subscriptio
 
 Read `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source for either path. Use it to understand the two triggers, tools, instructions, outcomes, and shared rules.
 
-The owning session must be interactive or RPC and rooted in the target repository. A print or JSON run cannot create a subscription. Creating the subscription auto-starts `pstack-routines-supervisor`, so the chat does not need to stay open for later fires. In both trigger modes, each fire hands its report to one background `Task` with the automation's configured `model`. After both subscriptions exist, ask whether to install the reboot unit with `packaging/install-supervisor-unit.sh --workspace <target-repository>`, and run it only when the user says yes.
+The owning session must be interactive or RPC and rooted in the target repository. A print or JSON run cannot create a subscription. Creating the subscription auto-starts `pstack-routines-supervisor`. Keep the owning session available for prompt handling, or restore it later to drain parked wakes. In both trigger modes, each delivered fire hands its report to one background `Task` with the automation's configured `model`. After both subscriptions exist, ask whether to install the reboot unit with `packaging/install-supervisor-unit.sh --workspace <target-repository>`, and run it only when the user says yes.
 
 ### First-time creation
 

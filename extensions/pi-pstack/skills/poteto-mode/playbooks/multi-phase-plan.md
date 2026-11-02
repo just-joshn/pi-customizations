@@ -68,7 +68,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 ### Boot recipe, for every live lane
 
-Each live lane runs as its own isolated worker (`environment: "cloud"`) at the PR head. Drive through `control-ui` or `control-cli`, shipped with pi-pstack.
+Each live lane runs in its own git worktree (`environment: "cloud"`) at the PR head on this machine. Assign each concurrent lane distinct ports, output directories, and writable cache paths. A worktree does not provide VM or credential isolation. If the lane needs stronger machine isolation, mark it blocked until that isolation is available. Drive through `control-ui` or `control-cli`, shipped with pi-pstack.
 
 - [ ] `git fetch origin <head-branch> && git checkout <head SHA>`.
 - [ ] <Start the backend and the surface. Wait for ready.>

@@ -1,231 +1,253 @@
-import { createHash } from 'node:crypto';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
-import { claimDelivery, createDesired, ensureDurableDirs, readDelivery, readRegistry, writeRegistry } from '../src/subscriptions/durable-store.ts';
+import { expect, test, vi } from 'vitest';
+import { durableRegistryPath } from '../src/paths.ts';
+import { acceptEvent, cancelDesired, canonicalPath, createDesired, readArm, readRegistry } from '../src/subscriptions/durable-store.ts';
 import type { DurableSubscription } from '../src/subscriptions/durable-types.ts';
-import { createSupervisor, onceClaimSettled, timerClaimKey, webhookClaimKey } from '../src/subscriptions/supervisor.ts';
+import { createSupervisor, type SupervisorOptions } from '../src/subscriptions/supervisor.ts';
 import { ensureCredentials } from '../src/subscriptions/webhook.ts';
 
-const NOW = Date.UTC(2026, 9, 31, 12, 0, 0);
-
-const onceTimer = (over: Partial<DurableSubscription> = {}): DurableSubscription => ({
+const local = test.extend<{ cwd: string; routines: string }>({
+  cwd: async ({ signal }, use) => {
+    signal.throwIfAborted();
+    const dir = mkdtempSync(join(tmpdir(), 'pstack-supervisor-'));
+    vi.stubEnv('PI_CODING_AGENT_DIR', dir);
+    try {
+      await use(canonicalPath(join(dir, 'workspace')));
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllEnvs();
+      rmSync(dir, { recursive: true, force: true });
+    }
+  },
+  routines: async ({ cwd }, use) => {
+    await use(join(cwd, '../routines'));
+  },
+});
+const timer = (over: Partial<DurableSubscription> = {}): DurableSubscription => ({
   id: 'sub-once1',
   name: 'durable-smoke',
-  createdAt: NOW,
-  expiresAt: NOW + 7 * 24 * 3_600_000,
+  createdAt: Date.now(),
+  expiresAt: Date.now() + 7 * 24 * 3_600_000,
+  ownerSessionId: 'owner',
   config: { kind: 'timer', prompt: 'write the marker', delaySeconds: 15, once: true, strategy: 'new_session' },
-  detachedDelivery: 'spawn',
   ...over,
 });
 
-describe('supervisor reconcile', () => {
-  let agentDir: string;
-  let cwd: string;
-  let routines: string;
+local('offline fresh once timers complete on acceptance and run once across supervisor restart', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  const sub = timer();
+  createDesired(cwd, sub);
+  const fires: string[] = [];
+  const options: SupervisorOptions = {
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: (prompt) => {
+      fires.push(prompt);
+    },
+  };
+  const supervisor = createSupervisor(options);
+  onTestFinished(() => supervisor.stop());
+  expect(await supervisor.start()).toEqual({ started: true });
+  await vi.advanceTimersByTimeAsync(15_000);
+  expect(fires).toEqual(['write the marker']);
+  expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'completed', lastOutcome: { text: 'detached run completed' } }], pending: [] });
+  supervisor.stop();
+  const restarted = createSupervisor(options);
+  onTestFinished(() => restarted.stop());
+  await restarted.start();
+  await vi.advanceTimersByTimeAsync(30_000);
+  expect(fires).toEqual(['write the marker']);
+});
 
-  beforeEach(() => {
-    agentDir = mkdtempSync(join(tmpdir(), 'pstack-supervisor-'));
-    cwd = join(agentDir, 'workspace');
-    routines = join(agentDir, 'routines');
-    vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
-    vi.useFakeTimers({ now: NOW });
-    onTestFinished(() => {
-      vi.useRealTimers();
-      vi.unstubAllEnvs();
-      rmSync(agentDir, { recursive: true, force: true });
-    });
+local('owner-directed timers park while the owner is offline and never spawn a substitute', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  createDesired(cwd, timer({ config: { kind: 'timer', prompt: 'private marker', delaySeconds: 1, once: true, strategy: 'wake_self' } }));
+  const fires: string[] = [];
+  const supervisor = createSupervisor({
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: (prompt) => {
+      fires.push(prompt);
+    },
   });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  await vi.advanceTimersByTimeAsync(2_000);
+  expect(fires).toEqual([]);
+  expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'completed' }], pending: [{ content: '[timer] durable-smoke\n\nprivate marker' }] });
+});
 
-  afterEach(() => {
-    vi.clearAllTimers();
+local('failed offline fresh launches retain pending work and retry without rearming once', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  createDesired(cwd, timer());
+  let attempts = 0;
+  const supervisor = createSupervisor({
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    reconcileIntervalMs: 700,
+    runFresh: () => {
+      if (++attempts === 1) throw new Error('spawn failed');
+    },
   });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  await vi.advanceTimersByTimeAsync(15_001);
+  expect(attempts).toBe(1);
+  expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'completed', lastError: { text: 'spawn failed' } }], pending: [{ id: 'sub-once1:once' }] });
+  await vi.advanceTimersByTimeAsync(700);
+  expect(attempts).toBe(2);
+  expect(readRegistry(cwd).pending).toEqual([]);
+});
 
-  test('once delay claims, spawns once via runFresh, and removes desired state', async () => {
-    ensureDurableDirs(cwd);
-    createDesired(cwd, onceTimer());
-    const fires: { prompt: string; name: string }[] = [];
-    const supervisor = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: (prompt, name) => {
-        fires.push({ prompt, name });
-      },
-    });
-    expect(await supervisor.start()).toEqual({ started: true });
-    expect(readRegistry(cwd).subscriptions).toHaveLength(1);
+local('completed cron-once occurrences are not rearmed on restart', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0, 30) });
+  createDesired(cwd, timer({ config: { kind: 'timer', prompt: 'cron marker', cron: '* * * * *', once: true, strategy: 'wake_self' } }));
+  const options: SupervisorOptions = {
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: () => {
+      throw new Error('must park');
+    },
+  };
+  const first = createSupervisor(options);
+  onTestFinished(() => first.stop());
+  await first.start();
+  await vi.advanceTimersByTimeAsync(30_000);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(['sub-once1:once']);
+  first.stop();
+  const second = createSupervisor(options);
+  onTestFinished(() => second.stop());
+  await second.start();
+  await vi.advanceTimersByTimeAsync(60_000);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(['sub-once1:once']);
+});
 
-    await vi.advanceTimersByTimeAsync(14_000);
-    expect(fires).toEqual([]);
-    await vi.advanceTimersByTimeAsync(1_000);
-    await vi.waitFor(() => expect(fires).toEqual([{ prompt: 'write the marker', name: 'durable-smoke' }]));
+local('cancelled stale arms cannot accept a later timer fire', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  createDesired(cwd, timer({ config: { kind: 'timer', prompt: 'cancelled', delaySeconds: 1, once: true, strategy: 'wake_self' } }));
+  const supervisor = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, reconcileIntervalMs: 60_000, runFresh: () => {} });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  cancelDesired(cwd, 'durable-smoke');
+  await vi.advanceTimersByTimeAsync(1_000);
+  expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'cancelled' }], pending: [] });
+});
 
-    expect(readDelivery(cwd, 'sub-once1')).toMatchObject({ lastClaimKey: 'sub-once1:once' });
-    expect(readRegistry(cwd).subscriptions).toEqual([]);
+local('repeating delay preserves its cadence without replaying missed intervals', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  createDesired(cwd, timer({ createdAt: Date.now() - 35_000, config: { kind: 'timer', prompt: 'tick', delaySeconds: 10, once: false, strategy: 'wake_self' } }));
+  const supervisor = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, runFresh: () => {} });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  await vi.advanceTimersByTimeAsync(5_000);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(['sub-once1:4']);
+  await vi.advanceTimersByTimeAsync(10_000);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(['sub-once1:4', 'sub-once1:5']);
+});
 
-    writeRegistry(cwd, { version: 1, workspaceCwd: cwd, subscriptions: [onceTimer()] });
-    await supervisor.reconcile();
-    expect(fires).toHaveLength(1);
-    expect(readRegistry(cwd).subscriptions).toEqual([]);
-
-    supervisor.stop();
+local('equal authenticated POST bodies receive independent durable identities', async ({ cwd, routines, signal, onTestFinished }) => {
+  const { subscription } = createDesired(cwd, timer({ name: 'durable-hook', config: { kind: 'webhook', prompt: 'handle the post', slug: 'durable-hook' } }));
+  const supervisor = createSupervisor({
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: () => {
+      throw new Error('must not spawn');
+    },
   });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  const status = readArm(cwd, subscription);
+  expect(status).toMatchObject({ state: 'ready', url: expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\//) });
+  if (status?.state !== 'ready' || status.url === undefined) throw new Error('Webhook is not ready.');
+  const key = JSON.parse(readFileSync(ensureCredentials(routines, 'durable-hook'), 'utf8')).key;
+  const url = status.url;
+  const responses = await Promise.all(Array.from({ length: 2 }, () => fetch(url, { signal, method: 'POST', headers: { 'x-automation-key': key }, body: '{"ping":true}' })));
+  expect(responses.map((response) => response.status)).toEqual([200, 200]);
+  const events = readRegistry(cwd).pending;
+  expect(events).toHaveLength(2);
+  expect(new Set(events.map((event) => event.id)).size).toBe(2);
+  expect(events.map((event) => event.content)).toEqual([expect.stringContaining('handle the post'), expect.stringContaining('handle the post')]);
+});
 
-  test('once deliver failure clears the once claim and retries (at-least-once)', async () => {
-    ensureDurableDirs(cwd);
-    createDesired(cwd, onceTimer());
-    let attempts = 0;
-    const fires: string[] = [];
-    const supervisor = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: async (_prompt, name) => {
-        attempts += 1;
-        if (attempts === 1) throw new Error('spawn failed');
-        fires.push(name);
-      },
-    });
-    expect(await supervisor.start()).toEqual({ started: true });
-    await vi.advanceTimersByTimeAsync(15_000);
-    await vi.waitFor(() => expect(attempts).toBe(1));
-    expect(onceClaimSettled(cwd, onceTimer())).toBe(false);
-    expect(readDelivery(cwd, 'sub-once1')).toMatchObject({ lastClaimKey: 'sub-once1:retry', lastError: { text: expect.stringContaining('spawn failed') } });
-    expect(readRegistry(cwd).subscriptions).toHaveLength(1);
-    await vi.advanceTimersByTimeAsync(1_000);
-    await vi.waitFor(() => expect(readRegistry(cwd).subscriptions).toEqual([]));
-    expect(fires).toEqual(['durable-smoke']);
-    expect(attempts).toBe(2);
-    supervisor.stop();
+local('storage rejection returns HTTP 503 instead of acknowledging an unaccepted POST', async ({ cwd, routines, signal, onTestFinished }) => {
+  const { subscription } = createDesired(cwd, timer({ name: 'durable-hook', config: { kind: 'webhook', prompt: 'handle', slug: 'durable-hook' } }));
+  const supervisor = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, reconcileIntervalMs: 60_000, runFresh: () => {} });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  const status = readArm(cwd, subscription);
+  if (status?.state !== 'ready' || status.url === undefined) throw new Error('Webhook is not ready.');
+  const key = JSON.parse(readFileSync(ensureCredentials(routines, 'durable-hook'), 'utf8')).key;
+  writeFileSync(durableRegistryPath(cwd), '{broken');
+  const response = await fetch(status.url, { signal, method: 'POST', headers: { 'x-automation-key': key }, body: '{}' });
+  expect(response.status).toBe(503);
+  expect(await response.text()).toContain('Could not durably accept');
+  expect(readFileSync(durableRegistryPath(cwd), 'utf8')).toBe('{broken');
+});
+
+local('webhook bind errors publish failed readiness even while the supervisor is alive', async ({ cwd, routines, onTestFinished }) => {
+  const occupied = createServer();
+  onTestFinished(() => {
+    occupied.close();
   });
+  await new Promise<void>((resolve) => occupied.listen(0, '127.0.0.1', resolve));
+  const address = occupied.address();
+  if (address === null || typeof address === 'string') throw new Error('Missing port.');
+  const { subscription } = createDesired(cwd, timer({ name: 'durable-hook', config: { kind: 'webhook', prompt: 'handle', slug: 'durable-hook' } }));
+  const supervisor = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: address.port, runFresh: () => {} });
+  onTestFinished(() => supervisor.stop());
+  expect(await supervisor.start()).toEqual({ started: true });
+  expect(readArm(cwd, subscription)).toMatchObject({ state: 'error', message: expect.stringContaining('is in use') });
+  expect(supervisor.isListening()).toBe(false);
+});
 
-  test('pre-claimed once key removes desired state on reconcile without spawning', async () => {
-    ensureDurableDirs(cwd);
-    const sub = onceTimer();
-    const config = sub.config as Extract<DurableSubscription['config'], { kind: 'timer' }>;
-    claimDelivery(cwd, sub.id, timerClaimKey(sub, config, NOW + 15_000), NOW);
-    createDesired(cwd, sub);
-    const fires: string[] = [];
-    const supervisor = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: (_prompt, name) => {
-        fires.push(name);
-      },
-    });
-    await supervisor.start();
-    expect(readRegistry(cwd).subscriptions).toEqual([]);
-    expect(fires).toEqual([]);
-    supervisor.stop();
+local('a missing legacy owner reports a visible arm error rather than spawning', async ({ cwd, routines, onTestFinished }) => {
+  const legacy = timer({ config: { kind: 'timer', prompt: 'owner', delaySeconds: 1, once: true, strategy: 'wake_self' } });
+  delete legacy.ownerSessionId;
+  const { subscription } = createDesired(cwd, legacy);
+  const supervisor = createSupervisor({
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: () => {
+      throw new Error('no substitute session');
+    },
   });
+  onTestFinished(() => supervisor.stop());
+  await supervisor.start();
+  expect(readArm(cwd, subscription)).toMatchObject({ state: 'error', message: expect.stringContaining('Owner session ID unavailable') });
+  expect(readRegistry(cwd).pending).toEqual([]);
+});
 
-  test('repeating delay uses fire-index claim keys', async () => {
-    ensureDurableDirs(cwd);
-    const sub = onceTimer({
-      id: 'sub-rep',
-      name: 'tick',
-      config: { kind: 'timer', prompt: 'tick', delaySeconds: 10, once: false, strategy: 'new_session' },
-    });
-    createDesired(cwd, sub);
-    const fires: string[] = [];
-    const supervisor = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: (prompt) => {
-        fires.push(prompt);
-      },
-    });
-    await supervisor.start();
-    await vi.advanceTimersByTimeAsync(10_000);
-    await vi.waitFor(() => expect(fires).toHaveLength(1));
-    expect(readDelivery(cwd, 'sub-rep')?.lastClaimKey).toBe('sub-rep:1');
-    await vi.advanceTimersByTimeAsync(10_000);
-    await vi.waitFor(() => expect(fires).toHaveLength(2));
-    expect(readDelivery(cwd, 'sub-rep')?.lastClaimKey).toBe('sub-rep:2');
-    expect(readRegistry(cwd).subscriptions).toHaveLength(1);
-    supervisor.stop();
-  });
+local('already accepted owner events remain pending across supervisor restarts', async ({ cwd, routines, onTestFinished }) => {
+  createDesired(cwd, timer({ config: { kind: 'timer', prompt: 'owner', delaySeconds: 1, once: true, strategy: 'wake_self' } }));
+  acceptEvent(cwd, 'sub-once1', 'sub-once1:once', 'owner');
+  const first = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, runFresh: () => {} });
+  onTestFinished(() => first.stop());
+  await first.start();
+  first.stop();
+  const second = createSupervisor({ workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, runFresh: () => {} });
+  onTestFinished(() => second.stop());
+  await second.start();
+  expect(readRegistry(cwd).pending).toMatchObject([{ id: 'sub-once1:once', content: 'owner' }]);
+});
 
-  test('duplicate webhook POST with the same body digest does not spawn twice', async () => {
-    ensureDurableDirs(cwd);
-    const sub: DurableSubscription = {
-      id: 'sub-hook',
-      name: 'durable-hook',
-      createdAt: NOW,
-      expiresAt: NOW + 7 * 24 * 3_600_000,
-      config: { kind: 'webhook', prompt: 'handle the post', slug: 'durable-hook' },
-      detachedDelivery: 'spawn',
-    };
-    createDesired(cwd, sub);
-    const port = 48_000 + Math.floor(Math.random() * 1_000);
-    const fires: string[] = [];
-    const supervisor = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: port,
-      reconcileIntervalMs: 60_000,
-      runFresh: (prompt) => {
-        fires.push(prompt);
-      },
-    });
-    await supervisor.start();
-    expect(supervisor.isListening()).toBe(true);
-
-    const credPath = ensureCredentials(routines, 'durable-hook');
-    const key = (JSON.parse(readFileSync(credPath, 'utf8')) as { key: string }).key;
-    const body = '{"ping":true}';
-    const digest = createHash('sha256').update(body).digest('hex');
-    expect(webhookClaimKey('sub-hook', digest)).toBe(`sub-hook:sha256:${digest}`);
-
-    const post = () =>
-      fetch(`http://127.0.0.1:${port}/routines/durable-hook`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-automation-key': key },
-        body,
-      });
-
-    // Fake timers block real HTTP sockets; run the POSTs on the real clock.
-    vi.useRealTimers();
-    const a = await post();
-    expect(a.status).toBe(200);
-    await vi.waitFor(() => expect(fires).toHaveLength(1));
-    const b = await post();
-    expect(b.status).toBe(200);
-    expect(fires).toHaveLength(1);
-    expect(readDelivery(cwd, 'sub-hook')?.lastClaimKey).toBe(webhookClaimKey('sub-hook', digest));
-    expect(fires[0]).toContain('handle the post');
-    expect(fires[0]).toContain(digest);
-    supervisor.stop();
-  });
-
-  test('second supervisor start does not acquire the lock', async () => {
-    ensureDurableDirs(cwd);
-    const first = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: () => undefined,
-    });
-    expect(await first.start()).toEqual({ started: true });
-    const second = createSupervisor({
-      workspaceCwd: cwd,
-      routinesDir: routines,
-      routinesPort: 0,
-      reconcileIntervalMs: 60_000,
-      runFresh: () => undefined,
-    });
-    expect(await second.start()).toEqual({ started: false, alreadyRunning: true, pid: process.pid });
+local('only one supervisor can own a workspace', async ({ cwd, routines, onTestFinished }) => {
+  const options: SupervisorOptions = { workspaceCwd: cwd, routinesDir: routines, routinesPort: 0, runFresh: () => {} };
+  const first = createSupervisor(options);
+  const second = createSupervisor(options);
+  onTestFinished(() => {
     first.stop();
     second.stop();
   });
+  expect(await first.start()).toEqual({ started: true });
+  expect(await second.start()).toEqual({ started: false, alreadyRunning: true, pid: process.pid });
 });

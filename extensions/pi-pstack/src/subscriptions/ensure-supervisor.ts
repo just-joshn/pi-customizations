@@ -2,7 +2,9 @@ import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { isSupervisorLive } from './durable-store.ts';
+import { piCommand } from '../pi-command.ts';
+import { isSupervisorLive, readArm, readRegistry } from './durable-store.ts';
+import type { ArmStatus, StoredSubscription } from './durable-types.ts';
 
 const DEFAULT_READY_MS = 2_000;
 const POLL_MS = 50;
@@ -12,7 +14,7 @@ export function supervisorBinPath(): string {
 }
 
 export type EnsureSupervisorSpawnOptions = {
-  /** Concrete port override forwarded as PSTACK_ROUTINES_PORT (ignored when 0 / unset). */
+  /** Concrete port override forwarded as PSTACK_ROUTINES_PORT, including ephemeral port zero. */
   routinesPort?: number;
   /** Bin path override; production leaves this unset. */
   binPath?: string;
@@ -25,8 +27,8 @@ export type EnsureSupervisorSpawnOptions = {
  */
 export function defaultEnsureSupervisor(cwd: string, options: EnsureSupervisorSpawnOptions = {}): void {
   if (isSupervisorLive(cwd)) return;
-  const env = { ...process.env };
-  if (options.routinesPort !== undefined && options.routinesPort > 0) {
+  const env: NodeJS.ProcessEnv = { ...process.env, PI_PSTACK_PI_COMMAND: JSON.stringify(piCommand()) };
+  if (options.routinesPort !== undefined) {
     env['PSTACK_ROUTINES_PORT'] = String(options.routinesPort);
   }
   const child = spawn(options.binPath ?? supervisorBinPath(), ['--workspace', cwd], {
@@ -49,4 +51,17 @@ export async function waitForSupervisor(cwd: string, readyMs = DEFAULT_READY_MS,
     if (isSupervisorLive(cwd)) return true;
   }
   return isSupervisorLive(cwd);
+}
+
+export async function waitForArm(cwd: string, sub: StoredSubscription, readyMs = DEFAULT_READY_MS): Promise<Extract<ArmStatus, { state: 'ready' }>> {
+  const deadline = Date.now() + readyMs;
+  for (;;) {
+    const current = readRegistry(cwd).subscriptions.find((entry) => entry.id === sub.id);
+    if (current?.lifecycle === 'cancelled') throw new Error(`Subscription ${sub.id} was cancelled while arming.`);
+    const status = readArm(cwd, sub);
+    if (status?.state === 'ready') return status;
+    if (status?.state === 'error') throw new Error(`Subscription ${sub.id} could not arm. ${status.message}`);
+    if (Date.now() >= deadline) throw new Error(`Subscription ${sub.id} readiness timed out. No matching live supervisor arm.`);
+    await new Promise<void>((resolve) => setTimeout(resolve, POLL_MS));
+  }
 }

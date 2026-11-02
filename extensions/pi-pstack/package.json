@@ -1,9 +1,16 @@
 {
   "name": "@justjoshn/pi-pstack",
-  "version": "0.15.36-pi.5",
+  "version": "0.15.36-pi.6",
   "description": "pstack 0.15.36 for Pi with its soft-dependency team-kit skills vendored in: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, and visualize",
   "type": "module",
   "license": "MIT",
+  "pstackSource": {
+    "repository": "https://github.com/cursor/plugins",
+    "revision": "ae5650febf4320793844c12c4adaa937f417f8da",
+    "path": "pstack",
+    "version": "0.15.36",
+    "lastChange": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/just-joshn/pi-customizations.git",
@@ -53,6 +60,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:statechart": "node --disable-warning=ExperimentalWarning --test skills/statechart/scripts/test/*.test.ts",
     "live:e2e": "node scripts/live-e2e.mjs"
   },
   "dependencies": {
@@ -72,6 +80,7 @@
     "@earendil-works/pi-tui": "1.4.0",
     "@types/node": "^22.19.0",
     "@vitest/coverage-v8": "^5.0.2",
+    "fast-check": "4.5.3",
     "typebox": "1.3.27",
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"

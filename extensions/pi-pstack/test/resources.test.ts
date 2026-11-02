@@ -96,6 +96,17 @@ function hostTermLines(file: string, text: string): string[] {
 }
 
 describe('shipped resources', () => {
+  test('publishes the complete source provenance without requiring an upstream checkout', () => {
+    const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+    expect(manifest.pstackSource).toEqual({
+      repository: 'https://github.com/cursor/plugins',
+      revision: 'ae5650febf4320793844c12c4adaa937f417f8da',
+      path: 'pstack',
+      version: '0.15.36',
+      lastChange: 'c742dd61706fbacc1b95f1a20b7b988cf096ce6c',
+    });
+  });
+
   test('loads every skill with no diagnostics and names equal to directories (RES-001)', () => {
     const { skills, diagnostics } = loadPackageSkills();
     expect(diagnostics).toEqual([]);

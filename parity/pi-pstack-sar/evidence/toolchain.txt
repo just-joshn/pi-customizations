@@ -1,0 +1,5 @@
+$ node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs && node scripts/check-workspace-deps.selftest.mjs && node scripts/check-workspace-deps.mjs
+Bun toolchain self-test: 10 fixtures behaved as expected.
+Bun toolchain: 1 lockfile, 965 files, 0 foreign package managers.
+check-workspace-deps.selftest: ok
+workspace runtime dependencies resolve

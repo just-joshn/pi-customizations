@@ -1,0 +1,5 @@
+$ node scripts/check-typescript-policy.selftest.mjs && node scripts/check-typescript-policy.mjs
+TypeScript policy self-test passed.
+TypeScript policy accounts for 606 sources and 7 configurations.
+Root compiler does not select .pi/skills/verify-oauth-refresh-lock/specs/OAuthRefreshLockView.ts
+error: script "check:types-policy" exited with code 1

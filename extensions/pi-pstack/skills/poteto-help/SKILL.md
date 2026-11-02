@@ -24,7 +24,7 @@ Infer the need from the message and the conversation. A named situation, such as
 
 Check the state that changes the answer, and mention it only when it does:
 
-- No `~/.pi/agent/pstack/pstack-models.md` means `/setup-pstack` hasn't run for this user, so every role uses its default model.
+- If the model rule is absent at the path the system prompt names, every role uses its default model. Do not infer absence from the default path when `PI_CODING_AGENT_DIR` relocates it.
 - No `verify-*` skill or other app harness in the project means agents have no scripted way to drive the app. Mention `/create-verification-skill` when the question is about proving a change works.
 - No formal verification skill in the project means no property is checked past what tests reach. Mention `/create-formal-verification-skill` when the question is about a race, an invariant, or another case tests rarely hit. When one exists and the code it covers changed after the commit it records as last in sync, mention `/maintain-formal-verification-skill` if the question touches that code.
 
@@ -39,7 +39,7 @@ When the model rule is missing and it matters, ask whether the user wants to pic
 2. Run [`/setup-pstack`](../setup-pstack/SKILL.md). It asks for a reasoning budget, maps a model to each role, and writes the model rule. The rule applies from the next request. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
 3. Start a real task with `/poteto-mode`, a goal, and a check that can pass or fail.
 
-Installing adds pi-pstack's tools and system-prompt sections, and no skill runs until the user invokes one. Only `/setup-pstack`, and the `/create-skill`, `/deslop`, `control-cli`, and `control-ui` skills pi-pstack ships outside pstack, load from the user's words. The [README](../../README.md) and [guide page 1](../../docs/guide/01-setup.md) have the details. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
+Installing adds pi-pstack's tools and system-prompt sections. Pi advertises `/setup-pstack` and bundled skills whose frontmatter does not set `disable-model-invocation: true`. The model may read those skills when the user's request matches. Most pstack workflow skills stay hidden from automatic selection and load through an explicit command or another skill's instructions. The [README](../../README.md) and [guide page 1](../../docs/guide/01-setup.md) have the details. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
 
 If cost is the worry, say where the tokens go and how to spend fewer. pstack spends extra tokens on subagents and review panels. Rerun `/setup-pstack` and pick a smaller budget or cheaper models. A role set to `auto` or `inherit-parent` runs on the chat's model, which saves tokens when the chat runs on a cheaper model. A shorter panel list runs fewer subagents, one for each entry. Save `/poteto-mode` for work that needs rigor.
 
@@ -140,8 +140,8 @@ Principles are one-rule skills that `/poteto-mode` reads and cites in its replie
 | A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
 | A new model choice had no effect | The rule from `/setup-pstack` applies from the next request. Send one. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |
-| A skill didn't load on its own | Only `/setup-pstack`, and the `/create-skill`, `/deslop`, `control-cli`, and `control-ui` skills pi-pstack ships outside pstack, load from the user's words. The others load when the user types them or when `/poteto-mode` runs them, and it doesn't run every skill. |
-| Parallel agents overwrote each other | Give each agent its own worktree, or run them as isolated workers (`environment: "cloud"`), which each get their own git worktree. |
+| A skill didn't load on its own | Check its `disable-model-invocation` frontmatter. Hidden skills load when the user types their command or another skill tells the model to read them. `/poteto-mode` does not run every skill. |
+| Parallel agents overwrote each other | Give each agent its own git worktree with `environment: "cloud"`. They still share this machine. Assign distinct ports, output directories, and writable cache paths to concurrent runtime lanes. Stronger machine isolation is not provided. |
 | An overnight run moved but finished nothing | `/loop` needs a check that can pass or fail, not a duration. See [guide page 7](../../docs/guide/07-overnight.md). |
 | The reply claims success from a green build | Ask for the real command, flow, stored value, or profile. That's the prove-it-works principle. |
 

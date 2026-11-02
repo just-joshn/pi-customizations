@@ -1,0 +1,970 @@
+$ node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs
+check-vitest-conventions self-test: every detector fires and the clean fixture is silent.
+pi-anthropic-oauth/test/allowed-oauth-bases.test.ts:138  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/allowed-oauth-bases.test.ts:148  note   test-name-compound  test name joins behaviors with "and": "a client id override replaces the client id and drops the plugins scope"
+pi-anthropic-oauth/test/attestation.test.ts:23  note   test-name-compound  test name joins behaviors with "and": "the model value, max_tokens, and the fallback fields are not hashed"
+pi-anthropic-oauth/test/auth-401-refresh.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "concurrent 401s share one refresh and each retry once"
+pi-anthropic-oauth/test/auth-boundaries.test.ts:160  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/auth-boundaries.test.ts:160  note   test-name-compound  test name joins behaviors with "and": "a pasted code without a state is rejected with Claude wording and never exchanged"
+pi-anthropic-oauth/test/auth-recovery-refresh-lock.test.ts:56  note   test-name-compound  test name joins behaviors with "and": "two recoveries on one auth file send one refresh POST and both retry 200"
+pi-anthropic-oauth/test/auth-recovery-refresh-lock.test.ts:169  note   test-name-compound  test name joins behaviors with "and": "expired leftover share file still refreshes once and retries 200"
+pi-anthropic-oauth/test/billing-attribution.test.ts:33  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/billing-attribution.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "the billing block names the prompt, the turn origin and the turn position"
+pi-anthropic-oauth/test/billing-attribution.test.ts:39  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/billing-attribution.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "the prompt id header equals the billing prompt id and the request class is main"
+pi-anthropic-oauth/test/billing-attribution.test.ts:57  note   test-name-compound  test name joins behaviors with "and": "a prompt id is stable inside a turn and changes with the next user turn"
+pi-anthropic-oauth/test/bind-refresh-lock.test.ts:101  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/bind-refresh-lock.test.ts:101  note   test-name-compound  test name joins behaviors with "and": "bindSubscriptionRefreshLock(undefined) skips the file lock and writes no share file"
+pi-anthropic-oauth/test/bind-refresh-lock.test.ts:109  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/bind-refresh-lock.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "bindSubscriptionRefreshLock() keeps the file lock and writes the share file"
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:20  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:20  note   test-name-compound  test name joins behaviors with "and": "credentials-layout fixture documents the default keychain service and account rules"
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:71  note   test-name-compound  test name joins behaviors with "and": "default layout uses Claude Code-credentials and the sanitized USER"
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:92  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:92  note   test-name-compound  test name joins behaviors with "and": "import prefers keychain on darwin and does not read plaintext when keychain hits"
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:169  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:180  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:200  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/claude-credentials-import.test.ts:204  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/claude-parity.test.ts:90  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-fit.test.ts:78  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-fit.test.ts:78  note   test-name-compound  test name joins behaviors with "and": "the marker is a plain block and an existing cache_control stays on its original block"
+pi-anthropic-oauth/test/context-fit.test.ts:92  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-fit.test.ts:102  note   test-name-compound  test name joins behaviors with "and": "a summarization request is shrunk head and tail around the marker"
+pi-anthropic-oauth/test/context-fit.test.ts:123  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-guard.test.ts:262  note   test-name-compound  test name joins behaviors with "and": "OAUTH-026: multiplier boundaries and missing-model fallback"
+pi-anthropic-oauth/test/context-guard.test.ts:272  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-tokens.test.ts:46  note   test-name-compound  test name joins behaviors with "and": "dots and underscores normalize before the allowlist lookup"
+pi-anthropic-oauth/test/context-tokens.test.ts:51  note   test-name-compound  test name joins behaviors with "and": "a one-million-token window reserves the compact and blocking margins"
+pi-anthropic-oauth/test/context-tokens.test.ts:86  note   test-name-compound  test name joins behaviors with "and": "a tool call counts its name and serialized arguments"
+pi-anthropic-oauth/test/context-tokens.test.ts:91  note   test-name-compound  test name joins behaviors with "and": "a tool result counts its text once and each image at the flat rate"
+pi-anthropic-oauth/test/context-tokens.test.ts:96  note   test-name-compound  test name joins behaviors with "and": "a user message counts its text and image blocks"
+pi-anthropic-oauth/test/context-tokens.test.ts:101  note   test-name-compound  test name joins behaviors with "and": "an assistant message counts text, thinking, and tool calls"
+pi-anthropic-oauth/test/context-tokens.test.ts:129  note   test-name-compound  test name joins behaviors with "and": "a bash execution counts its command and output unless it is excluded"
+pi-anthropic-oauth/test/context-tokens.test.ts:142  note   test-name-compound  test name joins behaviors with "and": "a system message counts its content and its section text"
+pi-anthropic-oauth/test/context-tokens.test.ts:150  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-tokens.test.ts:150  note   test-name-compound  test name joins behaviors with "and": "the projection estimate skips the leading system message and counts later ones"
+pi-anthropic-oauth/test/context-tokens.test.ts:161  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/context-tokens.test.ts:161  note   test-name-compound  test name joins behaviors with "and": "the payload estimate counts system, tools, and every message including mid-conversation system blocks"
+pi-anthropic-oauth/test/login-method.test.ts:6  note   test-name-length  test name is 104 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/login-method.test.ts:6  note   test-name-compound  test name joins behaviors with "and": "subscription login offers paste, loopback, and Claude Code import, then defaults to paste-code authorize"
+pi-anthropic-oauth/test/login-method.test.ts:13  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/login-method.test.ts:52  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/login-method.test.ts:56  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/login-method.test.ts:62  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/login-method.test.ts:84  error  unmanaged-global-mutation  use vi.stubGlobal instead of assigning globalThis.fetch
+pi-anthropic-oauth/test/oauth-account.test.ts:13  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-account.test.ts:13  note   test-name-compound  test name joins behaviors with "and": "the profile is a Bearer GET with the account user agent and a request-id stamp"
+pi-anthropic-oauth/test/oauth-account.test.ts:38  note   test-name-compound  test name joins behaviors with "and": "validate POSTs with a Bearer token and returns the body"
+pi-anthropic-oauth/test/oauth-account.test.ts:52  note   test-name-compound  test name joins behaviors with "and": "roles reads the organization and workspace roles"
+pi-anthropic-oauth/test/oauth-account.test.ts:65  note   test-name-compound  test name joins behaviors with "and": "create-api-key returns raw_key and null for an empty body"
+pi-anthropic-oauth/test/oauth-authorize-url.test.ts:19  note   test-name-compound  test name joins behaviors with "and": "authorize URL matches Claude 2.1.312 param order and fixed values"
+pi-anthropic-oauth/test/oauth-live-gate.test.ts:42  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-live-gate.test.ts:55  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-live-gate.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "live exchange requires both the env flag and an approved gates.md section"
+pi-anthropic-oauth/test/oauth-live-gate.test.ts:100  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-live-gate.test.ts:100  note   test-name-compound  test name joins behaviors with "and": "redacted receipt omits secret values and keeps lengths plus numeric fields"
+pi-anthropic-oauth/test/oauth-loopback.test.ts:44  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-revoke.test.ts:6  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/oauth-revoke.test.ts:6  note   test-name-compound  test name joins behaviors with "and": "revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and client_id"
+pi-anthropic-oauth/test/oauth-revoke.test.ts:62  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/refresh-file-lock.test.ts:22  note   test-name-compound  test name joins behaviors with "and": "contended locks serialize work and avoid overlapping critical sections"
+pi-anthropic-oauth/test/refresh-file-lock.test.ts:35  error  real-wait  awaits a real timer instead of an observable readiness condition
+pi-anthropic-oauth/test/refresh-file-lock.test.ts:83  error  real-wait  awaits a real timer instead of an observable readiness condition
+pi-anthropic-oauth/test/refresh-file-lock.test.ts:95  note   test-name-compound  test name joins behaviors with "and": "a stale lock directory is removed and the section runs"
+pi-anthropic-oauth/test/refresh-latch.test.ts:10  note   timer-deadline  timer-based deadline: keep it finite and clear it on success
+pi-anthropic-oauth/test/tool-name-collision.test.ts:49  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/tool-transitions.test.ts:71  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/tool-transitions.test.ts:83  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/tool-transitions.test.ts:95  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/tool-transitions.test.ts:104  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-anthropic-oauth/test/tool-transitions.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "unambiguous tool changes keep inline definitions and the fixed initial prefix"
+pi-antigravity-oauth/test/command.test.ts:30  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/command.test.ts:30  note   test-name-compound  test name joins behaviors with "and": "the account summary shows email, project, paid tier, and the quota groups the CLI reads"
+pi-antigravity-oauth/test/command.test.ts:54  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/command.test.ts:91  note   test-name-compound  test name joins behaviors with "and": "with a UI and no login the command tells the user to log in"
+pi-antigravity-oauth/test/estimate-options.test.ts:112  note   test-name-compound  test name joins behaviors with "and": "base options preserve zero-valued controls and empty session identifiers"
+pi-antigravity-oauth/test/keychain.test.ts:109  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:121  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:178  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:194  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:194  note   test-name-compound  test name joins behaviors with "and": "importAgyKeychainCredential keeps an aborted discovery as AbortError and skips tokeninfo"
+pi-antigravity-oauth/test/keychain.test.ts:209  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:225  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:242  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:311  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/keychain.test.ts:311  note   test-name-compound  test name joins behaviors with "and": "readAgyKeychainPassword asks security for the measured service and account"
+pi-antigravity-oauth/test/models.test.ts:39  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/models.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "the extension registers the Google Antigravity subscription provider and command"
+pi-antigravity-oauth/test/models.test.ts:56  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/models.test.ts:87  note   test-name-compound  test name joins behaviors with "and": "a Claude effort carries its thinking level and a zero budget"
+pi-antigravity-oauth/test/models.test.ts:148  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:91  note   test-name-compound  test name joins behaviors with "and": "login asks for the pasted authorization code and exchanges it with PKCE"
+pi-antigravity-oauth/test/oauth.test.ts:121  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:121  note   test-name-compound  test name joins behaviors with "and": "login reads the project with the CLI loadCodeAssist body and the email from userinfo"
+pi-antigravity-oauth/test/oauth.test.ts:135  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:159  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:215  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:215  note   test-name-compound  test name joins behaviors with "and": "refresh keeps the refresh token and project when Google omits a new refresh token"
+pi-antigravity-oauth/test/oauth.test.ts:233  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:246  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:262  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/oauth.test.ts:315  note   test-name-compound  test name joins behaviors with "and": "toAuth encodes the token and project that the stream parses back"
+pi-antigravity-oauth/test/openapi-parameters.test.ts:69  note   test-name-compound  test name joins behaviors with "and": "anyOf and allOf are preserved while nested keys are sanitized"
+pi-antigravity-oauth/test/openapi-parameters.test.ts:103  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:86  note   test-name-compound  test name joins behaviors with "and": "text and thinking stream into balanced Pi events with usage"
+pi-antigravity-oauth/test/stream.test.ts:113  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:128  note   test-name-compound  test name joins behaviors with "and": "a lower effort selects the low Cloud Code model and its thinking budget"
+pi-antigravity-oauth/test/stream.test.ts:158  note   test-name-compound  test name joins behaviors with "and": "the user agent names the host in Go's os and arch spelling"
+pi-antigravity-oauth/test/stream.test.ts:163  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:163  note   test-name-compound  test name joins behaviors with "and": "a Claude effort is sent as a thinking level with a zero budget and no beta header"
+pi-antigravity-oauth/test/stream.test.ts:212  note   test-name-compound  test name joins behaviors with "and": "Cloud Code tool parameters drop const and uniqueItems after convertTools"
+pi-antigravity-oauth/test/stream.test.ts:241  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:241  note   test-name-compound  test name joins behaviors with "and": "a Gemini tool call round trip declares OpenAPI parameters and returns the result in a model turn"
+pi-antigravity-oauth/test/stream.test.ts:252  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:252  note   test-name-compound  test name joins behaviors with "and": "a Claude tool call round trip keeps the tool call id and returns the result in a user turn"
+pi-antigravity-oauth/test/stream.test.ts:274  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:274  note   test-name-compound  test name joins behaviors with "and": "with retry.provider.maxRetries set, a 429 waits for retry-after and then succeeds"
+pi-antigravity-oauth/test/stream.test.ts:290  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:290  note   test-name-compound  test name joins behaviors with "and": "a non-retryable error surfaces the Cloud Code message and stays recognizable as overflow"
+pi-antigravity-oauth/test/stream.test.ts:344  note   test-name-compound  test name joins behaviors with "and": "onPayload sees the envelope and its replacement is what gets sent"
+pi-antigravity-oauth/test/stream.test.ts:410  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-antigravity-oauth/test/stream.test.ts:410  note   test-name-compound  test name joins behaviors with "and": "a tool round trip keeps the turn in the request id and advances the step by two"
+pi-maintainer/test/core/authorize.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "a missing path asks Create new file and creates it when approved"
+pi-maintainer/test/core/authorize.test.ts:119  note   test-name-compound  test name joins behaviors with "and": "declining Create new file skips that path and prints Skipping edits"
+pi-maintainer/test/core/authorize.test.ts:127  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:127  note   test-name-compound  test name joins behaviors with "and": "an existing unshared file asks Allow edits and joins the editable set when approved"
+pi-maintainer/test/core/authorize.test.ts:147  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:147  note   test-name-compound  test name joins behaviors with "and": "a failed Create new file touch reports Unable to create and drops the path"
+pi-maintainer/test/core/authorize.test.ts:156  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:156  note   test-name-compound  test name joins behaviors with "and": "authorization asks once per distinct path and keeps every edit for that answer"
+pi-maintainer/test/core/authorize.test.ts:165  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:173  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:173  note   test-name-compound  test name joins behaviors with "and": "a read-only chat file reaches Allow edits and stays in the read-only set when approved"
+pi-maintainer/test/core/authorize.test.ts:184  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:184  note   test-name-compound  test name joins behaviors with "and": "a path outside the root goes through ordinary approval and is writable when approved"
+pi-maintainer/test/core/authorize.test.ts:197  note   test-name-length  test name is 105 characters ("short behavior-based test names")
+pi-maintainer/test/core/authorize.test.ts:197  note   test-name-compound  test name joins behaviors with "and": "repository policy refusal skips a gitignored path and approved paths reach staging and dirty-commit hooks"
+pi-maintainer/test/core/coexist-pstack.pi.test.ts:14  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-maintainer/test/core/commands.pi.test.ts:32  note   test-name-compound  test name joins behaviors with "and": "/reset drops files and advances historyThrough"
+pi-maintainer/test/core/commands.pi.test.ts:68  note   test-name-compound  test name joins behaviors with "and": "/load skips interactive mode-switch commands and continues"
+pi-maintainer/test/core/commands.pi.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "/save and /load reconstruct editable and read-only selections"
+pi-maintainer/test/core/commands.pi.test.ts:103  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/core/commands.pi.test.ts:103  note   test-name-compound  test name joins behaviors with "and": "/model and /editor-model persist role selections for the next reconstruction"
+pi-maintainer/test/core/commit-message.pi.test.ts:31  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/core/commit-message.pi.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "an assistant commit is authored by the weak model and trailers the main model"
+pi-maintainer/test/core/confirm-bind.test.ts:32  note   test-name-compound  test name joins behaviors with "and": "empty and EOF answers take the default yes while invalid input reprompts"
+pi-maintainer/test/core/confirm-bind.test.ts:55  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/core/confirm-bind.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "yes-always answers yes except explicit-yes questions, and always-no answers no"
+pi-maintainer/test/core/confirm-bind.test.ts:77  note   test-name-compound  test name joins behaviors with "and": "a multi-item confirm group shares All and Skip without asking again"
+pi-maintainer/test/core/confirm-bind.test.ts:104  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/core/confirm-bind.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "Don't ask again denies the same question and subject for the rest of the session"
+pi-maintainer/test/core/context-bind.test.ts:22  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/core/context-bind.test.ts:22  note   test-name-compound  test name joins behaviors with "and": "repo map request seeds chat files, hints, and retries with fewer constraints"
+pi-maintainer/test/core/context-bind.test.ts:59  note   test-name-compound  test name joins behaviors with "and": "context mode expands map refresh and budget policy on every attempt"
+pi-maintainer/test/core/context.pi.test.ts:76  note   test-name-compound  test name joins behaviors with "and": "provider requests drop Pi skill delivery wrappers and keep the user args"
+pi-maintainer/test/core/context.pi.test.ts:97  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/core/context.pi.test.ts:141  note   test-name-compound  test name joins behaviors with "and": "read-only files are reference text and stay outside the editable set"
+pi-maintainer/test/core/context.pi.test.ts:158  note   test-name-compound  test name joins behaviors with "and": "context mode expands repository-map refresh and budget on the map port"
+pi-maintainer/test/core/git-surface-bind.test.ts:109  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-maintainer/test/core/git-surface-bind.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "tracked reply mentions are offered one by one and approved adds reflect without applying edits"
+pi-maintainer/test/core/git-surface-bind.test.ts:147  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/core/git-surface-bind.test.ts:189  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-maintainer/test/core/history-summary.pi.test.ts:61  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-maintainer/test/core/history-summary.pi.test.ts:80  note   test-name-compound  test name joins behaviors with "and": "the summary ladder falls back to the main model and prefixes its reply"
+pi-maintainer/test/core/history-summary.pi.test.ts:88  note   test-name-compound  test name joins behaviors with "and": "summary input keeps user and assistant turns under Aider role headings"
+pi-maintainer/test/core/history-summary.pi.test.ts:100  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-maintainer/test/core/history-summary.pi.test.ts:100  note   test-name-compound  test name joins behaviors with "and": "history past the soft budget is summarized with Aider summary prompt and the weak model"
+pi-maintainer/test/core/intents.pi.test.ts:54  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/core/intents.pi.test.ts:135  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/core/lifecycle-bind.test.ts:152  note   test-name-compound  test name joins behaviors with "and": "a ValueError prints the edit-format notice URL and error then reflects"
+pi-maintainer/test/core/lifecycle-bind.test.ts:173  note   test-name-compound  test name joins behaviors with "and": "auto-commit and lint ports receive only successfully written paths"
+pi-maintainer/test/core/lifecycle-bind.test.ts:212  note   test-name-compound  test name joins behaviors with "and": "incomplete replies apply no edits and skip follow-up ports"
+pi-maintainer/test/core/lifecycle-bind.test.ts:230  note   test-name-compound  test name joins behaviors with "and": "a successful reply moves history and emits the no-repo saved notice"
+pi-maintainer/test/core/lifecycle-bind.test.ts:237  note   test-name-compound  test name joins behaviors with "and": "a new user binding clears reflection and edit tracking"
+pi-maintainer/test/core/lifecycle-residual.test.ts:76  note   test-name-compound  test name joins behaviors with "and": "direct route entry skips exchange binding and mention preprocessing"
+pi-maintainer/test/core/lifecycle-residual.test.ts:136  note   test-name-compound  test name joins behaviors with "and": "/undo dispatches to the git port and surfaces a disabled refusal"
+pi-maintainer/test/core/lifecycle-residual.test.ts:154  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/core/mentions-bind.test.ts:97  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/core/mentions-bind.test.ts:97  note   test-name-compound  test name joins behaviors with "and": "getFileMentions extracts plain, backtick, fence, quote, bold, and Windows-slash paths"
+pi-maintainer/test/core/mentions-bind.test.ts:142  note   test-name-compound  test name joins behaviors with "and": "getFileMentions skips ambiguous basenames and basenames already in chat"
+pi-maintainer/test/core/mentions-bind.test.ts:157  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/core/mentions-bind.test.ts:194  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/core/mentions-bind.test.ts:194  note   test-name-compound  test name joins behaviors with "and": "checkForFileMentions offers paths in sorted order, admits approvals, and remembers declines"
+pi-maintainer/test/core/modes.pi.test.ts:27  note   test-name-compound  test name joins behaviors with "and": "context mode replaces editable files and reflects without applying edits"
+pi-maintainer/test/core/modes.pi.test.ts:103  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/core/modes.pi.test.ts:139  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-maintainer/test/core/modes.pi.test.ts:139  note   test-name-compound  test name joins behaviors with "and": "architect editor path starts from architect session cost and returns the accumulated total"
+pi-maintainer/test/core/modes.pi.test.ts:181  note   test-name-length  test name is 102 characters ("short behavior-based test names")
+pi-maintainer/test/core/modes.pi.test.ts:181  note   test-name-compound  test name joins behaviors with "and": "architect editor frame keeps file context and disables shell, warming, and format-change summarization"
+pi-maintainer/test/core/notice-channel.pi.test.ts:22  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/core/skill-blocks.test.ts:4  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/core/skill-blocks.test.ts:26  note   test-name-compound  test name joins behaviors with "and": "providerSystemSections keeps cwd and Aider preamble only"
+pi-maintainer/test/core/skill-blocks.test.ts:32  note   test-name-compound  test name joins behaviors with "and": "stripSkillsFromMessages rewrites string and text-block user content"
+pi-maintainer/test/core/ui-chat-listing-bind.test.ts:155  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/core/ui-chat-listing-bind.test.ts:155  note   test-name-compound  test name joins behaviors with "and": "projectRequest emits pretty Readonly and Editable columns when both kinds exist"
+pi-maintainer/test/core/watch-bind.test.ts:11  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:11  note   test-name-compound  test name joins behaviors with "and": "built-in and gitignore patterns exclude editor noise and keep source files"
+pi-maintainer/test/core/watch-bind.test.ts:60  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "watcher roots exclude ignored top-level entries and fall back to the root"
+pi-maintainer/test/core/watch-bind.test.ts:81  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:104  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "AI comment markers yield one-based lines and the last actionable bang or question"
+pi-maintainer/test/core/watch-bind.test.ts:128  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:128  note   test-name-compound  test name joins behaviors with "and": "filter keeps under-root AI-comment files under one MiB and drops ignored paths"
+pi-maintainer/test/core/watch-bind.test.ts:153  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/core/watch-bind.test.ts:153  note   test-name-compound  test name joins behaviors with "and": "starting clears pending changes and stop joins the monitor before discarding it"
+pi-maintainer/test/edit/commands-residual.test.ts:57  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:57  note   test-name-compound  test name joins behaviors with "and": "context-usage file rows list editable and read-only names with estimates and a drop hint"
+pi-maintainer/test/edit/commands-residual.test.ts:87  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:87  note   test-name-compound  test name joins behaviors with "and": "main model switch preserves editor and weak roles and an explicit edit format"
+pi-maintainer/test/edit/commands-residual.test.ts:105  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:111  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:111  note   test-name-compound  test name joins behaviors with "and": "editor model switch preserves main and weak roles for the next reconstruction"
+pi-maintainer/test/edit/commands-residual.test.ts:127  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:127  note   test-name-compound  test name joins behaviors with "and": "/model adopts the new packaged default and keeps editor and weak selections"
+pi-maintainer/test/edit/commands-residual.test.ts:159  note   test-name-compound  test name joins behaviors with "and": "/editor-model preserves main and weak selections on the snapshot"
+pi-maintainer/test/edit/commands-residual.test.ts:172  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:172  note   test-name-compound  test name joins behaviors with "and": "/weak-model replaces only the weak selection used for commit messages and history summaries"
+pi-maintainer/test/edit/commands-residual.test.ts:192  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-maintainer/test/edit/commands-residual.test.ts:192  note   test-name-compound  test name joins behaviors with "and": "/tokens lists selected editable and read-only files with estimates and a drop hint"
+pi-maintainer/test/edit/dry-run-bind.test.ts:77  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/edit/factory-bind.test.ts:84  note   test-name-compound  test name joins behaviors with "and": "UnknownEditFormat message names the requested format and valid formats"
+pi-maintainer/test/edit/factory-bind.test.ts:103  note   test-name-compound  test name joins behaviors with "and": "code and null resolve to the inherited or model-default format"
+pi-maintainer/test/edit/factory-bind.test.ts:112  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/edit/factory-bind.test.ts:112  note   test-name-compound  test name joins behaviors with "and": "unknown edit format creation fails with the requested name and valid formats"
+pi-maintainer/test/edit/factory-bind.test.ts:145  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/edit/factory-bind.test.ts:145  note   test-name-compound  test name joins behaviors with "and": "mode transfer preserves editable paths, read-only paths, and declined mentions"
+pi-maintainer/test/edit/factory-bind.test.ts:192  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-maintainer/test/edit/factory-bind.test.ts:192  note   test-name-compound  test name joins behaviors with "and": "diff-fenced, udiff-simple, and editor variants share parent apply paths with their own prompts"
+pi-maintainer/test/edit/factory-bind.test.ts:253  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/edit/factory-bind.test.ts:253  note   test-name-compound  test name joins behaviors with "and": "active edit modes accept reply-text protocols and omit historical replace_lines tools"
+pi-maintainer/test/edit/input-bind.test.ts:49  note   test-name-compound  test name joins behaviors with "and": "missing editable files are created and selected"
+pi-maintainer/test/edit/input-bind.test.ts:64  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/edit/input-bind.test.ts:64  note   test-name-compound  test name joins behaviors with "and": "paths that cannot be created or are not ordinary files are diagnosed and excluded"
+pi-maintainer/test/edit/input-bind.test.ts:88  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/edit/input-bind.test.ts:88  note   test-name-compound  test name joins behaviors with "and": "a message file is read with the configured encoding and enters the request path"
+pi-maintainer/test/edit/input-bind.test.ts:119  note   test-name-compound  test name joins behaviors with "and": "a missing message file is reported and does not enter the request path"
+pi-maintainer/test/edit/install-complete-runtime.test.ts:24  note   test-name-compound  test name joins behaviors with "and": "isolated package load registers every edit format and packaged resources"
+pi-maintainer/test/edit/io-line-endings-bind.test.ts:34  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/edit/model-format-policy-bind.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "packaged gpt-3.5-turbo keeps whole format and sys reminder"
+pi-maintainer/test/edit/model-format-policy-bind.test.ts:42  note   test-name-compound  test name joins behaviors with "and": "packaged gpt-4o selects diff, editor-diff, examples, and sys reminder"
+pi-maintainer/test/edit/model-format-policy-bind.test.ts:79  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/edit/model-format-policy-bind.test.ts:92  note   test-name-compound  test name joins behaviors with "and": "prompt and editor policy map from the resolved model format"
+pi-maintainer/test/edit/patch.test.ts:113  note   test-name-compound  test name joins behaviors with "and": "dry-run application leaves DELETE MOVE and nested ADD untouched"
+pi-maintainer/test/edit/patch.test.ts:136  note   test-name-compound  test name joins behaviors with "and": "patch editIntent maps ADD UPDATE DELETE and MOVE"
+pi-maintainer/test/edit/prompt-source.test.ts:12  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:135  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:157  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:180  note   test-name-length  test name is 105 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:180  note   test-name-compound  test name joins behaviors with "and": "sys reminder is a final system message and user reminder appends to the last user turn when budget allows"
+pi-maintainer/test/edit/prompts.test.ts:201  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:224  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:224  note   test-name-compound  test name joins behaviors with "and": "a resolved chat language appears in platform info and as a Reply in instruction"
+pi-maintainer/test/edit/prompts.test.ts:244  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:244  note   test-name-compound  test name joins behaviors with "and": "vision models send image and PDF data URLs with Image file or PDF file labels"
+pi-maintainer/test/edit/prompts.test.ts:278  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-maintainer/test/edit/prompts.test.ts:278  note   test-name-compound  test name joins behaviors with "and": "Windows nested dot-only paths produce no image message while ordinary image and PDF paths do"
+pi-maintainer/test/edit/quoted-filenames.test.ts:4  note   test-name-compound  test name joins behaviors with "and": "parseQuotedFilenames splits on whitespace and keeps double-quoted spans"
+pi-maintainer/test/edit/reasoning-bind.test.ts:108  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/edit/reasoning-bind.test.ts:108  note   test-name-compound  test name joins behaviors with "and": "removeReasoningContent drops paired tags and text before a stray closing tag"
+pi-maintainer/test/edit/selection.test.ts:37  note   test-name-compound  test name joins behaviors with "and": "add accepts literal relative and absolute files"
+pi-maintainer/test/edit/selection.test.ts:119  note   test-name-compound  test name joins behaviors with "and": "drop removes matching editable and read-only paths"
+pi-maintainer/test/edit/selection.test.ts:187  note   test-name-compound  test name joins behaviors with "and": "save writes reconstruction commands with relative and absolute paths"
+pi-maintainer/test/edit/shell-bind.test.ts:118  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-maintainer/test/edit/shell-bind.test.ts:118  note   test-name-compound  test name joins behaviors with "and": "suggest-shell-commands defaults to true and --no-suggest-shell-commands disables it"
+pi-maintainer/test/edit/shell-bind.test.ts:187  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/edit/shell-bind.test.ts:210  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/edit/shell-bind.test.ts:221  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/edit/shell-bind.test.ts:221  note   test-name-compound  test name joins behaviors with "and": "a SEARCH-bearing shell fence stays a file edit and does not reach the shell port"
+pi-maintainer/test/editblock-ports.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "finds filenames by exact basename fuzzy and fence lookback"
+pi-maintainer/test/editblock-ports.test.ts:42  note   test-name-compound  test name joins behaviors with "and": "strips filename and fence wrapping from SEARCH text"
+pi-maintainer/test/editblock-ports.test.ts:426  note   test-name-compound  test name joins behaviors with "and": "parses markdown sections into edits shell commands and errors"
+pi-maintainer/test/editblock-ports.test.ts:517  note   test-name-compound  test name joins behaviors with "and": "reports unmatched blocks with similar lines and keep-applied note"
+pi-maintainer/test/git/authorize-bind.test.ts:178  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-maintainer/test/git/authorize-bind.test.ts:178  note   test-name-compound  test name joins behaviors with "and": "only in-chat paths are approved for editing, and a declined path stays out of the chat"
+pi-maintainer/test/git/authorize-bind.test.ts:216  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-maintainer/test/git/authorize-bind.test.ts:216  note   test-name-compound  test name joins behaviors with "and": "editing an untracked existing file stages and commits it with an Added commit diff"
+pi-maintainer/test/git/commands-bind.test.ts:59  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-maintainer/test/git/commands-bind.test.ts:59  note   test-name-compound  test name joins behaviors with "and": "/git runs argv git with GIT_EDITOR=true from process cwd and shows combined output"
+pi-maintainer/test/git/commands-bind.test.ts:69  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/commands-bind.test.ts:119  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/git/commands-bind.test.ts:133  note   test-name-compound  test name joins behaviors with "and": "/add and /drop admit untracked files without staging them into git"
+pi-maintainer/test/git/commands-bind.test.ts:164  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/git/commands-bind.test.ts:164  note   test-name-compound  test name joins behaviors with "and": "gitCommands registers git, commit, and diff through the feature command list"
+pi-maintainer/test/git/commands-bind.test.ts:183  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/commit-bind.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "commit message generation sends the commit diff and the chat context"
+pi-maintainer/test/git/commit-bind.test.ts:36  note   test-name-compound  test name joins behaviors with "and": "a commit stages and commits the whole content of named files"
+pi-maintainer/test/git/commit-bind.test.ts:61  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-bind.test.ts:61  note   test-name-compound  test name joins behaviors with "and": "a commit without named files includes tracked changes and staged additions but not untracked files"
+pi-maintainer/test/git/commit-model.test.ts:46  note   test-name-length  test name is 102 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-model.test.ts:46  note   test-name-compound  test name joins behaviors with "and": "the commit-message model ladder keeps the first non-empty reply and sends both models the same request"
+pi-maintainer/test/git/commit-model.test.ts:62  note   test-name-length  test name is 99 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-model.test.ts:78  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-model.test.ts:78  note   test-name-compound  test name joins behaviors with "and": "every model failing yields no message and a provider error does not stop the ladder"
+pi-maintainer/test/git/commit-wave-bind.test.ts:24  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:43  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:69  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:118  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:118  note   test-name-compound  test name joins behaviors with "and": "assistant commits apply co-authored-by and optional name attribution from CLI defaults"
+pi-maintainer/test/git/commit-wave-bind.test.ts:183  note   test-name-compound  test name joins behaviors with "and": "a selected-file commit leaves unrelated staged and dirty files untouched"
+pi-maintainer/test/git/commit-wave-bind.test.ts:210  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:210  note   test-name-compound  test name joins behaviors with "and": "CLI env and YAML merge form the effective auto dirty and git option policy"
+pi-maintainer/test/git/commit-wave-bind.test.ts:239  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-maintainer/test/git/commit-wave-bind.test.ts:348  note   test-name-compound  test name joins behaviors with "and": "dry-run skips auto-commit and dirty checkpoints"
+pi-maintainer/test/git/diffs-bind.test.ts:12  note   test-name-compound  test name joins behaviors with "and": "commit-message diffs include staged and unstaged changes against HEAD"
+pi-maintainer/test/git/diffs-bind.test.ts:32  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/git/diffs-bind.test.ts:45  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/git/diffs-bind.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "unborn-branch diffs use cached and working-tree diffs without a HEAD comparison"
+pi-maintainer/test/git/diffs-bind.test.ts:63  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/git/diffs-bind.test.ts:102  note   test-name-length  test name is 97 characters ("short behavior-based test names")
+pi-maintainer/test/git/diffs-bind.test.ts:102  note   test-name-compound  test name joins behaviors with "and": "/diff uses HEAD^ with fewer than two message checkpoints and the second-last checkpoint otherwise"
+pi-maintainer/test/git/diffs-bind.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "an untracked file is described as Added and the commit includes it"
+pi-maintainer/test/git/dirty-bind.test.ts:14  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/git/dirty-bind.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "dirty paths are announced and checkpointed before edits when dirty commits are on"
+pi-maintainer/test/git/feature-bind.test.ts:7  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/git/feature-bind.test.ts:7  note   test-name-compound  test name joins behaviors with "and": "gitFeature installs beside edit and exposes a real GitPolicy when a repo exists"
+pi-maintainer/test/git/filters-bind.test.ts:12  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:12  note   test-name-compound  test name joins behaviors with "and": "isGitIgnored matches git check-ignore for paths rejected from inventory and edits"
+pi-maintainer/test/git/filters-bind.test.ts:29  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:29  note   test-name-compound  test name joins behaviors with "and": "aiderignore excludes matching tracked paths and marks them policy-ignored"
+pi-maintainer/test/git/filters-bind.test.ts:54  note   test-name-compound  test name joins behaviors with "and": "subtree-only inventory and isIgnored stay under the cwd tree"
+pi-maintainer/test/git/filters-bind.test.ts:81  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:81  note   test-name-compound  test name joins behaviors with "and": "configured aiderignore path resolves relative to the git root and filters inventory"
+pi-maintainer/test/git/filters-bind.test.ts:101  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:101  note   test-name-compound  test name joins behaviors with "and": "addable relative files are filtered inventory minus editable and read-only chat files"
+pi-maintainer/test/git/filters-bind.test.ts:115  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:125  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/git/filters-bind.test.ts:125  note   test-name-compound  test name joins behaviors with "and": "add refuses gitignored paths and skips aiderignored paths with Aider warnings"
+pi-maintainer/test/git/filters-bind.test.ts:152  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-maintainer/test/git/inventory-bind.test.ts:7  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-maintainer/test/git/inventory-bind.test.ts:7  note   test-name-compound  test name joins behaviors with "and": "tracked inventory merges committed blobs and index entries without unstaged untracked files"
+pi-maintainer/test/git/security-bind.test.ts:12  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/git/security-bind.test.ts:26  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:46  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:56  note   test-name-compound  test name joins behaviors with "and": "openSingleRoot returns one root and refuses zero or multiple roots"
+pi-maintainer/test/git/startup-bind.test.ts:69  note   test-name-length  test name is 113 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:69  note   test-name-compound  test name joins behaviors with "and": "setupGit offers init outside home, creates ignore patterns without a second confirm, and skips the home directory"
+pi-maintainer/test/git/startup-bind.test.ts:74  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/startup-bind.test.ts:89  note   test-name-length  test name is 126 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:89  note   test-name-compound  test name joins behaviors with "and": "sanityCheckRepo refuses bare and corrupt repos and an unreadable index, warns above index version 3, and accepts detached HEAD"
+pi-maintainer/test/git/startup-bind.test.ts:157  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:157  note   test-name-compound  test name joins behaviors with "and": "checkGitignore offers to append branding and .env patterns when --gitignore is on"
+pi-maintainer/test/git/startup-bind.test.ts:173  note   test-name-length  test name is 108 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:173  note   test-name-compound  test name joins behaviors with "and": "prepareGitRepository disables when git is off or the executable is missing, and opens a ready root otherwise"
+pi-maintainer/test/git/startup-bind.test.ts:180  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/startup-bind.test.ts:191  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/startup-bind.test.ts:201  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-maintainer/test/git/startup-bind.test.ts:229  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:229  note   test-name-compound  test name joins behaviors with "and": "linked worktrees discover and pass sanity through the same Host.exec path"
+pi-maintainer/test/git/startup-bind.test.ts:263  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:263  note   test-name-compound  test name joins behaviors with "and": "repository discovery accepts a missing path and an outside file, and rejects two repositories"
+pi-maintainer/test/git/startup-bind.test.ts:280  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-maintainer/test/git/startup-bind.test.ts:293  note   test-name-compound  test name joins behaviors with "and": "two new files in an empty repository are created and admitted together"
+pi-maintainer/test/git/undo-bind.test.ts:8  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-maintainer/test/git/undo-bind.test.ts:8  note   test-name-compound  test name joins behaviors with "and": "undo refuses without a repository, on the first commit, and when HEAD is not a session commit"
+pi-maintainer/test/git/undo-bind.test.ts:46  note   test-name-compound  test name joins behaviors with "and": "undo checks out files from the parent, soft-resets, and reports Removed"
+pi-maintainer/test/lint/commands-bind.test.ts:125  note   test-name-compound  test name joins behaviors with "and": "lint feature registers /lint and /test slash commands"
+pi-maintainer/test/lint/commands-bind.test.ts:129  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/lint/commands-bind.test.ts:136  note   test-name-compound  test name joins behaviors with "and": "/lint requires a repository and lints dirty files when chat is empty"
+pi-maintainer/test/lint/commands-bind.test.ts:233  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/lint/commands-bind.test.ts:233  note   test-name-compound  test name joins behaviors with "and": "/test runs the configured command and on failure adds repair output to chat"
+pi-maintainer/test/lint/commands-bind.test.ts:289  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/lint/commands-bind.test.ts:289  note   test-name-compound  test name joins behaviors with "and": "runSuggestedShell confirms each block, skips comments, and offers add-output-to-chat"
+pi-maintainer/test/lint/dispatch-bind.test.ts:45  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "the linter reads UTF-8, dispatches Python, and reports paths relative to its root"
+pi-maintainer/test/lint/dispatch-bind.test.ts:65  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:65  note   test-name-compound  test name joins behaviors with "and": "parse_lint_cmds maps language prefixes, unprefixed None, strips, and last key wins"
+pi-maintainer/test/lint/dispatch-bind.test.ts:76  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:109  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "unknown extensions produce no lint report under automatic and global-command dispatch"
+pi-maintainer/test/lint/dispatch-bind.test.ts:127  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:127  note   test-name-compound  test name joins behaviors with "and": "custom lint appends one oslex-quoted relative path and discards exit-zero output"
+pi-maintainer/test/lint/dispatch-bind.test.ts:145  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:192  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-maintainer/test/lint/dispatch-bind.test.ts:203  note   test-name-compound  test name joins behaviors with "and": "explicit lint command bypasses unknown-file skipping and can still fail"
+pi-maintainer/test/lint/dispatch-bind.test.ts:226  note   test-name-compound  test name joins behaviors with "and": "--lint is a boolean one-shot flag and language checkers use --lint-cmd"
+pi-maintainer/test/lint/followup-bind.test.ts:336  note   test-name-compound  test name joins behaviors with "and": "an accepted lint failure defers the shell and test follow-ups"
+pi-maintainer/test/lint/followup-bind.test.ts:347  note   test-name-compound  test name joins behaviors with "and": "a declined lint failure continues to the shell and test follow-ups"
+pi-maintainer/test/lint/followup-bind.test.ts:366  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/lint/followup-bind.test.ts:450  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/lint/followup-bind.test.ts:450  note   test-name-compound  test name joins behaviors with "and": "auto-lint off skips lintEdited work and auto-test off skips testEdited work"
+pi-maintainer/test/lint/lifecycle-bind.test.ts:157  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/lint/lifecycle-bind.test.ts:194  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/lint/lifecycle-bind.test.ts:205  note   test-name-compound  test name joins behaviors with "and": "a new user binding clears edit tracking and the shared reflection budget"
+pi-maintainer/test/lint/lifecycle-bind.test.ts:222  note   test-name-compound  test name joins behaviors with "and": "lint test and malformed reflections share one three-request budget"
+pi-maintainer/test/lint/lifecycle-bind.test.ts:263  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-maintainer/test/lint/lifecycle-bind.test.ts:263  note   test-name-compound  test name joins behaviors with "and": "applySavedResponse applies edits and bypasses lint shell and test validation"
+pi-maintainer/test/lint/lifecycle-bind.test.ts:279  note   test-name-compound  test name joins behaviors with "and": "ask mode produces no edits and skips automatic lint"
+pi-maintainer/test/lint/lifecycle-bind.test.ts:291  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:30  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:30  note   test-name-compound  test name joins behaviors with "and": "--lint and --test are boolean oneshot startup flags; --test-cmd remains the command string"
+pi-maintainer/test/lint/oneshot-bind.test.ts:66  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:86  note   test-name-length  test name is 123 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:127  note   test-name-length  test name is 109 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:127  note   test-name-compound  test name joins behaviors with "and": "lint and test CheckOutcome kinds distinguish clean, unsupported, unreadable, unavailable, and missing command"
+pi-maintainer/test/lint/oneshot-bind.test.ts:204  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-maintainer/test/lint/oneshot-bind.test.ts:215  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-maintainer/test/lint/options-bind.test.ts:16  note   test-name-compound  test name joins behaviors with "and": "automatic lint defaults on and automatic tests default off"
+pi-maintainer/test/lint/options-bind.test.ts:29  note   test-name-compound  test name joins behaviors with "and": "cli and config can disable auto-lint and enable auto-test"
+pi-maintainer/test/lint/security-bind.test.ts:16  note   test-name-length  test name is 107 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:104  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "/map builds the repository map through the coder wrapper and prints the resulting map text"
+pi-maintainer/test/map/commands-bind.test.ts:123  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:123  note   test-name-compound  test name joins behaviors with "and": "/map-refresh forces the first wrapper mapping attempt and reports success without printing the map"
+pi-maintainer/test/map/commands-bind.test.ts:146  note   test-name-length  test name is 139 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:146  note   test-name-compound  test name joins behaviors with "and": "/tokens calls RepoMap directly with editable files as chat, omitting repository read-only partitioning, mention hints, and global fallbacks"
+pi-maintainer/test/map/commands-bind.test.ts:179  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:179  note   test-name-compound  test name joins behaviors with "and": "--show-repo-map builds the map through the coder wrapper, prints it, and exits"
+pi-maintainer/test/map/commands-bind.test.ts:204  note   test-name-length  test name is 141 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:229  note   test-name-length  test name is 136 characters ("short behavior-based test names")
+pi-maintainer/test/map/commands-bind.test.ts:229  note   test-name-compound  test name joins behaviors with "and": "rendered map text can include filenames plus source excerpts with literals, comments, and configuration values, without secret redaction"
+pi-maintainer/test/map/commands-bind.test.ts:242  note   test-name-compound  test name joins behaviors with "and": "map feature registers /map and /map-refresh slash commands"
+pi-maintainer/test/map/files-hints-bind.test.ts:14  note   test-name-length  test name is 107 characters ("short behavior-based test names")
+pi-maintainer/test/map/files-hints-bind.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "map file universe is sorted deduplicated Git HEAD-and-index inventory after aiderignore; untracked excluded"
+pi-maintainer/test/map/files-hints-bind.test.ts:45  note   test-name-length  test name is 112 characters ("short behavior-based test names")
+pi-maintainer/test/map/files-hints-bind.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "normal mapping partitions editable plus in-root read-only as chat files and excludes them from rendered map text"
+pi-maintainer/test/map/files-hints-bind.test.ts:84  note   test-name-length  test name is 115 characters ("short behavior-based test names")
+pi-maintainer/test/map/files-hints-bind.test.ts:84  note   test-name-compound  test name joins behaviors with "and": "mention hints come from current messages only via path, unique punctuated basename, and stem matches of length >= 5"
+pi-maintainer/test/map/files-hints-bind.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "rendered map text lists other files and omits every chat file"
+pi-maintainer/test/map/rank-bind.test.ts:39  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-maintainer/test/map/rank-bind.test.ts:62  note   test-name-length  test name is 100 characters ("short behavior-based test names")
+pi-maintainer/test/map/rank-bind.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "identifier weights multiply mentions and long names by ten, chat refs by fifty, commons by one tenth"
+pi-maintainer/test/map/rank-bind.test.ts:95  note   test-name-length  test name is 106 characters ("short behavior-based test names")
+pi-maintainer/test/map/rank-bind.test.ts:95  note   test-name-compound  test name joins behaviors with "and": "personalization boosts chat and path/ident matches by 100 over the scan universe and stores only positives"
+pi-maintainer/test/map/rank-bind.test.ts:115  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-maintainer/test/map/rank-bind.test.ts:135  note   test-name-length  test name is 105 characters ("short behavior-based test names")
+pi-maintainer/test/map/rank-bind.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "important basenames match configured root names case-sensitively and prepend when absent from ranked list"
+pi-maintainer/test/map/render-bind.test.ts:53  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:61  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:67  note   test-name-length  test name is 113 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:67  note   test-name-compound  test name joins behaviors with "and": "map selection uses sampled token estimates and binary search for a ranked prefix within fifteen percent of budget"
+pi-maintainer/test/map/render-bind.test.ts:84  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:84  note   test-name-compound  test name joins behaviors with "and": "tag cache entries are reused only for the same filename and mtime and are replaced after a miss"
+pi-maintainer/test/map/render-bind.test.ts:98  note   test-name-length  test name is 176 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:98  note   test-name-compound  test name joins behaviors with "and": "manual refresh reuses the last map, files refresh reuses file-set and budget keys, always recomputes, and auto reuses hint-sensitive keys when map processing exceeds one second"
+pi-maintainer/test/map/render-bind.test.ts:249  note   test-name-length  test name is 119 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:249  note   test-name-compound  test name joins behaviors with "and": "context mode forces map refresh, multiplies the map budget by the no-file multiplier, and resets that multiplier to one"
+pi-maintainer/test/map/render-bind.test.ts:289  note   test-name-length  test name is 135 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:289  note   test-name-compound  test name joins behaviors with "and": "repository mapping uses editable and in-root read-only seeds with conversation hints and retries an empty map with fewer hints or seeds"
+pi-maintainer/test/map/render-bind.test.ts:348  note   test-name-length  test name is 112 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:348  note   test-name-compound  test name joins behaviors with "and": "a RecursionError during map generation is reported and the map budget is set to zero so later maps stay disabled"
+pi-maintainer/test/map/render-bind.test.ts:390  note   test-name-length  test name is 139 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:390  note   test-name-compound  test name joins behaviors with "and": "when persistent tag-cache creation fails, mapping recreates the cache or falls back to an in-memory dictionary and continues producing maps"
+pi-maintainer/test/map/render-bind.test.ts:418  note   test-name-length  test name is 152 characters ("short behavior-based test names")
+pi-maintainer/test/map/render-bind.test.ts:444  note   test-name-length  test name is 114 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:30  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:48  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:56  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:63  note   test-name-length  test name is 106 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:113  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:126  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:126  note   test-name-compound  test name joins behaviors with "and": "filename-only rank and render list other files truncated to 100 characters"
+pi-maintainer/test/map/scaffold-bind.test.ts:135  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/map/scaffold-bind.test.ts:171  note   test-name-compound  test name joins behaviors with "and": "repository context expands no-files budget and returns a filename map"
+pi-maintainer/test/map/scaffold-bind.test.ts:223  note   test-name-compound  test name joins behaviors with "and": "map feature exposes Aider map options and builds a port"
+pi-maintainer/test/map/tags-bind.test.ts:116  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:116  note   test-name-compound  test name joins behaviors with "and": "repository tags carry relative and absolute paths, kind, name, and zero-based or minus-one lines"
+pi-maintainer/test/map/tags-bind.test.ts:144  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:144  note   test-name-compound  test name joins behaviors with "and": "unsupported language, unavailable parser or query, and empty input yield no semantic tags"
+pi-maintainer/test/map/tags-bind.test.ts:193  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:216  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:216  note   test-name-compound  test name joins behaviors with "and": "Python query assets identify constants, classes, functions, and attribute call names"
+pi-maintainer/test/map/tags-bind.test.ts:252  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:273  note   test-name-length  test name is 97 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:297  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-maintainer/test/map/tags-bind.test.ts:327  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/settings/option-inventory.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "nonclaimed options carry a category and a reason"
+pi-maintainer/test/settings/option-inventory.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "the weak model and chat-history budget options are registered"
+pi-maintainer/test/settings/settings-bind.test.ts:38  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-maintainer/test/settings/settings-bind.test.ts:98  note   test-name-compound  test name joins behaviors with "and": "cli encoding wins and reaches the edit working tree"
+pi-maintainer/test/settings/settings-bind.test.ts:161  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-maintainer/test/settings/settings-bind.test.ts:161  note   test-name-compound  test name joins behaviors with "and": "verbose diagnostics list dotenv-derived options and redact credential overlays"
+pi-maintainer/test/settings/settings-bind.test.ts:194  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-maintainer/test/udiff.oracle.test.ts:41  note   test-name-compound  test name joins behaviors with "and": "search and replace $id"
+pi-maintainer/test/udiff.test.ts:129  note   test-name-compound  test name joins behaviors with "and": "udiff format plans an upsert and applies the hunk"
+pi-maintainer/test/udiff.test.ts:231  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-maintainer/test/udiff.test.ts:279  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-maintainer/test/udiff.test.ts:279  note   test-name-compound  test name joins behaviors with "and": "udiff refuses a reverse-lines-only match and never enables reverse preprocs"
+pi-pstack/test/aliases.test.ts:32  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/aliases.test.ts:32  note   test-name-compound  test name joins behaviors with "and": "the input handler transforms an alias and keeps attached images (CMD-001)"
+pi-pstack/test/aliases.test.ts:47  note   test-name-length  test name is 129 characters ("short behavior-based test names")
+pi-pstack/test/aliases.test.ts:54  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/ask.test.ts:20  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/autocomplete.test.ts:21  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/e2e/aliases.e2e.test.ts:15  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/e2e/aliases.e2e.test.ts:15  note   test-name-compound  test name joins behaviors with "and": "/how attaches the skill body, path, and raw arguments to one message (CMD-001)"
+pi-pstack/test/e2e/aliases.e2e.test.ts:35  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/e2e/aliases.e2e.test.ts:46  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/e2e/aliases.e2e.test.ts:62  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/e2e/ask.e2e.test.ts:29  note   test-name-compound  test name joins behaviors with "and": "asks each question through UI dialogs and returns option IDs (HOST-005)"
+pi-pstack/test/e2e/ask.e2e.test.ts:56  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-pstack/test/e2e/ask.e2e.test.ts:56  note   test-name-compound  test name joins behaviors with "and": "shows the title and option descriptions of a Cursor-shaped call and still returns IDs (HOST-005)"
+pi-pstack/test/e2e/ask.e2e.test.ts:104  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/e2e/ask.e2e.test.ts:114  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:40  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:40  note   test-name-compound  test name joins behaviors with "and": "names the skills, rule, transcript, store, project, and subagent locations in Pi terms"
+pi-pstack/test/e2e/host.e2e.test.ts:71  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:71  note   test-name-compound  test name joins behaviors with "and": "tells a one-shot run it cannot subscribe, and a long-lived session how subscriptions wake it (HOST-010)"
+pi-pstack/test/e2e/host.e2e.test.ts:82  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:97  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:123  note   test-name-compound  test name joins behaviors with "and": "lists the subagent types and the models Task accepts"
+pi-pstack/test/e2e/host.e2e.test.ts:136  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:136  note   test-name-compound  test name joins behaviors with "and": "a readonly subagent gets no subagent catalog and no Task or stop_agent lines; its parent gets both"
+pi-pstack/test/e2e/host.e2e.test.ts:162  note   test-name-length  test name is 105 characters ("short behavior-based test names")
+pi-pstack/test/e2e/host.e2e.test.ts:162  note   test-name-compound  test name joins behaviors with "and": "lists the pstack tools a one-shot run can use, and the todolist guideline (HOST-001, TODO-001, recheck 2)"
+pi-pstack/test/e2e/host.e2e.test.ts:180  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/e2e/lifecycle.e2e.test.ts:56  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/e2e/lifecycle.e2e.test.ts:71  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/e2e/lifecycle.e2e.test.ts:71  note   test-name-compound  test name joins behaviors with "and": "/reload keeps aliases and tools, and stops the old runtime children (PKG-002)"
+pi-pstack/test/e2e/lifecycle.e2e.test.ts:86  note   test-name-compound  test name joins behaviors with "and": "a new session resets mode and todos and stops the old children (PKG-002)"
+pi-pstack/test/e2e/mode.e2e.test.ts:35  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-pstack/test/e2e/mode.e2e.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "/mode rejects an unknown skill and lists the choices (MODE-002)"
+pi-pstack/test/e2e/mode.e2e.test.ts:91  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/e2e/mode.e2e.test.ts:115  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-pstack/test/e2e/package.e2e.test.ts:48  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/subscription-owner.e2e.test.ts:68  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-pstack/test/e2e/subscription-owner.e2e.test.ts:96  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/e2e/subscription-owner.e2e.test.ts:140  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/e2e/subscription-owner.e2e.test.ts:140  note   test-name-compound  test name joins behaviors with "and": "an explicit offline fresh timer uses the detached runner and records its outcome"
+pi-pstack/test/e2e/task.e2e.test.ts:52  note   test-name-length  test name is 107 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:52  note   test-name-compound  test name joins behaviors with "and": "returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014)"
+pi-pstack/test/e2e/task.e2e.test.ts:68  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "a Cursor slug picks the model and thinking level (TASK-007)"
+pi-pstack/test/e2e/task.e2e.test.ts:107  note   test-name-length  test name is 107 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:145  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:170  note   test-name-length  test name is 108 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:170  note   test-name-compound  test name joins behaviors with "and": "readonly limits the child to read, grep, find, ls, a read-only shell, and its todo list (TASK-008, TASK-019)"
+pi-pstack/test/e2e/task.e2e.test.ts:176  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:203  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:211  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:218  note   test-name-compound  test name joins behaviors with "and": "a normal child has write tools and the pstack tools"
+pi-pstack/test/e2e/task.e2e.test.ts:235  note   test-name-compound  test name joins behaviors with "and": "background and parallel"
+pi-pstack/test/e2e/task.e2e.test.ts:236  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:236  note   test-name-compound  test name joins behaviors with "and": "returns at once and delivers a <task> notification after the turn (TASK-003)"
+pi-pstack/test/e2e/task.e2e.test.ts:255  note   test-name-length  test name is 96 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:267  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:279  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:279  note   test-name-compound  test name joins behaviors with "and": "a failed background child notifies with status error and its message (TASK-015)"
+pi-pstack/test/e2e/task.e2e.test.ts:309  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:338  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:338  note   test-name-compound  test name joins behaviors with "and": "continues the same transcript, steers a running agent, and refuses unknown agents (TASK-005, C-H4)"
+pi-pstack/test/e2e/task.e2e.test.ts:374  note   test-name-compound  test name joins behaviors with "and": "resume across processes and workspaces"
+pi-pstack/test/e2e/task.e2e.test.ts:375  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:383  note   test-name-length  test name is 97 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:392  note   test-name-length  test name is 138 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:402  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:428  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:457  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:496  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:503  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:511  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:520  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:529  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:549  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:569  note   test-name-length  test name is 114 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:569  note   test-name-compound  test name joins behaviors with "and": "stops an agent another Pi process runs, which Task resume there refuses to message, and leaves an idle agent alone"
+pi-pstack/test/e2e/task.e2e.test.ts:597  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:597  note   test-name-compound  test name joins behaviors with "and": "a cloud Task in plan mode runs here, readonly, and creates no worktree or branch"
+pi-pstack/test/e2e/task.e2e.test.ts:615  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:634  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:653  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:659  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/e2e/task.e2e.test.ts:721  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-pstack/test/e2e/todo.e2e.test.ts:31  note   test-name-length  test name is 100 characters ("short behavior-based test names")
+pi-pstack/test/e2e/todo.e2e.test.ts:31  note   test-name-compound  test name joins behaviors with "and": "TodoWrite state follows a fork back to the earlier branch and drives the widget (TODO-001, TODO-002)"
+pi-pstack/test/ensure-supervisor.test.ts:34  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/ensure-supervisor.test.ts:53  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/ensure-supervisor.test.ts:53  note   test-name-compound  test name joins behaviors with "and": "readiness requires this subscription arm and the current supervisor incarnation"
+pi-pstack/test/loop.test.ts:16  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:54  note   test-name-length  test name is 100 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:87  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:87  note   test-name-compound  test name joins behaviors with "and": "without an interval the agent picks each wake, and the loop ends when it picks none"
+pi-pstack/test/loop.test.ts:119  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:136  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:163  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:188  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:196  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/loop.test.ts:204  note   test-name-compound  test name joins behaviors with "and": "print and JSON runs refuse /loop because the process exits"
+pi-pstack/test/mode.test.ts:25  note   test-name-compound  test name joins behaviors with "and": "uses the last mode entry on the branch and keeps only its skill name"
+pi-pstack/test/mode.test.ts:29  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/mode.test.ts:41  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/mode.test.ts:71  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/mode.test.ts:71  note   test-name-compound  test name joins behaviors with "and": "a skill without icon or color gets the default lightning icon and no color"
+pi-pstack/test/mode.test.ts:89  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/mode.test.ts:89  note   test-name-compound  test name joins behaviors with "and": "a Pi skill written in Cursor format styles its badge from top-level icon and color"
+pi-pstack/test/plan.test.ts:52  note   test-name-compound  test name joins behaviors with "and": "/plan restricts the tools and /plan off restores the exact earlier set"
+pi-pstack/test/plan.test.ts:72  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/plan.test.ts:72  note   test-name-compound  test name joins behaviors with "and": "/plan <task> sends the task, and a second /plan keeps the first saved tool set"
+pi-pstack/test/plan.test.ts:86  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/plan.test.ts:86  note   test-name-compound  test name joins behaviors with "and": "blocks writers and unknown tools, and lets Task run unchanged for it to restrict (C-M1)"
+pi-pstack/test/plan.test.ts:104  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/plan.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "restores plan mode from the session and drops a stray plan shell when off"
+pi-pstack/test/plan.test.ts:120  note   test-name-compound  test name joins behaviors with "and": "reads the last plan entry and treats malformed data as off"
+pi-pstack/test/readonly-shell-security.test.ts:42  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/readonly-shell-security.test.ts:52  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-pstack/test/readonly-shell-security.test.ts:64  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/readonly-shell.test.ts:19  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/readonly-shell.test.ts:26  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/records.test.ts:34  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/records.test.ts:46  note   test-name-length  test name is 105 characters ("short behavior-based test names")
+pi-pstack/test/records.test.ts:73  note   test-name-compound  test name joins behaviors with "and": "a cloud agent's worktree survives a write and read (TASK-010)"
+pi-pstack/test/records.test.ts:100  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/records.test.ts:112  note   test-name-compound  test name joins behaviors with "and": "keeps subagents and the agent store under the workspace"
+pi-pstack/test/records.test.ts:133  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/registry.test.ts:9  note   test-name-length  test name is 127 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:99  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:110  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:110  note   test-name-compound  test name joins behaviors with "and": "loads every skill with no diagnostics and names equal to directories (RES-001)"
+pi-pstack/test/resources.test.ts:119  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:133  note   test-name-length  test name is 102 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:133  note   test-name-compound  test name joins behaviors with "and": "hides workflow skills from model invocation and keeps team-kit plus setup invocable (RES-003, RES-005)"
+pi-pstack/test/resources.test.ts:140  note   test-name-compound  test name joins behaviors with "and": "ships pstack and team-kit subagent definitions (RES-006)"
+pi-pstack/test/resources.test.ts:144  note   test-name-length  test name is 118 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:144  note   test-name-compound  test name joins behaviors with "and": "poteto-mode tells delegates where bundled skills live, and every principle it names is at ../<name>/SKILL.md (RES-010)"
+pi-pstack/test/resources.test.ts:190  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:215  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:215  note   test-name-compound  test name joins behaviors with "and": "RES-012 catches host paths in any case, in README.md, and beside an exempt span"
+pi-pstack/test/resources.test.ts:224  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:246  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/resources.test.ts:246  note   test-name-compound  test name joins behaviors with "and": "ships every team-kit soft-dep skill and agent as a literal inventory (RES-013)"
+pi-pstack/test/rule.test.ts:27  note   test-name-compound  test name joins behaviors with "and": "truncates an oversized rule and says so"
+pi-pstack/test/rule.test.ts:41  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-pstack/test/rule.test.ts:41  note   test-name-compound  test name joins behaviors with "and": "moves the body of pstack-models.mdc to pstack-models.md once and keeps the old file aside"
+pi-pstack/test/scripts.test.ts:17  note   test-name-length  test name is 116 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:25  note   test-name-length  test name is 101 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:25  note   test-name-compound  test name joins behaviors with "and": "watch-pr starts and prints usage, and orch is gone (pstack 0.15.36 runs orchestrate with agent tools)"
+pi-pstack/test/scripts.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "log.sh writes the header once and neutralizes formula and tab characters"
+pi-pstack/test/scripts.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "ships the TypeScript entry and ketchup-video skill"
+pi-pstack/test/scripts.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "missing SPEC prints usage and exits 2"
+pi-pstack/test/scripts.test.ts:67  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:67  note   test-name-compound  test name joins behaviors with "and": "worktree-audit.sh reads Pi transcripts (WTA-001; the upstream script uses BSD stat and date)"
+pi-pstack/test/scripts.test.ts:108  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:117  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:151  note   test-name-length  test name is 113 characters ("short behavior-based test names")
+pi-pstack/test/scripts.test.ts:151  note   test-name-compound  test name joins behaviors with "and": "a project .pi/settings.json sessionDir wins over the global one and resolves from the working directory (recheck)"
+pi-pstack/test/sections.test.ts:28  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/sections.test.ts:28  note   test-name-compound  test name joins behaviors with "and": "a session with Task names every Task parameter, steering, fork turns, and stop_agent"
+pi-pstack/test/sections.test.ts:60  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/sections.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "host section names the codemode and image-model gate and the Mermaid or table substitute"
+pi-pstack/test/sections.test.ts:67  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions-cron.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "expands *, lists, ranges, steps, and start/step"
+pi-pstack/test/subscriptions-cron.test.ts:18  note   test-name-compound  test name joins behaviors with "and": "reads month and weekday names, and 7 as Sunday"
+pi-pstack/test/subscriptions.test.ts:145  note   test-name-compound  test name joins behaviors with "and": "re-subscribing a name keeps the stored timer and returns created: false"
+pi-pstack/test/subscriptions.test.ts:160  note   test-name-compound  test name joins behaviors with "and": "expires at expiresAt and drops then"
+pi-pstack/test/subscriptions.test.ts:216  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:216  note   test-name-compound  test name joins behaviors with "and": "the first poll is a baseline; each kind of change wakes with the PR and the change"
+pi-pstack/test/subscriptions.test.ts:251  note   test-name-compound  test name joins behaviors with "and": "a gh failure is recorded, does not wake, and polling continues"
+pi-pstack/test/subscriptions.test.ts:268  note   test-name-compound  test name joins behaviors with "and": "repo and author scopes wake on PRs opened, merged, and changed"
+pi-pstack/test/subscriptions.test.ts:293  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:293  note   test-name-compound  test name joins behaviors with "and": "a PR title and check name arrive as escaped data inside one github_event block"
+pi-pstack/test/subscriptions.test.ts:316  note   test-name-compound  test name joins behaviors with "and": "session_tree during a poll wakes once and keeps one poll cadence"
+pi-pstack/test/subscriptions.test.ts:351  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:383  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:396  note   test-name-compound  test name joins behaviors with "and": "one-shot print and JSON runs"
+pi-pstack/test/subscriptions.test.ts:408  note   test-name-compound  test name joins behaviors with "and": "workspace authority and owner delivery"
+pi-pstack/test/subscriptions.test.ts:411  note   test-name-compound  test name joins behaviors with "and": "create persists authority and cancellation retains an inactive identity"
+pi-pstack/test/subscriptions.test.ts:425  note   test-name-compound  test name joins behaviors with "and": "a workspace peer can list and cancel without importing branch receipts"
+pi-pstack/test/subscriptions.test.ts:506  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:506  note   test-name-compound  test name joins behaviors with "and": "pid-only supervisor presence cannot fake readiness and failed creation is rolled back"
+pi-pstack/test/subscriptions.test.ts:519  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:542  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:567  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:613  note   test-name-compound  test name joins behaviors with "and": "creates a routine: URL and credential file, never the key"
+pi-pstack/test/subscriptions.test.ts:624  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:624  note   test-name-compound  test name joins behaviors with "and": "a keyed JSON POST returns 200 and wakes with the routine prompt and a webhook_event block"
+pi-pstack/test/subscriptions.test.ts:649  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:663  note   test-name-compound  test name joins behaviors with "and": "a chunked body over 64 KiB returns 413 and does not wake"
+pi-pstack/test/subscriptions.test.ts:697  note   test-name-compound  test name joins behaviors with "and": "/routines notifies when the session has no UI and does not write stdout"
+pi-pstack/test/subscriptions.test.ts:742  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:742  note   test-name-compound  test name joins behaviors with "and": "/routines lists URL, credential file, and status; unsubscribe frees the route"
+pi-pstack/test/subscriptions.test.ts:753  note   test-name-compound  test name joins behaviors with "and": "a routine resumes from workspace authority with its key and wakes again"
+pi-pstack/test/subscriptions.test.ts:783  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/subscriptions.test.ts:783  note   test-name-compound  test name joins behaviors with "and": "failed new listener creation rolls back and cannot fire after its port becomes free"
+pi-pstack/test/task-agents.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "ships generalPurpose plus pstack and team-kit agents (TASK-006)"
+pi-pstack/test/task-agents.test.ts:14  note   test-name-length  test name is 99 characters ("short behavior-based test names")
+pi-pstack/test/task-agents.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "reads agent frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)"
+pi-pstack/test/task-agents.test.ts:26  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-pstack/test/task-agents.test.ts:34  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-pstack/test/task-agents.test.ts:43  note   test-name-compound  test name joins behaviors with "and": "derives the name from the file and honors model and readonly"
+pi-pstack/test/task-card.test.ts:6  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/task-card.test.ts:31  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:82  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:90  note   test-name-compound  test name joins behaviors with "and": "runs in the source's worktree and records the same branch"
+pi-pstack/test/task-fork.test.ts:113  note   test-name-compound  test name joins behaviors with "and": "keeps the deeper of the source depth and the caller depth"
+pi-pstack/test/task-fork.test.ts:134  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:134  note   test-name-compound  test name joins behaviors with "and": "copies the source session under the new ID, with the source as its parent and unchanged"
+pi-pstack/test/task-fork.test.ts:168  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:168  note   test-name-compound  test name joins behaviors with "and": "copies only the first N user turns, and the copy opens at the end of turn N"
+pi-pstack/test/task-fork.test.ts:185  note   test-name-compound  test name joins behaviors with "and": "prepareFork applies fork_turns and names it in the notes"
+pi-pstack/test/task-fork.test.ts:196  note   test-name-length  test name is 108 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:203  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:215  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/task-fork.test.ts:215  note   test-name-compound  test name joins behaviors with "and": "copies the transcript, holds the new agent lock, and leaves the source unlocked"
+pi-pstack/test/task-format.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "background launch names the agent and says not to poll"
+pi-pstack/test/task-format.test.ts:33  note   test-name-length  test name is 104 characters ("short behavior-based test names")
+pi-pstack/test/task-format.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "bounds model-facing output with Pi's own limits and points to the transcript (review r2: architecture 6)"
+pi-pstack/test/task-format.test.ts:56  note   test-name-compound  test name joins behaviors with "and": "the result line names the worktree and the branch to merge"
+pi-pstack/test/task-format.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "the child's prompt opens with where it runs and that it must commit"
+pi-pstack/test/task-model.test.ts:15  note   test-name-compound  test name joins behaviors with "and": "%s runs on the parent model and thinking level"
+pi-pstack/test/task-model.test.ts:33  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-pstack/test/task-model.test.ts:56  note   test-name-length  test name is 93 characters ("short behavior-based test names")
+pi-pstack/test/task-model.test.ts:65  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/task-model.test.ts:81  note   test-name-length  test name is 89 characters ("short behavior-based test names")
+pi-pstack/test/task-model.test.ts:81  note   test-name-compound  test name joins behaviors with "and": "fast=true picks a model whose own id ends in -fast, and fast=false keeps the standard one"
+pi-pstack/test/task-model.test.ts:97  note   test-name-length  test name is 90 characters ("short behavior-based test names")
+pi-pstack/test/task-model.test.ts:130  note   test-name-length  test name is 117 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:13  note   test-name-length  test name is 108 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:13  note   test-name-compound  test name joins behaviors with "and": "always runs one RPC session per agent ID with this package loaded, so its owner can steer and stop it (C-H4)"
+pi-pstack/test/task-runner.test.ts:17  note   test-name-compound  test name joins behaviors with "and": "adds trust, model, thinking, and readonly tools in that order"
+pi-pstack/test/task-runner.test.ts:39  note   test-name-length  test name is 95 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:50  note   test-name-length  test name is 118 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:63  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:92  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:92  note   test-name-compound  test name joins behaviors with "and": "rejects a directory attachment and expands ~ as Pi read paths do (review r2: security 4)"
+pi-pstack/test/task-runner.test.ts:100  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:100  note   test-name-compound  test name joins behaviors with "and": "resolves attachments against the working directory and rejects missing files"
+pi-pstack/test/task-runner.test.ts:130  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:130  note   test-name-compound  test name joins behaviors with "and": "sends the prompt as an RPC prompt and returns the final assistant text with summed usage"
+pi-pstack/test/task-runner.test.ts:137  note   test-name-length  test name is 111 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:137  note   test-name-compound  test name joins behaviors with "and": "a command that cannot start has no pid and fails clearly (review recheck: no record for a child that never ran)"
+pi-pstack/test/task-runner.test.ts:143  note   test-name-length  test name is 110 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:148  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:155  note   test-name-length  test name is 106 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:155  note   test-name-compound  test name joins behaviors with "and": "counts the child's tool-result and compaction usage, as Pi's session totals do (review r2: architecture 2)"
+pi-pstack/test/task-runner.test.ts:161  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:186  note   test-name-compound  test name joins behaviors with "and": "abort kills the child and its descendants (TASK-013)"
+pi-pstack/test/task-runner.test.ts:230  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:236  note   test-name-compound  test name joins behaviors with "and": "steer and stop (C-H4)"
+pi-pstack/test/task-runner.test.ts:248  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-pstack/test/task-runner.test.ts:248  note   test-name-compound  test name joins behaviors with "and": "steer delivers a message into the running turn, and the agent finishes with it"
+pi-pstack/test/task-runner.test.ts:262  note   test-name-compound  test name joins behaviors with "and": "stop aborts the run over RPC and the child exits"
+pi-pstack/test/task-schema.test.ts:5  note   test-name-compound  test name joins behaviors with "and": "requires description and prompt, like Cursor"
+pi-pstack/test/task-schema.test.ts:9  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/task-schema.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "accepts Cursor parameters plus the readonly and environment fields pstack passes"
+pi-pstack/test/task-schema.test.ts:33  note   test-name-compound  test name joins behaviors with "and": "allows the main agent and direct subagents (TASK-011)"
+pi-pstack/test/task-status.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "names the worktree directory and branch, and the fork source"
+pi-pstack/test/task-status.test.ts:71  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-pstack/test/task-status.test.ts:89  note   test-name-length  test name is 99 characters ("short behavior-based test names")
+pi-pstack/test/task-status.test.ts:109  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/task-status.test.ts:128  note   test-name-compound  test name joins behaviors with "and": "is annotated read-only and closed-world (C-L6)"
+pi-pstack/test/task-status.test.ts:134  note   test-name-compound  test name joins behaviors with "and": "reads the workspace subagent directory and never takes a run lock"
+pi-pstack/test/task-worktree.test.ts:37  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-pstack/test/task-worktree.test.ts:59  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-pstack/test/task-worktree.test.ts:66  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-pstack/test/task-worktree.test.ts:77  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-pstack/test/task-worktree.test.ts:83  note   test-name-length  test name is 98 characters ("short behavior-based test names")
+pi-pstack/test/task-worktree.test.ts:101  note   timer-deadline  timer-based deadline: keep it finite and clear it on success
+pi-pstack/test/todo.test.ts:14  note   test-name-compound  test name joins behaviors with "and": "merges by id, keeps order, fills omitted fields, and appends new ids"
+pi-pstack/test/todo.test.ts:51  note   test-name-compound  test name joins behaviors with "and": "summarizes counts and marks each status"
+pi-pstack/test/todo.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "takes the last TodoWrite result on the branch and ignores other tools"
+pi-pstack/test/todo.test.ts:69  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-pstack/test/visualize.test.ts:37  note   test-name-compound  test name joins behaviors with "and": "bars scale to the largest value and show each value"
+pi-pstack/test/visualize.test.ts:50  note   test-name-compound  test name joins behaviors with "and": "several bar series get distinct fills and a legend"
+pi-pstack/test/visualize.test.ts:57  note   test-name-compound  test name joins behaviors with "and": "the line plot marks each series and labels the axis range"
+pi-pstack/test/visualize.test.ts:75  note   test-name-compound  test name joins behaviors with "and": "the SVG is well formed with title, axes, legend, and escaped text"
+pi-pstack/test/visualize.test.ts:111  note   test-name-compound  test name joins behaviors with "and": "the tool returns the chart and writes the SVG to the artifacts folder"
+pi-pstack/test/visualize.test.ts:123  note   test-name-compound  test name joins behaviors with "and": "the tool fails on a bad shape and writes nothing"
+pi-rea/test/absorbed-analyzers.test.ts:26  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/absorbed-analyzers.test.ts:58  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/absorbed-analyzers.test.ts:82  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/absorbed-analyzers.test.ts:105  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:72  note   test-name-compound  test name joins behaviors with "and": "reports trailing signing-block bytes as uninterpreted and limits them"
+pi-rea/test/analyzer-oracle-parity-b.test.ts:113  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:138  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:158  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:178  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:196  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:210  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:231  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:251  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity-b.test.ts:347  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity.test.ts:203  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/analyzer-oracle-parity.test.ts:215  note   test-name-length  test name is 104 characters ("short behavior-based test names")
+pi-rea/test/contract.test.ts:38  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/contract.test.ts:38  note   test-name-compound  test name joins behaviors with "and": "KERN-001: every tool advertises parameters, annotations, effects and a surface"
+pi-rea/test/contract.test.ts:130  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/contract.test.ts:167  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/contract.test.ts:174  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/contract.test.ts:174  note   test-name-compound  test name joins behaviors with "and": "KERN-002: the host and provider inventories are recorded as interface facts"
+pi-rea/test/contract.test.ts:192  note   test-name-compound  test name joins behaviors with "and": "KERN-003: implemented tools are direct and refusing tools are deferred"
+pi-rea/test/contract.test.ts:203  note   test-name-compound  test name joins behaviors with "and": "KERN-004: error codes and categories are the reference vocabularies"
+pi-rea/test/contract.test.ts:211  note   test-name-compound  test name joins behaviors with "and": "KERN-002: the catalog loads once and reports its own digest"
+pi-rea/test/data-analyzer-branches.test.ts:1809  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch4.test.ts:37  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch4.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "demangle_swift: requires an open target and demangles via swift-demangle"
+pi-rea/test/engine-free-kernel-batch4.test.ts:60  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch4.test.ts:110  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch4.test.ts:135  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:38  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:90  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:111  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:150  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:197  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/engine-free-kernel-batch5.test.ts:219  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-rea/test/evidence-ledger.test.ts:30  note   test-name-compound  test name joins behaviors with "and": "KERN-006: an Evidence identifier is content-addressed and stable"
+pi-rea/test/evidence-ledger.test.ts:59  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/evidence-ledger.test.ts:70  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-rea/test/evidence-ledger.test.ts:70  note   test-name-compound  test name joins behaviors with "and": "KERN-006: a registry mutation records the reference provider, predicate and limitations"
+pi-rea/test/evidence-ledger.test.ts:162  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:52  note   test-name-compound  test name joins behaviors with "and": "KERN-007: the complete bundle carries every record and unknown"
+pi-rea/test/evidence-tools.test.ts:75  note   test-name-compound  test name joins behaviors with "and": "KERN-007: filters select summaries and reject unknown keys"
+pi-rea/test/evidence-tools.test.ts:90  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:90  note   test-name-compound  test name joins behaviors with "and": "KERN-008: export writes canonical bytes and reports path, size and counts"
+pi-rea/test/evidence-tools.test.ts:104  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "KERN-008: exporting over an existing file needs overwrite and leaves no staging file"
+pi-rea/test/evidence-tools.test.ts:126  note   test-name-compound  test name joins behaviors with "and": "KERN-008: an export creates its parent directory and stays readable"
+pi-rea/test/evidence-tools.test.ts:137  note   test-name-compound  test name joins behaviors with "and": "KERN-009: an import merges records and unknowns and reports the counts"
+pi-rea/test/evidence-tools.test.ts:216  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:227  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:272  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:302  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:302  note   test-name-compound  test name joins behaviors with "and": "KERN-017: export never replaces a destination it cannot read, and publishes without replace"
+pi-rea/test/evidence-tools.test.ts:324  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:324  note   test-name-compound  test name joins behaviors with "and": "KERN-017: a destination created between check and publish is not replaced"
+pi-rea/test/evidence-tools.test.ts:336  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:336  note   test-name-compound  test name joins behaviors with "and": "KERN-018: an import refuses a non-regular file and reports no parser snippet"
+pi-rea/test/evidence-tools.test.ts:354  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-rea/test/evidence-tools.test.ts:354  note   test-name-compound  test name joins behaviors with "and": "KERN-057: a destination whose parent is a file reports a failure and writes nothing"
+pi-rea/test/independence.test.ts:42  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/independence.test.ts:42  note   test-name-compound  test name joins behaviors with "and": "KERN-002: the extension only imports Pi, typebox, Babel parser, and relative modules"
+pi-rea/test/independence.test.ts:53  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/inspect-macho.test.ts:197  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/inspect-macho.test.ts:197  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: a thin image reports the header, uuid, entrypoint and build metadata"
+pi-rea/test/inspect-macho.test.ts:224  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: dependencies carry the dylib kind, path and versions"
+pi-rea/test/inspect-macho.test.ts:238  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: segments and sections are projected with their permissions"
+pi-rea/test/inspect-macho.test.ts:271  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: a universal image lists every slice and reports the host slice"
+pi-rea/test/inspect-macho.test.ts:289  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/inspect-macho.test.ts:302  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: the analysis needs an open target and is retained as Evidence"
+pi-rea/test/inspect-macho.test.ts:355  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/inspect-pe-resources.test.ts:39  note   test-name-compound  test name joins behaviors with "and": "TOOL-087: the recorded artifact identity and limits are reported"
+pi-rea/test/inspect-pe-resources.test.ts:52  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/inspect-pe-resources.test.ts:83  note   test-name-compound  test name joins behaviors with "and": "TOOL-087: a missing file and an out-of-range limit are refused"
+pi-rea/test/inspect-pe-resources.test.ts:104  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/inspect-pe-resources.test.ts:104  note   test-name-compound  test name joins behaviors with "and": "TOOL-087: the inventory is retained as Evidence and clears with the session"
+pi-rea/test/inspect-plist.test.ts:22  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/inspect-plist.test.ts:22  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: an XML plist yields the reference value, format and bundle projection"
+pi-rea/test/inspect-plist.test.ts:59  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: data and date values carry the reference typed projection"
+pi-rea/test/inspect-plist.test.ts:69  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/inspect-plist.test.ts:69  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: nested dicts, arrays and data from the reference fixture match exactly"
+pi-rea/test/inspect-plist.test.ts:100  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/inspect-plist.test.ts:100  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: the analysis is retained as Evidence and appears in the session"
+pi-rea/test/inspect-plist.test.ts:130  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/javascript-ast-count.test.ts:4  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-rea/test/javascript-route-inventory.test.ts:4  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/list-architectures.test.ts:55  note   test-name-compound  test name joins behaviors with "and": "TOOL-061: a universal target reports every slice and its file range"
+pi-rea/test/list-architectures.test.ts:131  note   test-name-compound  test name joins behaviors with "and": "TOOL-061: no open target reports target_unavailable and records nothing"
+pi-rea/test/list-architectures.test.ts:147  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/list-architectures.test.ts:147  note   test-name-compound  test name joins behaviors with "and": "TOOL-061: the inventory is retained as Evidence and cleared with the session"
+pi-rea/test/macho-parser.test.ts:42  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: 32-bit and big-endian headers decode"
+pi-rea/test/macho-parser.test.ts:163  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/macho-parser.test.ts:163  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: unknown architectures and subtypes are named, not silently dropped"
+pi-rea/test/macho-parser.test.ts:222  note   test-name-compound  test name joins behaviors with "and": "TOOL-058: the classic symbol table yields imports and exports"
+pi-rea/test/objdump-provider.test.ts:24  note   test-name-compound  test name joins behaviors with "and": "records stdout, a zero exit, and an unchanged digest"
+pi-rea/test/pe-analyzer-branches.test.ts:461  note   test-name-compound  test name joins behaviors with "and": "drops an import name past the file end and marks coverage partial"
+pi-rea/test/pi-loading.test.ts:11  note   test-name-compound  test name joins behaviors with "and": "KERN-014: Pi discovers and loads the declared extension without errors"
+pi-rea/test/plist-parser.test.ts:34  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: format detection distinguishes XML, binary and other content"
+pi-rea/test/plist-parser.test.ts:74  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: the binary decoder reads arrays, sets, dictionaries and UIDs"
+pi-rea/test/plist-parser.test.ts:105  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: an extended length and a wide integer decode correctly"
+pi-rea/test/plist-parser.test.ts:168  note   test-name-compound  test name joins behaviors with "and": "TOOL-060: decoding reports typed values and the bundle projection"
+pi-rea/test/plist-parser.test.ts:193  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:46  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:103  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:149  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:162  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:168  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:190  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-rea/test/provider-refuse-tools.test.ts:222  note   developer-filesystem  prefer a test-controlled directory over developer-machine filesystem state
+pi-rea/test/registry.test.ts:51  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:75  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:75  note   test-name-compound  test name joins behaviors with "and": "KERN-016: implemented tools are declared and the rest cost no prompt space"
+pi-rea/test/registry.test.ts:91  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:91  note   test-name-compound  test name joins behaviors with "and": "KERN-016: shared session state runs sequentially and declares the rea namespace"
+pi-rea/test/registry.test.ts:101  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:118  note   test-name-length  test name is 86 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:141  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:148  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:156  note   test-name-compound  test name joins behaviors with "and": "KERN-017: a cancelled call reports cancelled and runs nothing"
+pi-rea/test/registry.test.ts:183  note   test-name-compound  test name joins behaviors with "and": "KERN-017: the session factory and command surface are registered"
+pi-rea/test/registry.test.ts:189  note   test-name-compound  test name joins behaviors with "and": "KERN-017: /rea status reports availability, target and retained counts"
+pi-rea/test/registry.test.ts:228  note   test-name-length  test name is 80 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:239  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/registry.test.ts:239  note   test-name-compound  test name joins behaviors with "and": "KERN-032: session_start rebuilds the session and session_shutdown clears it"
+pi-rea/test/result-envelope.test.ts:9  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:9  note   test-name-compound  test name joins behaviors with "and": "KERN-004: an operation result wraps its payload in result and mirrors it in structured content"
+pi-rea/test/result-envelope.test.ts:22  note   test-name-length  test name is 85 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:45  note   test-name-length  test name is 88 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "KERN-005: a failure carries the canonical error JSON, isError, and no structured content"
+pi-rea/test/result-envelope.test.ts:61  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:87  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:95  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:95  note   test-name-compound  test name joins behaviors with "and": "KERN-040: an oversized result is truncated to the budget with a marker and instructions"
+pi-rea/test/result-envelope.test.ts:106  note   test-name-length  test name is 103 characters ("short behavior-based test names")
+pi-rea/test/result-envelope.test.ts:106  note   test-name-compound  test name joins behaviors with "and": "KERN-040: an oversized Evidence result keeps the record in details and points at export_evidence_bundle"
+pi-rea/test/result-envelope.test.ts:139  note   test-name-length  test name is 73 characters ("short behavior-based test names")
+pi-rea/test/session-settings-lists.test.ts:82  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/session-settings-lists.test.ts:82  note   test-name-compound  test name joins behaviors with "and": "inspect_analysis_settings: returns the published setting descriptors and constraints"
+pi-rea/test/session-settings-lists.test.ts:109  note   test-name-compound  test name joins behaviors with "and": "update_analysis_settings: sets, reports change, and resets to launch"
+pi-rea/test/session-state.test.ts:79  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-rea/test/session-state.test.ts:79  note   test-name-compound  test name joins behaviors with "and": "N1: an Evidence-producing tool mirrors its record into details and a rea-evidence entry"
+pi-rea/test/session-state.test.ts:123  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/session-state.test.ts:153  note   test-name-length  test name is 92 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:45  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:97  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:128  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:138  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:150  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:160  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:183  note   test-name-length  test name is 81 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:183  note   test-name-compound  test name joins behaviors with "and": "KERN-012: unsupported content and missing paths fail closed as target_unavailable"
+pi-rea/test/session-tools.test.ts:195  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:212  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:212  note   test-name-compound  test name joins behaviors with "and": "KERN-013: close_binary returns the reference null result and clears the session"
+pi-rea/test/session-tools.test.ts:277  note   test-name-length  test name is 87 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:285  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:285  note   test-name-compound  test name joins behaviors with "and": "KERN-025: an available group reports the reference reason and annotation vocabulary"
+pi-rea/test/session-tools.test.ts:319  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/session-tools.test.ts:319  note   test-name-compound  test name joins behaviors with "and": "KERN-028: mach-O variants and PE headers are identified from their headers"
+pi-rea/test/static-inspectors-batch2.test.ts:21  note   test-name-compound  test name joins behaviors with "and": "inspect_model_artifact: reads GGUF metadata and tensor declarations"
+pi-rea/test/static-inspectors-batch2.test.ts:75  note   test-name-compound  test name joins behaviors with "and": "inspect_erlang_beam: decodes atoms exports and imports"
+pi-rea/test/static-inspectors-batch2.test.ts:85  note   test-name-length  test name is 77 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors-batch2.test.ts:110  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors-batch2.test.ts:125  note   test-name-compound  test name joins behaviors with "and": "inspect_python_pyc: returns header and nested code objects"
+pi-rea/test/static-inspectors-batch2.test.ts:135  note   test-name-compound  test name joins behaviors with "and": "inspect_kernel_module: reads .modinfo and section presence from ET_REL"
+pi-rea/test/static-inspectors-batch3.test.ts:73  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors-batch3.test.ts:84  note   test-name-length  test name is 91 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors-batch3.test.ts:108  note   test-name-length  test name is 79 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors-batch3.test.ts:117  note   test-name-length  test name is 100 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors.test.ts:43  note   test-name-length  test name is 83 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors.test.ts:62  note   test-name-length  test name is 84 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "inspect_pe_load_config: reports null TLS and load_config when directories are absent"
+pi-rea/test/static-inspectors.test.ts:81  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/static-inspectors.test.ts:106  note   test-name-compound  test name joins behaviors with "and": "inspect_byte_entropy: reports file entropy, blocks and high/low runs"
+pi-rea/test/unknown-ledger.test.ts:60  note   test-name-compound  test name joins behaviors with "and": "KERN-010: list_unknowns returns items and a total, filtered by domain"
+pi-rea/test/unknown-ledger.test.ts:73  note   test-name-compound  test name joins behaviors with "and": "KERN-010: an update advances the revision and links the previous digest"
+pi-rea/test/unknown-ledger.test.ts:149  note   test-name-compound  test name joins behaviors with "and": "KERN-010: imported unknowns keep their identifiers and revisions"
+pi-rea/test/unknown-ledger.test.ts:213  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-rea/test/unknown-ledger.test.ts:213  note   test-name-compound  test name joins behaviors with "and": "KERN-051: a verified resolution requires retained Evidence and a rationale"
+pi-rea/test/unknown-ledger.test.ts:242  note   test-name-length  test name is 78 characters ("short behavior-based test names")
+pi-rea/test/unknown-ledger.test.ts:242  note   test-name-compound  test name joins behaviors with "and": "KERN-051: an unknown update can carry new probes, relationships and references"
+pi-rea/test/unknown-ledger.test.ts:286  note   test-name-compound  test name joins behaviors with "and": "KERN-010: filters narrow by severity and status"
+pi-rea/test/unknown-ledger.test.ts:300  note   test-name-length  test name is 94 characters ("short behavior-based test names")
+pi-rea/test/unknown-ledger.test.ts:300  note   test-name-compound  test name joins behaviors with "and": "KERN-061: an unknown whose result cannot fit is retained and answered with a truncation marker"
+pi-xai-oauth/test/catalog.test.ts:179  note   test-name-compound  test name joins behaviors with "and": "a model that offers minimal and max exposes both to Pi"
+pi-xai-oauth/test/login.test.ts:69  note   test-name-compound  test name joins behaviors with "and": "browser login exchanges the callback code and does not leak the token"
+pi-xai-oauth/test/login.test.ts:229  note   test-name-compound  test name joins behaviors with "and": "a rejected device authorization reports $name and keeps the body out"
+pi-xai-oauth/test/login.test.ts:264  note   test-name-length  test name is 74 characters ("short behavior-based test names")
+pi-xai-oauth/test/login.test.ts:371  note   test-name-compound  test name joins behaviors with "and": "aborting login rejects and stops waiting"
+pi-xai-oauth/test/parity-prove-closures.test.ts:47  note   test-name-length  test name is 75 characters ("short behavior-based test names")
+pi-xai-oauth/test/parity-prove-closures.test.ts:57  note   test-name-compound  test name joins behaviors with "and": "responses reject a missing client version and a wrong token-auth value"
+pi-xai-oauth/test/pi-owned-auth.test.ts:36  note   test-name-length  test name is 82 characters ("short behavior-based test names")
+pi-xai-oauth/test/pi-owned-auth.test.ts:36  note   test-name-compound  test name joins behaviors with "and": "Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it"
+pi-xai-oauth/test/pi-owned-auth.test.ts:62  note   test-name-length  test name is 76 characters ("short behavior-based test names")
+pi-xai-oauth/test/provider.test.ts:45  note   test-name-compound  test name joins behaviors with "and": "login is the Grok Build flow and refresh stays on the given xAI client"
+pi-xai-oauth/test/stream.test.ts:51  note   test-name-compound  test name joins behaviors with "and": "native streaming preserves the Grok Build identity and bearer token"
+pi-xai-oauth/test/stream.test.ts:62  note   test-name-compound  test name joins behaviors with "and": "native streaming sends the requested model and effort"
+
+242 vitest files scanned. 8 violations, 955 review items.
+  unmanaged-global-mutation: 6
+  real-wait: 2
+error: script "check:tests" exited with code 1

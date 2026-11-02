@@ -1,0 +1,40 @@
+$ vitest run test/durable-store.test.ts -t "fresh launch callback can manage"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+
+ ❯ test/durable-store.test.ts (23 tests | 1 failed | 22 skipped) 5023ms
+   × a fresh launch callback can manage subscriptions without holding the registry lock 5022ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/durable-store.test.ts > a fresh launch callback can manage subscriptions without holding the registry lock
+AssertionError: promise rejected "Error: Subscription registry is busy in /…" instead of resolving
+ ❯ test/durable-store.test.ts:259:30
+    257|     createDesired(cwd, timer({ id: 'sub-next', name: 'next' }));
+    258|   });
+    259|   await expect(claim?.result).resolves.toBeUndefined();
+       |                              ^
+    260|   expect(readRegistry(cwd).subscriptions.map((sub) => sub.name)).toEqu…
+    261| });
+
+Caused by: Error: Subscription registry is busy in /private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-durable-m1x3Iq/workspace. Retry when the live writer finishes.
+ ❯ withRegistryLock src/subscriptions/durable-store.ts:119:9
+ ❯ transaction src/subscriptions/durable-store.ts:236:10
+ ❯ createDesired src/subscriptions/durable-store.ts:255:10
+ ❯ test/durable-store.test.ts:257:5
+ ❯ src/subscriptions/durable-store.ts:343:32
+ ❯ src/subscriptions/durable-store.ts:239:20
+ ❯ withRegistryLock src/subscriptions/durable-store.ts:112:16
+ ❯ transaction src/subscriptions/durable-store.ts:236:10
+ ❯ startFresh src/subscriptions/durable-store.ts:323:10
+ ❯ test/durable-store.test.ts:256:17
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 22 skipped (23)
+   Start at  12:36:00
+   Duration  5.45s (tests 93%, import 6%, transform 1%)
+
+error: script "test" exited with code 1
