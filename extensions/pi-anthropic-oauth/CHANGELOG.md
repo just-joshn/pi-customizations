@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.7]
+
+- `pi` bearer token export no longer fails after a 401 recovery. A recorded successor credential needs 30 minutes left, the window the export asks for, or the refresh hook rotates it.
+- A refresh whose successor cannot be written to the claim log still returns the new credential, so Pi persists it instead of losing the only valid token.
+
 ## [0.1.6]
 
 - Every refresh, Pi's own expiry refresh included, now goes through the claim log in `claude-subscription-refresh.claims`. A finished claim records the credential that replaced its refresh token, so a caller holding a rotated token gets the newest credential instead of sending the old one, and Pi writes that credential to `auth.json`. `auth.json` no longer keeps a rotated refresh token for Pi to resend.

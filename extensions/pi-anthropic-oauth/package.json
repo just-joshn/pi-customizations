@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-anthropic-oauth",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Use a Claude Pro or Max subscription in Pi. Requests identify as Provider CLI.",
   "type": "module",
   "license": "MIT",
