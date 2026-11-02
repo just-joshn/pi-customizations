@@ -19,11 +19,12 @@ To prevent this catastrophic revocation, `pi-anthropic-oauth` implements a cross
 
 ## Coverage record and sync commit
 
-- **Last sync commit:** `697586ab143d0c4a2287083d4b1f4d6f1682c361`
+- **Last sync commit:** `ad99d90507e5673776fcbd387edfb2c62180bd0f`
+- **Current status:** fails `MutualExclusion` on the code at the sync commit. This is a known product bug, not model drift. See "Known bug: stale-lock steal race" below. Until the code is fixed, a run that fails with a different invariant or a different shortest trace is new information.
 - **Covered files and functions:**
   - `extensions/pi-anthropic-oauth/src/refresh-file-lock.ts`:
     - `withRefreshFileLock` (cross-process directory lock, `EEXIST` backoff, and stale lock stealing)
-    - `lockAbandoned` (`staleMs` mtime comparison)
+    - `lockAbandoned` (`staleMs` mtime comparison, and `true` on `ENOENT`)
     - `refreshLockPathFor` (lock directory location)
     - `defaultRefreshLockRetryDelayMs` (Claude retry delay)
   - `extensions/pi-anthropic-oauth/src/auth-recovery.ts`:
@@ -79,13 +80,32 @@ Refer to `/statechart` by name.
 
 ## Bounds and assumptions
 
-- **State space bound:** Model-checked for 2 concurrent processes (`Processes = {p1, p2}`) racing from token expiration up to 2 retries (`MaxRetries = 2`). Full reachable state space (482 generated states, 304 distinct states) is exhaustively searched.
+- **State space bound:** Model-checked for 3 concurrent processes (`Processes = {p1, p2, p3}`) racing from token expiration up to 2 retries (`MaxRetries = 2`). Full reachable state space with `-continue`: 42821 generated states, 19811 distinct states. Do not lower the bound to 2. Both steal races need a holder plus two contenders, so 2 processes hide them.
 - **Filesystem atomicity:** Assumes POSIX directory creation (`mkdir`) is atomic and returns `EEXIST` when already created.
 - **Clock and timeout separation:** Assumes `staleMs` (30s) exceeds maximum refresh timeout (15s). A live process never holds the lock longer than `staleMs`.
 - **Out of scope:** Raw TCP network drops, TLS socket resets, or Anthropic upstream service outages.
 
+- **Property gap:** `SingleRefreshWhenNoCrash` holds vacuously once any process crashes. It cannot see a double refresh that follows a crash, so `MutualExclusion` is the property that catches the steal race.
+
+## Known bug: stale-lock steal race
+
+`withRefreshFileLock` steals with three separate filesystem steps: `stat` in `lockAbandoned`, then `rm(lockPath, { force: true })`, then `mkdir`. A contender that judged the lock abandoned can `rm` a lock directory that another contender created after the `stat`.
+
+Crash path (TLC trace, replayed against the real code with a scratch test that delayed the second `rm`):
+
+1. p1 runs `mkdir`, enters `run`, and dies before `oauth.refresh`. Its lock directory goes stale after 30s.
+2. p2 and p3 both get `EEXIST`, and both `lockAbandoned` calls return `true`.
+3. p2 runs `rm` and `mkdir`, reads no fresh shared credential, and calls `oauth.refresh(R1)`.
+4. p3 runs `rm`, which deletes p2's live lock, then `mkdir`, reads no fresh shared credential (p2 has not written yet), and calls `oauth.refresh(R1)`.
+
+Harm: two exchanges of the same refresh token, which can revoke the token family.
+
+No-crash path (shortest TLC trace): p2 gets `EEXIST`, p1 releases, p2's `stat` sees `ENOENT` so `lockAbandoned` returns `true`, p3 takes the lock, p2's `rm` deletes p3's lock, and p2 enters too. Both read the credential p1 wrote, so no extra refresh happens in the model, but mutual exclusion is gone.
+
+Introduced by `f981a842` (fix(pi-anthropic-oauth): skip auth.json.lock during credential refresh), which added `lockAbandoned` and the stale `rm`. It was in the code at the previous sync commit `697586ab`, where the 2-process model could not reach it.
+
 ## Distinguishing real bugs from modeling drift
 
-- **If `MutualExclusion` breaks:** Check whether lock stealing was triggered while the holder was still alive. In the code, `REFRESH_LOCK_STALE_MS` (30s) must strictly exceed `REFRESH_TIMEOUT_MS` (15s). If `staleMs` is reduced below 15s, a slow network call causes another process to steal the lock, causing concurrent refreshes.
+- **If `MutualExclusion` breaks:** First compare the trace with the known bug above. Then check whether lock stealing was triggered while the holder was still alive. In the code, `REFRESH_LOCK_STALE_MS` (30s) must strictly exceed `REFRESH_TIMEOUT_MS` (15s). If `staleMs` is reduced below 15s, a slow network call causes another process to steal the lock, causing concurrent refreshes.
 - **If `SingleRefreshWhenNoCrash` breaks:** Check whether `readSharedCredential()` is being called before `oauth.refresh()`, and whether the returned token's expiry is verified. If the check is omitted or reordered, multiple processes will each call `oauth.refresh()`.
 - **If `NoDeadlock` breaks:** Check whether `lockAbandoned()` correctly inspects `mtime` and whether `rm(lockPath)` succeeds during stale lock stealing.
