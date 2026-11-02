@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.4] - 2026-11-02
 
 - Target Pi 1.5.0 development dependencies and import TypeBox directly in standalone tests.
 - Refresh Pi's Google schema conversion and constrained-sampling helpers, preserving the documented strict-TypeScript adaptations.
