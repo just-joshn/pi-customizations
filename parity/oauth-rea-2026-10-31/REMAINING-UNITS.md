@@ -55,7 +55,7 @@ Top by wire impact (what the remote sees or how auth recovers).
 
 1. **ID.** ANTH-FILE-LOCK (DEP-REFRESH-LOCK)
 2. **Observed CLI fact.** Cross-process refresh lock with `ELOCKED` ≤5 retries (`claude/fixtures/refresh-lifecycle-2.1.312.json`; 2.1.316 `carve-ELOCKED@*`).
-3. **Current Pi state.** In-process latch only (`refresh-latch.ts` + `CredentialStore.modify`). No Claude-style lockfile.
+3. **Current Pi state.** Closed. `refresh-claim.ts` claims each refresh token with an exclusive file and records its successor, and the provider refresh hook runs it for Pi's expiry refresh and for 401 recovery. See `DEP-REFRESH-LOCK` in `claude/dependencies.md`.
 4. **Smallest Pi-native change.** Optional file lock around refresh when multiple Pi processes share one `auth.json`. Singleflight already covers one process.
 5. **Verification.** Two-process (or two-store) test that contended refresh does not double-POST.
 6. **Wire impact.** low (multi-process only)
