@@ -1,13 +1,9 @@
-import { readFile, rename, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
 import type { CredentialStore, FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
-import { REFRESH_TIMEOUT_MS, withRefreshTokenClaim, type RefreshClaimOptions } from './refresh-claim.ts';
+import { REFRESH_TIMEOUT_MS } from './refresh-claim.ts';
 import { createRefreshLatch } from './refresh-latch.ts';
 
 export type AuthRecovery = {
   bindCredentials(store: CredentialStore): void;
-  /** Optional auth.json path for cross-process refresh locking. */
-  bindRefreshLockTarget(targetPath: string | undefined): void;
   remember(credential: OAuthCredential): void;
   wrapFetch(base: FetchFunction): FetchFunction;
 };
@@ -41,40 +37,13 @@ async function isAuthRecoveryTrigger(response: Response): Promise<boolean> {
   }
 }
 
-function isOAuthCredential(value: unknown): value is OAuthCredential {
-  if (typeof value !== 'object' || value === null) return false;
-  const record = value as Record<string, unknown>;
-  return record['type'] === 'oauth' && typeof record['access'] === 'string' && typeof record['refresh'] === 'string' && typeof record['expires'] === 'number';
-}
-
-async function readSharedCredential(path: string): Promise<OAuthCredential | undefined> {
-  try {
-    const parsed: unknown = JSON.parse(await readFile(path, 'utf8'));
-    return isOAuthCredential(parsed) ? parsed : undefined;
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-    if (code === 'ENOENT' || error instanceof SyntaxError) return undefined;
-    throw error;
-  }
-}
-
-async function writeSharedCredential(path: string, credential: OAuthCredential): Promise<void> {
-  const temporary = `${path}.${process.pid}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(credential)}\n`, { mode: 0o600 });
-  await rename(temporary, path);
-}
-
 /** One forced refresh under an in-process latch, then one HTTP retry on 401 or revoked 403. */
 export function createAuthRecovery(input: {
   providerId: string;
   oauth: OAuthAuth;
-  /** Auth file whose directory holds the no-store refresh claims. Ignored while a credential store is bound. */
-  refreshLockTarget?: string;
-  refreshClaimOptions?: RefreshClaimOptions;
 }): AuthRecovery {
   let store: CredentialStore | undefined;
   let remembered: OAuthCredential | undefined;
-  let refreshLockTarget = input.refreshLockTarget;
   const latch = createRefreshLatch<string | undefined>();
 
   async function refreshStored(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
@@ -96,59 +65,26 @@ export function createAuthRecovery(input: {
     return undefined;
   }
 
-  async function refreshRemembered(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
-    const target = refreshLockTarget;
-    if (!target) {
-      const current = remembered;
-      if (!current) return undefined;
-      if (current.access !== failedAccess) return current.access;
-      const next = await input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
-      remembered = next;
-      return next.access;
-    }
-    const sharePath = join(dirname(target), 'claude-subscription-refresh.json');
-    const fromShared = async () => {
-      const shared = await readSharedCredential(sharePath);
-      if (!shared || shared.access === failedAccess || shared.expires <= Date.now()) return undefined;
-      remembered = shared;
-      return shared.access;
-    };
-    const reused = await fromShared();
-    if (reused) return reused;
+  async function refreshRemembered(failedAccess: string): Promise<string | undefined> {
     const current = remembered;
     if (!current) return undefined;
     if (current.access !== failedAccess) return current.access;
-    return withRefreshTokenClaim(
-      target,
-      current.refresh,
-      {
-        reuse: fromShared,
-        refresh: async () => {
-          const next = await input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
-          await writeSharedCredential(sharePath, next);
-          remembered = next;
-          return next.access;
-        },
-      },
-      input.refreshClaimOptions,
-      signal,
-    );
+    const next = await input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
+    remembered = next;
+    return next.access;
   }
 
   async function refreshAfterAuthFailure(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
     return latch.run(() => {
       // AuthStorage locks auth.json with proper-lockfile. A second lock on auth.json.lock deadlocks modify.
       if (store) return refreshStored(failedAccess, signal);
-      return refreshRemembered(failedAccess, signal);
+      return refreshRemembered(failedAccess);
     });
   }
 
   return {
     bindCredentials(next) {
       store = next;
-    },
-    bindRefreshLockTarget(targetPath) {
-      refreshLockTarget = targetPath;
     },
     remember(credential) {
       remembered = credential;

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.6]
+
+- Every refresh, Pi's own expiry refresh included, now goes through the claim log in `claude-subscription-refresh.claims`. A finished claim records the credential that replaced its refresh token, so a caller holding a rotated token gets the newest credential instead of sending the old one, and Pi writes that credential to `auth.json`. `auth.json` no longer keeps a rotated refresh token for Pi to resend.
+- A caller whose token was rotated by another session refreshes the newest token when that one has expired, not its own. A refresh that has started keeps its own 15 s timeout, so a claim wait or a cancelled request cannot abort it after the token endpoint has rotated the token.
+
 ## [0.1.5]
 
 - A failed 401 refresh no longer ends the Pi process. The in-process refresh latch left an unhandled rejection whenever a refresh failed.

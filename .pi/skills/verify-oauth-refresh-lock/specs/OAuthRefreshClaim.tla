@@ -1,8 +1,9 @@
 ---- MODULE OAuthRefreshClaim ----
 \* Cross-process single-flight OAuth refresh, keyed by the refresh token.
 \*
-\* Code: extensions/pi-anthropic-oauth/src/refresh-claim.ts (withRefreshTokenClaim, tryClaim)
-\*       extensions/pi-anthropic-oauth/src/auth-recovery.ts (refreshRemembered)
+\* Code: extensions/pi-anthropic-oauth/src/refresh-claim.ts (rotateRefreshToken, followChain, tryClaim, writeSuccessor)
+\*       extensions/pi-anthropic-oauth/src/auth.ts (the subscriptionAuth refresh hook, which Pi core's expiry
+\*       refresh and the 401 recovery in auth-recovery.ts both call)
 \* Each action names the code step it models. Citations use symbols, not line numbers.
 \*
 \* One refresh token R1 is current. A claim on it is the file <sha256(R1)>.<gen>, created with
@@ -32,7 +33,7 @@ Init ==
   /\ serverToken = 1
   /\ revoked = FALSE
 
-\* steps.reuse in withRefreshTokenClaim: fromShared in refreshRemembered reads claude-subscription-refresh.json.
+\* rotateRefreshToken: followChain finds a successor recorded in a claim file for R1 (or the legacy share file).
 Reuse(p) ==
   /\ pc[p] \in {"reuse", "reuse_after_claim"}
   /\ IF sharedToken > 1
@@ -82,7 +83,7 @@ Create(p) ==
           /\ pc' = [pc EXCEPT ![p] = "reuse_after_claim"]
   /\ UNCHANGED <<attempts, view, target, localToken, sharedToken, serverToken, revoked>>
 
-\* withRefreshTokenClaim: retry after retryDelayMs, or throw ELOCKED after retries.
+\* rotateRefreshToken: retry after retryDelayMs, or throw ELOCKED after retries.
 Wait(p) ==
   /\ pc[p] = "wait"
   /\ IF attempts[p] < MaxRetries
@@ -92,7 +93,7 @@ Wait(p) ==
           /\ UNCHANGED attempts
   /\ UNCHANGED <<view, target, localToken, exists, owner, sharedToken, serverToken, revoked>>
 
-\* steps.refresh: oauth.refresh(current). Sending a token the server already rotated revokes the family.
+\* rotateRefreshToken: refresh(target) with its own REFRESH_TIMEOUT_MS. Sending a token the server already rotated revokes the family.
 CallRefresh(p) ==
   /\ pc[p] = "calling_refresh"
   /\ revoked' = (revoked \/ localToken[p] < serverToken)
@@ -101,13 +102,13 @@ CallRefresh(p) ==
   /\ pc' = [pc EXCEPT ![p] = "publish"]
   /\ UNCHANGED <<attempts, view, target, exists, owner, sharedToken>>
 
-\* steps.refresh throws before the server sees the request.
+\* refresh(target) throws before the server sees the request.
 RefreshFails(p) ==
   /\ pc[p] = "calling_refresh"
   /\ pc' = [pc EXCEPT ![p] = "releasing"]
   /\ UNCHANGED <<attempts, view, target, localToken, exists, owner, sharedToken, serverToken, revoked>>
 
-\* withRefreshTokenClaim catch: rm(claimPath) deletes only this process's claim.
+\* rotateRefreshToken catch: rm(claimPath) deletes only this process's claim.
 Release(p) ==
   /\ pc[p] = "releasing"
   /\ exists' = [exists EXCEPT ![owner[p]] = FALSE]
@@ -115,7 +116,7 @@ Release(p) ==
   /\ pc' = [pc EXCEPT ![p] = "failed"]
   /\ UNCHANGED <<attempts, view, target, localToken, sharedToken, serverToken, revoked>>
 
-\* steps.refresh: writeSharedCredential, temporary file then rename.
+\* writeSuccessor: the new credential goes into this process's own claim file, temporary file then rename.
 Publish(p) ==
   /\ pc[p] = "publish"
   /\ sharedToken' = localToken[p]

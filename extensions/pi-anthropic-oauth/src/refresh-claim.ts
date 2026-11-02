@@ -1,6 +1,7 @@
-import { createHash } from 'node:crypto';
-import { mkdir, open, readdir, rm, stat } from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { mkdir, open, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+import type { OAuthCredential } from '@earendil-works/pi-ai';
 
 /** Error code thrown when claim retries run out. Matches Claude's proper-lockfile contention code. */
 export const REFRESH_CLAIM_ELOCKED = 'ELOCKED';
@@ -14,7 +15,12 @@ export const REFRESH_TIMEOUT_MS = 15_000;
 
 export const REFRESH_CLAIM_STALE_MS = 2 * REFRESH_TIMEOUT_MS;
 
-const CLAIM_RETENTION_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Pi core's DEFAULT_OAUTH_MINIMUM_VALIDITY_MS: it refreshes a credential with less left than this.
+const MINIMUM_VALIDITY_MS = 5 * 60 * 1000;
+
+const V0_1_5_SHARE_FILE = 'claude-subscription-refresh.json';
 
 export type RefreshClaimOptions = {
   /** Max ELOCKED retries after the first attempt. Default 5. */
@@ -23,14 +29,8 @@ export type RefreshClaimOptions = {
   retryDelayMs?: () => number;
   /** Take over a claim older than this. `0` disables takeover. Default 30s. */
   staleMs?: number;
-  /** Claims directory. Default is `refreshClaimDirectoryFor(targetPath)`. */
-  directory?: string;
-};
-
-type RefreshClaimSteps<T> = {
-  /** A result another claimant already published, or `undefined`. */
-  reuse(): Promise<T | undefined>;
-  refresh(): Promise<T>;
+  /** The credential Pi stores in `auth.json`. The sweep keeps the log entries that lead from it. */
+  liveCredential?: () => OAuthCredential | undefined;
 };
 
 function lockedError(file: string): NodeJS.ErrnoException {
@@ -40,18 +40,18 @@ function lockedError(file: string): NodeJS.ErrnoException {
   });
 }
 
-function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
+    if (signal.aborted) {
       reject(signal.reason instanceof Error ? signal.reason : new Error('aborted'));
       return;
     }
     const timer = setTimeout(resolve, ms);
     const onAbort = () => {
       clearTimeout(timer);
-      reject(signal?.reason instanceof Error ? signal.reason : new Error('aborted'));
+      reject(signal.reason instanceof Error ? signal.reason : new Error('aborted'));
     };
-    signal?.addEventListener('abort', onAbort, { once: true });
+    signal.addEventListener('abort', onAbort, { once: true });
   });
 }
 
@@ -71,15 +71,20 @@ function claimKey(refreshToken: string): string {
   return createHash('sha256').update(refreshToken).digest('hex').slice(0, 32);
 }
 
-async function latestGeneration(directory: string, key: string): Promise<number> {
+function generationOf(name: string, key: string): number | undefined {
   const prefix = `${key}.`;
+  if (!name.startsWith(prefix)) return undefined;
+  const suffix = name.slice(prefix.length);
+  if (!/^[1-9]\d*$/.test(suffix)) return undefined;
+  const generation = Number(suffix);
+  return Number.isSafeInteger(generation) ? generation : undefined;
+}
+
+async function latestGeneration(directory: string, key: string): Promise<number> {
   let latest = 0;
   for (const name of await readdir(directory)) {
-    if (!name.startsWith(prefix)) continue;
-    const suffix = name.slice(prefix.length);
-    if (!/^[1-9]\d*$/.test(suffix)) continue;
-    const generation = Number(suffix);
-    if (Number.isSafeInteger(generation) && generation > latest) latest = generation;
+    const generation = generationOf(name, key);
+    if (generation !== undefined && generation > latest) latest = generation;
   }
   return latest;
 }
@@ -111,58 +116,138 @@ async function tryClaim(directory: string, key: string, staleMs: number): Promis
   }
 }
 
-async function sweepOldClaimsBestEffort(directory: string): Promise<void> {
-  const cutoff = Date.now() - CLAIM_RETENTION_MS;
-  for (const name of await readdir(directory).catch(() => [])) {
-    const path = join(directory, name);
-    try {
-      if ((await stat(path)).mtimeMs < cutoff) await rm(path, { force: true });
-    } catch {
-      continue;
+function isOAuthCredential(value: unknown): value is OAuthCredential {
+  if (typeof value !== 'object' || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return record['type'] === 'oauth' && typeof record['access'] === 'string' && typeof record['refresh'] === 'string' && typeof record['expires'] === 'number';
+}
+
+async function readCredential(path: string): Promise<OAuthCredential | undefined> {
+  try {
+    const parsed: unknown = JSON.parse(await readFile(path, 'utf8'));
+    return isOAuthCredential(parsed) ? parsed : undefined;
+  } catch (error) {
+    if (errorCode(error) === 'ENOENT' || error instanceof SyntaxError) return undefined;
+    throw error;
+  }
+}
+
+async function claimNames(directory: string): Promise<string[]> {
+  try {
+    return await readdir(directory);
+  } catch (error) {
+    if (errorCode(error) === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function recordedSuccessor(directory: string, names: readonly string[], key: string): Promise<OAuthCredential | undefined> {
+  let newest: OAuthCredential | undefined;
+  for (const name of names) {
+    if (generationOf(name, key) === undefined) continue;
+    const successor = await readCredential(join(directory, name));
+    if (successor && (!newest || successor.expires > newest.expires)) newest = successor;
+  }
+  return newest;
+}
+
+async function rotationChain(directory: string, credential: OAuthCredential): Promise<OAuthCredential[]> {
+  const names = await claimNames(directory);
+  const legacy = await readCredential(join(dirname(directory), V0_1_5_SHARE_FILE));
+  const chain = [credential];
+  const seen = new Set<string>();
+  for (let current = credential; ; ) {
+    const key = claimKey(current.refresh);
+    if (seen.has(key)) return chain;
+    seen.add(key);
+    const next =
+      (await recordedSuccessor(directory, names, key)) ?? (legacy && legacy.refresh !== current.refresh && legacy.expires > current.expires ? legacy : undefined);
+    if (!next) return chain;
+    chain.push(next);
+    current = next;
+  }
+}
+
+async function followChain(directory: string, credential: OAuthCredential): Promise<OAuthCredential> {
+  const chain = await rotationChain(directory, credential);
+  return chain[chain.length - 1] ?? credential;
+}
+
+function expiringSoon(credential: OAuthCredential): boolean {
+  return Date.now() + MINIMUM_VALIDITY_MS >= credential.expires;
+}
+
+async function writeSuccessor(claimPath: string, successor: OAuthCredential): Promise<void> {
+  const temporary = `${claimPath}.${randomUUID()}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(successor)}\n`, { mode: 0o600 });
+  await rename(temporary, claimPath);
+}
+
+async function sweepOldClaimsBestEffort(directory: string, liveCredential: (() => OAuthCredential | undefined) | undefined): Promise<void> {
+  try {
+    const live = liveCredential?.();
+    const kept = new Set(live ? (await rotationChain(directory, live)).map((credential) => claimKey(credential.refresh)) : []);
+    const cutoff = Date.now() - (live ? DAY_MS : 30 * DAY_MS);
+    for (const name of await readdir(directory)) {
+      if (kept.has(name.split('.', 1)[0] ?? '')) continue;
+      const path = join(directory, name);
+      try {
+        if ((await stat(path)).mtimeMs < cutoff) await rm(path, { force: true });
+      } catch {
+        continue;
+      }
     }
+  } catch {
+    return;
   }
 }
 
 /**
- * Runs `steps.refresh` at most once per refresh token across processes.
- * Claims are files `<key>.<generation>` created with `wx`, where `key` hashes the token.
- * A successful claim stays on disk so its name is never reused while that token is current.
- * A failed refresh deletes only its own claim. Nothing deletes another process's claim.
- * Does not replace the in-process refresh latch.
+ * Rotates `credential` at most once across processes and returns the newest credential.
+ * The claims directory is a rotation log. `<key>.<generation>` is created empty with `wx` to
+ * claim the token whose hash is `key`, then atomically replaced by the credential that
+ * succeeded it. A caller holding an already rotated token follows the log instead of
+ * refreshing, and rotates the newest credential only when that one is expiring too.
+ * A failed refresh deletes only its own claim. Nothing deletes another process's claim
+ * except the age sweep.
  */
-export async function withRefreshTokenClaim<T>(
-  targetPath: string,
-  refreshToken: string,
-  steps: RefreshClaimSteps<T>,
+export async function rotateRefreshToken(
+  directory: string,
+  credential: OAuthCredential,
+  refresh: (credential: OAuthCredential, signal: AbortSignal) => Promise<OAuthCredential>,
   options: RefreshClaimOptions = {},
-  signal?: AbortSignal,
-): Promise<T> {
-  const directory = options.directory ?? refreshClaimDirectoryFor(targetPath);
+  signal: AbortSignal,
+): Promise<OAuthCredential> {
   const retries = options.retries ?? REFRESH_CLAIM_MAX_RETRIES;
   const retryDelayMs = options.retryDelayMs ?? defaultRefreshClaimRetryDelayMs;
   const staleMs = options.staleMs ?? REFRESH_CLAIM_STALE_MS;
-  const key = claimKey(refreshToken);
 
   let attempt = 0;
   for (;;) {
-    signal?.throwIfAborted();
-    const reused = await steps.reuse();
-    if (reused !== undefined) return reused;
-    const claimPath = await tryClaim(directory, key, staleMs);
+    signal.throwIfAborted();
+    const latest = await followChain(directory, credential);
+    if (latest.refresh !== credential.refresh && !expiringSoon(latest)) return latest;
+    const target = latest;
+    const claimPath = await tryClaim(directory, claimKey(target.refresh), staleMs);
     if (claimPath !== undefined) {
-      const publishedMeanwhile = await steps.reuse();
-      if (publishedMeanwhile !== undefined) return publishedMeanwhile;
-      let result: T;
+      const again = await followChain(directory, target);
+      if (again.refresh !== target.refresh) {
+        if (!expiringSoon(again)) return again;
+        credential = again;
+        continue;
+      }
+      let next: OAuthCredential;
       try {
-        result = await steps.refresh();
+        next = await refresh(target, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
       } catch (error) {
         await rm(claimPath, { force: true });
         throw error;
       }
-      await sweepOldClaimsBestEffort(directory);
-      return result;
+      await writeSuccessor(claimPath, next);
+      await sweepOldClaimsBestEffort(directory, options.liveCredential);
+      return next;
     }
-    if (attempt >= retries) throw lockedError(targetPath);
+    if (attempt >= retries) throw lockedError(directory);
     attempt += 1;
     await sleep(retryDelayMs(), signal);
   }
