@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { isAbsolute, join, resolve } from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 
 import type { ImageContent, Usage } from '@earendil-works/pi-ai';
 import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
@@ -168,9 +169,10 @@ function readAssistant(event: Record<string, unknown>): AssistantRecord | undefi
 }
 
 function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
+  const decoder = new StringDecoder('utf8');
   let buffer = '';
   return (chunk) => {
-    buffer += chunk.toString('utf8');
+    buffer += decoder.write(chunk);
     for (let index = buffer.indexOf('\n'); index !== -1; index = buffer.indexOf('\n')) {
       const line = buffer.slice(0, index).trim();
       buffer = buffer.slice(index + 1);

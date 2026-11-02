@@ -163,6 +163,16 @@ describe('startChild', () => {
     expect([outcome.finalText, outcome.failure]).toEqual(['after noise', undefined]);
   });
 
+  test('preserves non-ASCII text when RPC chunks split a UTF-8 character', async ({ signal }) => {
+    let steered: Promise<void> | undefined;
+    const handle = run('split-utf8', 'hello', signal, (event) => {
+      if (event.type === 'fake_split_ready') steered = handle.steer('finish the record', []);
+    });
+    const outcome = await handle.done;
+    await steered;
+    expect([outcome.finalText, outcome.failure]).toEqual(['你好 🥔 café\u2028fin', undefined]);
+  });
+
   test('reports an error stop reason as a failure (TASK-015)', async () => {
     const outcome = await run('error').done;
     expect(outcome.failure).toBe('provider exploded');

@@ -20,7 +20,15 @@ function settle(aborted = false) {
 function run(message, images) {
   running = true;
   emit({ type: 'agent_start' });
-  if (mode === 'noise') {
+  if (mode === 'split-utf8') {
+    const record = Buffer.from(`${JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: '你好 🥔 café\u2028fin' }], usage, stopReason: 'stop' } })}\n`);
+    const split = record.indexOf(Buffer.from('🥔')) + 1;
+    finish = () => {
+      process.stdout.write(record.subarray(split));
+    };
+    process.stdout.write(Buffer.concat([Buffer.from(`${JSON.stringify({ type: 'fake_split_ready' })}\n`), record.subarray(0, split)]));
+    return;
+  } else if (mode === 'noise') {
     process.stdout.write('an extension printed this to stdout\n');
     assistant('after noise');
   } else if (mode === 'echo') {
@@ -65,7 +73,9 @@ function handle(command) {
       respond(command, { disposition: 'started' });
       run(command.message, command.images ?? []);
     } else {
+      if (mode === 'split-utf8') finish?.();
       respond(command, { disposition: 'queued' });
+      if (mode === 'split-utf8') settle();
       if (mode === 'wait' || mode === 'deaf') finish?.(`STEERED:${command.message}|${command.streamingBehavior}`);
     }
   } else if (command.type === 'extension_ui_response') {
