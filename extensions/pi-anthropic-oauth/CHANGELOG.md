@@ -1,7 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.5]
 
+- A failed 401 refresh no longer ends the Pi process. The in-process refresh latch left an unhandled rejection whenever a refresh failed.
 - With no credential store, cross-process 401 refresh now claims the refresh token instead of taking `claude-subscription-refresh.lock`. A claim is a file `<hash>.<generation>` in `claude-subscription-refresh.claims`, created exclusively, named by a hash of the refresh token, and never removed by another process. A stale claim is taken over by creating the next generation, so a crashed refresher can no longer let two recoveries send the same refresh token. Contended `ELOCKED` still stops after 5 retries.
 
 ## [0.1.4]
