@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.8] - 2026-11-02
+
+- Declare `cost.totalFromProvider` on the exported `Usage` type so the package typechecks again, completing the provider-reported cost provenance aggregation shipped in 0.15.36-pi.7.
+
 ## [0.15.36-pi.7] - 2026-11-02
 
 - Update the host compatibility documentation for Pi 1.5.0. Retain the four native gaps for RPC process control, skill-block formatting, named-ID fork truncation, and workspace folder naming.
