@@ -9,7 +9,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
 import { DEFAULT_RESPONSE_BUDGET_BYTES } from '../src/contract/results.ts';
 import { ANALYSIS_SETTING_IDS, type AnalysisSettingId, AnalysisSettingsStore, runtimeConstraints, type SettingChange } from '../src/session/analysis-settings.ts';
-import { ReaSession } from '../src/session/binary-session.ts';
+import { PI_REA_VERSION, ReaSession } from '../src/session/binary-session.ts';
 import { canonicalJson, createEvidence, type EvidenceDraft, type EvidenceRecord, evidenceIdentity, evidenceSummaryEntry, isEvidenceRecord, sha256Hex, verifyEvidenceIdentity } from '../src/session/evidence.ts';
 import { isUnknownRecord, type UnknownDraft, UnknownLedger, type UnknownRecord, unknownIdentity, unknownRevisionDigest, validateUnknownDraft } from '../src/session/unknown-ledger.ts';
 import { type ArtifactIdentity, identifyArtifact } from '../src/targets/artifact-identity.ts';
@@ -1696,7 +1696,7 @@ describe('macho tools', () => {
     expect(normalized.architectures.total).toBe(1);
     expect(normalized.architectures.items[0]?.name).toBe('arm64');
     expect(normalized.selected_architecture.name).toBe('arm64');
-    expect(normalized.provenance[0]).toMatchObject({ tool: 'pi-rea/macho-parser', tool_version: '0.1.0' });
+    expect(normalized.provenance[0]).toMatchObject({ tool: 'pi-rea/macho-parser', tool_version: PI_REA_VERSION });
     expect(normalized.limitations).toHaveLength(2);
     const offsets = record.locations.filter((location) => location['kind'] === 'file-offset');
     expect(offsets).toStrictEqual([{ kind: 'file-offset', offset: 489_280 }]);
