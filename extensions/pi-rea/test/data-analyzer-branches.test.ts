@@ -535,7 +535,11 @@ test('pyc reads the sample.pyc header plus nested code objects', async () => {
     ['<module>', [1]],
     ['greet', []],
   ]);
-  expect(record.code_objects[1]).toMatchObject({ qualname: 'greet', firstlineno: 1, filename: fixturePath('targets/pyc/sample.py') });
+  expect(record.code_objects[1]).toMatchObject({
+    qualname: 'greet',
+    firstlineno: 1,
+    filename: '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pyc/sample.py',
+  });
   expect(record.coverage).toMatchObject({ status: 'complete', code_objects: 2, marshal_bytes: 336 });
   expect(record.limitations).toHaveLength(4);
 });

@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 
@@ -20,7 +20,7 @@ import { inspectMacho } from '../src/tools/macho-tools.ts';
 import { inspectPlist } from '../src/tools/plist-tools.ts';
 import { isProviderRefuseTool, PROVIDER_REFUSE_BY_NAME, PROVIDER_REFUSE_TOOL_NAMES, providerRefuseAvailability, type RefuseStrategy, refuseProviderTool } from '../src/tools/provider-refuse-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
-import { fixturePath } from './support/fixtures.ts';
+import { fixturePath, fixtureSha256 } from './support/fixtures.ts';
 import { tempTargets } from './support/temp-targets.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
@@ -1318,7 +1318,7 @@ describe('artifact identity', () => {
       format: 'mach-o',
       kind: 'executable',
       architecture: 'arm64',
-      sha256: '1e291a4d2e67e0ed63683fd0325cdba65ec669fe15325c0914b32b936ca679ec',
+      sha256: fixtureSha256('targets/fixture-go-macho-fat'),
     },
   ];
 
@@ -1687,7 +1687,7 @@ describe('macho tools', () => {
     expect(record.operation).toBe('inspect_macho');
     expect(record.subject).toStrictEqual({
       name: 'fixture-go-macho',
-      digest: { sha256: 'fb6fcf5aaf18e4c2990ce7e43d3f41c965952f32a6452b0c18c586053155a71e' },
+      digest: { sha256: fixtureSha256('targets/fixture-go-macho') },
       format: 'mach-o',
       architecture: 'arm64',
       local_path: path,
@@ -1773,14 +1773,16 @@ describe('go binary tools', () => {
     expect(record.parameters).toStrictEqual({ path, architecture: 'arm64', detail: 'summary' });
     expect(normalized.artifact).toStrictEqual({
       path,
-      sha256: 'fb6fcf5aaf18e4c2990ce7e43d3f41c965952f32a6452b0c18c586053155a71e',
-      bytes: 2_509_618,
+      sha256: fixtureSha256('targets/fixture-go-macho'),
+      bytes: statSync(path).size,
     });
     expect(normalized).toMatchObject({ format: 'mach-o', architecture: 'arm64', bits: 64, byte_order: 'little' });
-    expect(normalized.build_info.go_version).toBe('go1.26.8');
+    expect(normalized.build_info.go_version).toBe(execFileSync('go', ['env', 'GOVERSION'], { encoding: 'utf8' }).trim());
     expect(record.subject).toMatchObject({ architecture: 'arm64', format: 'mach-o' });
     expect(record.locations[0]).toStrictEqual({ kind: 'artifact-path', path });
-    expect(record.locations[1]).toStrictEqual({ kind: 'file-offset-range', start: 1_572_864, end: 1_572_896 });
+    const buildInfoOffset = readFileSync(path).indexOf(Buffer.from('\xff Go buildinf:', 'latin1'));
+    expect(buildInfoOffset).toBeGreaterThan(0);
+    expect(record.locations[1]).toStrictEqual({ kind: 'file-offset-range', start: buildInfoOffset, end: buildInfoOffset + 32 });
     expect(open.evidence.size).toBe(1);
   });
 

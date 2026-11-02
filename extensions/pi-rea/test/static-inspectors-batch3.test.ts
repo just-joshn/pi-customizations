@@ -13,7 +13,7 @@ import { identifyFlutterBuild, inspectDartAot } from '../src/tools/flutter-tools
 import { inspectManagedArtifact, inspectManagedMembers } from '../src/tools/managed-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
 import { inspectSignature } from '../src/tools/signature-tools.ts';
-import { fixturePath } from './support/fixtures.ts';
+import { fixtureCdhash, fixturePath } from './support/fixtures.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 
@@ -64,9 +64,9 @@ test('inspect_signature: reads SuperBlob facts from a signed Mach-O session', as
   expect(record['signed']).toBe(true);
   expect(record['identifier']).toBe('a.out');
   expect(record['format']).toBe('Mach-O thin (arm64)');
-  expect(record['cdhashes']).toStrictEqual(['d8864aa4c955875d2575294cd891f196f9fa7abd']);
+  expect(record['cdhashes']).toStrictEqual([fixtureCdhash('targets/fixture-go-macho')]);
   expect(record['hash_algorithms']).toStrictEqual(['sha256']);
-  expect(record['designated_requirement']).toBe('cdhash H"d8864aa4c955875d2575294cd891f196f9fa7abd"');
+  expect(record['designated_requirement']).toBe(`cdhash H"${fixtureCdhash('targets/fixture-go-macho')}"`);
   expect(record['limitations']).toStrictEqual(['Inspected a digest-verified Mach-O byte snapshot; filesystem-bound signing context and trust validation are not examined.']);
 });
 

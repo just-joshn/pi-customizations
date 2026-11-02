@@ -1,9 +1,24 @@
+import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const FIXTURES = fileURLToPath(new URL('../../../../parity/pi-rea/fixtures/', import.meta.url));
 
 export const fixturePath = (relative: string): string => `${FIXTURES}${relative}`;
+
+export const fixtureSha256 = (relative: string): string =>
+  createHash('sha256')
+    .update(readFileSync(fixturePath(relative)))
+    .digest('hex');
+
+export const fixtureCdhash = (relative: string): string => {
+  const result = spawnSync('/usr/bin/codesign', ['-d', '--verbose=4', fixturePath(relative)], { encoding: 'utf8' });
+  if (result.status !== 0) throw new Error(`codesign failed: ${result.stderr}`);
+  const match = /^CDHash=([a-f0-9]+)$/m.exec(result.stderr);
+  if (!match?.[1]) throw new Error('codesign did not report a CDHash');
+  return match[1];
+};
 
 export const readFixture = <T>(relative: string): T => JSON.parse(readFileSync(fixturePath(relative), 'utf8')) as T;
 
