@@ -1,4 +1,3 @@
-import { StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 
@@ -30,7 +29,7 @@ const TodoParams = Type.Object({
     Type.Object({
       id: Type.String({ description: 'Unique identifier for the TODO item' }),
       content: Type.Optional(Type.String({ description: 'The description/content of the TODO item. Required for a new item; may be omitted when merging an update.' })),
-      status: Type.Optional(StringEnum(STATUSES, { description: 'The current status of the TODO item. Required for a new item; may be omitted when merging an update.' })),
+      status: Type.Optional(Type.Enum(STATUSES, { type: 'string', description: 'The current status of the TODO item. Required for a new item; may be omitted when merging an update.' })),
     }),
     { minItems: 1, description: 'Array of TODO items to update or create' },
   ),

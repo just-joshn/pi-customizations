@@ -1,6 +1,5 @@
 import { randomBytes } from 'node:crypto';
 
-import { StringEnum } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { type Static, Type } from 'typebox';
@@ -116,7 +115,7 @@ function timerTarget(config: TimerConfig): string {
 }
 
 const GithubParams = Type.Object({
-  scope: StringEnum(['pr', 'repo', 'author'] as const, { description: 'pr: one pull request (prUrl). repo: every open PR in repo, including PRs opened, closed, or merged. author: open PRs in repo by author.' }),
+  scope: Type.Enum(['pr', 'repo', 'author'] as const, { type: 'string', description: 'pr: one pull request (prUrl). repo: every open PR in repo, including PRs opened, closed, or merged. author: open PRs in repo by author.' }),
   prUrl: Type.Optional(Type.String({ description: 'scope pr: the pull request URL, such as https://github.com/owner/repo/pull/123.' })),
   repo: Type.Optional(Type.String({ description: 'scope repo or author: owner/name.' })),
   author: Type.Optional(Type.String({ description: 'scope author: a GitHub login, or @me.' })),
@@ -131,7 +130,8 @@ const TimerParams = Type.Object({
   delaySeconds: Type.Optional(Type.Integer({ minimum: 1, description: 'Fire this many seconds from now, and again every delaySeconds after that unless once is true.' })),
   once: Type.Optional(Type.Boolean({ description: 'Fire only once, then end the timer. Default false.' })),
   sessionStrategy: Type.Optional(
-    StringEnum(['wake_self', 'new_session'] as const, {
+    Type.Enum(['wake_self', 'new_session'] as const, {
+      type: 'string',
       description: 'wake_self (default) queues the prompt for this owning session. new_session starts fresh work each fire. A live owner gets a background Task notification; offline execution records its outcome in list_subscriptions.',
     }),
   ),
