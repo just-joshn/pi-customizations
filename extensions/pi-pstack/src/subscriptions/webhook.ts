@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
@@ -83,6 +83,7 @@ function presentedKey(request: IncomingMessage): string | undefined {
 }
 
 export interface WebhookEvent {
+  eventId: string;
   headers: Record<string, string>;
   bodyDigest: string;
   body: string;
@@ -99,7 +100,7 @@ export function webhookEventBlock(event: WebhookEvent): string {
 export interface RoutineRoute {
   slug: string;
   credentialFile: string;
-  onEvent: (event: WebhookEvent) => void;
+  onEvent: (event: WebhookEvent) => Promise<boolean>;
 }
 
 const reply = (response: ServerResponse, status: number, message: string) => {
@@ -111,6 +112,7 @@ const reply = (response: ServerResponse, status: number, message: string) => {
 export class RoutineServer {
   private server: Server | undefined;
   private listening: Promise<number> | undefined;
+  private readonly closing = new Set<Server>();
   readonly routes = new Map<string, RoutineRoute>();
   private readonly port: number;
 
@@ -144,9 +146,13 @@ export class RoutineServer {
     return this.server?.listening === true;
   }
 
-  close(): void {
-    this.server?.close();
-    this.server?.closeAllConnections();
+  close(force = true): void {
+    const server = this.server;
+    if (server !== undefined) {
+      this.closing.add(server);
+      server.close(() => this.closing.delete(server));
+    }
+    if (force) for (const closing of this.closing) closing.closeAllConnections();
     this.server = undefined;
     this.listening = undefined;
   }
@@ -187,7 +193,7 @@ export class RoutineServer {
       }
       chunks.push(chunk);
     });
-    request.on('end', () => {
+    request.on('end', async () => {
       if (done) return;
       done = true;
       const raw = Buffer.concat(chunks);
@@ -204,8 +210,13 @@ export class RoutineServer {
         const header = request.headers[name];
         if (typeof header === 'string') headers[name] = header;
       }
-      route.onEvent({ headers, bodyDigest: createHash('sha256').update(raw).digest('hex'), body, timestampMs: Date.now() });
-      reply(response, 200, 'ok');
+      if (this.routes.get(route.slug) !== route) return reply(response, 404, 'No such routine.');
+      try {
+        const accepted = await route.onEvent({ eventId: randomUUID(), headers, bodyDigest: createHash('sha256').update(raw).digest('hex'), body, timestampMs: Date.now() });
+        reply(response, accepted ? 200 : 404, accepted ? 'ok' : 'No such routine.');
+      } catch {
+        reply(response, 503, 'Could not durably accept this event. Retry later.');
+      }
     });
   }
 }

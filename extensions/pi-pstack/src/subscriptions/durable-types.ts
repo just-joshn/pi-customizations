@@ -1,42 +1,41 @@
-import type { Subscription } from './index.ts';
+export type Target = { scope: 'pr'; prUrl: string } | { scope: 'repo'; repo: string } | { scope: 'author'; author: string; repo: string };
+export type Config = { kind: 'github'; target: Target } | { kind: 'timer'; prompt: string; cron?: string; delaySeconds?: number; once: boolean; strategy: 'wake_self' | 'new_session' } | { kind: 'webhook'; prompt: string; slug: string };
 
-/** On-disk desired state. version bumps only on breaking field changes. */
-export type DurableRegistry = {
-  version: 1;
-  workspaceCwd: string;
-  /** Same bodies as session SubscriptionSchema / wellFormed() today. */
-  subscriptions: DurableSubscription[];
-};
-
-export type DurableSubscription = {
-  id: string;
-  name: string;
-  createdAt: number;
-  expiresAt: number;
-  config: Subscription['config'];
-  /** Creating chat's session file, used only when parking wake_self events. */
+export type Subscription = { id: string; name: string; createdAt: number; expiresAt: number; config: Config };
+export type DurableSubscription = Subscription & {
+  ownerSessionId?: string;
   ownerSessionFile?: string;
-  /** Detached fire: spawn a headless Pi, or park under runtime/inbox/ for interactive drain. */
+  /** Read only during v1 migration. Delivery is determined by config, never this flag. */
   detachedDelivery?: 'spawn' | 'park';
 };
-
-export type DeliveryLedger = {
-  subscriptionId: string;
-  /** Last successfully claimed fire key. */
-  lastClaimKey: string;
-  lastClaimAt: number;
-  lastError?: { at: number; text: string };
+export type Note = { at: number; text: string };
+export type StoredSubscription = DurableSubscription & {
+  revision: number;
+  lifecycle: 'active' | 'completed' | 'cancelled' | 'expired';
+  lastOccurrence?: string;
+  lastEvent?: Note;
+  lastError?: Note;
+  lastOutcome?: Note;
 };
-
-export type SupervisorLock = {
-  pid: number;
-  startedAt: number;
-};
-
-export type ParkedWake = {
+export type PendingEvent = {
+  id: string;
   subscriptionId: string;
-  name: string;
-  at: number;
+  acceptedAt: number;
   content: string;
-  ownerSessionFile?: string;
+  claim?: { pid: number; token: string; mode: 'live' | 'detached' };
+  attempts?: number;
+  retryAt?: number;
 };
+export type DurableRegistry = {
+  version: 2;
+  workspaceCwd: string;
+  revision: number;
+  subscriptions: StoredSubscription[];
+  pending: PendingEvent[];
+};
+export type SupervisorLock = { pid: number; startedAt: number; epoch: string };
+export type ArmStatus = {
+  subscriptionId: string;
+  revision: number;
+  epoch: string;
+} & ({ state: 'ready'; url?: string } | { state: 'error'; message: string });

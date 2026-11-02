@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
-import { acquireSupervisorLock, isSupervisorLive, releaseSupervisorLock } from '../src/subscriptions/durable-store.ts';
-import { defaultEnsureSupervisor, supervisorBinPath, waitForSupervisor } from '../src/subscriptions/ensure-supervisor.ts';
+import { acquireSupervisorLock, createDesired, isSupervisorLive, readLock, releaseSupervisorLock, writeArm } from '../src/subscriptions/durable-store.ts';
+import { defaultEnsureSupervisor, supervisorBinPath, waitForArm, waitForSupervisor } from '../src/subscriptions/ensure-supervisor.ts';
 
 describe('ensure-supervisor', () => {
   let agentDir: string;
@@ -48,6 +48,45 @@ describe('ensure-supervisor', () => {
     // Without an error listener, Node can surface ENOENT as an uncaughtException after the call returns.
     await expect(waitForSupervisor(cwd, 50)).resolves.toBe(false);
     expect(isSupervisorLive(cwd)).toBe(false);
+  });
+
+  test('readiness requires this subscription arm and the current supervisor incarnation', async () => {
+    const { subscription } = createDesired(cwd, {
+      id: 'sub-ready',
+      name: 'ready',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60_000,
+      ownerSessionId: 'owner',
+      config: { kind: 'webhook', slug: 'ready', prompt: 'handle' },
+    });
+    acquireSupervisorLock(cwd);
+    onTestFinished(() => releaseSupervisorLock(cwd));
+    await expect(waitForArm(cwd, subscription, 0)).rejects.toThrow('readiness timed out');
+    const lock = readLock(cwd);
+    if (lock === undefined) throw new Error('Expected a live supervisor lock.');
+    const epoch = lock.epoch;
+    writeArm(cwd, { state: 'ready', subscriptionId: subscription.id, revision: subscription.revision, epoch, url: 'http://127.0.0.1:1234/routines/ready' });
+    await expect(waitForArm(cwd, subscription, 0)).resolves.toMatchObject({ state: 'ready', url: 'http://127.0.0.1:1234/routines/ready' });
+    releaseSupervisorLock(cwd);
+    acquireSupervisorLock(cwd);
+    await expect(waitForArm(cwd, subscription, 0)).rejects.toThrow('readiness timed out');
+  });
+
+  test('an arm failure remains visible instead of a success-shaped URL', async () => {
+    const { subscription } = createDesired(cwd, {
+      id: 'sub-ready',
+      name: 'ready',
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 60_000,
+      ownerSessionId: 'owner',
+      config: { kind: 'webhook', slug: 'ready', prompt: 'handle' },
+    });
+    acquireSupervisorLock(cwd);
+    onTestFinished(() => releaseSupervisorLock(cwd));
+    const lock = readLock(cwd);
+    if (lock === undefined) throw new Error('Expected a live supervisor lock.');
+    writeArm(cwd, { state: 'error', subscriptionId: subscription.id, revision: subscription.revision, epoch: lock.epoch, message: 'port is occupied' });
+    await expect(waitForArm(cwd, subscription, 0)).rejects.toThrow('port is occupied');
   });
 
   test('the real supervisor bin stays alive past 1s until SIGTERM (SUP-BIN-001)', async () => {
