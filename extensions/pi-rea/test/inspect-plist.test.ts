@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import type { ReaError } from '../src/contract/errors.ts';
-import { ReaSession } from '../src/session/binary-session.ts';
+import { PI_REA_VERSION, ReaSession } from '../src/session/binary-session.ts';
 import { inspectPlist } from '../src/tools/plist-tools.ts';
 import { binarySession, closeBinary, openBinary } from '../src/tools/session-tools.ts';
 import { fixturePath } from './support/fixtures.ts';
@@ -161,7 +161,7 @@ test('TOOL-060: provenance states that this port parsed the file in process', as
   expect(provenance[0]).toMatchObject({
     tool: 'pi-rea/plist-parser',
     command: [],
-    tool_version: '0.1.0',
+    tool_version: PI_REA_VERSION,
     executable_sha256: null,
     exit: { code: 0, signal: null },
   });

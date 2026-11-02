@@ -351,7 +351,7 @@ test('sqlite rejects a missing database path', async () => {
 
   const payload = await payloadOf(() => inspectSqliteDatabaseFromPath(path));
 
-  expect(payload).toMatchObject(sqliteInputError(path, 'invalid_value', 'no file exists there'));
+  expect(payload).toMatchObject(inputContractError('inspect_sqlite_database', 'invalid_value', `Selected SQLite database does not exist: ${path}`));
 });
 
 test('sqlite rejects a directory path', async () => {
@@ -359,7 +359,7 @@ test('sqlite rejects a directory path', async () => {
 
   const payload = await payloadOf(() => inspectSqliteDatabaseFromPath(targets.dir));
 
-  expect(payload).toMatchObject(sqliteInputError(targets.dir, 'invalid_value', 'it could not be read (EISDIR: illegal operation on a directory, read)'));
+  expect(payload).toMatchObject(inputContractError('inspect_sqlite_database', 'invalid_format', `Expected a regular file without a symlink: ${targets.dir}`));
 });
 
 test('sqlite rejects a file without the SQLite header', async () => {
@@ -821,7 +821,7 @@ test('pyc rejects a missing file', async () => {
 
   const payload = await payloadOf(() => inspectPythonPycFromPath(path));
 
-  expect(payload).toMatchObject(pycInputError(path, 'invalid_value', 'no file exists there'));
+  expect(payload).toMatchObject(inputContractError('inspect_python_pyc', 'invalid_value', `Selected pyc could not be read (ENOENT): ${path}.`));
 });
 
 test('pyc rejects a directory path', async () => {
@@ -829,7 +829,7 @@ test('pyc rejects a directory path', async () => {
 
   const payload = await payloadOf(() => inspectPythonPycFromPath(targets.dir));
 
-  expect(payload).toMatchObject(pycInputError(targets.dir, 'invalid_value', 'it could not be read (EISDIR: illegal operation on a directory, read)'));
+  expect(payload).toMatchObject(inputContractError('inspect_python_pyc', 'invalid_format', `Expected a regular file without a symlink: ${targets.dir}`));
 });
 
 // Model artifacts
@@ -855,6 +855,25 @@ const safetensorsFile = (header: Record<string, unknown>, data: Buffer = Buffer.
   const text = Buffer.from(JSON.stringify(header), 'utf8');
   return Buffer.concat([u64(text.length), text, data]);
 };
+
+const inputContractError = (operation: string, reason: string, message: string) => ({
+  code: 'invalid_request',
+  category: 'invalid_input',
+  retryable: false,
+  message: 'Analysis input is invalid. Check the arguments and try again.',
+  remediation: {
+    action: `Read the declared input schema or CLI usage for ${operation}; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.`,
+  },
+  recovery: { kind: 'inspect_input_contract', operation },
+  details: { operation, issues: [{ path: ['path'], reason, message }] },
+});
+
+const modelOpenError = (cause: string) => ({
+  code: 'target_unavailable',
+  category: 'unavailable',
+  retryable: false,
+  message: `Cannot open artifact: ${cause}. Check that the path exists, is readable, and points to a supported file.`,
+});
 
 const modelInputError = (path: string, reason: string, detail: string) => ({
   code: 'invalid_request',
@@ -1218,8 +1237,13 @@ test('model rejects a missing model file', async () => {
   const path = join(targets.dir, 'missing.gguf');
 
   const payload = await payloadOf(() => inspectModelArtifactFromPath(path));
+  const runtimeMessage = await readFile(path).then(
+    () => null,
+    (error: NodeJS.ErrnoException) => error.message,
+  );
 
-  expect(payload).toMatchObject(modelInputError(path, 'invalid_value', 'no file exists there'));
+  expect(runtimeMessage).toBeTypeOf('string');
+  expect(payload).toMatchObject(modelOpenError(runtimeMessage as string));
 });
 
 test('model rejects a directory path', async () => {
@@ -1227,7 +1251,7 @@ test('model rejects a directory path', async () => {
 
   const payload = await payloadOf(() => inspectModelArtifactFromPath(targets.dir));
 
-  expect(payload).toMatchObject(modelInputError(targets.dir, 'invalid_value', 'it could not be read (EISDIR: illegal operation on a directory, read)'));
+  expect(payload).toMatchObject(modelOpenError(`Selected input must be a regular file: ${targets.dir}`));
 });
 
 // Web script export
