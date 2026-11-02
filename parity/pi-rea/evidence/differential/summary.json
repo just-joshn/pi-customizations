@@ -1,10 +1,10 @@
 {
-  "started_at": "2026-11-02T04:10:47.271Z",
+  "started_at": "2026-11-02T06:50:53.517Z",
   "rea_agents": "6.8.0",
   "cases": [
     {
-      "id": "inspect_pcap_capture--missing",
-      "tool": "inspect_pcap_capture",
+      "id": "inspect_analysis_view--summary",
+      "tool": "inspect_analysis_view",
       "status": "pass",
       "diff_count": 0,
       "compared_paths": null,
@@ -15,5 +15,5 @@
   "pass": 1,
   "fail": 0,
   "documented": 0,
-  "finished_at": "2026-11-02T04:10:49.332Z"
+  "finished_at": "2026-11-02T06:50:54.670Z"
 }

@@ -1,0 +1,68 @@
+{
+  "id": "trace_javascript_semantics--generated-refuse",
+  "tool": "trace_javascript_semantics",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "application: Invalid input, query.seed: Invalid input: expected object, received undefined, query.direction: Invalid option: expected one of \"backward-provenance\"|\"forward-influence\"|\"callers\"|\"ownership\""
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "engine-free",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "not_implemented",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "The arguments for MCP tool trace_javascript_semantics do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "trace_javascript_semantics"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Read the declared input schema or CLI usage for trace_javascript_semantics; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

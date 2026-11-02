@@ -78,6 +78,6 @@
   },
   "meta": {
     "command": "inspect-il2cpp-metadata",
-    "duration": "5ms"
+    "duration": "6ms"
   }
 }

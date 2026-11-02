@@ -1,0 +1,28 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for capture_electron_scenario; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "capture_electron_scenario"
+    },
+    "details": {
+      "operation": "capture_electron_scenario",
+      "issues": [
+        {
+          "path": [
+            "executable_path"
+          ],
+          "reason": "invalid_value",
+          "message": "executable_path /Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin is not an executable file: EACCES: permission denied, access '/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin'"
+        }
+      ]
+    }
+  }
+}

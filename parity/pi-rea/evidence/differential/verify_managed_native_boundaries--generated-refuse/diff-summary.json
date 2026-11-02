@@ -1,0 +1,68 @@
+{
+  "id": "verify_managed_native_boundaries--generated-refuse",
+  "tool": "verify_managed_native_boundaries",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "managed_boundaries.evidence_id: Invalid input: expected string, received undefined, managed_boundaries.subject: Invalid input: expected object, received undefined, managed_boundaries.provider: Invalid input: expected object, received undefined, managed_boundaries.analysis_profile: Invalid input: expected object, received undefined, managed_boundaries.predicate_type: Invalid input: expected string, received undefined, managed_boundaries.operation: Invalid input: expected string, received undefined, managed_boundaries.parameters: Invalid input: expected nonoptional, received undefined, managed_boundaries.raw_result: Invalid input: expected nonoptional, received undefined, managed_boundaries.normalized_result: Invalid input: expected nonoptional, received undefined, managed_boundaries.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", managed_boundaries.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", managed_boundaries.environment: Invalid input: expected object, received undefined, managed_boundaries.limitations: Invalid input: expected array, received undefined, managed_boundaries.relationship_coverage: Invalid input: expected object, received undefined, managed_boundaries.locations: Invalid input: expected array, received undefined, managed_boundaries.evidence_links: Invalid input: expected array, received undefined, native_observations: Too small: expected array to have >=1 items"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "engine-free",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "not_implemented",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "The arguments for MCP tool verify_managed_native_boundaries do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "verify_managed_native_boundaries"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Read the declared input schema or CLI usage for verify_managed_native_boundaries; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

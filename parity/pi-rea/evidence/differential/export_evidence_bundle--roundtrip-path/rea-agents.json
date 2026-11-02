@@ -1,0 +1,11 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "path": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-diff-roundtrip-bundle.json",
+      "bytes": 2444,
+      "records": 1,
+      "unknowns": 0
+    }
+  }
+}

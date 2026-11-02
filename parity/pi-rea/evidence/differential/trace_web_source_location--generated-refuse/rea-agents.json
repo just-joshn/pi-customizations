@@ -1,0 +1,53 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for trace_web_source_location; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "trace_web_source_location"
+    },
+    "details": {
+      "operation": "trace_web_source_location",
+      "issues": [
+        {
+          "path": [
+            "source_map",
+            "path"
+          ],
+          "reason": "missing_argument",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "source_map",
+            "url"
+          ],
+          "reason": "missing_argument",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "generated_position",
+            "line"
+          ],
+          "reason": "missing_argument",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "generated_position",
+            "column"
+          ],
+          "reason": "missing_argument",
+          "expected": "number"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "unsupported_target",
+    "category": "unsupported_target",
+    "message": "Unsupported target for install_adb_package at pi-rea-serial: adb: device 'pi-rea-serial' not found",
+    "retryable": false,
+    "remediation": {
+      "action": "Select a target supported by this operation or choose an operation supporting the reported target format."
+    },
+    "details": {
+      "operation": "install_adb_package",
+      "path": "pi-rea-serial",
+      "reason": "adb: device 'pi-rea-serial' not found"
+    }
+  }
+}

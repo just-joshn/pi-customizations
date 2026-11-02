@@ -1,0 +1,37 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "unknown_id": "unk_bc8bdaf06f3a03e81f50fec259b1b9045ad356bb9e890f091f09deb6f1003287",
+      "revision": 1,
+      "previous_revision_digest": null,
+      "scope_digest": null,
+      "question": "Does the fixture binary embed its build settings?",
+      "status": "open",
+      "severity": "medium",
+      "domain": "fixture-go-macho",
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "required_authority": "shipped-artifact",
+      "required_confidence": "observed",
+      "required_environment": {
+        "id": null,
+        "platform": null,
+        "architecture": null,
+        "isolation": null
+      },
+      "recommended_probes": [
+        {
+          "operation": "inspect_macho",
+          "rationale": "Read embedded build metadata from the shipped artifact."
+        }
+      ],
+      "relationships": [],
+      "resolution": null,
+      "mutation_evidence_ids": [
+        "ev_be374ffe53d63967cf0fadaae3d555171c2eafe5bf2a1a2873c4a38b059e5dd7"
+      ],
+      "revision_digest": "08998afa0b9814bdc4ce6c1dd3a4e2ce083125f4950159b5dc03f1c737641b92"
+    }
+  }
+}

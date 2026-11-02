@@ -1,0 +1,28 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Extraction output root already exists",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for extract_firmware; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "extract_firmware"
+    },
+    "details": {
+      "operation": "extract_firmware",
+      "issues": [
+        {
+          "path": [
+            "output_directory"
+          ],
+          "reason": "invalid_value",
+          "message": "Extraction output root already exists"
+        }
+      ]
+    }
+  }
+}

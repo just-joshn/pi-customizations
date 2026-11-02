@@ -1,0 +1,28 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for inspect_managed_native_boundaries; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "inspect_managed_native_boundaries"
+    },
+    "details": {
+      "operation": "inspect_managed_native_boundaries",
+      "issues": [
+        {
+          "path": [
+            "path"
+          ],
+          "reason": "missing_argument",
+          "message": "Provide a managed PE/CLI path or first select one with inspect_managed_artifact."
+        }
+      ]
+    }
+  }
+}

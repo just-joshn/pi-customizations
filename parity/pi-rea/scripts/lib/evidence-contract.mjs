@@ -3,6 +3,7 @@ export const CONFIDENCES = new Set(['observed', 'derived', 'inferred']);
 export const AUTHORITIES = new Set(['shipped-artifact', 'controlled-replay', 'historical-reference', 'external-service', 'analyst-inference']);
 export const PREDICATE_TYPES = new Set([
   'rea.analysis',
+  'rea.analysis-view',
   'rea.javascript-application-analysis',
   'rea.residual-unknown-mutation',
   'rea.artifact-comparison',

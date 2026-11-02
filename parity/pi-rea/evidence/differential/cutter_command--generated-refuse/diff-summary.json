@@ -1,0 +1,68 @@
+{
+  "id": "cutter_command--generated-refuse",
+  "tool": "cutter_command",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "session_id: Invalid UUID"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "cutter",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "no_live_bridge_found",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.",
+      "right": "The arguments for MCP tool cutter_command do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "cutter_command"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.",
+      "right": "Read the declared input schema or CLI usage for cutter_command; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

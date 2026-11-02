@@ -91,6 +91,6 @@
   },
   "meta": {
     "command": "inspect-managed-artifact",
-    "duration": "129ms"
+    "duration": "132ms"
   }
 }

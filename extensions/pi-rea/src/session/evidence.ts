@@ -42,12 +42,14 @@ export interface EvidenceRecord {
   readonly authority: Authority;
   readonly environment: EvidenceEnvironment | null;
   readonly limitations: readonly string[];
+  readonly relationship_coverage?: null;
   readonly locations: readonly Record<string, unknown>[];
   readonly evidence_links: readonly string[];
 }
 
 export const EVIDENCE_PREDICATE_TYPES = [
   'rea.analysis',
+  'rea.analysis-view',
   'rea.javascript-application-analysis',
   'rea.residual-unknown-mutation',
   'rea.artifact-comparison',
@@ -80,20 +82,28 @@ export const canonicalJson = (value: unknown): string => {
 
 export const sha256Hex = (text: string): string => createHash('sha256').update(text).digest('hex');
 
+/** Content committed by an Evidence ID, excluding local request and display metadata. */
 const identityProjection = (draft: EvidenceDraft): Record<string, unknown> => ({
+  subject:
+    draft.subject === null
+      ? null
+      : {
+          digest: draft.subject.digest,
+          format: draft.subject.format,
+          architecture: draft.subject.architecture,
+        },
+  provider: draft.provider,
+  analysis_profile: draft.analysis_profile,
   predicate_type: draft.predicate_type,
   operation: draft.operation,
   parameters: draft.parameters,
-  subject: draft.subject,
-  provider_id: draft.provider.id,
-  provider_version: draft.provider.version,
-  analysis_profile: draft.analysis_profile,
+  raw_result: draft.raw_result,
+  normalized_result: draft.normalized_result,
   confidence: draft.confidence,
   authority: draft.authority,
   environment: draft.environment,
-  raw_result: draft.raw_result,
-  normalized_result: draft.normalized_result,
   limitations: draft.limitations,
+  relationship_coverage: draft.relationship_coverage ?? null,
   locations: draft.locations,
   evidence_links: draft.evidence_links,
 });
@@ -102,6 +112,7 @@ export const evidenceIdentity = (draft: EvidenceDraft): string => `ev_${sha256He
 
 export const createEvidence = (draft: EvidenceDraft): EvidenceRecord => ({
   evidence_id: evidenceIdentity(draft),
+  relationship_coverage: draft.relationship_coverage ?? null,
   ...draft,
 });
 

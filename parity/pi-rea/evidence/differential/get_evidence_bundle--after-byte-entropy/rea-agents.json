@@ -1,0 +1,101 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "artifacts": [
+        {
+          "digest": {
+            "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+          },
+          "format": "file",
+          "architecture": null
+        }
+      ],
+      "providers": [
+        {
+          "id": "byte-entropy",
+          "name": "REA byte entropy",
+          "version": "1"
+        }
+      ],
+      "environments": [],
+      "scenarios": [],
+      "captures": [],
+      "unknowns": [],
+      "records": [
+        {
+          "evidence_id": "ev_ebf63e2bacc734d363781541592f31696f51193201b7768e53f4fadd9bb15cf6",
+          "subject": {
+            "name": "minimal-elf.bin",
+            "digest": {
+              "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+            },
+            "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+            "format": "file",
+            "architecture": null
+          },
+          "provider": {
+            "id": "byte-entropy",
+            "name": "REA byte entropy",
+            "version": "1"
+          },
+          "analysis_profile": null,
+          "predicate_type": "rea.analysis",
+          "operation": "inspect_byte_entropy",
+          "parameters": {
+            "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+            "block_size": 256,
+            "offset": 0
+          },
+          "raw_result": null,
+          "normalized_result": {
+            "artifact": {
+              "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+              "bytes": 64,
+              "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+            },
+            "block_size": 256,
+            "window": {
+              "offset": 0,
+              "length": 64
+            },
+            "file_entropy": 1.2121,
+            "thresholds": {
+              "high": 7.2,
+              "low": 1
+            },
+            "blocks": [
+              {
+                "offset": 0,
+                "length": 64,
+                "entropy": 1.2121
+              }
+            ],
+            "runs": [],
+            "limitations": [
+              "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+              "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+              "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+            ]
+          },
+          "confidence": "observed",
+          "authority": "shipped-artifact",
+          "environment": null,
+          "limitations": [
+            "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+            "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+            "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+          ],
+          "relationship_coverage": null,
+          "locations": [
+            {
+              "kind": "artifact-path",
+              "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+            }
+          ],
+          "evidence_links": []
+        }
+      ]
+    }
+  }
+}

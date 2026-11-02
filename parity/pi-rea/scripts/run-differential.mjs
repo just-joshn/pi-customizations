@@ -67,8 +67,17 @@ const main = async () => {
     const caseDir = join(EVIDENCE_DIR, testCase.id);
     mkdirSync(caseDir, { recursive: true });
 
-    const pi = await testCase.runPiRea();
-    const oracle = await testCase.runOracle();
+    let pi;
+    let oracle;
+    try {
+      pi = await testCase.runPiRea();
+      oracle = await testCase.runOracle();
+    } catch (error) {
+      summary.cases.push({ id: testCase.id, tool: testCase.tool, status: 'fail_execution', diff_count: 0, compared_paths: null, undocumented_count: 1, contract_issues: 0 });
+      summary.fail += 1;
+      process.stderr.write(`  execution_failure (${error.message})\n`);
+      continue;
+    }
     writeJson(join(caseDir, 'pi-rea.json'), pi);
     writeJson(join(caseDir, 'rea-agents.json'), oracle);
 

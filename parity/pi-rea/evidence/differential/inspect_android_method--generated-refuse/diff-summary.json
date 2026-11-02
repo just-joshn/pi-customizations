@@ -1,0 +1,42 @@
+{
+  "id": "inspect_android_method--generated-refuse",
+  "tool": "inspect_android_method",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 4,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 4,
+  "undocumented": [
+    {
+      "path": "details.diagnostics",
+      "left": {
+        "jar_configured": false,
+        "failure_kind": "jar",
+        "failure_code": "not_configured"
+      },
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.",
+      "right": "Target $REPO/parity/pi-rea/fixtures/targets/minimal-elf.bin is elf; provide one standalone APK.",
+      "kind": "value"
+    },
+    {
+      "path": "message",
+      "left": "Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.",
+      "right": "This analysis is unavailable for the current target. Choose another analysis or target.",
+      "kind": "value"
+    },
+    {
+      "path": "remediation.action",
+      "left": "Set REA_JADX_MCP_JAR to the absolute path of a caller-supplied jadx-headless-mcp 0.7.1 JAR. REA does not download or install it.",
+      "right": "This analysis is unavailable for the current target. Choose another analysis or target.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

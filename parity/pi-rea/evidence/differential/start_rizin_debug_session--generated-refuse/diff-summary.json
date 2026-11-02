@@ -1,0 +1,42 @@
+{
+  "id": "start_rizin_debug_session--generated-refuse",
+  "tool": "start_rizin_debug_session",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 4,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 4,
+  "undocumented": [
+    {
+      "path": "details.diagnostics",
+      "left": {
+        "boundary": "provider-launch",
+        "command": "rizin",
+        "system_code": "ENOENT"
+      },
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "Unable to run configured command (ENOENT)",
+      "right": "Persistent Rizin debugger sessions require Linux /proc descriptor readback to verify inferior detachment and output routing.",
+      "kind": "value"
+    },
+    {
+      "path": "message",
+      "left": "Could not launch the selected rizin executable \"rizin\" (ENOENT).",
+      "right": "This analysis is unavailable for the current target. Choose another analysis or target.",
+      "kind": "value"
+    },
+    {
+      "path": "remediation.action",
+      "left": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+      "right": "This analysis is unavailable for the current target. Choose another analysis or target.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

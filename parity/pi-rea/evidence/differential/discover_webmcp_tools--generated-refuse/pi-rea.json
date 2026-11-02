@@ -1,0 +1,16 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "provider_unavailable",
+    "category": "unavailable",
+    "message": "discover_webmcp_tools could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+    "retryable": true,
+    "remediation": {
+      "action": "discover_webmcp_tools could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry."
+    },
+    "details": {
+      "operation": "discover_webmcp_tools",
+      "reason": "endpoint_unreachable"
+    }
+  }
+}

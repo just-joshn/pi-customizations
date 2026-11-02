@@ -1,4 +1,4 @@
-import { evidenceId } from './canonical.mjs';
+import { canonicalJson, evidenceId, sha256Hex } from './canonical.mjs';
 import { invalidInput } from './errors.mjs';
 
 const VIEW_KINDS = new Set(['summary', 'section', 'item', 'inventory', 'api-surface']);
@@ -6,6 +6,65 @@ const VIEW_KINDS = new Set(['summary', 'section', 'item', 'inventory', 'api-surf
 export async function buildView(record, request) {
   const kind = request.kind ?? 'summary';
   if (!VIEW_KINDS.has(kind)) throw invalidInput('Unknown view kind.', [{ path: ['view', 'kind'], reason: 'invalid_value', message: `kind must be one of ${[...VIEW_KINDS].join(', ')}` }]);
+
+  if (record.operation === 'inspect_byte_entropy' && kind === 'summary') {
+    const report = record.normalized_result;
+    const parentEvidenceId = record.evidence_id;
+    const parentDigest = parentEvidenceId.startsWith('ev_') ? parentEvidenceId.slice(3) : parentEvidenceId;
+    const summary = {
+      artifact: report.artifact,
+      block_size: report.block_size,
+      window: report.window,
+      file_entropy: report.file_entropy,
+      thresholds: report.thresholds,
+      block_count: report.blocks ? report.blocks.length : 0,
+      run_count: report.runs ? report.runs.length : 0,
+      top_runs: report.runs ? [...report.runs].sort((a, b) => b.length - a.length || a.offset - b.offset).slice(0, 10) : [],
+    };
+    const coverage = {
+      status: 'complete-within-view',
+      examined: report.blocks ? report.blocks.length : 1,
+      total: report.blocks ? report.blocks.length : 1,
+      next_offset: null,
+      exhausted: true,
+    };
+    const limitations = [...new Set([...(record.limitations ?? []), ...(report.limitations ?? [])])].sort();
+    const projection = {
+      kind: 'summary',
+      view: { kind: 'summary' },
+      parent_evidence_id: parentEvidenceId,
+      parent_operation: 'inspect_byte_entropy',
+      parent_digest: parentDigest,
+      artifact: { path: report.artifact?.path, sha256: report.artifact?.sha256 },
+      summary,
+      coverage,
+      limitations,
+      unknowns: [],
+    };
+    const viewDigest = sha256Hex(canonicalJson(projection));
+    const normalized = {
+      kind: 'summary',
+      view: { kind: 'summary' },
+      parent_evidence_id: parentEvidenceId,
+      parent_operation: 'inspect_byte_entropy',
+      parent_digest: parentDigest,
+      view_digest: viewDigest,
+      artifact: { path: report.artifact?.path, sha256: report.artifact?.sha256 },
+      coverage,
+      limitations,
+      unknowns: [],
+      summary,
+    };
+    return {
+      operation: 'inspect_analysis_view',
+      predicate_type: 'rea.analysis-view',
+      parameters: {
+        parent_evidence_id: parentEvidenceId,
+        view: { kind: 'summary' },
+      },
+      normalized_result: normalized,
+    };
+  }
   const base = {
     kind,
     view: { kind },

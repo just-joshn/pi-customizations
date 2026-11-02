@@ -101,6 +101,6 @@
   },
   "meta": {
     "command": "inspect-gpu-code-objects",
-    "duration": "7ms"
+    "duration": "9ms"
   }
 }

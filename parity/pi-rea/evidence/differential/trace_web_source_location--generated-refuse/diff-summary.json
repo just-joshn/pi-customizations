@@ -1,0 +1,95 @@
+{
+  "id": "trace_web_source_location--generated-refuse",
+  "tool": "trace_web_source_location",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [
+            "source_map",
+            "path"
+          ],
+          "reason": "missing_argument",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "source_map",
+            "url"
+          ],
+          "reason": "missing_argument",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "generated_position",
+            "line"
+          ],
+          "reason": "missing_argument",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "generated_position",
+            "column"
+          ],
+          "reason": "missing_argument",
+          "expected": "number"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "engine-free",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "not_implemented",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Analysis input is invalid. Check the arguments and try again.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "trace_web_source_location"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Read the declared input schema or CLI usage for trace_web_source_location; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

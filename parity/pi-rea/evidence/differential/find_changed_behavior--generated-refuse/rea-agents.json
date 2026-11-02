@@ -1,0 +1,28 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Provide at least one comparison Evidence item.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for find_changed_behavior; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "find_changed_behavior"
+    },
+    "details": {
+      "operation": "find_changed_behavior",
+      "issues": [
+        {
+          "path": [
+            "comparisons"
+          ],
+          "reason": "out_of_range",
+          "minimum": 1
+        }
+      ]
+    }
+  }
+}

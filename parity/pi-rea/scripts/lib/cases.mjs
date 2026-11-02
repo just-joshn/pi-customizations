@@ -14,8 +14,9 @@ import {
   ensureWebPageCaptureFixture,
   resetWebScriptOutputDirectory,
 } from './ensure-fixtures.mjs';
+import { generatedRefuseCases } from './generated-refuse-cases.mjs';
 import { createSession, openTarget, piHandlers } from './invoke-pi-rea.mjs';
-import { classifyOracle, invokeReaAgentsCli, invokeReaAgentsMcp, invokeReaAgentsMcpSession } from './invoke-rea-agents.mjs';
+import { classifyOracle, invokeReaAgentsCli, invokeReaAgentsMcp, invokeReaAgentsMcpSession, withReaAgentsMcpSession } from './invoke-rea-agents.mjs';
 import { NOTEPAD_APP, TARGETS, target } from './paths.mjs';
 
 const pathWithoutAndroidAdb = () => {
@@ -36,6 +37,48 @@ const OBSERVE_NATIVE_ARGS = {
 };
 
 const READ_BYTES_ARGS = { address: '0x0', length: 1 };
+
+const UNKNOWN_DRAFT = {
+  question: 'Does the fixture binary embed its build settings?',
+  severity: 'medium',
+  domain: 'fixture-go-macho',
+  required_authority: 'shipped-artifact',
+  required_confidence: 'observed',
+  required_environment: { id: null, platform: null, architecture: null, isolation: null },
+  recommended_probes: [{ operation: 'inspect_macho', rationale: 'Read embedded build metadata from the shipped artifact.' }],
+  relationships: [],
+  supporting_evidence_ids: [],
+  contradicting_evidence_ids: [],
+};
+
+const ROUNDTRIP_BUNDLE_PATH = join(tmpdir(), 'pi-rea-diff-roundtrip-bundle.json');
+
+const piUnknownSequence = async (steps) => {
+  const session = createSession();
+  let last;
+  for (const step of steps) last = await step(session);
+  return last;
+};
+
+const oracleUnknownSequence = (steps, env) =>
+  withReaAgentsMcpSession(async (call) => {
+    let last;
+    for (const step of steps) last = await step(call);
+    return { kind: last.kind, body: last.body };
+  }, env === undefined ? {} : { env });
+
+const withByteEntropyEvidence = async (call) => {
+  const inspected = await call('inspect_byte_entropy', { path: target('minimal-elf.bin'), block_size: 256 });
+  if (inspected.kind !== 'evidence') throw new Error(`inspect_byte_entropy did not return Evidence: ${JSON.stringify(inspected.body).slice(0, 300)}`);
+  return inspected.body;
+};
+
+const piByteEntropyEvidence = async (session) => {
+  const result = await piHandlers.inspect_byte_entropy(session, { path: target('minimal-elf.bin'), block_size: 256 });
+  const body = result.body;
+  if (result.kind !== 'evidence' || typeof body?.evidence_id !== 'string') throw new Error(`pi inspect_byte_entropy did not return Evidence: ${JSON.stringify(body).slice(0, 300)}`);
+  return body;
+};
 
 let cachedGoEvidence = null;
 const goBinaryEvidence = async () => {
@@ -206,10 +249,218 @@ const sessionKernelCases = () => [
     runPiRea: async () => piHandlers.close_binary(createSession(), { snapshot_path: '/tmp/pi-rea-snapshot.json' }),
     runOracle: () => oracleMcp('close_binary', { snapshot_path: '/tmp/pi-rea-snapshot.json' }),
   },
+  {
+    id: 'list_unknowns--fresh',
+    tool: 'list_unknowns',
+    runPiRea: async () => piHandlers.list_unknowns(createSession(), {}),
+    runOracle: () => oracleMcp('list_unknowns', {}),
+  },
+  {
+    id: 'record_unknown--fixture-question',
+    tool: 'record_unknown',
+    runPiRea: async () => piHandlers.record_unknown(createSession(), UNKNOWN_DRAFT),
+    runOracle: () => oracleMcp('record_unknown', UNKNOWN_DRAFT),
+  },
+  {
+    id: 'update_unknown--resolve',
+    tool: 'update_unknown',
+    runPiRea: async () => {
+      const session = createSession();
+      const recorded = await piHandlers.record_unknown(session, UNKNOWN_DRAFT);
+      const first = recorded.body['result'];
+      return piHandlers.update_unknown(session, {
+        unknown_id: first['unknown_id'],
+        expected_revision: first['revision'],
+        status: 'resolved',
+        severity: UNKNOWN_DRAFT.severity,
+        supporting_evidence_ids: [],
+        contradicting_evidence_ids: [],
+        required_authority: UNKNOWN_DRAFT.required_authority,
+        required_confidence: UNKNOWN_DRAFT.required_confidence,
+        required_environment: UNKNOWN_DRAFT.required_environment,
+        recommended_probes: UNKNOWN_DRAFT.recommended_probes,
+        relationships: UNKNOWN_DRAFT.relationships,
+        resolution: { disposition: 'withdrawn', rationale: 'The question is out of scope for this investigation.', evidence_ids: [] },
+      });
+    },
+    runOracle: () =>
+      withReaAgentsMcpSession(async (call) => {
+        const recorded = await call('record_unknown', UNKNOWN_DRAFT);
+        const first = recorded.body['result'];
+        const updated = await call('update_unknown', {
+          unknown_id: first['unknown_id'],
+          expected_revision: first['revision'],
+          status: 'resolved',
+          severity: UNKNOWN_DRAFT.severity,
+          supporting_evidence_ids: [],
+          contradicting_evidence_ids: [],
+          required_authority: UNKNOWN_DRAFT.required_authority,
+          required_confidence: UNKNOWN_DRAFT.required_confidence,
+          required_environment: UNKNOWN_DRAFT.required_environment,
+          recommended_probes: UNKNOWN_DRAFT.recommended_probes,
+          relationships: UNKNOWN_DRAFT.relationships,
+          resolution: { disposition: 'withdrawn', rationale: 'The question is out of scope for this investigation.', evidence_ids: [] },
+        });
+        return { kind: updated.kind, body: updated.body };
+      }),
+  },
+  {
+    id: 'get_evidence_bundle--after-byte-entropy',
+    tool: 'get_evidence_bundle',
+    runPiRea: async () => {
+      const session = createSession();
+      await piByteEntropyEvidence(session);
+      return piHandlers.get_evidence_bundle(session, {});
+    },
+    runOracle: () =>
+      withReaAgentsMcpSession(async (call) => {
+        await withByteEntropyEvidence(call);
+        const bundle = await call('get_evidence_bundle', {});
+        return { kind: bundle.kind, body: bundle.body };
+      }),
+  },
+  {
+    id: 'export_evidence_bundle--roundtrip-path',
+    tool: 'export_evidence_bundle',
+    runPiRea: async () => {
+      rmSync(ROUNDTRIP_BUNDLE_PATH, { force: true });
+      const session = createSession();
+      await piByteEntropyEvidence(session);
+      return piHandlers.export_evidence_bundle(session, { path: ROUNDTRIP_BUNDLE_PATH, overwrite: true });
+    },
+    runOracle: () =>
+      withReaAgentsMcpSession(async (call) => {
+        await withByteEntropyEvidence(call);
+        const exported = await call('export_evidence_bundle', { path: ROUNDTRIP_BUNDLE_PATH, overwrite: true });
+        return { kind: exported.kind, body: exported.body };
+      }),
+  },
+  {
+    id: 'import_evidence_bundle--roundtrip',
+    tool: 'import_evidence_bundle',
+    runPiRea: async () => {
+      rmSync(ROUNDTRIP_BUNDLE_PATH, { force: true });
+      const session = createSession();
+      await piByteEntropyEvidence(session);
+      await piHandlers.export_evidence_bundle(session, { path: ROUNDTRIP_BUNDLE_PATH, overwrite: true });
+      return piHandlers.import_evidence_bundle(session, { path: ROUNDTRIP_BUNDLE_PATH });
+    },
+    runOracle: () =>
+      withReaAgentsMcpSession(async (call) => {
+        await withByteEntropyEvidence(call);
+        await call('export_evidence_bundle', { path: ROUNDTRIP_BUNDLE_PATH, overwrite: true });
+        const imported = await call('import_evidence_bundle', { path: ROUNDTRIP_BUNDLE_PATH });
+        return { kind: imported.kind, body: imported.body };
+      }),
+  },
+  {
+    id: 'inspect_analysis_view--summary',
+    tool: 'inspect_analysis_view',
+    runPiRea: async () => {
+      const session = createSession();
+      const evidence = await piByteEntropyEvidence(session);
+      return piHandlers.inspect_analysis_view(session, {
+        source: { kind: 'retained-evidence', evidence_id: evidence.evidence_id },
+        view: { kind: 'summary' },
+      });
+    },
+    runOracle: () =>
+      withReaAgentsMcpSession(async (call) => {
+        const evidence = await withByteEntropyEvidence(call);
+        const view = await call('inspect_analysis_view', {
+          source: { kind: 'retained-evidence', evidence_id: evidence.evidence_id },
+          view: { kind: 'summary' },
+        });
+        return { kind: view.kind, body: view.body };
+      }),
+  },
+];
+
+const CASED_TOOLS = [
+  'analyze_javascript_application',
+  'binary_session',
+  'close_binary',
+  'compare_application_versions',
+  'compare_artifacts',
+  'compare_bundles',
+  'compare_functions',
+  'compare_javascript_export_shapes',
+  'compare_managed_members',
+  'compare_source_to_bundle',
+  'decode_interface_builder',
+  'decode_signal_recording',
+  'demangle_swift',
+  'execute_rizin_command',
+  'export_environment_bundle',
+  'export_web_scripts',
+  'extract_artifact',
+  'goto_address',
+  'identify_flutter_build',
+  'inspect_analysis_settings',
+  'inspect_android_class',
+  'inspect_apk_signature',
+  'inspect_apktool_client',
+  'inspect_apple_ips',
+  'inspect_artifact',
+  'inspect_asset_catalog',
+  'inspect_binary_layout',
+  'inspect_byte_entropy',
+  'inspect_dart_aot',
+  'inspect_desktop_application',
+  'inspect_devicetree',
+  'inspect_electron_fuses',
+  'inspect_elf_notes',
+  'inspect_erlang_beam',
+  'inspect_evm_interface',
+  'inspect_firmware_regions',
+  'inspect_go_binary',
+  'inspect_gpu_code_objects',
+  'inspect_kernel_module',
+  'inspect_keyed_archive',
+  'inspect_macho',
+  'inspect_managed_artifact',
+  'inspect_managed_members',
+  'inspect_model_artifact',
+  'inspect_native_exports',
+  'inspect_packet_capture',
+  'inspect_packet_fields',
+  'inspect_pcap_capture',
+  'inspect_pcap_client',
+  'inspect_pe_certificates',
+  'inspect_pe_imports',
+  'inspect_pe_load_config',
+  'inspect_pe_resources',
+  'inspect_plist',
+  'inspect_python_pyc',
+  'inspect_recorded_crash',
+  'inspect_rust_binary',
+  'inspect_signal_decoders',
+  'inspect_signature',
+  'inspect_sqlite_database',
+  'inspect_wasm_artifact',
+  'inspect_web_network_capture',
+  'inspect_with_objdump',
+  'list_adb_devices',
+  'list_architectures',
+  'list_browser_targets',
+  'list_cutter_sessions',
+  'list_frida_devices',
+  'list_jeb_units',
+  'observe_native_calls',
+  'open_binary',
+  'open_bundle_resources',
+  'project_apple_application_graph',
+  'read_bytes',
+  'recover_javascript_sources',
+  'start_frida_session',
+  'start_gdb_session',
+  'update_analysis_settings',
+  'verify_unknown_resolution',
 ];
 
 /** @type {DiffCase[]} */
 export const CASES = [
+  ...generatedRefuseCases(CASED_TOOLS),
   peImportCase('inspect_pe_imports--budget-dlls', 'twoDll', { max_dlls: 1 }),
   peImportCase('inspect_pe_imports--unreadable-name', 'badName'),
   peImportCase('inspect_pe_imports--unmapped-directory', 'badDirectory'),

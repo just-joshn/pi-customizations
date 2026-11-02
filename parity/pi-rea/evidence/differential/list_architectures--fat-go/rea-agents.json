@@ -92,6 +92,6 @@
   },
   "meta": {
     "command": "list-architectures",
-    "duration": "1086ms"
+    "duration": "986ms"
   }
 }
