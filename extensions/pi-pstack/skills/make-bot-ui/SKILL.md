@@ -20,7 +20,7 @@ Call `subscribe_webhook`. Set these fields:
 The routine slug is the kebab-case form of the name.
 The result gives the routine URL, `http://127.0.0.1:<port>/routines/<slug>`, and the credential file path. Use the path the result names, such as `~/.pi/agent/pstack/routines/<slug>/credentials.json` (`PI_CODING_AGENT_DIR` moves it).
 The result does not include the sender key.
-The routine lives in this Pi process: it stops when Pi exits and expires at the `expiresAt` the result names. Keep this Pi session running while the UI is in use, and check it with `list_subscriptions`.
+The routine targets the owning Pi session and expires at the `expiresAt` the result names. The durable supervisor keeps the listener available after the chat exits. Wakes received while the owner is offline park until that session is restored. Keep the owner running for immediate UI actions, and check the routine with `list_subscriptions`. A timer with `sessionStrategy: "new_session"` can start detached work while the owner is offline. A webhook does not use that strategy.
 
 ## Copy the URL and the sender key
 
@@ -55,7 +55,7 @@ The server POSTs to the routine URL with:
 - timeout: 8 seconds
 - one try, no retry
 
-The POST returns HTTP 200 when the routine wakes.
+The POST returns HTTP 200 when the routine accepts the event. This does not prove that the owning session has handled it.
 Before you tell the user that the UI is live, probe once with a harmless payload.
 Use an action that the prompt ignores.
 

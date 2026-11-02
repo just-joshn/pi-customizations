@@ -1,5 +1,7 @@
 # Software architecture reconstruction: pstack 0.15.36 and dependencies
 
+This is a historical static-analysis record, not proof of current full parity. The repository's `parity/pi-pstack-sar/requirements.md` maps the later SAR report to implementations and checks. Source provenance is published in `package.json.pstackSource`. A passing resource inventory does not prove workflow execution or remote-service behavior.
+
 ## Goal
 
 Reconstruct the software architecture of `pstack` `0.15.36` and all of its dependencies with the REA MCP server, then map every upstream capability and dependency to Pi's native extension mechanisms in `pi-pstack` with zero dependencies on the upstream `pstack` plugin.
@@ -55,7 +57,7 @@ pstack 0.15.36
    - `worktree-audit.sh`: bash script using `git`, `rg`, `jq`, and BSD or GNU `stat` and `date` to classify git worktrees against Pi session and subagent transcript activity.
 2. **`skills/statechart/scripts/` (`ev_5068b39b821b4f8848661475ed4d4e141343d183785cd0d1f48cc4c560700b24`)**:
    - `statechart` wrapper, `statechart.ts`, `worker.ts`, `pipeline.ts`, `ir.ts`, `run.ts` (`ev_e43256ff8736be8e4ab9dc0a065c5acc134048f557bf3a9bd0b78ce537a1bc1b`), `frontends/`, `passes/`, and `backends/`.
-   - `run.ts` (`ev_b2c06c4cca93538bcb8b18f0570627f9149c127b69b3055b7a4d174dca19e6fd`) resolves Java (`java@temurin-25` through `mise` or `JAVA`) and `tla2tools.jar` (`TLA2TOOLS`), invokes `tlc2.TLC`, parses state graphs and counterexample traces into `ir.ts`, and renders terminal, SVG, and HTML statecharts.
+   - `run.ts` (`ev_b2c06c4cca93538bcb8b18f0570627f9149c127b69b3055b7a4d174dca19e6fd`) resolves Java (`java@temurin-25` through `mise` or `JAVA`) and `tla2tools.jar` (`TLA2TOOLS`), invokes `tlc2.TLC`, parses state graphs and counterexample traces into `ir.ts`, and produces Mermaid charts, reports, and plain-text TLC output. The separate rendering guide and tests use Pele and Mermaid.
 3. **`skills/pr-review-canvas/` (`ev_2c98abedf7c1c05212d64174a87f0039f79218f72f4b0f1def35f6f3c2327ac9`)**:
    - `renderer.js` (`ev_161a445223f452c7cc7f3104399476f625137fc93a3fc5fe4b9bd485742185c4`), `template.html`, and `styles.css` render an interactive diff review canvas in the browser with zero npm dependencies.
 4. **`skills/show-me-your-work/scripts/log.sh`**:
@@ -83,10 +85,10 @@ REA analysis of `pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2ab
 
 1. Every `pstack` `0.15.36` skill (58) and agent (2) exists under `pi-pstack`.
 2. Every `team-kit` `1.2.0` skill (18), agent (2), and rule (2, as skills plus always-applied host prompt rules) plus `create-skill` (1) exists under `pi-pstack` (79 total skills, 4 agent files).
-3. `pi-pstack` has zero runtime, manifest, script, or verification-gate dependencies on an upstream `pstack` plugin checkout or cache (`RES-011` in `test/resources.test.ts` and `zero-cursor-pstack-dependencies` in `parity/scripts/check-parity-predicate.mjs`).
+3. `pi-pstack` has no runtime dependency or synchronization against an upstream plugin checkout or cache. Normal package checks need no upstream installation. Passive provenance and optional source-comparison audits do not load upstream code.
 4. Every host mechanism named in playbooks runs on Pi's native extension APIs (`ExtensionAPI`, `parseSessionEntries`, `SessionManager`, `stripFrontmatter`, `detectSupportedImageMimeTypeFromFile`, `truncateHead`, `createBashTool`, `registerMessageRenderer`, `registerTool`, `registerCommand`).
-5. `bun run typecheck`, `bun run test`, `node parity/scripts/check-parity-predicate.mjs`, and `node scripts/check-pi-mechanisms.mjs` pass.
+5. Package checks run with `bun run typecheck` and `bun run test` from the package directory. `bun run test:statechart` additionally runs the bundled statechart suite. Set `TLA2TOOLS` and `JAVA` to run real TLC cases. Repository-only checks such as `node scripts/check-pi-mechanisms.mjs` run from the repository root and are not shipped package commands.
 
 ## REA coverage notes
 
-Static JavaScript and TypeScript semantic graphs report bounded unknowns for dynamic property lookups and cross-function value flows (3,303 in `poteto-mode/scripts`, 12,803 in `statechart/scripts`, 356 in `pr-review-canvas`, and 7,204 in `pi-pstack/src`), and 1 unanalyzed inline script in `pr-review-canvas/template.html`. Runtime behavior is verified by the 38 Vitest test files in `test/`. See [`native-gaps.md`](native-gaps.md) for the remaining lower-level Pi 1.4.0 surfaces.
+Static JavaScript and TypeScript semantic graphs report bounded unknowns for dynamic property lookups and cross-function value flows (3,303 in `poteto-mode/scripts`, 12,803 in `statechart/scripts`, 356 in `pr-review-canvas`, and 7,204 in `pi-pstack/src`), and 1 unanalyzed inline script in `pr-review-canvas/template.html`. The Vitest tests cover their asserted extension contracts. They do not prove all runtime behavior, external services, or the separately executed statechart suite. See [`native-gaps.md`](native-gaps.md) for the remaining lower-level Pi 1.4.0 surfaces.
