@@ -51,6 +51,16 @@ A Claude Haiku 4.5 evidence audit checked the logs and decision trail at `8541fe
 - `git diff --check` reports space-before-tab context lines inside the Antigravity unified patch. Those spaces are unified-diff context markers followed by upstream tab indentation.
 - No live model-dependent pstack journey or real OAuth exchange was run. Fixture-backed discovery and synthetic inference do not prove service acceptance.
 
+## Release preparation
+
+The original `update-pi-extensions` branch was pushed without rewriting its existing history. It contains earlier pi-rea work outside this upgrade. PR [145](https://github.com/just-joshn/pi-customizations/pull/145) therefore uses `release/pi-1.5.0-extensions`, created from `main` with only the upgrade and release commits. The PR diff excludes pi-rea.
+
+The five package verification targets, toolchain, native mechanisms, and fresh-install checks were rerun successfully in the clean PR worktree. Release metadata checks used Pi 1.5's actual changelog parser and confirmed that it selects every new versioned entry. Logs are `/tmp/pi-150-upgrade/pr-release-verify.log` and `/tmp/pi-150-upgrade/pr-release-metadata.log`.
+
+Host-owned Pi 1.5 changes, including self-update commands, built-in model additions, rendering optimizations, and MCP OAuth registration, remain host-owned. They do not require extension-specific replacements. The upgrade retains host peers so the extensions use those host mechanisms.
+
+GitHub accepted both branch pushes but reported bypassed repository rules, including unsigned commits and the expected verification check. No signing or branch-protection compliance is claimed, and no merge or publication was performed.
+
 ## Native mechanisms retained
 
 Pi 1.5 still lacks the complete RPC process controls, attached-skill formatter, target-ID fork API, and pure exported workspace-folder helper required by pstack. Maintainer's environment-isolating command adapter remains necessary because `ExecOptions` adds `maxBuffer` but still has no `env`. Antigravity's Cloud Code transport still requires its documented adapter. The package native-gap documents record these boundaries.
