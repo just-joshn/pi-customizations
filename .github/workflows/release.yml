@@ -40,7 +40,7 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 30
     env:
       HAS_NPM_TOKEN: ${{ secrets.NPM_TOKEN != '' }}
@@ -77,9 +77,21 @@ jobs:
             fi
           done
           echo "packages=${unreleased% }" >> "$GITHUB_OUTPUT"
+      - name: Install transcript search tool
+        if: contains(steps.detect.outputs.packages, 'extensions/pi-pstack')
+        run: brew install ripgrep
       - name: Install workspace dependencies
         if: steps.detect.outputs.packages != ''
         run: bun install --frozen-lockfile
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+        if: contains(steps.detect.outputs.packages, 'extensions/pi-rea')
+        with:
+          go-version: '1.26.8'
+          cache: false
+      - name: Prepare native analyzer fixtures
+        if: contains(steps.detect.outputs.packages, 'extensions/pi-rea')
+        run: |
+          bun -e "import { ensureGoMachoFixtures, ensureMinimalElfCoreFixture } from './parity/pi-rea/scripts/lib/ensure-fixtures.mjs'; ensureGoMachoFixtures(); ensureMinimalElfCoreFixture();"
       - name: Configure npm token auth (fallback path)
         if: env.HAS_NPM_TOKEN == 'true'
         run: |
@@ -126,7 +138,7 @@ jobs:
             )
             rc=$?
             if [ "$rc" -ne 0 ]; then
-              echo "::error::release failed for ${name}@${version} (exit ${rc}); configure its trusted publisher or set the NPM_TOKEN secret - see docs/releases.md"
+              echo "::error::release failed for ${name}@${version} (exit ${rc}); inspect the preceding typecheck, test, publish, or tag error"
               failed="${failed}${name} "
             else
               echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) as tag \`${tag}\`" >> "$GITHUB_STEP_SUMMARY"

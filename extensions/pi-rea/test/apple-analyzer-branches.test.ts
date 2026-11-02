@@ -25,7 +25,7 @@ import { inspectDesktopApplication } from '../src/tools/desktop-application-tool
 import { decodeInterfaceBuilder } from '../src/tools/interface-builder-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
 import { inspectSignature } from '../src/tools/signature-tools.ts';
-import { fixturePath } from './support/fixtures.ts';
+import { fixtureCdhash, fixturePath } from './support/fixtures.ts';
 import { tempTargets } from './support/temp-targets.ts';
 
 const spawnControl = vi.hoisted(() => ({ impl: undefined as (() => unknown) | undefined }));
@@ -1573,7 +1573,7 @@ test('inspect_signature records the signed Mach-O target', async () => {
   expect(record['signed']).toBe(true);
   expect(record['identifier']).toBe('a.out');
   expect(record['format']).toBe('Mach-O thin (arm64)');
-  expect(record['cdhashes']).toStrictEqual(['d8864aa4c955875d2575294cd891f196f9fa7abd']);
+  expect(record['cdhashes']).toStrictEqual([fixtureCdhash('targets/fixture-go-macho')]);
   expect((record['provenance'] as { tool: string }[])[0]?.tool).toBe('pi-rea/macho-signature-parser');
   expect(session.evidence.list()[0]?.parameters).toStrictEqual({ input_path: path, native_command_timeout_ms: 5_000 });
   expect(session.evidence.size).toBe(1);

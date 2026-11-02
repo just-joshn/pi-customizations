@@ -20,6 +20,13 @@ release flow and the one-time setup each package needs.
    Java and a downloaded `tla2tools.jar`; release gates run each package's
    own `test` script.
 
+Release gates run on ARM macOS because the native analyzer tests require
+Apple's `codesign`, `swift-demangle`, and `lipo` tools. The workflow builds
+the ignored Go Mach-O and crash fixtures before running the tests.
+`release-checks.yml` runs the same package gates on pull requests without
+publishing or accessing npm credentials. Linux sandbox verification remains
+in the separate pi-pstack workflow.
+
 Publishing uses npm's trusted publishing (OIDC) flow from
 <https://docs.npmjs.com/trusted-publishers>: the workflow grants
 `id-token: write`, and `npm publish` authenticates with the runner's
