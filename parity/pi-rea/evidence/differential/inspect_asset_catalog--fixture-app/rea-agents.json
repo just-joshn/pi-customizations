@@ -30,6 +30,6 @@
   },
   "meta": {
     "command": "inspect-asset-catalog",
-    "duration": "165ms"
+    "duration": "155ms"
   }
 }

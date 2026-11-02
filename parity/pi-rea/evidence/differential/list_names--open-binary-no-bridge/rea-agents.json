@@ -29,8 +29,8 @@
             "native_decompiler_path": null,
             "application_properties_path": null,
             "provider_version": null,
-            "java_command": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java",
-            "java_home": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS",
+            "java_command": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS/bin/java",
+            "java_home": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS",
             "java_version": null,
             "java_vm_name": null,
             "java_os_arch": null,
@@ -84,7 +84,7 @@
                 "name": "java",
                 "ok": false,
                 "code": "version_unresolved",
-                "detail": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java; application.properties is unavailable"
+                "detail": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS/bin/java; application.properties is unavailable"
               }
             ]
           }

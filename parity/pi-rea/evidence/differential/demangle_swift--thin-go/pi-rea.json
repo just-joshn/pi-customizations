@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_6f19dc20f21b3e4b709096ea0e7fc5b0b3d4739ad14029ce3602eb5a9e43c85a",
+    "evidence_id": "ev_c6a2a61209f5a720ef3361dc1c5d41ee84da46e6dd4e6a3658f14fee1d4e13fd",
+    "relationship_coverage": null,
     "subject": {
       "name": "fixture-go-macho",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

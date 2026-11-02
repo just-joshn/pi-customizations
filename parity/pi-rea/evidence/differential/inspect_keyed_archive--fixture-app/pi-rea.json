@@ -1,12 +1,13 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_240b73a1488c7270793ad6c775a90bef8a1753189f2bcafbdedd6537de9e661d",
+    "evidence_id": "ev_1e73a52f07dfa29546cfca823eb6d4dfb31b72e9c315fc6825ecf5a9dc87d03f",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

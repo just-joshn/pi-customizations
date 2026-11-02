@@ -1,0 +1,28 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for capture_process_scenario; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "capture_process_scenario"
+    },
+    "details": {
+      "operation": "capture_process_scenario",
+      "issues": [
+        {
+          "path": [
+            "executable"
+          ],
+          "reason": "invalid_value",
+          "message": "executable could not be resolved: pi-rea-executable; checked /Users/josh-desktop/.local/share/mise/installs/node/26.13.0/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/src/personal/pi-customizations/node_modules/.bin/pi-rea-executable (ENOENT); /Users/josh-desktop/src/personal/node_modules/.bin/pi-rea-executable (ENOENT); /Users/josh-desktop/src/node_modules/.bin/pi-rea-executable (ENOENT); /Users/josh-desktop/node_modules/.bin/pi-rea-executable (ENOENT); /Users/node_modules/.bin/pi-rea-executable (ENOENT); /node_modules/.bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/node/26.13.0/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/node/lts/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/bun/1.4.2/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.pi/agent/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.grok/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/pnpm/latest/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/node/lts/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/java/temurin-25/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.cargo/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/python/latest/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/bun/latest/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/installs/go/1.26.8/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/share/mise/shims/pi-rea-executable (ENOENT); /opt/homebrew/opt/uutils-findutils/libexec/uubin/pi-rea-executable (ENOENT); /opt/homebrew/opt/uutils-diffutils/libexec/uubin/pi-rea-executable (ENOENT); /opt/homebrew/opt/uutils-coreutils/libexec/uubin/pi-rea-executable (ENOENT); /Users/josh-desktop/.local/bin/pi-rea-executable (ENOENT); /opt/homebrew/bin/pi-rea-executable (ENOENT); /opt/homebrew/sbin/pi-rea-executable (ENOENT); /usr/local/bin/pi-rea-executable (ENOENT); /System/Cryptexes/App/usr/bin/pi-rea-executable (ENOENT); /usr/bin/pi-rea-executable (ENOENT); /bin/pi-rea-executable (ENOENT); /usr/sbin/pi-rea-executable (ENOENT); /sbin/pi-rea-executable (ENOENT); /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/pi-rea-executable (ENOENT); /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/pi-rea-executable (ENOENT); /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/pi-rea-executable (ENOENT); /pkg/env/global/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/Library/Android/sdk/platform-tools/pi-rea-executable (ENOENT); /Users/josh-desktop/Library/Android/sdk/emulator/pi-rea-executable (ENOENT); /Users/josh-desktop/Library/Android/sdk/cmdline-tools/latest/bin/pi-rea-executable (ENOENT); /Users/josh-desktop/.orbstack/bin/pi-rea-executable (ENOENT)"
+        }
+      ]
+    }
+  }
+}

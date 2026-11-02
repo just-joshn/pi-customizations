@@ -1,0 +1,14 @@
+{
+  "id": "instrument_with_frida--generated-refuse",
+  "tool": "instrument_with_frida",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

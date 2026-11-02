@@ -191,8 +191,8 @@
               "native_decompiler_path": null,
               "application_properties_path": null,
               "provider_version": null,
-              "java_command": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java",
-              "java_home": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS",
+              "java_command": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS/bin/java",
+              "java_home": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS",
               "java_version": null,
               "java_vm_name": null,
               "java_os_arch": null,
@@ -246,7 +246,7 @@
                   "name": "java",
                   "ok": false,
                   "code": "version_unresolved",
-                  "detail": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.4+101.0.LTS/bin/java; application.properties is unavailable"
+                  "detail": "/Users/josh-desktop/.local/share/mise/installs/java/temurin-25.0.5+8.0.LTS/bin/java; application.properties is unavailable"
                 }
               ]
             }
@@ -2742,14 +2742,14 @@
         "package": {
           "name": "rea-agents",
           "version": "6.8.0",
-          "root_path": "/Users/josh-desktop/.npm/_npx/da7caeae9db9c589/node_modules/rea-agents",
+          "root_path": "/Users/josh-desktop/.local/share/mise/installs/node/26.13.0/lib/node_modules/rea-agents",
           "build_commit": null
         },
         "server": {
           "name": "rea",
           "version": "6.8.0",
-          "started_at": "2026-10-28T21:41:32.335Z",
-          "command_path": "/Users/josh-desktop/.npm/_npx/da7caeae9db9c589/node_modules/.bin/rea"
+          "started_at": "2026-11-02T17:34:33.665Z",
+          "command_path": "/Users/josh-desktop/.local/share/mise/installs/node/26.13.0/bin/rea"
         },
         "sdk": {
           "server": "2.3.1",

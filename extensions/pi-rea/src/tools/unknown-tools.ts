@@ -1,5 +1,5 @@
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import { executionFailure, invalidRequest } from '../contract/errors.ts';
+import { analysisInputInvalid, executionFailure, invalidRequest } from '../contract/errors.ts';
 import { operationResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { UNKNOWN_ID_PATTERN } from '../session/evidence.ts';
@@ -10,16 +10,26 @@ export interface ListUnknownsParams {
   readonly domain?: string;
   readonly severity?: UnknownSeverity;
   readonly status?: UnknownStatus;
+  readonly offset?: number;
+  readonly limit?: number;
 }
 
 export const listUnknowns = (session: ReaSession, params: ListUnknownsParams): AgentToolResult<unknown> => {
-  const items = session.unknowns.list().filter((record) => {
-    if (params.domain !== undefined && record.domain !== params.domain) return false;
-    if (params.severity !== undefined && record.severity !== params.severity) return false;
-    if (params.status !== undefined && record.status !== params.status) return false;
-    return true;
-  });
-  return operationResult({ items, total: items.length });
+  const offset = params.offset ?? 0;
+  const matching = session.unknowns
+    .list()
+    .filter((record) => {
+      if (params.domain !== undefined && record.domain !== params.domain) return false;
+      if (params.severity !== undefined && record.severity !== params.severity) return false;
+      if (params.status !== undefined && record.status !== params.status) return false;
+      return true;
+    })
+    .sort((left, right) => (left.unknown_id < right.unknown_id ? -1 : left.unknown_id > right.unknown_id ? 1 : 0));
+  const start = Math.min(offset, matching.length);
+  const end = params.limit === undefined ? undefined : start + Math.min(params.limit, matching.length - start);
+  const items = matching.slice(start, end);
+  const nextOffset = offset <= matching.length && start + items.length < matching.length ? start + items.length : null;
+  return operationResult({ items, total: matching.length, offset, next_offset: nextOffset });
 };
 
 export const recordUnknown = (session: ReaSession, params: unknown): AgentToolResult<unknown> => {
@@ -46,6 +56,9 @@ export interface UpdateUnknownParams extends Partial<UnknownDraft> {
 }
 
 export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams): AgentToolResult<unknown> => {
+  if ((params.status === 'resolved') !== (params.resolution !== null && params.resolution !== undefined)) {
+    throw analysisInputInvalid('update_unknown', [{ path: ['resolution'], reason: 'invalid_value', message: 'Only resolved unknowns carry a resolution' }]);
+  }
   if (typeof params.unknown_id !== 'string' || typeof params.expected_revision !== 'number') {
     throw invalidRequest('update_unknown requires unknown_id and expected_revision.', {
       parameters: ['unknown_id', 'expected_revision'],
@@ -78,11 +91,29 @@ export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams):
   };
   assertEvidenceReferencesExist(session, draft);
   assertResolution(session, params.resolution);
-  const mutationEvidence = unknownMutationEvidence('update', draft, {
-    unknown_id: params.unknown_id,
-    revision: existing.revision + 1,
-    status: params.status,
-  });
+  const mutationEvidence = unknownMutationEvidence(
+    'update',
+    draft,
+    {
+      unknown_id: params.unknown_id,
+      revision: existing.revision + 1,
+      status: params.status,
+    },
+    {
+      unknown_id: params.unknown_id,
+      expected_revision: params.expected_revision,
+      status: params.status,
+      severity: params.severity ?? existing.severity,
+      supporting_evidence_ids: params.supporting_evidence_ids ?? existing.supporting_evidence_ids,
+      contradicting_evidence_ids: params.contradicting_evidence_ids ?? existing.contradicting_evidence_ids,
+      required_authority: params.required_authority ?? existing.required_authority,
+      required_confidence: params.required_confidence ?? existing.required_confidence,
+      required_environment: params.required_environment ?? existing.required_environment,
+      recommended_probes: params.recommended_probes ?? existing.recommended_probes,
+      relationships: params.relationships ?? existing.relationships,
+      resolution: params.resolution ?? null,
+    },
+  );
   operationResult({ mutation: mutationEvidence });
   const mutation = session.evidence.record(mutationEvidence);
   const record = session.unknowns.update(params.unknown_id, params.expected_revision, changes, mutation.evidence_id);

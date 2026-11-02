@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_925357d2b27d413f725e0082d6915ace7b6e0e3698749704a410d3f25bbd171c",
+    "evidence_id": "ev_469a2d866266790aefe4f24b5d8cadd66d00bca5da21357eb17fa86741c8eb4f",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-dotnet-workflows",
@@ -12,21 +13,21 @@
     "predicate_type": "rea.managed-member-comparison",
     "operation": "compare_managed_members",
     "parameters": {
-      "left_evidence_id": "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
-      "right_evidence_id": "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659",
+      "left_evidence_id": "ev_38c8ea4fbb4c457ada32725418968bb7e630180813fca974ec06affc5d2ceb22",
+      "right_evidence_id": "ev_5d9c1265a2b225b1479708be51f136d2a0b08a0b888c68f10df2468febfe1249",
       "left_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe.exe",
       "right_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/pe/fixture-go-pe-alt.exe"
     },
     "raw_result": null,
     "normalized_result": {
-      "comparison_id": "mmc_fb6a1c4ea010caee8fc4a8baba1e64ae118f904f69ef4c0eb62158049df4315a",
+      "comparison_id": "mmc_bf60820eebb675c240e7b55f7ce1341e24f6e508ec03affe5d8f772d78f2ad97",
       "algorithm": {
         "name": "rea-managed-member-comparison",
         "token_identity": "build-local",
         "name_matching": "exact-signature-fallback"
       },
       "left": {
-        "evidence_id": "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
+        "evidence_id": "ev_38c8ea4fbb4c457ada32725418968bb7e630180813fca974ec06affc5d2ceb22",
         "artifact_sha256": "a0c15a15db4af6ff996224c2b7dd37bb646811d1b00d097fc2f363e7037675a6",
         "mvid": null,
         "module_name": null,
@@ -35,7 +36,7 @@
         "fields_total": 0
       },
       "right": {
-        "evidence_id": "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659",
+        "evidence_id": "ev_5d9c1265a2b225b1479708be51f136d2a0b08a0b888c68f10df2468febfe1249",
         "artifact_sha256": "cd5f7f498f090e6fd0bdd5afce939e75b19c89a18913d79b6694e7c53cf14870",
         "mvid": null,
         "module_name": null,
@@ -66,8 +67,8 @@
         "right_status": "unavailable"
       },
       "evidence_links": [
-        "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
-        "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659"
+        "ev_38c8ea4fbb4c457ada32725418968bb7e630180813fca974ec06affc5d2ceb22",
+        "ev_5d9c1265a2b225b1479708be51f136d2a0b08a0b888c68f10df2468febfe1249"
       ],
       "limitations": [
         "Metadata tokens are build-local coordinates; matched pairs are remaps, not persistent identities.",
@@ -103,8 +104,8 @@
       }
     ],
     "evidence_links": [
-      "ev_53190160737e726c6a071b8d2379da512731080967040bda2fa0dbf2f1f19907",
-      "ev_5900dd0f3af1d23776633d17384a6bdb4858ce4233e3e42ee171aa0ebbc23659"
+      "ev_38c8ea4fbb4c457ada32725418968bb7e630180813fca974ec06affc5d2ceb22",
+      "ev_5d9c1265a2b225b1479708be51f136d2a0b08a0b888c68f10df2468febfe1249"
     ]
   }
 }

@@ -32,6 +32,10 @@ export const invokeReaAgentsCli = (args, options = {}) =>
       stdio: ['ignore', 'pipe', 'pipe'],
       env: oracleEnv(options),
     });
+    const timeout = setTimeout(() => {
+      child.kill('SIGKILL');
+      reject(new Error(`rea-agents cli timed out after 120000ms: ${args.join(' ')}`));
+    }, 120_000);
     let stdout = '';
     let stderr = '';
     child.stdout.setEncoding('utf8');
@@ -42,8 +46,12 @@ export const invokeReaAgentsCli = (args, options = {}) =>
     child.stderr.on('data', (chunk) => {
       stderr += chunk;
     });
-    child.on('error', reject);
+    child.on('error', (error) => {
+      clearTimeout(timeout);
+      reject(error);
+    });
     child.on('close', (code) => {
+      clearTimeout(timeout);
       const trimmed = stdout.trim();
       if (trimmed === '') {
         reject(new Error(`rea-agents exited ${code} with empty stdout. stderr=${stderr.slice(0, 2000)}`));
@@ -112,14 +120,43 @@ const classifyMcpToolResponse = (response, stderr = '') => {
 export const invokeReaAgentsMcp = (toolName, args, options = {}) => invokeReaAgentsMcpSession([[toolName, args ?? {}]], options).then((results) => results[0]);
 
 export const invokeReaAgentsMcpSession = (calls, options = {}) =>
-  new Promise((resolve, reject) => {
+  withReaAgentsMcpSession(async (call) => {
+    const results = [];
+    for (const [toolName, args] of calls) results.push(await call(toolName, args));
+    return results;
+  }, options);
+
+export const withReaAgentsMcpSession = (run, options = {}) => {
+  const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 90_000;
+  return new Promise((resolve, reject) => {
     const child = spawn(NPX, ['-y', REA_PKG, '--mcp'], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: oracleEnv(options),
+      detached: process.platform !== 'win32',
     });
+    const killTree = (signal) => {
+      try {
+        if (child.pid !== undefined && process.platform !== 'win32') process.kill(-child.pid, signal);
+        else child.kill(signal);
+      } catch {
+        child.kill(signal);
+      }
+    };
     let buffer = '';
     const pending = new Map();
     let stderr = '';
+    const timeout = setTimeout(() => {
+      for (const pendingCall of pending.values()) pendingCall(undefined);
+      killTree('SIGKILL');
+      reject(new Error(`oracle mcp session timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    const finish = (settle) => (value) => {
+      clearTimeout(timeout);
+      killTree('SIGTERM');
+      settle(value);
+    };
+    const resolveOnce = finish(resolve);
+    const rejectOnce = finish((error) => reject(error));
     child.stderr.on('data', (chunk) => {
       stderr += chunk.toString();
     });
@@ -141,7 +178,7 @@ export const invokeReaAgentsMcpSession = (calls, options = {}) =>
         index = buffer.indexOf('\n');
       }
     });
-    const call = (id, method, params) =>
+    const call_ = (id, method, params) =>
       new Promise((res) => {
         pending.set(id, res);
         child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
@@ -149,24 +186,23 @@ export const invokeReaAgentsMcpSession = (calls, options = {}) =>
 
     (async () => {
       try {
-        await call(1, 'initialize', {
+        await call_(1, 'initialize', {
           protocolVersion: '2025-06-18',
           capabilities: {},
           clientInfo: { name: 'pi-rea-differential', version: '0.1.0' },
         });
         child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' })}\n`);
-        const results = [];
         let id = 2;
-        for (const [toolName, args] of calls) {
-          const response = await call(id, 'tools/call', { name: toolName, arguments: args ?? {} });
+        const call = (toolName, args) => {
+          const requestId = id;
           id += 1;
-          results.push(classifyMcpToolResponse(response, stderr));
-        }
-        child.kill('SIGTERM');
-        resolve(results);
+          return call_(requestId, 'tools/call', { name: toolName, arguments: args ?? {} }).then((response) => classifyMcpToolResponse(response, stderr));
+        };
+        const results = await run(call);
+        resolveOnce(results);
       } catch (error) {
-        child.kill('SIGTERM');
-        reject(error);
+        rejectOnce(error);
       }
-    })().catch(reject);
+    })().catch(rejectOnce);
   });
+};

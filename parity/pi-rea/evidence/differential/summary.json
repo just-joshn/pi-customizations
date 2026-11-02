@@ -1,7 +1,1276 @@
 {
-  "started_at": "2026-10-28T21:41:23.727Z",
+  "started_at": "2026-11-02T17:31:44.770Z",
   "rea_agents": "6.8.0",
   "cases": [
+    {
+      "id": "annotate_native_function--generated-refuse",
+      "tool": "annotate_native_function",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_load_image--generated-refuse",
+      "tool": "inspect_native_load_image",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_data_type--generated-refuse",
+      "tool": "inspect_native_data_type",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_instruction--generated-refuse",
+      "tool": "inspect_native_instruction",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "resolve_native_call_targets--generated-refuse",
+      "tool": "resolve_native_call_targets",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "address_name--generated-refuse",
+      "tool": "address_name",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "comment--generated-refuse",
+      "tool": "comment",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "current_address--generated-refuse",
+      "tool": "current_address",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "current_procedure--generated-refuse",
+      "tool": "current_procedure",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "current_document--generated-refuse",
+      "tool": "current_document",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inline_comment--generated-refuse",
+      "tool": "inline_comment",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_bookmarks--generated-refuse",
+      "tool": "list_bookmarks",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_documents--generated-refuse",
+      "tool": "list_documents",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_names--generated-refuse",
+      "tool": "list_names",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_procedures--generated-refuse",
+      "tool": "list_procedures",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_segments--generated-refuse",
+      "tool": "list_segments",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_strings--generated-refuse",
+      "tool": "list_strings",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "next_address--generated-refuse",
+      "tool": "next_address",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "prev_address--generated-refuse",
+      "tool": "prev_address",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_address--generated-refuse",
+      "tool": "procedure_address",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_assembly--generated-refuse",
+      "tool": "procedure_assembly",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_callees--generated-refuse",
+      "tool": "procedure_callees",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_callers--generated-refuse",
+      "tool": "procedure_callers",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_info--generated-refuse",
+      "tool": "procedure_info",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "read_function_instructions--generated-refuse",
+      "tool": "read_function_instructions",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "search_bytes--generated-refuse",
+      "tool": "search_bytes",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "address_to_file_offset--generated-refuse",
+      "tool": "address_to_file_offset",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_references--generated-refuse",
+      "tool": "procedure_references",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "procedure_pseudo_code--generated-refuse",
+      "tool": "procedure_pseudo_code",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "resolve_containing_procedure--generated-refuse",
+      "tool": "resolve_containing_procedure",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "search_procedures--generated-refuse",
+      "tool": "search_procedures",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "search_strings--generated-refuse",
+      "tool": "search_strings",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "set_address_name--generated-refuse",
+      "tool": "set_address_name",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "set_addresses_names--generated-refuse",
+      "tool": "set_addresses_names",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "set_bookmark--generated-refuse",
+      "tool": "set_bookmark",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "set_comment--generated-refuse",
+      "tool": "set_comment",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "set_inline_comment--generated-refuse",
+      "tool": "set_inline_comment",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "unset_bookmark--generated-refuse",
+      "tool": "unset_bookmark",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "xrefs--generated-refuse",
+      "tool": "xrefs",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_native_values--generated-refuse",
+      "tool": "trace_native_values",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_dispatch_metadata--generated-refuse",
+      "tool": "inspect_native_dispatch_metadata",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "get_objc_classes--generated-refuse",
+      "tool": "get_objc_classes",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "get_objc_protocols--generated-refuse",
+      "tool": "get_objc_protocols",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "decompile_all--generated-refuse",
+      "tool": "decompile_all",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "get_call_graph--generated-refuse",
+      "tool": "get_call_graph",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "analyze_swift_types--generated-refuse",
+      "tool": "analyze_swift_types",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "find_xrefs_to_name--generated-refuse",
+      "tool": "find_xrefs_to_name",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "binary_overview--generated-refuse",
+      "tool": "binary_overview",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "analyze_function--generated-refuse",
+      "tool": "analyze_function",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_native_api--generated-refuse",
+      "tool": "inspect_native_api",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_feature--generated-refuse",
+      "tool": "trace_feature",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_call_path--generated-refuse",
+      "tool": "trace_call_path",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_native_ui_action--generated-refuse",
+      "tool": "trace_native_ui_action",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_native_ui--generated-refuse",
+      "tool": "observe_native_ui",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_native_ui_scenario--generated-refuse",
+      "tool": "capture_native_ui_scenario",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_dylib_resolution--generated-refuse",
+      "tool": "trace_dylib_resolution",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_managed_native_boundaries--generated-refuse",
+      "tool": "inspect_managed_native_boundaries",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "verify_managed_native_boundaries--generated-refuse",
+      "tool": "verify_managed_native_boundaries",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "import_managed_reconstruction--generated-refuse",
+      "tool": "import_managed_reconstruction",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "project_managed_application_graph--generated-refuse",
+      "tool": "project_managed_application_graph",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_frida_processes--generated-refuse",
+      "tool": "list_frida_processes",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "load_frida_script--generated-refuse",
+      "tool": "load_frida_script",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "resume_frida_session--generated-refuse",
+      "tool": "resume_frida_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "unload_frida_script--generated-refuse",
+      "tool": "unload_frida_script",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "frida_session_status--generated-refuse",
+      "tool": "frida_session_status",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_frida_session--generated-refuse",
+      "tool": "close_frida_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "instrument_with_frida--generated-refuse",
+      "tool": "instrument_with_frida",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "cutter_command--generated-refuse",
+      "tool": "cutter_command",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "gdb_console--generated-refuse",
+      "tool": "gdb_console",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "gdb_session_status--generated-refuse",
+      "tool": "gdb_session_status",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_gdb_session--generated-refuse",
+      "tool": "close_gdb_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "start_rizin_debug_session--generated-refuse",
+      "tool": "start_rizin_debug_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "rizin_debug_command--generated-refuse",
+      "tool": "rizin_debug_command",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "rizin_debug_session_status--generated-refuse",
+      "tool": "rizin_debug_session_status",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "close_rizin_debug_session--generated-refuse",
+      "tool": "close_rizin_debug_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_android_package--generated-refuse",
+      "tool": "inspect_android_package",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "search_android_classes--generated-refuse",
+      "tool": "search_android_classes",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_android_method--generated-refuse",
+      "tool": "inspect_android_method",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_android_references--generated-refuse",
+      "tool": "trace_android_references",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_jeb_client--generated-refuse",
+      "tool": "inspect_jeb_client",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "open_jeb_project--generated-refuse",
+      "tool": "open_jeb_project",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "decompile_jeb_item--generated-refuse",
+      "tool": "decompile_jeb_item",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_wasm_interfaces--generated-refuse",
+      "tool": "compare_wasm_interfaces",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "extract_firmware--generated-refuse",
+      "tool": "extract_firmware",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_web_module_imports--generated-refuse",
+      "tool": "trace_web_module_imports",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_web_source_location--generated-refuse",
+      "tool": "trace_web_source_location",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_web_execution--generated-refuse",
+      "tool": "observe_web_execution",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_web_event_listeners--generated-refuse",
+      "tool": "inspect_web_event_listeners",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_adb_client--generated-refuse",
+      "tool": "inspect_adb_client",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_adb_device--generated-refuse",
+      "tool": "inspect_adb_device",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_packages--generated-refuse",
+      "tool": "list_adb_packages",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "pull_adb_package--generated-refuse",
+      "tool": "pull_adb_package",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "read_adb_logcat--generated-refuse",
+      "tool": "read_adb_logcat",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_adb_package--generated-refuse",
+      "tool": "inspect_adb_package",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "pull_adb_file--generated-refuse",
+      "tool": "pull_adb_file",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "push_adb_file--generated-refuse",
+      "tool": "push_adb_file",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_adb_screen--generated-refuse",
+      "tool": "capture_adb_screen",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_processes--generated-refuse",
+      "tool": "list_adb_processes",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_directory--generated-refuse",
+      "tool": "list_adb_directory",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_features--generated-refuse",
+      "tool": "list_adb_features",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_adb_services--generated-refuse",
+      "tool": "list_adb_services",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_adb_display--generated-refuse",
+      "tool": "inspect_adb_display",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_adb_window--generated-refuse",
+      "tool": "inspect_adb_window",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "read_adb_setting--generated-refuse",
+      "tool": "read_adb_setting",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "collect_adb_bugreport--generated-refuse",
+      "tool": "collect_adb_bugreport",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "resolve_adb_packages--generated-refuse",
+      "tool": "resolve_adb_packages",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "install_adb_package--generated-refuse",
+      "tool": "install_adb_package",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "uninstall_adb_package--generated-refuse",
+      "tool": "uninstall_adb_package",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "start_adb_app--generated-refuse",
+      "tool": "start_adb_app",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "start_adb_activity--generated-refuse",
+      "tool": "start_adb_activity",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "stop_adb_app--generated-refuse",
+      "tool": "stop_adb_app",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "decode_android_resources--generated-refuse",
+      "tool": "decode_android_resources",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_web_page--generated-refuse",
+      "tool": "inspect_web_page",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "analyze_web_bundle--generated-refuse",
+      "tool": "analyze_web_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_web_session--generated-refuse",
+      "tool": "observe_web_session",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "discover_webmcp_tools--generated-refuse",
+      "tool": "discover_webmcp_tools",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_web_captures--generated-refuse",
+      "tool": "compare_web_captures",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_web_screenshot--generated-refuse",
+      "tool": "capture_web_screenshot",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_web_screenshots--generated-refuse",
+      "tool": "compare_web_screenshots",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_browser_scenario--generated-refuse",
+      "tool": "capture_browser_scenario",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_electron_targets--generated-refuse",
+      "tool": "list_electron_targets",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_electron_page--generated-refuse",
+      "tool": "inspect_electron_page",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "reconcile_javascript_runtime--generated-refuse",
+      "tool": "reconcile_javascript_runtime",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_electron_scenario--generated-refuse",
+      "tool": "capture_electron_scenario",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_javascript_runtime_targets--generated-refuse",
+      "tool": "list_javascript_runtime_targets",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "observe_javascript_runtime--generated-refuse",
+      "tool": "observe_javascript_runtime",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_application_feature--generated-refuse",
+      "tool": "trace_application_feature",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "trace_javascript_semantics--generated-refuse",
+      "tool": "trace_javascript_semantics",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "build_reconstruction_obligation_ledger--generated-refuse",
+      "tool": "build_reconstruction_obligation_ledger",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "evaluate_reconstruction_coverage--generated-refuse",
+      "tool": "evaluate_reconstruction_coverage",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "project_android_application_graph--generated-refuse",
+      "tool": "project_android_application_graph",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "project_harmony_application_graph--generated-refuse",
+      "tool": "project_harmony_application_graph",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "capture_process_scenario--generated-refuse",
+      "tool": "capture_process_scenario",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "compare_process_captures--generated-refuse",
+      "tool": "compare_process_captures",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "match_native_functions--generated-refuse",
+      "tool": "match_native_functions",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "find_changed_behavior--generated-refuse",
+      "tool": "find_changed_behavior",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "build_call_path--generated-refuse",
+      "tool": "build_call_path",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "correlate_static_and_runtime--generated-refuse",
+      "tool": "correlate_static_and_runtime",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "verify_reconstruction--generated-refuse",
+      "tool": "verify_reconstruction",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "get_navigation_context--generated-refuse",
+      "tool": "get_navigation_context",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_address_context--generated-refuse",
+      "tool": "inspect_address_context",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
     {
       "id": "inspect_pe_imports--budget-dlls",
       "tool": "inspect_pe_imports",
@@ -142,6 +1411,78 @@
     {
       "id": "close_binary--snapshot-closed",
       "tool": "close_binary",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "batch_decompile--closed-session",
+      "tool": "batch_decompile",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "list_unknowns--fresh",
+      "tool": "list_unknowns",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "record_unknown--fixture-question",
+      "tool": "record_unknown",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "update_unknown--resolve",
+      "tool": "update_unknown",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "get_evidence_bundle--after-byte-entropy",
+      "tool": "get_evidence_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "export_evidence_bundle--roundtrip-path",
+      "tool": "export_evidence_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "import_evidence_bundle--roundtrip",
+      "tool": "import_evidence_bundle",
+      "status": "pass",
+      "diff_count": 0,
+      "compared_paths": null,
+      "undocumented_count": 0,
+      "contract_issues": 0
+    },
+    {
+      "id": "inspect_analysis_view--summary",
+      "tool": "inspect_analysis_view",
       "status": "pass",
       "diff_count": 0,
       "compared_paths": null,
@@ -986,8 +2327,8 @@
       "contract_issues": 0
     }
   ],
-  "pass": 108,
+  "pass": 257,
   "fail": 0,
   "documented": 0,
-  "finished_at": "2026-10-28T21:44:01.662Z"
+  "finished_at": "2026-11-02T17:37:05.337Z"
 }

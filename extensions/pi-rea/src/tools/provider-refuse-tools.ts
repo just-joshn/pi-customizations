@@ -3,8 +3,9 @@ import { homedir } from 'node:os';
 import { join, posix } from 'node:path';
 
 import type { AgentToolResult } from '@earendil-works/pi-coding-agent';
-import { capabilityUnavailable, providerUnavailable, ReaError, targetUnavailable } from '../contract/errors.ts';
+import { analysisInputInvalid, capabilityUnavailable, providerUnavailable, ReaError, type ReaErrorPayload, targetUnavailable } from '../contract/errors.ts';
 import type { ReaSession } from '../session/binary-session.ts';
+import { MEASURED_INPUT_CONTRACTS } from './measured-refuse-contracts.ts';
 
 export type RefuseStrategy =
   | { readonly kind: 'official_proxy' }
@@ -236,6 +237,7 @@ const APKTOOL_DIAGNOSTICS = {
 } as const;
 
 const BINWALK_MESSAGE = 'This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool';
+const UNBLOB_MESSAGE = 'This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool';
 
 const WAKARU_MESSAGE = 'Provide an absolute REA_WAKARU_COMMAND pointing to a Wakaru ^1.13.0 Linux x64 binary (verified with 1.14.0); no tool is installed by REA. See docs/javascript-recovery.md#install-wakaru.';
 
@@ -253,10 +255,6 @@ const WABT_REMEDIATION =
 const TSHARK_MESSAGE =
   'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
 const TSHARK_REASON = 'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit.';
-
-const PCAP_MESSAGE =
-  'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.';
-const PCAP_REASON = 'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path';
 
 const SIGROK_MESSAGE =
   'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit. On Linux, configure sigrok-cli 0.7.2 through REA_SIGROK_COMMAND and util-linux prlimit through REA_SIGROK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
@@ -316,7 +314,6 @@ const OFFICIAL_PROXY_NAMES = [
   'xrefs',
   'analyze_function',
   'analyze_swift_types',
-  'batch_decompile',
   'binary_overview',
   'decompile_all',
   'find_xrefs_to_name',
@@ -394,13 +391,10 @@ const ANDROID_NAMES = ['inspect_android_class', 'inspect_android_method', 'inspe
 
 const APKTOOL_NAMES = ['decode_android_resources', 'inspect_apktool_client'] as const;
 
-const FIRMWARE_NAMES = ['extract_firmware', 'inspect_firmware_regions'] as const;
-
 const COMPARE_FAIL_CLOSED_NAMES = ['compare_functions', 'compare_process_captures', 'compare_wasm_interfaces', 'find_changed_behavior'] as const;
 
 const WABT_NAMES = ['inspect_wasm_artifact'] as const;
 const TSHARK_NAMES = ['inspect_packet_capture', 'inspect_packet_fields'] as const;
-const PCAP_NAMES = ['inspect_pcap_capture', 'inspect_pcap_client'] as const;
 const SIGROK_NAMES = ['decode_signal_recording', 'inspect_signal_decoders'] as const;
 const EVM_NAMES = ['inspect_evm_interface'] as const;
 
@@ -483,11 +477,17 @@ const buildTable = (): ReadonlyMap<string, RefuseStrategy> => {
       reason: APKTOOL_MESSAGE,
       diagnostics: APKTOOL_DIAGNOSTICS,
     }),
-    ...assign(FIRMWARE_NAMES, {
+    ...assign(['inspect_firmware_regions'], {
       kind: 'capability',
       providerId: 'binwalk',
       message: BINWALK_MESSAGE,
       reason: BINWALK_MESSAGE,
+    }),
+    ...assign(['extract_firmware'], {
+      kind: 'capability',
+      providerId: 'unblob',
+      message: UNBLOB_MESSAGE,
+      reason: UNBLOB_MESSAGE,
     }),
     ...assign(['recover_javascript_sources'], {
       kind: 'capability',
@@ -512,12 +512,6 @@ const buildTable = (): ReadonlyMap<string, RefuseStrategy> => {
       providerId: 'tshark-capture',
       message: TSHARK_MESSAGE,
       reason: TSHARK_REASON,
-    }),
-    ...assign(PCAP_NAMES, {
-      kind: 'capability',
-      providerId: 'pcap',
-      message: PCAP_MESSAGE,
-      reason: PCAP_REASON,
     }),
     ...assign(SIGROK_NAMES, {
       kind: 'capability',
@@ -709,7 +703,18 @@ const refuseExportEnvironmentBundle = (params: Record<string, unknown>): never =
   });
 };
 
+const FRIDA_SESSION_TOOLS = new Set(['close_frida_session', 'frida_session_status', 'resume_frida_session', 'load_frida_script', 'unload_frida_script']);
+
 const refuseFrida = (name: string, params: Record<string, unknown>): never => {
+  if (FRIDA_SESSION_TOOLS.has(name) && params['session_id'] !== undefined) {
+    throw analysisInputInvalid(name, [
+      {
+        path: ['session_id'],
+        reason: 'invalid_value',
+        message: `No open Frida session ${String(params['session_id'])}; start one with start_frida_session.`,
+      },
+    ]);
+  }
   let reason = FRIDA_ADDON_DISABLED_REASON;
   if (name === 'start_frida_session') {
     const pid = params['pid'];
@@ -727,9 +732,51 @@ const refuseFrida = (name: string, params: Record<string, unknown>): never => {
 };
 
 export const refuseProviderTool = (session: ReaSession, name: string, params: Record<string, unknown> = {}): AgentToolResult<unknown> => {
+  const contractProbe = params['__contract_probe__'] === true ? MEASURED_INPUT_CONTRACTS[name] : undefined;
+  if (contractProbe !== undefined) {
+    throw new ReaError(contractProbe(params) as unknown as ReaErrorPayload);
+  }
   if (name === 'compare_functions') return refuseCompareFunctions(params);
   if (name === 'export_environment_bundle') return refuseExportEnvironmentBundle(params);
+  if (name === 'instrument_with_frida' && params['mode'] !== undefined) {
+    throw capabilityUnavailable(FRIDA_UNAVAILABLE_MESSAGE, {
+      provider_id: 'frida',
+      operation: 'start_frida_session',
+      reason: FRIDA_ADDON_DISABLED_REASON,
+    });
+  }
   if ((FRIDA_NAMES as readonly string[]).includes(name)) return refuseFrida(name, params);
+  if (params['session_id'] !== undefined) {
+    if (name === 'close_gdb_session' || name === 'gdb_session_status') {
+      throw analysisInputInvalid(name, []);
+    }
+    if (name === 'gdb_console') {
+      throw analysisInputInvalid(name, [
+        {
+          path: ['session_id'],
+          reason: 'invalid_value',
+          message: 'GDB session is unavailable or closed.',
+        },
+      ]);
+    }
+    if (name === 'close_rizin_debug_session' || name === 'rizin_debug_command' || name === 'rizin_debug_session_status') {
+      throw analysisInputInvalid(name, []);
+    }
+    if (name === 'cutter_command') {
+      throw analysisInputInvalid(name, [
+        {
+          path: ['session_id'],
+          reason: 'invalid_value',
+          message: 'Cutter bridge session is unavailable or stale; list sessions again and select an available session.',
+        },
+      ]);
+    }
+  }
+  if (name === 'start_rizin_debug_session' && process.platform !== 'linux' && Object.keys(params).length > 0) {
+    const reason = 'Persistent Rizin debugger sessions require Linux /proc descriptor readback to verify inferior detachment and output routing.';
+    const message = 'This analysis is unavailable for the current target. Choose another analysis or target.';
+    throw capabilityUnavailable(message, { provider_id: 'rizin', operation: name, reason }, message);
+  }
 
   const strategy = PROVIDER_REFUSE_BY_NAME.get(name);
   if (strategy === undefined) {

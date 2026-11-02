@@ -9,7 +9,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
 import { DEFAULT_RESPONSE_BUDGET_BYTES } from '../src/contract/results.ts';
 import { ANALYSIS_SETTING_IDS, type AnalysisSettingId, AnalysisSettingsStore, runtimeConstraints, type SettingChange } from '../src/session/analysis-settings.ts';
-import { ReaSession } from '../src/session/binary-session.ts';
+import { PI_REA_VERSION, ReaSession } from '../src/session/binary-session.ts';
 import { canonicalJson, createEvidence, type EvidenceDraft, type EvidenceRecord, evidenceIdentity, evidenceSummaryEntry, isEvidenceRecord, sha256Hex, verifyEvidenceIdentity } from '../src/session/evidence.ts';
 import { isUnknownRecord, type UnknownDraft, UnknownLedger, type UnknownRecord, unknownIdentity, unknownRevisionDigest, validateUnknownDraft } from '../src/session/unknown-ledger.ts';
 import { type ArtifactIdentity, identifyArtifact } from '../src/targets/artifact-identity.ts';
@@ -117,7 +117,7 @@ describe('provider refuse tools', () => {
         },
       });
     }
-    expect(checked).toBe(87);
+    expect(checked).toBe(85);
   });
 
   test('refuses every CDP tool with an unreachable endpoint', () => {
@@ -156,7 +156,7 @@ describe('provider refuse tools', () => {
         remediation: { action: NO_APP_OPEN },
       });
     }
-    expect(checked).toBe(58);
+    expect(checked).toBe(57);
   });
 
   test('refuses every official-proxy tool when the provider is absent', async () => {
@@ -261,7 +261,7 @@ describe('provider refuse tools', () => {
         },
       });
     }
-    expect(checked).toBe(58);
+    expect(checked).toBe(57);
   });
 
   test('reports a configured provider registration in the rejection list', async () => {
@@ -387,7 +387,7 @@ describe('provider refuse tools', () => {
         remediation: { action: NO_APP_OPEN },
       });
     }
-    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(166);
+    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(163);
   });
 
   test('refuses every native observe tool for a non-Mach-O target', async () => {
@@ -552,7 +552,7 @@ describe('provider refuse tools', () => {
 
   test('isProviderRefuseTool covers the fail-closed catalog', () => {
     expect(PROVIDER_REFUSE_TOOL_NAMES).toStrictEqual([...PROVIDER_REFUSE_BY_NAME.keys()].toSorted());
-    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(166);
+    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(163);
     expect(isProviderRefuseTool('read_bytes')).toBe(true);
     expect(isProviderRefuseTool('inspect_frida_devices')).toBe(false);
     expect(isProviderRefuseTool('inspect_macho')).toBe(false);
@@ -1696,7 +1696,7 @@ describe('macho tools', () => {
     expect(normalized.architectures.total).toBe(1);
     expect(normalized.architectures.items[0]?.name).toBe('arm64');
     expect(normalized.selected_architecture.name).toBe('arm64');
-    expect(normalized.provenance[0]).toMatchObject({ tool: 'pi-rea/macho-parser', tool_version: '0.1.0' });
+    expect(normalized.provenance[0]).toMatchObject({ tool: 'pi-rea/macho-parser', tool_version: PI_REA_VERSION });
     expect(normalized.limitations).toHaveLength(2);
     const offsets = record.locations.filter((location) => location['kind'] === 'file-offset');
     expect(offsets).toStrictEqual([{ kind: 'file-offset', offset: 489_280 }]);

@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { lstat, readFile } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
-import { invalidRequest } from '../contract/errors.ts';
+import { analysisInputInvalid, invalidRequest } from '../contract/errors.ts';
 
 export const DEFAULT_MAX_FILE_BYTES = 16 * 1024 * 1024;
 export const DEFAULT_MAX_OBJECTS = 16_384;
@@ -373,12 +373,18 @@ export const inspectPythonPycFromPath = async (path: string, options: PycOptions
   const maxDepth = options.maxDepth ?? DEFAULT_MAX_DEPTH;
   const maxStringBytes = options.maxStringBytes ?? DEFAULT_MAX_STRING_BYTES;
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
+  const stats = await lstat(resolvedPath).catch(() => null);
+  if (stats === null) {
+    throw analysisInputInvalid('inspect_python_pyc', [{ path: ['path'], reason: 'invalid_value', message: `Selected pyc could not be read (ENOENT): ${path}.` }]);
+  }
+  if (stats.isSymbolicLink() || !stats.isFile()) {
+    throw analysisInputInvalid('inspect_python_pyc', [{ path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` }]);
+  }
   let bytes: Buffer;
   try {
     bytes = await readFile(resolvedPath);
   } catch (error) {
-    const reason = (error as NodeJS.ErrnoException).code === 'ENOENT' ? 'no file exists there' : `it could not be read (${(error as Error).message})`;
-    throw inputError(path, 'invalid_value', reason);
+    throw inputError(path, 'invalid_value', `it could not be read (${(error as Error).message})`);
   }
   if (bytes.length < 16) throw inputError(path, 'invalid_format', 'pyc header must be 16 bytes.');
   if (bytes.length > maxFileBytes) throw inputError(path, 'invalid_value', `file exceeds max_file_bytes=${maxFileBytes}`);

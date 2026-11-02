@@ -9,9 +9,9 @@
   },
   "counts": {
     "tools": 229,
-    "implemented": 63,
-    "kernel": 63,
-    "unavailable": 166
+    "implemented": 66,
+    "kernel": 66,
+    "unavailable": 163
   },
   "hostCapabilities": [
     {
@@ -2906,7 +2906,7 @@
     },
     {
       "name": "batch_decompile",
-      "description": "Decompile several procedures at once. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
+      "description": "Decompile several procedures at once.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -2943,7 +2943,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "unavailable"
+      "implementation": "kernel"
     },
     {
       "name": "decompile_all",
@@ -14776,7 +14776,7 @@
     },
     {
       "name": "inspect_pcap_client",
-      "description": "Inspect pcap client via pi-rea's in-process analyzer for the active session. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
+      "description": "Inspect pcap client via pi-rea's in-process analyzer for the active session.",
       "parameters": {
         "type": "object",
         "properties": {},
@@ -14806,11 +14806,11 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "unavailable"
+      "implementation": "kernel"
     },
     {
       "name": "inspect_pcap_capture",
-      "description": "Inspect pcap capture. Not implemented in pi-rea yet: the tool is advertised for compatibility and fails closed with capability_unavailable.",
+      "description": "Inspect pcap capture.",
       "parameters": {
         "type": "object",
         "properties": {
@@ -14856,7 +14856,7 @@
         "missing_optional": []
       },
       "modes": [],
-      "implementation": "unavailable"
+      "implementation": "kernel"
     },
     {
       "name": "identify_flutter_build",

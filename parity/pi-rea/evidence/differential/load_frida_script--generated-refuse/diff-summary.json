@@ -1,0 +1,14 @@
+{
+  "id": "load_frida_script--generated-refuse",
+  "tool": "load_frida_script",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

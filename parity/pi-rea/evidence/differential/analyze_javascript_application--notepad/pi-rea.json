@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_7feddd088e8df791bda22600b8b945db952fde90b7b98fb70b37a132806aaaa9",
+    "evidence_id": "ev_6d7ff6c1d72e933385d9621500c3b37cf574669dbd1c3b1e2c054caf93b6d73d",
+    "relationship_coverage": null,
     "subject": {
       "name": "notepad-app",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.javascript-application-analysis",

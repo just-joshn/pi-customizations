@@ -38,5 +38,5 @@
     "jsonrpc": "2.0",
     "id": 2
   },
-  "stderr": "{\"level\":40,\"time\":1793223804634,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_adb_devices\",\"durationMs\":4.19,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
+  "stderr": "{\"level\":40,\"time\":1793640986668,\"application\":\"rea\",\"mode\":\"mcp\",\"layer\":\"server\",\"tool\":\"list_adb_devices\",\"durationMs\":4.27,\"status\":\"error\",\"msg\":\"MCP tool execution completed\"}\n"
 }

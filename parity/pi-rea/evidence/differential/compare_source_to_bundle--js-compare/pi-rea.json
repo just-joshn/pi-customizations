@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_3e56e1ecc0ff735cd9a378ee5dbcef369434ae22a5d540bd42d7e086e3b3b1ac",
+    "evidence_id": "ev_ce0e4db5eef3cd2b93b132041c81001a5359b1fdb6e937a568c4936cd26b1d2a",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-javascript-workflows",
@@ -13,7 +14,7 @@
     "operation": "compare_source_to_bundle",
     "parameters": {
       "reference_root_sha256": "22b1ed5fcf1031a04f14edd8e8d11b532e82d7b741eb46d0b28e2ec217574086",
-      "application_evidence_id": "ev_d08b82401c35a5e5764d195041d21a818afd5c503d84a95526f1149642a5155f"
+      "application_evidence_id": "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601"
     },
     "raw_result": null,
     "normalized_result": {
@@ -22,7 +23,7 @@
         "inventory_state": "partial"
       },
       "application": {
-        "evidence_id": "ev_d08b82401c35a5e5764d195041d21a818afd5c503d84a95526f1149642a5155f",
+        "evidence_id": "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
         "graph_id": "jag_d75b3a771767f6eee51654e0edb3af30a14c48f38da8e298fe9df0ab43726594",
         "root_artifact_sha256": "ab140656924ac82690ec8be06424257028dc07ca2c227e72de6c418b3caaca2f"
       },
@@ -151,7 +152,7 @@
         "candidate_evaluations": 1
       },
       "evidence_links": [
-        "ev_d08b82401c35a5e5764d195041d21a818afd5c503d84a95526f1149642a5155f"
+        "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601"
       ],
       "limitations": [
         "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
@@ -163,7 +164,7 @@
         "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
         "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
       ],
-      "comparison_id": "stbc_0630c98828e455410ada5f9630bbcdbf70eec159d7853effbce85caa0621ecf2"
+      "comparison_id": "stbc_4813072da69067df77580aed71ea5f2cb1a80cbd79af96833aa9884926b51521"
     },
     "confidence": "inferred",
     "authority": "analyst-inference",
@@ -181,7 +182,7 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_d08b82401c35a5e5764d195041d21a818afd5c503d84a95526f1149642a5155f"
+      "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601"
     ]
   }
 }

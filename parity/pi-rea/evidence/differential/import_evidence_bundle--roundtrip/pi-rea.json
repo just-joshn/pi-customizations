@@ -1,0 +1,10 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "imported": 0,
+      "unknowns_added": 0,
+      "total": 1
+    }
+  }
+}

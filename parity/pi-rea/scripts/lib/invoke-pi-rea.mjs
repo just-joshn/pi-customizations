@@ -17,6 +17,7 @@ import { inspectElectronFuses } from '../../../../extensions/pi-rea/src/tools/el
 import { inspectElfNotes } from '../../../../extensions/pi-rea/src/tools/elf-tools.ts';
 import { inspectByteEntropy } from '../../../../extensions/pi-rea/src/tools/entropy-tools.ts';
 import { inspectErlangBeam } from '../../../../extensions/pi-rea/src/tools/erlang-beam-tools.ts';
+import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from '../../../../extensions/pi-rea/src/tools/evidence-tools.ts';
 import { identifyFlutterBuild, inspectDartAot } from '../../../../extensions/pi-rea/src/tools/flutter-tools.ts';
 import { inspectGoBinary } from '../../../../extensions/pi-rea/src/tools/go-binary-tools.ts';
 import { inspectGpuCodeObjects } from '../../../../extensions/pi-rea/src/tools/gpu-code-object-tools.ts';
@@ -30,6 +31,7 @@ import { inspectManagedArtifact, inspectManagedMembers } from '../../../../exten
 import { inspectModelArtifact } from '../../../../extensions/pi-rea/src/tools/model-artifact-tools.ts';
 import { inspectNativeExports } from '../../../../extensions/pi-rea/src/tools/native-exports-tools.ts';
 import { inspectWithObjdump } from '../../../../extensions/pi-rea/src/tools/objdump-tools.ts';
+import { inspectPcapCapture, inspectPcapClient } from '../../../../extensions/pi-rea/src/tools/pcap-tools.ts';
 import { inspectPeCertificates, inspectPeImports, inspectPeLoadConfig, inspectPeResources } from '../../../../extensions/pi-rea/src/tools/pe-tools.ts';
 import { inspectPlist } from '../../../../extensions/pi-rea/src/tools/plist-tools.ts';
 import { refuseProviderTool } from '../../../../extensions/pi-rea/src/tools/provider-refuse-tools.ts';
@@ -41,8 +43,9 @@ import { binarySession, closeBinary, openBinary } from '../../../../extensions/p
 import { inspectAnalysisSettings, updateAnalysisSettings } from '../../../../extensions/pi-rea/src/tools/settings-tools.ts';
 import { inspectSignature } from '../../../../extensions/pi-rea/src/tools/signature-tools.ts';
 import { inspectSqliteDatabase } from '../../../../extensions/pi-rea/src/tools/sqlite-tools.ts';
-import { verifyUnknownResolution } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
+import { listUnknowns, recordUnknown, updateUnknown, verifyUnknownResolution } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
 import { exportWebScriptsTool } from '../../../../extensions/pi-rea/src/tools/web-script-tools.ts';
+import { batchDecompile } from '../../../../extensions/pi-rea/src/tools/workflow-tools.ts';
 
 const runtime = () => ({ name: 'pi-rea-differential', version: PI_REA_VERSION, cwd: process.cwd() });
 
@@ -62,8 +65,7 @@ const asResult = async (run, successKind = 'evidence') => {
     const body = toolResult.structuredContent;
     if (successKind === 'configuration') return { kind: 'configuration', body };
     if (body && typeof body === 'object' && typeof body.evidence_id === 'string') return { kind: 'evidence', body };
-    if (successKind === 'evidence') return { kind: 'evidence', body };
-    return { kind: successKind, body };
+    return { kind: 'configuration', body };
   } catch (error) {
     if (error instanceof ReaError) return { kind: 'error', body: error.payload };
     throw error;
@@ -155,8 +157,9 @@ export const piHandlers = {
   inspect_wasm_artifact: refuse('inspect_wasm_artifact'),
   inspect_packet_capture: refuse('inspect_packet_capture'),
   inspect_packet_fields: refuse('inspect_packet_fields'),
-  inspect_pcap_capture: refuse('inspect_pcap_capture'),
-  inspect_pcap_client: refuse('inspect_pcap_client'),
+  inspect_pcap_capture: (session, params) => asResult(() => inspectPcapCapture(session, params ?? {})),
+  inspect_pcap_client: (session) => asResult(() => inspectPcapClient(session)),
+  batch_decompile: (session, params) => asResult(() => batchDecompile(session, params ?? {})),
   inspect_signal_decoders: refuse('inspect_signal_decoders'),
   decode_signal_recording: refuse('decode_signal_recording'),
   inspect_evm_interface: refuse('inspect_evm_interface'),
@@ -165,4 +168,11 @@ export const piHandlers = {
   inspect_native_exports: (session, params) => asResult(() => inspectNativeExports(session, params ?? {})),
   compare_functions: refuse('compare_functions'),
   export_environment_bundle: refuse('export_environment_bundle'),
+  get_evidence_bundle: (session, params) => asResult(() => getEvidenceBundle(session, params ?? {})),
+  export_evidence_bundle: (session, params) => asResult(() => exportEvidenceBundle(session, params ?? {}, { cwd: process.cwd() })),
+  import_evidence_bundle: (session, params) => asResult(() => importEvidenceBundle(session, params ?? {}, { cwd: process.cwd() })),
+  inspect_analysis_view: (session, params) => asResult(() => inspectAnalysisView(session, params ?? {})),
+  list_unknowns: (session, params) => asResult(() => listUnknowns(session, params ?? {})),
+  record_unknown: (session, params) => asResult(() => recordUnknown(session, params ?? {})),
+  update_unknown: (session, params) => asResult(() => updateUnknown(session, params ?? {})),
 };

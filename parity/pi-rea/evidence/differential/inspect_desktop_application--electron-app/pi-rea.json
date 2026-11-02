@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_8edb2214f8a8775d7f8cfc2511e323579faeda90b8b51a1226fc26f0d3f3a7f0",
+    "evidence_id": "ev_38784ef4dfa720e0ee8b66da78a9bb816c91f8204c7f7738d42e6098f5839912",
+    "relationship_coverage": null,
     "subject": {
       "name": "electron-app",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

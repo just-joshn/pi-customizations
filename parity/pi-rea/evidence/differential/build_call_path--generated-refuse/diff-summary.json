@@ -1,0 +1,14 @@
+{
+  "id": "build_call_path--generated-refuse",
+  "tool": "build_call_path",
+  "status": "pass",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 0,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 0,
+  "undocumented": [],
+  "documented": []
+}

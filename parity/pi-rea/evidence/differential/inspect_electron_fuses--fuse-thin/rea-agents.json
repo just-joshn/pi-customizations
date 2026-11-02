@@ -161,6 +161,6 @@
   },
   "meta": {
     "command": "inspect-electron-fuses",
-    "duration": "7ms"
+    "duration": "6ms"
   }
 }

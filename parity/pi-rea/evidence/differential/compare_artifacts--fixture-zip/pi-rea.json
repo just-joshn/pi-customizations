@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_b0828c1f74ed6c66faf084642e7652103d846b2f398637e148359aa60cb364e0",
+    "evidence_id": "ev_2f01ea2e5d9491707b19fad56ee89015be8e6cda0ed8fe309e4adb2f161fba32",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-artifact-comparison",
@@ -13,10 +14,10 @@
     "operation": "compare_artifacts",
     "parameters": {
       "left_evidence_ids": [
-        "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+        "ev_1962f5062f6b8f878531f2ad7fccb103f4da49162a49650be61d70ba6b00a662"
       ],
       "right_evidence_ids": [
-        "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+        "ev_1962f5062f6b8f878531f2ad7fccb103f4da49162a49650be61d70ba6b00a662"
       ]
     },
     "raw_result": null,
@@ -49,8 +50,8 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4",
-      "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4"
+      "ev_1962f5062f6b8f878531f2ad7fccb103f4da49162a49650be61d70ba6b00a662",
+      "ev_1962f5062f6b8f878531f2ad7fccb103f4da49162a49650be61d70ba6b00a662"
     ]
   }
 }

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { open, stat } from 'node:fs/promises';
+import { lstat, open, stat } from 'node:fs/promises';
 import { isAbsolute, resolve } from 'node:path';
 
 import { analysisInputInvalid, capabilityUnavailable, invalidRequest } from '../contract/errors.ts';
@@ -208,6 +208,13 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
   if (options.schemaScope === 'selected_table' && options.table === undefined) throw inputError(path, 'invalid_value', 'schema_scope=selected_table requires table.');
 
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
+  const fileStats = await lstat(resolvedPath).catch(() => null);
+  if (fileStats === null) {
+    throw analysisInputInvalid('inspect_sqlite_database', [{ path: ['path'], reason: 'invalid_value', message: `Selected SQLite database does not exist: ${path}` }]);
+  }
+  if (fileStats.isSymbolicLink() || !fileStats.isFile()) {
+    throw analysisInputInvalid('inspect_sqlite_database', [{ path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` }]);
+  }
   let header: Buffer;
   try {
     const handle = await open(resolvedPath, 'r');

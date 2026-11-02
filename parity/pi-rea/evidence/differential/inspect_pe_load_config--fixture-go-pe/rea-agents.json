@@ -69,6 +69,6 @@
   },
   "meta": {
     "command": "inspect-pe-load-config",
-    "duration": "8ms"
+    "duration": "10ms"
   }
 }

@@ -1,17 +1,42 @@
 {
-  "kind": "error",
+  "kind": "evidence",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.",
-    "retryable": false,
-    "remediation": {
-      "action": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them."
+    "evidence_id": "ev_977439641d43893d34891b5abe6a9cdd1df8c243d39c9a3495e9a190ff6124fb",
+    "relationship_coverage": null,
+    "subject": null,
+    "provider": {
+      "id": "pcap",
+      "name": "Packet capture analysis",
+      "version": "TShark (Wireshark) 4.6.9 (Git commit 2d548b197c75)."
     },
-    "details": {
-      "provider_id": "pcap",
-      "operation": "inspect_pcap_client",
-      "reason": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path"
-    }
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "inspect_pcap_client",
+    "parameters": {},
+    "raw_result": null,
+    "normalized_result": {
+      "client": {
+        "tshark_command": "/opt/homebrew/bin/tshark",
+        "tshark_source": "path",
+        "tshark_version": "TShark (Wireshark) 4.6.9 (Git commit 2d548b197c75).",
+        "tshark_resolved_path": "/opt/homebrew/Cellar/wireshark/4.6.9/bin/tshark",
+        "tshark_sha256": "3e3792a06e2a2b856e92f5e134276745f84e3f5682d4cb3aaf95af4ebd29f566",
+        "tshark_identity_status": "verified",
+        "capinfos_command": "/opt/homebrew/bin/capinfos",
+        "capinfos_source": "path",
+        "capinfos_version": "Capinfos (Wireshark) 4.6.9 (Git commit 2d548b197c75).",
+        "capinfos_resolved_path": "/opt/homebrew/Cellar/wireshark/4.6.9/bin/capinfos",
+        "capinfos_sha256": "2c800620d342cb518f3e6d3e84762cdaa013e1438d1322f38fe896c9396564e1",
+        "capinfos_identity_status": "verified"
+      }
+    },
+    "confidence": "observed",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation."
+    ],
+    "locations": [],
+    "evidence_links": []
   }
 }

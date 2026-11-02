@@ -137,7 +137,7 @@ test('KERN-002: the implementation flags match the handlers that answer the tool
     .map((tool) => tool.name)
     .toSorted();
   expect(kernel).toStrictEqual([...KERNEL_TOOL_NAMES]);
-  expect(kernel).toHaveLength(63);
+  expect(kernel).toHaveLength(66);
   expect([...kernel, ...unavailable].toSorted()).toStrictEqual(catalog.tools.map((tool) => tool.name).toSorted());
   for (const name of unavailable) expect(isProviderRefuseTool(name)).toBe(true);
   for (const tool of catalog.tools) {
@@ -197,7 +197,7 @@ test('KERN-003: implemented tools are direct and refusing tools are deferred', (
   expect(direct).toContain('inspect_plist');
   expect(direct).toContain('analyze_javascript_application');
   expect(direct).not.toContain('inspect_wasm_artifact');
-  expect(catalog.tools.filter((tool) => !isDirect(tool))).toHaveLength(166);
+  expect(catalog.tools.filter((tool) => !isDirect(tool))).toHaveLength(163);
 });
 
 test('KERN-004: error codes and categories are the reference vocabularies', () => {

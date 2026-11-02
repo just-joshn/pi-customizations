@@ -1241,7 +1241,6 @@
             "names": [
               "analyze_function",
               "analyze_swift_types",
-              "batch_decompile",
               "binary_overview",
               "find_xrefs_to_name",
               "get_call_graph",
@@ -1250,6 +1249,22 @@
               "inspect_native_dispatch_metadata",
               "trace_native_ui_action",
               "trace_native_values"
+            ]
+          },
+          {
+            "surface": "enhanced",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "batch_decompile"
             ]
           },
           {
@@ -1293,7 +1308,7 @@
             ],
             "available": false,
             "reason": "provider_unavailable",
-            "remediation": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool",
+            "remediation": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool",
             "names": [
               "extract_firmware"
             ]
@@ -1967,9 +1982,9 @@
               "idempotent",
               "open_world"
             ],
-            "available": false,
-            "reason": "provider_unavailable",
-            "remediation": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.",
+            "available": true,
+            "reason": "available",
+            "remediation": null,
             "names": [
               "inspect_pcap_capture",
               "inspect_pcap_client"
@@ -2199,14 +2214,14 @@
       "server_identity": {
         "package": {
           "name": "pi-rea",
-          "version": "0.1.0",
+          "version": "0.2.0",
           "root_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-rea/",
           "build_commit": null
         },
         "server": {
           "name": "pi-rea",
-          "version": "0.1.0",
-          "started_at": "2026-10-28T21:41:27.875Z",
+          "version": "0.2.0",
+          "started_at": "2026-11-02T17:34:29.554Z",
           "command_path": null
         },
         "sdk": {
@@ -2228,10 +2243,10 @@
             "cli_commands": null,
             "mcp_tools": 229,
             "mcp_prompts": 6,
-            "implemented_tools": 63
+            "implemented_tools": 66
           },
           "digests": {
-            "tools_sha256": "491f90ab7faf9765acabd97011c805422b6542f585f3221ece1647b3c0f9daa0",
+            "tools_sha256": "b05828029790ee99be837f3fad042ab89056f3a120a869fcda524614203b563a",
             "prompts_sha256": null,
             "combined_sha256": null
           }
@@ -2252,7 +2267,7 @@
       "runtime": {
         "kind": "pi-extension",
         "name": "pi-rea-differential",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "cwd": "/Users/josh-desktop/src/personal/pi-customizations"
       }
     }

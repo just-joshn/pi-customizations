@@ -1,0 +1,16 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for close_gdb_session; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "close_gdb_session"
+    }
+  }
+}
