@@ -1,6 +1,6 @@
 # Native API gaps
 
-This package fills two Pi public-API gaps. `bun run check:native-gap` fails when this record drifts from the adapters on disk. `bun run check:vendor` separately fails when `src/pi-ai/` drifts from the pi-ai sources of the version the installed Pi loads. `bun run vendor` regenerates those copies.
+This package fills two Pi public-API gaps, reevaluated against Pi 1.5.0. `bun run check:native-gap` fails when this record drifts from the adapters on disk. `bun run check:vendor` separately fails when `src/pi-ai/` drifts from the pi-ai sources of the version the installed Pi loads. `bun run vendor` regenerates those copies.
 
 ```native-gap-files
 src/stream.ts
@@ -31,7 +31,7 @@ Send Antigravity Cloud Code Assist agent requests (`v1internal:streamGenerateCon
 
 ### 3. Why the public API cannot express the requirement
 
-Pi's `google-generative-ai` path rejects a custom `fetch` and does not emit the Cloud Code envelope. No public Pi API maps to `v1internal` agent requests.
+Pi 1.5.0's `dist/api/google-generative-ai.js` rejects a custom `fetch` and calls the Google SDK's `generateContentStream` with `{ model, contents, config }`, not the Cloud Code envelope. A base URL override does not change that protocol. No built-in Pi 1.5.0 transport implements `v1internal` agent requests. `docs/custom-provider.md` supports custom `stream` or `streamSimple` implementations for unsupported wire protocols, so this adapter still uses the native provider registration boundary.
 
 ### 4. Why omitting the feature is unacceptable
 
@@ -65,7 +65,7 @@ Importing conversion helpers from `@earendil-works/pi-ai` public entry points.
 
 ### 3. Why the public API cannot express the requirement
 
-Pi's extension loader aliases only `@earendil-works/pi-ai`, `/compat`, `/models`, `/oauth`, and `/providers/all`, and applies each alias as a prefix rewrite (`pi-coding-agent/dist/core/extensions/loader.js`). The package itself also exports `./api/*` and `./utils/*`, but `@earendil-works/pi-ai/api/google-shared` resolves to `dist/compat.js/api/google-shared` and fails, so the Google conversion modules are unreachable from an extension. `docs/packages.md` adds that a physical copy of a host package can bypass Pi's module mapping and create duplicate registries.
+Pi's extension loader aliases only `@earendil-works/pi-ai`, `/compat`, `/models`, `/oauth`, and `/providers/all`, and applies each alias as a prefix rewrite (`pi-coding-agent/dist/core/extensions/loader.js`). The package itself also exports `./api/*` and `./utils/*`, but `@earendil-works/pi-ai/api/google-shared` resolves beneath `dist/core/extensions/pi-ai-extension-view.js` in Pi 1.5.0 and fails, so the Google conversion modules are unreachable from an extension. `docs/packages.md` adds that a physical copy of a host package can bypass Pi's module mapping and create duplicate registries.
 
 ### 4. Why omitting the feature is unacceptable
 
@@ -73,7 +73,7 @@ Reimplementing conversion would fork Pi's Google semantics. Omitting conversion 
 
 ### 5. The smallest adapter that fills only the gap
 
-Verbatim copies under `src/pi-ai/` from the source maps of the `@earendil-works/pi-ai` version the installed Pi loads, plus a tiny `genai.ts` enum/type shim. `scripts/vendor-pi-ai.mjs` regenerates them; `check:vendor` compares, and rejects a devDependency that differs from that version.
+Copies under `src/pi-ai/` from the source maps of the `@earendil-works/pi-ai` version the installed Pi loads, plus a tiny `genai.ts` enum/type shim. The reviewed `scripts/vendor-strict.patch` retains the intentional strict-schema policy and applies strict TypeScript adaptations. The Pi 1.5.0 refresh includes native scalar-constant conversion for Gemini tool schemas. `scripts/vendor-pi-ai.mjs` regenerates them; `check:vendor` compares, and rejects a devDependency that differs from that version.
 
 ### 6. Which Pi-owned state remains authoritative
 

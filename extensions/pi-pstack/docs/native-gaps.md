@@ -1,8 +1,13 @@
 # Pi native gaps
 
-pi-pstack uses Pi's public extension API. Four mechanisms have no public equivalent in Pi 1.4.0, so the package
-implements them itself against documented lower-level surfaces. Each entry names what Pi lacks, what the package does
-instead, and what would let the copy go. Pi line numbers refer to `@earendil-works/pi-coding-agent@1.4.0`.
+pi-pstack uses Pi's public extension API. Four mechanisms have no public equivalent in Pi 1.5.0, so the package
+implements them itself against documented lower-level APIs. Each entry names what Pi lacks, what the package does
+instead, and what would let the copy go.
+
+The Pi 1.5.0 audit checked `docs/extensions.md`, `docs/rpc.md`, `docs/rpc-extension-ui.md`,
+`dist/index.d.ts`, `dist/modes/rpc/rpc-client.d.ts`, and the corresponding installed implementations.
+Pi paths below refer to `@earendil-works/pi-coding-agent@1.5.0`. Legacy line coordinates are retained
+as search hints from the 1.4.0 audit, not as 1.5.0 line references. This is a contract audit, not a new runtime-test receipt.
 
 ## 1. The subagent process
 
@@ -24,7 +29,7 @@ instead, and what would let the copy go. Pi line numbers refer to `@earendil-wor
   listeners and offers no way to send the response; its `send` is private.
 - **stderr and exit.** The runner keeps the last 8 KiB of stderr and reports the child's exit code in the outcome
   (`outcomeOf`, `:226-234`). `RpcClient` appends stderr without a bound and mirrors it into the parent's stderr
-  (`rpc-client.js:49-52`), and exposes neither an exit promise nor a code.
+  (`rpc-client.js:49-52`), and exposes neither an exit promise nor a code. Pi 1.5.0 does reject pending requests on process exit and startup errors, but that does not expose a successful exit outcome.
 
 `RpcClient` does cover the rest of what the runner sends: `prompt(message, images, "steer")`, `abort`, `clearQueue`,
 `followUp`, and the event stream. The runner speaks the JSONL protocol from `docs/rpc.md` directly and keeps its own

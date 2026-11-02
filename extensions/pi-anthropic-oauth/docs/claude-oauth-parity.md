@@ -2,6 +2,12 @@
 
 The current identity reference is locally installed Claude Code `2.1.316`, captured through `scripts/capture-claude.py` against a loopback server with a synthetic token. The `2.1.311`, `2.1.296`, and `2.1.288` fixtures remain historical evidence. This identity update inspected no Claude private source. Older fingerprint, OAuth, and context claims below originated in historical binary inspection or clean-room CLI probes; they are not independently re-derived from private source. Local target tests establish target behavior. See `parity/pi-anthropic-oauth/identity-update.md` in the repository for current identity observations and limits when that note exists.
 
+## Pi 1.5.0 contract audit
+
+The upgrade target is Pi 1.5.0. The installed `docs/extensions.md` retains full-context transforms, provider registration, request-header mutation, payload replacement, and tool-result usage. `dist/core/extensions/types.d.ts` still defines `BeforeProviderHeadersEvent` with headers only and `BeforeProviderRequestEvent` with a payload only. Neither event names the physical receiving provider. `dist/core/virtual-models.d.ts` distinguishes the selected virtual model from the physical model used for streaming. These contracts do not replace the provider-local identity adapter.
+
+The Pi 1.4.0 request-path observations below remain historical evidence. This documentation audit does not establish whether Pi 1.5.0 forwards static provider headers on every path or fires payload hooks during compaction. Those claims require a fresh `scripts/prove-request-paths.ts` receipt. No native-gap closure, live subscription acceptance, or complete Claude Code parity is claimed here.
+
 ## Verification boundary
 
 `VERIFIED` means a local test or real Pi CLI probe establishes the named behavior. It does not mean Anthropic accepted a live subscription request. `NATIVE DIFFERENCE` identifies behavior deliberately left with Pi. `INCONCLUSIVE` identifies an unverified external result.

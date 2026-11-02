@@ -1,4 +1,5 @@
-import { type Message, normalizeContext, type Tool, Type } from '@earendil-works/pi-ai';
+import { type Message, normalizeContext, type Tool } from '@earendil-works/pi-ai';
+import { Type } from 'typebox';
 import { expect } from 'vitest';
 import { FinishReason } from '../src/pi-ai/genai.ts';
 import {
@@ -22,6 +23,15 @@ import { test } from './network-guard.ts';
 import { assistant, googleModel } from './pi-ai-fixtures.ts';
 
 const tool: Tool = { name: 'run', description: 'Run', parameters: Type.Unsafe({ type: 'object', properties: { value: { type: 'string' } }, required: ['value'] }) };
+test('JSON Schema tools rewrite nested scalar constants without changing literal defaults', () => {
+  const parameters = Type.Unsafe({ type: 'object', properties: { kind: { const: 'query' }, count: { const: 2 }, data: { type: 'object', default: { const: 'literal' } } } });
+  const declarations = convertTools([{ ...tool, parameters }]);
+  expect(declarations).toEqual([
+    { functionDeclarations: [{ name: 'run', description: 'Run', parametersJsonSchema: { type: 'object', properties: { kind: { enum: ['query'] }, count: { enum: [2] }, data: { type: 'object', default: { const: 'literal' } } } } }] },
+  ]);
+  expect(parameters).toEqual({ type: 'object', properties: { kind: { const: 'query' }, count: { const: 2 }, data: { type: 'object', default: { const: 'literal' } } } });
+});
+
 const strictTool: Tool = { ...tool, constrainedSampling: { type: 'json_schema', strict: 'prefer' } };
 const image = { type: 'image', mimeType: 'image/png', data: 'AA==' } as const;
 function convert(messages: Message[], id = googleModel.id) {

@@ -118,7 +118,7 @@ export interface ChildHandle {
   pid: number | undefined;
 }
 
-export const zeroUsage = (): Usage => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } });
+export const zeroUsage = (): Usage => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0, totalFromProvider: true } });
 
 export function addUsage(left: Usage, right: Usage): Usage {
   return {
@@ -133,6 +133,7 @@ export function addUsage(left: Usage, right: Usage): Usage {
       cacheRead: left.cost.cacheRead + right.cost.cacheRead,
       cacheWrite: left.cost.cacheWrite + right.cost.cacheWrite,
       total: left.cost.total + right.cost.total,
+      totalFromProvider: left.cost.totalFromProvider === true && right.cost.totalFromProvider === true,
     },
   };
 }

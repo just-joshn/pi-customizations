@@ -1,7 +1,9 @@
-import { type Tool, Type } from '@earendil-works/pi-ai';
+import type { Tool } from '@earendil-works/pi-ai';
+import { Type } from 'typebox';
 import { expect } from 'vitest';
 import {
   appendGrammarToolInputJsonDelta,
+  closeGrammarToolInputJson,
   createGrammarToolInputProperties,
   getGrammarToolInput,
   getJsonSchemaToolParameters,
@@ -126,15 +128,23 @@ test('grammar input requires a string including empty strings', () => {
 
 test('grammar JSON deltas escape streamed input once', () => {
   const buffer = { input: '', started: false, closed: false };
-  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '', false)).toBeUndefined();
-  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '😀\n', false)).toBe('{"input":"😀\\n');
-  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '😀\n"', true)).toBe('\\""}');
-  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '😀\n"', true)).toBeUndefined();
-  expect(() => appendGrammarToolInputJsonDelta(buffer, 'input', 'changed', false)).toThrow('changed after it was closed');
+  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '')).toBeUndefined();
+  expect(appendGrammarToolInputJsonDelta(buffer, 'input', '😀\n')).toBe('{"input":"😀\\n');
+  expect(closeGrammarToolInputJson(buffer, 'input', '😀\n"')).toBe('\\""}');
+  expect(closeGrammarToolInputJson(buffer, 'input', '😀\n"')).toBeUndefined();
+  expect(() => appendGrammarToolInputJsonDelta(buffer, 'input', 'changed')).toThrow('changed after it was closed');
+});
+
+test('grammar JSON deltas append repeated chunks and close without a final snapshot', () => {
+  const buffer = { input: '', started: false, closed: false };
+  const deltas = [appendGrammarToolInputJsonDelta(buffer, 'input', 'a'), appendGrammarToolInputJsonDelta(buffer, 'input', 'a'), closeGrammarToolInputJson(buffer, 'input', undefined)];
+  expect(JSON.parse(deltas.join(''))).toEqual({ input: 'aa' });
+  expect(closeGrammarToolInputJson(buffer, 'input', undefined)).toBeUndefined();
+  expect(() => closeGrammarToolInputJson(buffer, 'input', 'changed')).toThrow('changed after it was closed');
 });
 
 test('grammar deltas reject rewrites before close', () => {
   const buffer = { input: 'abc', started: true, closed: false };
-  expect(() => appendGrammarToolInputJsonDelta(buffer, 'input', 'ab', false)).toThrow('changed non-monotonically');
-  expect(appendGrammarToolInputJsonDelta({ input: '', started: false, closed: false }, 'input', '', true)).toBe('{"input":""}');
+  expect(() => closeGrammarToolInputJson(buffer, 'input', 'ab')).toThrow('changed non-monotonically');
+  expect(closeGrammarToolInputJson({ input: '', started: false, closed: false }, 'input', '')).toBe('{"input":""}');
 });

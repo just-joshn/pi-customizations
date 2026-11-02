@@ -4,10 +4,30 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../src/paths.ts';
-import { childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from '../src/task/runner.ts';
+import { addUsage, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments, zeroUsage } from '../src/task/runner.ts';
 
 const FAKE_PI = join(PACKAGE_ROOT, 'test/fixtures/fake-pi.mjs');
 const base = { sessionDir: '/state/subagents', agentId: '11111111-2222-4333-8444-555555555555' };
+
+describe('usage cost provenance', () => {
+  test.for([
+    { flags: [true, true], expected: true },
+    { flags: [true, false], expected: false },
+    { flags: [false, true], expected: false },
+    { flags: [true, undefined], expected: false },
+    { flags: [undefined, true], expected: false },
+  ])('reports provider totals only when every contribution does: $flags', ({ flags, expected }) => {
+    const parts = flags.map((totalFromProvider) => ({ ...zeroUsage(), input: 1, totalTokens: 1, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0.25, ...(totalFromProvider === undefined ? {} : { totalFromProvider }) } }));
+    const usage = parts.reduce(addUsage, zeroUsage());
+    expect(usage.cost.totalFromProvider).toBe(expected);
+    expect(usage.cost.total).toBe(0.5);
+  });
+
+  test('the empty accumulator preserves the first provider-reported contribution', () => {
+    const part = { ...zeroUsage(), input: 1, totalTokens: 1, cost: { ...zeroUsage().cost, total: 0.25, totalFromProvider: true } };
+    expect(addUsage(zeroUsage(), part)).toEqual(part);
+  });
+});
 
 describe('childArgs (SEC-001, TASK-008)', () => {
   test('always runs one RPC session per agent ID with this package loaded, so its owner can steer and stop it (C-H4)', () => {
@@ -130,7 +150,7 @@ describe('startChild', () => {
   test('sends the prompt as an RPC prompt and returns the final assistant text with summed usage', async () => {
     const outcome = await run('echo', 'line one\n"quoted" $HOME').done;
     expect(outcome.finalText).toBe('GOT:line one\n"quoted" $HOME|ARGS:--x y');
-    expect(outcome.usage).toEqual({ input: 20, output: 10, cacheRead: 2, cacheWrite: 4, totalTokens: 36, cost: { input: 0.2, output: 0.4, cacheRead: 0, cacheWrite: 0, total: 0.6 } });
+    expect(outcome.usage).toEqual({ input: 20, output: 10, cacheRead: 2, cacheWrite: 4, totalTokens: 36, cost: { input: 0.2, output: 0.4, cacheRead: 0, cacheWrite: 0, total: 0.6, totalFromProvider: false } });
     expect(outcome.failure).toBeUndefined();
   });
 

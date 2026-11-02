@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8] - 2026-11-02
+
+- Document the Pi 1.5.0 upgrade target without relabeling Pi 1.4.0 runtime receipts as new evidence.
+- Retain the provider-local identity and tool-name compatibility adapters. Public request events still do not name the physical receiving provider. Fresh request-path probes remain necessary to verify compaction hooks and static-header delivery.
+- Do not claim complete Claude Code parity or live subscription acceptance from this documentation audit.
+- Ship a versioned package-root changelog entry for Pi 1.5.0's extension update notices.
+
 ## [0.1.7]
 
 - `pi` bearer token export no longer fails after a 401 recovery. A recorded successor credential needs 30 minutes left, the window the export asks for, or the refresh hook rotates it.
