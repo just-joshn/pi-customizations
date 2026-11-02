@@ -44,7 +44,7 @@ Init ==
   /\ serverToken = 1
   /\ refreshCount = 0
 
-\* Step 1: Process attempts mkdir(lockPath) (refresh-file-lock.ts:77)
+\* Step 1: Process attempts mkdir(lockPath) (refresh-file-lock.ts:91)
 TryAcquire(p) ==
   /\ pc[p] = "needs_refresh"
   /\ IF lockState = "free"
@@ -56,7 +56,7 @@ TryAcquire(p) ==
           /\ UNCHANGED <<lockState, lockHolder, attempts>>
   /\ UNCHANGED <<localToken, failedAccess, sharedToken, serverToken, refreshCount>>
 
-\* Step 2: Handle EEXIST and check for abandoned lock (refresh-file-lock.ts:80-87)
+\* Step 2: Handle EEXIST and check for abandoned lock (refresh-file-lock.ts:94-102)
 CheckStale(p) ==
   /\ pc[p] = "check_stale"
   /\ IF lockState = "held" /\ lockHolder /= "none" /\ pc[lockHolder] = "crashed"
@@ -69,7 +69,7 @@ CheckStale(p) ==
                /\ UNCHANGED attempts
   /\ UNCHANGED <<localToken, failedAccess, lockState, lockHolder, sharedToken, serverToken, refreshCount>>
 
-\* Step 3: Remove abandoned lock and retry (refresh-file-lock.ts:82)
+\* Step 3: Remove abandoned lock and retry (refresh-file-lock.ts:96-97)
 StealLock(p) ==
   /\ pc[p] = "steal_lock"
   /\ lockState' = "free"
@@ -77,7 +77,7 @@ StealLock(p) ==
   /\ pc' = [pc EXCEPT ![p] = "needs_refresh"]
   /\ UNCHANGED <<attempts, localToken, failedAccess, sharedToken, serverToken, refreshCount>>
 
-\* Step 4: Inside lock, read claude-subscription-refresh.json (auth-recovery.ts:110-114)
+\* Step 4: Inside lock, read claude-subscription-refresh.json (auth-recovery.ts:112-116)
 ReadShared(p) ==
   /\ pc[p] = "read_shared"
   /\ IF sharedToken > failedAccess[p]
@@ -87,7 +87,7 @@ ReadShared(p) ==
           /\ UNCHANGED localToken
   /\ UNCHANGED <<attempts, failedAccess, lockState, lockHolder, sharedToken, serverToken, refreshCount>>
 
-\* Step 5: Execute oauth.refresh(current) network endpoint (auth-recovery.ts:119)
+\* Step 5: Execute oauth.refresh(current) network endpoint (auth-recovery.ts:121)
 CallRefresh(p) ==
   /\ pc[p] = "calling_refresh"
   /\ serverToken' = serverToken + 1
@@ -96,14 +96,14 @@ CallRefresh(p) ==
   /\ pc' = [pc EXCEPT ![p] = "write_shared"]
   /\ UNCHANGED <<attempts, failedAccess, lockState, lockHolder, sharedToken>>
 
-\* Step 6: Atomically write new credential to shared file (auth-recovery.ts:120)
+\* Step 6: Atomically write new credential to shared file (auth-recovery.ts:122)
 WriteShared(p) ==
   /\ pc[p] = "write_shared"
   /\ sharedToken' = localToken[p]
   /\ pc' = [pc EXCEPT ![p] = "releasing"]
   /\ UNCHANGED <<attempts, localToken, failedAccess, lockState, lockHolder, serverToken, refreshCount>>
 
-\* Step 7: Finally block removes lock directory (refresh-file-lock.ts:107)
+\* Step 7: Finally block removes lock directory (refresh-file-lock.ts:109-110)
 ReleaseLock(p) ==
   /\ pc[p] = "releasing"
   /\ lockState' = "free"
