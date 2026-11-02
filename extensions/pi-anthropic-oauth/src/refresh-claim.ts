@@ -245,7 +245,8 @@ export async function rotateRefreshToken(
         await rm(claimPath, { force: true });
         throw error;
       }
-      await writeSuccessor(claimPath, next);
+      // The token endpoint already rotated the token, so failing here would discard the only valid one.
+      await writeSuccessor(claimPath, next).catch(() => undefined);
       await sweepOldClaimsBestEffort(directory, options.liveCredential);
       return next;
     }
