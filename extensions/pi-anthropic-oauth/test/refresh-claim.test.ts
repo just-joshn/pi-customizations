@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { OAuthCredential } from '@earendil-works/pi-ai';
@@ -226,4 +226,16 @@ test('a started refresh is not cancelled by the caller signal', async () => {
 
   await expect(rotateRefreshToken(directory, credential('a'), refresh, {}, caller.signal)).resolves.toStrictEqual(next);
   expect(refreshCancelled).toBe(false);
+});
+
+test('a refresh whose successor cannot be recorded still returns the new credential', async ({ signal }) => {
+  const directory = await tempClaims();
+  onTestFinished(() => chmod(directory, 0o700));
+  const next = credential('b');
+  const refresh = vi.fn(async () => {
+    await chmod(directory, 0o500);
+    return next;
+  });
+
+  await expect(rotateRefreshToken(directory, credential('a'), refresh, {}, signal)).resolves.toStrictEqual(next);
 });
