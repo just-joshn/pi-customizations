@@ -17,8 +17,10 @@ export const REFRESH_CLAIM_STALE_MS = 2 * REFRESH_TIMEOUT_MS;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Pi core's DEFAULT_OAUTH_MINIMUM_VALIDITY_MS: it refreshes a credential with less left than this.
-const MINIMUM_VALIDITY_MS = 5 * 60 * 1000;
+// A recorded successor must satisfy the longest window Pi's own callers request: `pi` bearer
+// token export asks for 30 minutes (DEFAULT_BEARER_TOKEN_MIN_EXPIRY_MS). Pi rejects a refresh
+// result that expires inside the caller's window instead of refreshing again.
+const MINIMUM_VALIDITY_MS = 30 * 60 * 1000;
 
 const V0_1_5_SHARE_FILE = 'claude-subscription-refresh.json';
 
