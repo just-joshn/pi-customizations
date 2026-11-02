@@ -24,9 +24,9 @@ export function bindSubscriptionCredentials(store: CredentialStore): void {
 }
 
 /**
- * Bind the auth.json path whose directory holds the cross-process refresh lock.
- * The lock file is `claude-subscription-refresh.lock` in that directory, not `auth.json.lock`.
- * A bound credential store does not take this lock. Pi AuthStorage already locks `auth.json`.
+ * Bind the auth.json path whose directory holds the cross-process refresh claims.
+ * Claims live in `claude-subscription-refresh.claims` in that directory, not `auth.json.lock`.
+ * A bound credential store does not use these claims. Pi AuthStorage already locks `auth.json`.
  * Omit the argument to use `<agentDir>/auth.json`. Pass `undefined` to keep the in-process latch only.
  */
 export function bindSubscriptionRefreshLock(...args: [] | [authJsonPath: string | undefined]): void {

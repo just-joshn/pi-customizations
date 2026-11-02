@@ -1,10 +1,8 @@
 import { readFile, rename, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { CredentialStore, FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
-import { refreshLockPathFor, withRefreshFileLock, type RefreshFileLockOptions } from './refresh-file-lock.ts';
+import { REFRESH_TIMEOUT_MS, withRefreshTokenClaim, type RefreshClaimOptions } from './refresh-claim.ts';
 import { createRefreshLatch } from './refresh-latch.ts';
-
-const REFRESH_TIMEOUT_MS = 15_000;
 
 export type AuthRecovery = {
   bindCredentials(store: CredentialStore): void;
@@ -43,13 +41,6 @@ async function isAuthRecoveryTrigger(response: Response): Promise<boolean> {
   }
 }
 
-const REFRESH_SHARE_FILENAME = 'claude-subscription-refresh.json';
-
-function sharePathFor(targetPath: string, options: RefreshFileLockOptions | undefined): string {
-  const lockPath = options?.lockPath ?? refreshLockPathFor(targetPath);
-  return join(dirname(lockPath), REFRESH_SHARE_FILENAME);
-}
-
 function isOAuthCredential(value: unknown): value is OAuthCredential {
   if (typeof value !== 'object' || value === null) return false;
   const record = value as Record<string, unknown>;
@@ -77,9 +68,9 @@ async function writeSharedCredential(path: string, credential: OAuthCredential):
 export function createAuthRecovery(input: {
   providerId: string;
   oauth: OAuthAuth;
-  /** Auth file whose directory holds the no-store refresh lock. Ignored while a credential store is bound. */
+  /** Auth file whose directory holds the no-store refresh claims. Ignored while a credential store is bound. */
   refreshLockTarget?: string;
-  refreshLockOptions?: RefreshFileLockOptions;
+  refreshClaimOptions?: RefreshClaimOptions;
 }): AuthRecovery {
   let store: CredentialStore | undefined;
   let remembered: OAuthCredential | undefined;
@@ -107,24 +98,41 @@ export function createAuthRecovery(input: {
 
   async function refreshRemembered(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {
     const target = refreshLockTarget;
-    const run = async () => {
-      if (target) {
-        const shared = await readSharedCredential(sharePathFor(target, input.refreshLockOptions));
-        if (shared && shared.access !== failedAccess && shared.expires > Date.now()) {
-          remembered = shared;
-          return shared.access;
-        }
-      }
+    if (!target) {
       const current = remembered;
       if (!current) return undefined;
       if (current.access !== failedAccess) return current.access;
       const next = await input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
-      if (target) await writeSharedCredential(sharePathFor(target, input.refreshLockOptions), next);
       remembered = next;
       return next.access;
+    }
+    const sharePath = join(dirname(target), 'claude-subscription-refresh.json');
+    const fromShared = async () => {
+      const shared = await readSharedCredential(sharePath);
+      if (!shared || shared.access === failedAccess || shared.expires <= Date.now()) return undefined;
+      remembered = shared;
+      return shared.access;
     };
-    if (!target) return run();
-    return withRefreshFileLock(target, run, input.refreshLockOptions, signal);
+    const reused = await fromShared();
+    if (reused) return reused;
+    const current = remembered;
+    if (!current) return undefined;
+    if (current.access !== failedAccess) return current.access;
+    return withRefreshTokenClaim(
+      target,
+      current.refresh,
+      {
+        reuse: fromShared,
+        refresh: async () => {
+          const next = await input.oauth.refresh(current, AbortSignal.timeout(REFRESH_TIMEOUT_MS));
+          await writeSharedCredential(sharePath, next);
+          remembered = next;
+          return next.access;
+        },
+      },
+      input.refreshClaimOptions,
+      signal,
+    );
   }
 
   async function refreshAfterAuthFailure(failedAccess: string, signal: AbortSignal): Promise<string | undefined> {

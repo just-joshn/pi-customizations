@@ -8,8 +8,8 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const SKILL_ROOT = resolve(__dirname, '..');
-const SPEC_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshLock.tla');
-const CONFIG_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshLock.cfg');
+const SPEC_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshClaim.tla');
+const CONFIG_FILE = join(SKILL_ROOT, 'specs/OAuthRefreshClaim.cfg');
 
 function findJava() {
   if (process.env.JAVA_HOME && existsSync(join(process.env.JAVA_HOME, 'bin/java'))) {
@@ -45,7 +45,7 @@ function main() {
   const java = findJava();
   const jar = findTla2Tools();
 
-  process.stdout.write(`[verify-oauth-refresh-lock] Checking OAuthRefreshLock with TLC...\n`);
+  process.stdout.write(`[verify-oauth-refresh-lock] Checking OAuthRefreshClaim with TLC...\n`);
   process.stdout.write(`  Spec: ${SPEC_FILE}\n`);
   process.stdout.write(`  Config: ${CONFIG_FILE}\n`);
 
@@ -73,7 +73,7 @@ function main() {
     const distinct = match ? match[2] : 'unknown';
 
     process.stdout.write(`\n✓ TLC verified all properties cleanly across full state space:\n`);
-    process.stdout.write(`  - Invariants: MutualExclusion, SingleRefreshWhenNoCrash, LockHolderConsistent, UpdatedTokenOnSuccess\n`);
+    process.stdout.write(`  - Invariants: NoRefreshTokenReuse, SingleClaimant, UpdatedTokenOnSuccess\n`);
     process.stdout.write(`  - Deadlock: checked (free of deadlocks)\n`);
     process.stdout.write(`  - Coverage: ${generated} states generated, ${distinct} distinct states verified\n`);
     process.exit(0);

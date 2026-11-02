@@ -5,7 +5,7 @@ import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/
 import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
-import { refreshLockPathFor } from '../src/refresh-file-lock.ts';
+import { refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
 
 const PROVIDER_ID = 'claude-subscription';
 
@@ -67,7 +67,7 @@ test('two recoveries on one auth file send one refresh POST and both retry 200',
   const oauth = {
     refresh: fetching(posts, holdFirst, async () => {
       expect((await stat(join(dir, 'auth.json.lock'))).isDirectory()).toBe(true);
-      await expect(stat(refreshLockPathFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(stat(refreshClaimDirectoryFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
     }),
   } as unknown as OAuthAuth;
   const lock = { retries: 200, retryDelayMs: () => 5 };
@@ -77,7 +77,7 @@ test('two recoveries on one auth file send one refresh POST and both retry 200',
       providerId: PROVIDER_ID,
       oauth,
       refreshLockTarget: authPath,
-      refreshLockOptions: lock,
+      refreshClaimOptions: lock,
     });
     recovery.bindCredentials(store);
     recovery.remember(staleCredential());
@@ -91,7 +91,7 @@ test('two recoveries on one auth file send one refresh POST and both retry 200',
   const responses = await pending;
   expect(responses.map((response) => response.status)).toStrictEqual([200, 200]);
   expect(posts.count).toBe(1);
-  await expect(stat(refreshLockPathFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(stat(refreshClaimDirectoryFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
 test('AuthStorage refresh completes when the lock target is that auth.json', async () => {
@@ -104,7 +104,7 @@ test('AuthStorage refresh completes when the lock target is that auth.json', asy
     refresh: async (credential: OAuthCredential) => {
       posts.count += 1;
       expect((await stat(join(dir, 'auth.json.lock'))).isDirectory()).toBe(true);
-      await expect(stat(refreshLockPathFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
+      await expect(stat(refreshClaimDirectoryFor(authPath))).rejects.toMatchObject({ code: 'ENOENT' });
       return rotated(credential);
     },
   } as unknown as OAuthAuth;
@@ -123,7 +123,7 @@ test('AuthStorage refresh completes when the lock target is that auth.json', asy
   expect(posts.count).toBe(1);
 });
 
-test('two recoveries without a store send one refresh POST after the lock', async () => {
+test('two recoveries without a store send one refresh POST under one claim', async () => {
   const dir = await tempDir();
   const authPath = join(dir, 'auth.json');
   const posts = { count: 0 };
@@ -133,7 +133,6 @@ test('two recoveries without a store send one refresh POST after the lock', asyn
   });
   const oauth = {
     refresh: fetching(posts, holdFirst, async () => {
-      expect((await stat(refreshLockPathFor(authPath))).isDirectory()).toBe(true);
       await expect(stat(join(dir, 'auth.json.lock'))).rejects.toMatchObject({ code: 'ENOENT' });
     }),
   } as unknown as OAuthAuth;
@@ -143,7 +142,7 @@ test('two recoveries without a store send one refresh POST after the lock', asyn
       providerId: PROVIDER_ID,
       oauth,
       refreshLockTarget: authPath,
-      refreshLockOptions: lock,
+      refreshClaimOptions: lock,
     });
     recovery.remember(staleCredential());
     return recovery.wrapFetch(baseFetch());
