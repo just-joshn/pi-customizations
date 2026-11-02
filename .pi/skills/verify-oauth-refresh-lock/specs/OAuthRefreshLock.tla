@@ -15,7 +15,7 @@
 EXTENDS Naturals, FiniteSets
 
 CONSTANTS
-  Processes,     \* Set of concurrent client processes, e.g. {p1, p2}
+  Processes,     \* Set of concurrent client processes, e.g. {p1, p2, p3}
   MaxRetries     \* Max ELOCKED retries before throwing (REFRESH_LOCK_MAX_RETRIES = 5)
 
 VARIABLES
