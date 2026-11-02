@@ -1,10 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [0.15.36-pi.7] - 2026-11-02
 
 - Update the host compatibility documentation for Pi 1.5.0. Retain the four native gaps for RPC process control, skill-block formatting, named-ID fork truncation, and workspace folder naming.
 - Keep earlier verification records unchanged. This documentation audit does not claim new runtime-test results or complete upstream parity.
-- Keep the package-root changelog for Pi 1.5.0's extension update notices. Pi displays newer versioned entries after a package version increase. This unreleased entry does not itself trigger a notice.
+- Preserve string-enum argument shapes and optional literal types with TypeBox schemas under Pi 1.5.0 validation.
+- Preserve provider-reported cost provenance when aggregating subagent usage.
+- Ship a versioned package-root changelog entry for Pi 1.5.0's extension update notices.
 
 ## [0.15.36-pi.6]
 

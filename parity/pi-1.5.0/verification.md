@@ -12,7 +12,7 @@ This report does not certify complete upstream parity. Maintainer has 11 existin
 - Pstack authors its string enums with TypeBox so optional fields and literal types survive Pi 1.5's schema separation. Native argument-validation tests cover valid, coercible, and invalid values.
 - Pstack preserves `Usage.cost.totalFromProvider` when combining subagent usage, following Pi's all-contributions rule.
 - Antigravity regenerates its eight native helper copies against Pi 1.5.0 with the existing documented transformations. Its tests import TypeBox directly. Regressions cover updated constrained sampling and Gemini constant conversion.
-- Current native-gap documentation distinguishes Pi 1.5 contract inspection from historical runtime receipts. All five package changelogs have unreleased entries. No package versions changed, so no new update notice is claimed.
+- Current native-gap documentation distinguishes Pi 1.5 contract inspection from historical runtime receipts. All five package changelogs now have versioned release entries dated 2026-11-02. The release preparation bumps Anthropic to 0.1.8, Antigravity to 0.1.4, maintainer to 0.1.2, pstack to 0.15.36-pi.7, and xAI to 0.1.4. Pi discovers the package-root changelogs without a custom path. No publication or installed-user update notice is claimed.
 
 ## Verified checks
 
