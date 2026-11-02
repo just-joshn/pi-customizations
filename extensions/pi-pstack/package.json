@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack",
-  "version": "0.15.36-pi.5",
+  "version": "0.15.36-pi.6",
   "description": "pstack 0.15.36 for Pi with its soft-dependency team-kit skills vendored in: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, and visualize",
   "type": "module",
   "license": "MIT",

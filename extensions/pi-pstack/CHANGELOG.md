@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.36-pi.6]
+
+- Implement version-2 durable subscription registry with transactional file locking, native owner continuation delivery via `pi.sendMessage`, bounded exponential retry on detached failures, per-subscription queue caps, non-blocking GitHub arming, legacy supervisor termination, and in-process fallback isolation.
+- Decode child RPC stdout streams using `StringDecoder` to preserve split multibyte UTF-8 code points across buffer boundaries.
+- Publish upstream pstack git commit provenance in `pstackSource` and exclude nested script dependencies from npm publication archives via `skills/.npmignore`.
+- Canonicalize statechart symlink test fixture paths on macOS and add checksum-verified TLC statechart verification to CI.
+
 ## [0.15.36-pi.5]
 
 - Replace hand-rolled frontmatter, attachment MIME, and session header parsers with Pi 1.4.0 exports (`stripFrontmatter`, `detectSupportedImageMimeTypeFromFile`, and `parseSessionEntries`).
