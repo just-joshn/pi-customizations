@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- With no credential store, cross-process 401 refresh now claims the refresh token instead of taking `claude-subscription-refresh.lock`. A claim is a file `<hash>.<generation>` in `claude-subscription-refresh.claims`, created exclusively, named by a hash of the refresh token, and never removed by another process. A stale claim is taken over by creating the next generation, so a crashed refresher can no longer let two recoveries send the same refresh token. Contended `ELOCKED` still stops after 5 retries.
+
 ## [0.1.4]
 
 - Write the `cch` body attestation Claude Code 2.1.316's native HTTP layer adds to first-party `/v1/messages` requests: XXH64 (seed `0x4D659218E32A3268`, low 20 bits, five hex digits) over the body with the `model` value, `max_tokens`, `fallbacks` and `fallback_credit_token` removed. It runs in Pi's `fetch` seam. Reproduces both bodies captured from the real binary.

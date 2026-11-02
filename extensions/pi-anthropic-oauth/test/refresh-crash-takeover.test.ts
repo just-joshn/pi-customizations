@@ -57,7 +57,7 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))(
         },
       } as unknown as OAuthAuth,
       refreshLockTarget: authPath,
-      refreshLockOptions: lock,
+      refreshClaimOptions: lock,
     });
     crasher.remember(staleCredential());
     const crasherResponse = crasher.wrapFetch(baseFetch)(URL, { headers: { authorization: 'Bearer old-access' } });
@@ -73,7 +73,7 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))(
       },
     } as unknown as OAuthAuth;
     const survivors = Array.from({ length: 8 }, () => {
-      const recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth, refreshLockTarget: authPath, refreshLockOptions: lock });
+      const recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth, refreshLockTarget: authPath, refreshClaimOptions: lock });
       recovery.remember(staleCredential());
       return recovery.wrapFetch(baseFetch);
     });
