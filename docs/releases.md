@@ -27,11 +27,18 @@ short-lived OIDC identity. No long-lived token exists to leak or rotate.
 Provenance attestations are generated automatically
 (<https://docs.npmjs.com/generating-provenance-statements>).
 
+The workflow deliberately configures setup-node without `registry-url`.
+When setup-node receives a registry, it writes an `.npmrc` whose auth token
+is read from `NODE_AUTH_TOKEN` and exports that variable as a literal
+placeholder when it is unset, and npm then authenticates with the
+placeholder instead of attempting OIDC. That interaction produced six
+silent publish failures in release run 41527084422; see Troubleshooting.
+
 ## One-time setup per package
 
-For each package that already exists on npmjs.com
-(`pi-anthropic-oauth`, `pi-antigravity-oauth`, `pi-pstack`, `pi-rea`,
-`pi-xai-oauth`):
+All six packages (`pi-anthropic-oauth`, `pi-antigravity-oauth`,
+`pi-maintainer`, `pi-pstack`, `pi-rea`, `pi-xai-oauth`) already exist on
+npmjs.com. For each one:
 
 1. Open the package page on npmjs.com and go to Settings.
 2. Find the "Trusted Publisher" section and choose the GitHub Actions button.
@@ -41,23 +48,40 @@ For each package that already exists on npmjs.com
    - Environment: leave empty (the workflow does not use one)
 4. Save.
 
-`@justjoshn/pi-maintainer` has never been published. Publish it once by hand
-(`cd extensions/pi-maintainer && npm publish --access public`), then add its
-trusted publisher as above. After that the workflow owns its releases.
-
-Until the trusted publisher is configured for a package, `npm publish` from
-the workflow fails with an authentication error by design. Nothing publishes
-halfway: the tag is created only after a successful publish.
+Until a package's trusted publisher is configured, its publish fails with an
+authentication error by design. Nothing publishes halfway: the tag is
+created only after a successful publish, and the run lists the failures.
 
 ## Token fallback
 
 If you would rather use a token, create a repository secret named
 `NPM_TOKEN` (classic automation token or granular publish token). The
-workflow then uses npm's documented token path,
-`npm publish --provenance --access public`
+workflow then appends the documented auth line to the npm userconfig and
+publishes with `npm publish --provenance --access public`
 (<https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages>).
 Trusted publishing is still the recommended end state: tokens expire, leak,
 and need rotation; the OIDC identity is workflow-bound and short-lived.
+
+## Troubleshooting
+
+**`npm error 404 Not Found - PUT https://registry.npmjs.org/...`** means the
+registry rejected the publish as unauthorized. Two known causes:
+
+1. The package's trusted publisher is not configured on npmjs.com yet (see
+   One-time setup), so the workflow has no publishing identity for it.
+2. An `.npmrc` auth token is preempting OIDC. setup-node's `registry-url`
+   input exports a placeholder `NODE_AUTH_TOKEN` that npm treats as a real
+   token. This release workflow no longer sets `registry-url` for exactly
+   this reason; do not add it back, and check any local `.npmrc` you might
+   copy into CI.
+
+**A run is green but versions did not change on npm.** This happened in
+release run 41527084422: a bash `set -e` inside a subshell used as an `if`
+condition is ignored, so failed publishes fell through to tag creation.
+The current workflow runs each package in a plain subshell and checks the
+exit code, so a failed publish can no longer reach the tag step. If you
+ever see release tags for versions that are missing on npmjs.com, delete
+the tags; they are false release markers.
 
 ## Actions pinning
 

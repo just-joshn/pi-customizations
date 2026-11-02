@@ -9,11 +9,17 @@ name: release
 #   - permissions: id-token: write (required for OIDC).
 #   - `npm publish` with no auth token; provenance attestations are generated
 #     automatically. https://docs.npmjs.com/generating-provenance-statements
+#
+# setup-node is deliberately configured WITHOUT `registry-url`. When it is
+# given a registry, setup-node writes an .npmrc whose _authToken comes from
+# NODE_AUTH_TOKEN and exports that variable as a placeholder
+# (actions/setup-node v6 src/authutil.ts), and npm then authenticates with the
+# placeholder instead of attempting OIDC, which the registry rejects with
+# 404 on the publish PUT. Each package's publishConfig covers scope access.
+#
 # One-time setup per package on npmjs.com (package Settings -> Trusted
 # Publisher -> GitHub Actions, workflow filename `release.yml`) is documented
-# in docs/releases.md. If the repository secret NPM_TOKEN exists instead, the
-# workflow uses npm's documented token path:
-#   `npm publish --provenance --access public` (requires registry-url).
+# in docs/releases.md, along with the NPM_TOKEN fallback.
 
 on:
   push:
@@ -45,7 +51,6 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '26.13.0' # Trusted publishing requires Node >= 22.14.0
-          registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false # Never use caching in release builds
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
@@ -75,6 +80,15 @@ jobs:
       - name: Install workspace dependencies
         if: steps.detect.outputs.packages != ''
         run: bun install --frozen-lockfile
+      - name: Configure npm token auth (fallback path)
+        if: env.HAS_NPM_TOKEN == 'true'
+        run: |
+          set -euo pipefail
+          conf="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          # The literal ${NODE_AUTH_TOKEN} is expanded by npm from the publish
+          # step's environment, so keep it unexpanded here.
+          # shellcheck disable=SC2016
+          printf '\n//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}\n' >> "$conf"
       - name: Verify and publish unreleased packages
         if: steps.detect.outputs.packages != ''
         env:
@@ -88,7 +102,10 @@ jobs:
             base="${name##*/}"
             tag="${base}-v${version}"
             echo "::group::${name}@${version}"
-            if ! (
+            # A plain subshell, not an if condition: bash ignores set -e inside
+            # a subshell whose exit status is tested, so a failed publish would
+            # otherwise fall through to tagging (release run 41527084422 did).
+            (
               set -euo pipefail
               if jq -e '.scripts.typecheck' "$dir/package.json" > /dev/null; then
                 (cd "$dir" && bun run typecheck)
@@ -103,8 +120,10 @@ jobs:
               fi
               git tag "$tag"
               git push origin "refs/tags/${tag}"
-            ); then
-              echo "::error::release failed for ${name}@${version}; fix the package and merge again"
+            )
+            rc=$?
+            if [ "$rc" -ne 0 ]; then
+              echo "::error::release failed for ${name}@${version} (exit ${rc}); fix the package and merge again"
               failed="${failed}${name} "
             else
               echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) as tag \`${tag}\`" >> "$GITHUB_STEP_SUMMARY"
