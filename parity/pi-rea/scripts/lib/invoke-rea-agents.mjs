@@ -119,7 +119,12 @@ const classifyMcpToolResponse = (response, stderr = '') => {
 
 export const invokeReaAgentsMcp = (toolName, args, options = {}) => invokeReaAgentsMcpSession([[toolName, args ?? {}]], options).then((results) => results[0]);
 
-export const invokeReaAgentsMcpSession = (calls, options = {}) => withReaAgentsMcpSession((call) => Promise.all(calls.map(([toolName, args]) => call(toolName, args))), options);
+export const invokeReaAgentsMcpSession = (calls, options = {}) =>
+  withReaAgentsMcpSession(async (call) => {
+    const results = [];
+    for (const [toolName, args] of calls) results.push(await call(toolName, args));
+    return results;
+  }, options);
 
 export const withReaAgentsMcpSession = (run, options = {}) => {
   const timeoutMs = typeof options.timeoutMs === 'number' ? options.timeoutMs : 90_000;
@@ -188,10 +193,10 @@ export const withReaAgentsMcpSession = (run, options = {}) => {
         });
         child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' })}\n`);
         let id = 2;
-        const call = async (toolName, args) => {
-          const response = await call_(id, 'tools/call', { name: toolName, arguments: args ?? {} });
+        const call = (toolName, args) => {
+          const requestId = id;
           id += 1;
-          return classifyMcpToolResponse(response, stderr);
+          return call_(requestId, 'tools/call', { name: toolName, arguments: args ?? {} }).then((response) => classifyMcpToolResponse(response, stderr));
         };
         const results = await run(call);
         resolveOnce(results);

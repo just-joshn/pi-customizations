@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_ba439a326cf7acefe0eabd4e3e698ace04a20c192b129c499735b5ac0c7ea29f",
+    "evidence_id": "ev_1962f5062f6b8f878531f2ad7fccb103f4da49162a49650be61d70ba6b00a662",
+    "relationship_coverage": null,
     "subject": {
       "name": "fixture.zip",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -34,12 +35,13 @@
       },
       "substeps": [
         {
-          "substep_id": "ais_1411625f556db11c18bdaa1d32e42d11f4cf35a1a600b8ca6057e3e2db15b635",
+          "substep_id": "ais_be822fbda675ed3479bc9d87ef0ba802946fc0328f739499306edcf5edeb03ad",
           "operation": "inventory_artifact",
           "status": "completed",
-          "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8",
+          "evidence_id": "ev_cf20dcdf32fdff433811f03f22d178afb9c807b4bcaf14c1cd43177faf2134a9",
           "evidence": {
-            "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8",
+            "evidence_id": "ev_cf20dcdf32fdff433811f03f22d178afb9c807b4bcaf14c1cd43177faf2134a9",
+            "relationship_coverage": null,
             "subject": {
               "name": "fixture.zip",
               "digest": {
@@ -52,7 +54,7 @@
             "provider": {
               "id": "pi-rea-in-process",
               "name": "pi-rea in-process analysis",
-              "version": "0.1.1"
+              "version": "0.2.0"
             },
             "analysis_profile": null,
             "predicate_type": "rea.analysis",
@@ -195,7 +197,7 @@
       ],
       "observations": [
         {
-          "observation_id": "aio_5284e06102e1a9939271e926a46a2935294509180a1c7818bffdb257d3eaca0f",
+          "observation_id": "aio_83065c78e1dd57392905d9bb479bb683e478797e5b437427a78814cf40f2f845",
           "kind": "root-manifest",
           "subject": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
           "value": {
@@ -208,7 +210,7 @@
             "occurrence_count": 3,
             "edge_count": 2
           },
-          "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
+          "evidence_id": "ev_cf20dcdf32fdff433811f03f22d178afb9c807b4bcaf14c1cd43177faf2134a9"
         }
       ],
       "hypotheses": [],
@@ -228,7 +230,7 @@
         "next_probes_omitted": 0
       },
       "evidence_links": [
-        "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
+        "ev_cf20dcdf32fdff433811f03f22d178afb9c807b4bcaf14c1cd43177faf2134a9"
       ],
       "limitations": [
         "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
@@ -244,7 +246,7 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
+      "ev_cf20dcdf32fdff433811f03f22d178afb9c807b4bcaf14c1cd43177faf2134a9"
     ]
   }
 }

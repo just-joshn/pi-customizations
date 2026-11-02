@@ -2748,7 +2748,7 @@
         "server": {
           "name": "rea",
           "version": "6.8.0",
-          "started_at": "2026-11-02T05:13:33.944Z",
+          "started_at": "2026-11-02T17:34:35.490Z",
           "command_path": "/Users/josh-desktop/.local/share/mise/installs/node/26.13.0/bin/rea"
         },
         "sdk": {

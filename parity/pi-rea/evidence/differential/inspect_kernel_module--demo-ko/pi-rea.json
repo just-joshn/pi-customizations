@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_0a125b0dc61b25d9938243c004481bb35841fd774cdfb84a31745cfe2f850ff5",
+    "evidence_id": "ev_a953497e9408d9b3a38f3ced69039b22388024949eec224beca5adef6e5fe4f3",
+    "relationship_coverage": null,
     "subject": {
       "name": "demo.ko",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

@@ -90,6 +90,6 @@
   },
   "meta": {
     "command": "inspect-byte-entropy",
-    "duration": "5ms"
+    "duration": "7ms"
   }
 }

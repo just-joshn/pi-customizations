@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_fb43294fbbb0aafc73fb1da6f2f7d22b40539eeed054698cc8ebc7da848506f1",
+    "evidence_id": "ev_cbd5f82a1a1b161308f7b56d8d384403f734a4768cea7db72e9f9f5f47a0b12b",
+    "relationship_coverage": null,
     "subject": {
       "name": "board.dtb",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

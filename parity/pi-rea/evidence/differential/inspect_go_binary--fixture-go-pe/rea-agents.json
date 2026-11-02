@@ -122,6 +122,6 @@
   },
   "meta": {
     "command": "inspect-go-binary",
-    "duration": "9ms"
+    "duration": "12ms"
   }
 }

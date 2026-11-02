@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_735bc4cd2b58cea8e81a9d6405fdf3cde6d70cf280574ee15854c488da512068",
+    "evidence_id": "ev_fc10c10eee1331cdefc34f70b29a74f62909d6e1608844af50aad2ee2d8829c2",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-bundle-comparison",

@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_186ad17c102f47314aa01c2e0dc3f731f1a636e2453acaff7130f309c640a3aa",
+    "evidence_id": "ev_ae7bd96351c11a9b568da36d968c8abfd54df7a69347e80895181fc25a9e8b33",
+    "relationship_coverage": null,
     "subject": {
       "name": "mixed.bin",
       "digest": {
@@ -12,9 +13,9 @@
       "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/entropy/mixed.bin"
     },
     "provider": {
-      "id": "pi-rea-in-process",
-      "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "id": "byte-entropy",
+      "name": "REA byte entropy",
+      "version": "1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

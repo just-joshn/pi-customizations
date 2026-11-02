@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_03a5296fe657ceea133c39e40ac43e9cf23f655448468a4f2f02d21f50c5dc32",
+    "evidence_id": "ev_0e4ecafd642f37647a39b10be951e249e4b2b87f611cf40a831a73618527ca29",
+    "relationship_coverage": null,
     "subject": {
       "name": "fixture-pe-certificate.exe",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

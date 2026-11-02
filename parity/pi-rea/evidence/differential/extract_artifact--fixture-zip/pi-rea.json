@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_c066fc9e6408ecf0293171deb71816af08b739d283d639374264ac7c7e2bb3bb",
+    "evidence_id": "ev_73ba57bd6be11de8e9976b0ed43bce98917e5606067ea58d14a6f5a2f037675a",
+    "relationship_coverage": null,
     "subject": {
       "name": "fixture.zip",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -22,7 +23,7 @@
     "parameters": {
       "integrity_policy": "fail",
       "input_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/fixture.zip",
-      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-RwW0v3"
+      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-DeHEn9"
     },
     "raw_result": null,
     "normalized_result": {
@@ -37,7 +38,7 @@
         "edge_count": 2
       },
       "extraction_manifest": {
-        "extraction_id": "aex_1349b1c7173d59f5fb2ec859892aefe67403f183b2c9fafcd706d2b15e342d4c",
+        "extraction_id": "aex_250addc6816a4734d4007dacb35a11a7572b66e4ac022f5fbc40b7ed07724740",
         "source_manifest_id": "agm_f70f0a427115616e2e85303698bc8e1fa3fdcb5e405b186c585128d33464455e",
         "selected_occurrence_ids": [
           "occ_c9924475b134b6344ac1144c548d8aa95299cb01f47ea79b4a6112623e8a6210",
@@ -46,7 +47,7 @@
         "files_sha256": "eeff40d7b850b32d6d25bc33c8900d3e985daa68defde316006f4e4780f95a52",
         "output_root_alias": "$OUTPUT_ROOT"
       },
-      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-RwW0v3",
+      "output_root": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pi-rea-extracted-DeHEn9",
       "artifacts": [
         {
           "artifact_id": "art_a2098bd92b10bf8b816d24b7556b1ce8c49a879d130489065ef1051c17e042f6",

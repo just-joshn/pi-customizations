@@ -189,6 +189,6 @@
   },
   "meta": {
     "command": "inspect-pe-certificates",
-    "duration": "7ms"
+    "duration": "9ms"
   }
 }

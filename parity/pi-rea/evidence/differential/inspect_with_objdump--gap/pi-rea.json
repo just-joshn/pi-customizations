@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_ae9588e6673d12f192835e48367a54a092e133c14af9b3a1f459463f7166871c",
+    "evidence_id": "ev_25db99eed2d3507148bd3a9b62b02d8db36a9a2bce0205f7e3ef25ebe7793e2e",
+    "relationship_coverage": null,
     "subject": {
       "name": "minimal-elf.bin",
       "digest": {

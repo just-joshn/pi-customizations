@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_5a582747e6efd69c323b2eb32454316acf96c7e0b627cd817c4e3752cb35b737",
+    "evidence_id": "ev_00bf7d1f725caf536397569c13db4d0fc627c9071cb4e623e86847522627bc85",
+    "relationship_coverage": null,
     "subject": null,
     "provider": {
       "id": "pi-rea-javascript-workflows",
@@ -12,21 +13,21 @@
     "predicate_type": "rea.application-version-comparison",
     "operation": "compare_application_versions",
     "parameters": {
-      "left_evidence_id": "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-      "right_evidence_id": "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89",
+      "left_evidence_id": "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+      "right_evidence_id": "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef",
       "left_native_evidence_ids": [],
       "right_native_evidence_ids": []
     },
     "raw_result": null,
     "normalized_result": {
-      "comparison_id": "javc_6f9f1de7984657cdbba2165baa5b3307f07d49da6785f61eb0caa0e18584cc6f",
+      "comparison_id": "javc_81bcd1d6206b1ca6ca593e5cd30576dea958c3a07176696012fe669500354d1b",
       "left": {
-        "evidence_id": "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
+        "evidence_id": "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
         "graph_id": "jag_d75b3a771767f6eee51654e0edb3af30a14c48f38da8e298fe9df0ab43726594",
         "root_artifact_sha256": "ab140656924ac82690ec8be06424257028dc07ca2c227e72de6c418b3caaca2f"
       },
       "right": {
-        "evidence_id": "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89",
+        "evidence_id": "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef",
         "graph_id": "jag_89e77176acdb9d2c93a0861c289942c78dcb9864c6e8e15a4c3fb39c41b45e01",
         "root_artifact_sha256": "8a95180e330065d9ec4a09e4e302df72803a95f8bfb0ee8c84c802983ecc34c3"
       },
@@ -55,8 +56,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "removed",
@@ -77,8 +78,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "added",
@@ -99,8 +100,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "removed",
@@ -122,8 +123,8 @@
             "properties"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [
             "Semantic-key pairing is a deterministic inference and is never promoted to exact identity.",
@@ -147,8 +148,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "added",
@@ -169,8 +170,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "removed",
@@ -191,8 +192,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "added",
@@ -213,8 +214,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "added",
@@ -235,8 +236,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "added",
@@ -257,8 +258,8 @@
             "availability"
           ],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "removed",
@@ -277,8 +278,8 @@
           "node_kind": "electron-main",
           "dimensions": [],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [],
           "status": "unchanged",
@@ -297,8 +298,8 @@
           "node_kind": "package",
           "dimensions": [],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [
             "Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment."
@@ -319,8 +320,8 @@
           "node_kind": "artifact",
           "dimensions": [],
           "evidence_links": [
-            "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-            "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+            "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+            "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
           ],
           "limitations": [
             "Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment."
@@ -1955,6 +1956,64 @@
             "edge_id": "jag_edge_1822a766cc95be6c29908fc9f0ca923282135a2916fabf53266aba061a3fb1e4"
           },
           {
+            "source_node_id": "jag_node_1be4e995936d909887d145a01865617d71b659479b29e6440f6935c95948bf19",
+            "target_node_id": "jag_node_eda87fbdc70eaad5cdf68d98ed7b4b0e2bc53c6d4602fe245ef909c92ba99d20",
+            "relation": "changed_from",
+            "properties": {
+              "comparison_item_id": "javc_item_4d2cb8a8c2cca912e25bde7953521c74d6d7ef343462675d205a1f3f75f7dd94",
+              "status": "changed",
+              "match_basis": "semantic-key",
+              "match_confidence": "medium",
+              "dimensions": [
+                "content",
+                "properties"
+              ]
+            },
+            "evidence": {
+              "authority": "cross-version-comparison",
+              "state": "inferred",
+              "confidence": "medium",
+              "artifact": {
+                "available": true,
+                "artifact_id": "art_b4bb93da81c932a84adbdfc5659cf08ec32171657d422dfb39aae44a94879565",
+                "sha256": "b4bb93da81c932a84adbdfc5659cf08ec32171657d422dfb39aae44a94879565"
+              },
+              "location": {
+                "available": true,
+                "value": {
+                  "kind": "artifact-path",
+                  "path": "src/main.js"
+                }
+              },
+              "extractor": {
+                "executable_sha256": null,
+                "name": "rea-application-version-comparison",
+                "version": "1",
+                "operation": "compare_application_versions"
+              },
+              "coverage": {
+                "status": "complete",
+                "truncated": false,
+                "omitted_count": 0,
+                "limits": []
+              },
+              "limitations": [
+                "Cross-version pairing is inferred from the stated match basis; changed_from does not prove runtime reachability.",
+                "Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment.",
+                "Semantic-key pairing is a deterministic inference and is never promoted to exact identity."
+              ],
+              "evidence_ids": [
+                "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef",
+                "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601"
+              ]
+            },
+            "identifier_strategy": {
+              "strategy": "semantic-content-sha256",
+              "stability": "relationship-exact"
+            },
+            "edge_id": "jag_edge_24b4c1aa13a446b6b5655a3de8fbdfae7710ba804e7adfbc44ef5dd2134f6b4c"
+          },
+          {
             "source_node_id": "jag_node_e7821d443acc7c5259b2d7778dd2117a9a21a23e9133a971f93ca545bba81e62",
             "target_node_id": "jag_node_2d180194f6ba3998395168269fbba521901e1064ac2fa33fabbc6a15bcf397ab",
             "relation": "exposes",
@@ -2532,64 +2591,6 @@
             "edge_id": "jag_edge_cab0fefd773a7097da2091a4c3d757f7264c5286c591da282f5d119e3b3fc4a4"
           },
           {
-            "source_node_id": "jag_node_1be4e995936d909887d145a01865617d71b659479b29e6440f6935c95948bf19",
-            "target_node_id": "jag_node_eda87fbdc70eaad5cdf68d98ed7b4b0e2bc53c6d4602fe245ef909c92ba99d20",
-            "relation": "changed_from",
-            "properties": {
-              "comparison_item_id": "javc_item_4d2cb8a8c2cca912e25bde7953521c74d6d7ef343462675d205a1f3f75f7dd94",
-              "status": "changed",
-              "match_basis": "semantic-key",
-              "match_confidence": "medium",
-              "dimensions": [
-                "content",
-                "properties"
-              ]
-            },
-            "evidence": {
-              "authority": "cross-version-comparison",
-              "state": "inferred",
-              "confidence": "medium",
-              "artifact": {
-                "available": true,
-                "artifact_id": "art_b4bb93da81c932a84adbdfc5659cf08ec32171657d422dfb39aae44a94879565",
-                "sha256": "b4bb93da81c932a84adbdfc5659cf08ec32171657d422dfb39aae44a94879565"
-              },
-              "location": {
-                "available": true,
-                "value": {
-                  "kind": "artifact-path",
-                  "path": "src/main.js"
-                }
-              },
-              "extractor": {
-                "executable_sha256": null,
-                "name": "rea-application-version-comparison",
-                "version": "1",
-                "operation": "compare_application_versions"
-              },
-              "coverage": {
-                "status": "complete",
-                "truncated": false,
-                "omitted_count": 0,
-                "limits": []
-              },
-              "limitations": [
-                "Cross-version pairing is inferred from the stated match basis; changed_from does not prove runtime reachability.",
-                "Relationship target identity remains unresolved; equal node kinds do not establish cross-version alignment.",
-                "Semantic-key pairing is a deterministic inference and is never promoted to exact identity."
-              ],
-              "evidence_ids": [
-                "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-                "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
-              ]
-            },
-            "identifier_strategy": {
-              "strategy": "semantic-content-sha256",
-              "stability": "relationship-exact"
-            },
-            "edge_id": "jag_edge_cf895cf136566adbc5857df8e61cfb7a62ca41f78f13b45c269c3768e19ac68a"
-          },
-          {
             "source_node_id": "jag_node_59fb765a9fb9aa54efe6011ce8c6c489a4141c06d90fcd99913e377e34e8bbf1",
             "target_node_id": "jag_node_1be4e995936d909887d145a01865617d71b659479b29e6440f6935c95948bf19",
             "relation": "maps_to",
@@ -2709,7 +2710,7 @@
           "The change graph contains compared entities and their retained relationships; it is not an executable application.",
           "changed_from edges are cross-version inferences and never promote structural or semantic matches to exact identity."
         ],
-        "graph_id": "jag_c4ee17dc8dc8b6123980c003c46f934ccb3c261c0b0b88b8410a60c1ca2647a7"
+        "graph_id": "jag_556b75e31ded84d8c15cf9b8e25815c2d5f5921584b5711168ad19c18da7a075"
       },
       "coverage": {
         "left_graph_status": "complete",
@@ -2726,8 +2727,8 @@
         "The comparison reads retained graphs and Evidence only; it does not execute either application."
       ],
       "evidence_links": [
-        "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-        "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+        "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+        "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
       ]
     },
     "confidence": "inferred",
@@ -2743,8 +2744,8 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_4e65beaab21896e18da6a81f9e301ae47617a221b8f0591847baf2caaa35d58f",
-      "ev_6c4835e8ab6383a8cd683203696216ecb5a1edef8bfcc96f3e852e658d7adf89"
+      "ev_9b733d4cbfef015c2850bf75930b851d6a5592f3ebaa3fc5416567b74e449601",
+      "ev_38a56fd02b412f44e9f1907aa2c3c70237d0c241c7beb2192c799b39273416ef"
     ]
   }
 }

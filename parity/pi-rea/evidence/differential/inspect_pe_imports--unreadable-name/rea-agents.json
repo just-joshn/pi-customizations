@@ -151,6 +151,6 @@
   },
   "meta": {
     "command": "inspect-pe-imports",
-    "duration": "10ms"
+    "duration": "7ms"
   }
 }

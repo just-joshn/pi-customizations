@@ -1,7 +1,8 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_d93850d9567acd46f2193a29aa167d240a0ee3e6730719d98b419cb9a0345a1f",
+    "evidence_id": "ev_a8327a1b90024e6471a40d5a0f8b4bc1ad015fbe551812c6e16be8e2a680235d",
+    "relationship_coverage": null,
     "subject": {
       "name": "sample.ptx",
       "digest": {
@@ -14,7 +15,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.1"
+      "version": "0.2.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

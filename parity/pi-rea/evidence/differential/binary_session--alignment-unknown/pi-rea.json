@@ -1241,7 +1241,6 @@
             "names": [
               "analyze_function",
               "analyze_swift_types",
-              "batch_decompile",
               "binary_overview",
               "find_xrefs_to_name",
               "get_call_graph",
@@ -1250,6 +1249,22 @@
               "inspect_native_dispatch_metadata",
               "trace_native_ui_action",
               "trace_native_values"
+            ]
+          },
+          {
+            "surface": "enhanced",
+            "effects": [
+              "mutatesSession",
+              "idempotent"
+            ],
+            "annotations": [
+              "idempotent"
+            ],
+            "available": true,
+            "reason": "available",
+            "remediation": null,
+            "names": [
+              "batch_decompile"
             ]
           },
           {
@@ -1293,7 +1308,7 @@
             ],
             "available": false,
             "reason": "provider_unavailable",
-            "remediation": "This integration requires Linux and an absolute REA_BINWALK_COMMAND path to the caller-supplied tool",
+            "remediation": "This integration requires Linux and an absolute REA_UNBLOB_COMMAND path to the caller-supplied tool",
             "names": [
               "extract_firmware"
             ]
@@ -2199,14 +2214,14 @@
       "server_identity": {
         "package": {
           "name": "pi-rea",
-          "version": "0.1.1",
+          "version": "0.2.0",
           "root_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-rea/",
           "build_commit": null
         },
         "server": {
           "name": "pi-rea",
-          "version": "0.1.1",
-          "started_at": "2026-11-02T05:13:27.984Z",
+          "version": "0.2.0",
+          "started_at": "2026-11-02T17:34:29.554Z",
           "command_path": null
         },
         "sdk": {
@@ -2228,10 +2243,10 @@
             "cli_commands": null,
             "mcp_tools": 229,
             "mcp_prompts": 6,
-            "implemented_tools": 65
+            "implemented_tools": 66
           },
           "digests": {
-            "tools_sha256": "703f79d565ce875f1d772cd55e37735f4664f7222917e1edf20fa5ab8bd72a9f",
+            "tools_sha256": "b05828029790ee99be837f3fad042ab89056f3a120a869fcda524614203b563a",
             "prompts_sha256": null,
             "combined_sha256": null
           }
@@ -2252,7 +2267,7 @@
       "runtime": {
         "kind": "pi-extension",
         "name": "pi-rea-differential",
-        "version": "0.1.1",
+        "version": "0.2.0",
         "cwd": "/Users/josh-desktop/src/personal/pi-customizations"
       }
     }

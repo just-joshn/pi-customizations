@@ -514,6 +514,6 @@
   },
   "meta": {
     "command": "inspect-pe-resources",
-    "duration": "11ms"
+    "duration": "10ms"
   }
 }

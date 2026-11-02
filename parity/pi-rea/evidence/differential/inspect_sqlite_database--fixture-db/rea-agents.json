@@ -117,6 +117,6 @@
   },
   "meta": {
     "command": "inspect-sqlite-database",
-    "duration": "826ms"
+    "duration": "779ms"
   }
 }
