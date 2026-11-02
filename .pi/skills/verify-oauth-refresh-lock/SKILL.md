@@ -1,111 +1,68 @@
 ---
 name: verify-oauth-refresh-lock
-description: "Formally verify cross-process OAuth token refresh locking and single-flight token reuse across concurrent processes. Use after editing refresh-file-lock.ts, auth-recovery.ts, or modifying OAuth concurrency and refresh logic."
+description: "Formally verify that concurrent Pi processes never send the same Claude OAuth refresh token twice during 401 recovery. Use after editing refresh-claim.ts or auth-recovery.ts, or when changing OAuth refresh concurrency."
 ---
 
-# Verify OAuth refresh lock
+# Verify OAuth refresh claims
 
-Formally verify the concurrency protocol that coordinates OAuth subscription token refreshes across parallel processes, subagents, and sessions.
+Formally verify the protocol that makes one Pi process, across parallel processes, subagents, and sessions, send a given OAuth refresh token to Anthropic.
 
 ## Why this property matters
 
-Anthropic Claude subscription OAuth tokens rotate their refresh token on every successful exchange. If two parallel subagents or processes experience a 401/403 token expiration at the same time and both attempt to refresh the old refresh token against Anthropic:
+Claude subscription OAuth rotates the refresh token on every successful exchange. If two processes send the same refresh token `R1`, the authorization server sees a reused token, revokes the whole token family, and ends the user's subscription session.
 
-1. Process A exchanges refresh token `R1` for `(A2, R2)`.
-2. Process B attempts to exchange `R1`.
-3. Anthropic's authorization server flags `R1` as a reused token, revokes the entire token family, and terminates the user's subscription session.
+`pi-anthropic-oauth` prevents this with a claim keyed by the refresh token. A process that must refresh `R1` creates the file `<sha256(R1)>.<gen>` in `claude-subscription-refresh.claims` with `open(path, 'wx')`. Exactly one process creates each name. The winner re-reads `claude-subscription-refresh.json`, calls `oauth.refresh()` only if no other process published a newer credential, and publishes the result there. The other processes wait and reuse the published credential.
 
-To prevent this catastrophic revocation, `pi-anthropic-oauth` implements a cross-process mutual exclusion file lock (`withRefreshFileLock` in `refresh-file-lock.ts`) combined with an atomic shared credential cache (`refreshRemembered` in `auth-recovery.ts`). Exactly one process refreshes the token against the network; all other processes wait on the lock, read the newly written token from `claude-subscription-refresh.json`, and resume their requests without refreshing again.
+A claimant that crashes before it sends leaves its claim. After `staleMs` a waiter creates the next generation, `gen + 1`. No process ever removes another process's claim, so a claim name is never reused while its token is current. A claimant whose refresh fails deletes only its own claim.
 
 ## Coverage record and sync commit
 
-- **Last sync commit:** `ad99d90507e5673776fcbd387edfb2c62180bd0f`
-- **Current status:** fails `MutualExclusion` on the code at the sync commit. This is a known product bug, not model drift. See "Known bug: stale-lock steal race" below. Until the code is fixed, a run that fails with a different invariant or a different shortest trace is new information.
+- **Last sync commit:** `fd3c544862f13c257dc51ea2daaa02a1a54c31a0`
 - **Covered files and functions:**
-  - `extensions/pi-anthropic-oauth/src/refresh-file-lock.ts`:
-    - `withRefreshFileLock` (cross-process directory lock, `EEXIST` backoff, and stale lock stealing)
-    - `lockAbandoned` (`staleMs` mtime comparison, and `true` on `ENOENT`)
-    - `refreshLockPathFor` (lock directory location)
-    - `defaultRefreshLockRetryDelayMs` (Claude retry delay)
-  - `extensions/pi-anthropic-oauth/src/auth-recovery.ts`:
-    - `createAuthRecovery` (in-process latch and fetch wrapping)
-    - `refreshRemembered` (single-flight coordination, reading `shared` before refresh, writing `shared` after refresh)
-    - `readSharedCredential` (reading `claude-subscription-refresh.json`)
-    - `writeSharedCredential` (atomic temporary file write + rename)
-    - `sharePathFor` (shared credential location)
+  - `extensions/pi-anthropic-oauth/src/refresh-claim.ts`: `withRefreshTokenClaim` (reuse, claim, reuse again, refresh, release on failure, retry and `ELOCKED`), `tryClaim` (latest generation, `ENOENT`, mtime staleness, exclusive create), `refreshClaimDirectoryFor`.
+  - `extensions/pi-anthropic-oauth/src/auth-recovery.ts`: `refreshRemembered` (shared credential reuse, remembered credential check, the `steps` passed to `withRefreshTokenClaim`), `readSharedCredential`, `writeSharedCredential`.
 
-When any of the files listed above change after the sync commit, the verification must be rechecked. Advance the sync commit only after confirming the TLA+ specification accurately reflects the updated code.
+The spec cites each code step by function name, not by line number. When a covered file changes after the sync commit, recheck the spec against the code. Advance the sync commit only after the spec matches the code.
 
 ## How to run
 
-### 1. One-command verification
-
-Run the verification script from the repository root:
+From the repository root:
 
 ```bash
 ./.pi/skills/verify-oauth-refresh-lock/bin/verify-oauth-refresh-lock
 ```
 
-The script runs TLC model checking on `.pi/skills/verify-oauth-refresh-lock/specs/OAuthRefreshLock.tla` using `.pi/skills/verify-oauth-refresh-lock/specs/OAuthRefreshLock.cfg`. It exits `0` when all properties hold and `1` with a counterexample trace if any invariant fails.
+The script runs TLC on `specs/OAuthRefreshClaim.tla` with `specs/OAuthRefreshClaim.cfg`. It exits `0` when every property holds and `1` with the counterexample trace when one fails.
 
-### 2. Statechart and visual trace inspection
-
-To inspect state transitions, render a state graph, or analyze counterexample traces, use the pstack `/statechart` skill by name. The `/statechart` skill checks the TLA+ model and:
-
-- When an invariant fails: outputs the shortest path to the breaking state in plain words.
-- When all invariants hold: draws a Mermaid statechart using the view module in `.pi/skills/verify-oauth-refresh-lock/specs/OAuthRefreshLockView.ts`.
-
-Refer to `/statechart` by name.
+To render the state graph or read a counterexample as steps, use the pstack `/statechart` skill with the view module `specs/OAuthRefreshClaimView.ts`.
 
 ## Formal properties verified
 
-1. **`MutualExclusion`**:
-   $$\forall p, q \in Processes : (p \neq q \wedge pc[p] \in InLockStates) \implies pc[q] \notin InLockStates$$
-   At most one process can execute the refresh critical section (`read_shared`, `calling_refresh`, `write_shared`, `releasing`) at any moment.
-
-2. **`SingleRefreshWhenNoCrash`**:
-   $$(\forall p \in Processes : pc[p] \neq \text{"crashed"}) \implies refreshCount \le 1$$
-   Across all racing processes that experienced token expiration, at most one network call to `oauth.refresh()` is made. The other waiting processes read the shared credential file and reuse the rotated token.
-
-3. **`LockHolderConsistent`**:
-   $$(lockState = \text{"held"} \wedge lockHolder \neq \text{"none"}) \implies pc[lockHolder] \in (InLockStates \cup \{\text{"crashed"}\})$$
-   The lock directory exists only while held by a known live or crashed process.
-
-4. **`UpdatedTokenOnSuccess`**:
-   $$\forall p \in Processes : (pc[p] = \text{"success"}) \implies localToken[p] > failedAccess[p]$$
-   Any process that completes recovery holds an access token strictly newer than the expired token that triggered recovery.
-
-5. **`NoDeadlock`**:
-   The entire state graph is free of deadlocks. If a process crashes while holding the lock, surviving processes detect that the lock is abandoned after `staleMs` and steal the lock to complete recovery.
+1. **`NoRefreshTokenReuse`.** No process sends a refresh token that the server has already rotated. This is the property the protocol exists for.
+2. **`SingleClaimant`.** At most one process is between creating a claim and finishing with it (`reuse_after_claim`, `calling_refresh`, `publish`, `releasing`).
+3. **`UpdatedTokenOnSuccess`.** A process that finishes recovery holds a token newer than the one that failed.
+4. **Deadlock freedom.** Every behavior reaches an end state, including when a claimant crashes and waiters take over.
 
 ## Bounds and assumptions
 
-- **State space bound:** Model-checked for 3 concurrent processes (`Processes = {p1, p2, p3}`) racing from token expiration up to 2 retries (`MaxRetries = 2`). Full reachable state space with `-continue`: 42821 generated states, 19811 distinct states. Do not lower the bound to 2. Both steal races need a holder plus two contenders, so 2 processes hide them.
-- **Filesystem atomicity:** Assumes POSIX directory creation (`mkdir`) is atomic and returns `EEXIST` when already created.
-- **Clock and timeout separation:** Assumes `staleMs` (30s) exceeds maximum refresh timeout (15s). A live process never holds the lock longer than `staleMs`.
-- **Out of scope:** Raw TCP network drops, TLS socket resets, or Anthropic upstream service outages.
+- **Bound:** 3 processes (`Processes = {p1, p2, p3}`), `MaxRetries = 2`, `MaxGen = 4`. TLC explores 92966 states, 42062 distinct. A run with 4 processes also passes (11076022 states, 4144539 distinct). Keep at least 3 processes, because a takeover race needs a crashed claimant and two contenders.
+- **Exclusive create:** `open(path, 'wx')` fails with `EEXIST` when the name exists, on every process that shares the directory.
+- **Timing:** a live claimant finishes within `staleMs` (30s), which is above `REFRESH_TIMEOUT_MS` (15s). A process paused longer than `staleMs`, such as a suspended laptop, breaks this assumption.
+- **Crash point:** a claimant crashes before it sends the refresh request. A crash after the server rotates the token and before `writeSharedCredential` loses the new token. No client protocol can recover it, so the model leaves it out.
+- **Failure point:** a failed refresh never reached the server. A request that rotated the token and then lost its response is out of scope for the same reason.
+- **Reuse:** the model reuses any published credential newer than the failed one. The code also rejects an expired one (`shared.expires <= Date.now()`). A waiter whose remembered token was already rotated, and whose shared credential has expired, would refresh a rotated token. The model does not cover that case.
+- **Out of scope:** Pi core's own refresh of expiring credentials, which runs under `auth.json.lock` in `AuthStorage` and does not take a claim.
 
-- **Property gap:** `SingleRefreshWhenNoCrash` holds vacuously once any process crashes. It cannot see a double refresh that follows a crash, so `MutualExclusion` is the property that catches the steal race.
+## Break tests
 
-## Known bug: stale-lock steal race
+These edits to the spec must each fail a property. Run them after a change to the protocol to confirm the check can still fail:
 
-`withRefreshFileLock` steals with three separate filesystem steps: `stat` in `lockAbandoned`, then `rm(lockPath, { force: true })`, then `mkdir`. A contender that judged the lock abandoned can `rm` a lock directory that another contender created after the `stat`.
-
-Crash path (TLC trace, replayed against the real code with a scratch test that delayed the second `rm`):
-
-1. p1 runs `mkdir`, enters `run`, and dies before `oauth.refresh`. Its lock directory goes stale after 30s.
-2. p2 and p3 both get `EEXIST`, and both `lockAbandoned` calls return `true`.
-3. p2 runs `rm` and `mkdir`, reads no fresh shared credential, and calls `oauth.refresh(R1)`.
-4. p3 runs `rm`, which deletes p2's live lock, then `mkdir`, reads no fresh shared credential (p2 has not written yet), and calls `oauth.refresh(R1)`.
-
-Harm: two exchanges of the same refresh token, which can revoke the token family.
-
-No-crash path (shortest TLC trace): p2 gets `EEXIST`, p1 releases, p2's `stat` sees `ENOENT` so `lockAbandoned` returns `true`, p3 takes the lock, p2's `rm` deletes p3's lock, and p2 enters too. Both read the credential p1 wrote, so no extra refresh happens in the model, but mutual exclusion is gone.
-
-Introduced by `f981a842` (fix(pi-anthropic-oauth): skip auth.json.lock during credential refresh), which added `lockAbandoned` and the stale `rm`. It was in the code at the previous sync commit `697586ab`, where the 2-process model could not reach it.
+- `Create` ignores `exists` (a non-exclusive create): `SingleClaimant` fails.
+- The claimant skips the reuse after it claims (`reuse_after_claim`): `NoRefreshTokenReuse` fails, because a finished claim looks stale after `staleMs`.
+- `Stat` lets a waiter take over a live claimant: `SingleClaimant` fails.
 
 ## Distinguishing real bugs from modeling drift
 
-- **If `MutualExclusion` breaks:** First compare the trace with the known bug above. Then check whether lock stealing was triggered while the holder was still alive. In the code, `REFRESH_LOCK_STALE_MS` (30s) must strictly exceed `REFRESH_TIMEOUT_MS` (15s). If `staleMs` is reduced below 15s, a slow network call causes another process to steal the lock, causing concurrent refreshes.
-- **If `SingleRefreshWhenNoCrash` breaks:** Check whether `readSharedCredential()` is being called before `oauth.refresh()`, and whether the returned token's expiry is verified. If the check is omitted or reordered, multiple processes will each call `oauth.refresh()`.
-- **If `NoDeadlock` breaks:** Check whether `lockAbandoned()` correctly inspects `mtime` and whether `rm(lockPath)` succeeds during stale lock stealing.
+- **If `NoRefreshTokenReuse` breaks:** check that `withRefreshTokenClaim` calls `steps.reuse` after it creates the claim and before `steps.refresh`, and that `fromShared` rejects a credential whose access token equals the failed one.
+- **If `SingleClaimant` breaks:** check that `tryClaim` creates with `'wx'`, never removes a claim it did not create, and judges staleness from the latest generation only.
+- **If deadlock appears:** check that a failed refresh deletes its own claim and that an `ENOENT` latest claim lets a waiter reuse that generation.
