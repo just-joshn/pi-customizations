@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_a700464ecefd4b3bbe08534ff2f872468a9b2bee0567938ffbc78fd147d4c266",
+    "evidence_id": "ev_7cc8415cc0a81fb63e12737e03986ae862d80ca8aff697583fcd8522e6687dd1",
     "subject": {
       "name": "bad-dir.exe",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_f01f3bca55ffb26717619d4e22d3e907ea5b1b70cf341ea72499740599b937fc",
+    "evidence_id": "ev_43f4ba0748af800b1caebd0b9d2a463a5fa99e66d74f2776c36e62e7b3eee44f",
     "subject": {
       "name": "Fixture.app.zip",
       "digest": {
@@ -21,19 +21,19 @@
     "operation": "project_apple_application_graph",
     "parameters": {
       "inventory_evidence_ids": [
-        "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
+        "ev_4ddb71ec310d8437f9413bd6b442aba49b431ed01cc30f93820961d41f7da5f0"
       ]
     },
     "raw_result": null,
     "normalized_result": {
-      "projection_id": "aap_99fac777a0c7e2d5d706e7f89527137df587c076b3a518a39c46774b696879e2",
+      "projection_id": "aap_a983953d08801f9fba3f1c3fd472a2c4d33890610d84e0e6f2efac9dcf88d9e5",
       "root_sha256": "16426092261733ccbb3a2e738ad7c236f45ef04f7a9c2df762101139c24011b5",
       "root_format": "zip",
       "platforms": [
         "macos"
       ],
       "source_evidence_ids": [
-        "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
+        "ev_4ddb71ec310d8437f9413bd6b442aba49b431ed01cc30f93820961d41f7da5f0"
       ],
       "application_roots": [
         "Fixture.app"
@@ -106,7 +106,7 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_b2550db9cbd6059ba05099e3e16358df24ab249bbf8fdbf4cbea28e9bd8595b0"
+      "ev_4ddb71ec310d8437f9413bd6b442aba49b431ed01cc30f93820961d41f7da5f0"
     ]
   }
 }

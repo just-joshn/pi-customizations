@@ -170,6 +170,6 @@
   },
   "meta": {
     "command": "inspect-python-pyc",
-    "duration": "7ms"
+    "duration": "10ms"
   }
 }

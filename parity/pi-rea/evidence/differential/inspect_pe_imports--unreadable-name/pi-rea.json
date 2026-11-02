@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_3515f8ee01882ac49690755031fe81ee62accc7accb849668738a5822047cf52",
+    "evidence_id": "ev_85e27b7909603b5ed0a1f8ae3e7aca16fed09567d3bbfe2fa5d672295450705f",
     "subject": {
       "name": "bad-name.exe",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

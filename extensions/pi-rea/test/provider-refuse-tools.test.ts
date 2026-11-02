@@ -23,7 +23,7 @@ const catchPayload = (fn: () => unknown): ReaError['payload'] => {
 };
 
 test('provider refuse table covers the landed fail-closed families', () => {
-  expect(PROVIDER_REFUSE_TOOL_NAMES.length).toBe(166);
+  expect(PROVIDER_REFUSE_TOOL_NAMES.length).toBe(164);
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('read_bytes');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('list_frida_devices');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('list_adb_devices');
@@ -34,7 +34,8 @@ test('provider refuse table covers the landed fail-closed families', () => {
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('recover_javascript_sources');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('compare_functions');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('inspect_wasm_artifact');
-  expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('inspect_pcap_client');
+  expect(PROVIDER_REFUSE_TOOL_NAMES).not.toContain('inspect_pcap_client');
+  expect(PROVIDER_REFUSE_TOOL_NAMES).not.toContain('inspect_pcap_capture');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('decode_signal_recording');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('inspect_evm_interface');
   expect(PROVIDER_REFUSE_TOOL_NAMES).toContain('observe_native_calls');
@@ -165,13 +166,11 @@ test('compare fail-closed family refuses without inventing diffs when Evidence s
   expect(payload.details).toMatchObject({ provider_id: 'compare', operation: 'compare_functions', reason: 'not_implemented' });
 });
 
-test('wabt/tshark/pcap/sigrok/evm capability envelopes match REA missing-provider probes', () => {
+test('wabt/tshark/sigrok/evm capability envelopes match REA missing-provider probes', () => {
   const cases = [
     { name: 'inspect_wasm_artifact', provider_id: 'wabt-artifact', needle: 'REA_WABT_BIN_DIRECTORY' },
     { name: 'inspect_packet_capture', provider_id: 'tshark-capture', needle: 'TShark' },
     { name: 'inspect_packet_fields', provider_id: 'tshark-capture', needle: 'prlimit' },
-    { name: 'inspect_pcap_capture', provider_id: 'pcap', needle: 'tshark was not found' },
-    { name: 'inspect_pcap_client', provider_id: 'pcap', needle: 'REA_CAPINFOS_COMMAND' },
     { name: 'decode_signal_recording', provider_id: 'sigrok-recording', needle: 'REA_SIGROK_COMMAND' },
     { name: 'inspect_signal_decoders', provider_id: 'sigrok-recording', needle: 'sigrok-cli' },
     { name: 'inspect_evm_interface', provider_id: 'evmole-interface', needle: 'Linux x64' },

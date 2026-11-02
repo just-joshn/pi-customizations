@@ -107,6 +107,6 @@
   },
   "meta": {
     "command": "inspect-devicetree",
-    "duration": "7ms"
+    "duration": "6ms"
   }
 }

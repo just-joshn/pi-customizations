@@ -254,10 +254,6 @@ const TSHARK_MESSAGE =
   'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit. On Linux, supply TShark 4.x on PATH or through absolute REA_TSHARK_COMMAND, and util-linux prlimit through REA_TSHARK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
 const TSHARK_REASON = 'Packet inspection requires Linux with util-linux prlimit and TShark 4.x (on PATH or through absolute REA_TSHARK_COMMAND) so expanded captures are processed under an enforced address-space limit.';
 
-const PCAP_MESSAGE =
-  'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.';
-const PCAP_REASON = 'tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path';
-
 const SIGROK_MESSAGE =
   'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit. On Linux, configure sigrok-cli 0.7.2 through REA_SIGROK_COMMAND and util-linux prlimit through REA_SIGROK_PRLIMIT_COMMAND (default /usr/bin/prlimit).';
 const SIGROK_REASON = 'Signal decoding requires Linux with util-linux prlimit and REA_SIGROK_COMMAND so expanded recordings are processed under an enforced address-space limit.';
@@ -400,7 +396,6 @@ const COMPARE_FAIL_CLOSED_NAMES = ['compare_functions', 'compare_process_capture
 
 const WABT_NAMES = ['inspect_wasm_artifact'] as const;
 const TSHARK_NAMES = ['inspect_packet_capture', 'inspect_packet_fields'] as const;
-const PCAP_NAMES = ['inspect_pcap_capture', 'inspect_pcap_client'] as const;
 const SIGROK_NAMES = ['decode_signal_recording', 'inspect_signal_decoders'] as const;
 const EVM_NAMES = ['inspect_evm_interface'] as const;
 
@@ -512,12 +507,6 @@ const buildTable = (): ReadonlyMap<string, RefuseStrategy> => {
       providerId: 'tshark-capture',
       message: TSHARK_MESSAGE,
       reason: TSHARK_REASON,
-    }),
-    ...assign(PCAP_NAMES, {
-      kind: 'capability',
-      providerId: 'pcap',
-      message: PCAP_MESSAGE,
-      reason: PCAP_REASON,
     }),
     ...assign(SIGROK_NAMES, {
       kind: 'capability',

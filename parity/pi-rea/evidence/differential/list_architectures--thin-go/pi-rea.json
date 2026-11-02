@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_782e49e955c4cfd3fb2593440fc8626d4d884c7506055992c52549a423c8e188",
+    "evidence_id": "ev_b745fe5fe677f5eefb22a019aba3d417b96967a742df6835393829505d2b5401",
     "subject": {
       "name": "fixture-go-macho",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -44,7 +44,7 @@
         {
           "tool": "pi-rea/macho-parser",
           "command": [],
-          "tool_version": "0.1.0",
+          "tool_version": "0.1.1",
           "version_reason": "pi-rea reads the universal header in process; no external tool ran or was sampled.",
           "executable_sha256": null,
           "exit": {

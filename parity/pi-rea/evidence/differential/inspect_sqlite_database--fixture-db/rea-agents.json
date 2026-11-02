@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_e1727eec0e2f7e43c7060f9de00b3bd7051d967439aa6da0bb71eb6698e353fe",
+    "evidence_id": "ev_4e26037a9701410ca8ffb3e2773609b586d66c367ac380835b41f7056850d25e",
     "subject": {
       "name": "fixture.db",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "sqlite",
       "name": "REA SQLite database inspector",
-      "version": "SQLite 3.53.4"
+      "version": "SQLite 3.54.0"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -32,7 +32,7 @@
       "wal": null,
       "engine": {
         "name": "SQLite",
-        "version": "3.53.4"
+        "version": "3.54.0"
       },
       "worker_timeout_ms": 30000,
       "database_encoding": "UTF-8",
@@ -117,6 +117,6 @@
   },
   "meta": {
     "command": "inspect-sqlite-database",
-    "duration": "815ms"
+    "duration": "917ms"
   }
 }

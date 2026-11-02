@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_3afbd77a5f2f5a77e3c4a84190a266dd848af34cc8f0b85e0527fab14e9d5280",
+    "evidence_id": "ev_0a5ded29daf323fd54033d6fbd7d8bcee020231d87893195b99fcd7f29dbd7bc",
     "subject": {
       "name": "v1-only.apk",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

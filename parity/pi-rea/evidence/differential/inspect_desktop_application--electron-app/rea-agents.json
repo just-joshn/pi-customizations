@@ -188,6 +188,6 @@
   },
   "meta": {
     "command": "inspect-desktop-application",
-    "duration": "9ms"
+    "duration": "11ms"
   }
 }

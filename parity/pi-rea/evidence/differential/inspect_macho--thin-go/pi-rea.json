@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_11f1d2cf9f70a71c7131f897c0d36594913e70ee03e323563bf03612cf37df8a",
+    "evidence_id": "ev_d3bc1d997b6ae55bda31575e024ec357470ca728adb03397ddc470a85d7aa991",
     "subject": {
       "name": "fixture-go-macho",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -1337,7 +1337,7 @@
         {
           "tool": "pi-rea/macho-parser",
           "command": [],
-          "tool_version": "0.1.0",
+          "tool_version": "0.1.1",
           "version_reason": "pi-rea decodes the Mach-O image in process; no external tool ran or was sampled.",
           "executable_sha256": null,
           "exit": {

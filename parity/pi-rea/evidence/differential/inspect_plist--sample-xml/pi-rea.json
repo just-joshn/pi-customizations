@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_f86e288b55149a9a5e29305a71edabcf9331a3fd59eacaee4734fd0ab3ca7428",
+    "evidence_id": "ev_d8b90426c9ee5f248279ad8b19913cf2ed024a3550d5097bac9a91e551a8eba9",
     "subject": {
       "name": "sample-xml.plist",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -59,7 +59,7 @@
         {
           "tool": "pi-rea/plist-parser",
           "command": [],
-          "tool_version": "0.1.0",
+          "tool_version": "0.1.1",
           "version_reason": "pi-rea decodes the property list in process; no external tool ran or was sampled.",
           "executable_sha256": null,
           "exit": {

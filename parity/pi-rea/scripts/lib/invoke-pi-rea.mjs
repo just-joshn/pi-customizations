@@ -30,6 +30,7 @@ import { inspectManagedArtifact, inspectManagedMembers } from '../../../../exten
 import { inspectModelArtifact } from '../../../../extensions/pi-rea/src/tools/model-artifact-tools.ts';
 import { inspectNativeExports } from '../../../../extensions/pi-rea/src/tools/native-exports-tools.ts';
 import { inspectWithObjdump } from '../../../../extensions/pi-rea/src/tools/objdump-tools.ts';
+import { inspectPcapCapture, inspectPcapClient } from '../../../../extensions/pi-rea/src/tools/pcap-tools.ts';
 import { inspectPeCertificates, inspectPeImports, inspectPeLoadConfig, inspectPeResources } from '../../../../extensions/pi-rea/src/tools/pe-tools.ts';
 import { inspectPlist } from '../../../../extensions/pi-rea/src/tools/plist-tools.ts';
 import { refuseProviderTool } from '../../../../extensions/pi-rea/src/tools/provider-refuse-tools.ts';
@@ -155,8 +156,8 @@ export const piHandlers = {
   inspect_wasm_artifact: refuse('inspect_wasm_artifact'),
   inspect_packet_capture: refuse('inspect_packet_capture'),
   inspect_packet_fields: refuse('inspect_packet_fields'),
-  inspect_pcap_capture: refuse('inspect_pcap_capture'),
-  inspect_pcap_client: refuse('inspect_pcap_client'),
+  inspect_pcap_capture: (session, params) => asResult(() => inspectPcapCapture(session, params ?? {})),
+  inspect_pcap_client: (session) => asResult(() => inspectPcapClient(session)),
   inspect_signal_decoders: refuse('inspect_signal_decoders'),
   decode_signal_recording: refuse('decode_signal_recording'),
   inspect_evm_interface: refuse('inspect_evm_interface'),

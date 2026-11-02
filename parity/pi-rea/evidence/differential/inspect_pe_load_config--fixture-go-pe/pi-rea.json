@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_eae504e058c7f2b73b6540c00554b1879fbde4036f8aaf4c2303e5721556ad61",
+    "evidence_id": "ev_19a5df826e291187917d9718e6a08aa6fee16432a50b6ee0f0f667d280eb322b",
     "subject": {
       "name": "fixture-go-pe.exe",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
