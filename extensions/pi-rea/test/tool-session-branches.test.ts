@@ -117,7 +117,7 @@ describe('provider refuse tools', () => {
         },
       });
     }
-    expect(checked).toBe(87);
+    expect(checked).toBe(85);
   });
 
   test('refuses every CDP tool with an unreachable endpoint', () => {
@@ -387,7 +387,7 @@ describe('provider refuse tools', () => {
         remediation: { action: NO_APP_OPEN },
       });
     }
-    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(166);
+    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(164);
   });
 
   test('refuses every native observe tool for a non-Mach-O target', async () => {
@@ -552,7 +552,7 @@ describe('provider refuse tools', () => {
 
   test('isProviderRefuseTool covers the fail-closed catalog', () => {
     expect(PROVIDER_REFUSE_TOOL_NAMES).toStrictEqual([...PROVIDER_REFUSE_BY_NAME.keys()].toSorted());
-    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(166);
+    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(164);
     expect(isProviderRefuseTool('read_bytes')).toBe(true);
     expect(isProviderRefuseTool('inspect_frida_devices')).toBe(false);
     expect(isProviderRefuseTool('inspect_macho')).toBe(false);

@@ -1,5 +1,4 @@
 {
-  "version": 1,
   "kernelToolNames": [
     "analyze_javascript_application",
     "binary_session",
@@ -42,6 +41,8 @@
     "inspect_managed_members",
     "inspect_model_artifact",
     "inspect_native_exports",
+    "inspect_pcap_capture",
+    "inspect_pcap_client",
     "inspect_pe_certificates",
     "inspect_pe_imports",
     "inspect_pe_load_config",
@@ -64,5 +65,6 @@
     "update_analysis_settings",
     "update_unknown",
     "verify_unknown_resolution"
-  ]
+  ],
+  "version": 1
 }

@@ -35,6 +35,7 @@ import { inspectMacho } from './tools/macho-tools.ts';
 import { inspectManagedArtifact, inspectManagedMembers } from './tools/managed-tools.ts';
 import { inspectModelArtifact } from './tools/model-artifact-tools.ts';
 import { inspectNativeExports } from './tools/native-exports-tools.ts';
+import { inspectPcapCapture, inspectPcapClient } from './tools/pcap-tools.ts';
 import { inspectWithObjdump } from './tools/objdump-tools.ts';
 import { inspectPeCertificates, inspectPeImports, inspectPeLoadConfig, inspectPeResources } from './tools/pe-tools.ts';
 import { inspectPlist } from './tools/plist-tools.ts';
@@ -189,6 +190,8 @@ export const KERNEL_HANDLERS: Readonly<Record<string, ToolHandler>> = {
   inspect_devicetree: (session, args, context) => inspectDevicetree(session, args as Parameters<typeof inspectDevicetree>[1], context),
   inspect_with_objdump: (session, args, context) => inspectWithObjdump(session, args as Parameters<typeof inspectWithObjdump>[1], context),
   inspect_native_exports: (session, args, context) => inspectNativeExports(session, args as Parameters<typeof inspectNativeExports>[1], context),
+  inspect_pcap_client: (session) => inspectPcapClient(session),
+  inspect_pcap_capture: (session, args) => inspectPcapCapture(session, args as Parameters<typeof inspectPcapCapture>[1]),
 };
 
 export const KERNEL_TOOL_NAMES: readonly string[] = Object.keys(KERNEL_HANDLERS).toSorted();

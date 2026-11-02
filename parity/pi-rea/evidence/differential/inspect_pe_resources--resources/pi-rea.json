@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_04f119946912875808d10fd5685494e2a7cf79382ff1c884408c784dd2ba6ded",
+    "evidence_id": "ev_a0f40dffd315e39a8534d7c65a1690eb0822b45a00e5c9961e8d8178df71b27a",
     "subject": {
       "name": "fixture-pe-resources.exe",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

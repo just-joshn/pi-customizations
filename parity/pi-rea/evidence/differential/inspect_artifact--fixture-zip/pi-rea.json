@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_50141e54edc643cb3afbafbe737fd7b49451fb0bb670aa53802fcf7e8e0b83b4",
+    "evidence_id": "ev_ba439a326cf7acefe0eabd4e3e698ace04a20c192b129c499735b5ac0c7ea29f",
     "subject": {
       "name": "fixture.zip",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",
@@ -34,12 +34,12 @@
       },
       "substeps": [
         {
-          "substep_id": "ais_9d0d64d1bbbb6929a8422953a63ec5d3079009eb71131bbc358c3e30553a0358",
+          "substep_id": "ais_1411625f556db11c18bdaa1d32e42d11f4cf35a1a600b8ca6057e3e2db15b635",
           "operation": "inventory_artifact",
           "status": "completed",
-          "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de",
+          "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8",
           "evidence": {
-            "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de",
+            "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8",
             "subject": {
               "name": "fixture.zip",
               "digest": {
@@ -52,7 +52,7 @@
             "provider": {
               "id": "pi-rea-in-process",
               "name": "pi-rea in-process analysis",
-              "version": "0.1.0"
+              "version": "0.1.1"
             },
             "analysis_profile": null,
             "predicate_type": "rea.analysis",
@@ -195,7 +195,7 @@
       ],
       "observations": [
         {
-          "observation_id": "aio_d03ea3734c09bf67ec042336d66d54a99da3d57dbb746cf17bd20d8f8b97b61f",
+          "observation_id": "aio_5284e06102e1a9939271e926a46a2935294509180a1c7818bffdb257d3eaca0f",
           "kind": "root-manifest",
           "subject": "art_816e0cd232d22e022407c35843778e308c6d81442754fa57a2c3b116eee5ad09",
           "value": {
@@ -208,7 +208,7 @@
             "occurrence_count": 3,
             "edge_count": 2
           },
-          "evidence_id": "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+          "evidence_id": "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
         }
       ],
       "hypotheses": [],
@@ -228,7 +228,7 @@
         "next_probes_omitted": 0
       },
       "evidence_links": [
-        "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+        "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
       ],
       "limitations": [
         "Inspection derives bounded static hypotheses and next probes; it does not execute the artifact or claim format-specific semantics.",
@@ -244,7 +244,7 @@
     ],
     "locations": [],
     "evidence_links": [
-      "ev_1b330c92df61557b01034387466e5173b80fc75fea4db989d5ed207b2ec5f7de"
+      "ev_6876d27a1c945200682dd93f12fe3e2ac4144be0a07770b490898ec1e84719e8"
     ]
   }
 }

@@ -1,7 +1,7 @@
 {
   "kind": "evidence",
   "body": {
-    "evidence_id": "ev_16f0cb5c33e729de7165cd32448f4230fe0c4015203c7da70c57ea9f0fa2e161",
+    "evidence_id": "ev_f9cacdd9cae231e45f52f8b06dd30cbb1c170638fa203dad68ae399f43401d60",
     "subject": {
       "name": "fuse-thin.bin",
       "digest": {
@@ -14,7 +14,7 @@
     "provider": {
       "id": "pi-rea-in-process",
       "name": "pi-rea in-process analysis",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "analysis_profile": null,
     "predicate_type": "rea.analysis",

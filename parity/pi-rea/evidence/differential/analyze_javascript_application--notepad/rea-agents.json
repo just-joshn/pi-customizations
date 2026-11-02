@@ -18795,6 +18795,6 @@
   },
   "meta": {
     "command": "analyze-javascript-application",
-    "duration": "1048ms"
+    "duration": "1159ms"
   }
 }

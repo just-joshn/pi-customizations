@@ -2199,14 +2199,14 @@
       "server_identity": {
         "package": {
           "name": "pi-rea",
-          "version": "0.1.0",
+          "version": "0.1.1",
           "root_path": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-rea/",
           "build_commit": null
         },
         "server": {
           "name": "pi-rea",
-          "version": "0.1.0",
-          "started_at": "2026-10-28T21:41:31.775Z",
+          "version": "0.1.1",
+          "started_at": "2026-11-02T03:37:04.873Z",
           "command_path": null
         },
         "sdk": {
@@ -2254,7 +2254,7 @@
       "runtime": {
         "kind": "pi-extension",
         "name": "pi-rea-differential",
-        "version": "0.1.0",
+        "version": "0.1.1",
         "cwd": "/Users/josh-desktop/src/personal/pi-customizations"
       }
     }

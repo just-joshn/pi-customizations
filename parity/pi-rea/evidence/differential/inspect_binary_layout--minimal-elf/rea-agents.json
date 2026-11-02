@@ -16,6 +16,6 @@
   },
   "meta": {
     "command": "inspect-binary-layout",
-    "duration": "3ms"
+    "duration": "2ms"
   }
 }
