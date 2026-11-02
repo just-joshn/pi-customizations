@@ -94,6 +94,9 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          # The runner starts this script with `bash -e`; without `set +e` the
+          # first failed package aborts the whole loop (run 41529762501).
+          set +e
           set -uo pipefail
           failed=""
           for dir in ${{ steps.detect.outputs.packages }}; do
@@ -123,7 +126,7 @@ jobs:
             )
             rc=$?
             if [ "$rc" -ne 0 ]; then
-              echo "::error::release failed for ${name}@${version} (exit ${rc}); fix the package and merge again"
+              echo "::error::release failed for ${name}@${version} (exit ${rc}); configure its trusted publisher or set the NPM_TOKEN secret - see docs/releases.md"
               failed="${failed}${name} "
             else
               echo "- Published [${name}@${version}](https://www.npmjs.com/package/${name}) as tag \`${tag}\`" >> "$GITHUB_STEP_SUMMARY"
