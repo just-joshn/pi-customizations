@@ -17,15 +17,15 @@ Every refresh goes through this path. The `subscriptionAuth` refresh hook calls 
 
 A claimant that crashes before it sends leaves its claim. After `staleMs` a waiter creates the next generation, `gen + 1`. No process ever removes another process's claim, so a claim name is never reused while its token is current. A claimant whose refresh fails deletes only its own claim.
 
-## Coverage record and sync commit
+## Coverage record and sync point
 
-- **Last sync commit:** `c347afa9ce08716271a69aa1a314fcb019509a7e`
+- **Sync point:** the commit that last changed this skill's files (`git log -1 -- .pi/skills/verify-oauth-refresh-lock`). PRs squash-merge, so a branch hash recorded here would not exist on `main`. Change this skill in the same PR as the covered code it was checked against.
 - **Covered files and functions:**
   - `extensions/pi-anthropic-oauth/src/refresh-claim.ts`: `rotateRefreshToken` (follow the log, claim, follow again, refresh with its own timeout, release on failure, record the successor, retry and `ELOCKED`), `rotationChain` and `followChain` (recorded successors and the legacy share file), `tryClaim` (latest generation, `ENOENT`, mtime staleness, exclusive create), `writeSuccessor`.
   - `extensions/pi-anthropic-oauth/src/auth.ts`: the `subscriptionAuth` refresh hook, the only caller of the raw OAuth refresh when a rotation directory is bound.
   - `extensions/pi-anthropic-oauth/src/auth-recovery.ts`: `refreshRemembered`, which calls the hook.
 
-The spec cites each code step by function name, not by line number. When a covered file changes after the sync commit, recheck the spec against the code. Advance the sync commit only after the spec matches the code.
+The spec cites each code step by function name, not by line number. When a covered file changes after the sync point, recheck the spec against the code, and commit the skill update in the same PR.
 
 ## How to run
 
@@ -51,7 +51,7 @@ To render the state graph or read a counterexample as steps, use the pstack `/st
 - **Bound:** 3 processes (`Processes = {p1, p2, p3}`), `MaxRetries = 2`, `MaxGen = 4`. TLC explores 92966 states, 42062 distinct. A run with 4 processes also passes (11076022 states, 4144539 distinct). Keep at least 3 processes, because a takeover race needs a crashed claimant and two contenders.
 - **Exclusive create:** `open(path, 'wx')` fails with `EEXIST` when the name exists, on every process that shares the directory.
 - **Timing:** a live claimant finishes within `staleMs` (30s), which is above `REFRESH_TIMEOUT_MS` (15s). A process paused longer than `staleMs`, such as a suspended laptop, breaks this assumption.
-- **Crash point:** a claimant crashes before it sends the refresh request. A crash after the server rotates the token and before `writeSuccessor` loses the new token. No client protocol can recover it, so the model leaves it out.
+- **Crash point:** a claimant crashes before it sends the refresh request. A crash after the server rotates the token and before `writeSuccessor` loses the new token. No client protocol can recover it, so the model leaves it out. If writing the successor fails after a successful refresh, `rotateRefreshToken` still returns the new credential, which is the same loss for other holders of the old token.
 - **Failure point:** a failed refresh never reached the server. A request that rotated the token and then lost its response is out of scope for the same reason.
 - **Successor chains:** the model has one token. A successor that is about to expire starts a new rotation keyed by the successor's token, which is the same protocol on a different key, so the model covers it by symmetry.
 - **Log retention:** the sweep keeps every entry on the chain from the credential in `auth.json` and deletes other entries after 24 hours. A process whose remembered token left the chain more than 24 hours ago is not modeled.
