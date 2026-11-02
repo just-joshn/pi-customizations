@@ -1,0 +1,26 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool verify_managed_native_boundaries do not match its advertised input schema.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for verify_managed_native_boundaries; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "verify_managed_native_boundaries"
+    },
+    "details": {
+      "operation": "verify_managed_native_boundaries",
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "managed_boundaries.evidence_id: Invalid input: expected string, received undefined, managed_boundaries.subject: Invalid input: expected object, received undefined, managed_boundaries.provider: Invalid input: expected object, received undefined, managed_boundaries.analysis_profile: Invalid input: expected object, received undefined, managed_boundaries.predicate_type: Invalid input: expected string, received undefined, managed_boundaries.operation: Invalid input: expected string, received undefined, managed_boundaries.parameters: Invalid input: expected nonoptional, received undefined, managed_boundaries.raw_result: Invalid input: expected nonoptional, received undefined, managed_boundaries.normalized_result: Invalid input: expected nonoptional, received undefined, managed_boundaries.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", managed_boundaries.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", managed_boundaries.environment: Invalid input: expected object, received undefined, managed_boundaries.limitations: Invalid input: expected array, received undefined, managed_boundaries.relationship_coverage: Invalid input: expected object, received undefined, managed_boundaries.locations: Invalid input: expected array, received undefined, managed_boundaries.evidence_links: Invalid input: expected array, received undefined, native_observations: Too small: expected array to have >=1 items"
+        }
+      ]
+    }
+  }
+}

@@ -21,6 +21,8 @@ import { identifyFlutterBuild, inspectDartAot } from '../../../../extensions/pi-
 import { inspectGoBinary } from '../../../../extensions/pi-rea/src/tools/go-binary-tools.ts';
 import { inspectGpuCodeObjects } from '../../../../extensions/pi-rea/src/tools/gpu-code-object-tools.ts';
 import { inspectWebNetworkCapture } from '../../../../extensions/pi-rea/src/tools/har-tools.ts';
+import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from '../../../../extensions/pi-rea/src/tools/evidence-tools.ts';
+import { listUnknowns, recordUnknown, updateUnknown } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
 import { inspectIl2CppMetadata } from '../../../../extensions/pi-rea/src/tools/il2cpp-tools.ts';
 import { decodeInterfaceBuilder } from '../../../../extensions/pi-rea/src/tools/interface-builder-tools.ts';
 import { analyzeJavascriptApplication } from '../../../../extensions/pi-rea/src/tools/javascript-tools.ts';
@@ -63,8 +65,7 @@ const asResult = async (run, successKind = 'evidence') => {
     const body = toolResult.structuredContent;
     if (successKind === 'configuration') return { kind: 'configuration', body };
     if (body && typeof body === 'object' && typeof body.evidence_id === 'string') return { kind: 'evidence', body };
-    if (successKind === 'evidence') return { kind: 'evidence', body };
-    return { kind: successKind, body };
+    return { kind: 'configuration', body };
   } catch (error) {
     if (error instanceof ReaError) return { kind: 'error', body: error.payload };
     throw error;
@@ -166,4 +167,11 @@ export const piHandlers = {
   inspect_native_exports: (session, params) => asResult(() => inspectNativeExports(session, params ?? {})),
   compare_functions: refuse('compare_functions'),
   export_environment_bundle: refuse('export_environment_bundle'),
+  get_evidence_bundle: (session, params) => asResult(() => getEvidenceBundle(session, params ?? {})),
+  export_evidence_bundle: (session, params) => asResult(() => exportEvidenceBundle(session, params ?? {}, { cwd: process.cwd() })),
+  import_evidence_bundle: (session, params) => asResult(() => importEvidenceBundle(session, params ?? {}, { cwd: process.cwd() })),
+  inspect_analysis_view: (session, params) => asResult(() => inspectAnalysisView(session, params ?? {})),
+  list_unknowns: (session, params) => asResult(() => listUnknowns(session, params ?? {})),
+  record_unknown: (session, params) => asResult(() => recordUnknown(session, params ?? {})),
+  update_unknown: (session, params) => asResult(() => updateUnknown(session, params ?? {})),
 };

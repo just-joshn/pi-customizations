@@ -1,0 +1,95 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_7c7df3b52c4f0e3d084b39bd5754057c0129559739507da024264c6cd71f7960",
+    "relationship_coverage": null,
+    "subject": {
+      "name": "minimal-elf.bin",
+      "digest": {
+        "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+      },
+      "format": "file",
+      "architecture": null,
+      "local_path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+    },
+    "provider": {
+      "id": "rea-analysis-view",
+      "name": "REA analysis view projection",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis-view",
+    "operation": "inspect_analysis_view",
+    "parameters": {
+      "parent_evidence_id": "ev_ebf63e2bacc734d363781541592f31696f51193201b7768e53f4fadd9bb15cf6",
+      "view": {
+        "kind": "summary"
+      }
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "kind": "summary",
+      "view": {
+        "kind": "summary"
+      },
+      "parent_evidence_id": "ev_ebf63e2bacc734d363781541592f31696f51193201b7768e53f4fadd9bb15cf6",
+      "parent_operation": "inspect_byte_entropy",
+      "parent_digest": "ebf63e2bacc734d363781541592f31696f51193201b7768e53f4fadd9bb15cf6",
+      "view_digest": "1c017fcef0b30e60f813b43e9cf3d674f30966897f3c4ee6beefaf7ed29fd06c",
+      "artifact": {
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+        "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+      },
+      "coverage": {
+        "status": "complete-within-view",
+        "examined": 1,
+        "total": 1,
+        "next_offset": null,
+        "exhausted": true
+      },
+      "limitations": [
+        "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+        "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+        "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+      ],
+      "unknowns": [],
+      "summary": {
+        "artifact": {
+          "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin",
+          "bytes": 64,
+          "sha256": "2bdfef8afade4eb81137a0dc23bcbca5f72d1cd4d5dafbbe1ebe95d9fe69d662"
+        },
+        "block_size": 256,
+        "window": {
+          "offset": 0,
+          "length": 64
+        },
+        "file_entropy": 1.2121,
+        "thresholds": {
+          "high": 7.2,
+          "low": 1
+        },
+        "block_count": 1,
+        "run_count": 0,
+        "top_runs": []
+      }
+    },
+    "confidence": "derived",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Entropy does not prove encryption; compressed and encrypted bytes cannot be distinguished by this measure.",
+      "Entropy is rounded to four decimal places; thresholds classify those reported values. Small blocks can underestimate entropy.",
+      "The file-wide hash and entropy cover the entire file; blocks and runs cover only the selected window. Empty input has entropy 0 by convention."
+    ],
+    "locations": [
+      {
+        "kind": "artifact-path",
+        "path": "/Users/josh-desktop/src/personal/pi-customizations/parity/pi-rea/fixtures/targets/minimal-elf.bin"
+      }
+    ],
+    "evidence_links": [
+      "ev_ebf63e2bacc734d363781541592f31696f51193201b7768e53f4fadd9bb15cf6"
+    ]
+  }
+}

@@ -1967,9 +1967,9 @@
               "idempotent",
               "open_world"
             ],
-            "available": false,
-            "reason": "provider_unavailable",
-            "remediation": "tshark was not found in an absolute PATH entry; add it to PATH or set REA_TSHARK_COMMAND to its absolute path. Supply Wireshark 4.x tshark and capinfos on PATH or through absolute REA_TSHARK_COMMAND and REA_CAPINFOS_COMMAND; REA does not install them.",
+            "available": true,
+            "reason": "available",
+            "remediation": null,
             "names": [
               "inspect_pcap_capture",
               "inspect_pcap_client"
@@ -2206,7 +2206,7 @@
         "server": {
           "name": "pi-rea",
           "version": "0.1.1",
-          "started_at": "2026-11-02T03:37:04.873Z",
+          "started_at": "2026-11-02T05:13:31.583Z",
           "command_path": null
         },
         "sdk": {
@@ -2228,10 +2228,10 @@
             "cli_commands": null,
             "mcp_tools": 229,
             "mcp_prompts": 6,
-            "implemented_tools": 63
+            "implemented_tools": 65
           },
           "digests": {
-            "tools_sha256": "491f90ab7faf9765acabd97011c805422b6542f585f3221ece1647b3c0f9daa0",
+            "tools_sha256": "703f79d565ce875f1d772cd55e37735f4664f7222917e1edf20fa5ab8bd72a9f",
             "prompts_sha256": null,
             "combined_sha256": null
           }

@@ -1,0 +1,71 @@
+{
+  "id": "capture_electron_scenario--generated-refuse",
+  "tool": "capture_electron_scenario",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unavailable",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "provider_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [
+            "executable_path"
+          ],
+          "reason": "invalid_value",
+          "message": "executable_path $REPO/parity/pi-rea/fixtures/targets/minimal-elf.bin is not an executable file: EACCES: permission denied, access '$REPO/parity/pi-rea/fixtures/targets/minimal-elf.bin'"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.reason",
+      "left": "endpoint_unreachable",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "capture_electron_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+      "right": "Analysis input is invalid. Check the arguments and try again.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "capture_electron_scenario"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "capture_electron_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+      "right": "Read the declared input schema or CLI usage for capture_electron_scenario; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    },
+    {
+      "path": "retryable",
+      "left": true,
+      "right": false,
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

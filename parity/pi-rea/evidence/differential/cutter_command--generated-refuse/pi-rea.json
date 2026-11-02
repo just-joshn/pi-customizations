@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port.",
+    "retryable": false,
+    "remediation": {
+      "action": "pi-rea has no Cutter bridge. No live cutter-bridge session directory is configured for this port."
+    },
+    "details": {
+      "provider_id": "cutter",
+      "operation": "cutter_command",
+      "reason": "no_live_bridge_found"
+    }
+  }
+}

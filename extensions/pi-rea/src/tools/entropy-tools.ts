@@ -3,8 +3,13 @@ import { DEFAULT_BLOCK_SIZE, inspectByteEntropyFromPath } from '../analysis/byte
 import { evidenceResult } from '../contract/results.ts';
 import type { ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
 import type { ToolCallContext } from './session-tools.ts';
+
+export const BYTE_ENTROPY_PROVIDER = {
+  id: 'byte-entropy',
+  name: 'REA byte entropy',
+  version: '1',
+} as const;
 
 export interface InspectByteEntropyParams {
   readonly path: string;
@@ -34,7 +39,7 @@ export const inspectByteEntropy = async (session: ReaSession, params: InspectByt
       architecture: null,
       local_path: resolvedPath,
     },
-    provider: ANALYZER_PROVIDER,
+    provider: BYTE_ENTROPY_PROVIDER,
     analysis_profile: null,
     predicate_type: 'rea.analysis',
     operation: 'inspect_byte_entropy',

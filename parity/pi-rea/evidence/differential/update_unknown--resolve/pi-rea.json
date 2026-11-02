@@ -1,0 +1,42 @@
+{
+  "kind": "configuration",
+  "body": {
+    "result": {
+      "question": "Does the fixture binary embed its build settings?",
+      "severity": "medium",
+      "domain": "fixture-go-macho",
+      "required_authority": "shipped-artifact",
+      "required_confidence": "observed",
+      "required_environment": {
+        "id": null,
+        "platform": null,
+        "architecture": null,
+        "isolation": null
+      },
+      "recommended_probes": [
+        {
+          "operation": "inspect_macho",
+          "rationale": "Read embedded build metadata from the shipped artifact."
+        }
+      ],
+      "relationships": [],
+      "supporting_evidence_ids": [],
+      "contradicting_evidence_ids": [],
+      "unknown_id": "unk_bc8bdaf06f3a03e81f50fec259b1b9045ad356bb9e890f091f09deb6f1003287",
+      "revision": 2,
+      "previous_revision_digest": "08998afa0b9814bdc4ce6c1dd3a4e2ce083125f4950159b5dc03f1c737641b92",
+      "scope_digest": null,
+      "status": "resolved",
+      "resolution": {
+        "disposition": "withdrawn",
+        "rationale": "The question is out of scope for this investigation.",
+        "evidence_ids": []
+      },
+      "mutation_evidence_ids": [
+        "ev_be374ffe53d63967cf0fadaae3d555171c2eafe5bf2a1a2873c4a38b059e5dd7",
+        "ev_fc395555596c0381817d97e36dbd40e92107710aa53863f0847a8596cf2ca97d"
+      ],
+      "revision_digest": "5fca57bf665ffaeaf8fa09a37a0396816242907b956d441598eb17ffd16834cd"
+    }
+  }
+}

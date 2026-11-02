@@ -1,0 +1,77 @@
+{
+  "id": "close_rizin_debug_session--generated-refuse",
+  "tool": "close_rizin_debug_session",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 9,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 9,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.diagnostics",
+      "left": {
+        "boundary": "provider-launch",
+        "command": "rizin",
+        "system_code": "ENOENT"
+      },
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "session_id: Invalid UUID"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "rizin",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "Unable to run configured command (ENOENT)",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "Could not launch the selected rizin executable \"rizin\" (ENOENT).",
+      "right": "The arguments for MCP tool close_rizin_debug_session do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "close_rizin_debug_session"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying.",
+      "right": "Read the declared input schema or CLI usage for close_rizin_debug_session; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

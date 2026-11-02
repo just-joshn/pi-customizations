@@ -109,6 +109,6 @@
   },
   "meta": {
     "command": "inspect-plist",
-    "duration": "1420ms"
+    "duration": "1172ms"
   }
 }

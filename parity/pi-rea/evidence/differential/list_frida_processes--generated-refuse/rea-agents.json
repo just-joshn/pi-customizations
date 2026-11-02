@@ -1,0 +1,26 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool list_frida_processes do not match its advertised input schema.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for list_frida_processes; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "list_frida_processes"
+    },
+    "details": {
+      "operation": "list_frida_processes",
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "Select a device_id or a remote endpoint"
+        }
+      ]
+    }
+  }
+}

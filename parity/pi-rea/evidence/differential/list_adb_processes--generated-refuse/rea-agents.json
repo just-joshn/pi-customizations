@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "unsupported_target",
+    "category": "unsupported_target",
+    "message": "Unsupported target for list_adb_processes at pi-rea-serial: adb: device 'pi-rea-serial' not found",
+    "retryable": false,
+    "remediation": {
+      "action": "Select a target supported by this operation or choose an operation supporting the reported target format."
+    },
+    "details": {
+      "operation": "list_adb_processes",
+      "path": "pi-rea-serial",
+      "reason": "adb: device 'pi-rea-serial' not found"
+    }
+  }
+}

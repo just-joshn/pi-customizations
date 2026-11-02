@@ -81,6 +81,6 @@
   },
   "meta": {
     "command": "demangle-swift",
-    "duration": "1065ms"
+    "duration": "956ms"
   }
 }

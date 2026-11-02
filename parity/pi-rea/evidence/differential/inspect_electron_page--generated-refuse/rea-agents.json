@@ -1,0 +1,26 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool inspect_electron_page do not match its advertised input schema.",
+    "retryable": false,
+    "remediation": {
+      "action": "Read the declared input schema or CLI usage for inspect_electron_page; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "inspect_electron_page"
+    },
+    "details": {
+      "operation": "inspect_electron_page",
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "Invalid input"
+        }
+      ]
+    }
+  }
+}

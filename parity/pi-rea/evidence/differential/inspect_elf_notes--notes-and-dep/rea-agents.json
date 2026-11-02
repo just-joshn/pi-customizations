@@ -156,6 +156,6 @@
   },
   "meta": {
     "command": "inspect-elf-notes",
-    "duration": "8ms"
+    "duration": "6ms"
   }
 }

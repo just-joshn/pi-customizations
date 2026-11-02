@@ -1,0 +1,17 @@
+{
+  "kind": "error",
+  "body": {
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "retryable": false,
+    "remediation": {
+      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+    },
+    "details": {
+      "provider_id": "engine-free",
+      "operation": "build_reconstruction_obligation_ledger",
+      "reason": "not_implemented"
+    }
+  }
+}

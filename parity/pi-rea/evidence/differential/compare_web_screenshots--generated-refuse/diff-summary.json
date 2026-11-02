@@ -1,0 +1,69 @@
+{
+  "id": "compare_web_screenshots--generated-refuse",
+  "tool": "compare_web_screenshots",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unavailable",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "provider_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "before.sha256: Invalid input: expected string, received undefined, before.bytes: Invalid input: expected number, received undefined, before.media_type: Invalid input: expected \"image/png\", before.data_base64: Invalid input: expected string, received undefined, after.sha256: Invalid input: expected string, received undefined, after.bytes: Invalid input: expected number, received undefined, after.media_type: Invalid input: expected \"image/png\", after.data_base64: Invalid input: expected string, received undefined"
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.reason",
+      "left": "endpoint_unreachable",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "compare_web_screenshots could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+      "right": "The arguments for MCP tool compare_web_screenshots do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "compare_web_screenshots"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "compare_web_screenshots could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
+      "right": "Read the declared input schema or CLI usage for compare_web_screenshots; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    },
+    {
+      "path": "retryable",
+      "left": true,
+      "right": false,
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

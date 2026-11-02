@@ -1,0 +1,35 @@
+{
+  "kind": "evidence",
+  "body": {
+    "evidence_id": "ev_dd970a7d45066c5212e5a6e7f9e8f296a3cd1ae49a13433ed1fdb9f0214df3a7",
+    "subject": null,
+    "provider": {
+      "id": "rea-workflow",
+      "name": "REA composed investigation workflow",
+      "version": "1"
+    },
+    "analysis_profile": null,
+    "predicate_type": "rea.analysis",
+    "operation": "batch_decompile",
+    "parameters": {
+      "addresses": []
+    },
+    "raw_result": null,
+    "normalized_result": {
+      "items": [],
+      "total": 0,
+      "succeeded": 0,
+      "failed": 0
+    },
+    "confidence": "derived",
+    "authority": "shipped-artifact",
+    "environment": null,
+    "limitations": [
+      "Artifact identity is unavailable for this observation.",
+      "Derived by an REA composed workflow."
+    ],
+    "relationship_coverage": null,
+    "locations": [],
+    "evidence_links": []
+  }
+}

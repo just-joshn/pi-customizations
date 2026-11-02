@@ -8,7 +8,6 @@ import { capabilityUnavailable, evidenceIntegrityMismatch, executionFailure, inv
 import { byteLength, evidenceResult, operationResult } from '../contract/results.ts';
 import { PI_REA_VERSION, type ReaSession } from '../session/binary-session.ts';
 import { createEvidence } from '../session/evidence.ts';
-import { ANALYZER_PROVIDER } from './analyzer-provider.ts';
 import type { ToolCallContext } from './session-tools.ts';
 
 const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolute(path) ? path : resolve(cwd ?? process.cwd(), path));
@@ -137,6 +136,12 @@ export const importEvidenceBundle = async (session: ReaSession, params: ImportEv
   return operationResult({ imported, unknowns_added: unknownsAdded, total });
 };
 
+export const ANALYSIS_VIEW_PROVIDER = {
+  id: 'rea-analysis-view',
+  name: 'REA analysis view projection',
+  version: '1',
+} as const;
+
 export interface InspectAnalysisViewParams {
   readonly source: { readonly kind: string; readonly evidence_id?: string; readonly evidence?: unknown };
   readonly view: Record<string, unknown>;
@@ -167,9 +172,9 @@ export const inspectAnalysisView = async (session: ReaSession, params: InspectAn
 
   const projected = createEvidence({
     subject: record.subject,
-    provider: ANALYZER_PROVIDER,
+    provider: ANALYSIS_VIEW_PROVIDER,
     analysis_profile: null,
-    predicate_type: 'rea.analysis',
+    predicate_type: 'rea.analysis-view',
     operation: 'inspect_analysis_view',
     parameters: view.parameters,
     raw_result: null,
@@ -177,7 +182,7 @@ export const inspectAnalysisView = async (session: ReaSession, params: InspectAn
     confidence: 'derived',
     authority: 'shipped-artifact',
     environment: null,
-    limitations: [...record.limitations, 'This view reads retained evidence; it neither re-ran the producer nor upgraded its coverage.'],
+    limitations: (view.normalized_result as { limitations?: string[] })?.limitations ?? record.limitations,
     locations: record.locations,
     evidence_links: [record.evidence_id],
   });

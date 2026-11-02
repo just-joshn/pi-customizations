@@ -92,7 +92,7 @@ test('KERN-010: a stale revision is a conflict that names both revisions', () =>
   const session = new ReaSession(runtime);
   const first = payloadOf(recordUnknown(session, draft()));
   const unknownId = first['unknown_id'] as string;
-  updateUnknown(session, { unknown_id: unknownId, expected_revision: 1, status: 'resolved', resolution: null });
+  updateUnknown(session, { unknown_id: unknownId, expected_revision: 1, status: 'resolved', resolution: { disposition: 'withdrawn', rationale: 'Out of scope for this investigation.', evidence_ids: [] } });
   let thrown: unknown;
   try {
     updateUnknown(session, { unknown_id: unknownId, expected_revision: 1, status: 'open', resolution: null });
@@ -194,7 +194,7 @@ test('KERN-023: successive updates carry distinct mutation Evidence', () => {
   expect(new Set(ids).size).toBe(3);
   expect(session.evidence.size).toBe(3);
   expect(session.evidence.list().map((record) => record.operation)).toStrictEqual(['record_unknown', 'update_unknown', 'update_unknown']);
-  expect(session.evidence.get(ids[2] as string)?.parameters).toMatchObject({ unknown_id: unknownId, revision: 3, status: 'resolved' });
+  expect(session.evidence.get(ids[2] as string)?.parameters).toMatchObject({ unknown_id: unknownId, expected_revision: 2, status: 'resolved' });
 });
 
 test('KERN-021: an unknown record that is not canonical is not imported', () => {

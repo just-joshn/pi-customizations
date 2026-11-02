@@ -27,6 +27,6 @@
   },
   "meta": {
     "command": "inspect-rust-binary",
-    "duration": "9ms"
+    "duration": "6ms"
   }
 }

@@ -1,0 +1,61 @@
+{
+  "id": "annotate_native_function--generated-refuse",
+  "tool": "annotate_native_function",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 6,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 6,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unavailable",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "target_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details",
+      "right": {
+        "operation": "annotate_native_function",
+        "issues": [
+          {
+            "path": [],
+            "reason": "invalid_value",
+            "message": "Supply at least one annotation change"
+          }
+        ]
+      },
+      "kind": "type_or_null"
+    },
+    {
+      "path": "message",
+      "left": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
+      "right": "The arguments for MCP tool annotate_native_function do not match its advertised input schema.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "annotate_native_function"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
+      "right": "Read the declared input schema or CLI usage for annotate_native_function; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}

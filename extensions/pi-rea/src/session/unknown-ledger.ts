@@ -84,27 +84,30 @@ export interface UnknownRecord extends UnknownDraft {
   readonly mutation_evidence_ids: readonly string[];
 }
 
-export const unknownIdentity = (draft: UnknownDraft): string => `unk_${sha256Hex(canonicalJson(draft))}`;
+const normalizeUnknownQuestion = (question: string): string => question.replace(/\s+/gu, ' ').trim();
 
-export const unknownRevisionDigest = (record: UnknownRecord): string =>
-  sha256Hex(
+const uniqueSortedIds = (ids: readonly string[]): string[] => [...ids].toSorted((left, right) => (left < right ? -1 : left > right ? 1 : 0)).filter((id, index, sorted) => index === 0 || sorted[index - 1] !== id);
+
+const sortedRelationships = (values: readonly UnknownRelationship[]): UnknownRelationship[] =>
+  [...values].toSorted((left, right) => {
+    const leftKey = `${left.type}:${left.unknown_id}`;
+    const rightKey = `${right.type}:${right.unknown_id}`;
+    return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+  });
+
+export const unknownIdentity = (draft: UnknownDraft): string =>
+  `unk_${sha256Hex(
     canonicalJson({
-      unknown_id: record.unknown_id,
-      revision: record.revision,
-      status: record.status,
-      severity: record.severity,
-      domain: record.domain,
-      question: record.question,
-      supporting_evidence_ids: record.supporting_evidence_ids,
-      contradicting_evidence_ids: record.contradicting_evidence_ids,
-      required_authority: record.required_authority,
-      required_confidence: record.required_confidence,
-      required_environment: record.required_environment,
-      recommended_probes: record.recommended_probes,
-      relationships: record.relationships,
-      resolution: record.resolution,
+      domain: draft.domain.trim(),
+      question: normalizeUnknownQuestion(draft.question),
+      scope_digest: null,
     }),
-  );
+  )}`;
+
+export const unknownRevisionDigest = (record: UnknownRecord): string => {
+  const { revision_digest: _omitted, ...semantic } = record;
+  return sha256Hex(canonicalJson(semantic));
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -180,16 +183,24 @@ export class UnknownLedger {
   }
 
   record(draft: UnknownDraft, mutationEvidenceId: string): UnknownRecord {
-    const unknownId = unknownIdentity(draft);
+    const normalized: UnknownDraft = {
+      ...draft,
+      question: normalizeUnknownQuestion(draft.question),
+      domain: draft.domain.trim(),
+      supporting_evidence_ids: uniqueSortedIds(draft.supporting_evidence_ids),
+      contradicting_evidence_ids: uniqueSortedIds(draft.contradicting_evidence_ids),
+      relationships: sortedRelationships(draft.relationships),
+    };
+    const unknownId = unknownIdentity(normalized);
     const existing = this.#records.get(unknownId);
     if (existing !== undefined) return existing;
     const base = {
-      ...draft,
+      ...normalized,
       unknown_id: unknownId,
       revision: 1,
       previous_revision_digest: null,
       scope_digest: null,
-      status: 'open' as UnknownStatus,
+      status: (normalized.contradicting_evidence_ids.length > 0 ? 'contradicted' : 'open') as UnknownStatus,
       resolution: null,
       mutation_evidence_ids: [mutationEvidenceId],
     };

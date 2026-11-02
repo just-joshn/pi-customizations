@@ -1,0 +1,70 @@
+{
+  "id": "find_changed_behavior--generated-refuse",
+  "tool": "find_changed_behavior",
+  "status": "fail_undocumented",
+  "pi_kind": "error",
+  "oracle_kind": "error",
+  "contract_issues": [],
+  "diff_count": 8,
+  "compared_paths": null,
+  "documented_count": 0,
+  "undocumented_count": 8,
+  "undocumented": [
+    {
+      "path": "category",
+      "left": "unsupported_provider",
+      "right": "invalid_input",
+      "kind": "value"
+    },
+    {
+      "path": "code",
+      "left": "capability_unavailable",
+      "right": "invalid_request",
+      "kind": "value"
+    },
+    {
+      "path": "details.issues",
+      "right": [
+        {
+          "path": [
+            "comparisons"
+          ],
+          "reason": "out_of_range",
+          "minimum": 1
+        }
+      ],
+      "kind": "missing_left"
+    },
+    {
+      "path": "details.provider_id",
+      "left": "compare",
+      "kind": "missing_right"
+    },
+    {
+      "path": "details.reason",
+      "left": "not_implemented",
+      "kind": "missing_right"
+    },
+    {
+      "path": "message",
+      "left": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Provide at least one comparison Evidence item.",
+      "kind": "value"
+    },
+    {
+      "path": "recovery",
+      "right": {
+        "kind": "inspect_input_contract",
+        "operation": "find_changed_behavior"
+      },
+      "kind": "missing_left"
+    },
+    {
+      "path": "remediation.action",
+      "left": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+      "right": "Read the declared input schema or CLI usage for find_changed_behavior; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
+      "kind": "value"
+    }
+  ],
+  "documented": []
+}
