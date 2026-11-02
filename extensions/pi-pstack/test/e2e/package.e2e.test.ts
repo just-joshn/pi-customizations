@@ -1,6 +1,7 @@
-import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, readFileSync } from 'node:fs';
+import { execFile, execFileSync } from 'node:child_process';
+import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { promisify } from 'node:util';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
@@ -28,6 +29,21 @@ async function discovered(): Promise<{ commands: string[]; tools: string }> {
     await rpc.close();
   }
 }
+
+test('publishes bundled tools without locally installed script dependencies', async ({ signal }) => {
+  const copy = join(sandbox.root, 'pi-pstack');
+  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  const installed = join(copy, 'skills/statechart/scripts/node_modules/local-only');
+  mkdirSync(installed, { recursive: true });
+  writeFileSync(join(installed, 'index.js'), 'throw new Error("must not ship");');
+
+  const { stdout } = await promisify(execFile)('npm', ['pack', copy, '--dry-run', '--json'], { cwd: sandbox.workDir, env: sandbox.env, signal });
+  const packed = JSON.parse(stdout) as { files: { path: string }[] }[];
+  const paths = packed.flatMap((entry) => entry.files.map((file) => file.path));
+  expect(paths.filter((path) => path.includes('node_modules/'))).toEqual([]);
+  expect(paths).toEqual(expect.arrayContaining(['src/index.ts', 'bin/pstack-routines-supervisor', 'skills/statechart/scripts/statechart', 'skills/poteto-mode/scripts/watch-pr/watch-pr']));
+  expect(paths.filter((path) => path.startsWith('skills/') && path.endsWith('/SKILL.md'))).toHaveLength(79);
+});
 
 test('installs from a fresh copy without node_modules, then removes cleanly (PKG-001)', async () => {
   const copy = join(sandbox.root, 'pi-pstack');
