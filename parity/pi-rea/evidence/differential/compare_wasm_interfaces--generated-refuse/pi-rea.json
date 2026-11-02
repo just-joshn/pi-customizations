@@ -1,17 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool compare_wasm_interfaces do not match its advertised input schema.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for compare_wasm_interfaces; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "compare_wasm_interfaces"
     },
     "details": {
-      "provider_id": "compare",
       "operation": "compare_wasm_interfaces",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "left: Invalid input, right: Invalid input, scope: Invalid option: expected one of \"imports\"|\"exports\"|\"both\""
+        }
+      ]
     }
   }
 }

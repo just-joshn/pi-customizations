@@ -1,22 +1,16 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "Could not launch the selected rizin executable \"rizin\" (ENOENT).",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "Analysis input is invalid. Check the arguments and try again.",
     "retryable": false,
     "remediation": {
-      "action": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying."
+      "action": "Read the declared input schema or CLI usage for rizin_debug_session_status; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
     },
-    "details": {
-      "provider_id": "rizin",
-      "operation": "rizin_debug_session_status",
-      "reason": "Unable to run configured command (ENOENT)",
-      "diagnostics": {
-        "boundary": "provider-launch",
-        "command": "rizin",
-        "system_code": "ENOENT"
-      }
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "rizin_debug_session_status"
     }
   }
 }

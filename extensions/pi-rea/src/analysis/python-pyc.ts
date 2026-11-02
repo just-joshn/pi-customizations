@@ -375,14 +375,10 @@ export const inspectPythonPycFromPath = async (path: string, options: PycOptions
   const resolvedPath = isAbsolute(path) ? path : resolve(options.cwd ?? process.cwd(), path);
   const stats = await lstat(resolvedPath).catch(() => null);
   if (stats === null) {
-    throw analysisInputInvalid('inspect_python_pyc', [
-      { path: ['path'], reason: 'invalid_value', message: `Selected pyc could not be read (ENOENT): ${path}.` },
-    ]);
+    throw analysisInputInvalid('inspect_python_pyc', [{ path: ['path'], reason: 'invalid_value', message: `Selected pyc could not be read (ENOENT): ${path}.` }]);
   }
   if (stats.isSymbolicLink() || !stats.isFile()) {
-    throw analysisInputInvalid('inspect_python_pyc', [
-      { path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` },
-    ]);
+    throw analysisInputInvalid('inspect_python_pyc', [{ path: ['path'], reason: 'invalid_format', message: `Expected a regular file without a symlink: ${path}` }]);
   }
   let bytes: Buffer;
   try {

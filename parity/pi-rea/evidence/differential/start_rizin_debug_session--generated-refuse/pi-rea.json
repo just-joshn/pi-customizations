@@ -3,20 +3,15 @@
   "body": {
     "code": "capability_unavailable",
     "category": "unsupported_provider",
-    "message": "Could not launch the selected rizin executable \"rizin\" (ENOENT).",
+    "message": "This analysis is unavailable for the current target. Choose another analysis or target.",
     "retryable": false,
     "remediation": {
-      "action": "Set REA_RIZIN_COMMAND to an installed executable Rizin command, or make that command available on PATH. Check execute permission on the command and search permission on its parent directories before retrying."
+      "action": "This analysis is unavailable for the current target. Choose another analysis or target."
     },
     "details": {
       "provider_id": "rizin",
       "operation": "start_rizin_debug_session",
-      "reason": "Unable to run configured command (ENOENT)",
-      "diagnostics": {
-        "boundary": "provider-launch",
-        "command": "rizin",
-        "system_code": "ENOENT"
-      }
+      "reason": "Persistent Rizin debugger sessions require Linux /proc descriptor readback to verify inferior detachment and output routing."
     }
   }
 }

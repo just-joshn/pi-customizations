@@ -53,20 +53,6 @@ const UNKNOWN_DRAFT = {
 
 const ROUNDTRIP_BUNDLE_PATH = join(tmpdir(), 'pi-rea-diff-roundtrip-bundle.json');
 
-const piUnknownSequence = async (steps) => {
-  const session = createSession();
-  let last;
-  for (const step of steps) last = await step(session);
-  return last;
-};
-
-const oracleUnknownSequence = (steps, env) =>
-  withReaAgentsMcpSession(async (call) => {
-    let last;
-    for (const step of steps) last = await step(call);
-    return { kind: last.kind, body: last.body };
-  }, env === undefined ? {} : { env });
-
 const withByteEntropyEvidence = async (call) => {
   const inspected = await call('inspect_byte_entropy', { path: target('minimal-elf.bin'), block_size: 256 });
   if (inspected.kind !== 'evidence') throw new Error(`inspect_byte_entropy did not return Evidence: ${JSON.stringify(inspected.body).slice(0, 300)}`);
@@ -250,6 +236,12 @@ const sessionKernelCases = () => [
     runOracle: () => oracleMcp('close_binary', { snapshot_path: '/tmp/pi-rea-snapshot.json' }),
   },
   {
+    id: 'batch_decompile--closed-session',
+    tool: 'batch_decompile',
+    runPiRea: async () => piHandlers.batch_decompile(createSession(), { addresses: ['0x1000'] }),
+    runOracle: () => oracleMcp('batch_decompile', { addresses: ['0x1000'] }),
+  },
+  {
     id: 'list_unknowns--fresh',
     tool: 'list_unknowns',
     runPiRea: async () => piHandlers.list_unknowns(createSession(), {}),
@@ -378,6 +370,7 @@ const sessionKernelCases = () => [
 
 const CASED_TOOLS = [
   'analyze_javascript_application',
+  'batch_decompile',
   'binary_session',
   'close_binary',
   'compare_application_versions',

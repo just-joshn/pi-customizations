@@ -1,26 +1,17 @@
 {
   "kind": "error",
   "body": {
-    "code": "invalid_request",
-    "category": "invalid_input",
-    "message": "The arguments for MCP tool instrument_with_frida do not match its advertised input schema.",
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "This analysis is unavailable for the current target. Choose another analysis or target.",
     "retryable": false,
     "remediation": {
-      "action": "Read the declared input schema or CLI usage for instrument_with_frida; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
-    },
-    "recovery": {
-      "kind": "inspect_input_contract",
-      "operation": "instrument_with_frida"
+      "action": "This analysis is unavailable for the current target. Choose another analysis or target."
     },
     "details": {
-      "operation": "instrument_with_frida",
-      "issues": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "Select one device and provide fields matching the mode and source_kind"
-        }
-      ]
+      "provider_id": "frida",
+      "operation": "start_frida_session",
+      "reason": "Cannot load native addon because loading addons is disabled."
     }
   }
 }

@@ -1,64 +1,14 @@
 {
   "id": "read_adb_setting--generated-refuse",
   "tool": "read_adb_setting",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 8,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 8,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "unsupported_target",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "unsupported_target",
-      "kind": "value"
-    },
-    {
-      "path": "details.diagnostics",
-      "left": {
-        "selected_binary": "adb",
-        "path_source": "path",
-        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
-      },
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.path",
-      "right": "pi-rea-serial",
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "adb",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "adb: device 'pi-rea-serial' not found",
-      "kind": "value"
-    },
-    {
-      "path": "message",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "Unsupported target for read_adb_setting at pi-rea-serial: adb: device 'pi-rea-serial' not found",
-      "kind": "value"
-    },
-    {
-      "path": "remediation.action",
-      "left": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
-      "right": "Select a target supported by this operation or choose an operation supporting the reported target format.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

@@ -1,68 +1,14 @@
 {
   "id": "compare_process_captures--generated-refuse",
   "tool": "compare_process_captures",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 8,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 8,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details.issues",
-      "right": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "left.evidence_id: Invalid input: expected string, received undefined, left.subject: Invalid input: expected object, received undefined, left.provider: Invalid input: expected object, received undefined, left.analysis_profile: Invalid input: expected object, received undefined, left.predicate_type: Invalid input: expected string, received undefined, left.operation: Invalid input: expected string, received undefined, left.parameters: Invalid input: expected nonoptional, received undefined, left.raw_result: Invalid input: expected nonoptional, received undefined, left.normalized_result: Invalid input: expected nonoptional, received undefined, left.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", left.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", left.environment: Invalid input: expected object, received undefined, left.limitations: Invalid input: expected array, received undefined, left.relationship_coverage: Invalid input: expected object, received undefined, left.locations: Invalid input: expected array, received undefined, left.evidence_links: Invalid input: expected array, received undefined, right.evidence_id: Invalid input: expected string, received undefined, right.subject: Invalid input: expected object, received undefined, right.provider: Invalid input: expected object, received undefined, right.analysis_profile: Invalid input: expected object, received undefined, right.predicate_type: Invalid input: expected string, received undefined, right.operation: Invalid input: expected string, received undefined, right.parameters: Invalid input: expected nonoptional, received undefined, right.raw_result: Invalid input: expected nonoptional, received undefined, right.normalized_result: Invalid input: expected nonoptional, received undefined, right.confidence: Invalid option: expected one of \"observed\"|\"derived\"|\"inferred\", right.authority: Invalid option: expected one of \"shipped-artifact\"|\"controlled-replay\"|\"historical-reference\"|\"external-service\"|\"analyst-inference\", right.environment: Invalid input: expected object, received undefined, right.limitations: Invalid input: expected array, received undefined, right.relationship_coverage: Invalid input: expected object, received undefined, right.locations: Invalid input: expected array, received undefined, right.evidence_links: Invalid input: expected array, received undefined"
-        }
-      ],
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "compare",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "not_implemented",
-      "kind": "missing_right"
-    },
-    {
-      "path": "message",
-      "left": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
-      "right": "The arguments for MCP tool compare_process_captures do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "compare_process_captures"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "pi-rea has no provider bridge for this compare surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
-      "right": "Read the declared input schema or CLI usage for compare_process_captures; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

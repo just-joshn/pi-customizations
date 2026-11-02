@@ -1,68 +1,14 @@
 {
   "id": "resume_frida_session--generated-refuse",
   "tool": "resume_frida_session",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 8,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 8,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unsupported_provider",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "capability_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details.issues",
-      "right": [
-        {
-          "path": [],
-          "reason": "invalid_value",
-          "message": "session_id: Invalid UUID"
-        }
-      ],
-      "kind": "missing_left"
-    },
-    {
-      "path": "details.provider_id",
-      "left": "frida",
-      "kind": "missing_right"
-    },
-    {
-      "path": "details.reason",
-      "left": "Cannot load native addon because loading addons is disabled.",
-      "kind": "missing_right"
-    },
-    {
-      "path": "message",
-      "left": "This analysis is unavailable for the current target. Choose another analysis or target.",
-      "right": "The arguments for MCP tool resume_frida_session do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "resume_frida_session"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "This analysis is unavailable for the current target. Choose another analysis or target.",
-      "right": "Read the declared input schema or CLI usage for resume_frida_session; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

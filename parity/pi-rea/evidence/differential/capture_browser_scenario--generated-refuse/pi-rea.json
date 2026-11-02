@@ -1,16 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "provider_unavailable",
-    "category": "unavailable",
-    "message": "capture_browser_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry.",
-    "retryable": true,
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool capture_browser_scenario do not match its advertised input schema.",
+    "retryable": false,
     "remediation": {
-      "action": "capture_browser_scenario could not reach the selected loopback debugging endpoint. Verify that the target process is running with debugging enabled and that the endpoint's port matches it, then retry."
+      "action": "Read the declared input schema or CLI usage for capture_browser_scenario; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "capture_browser_scenario"
     },
     "details": {
       "operation": "capture_browser_scenario",
-      "reason": "endpoint_unreachable"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "browser.mode: Invalid discriminator value. Expected 'launch' | 'connect', start_url: Invalid input: expected object, received string, actions: Too small: expected array to have >=1 items"
+        }
+      ]
     }
   }
 }

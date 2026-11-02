@@ -1,21 +1,14 @@
 {
   "id": "inspect_adb_client--generated-refuse",
   "tool": "inspect_adb_client",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
-  "oracle_kind": "evidence",
+  "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 1,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 1,
-  "undocumented": [
-    {
-      "path": "$kind",
-      "left": "error",
-      "right": "evidence",
-      "kind": "kind_mismatch"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }

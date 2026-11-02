@@ -17,12 +17,11 @@ import { inspectElectronFuses } from '../../../../extensions/pi-rea/src/tools/el
 import { inspectElfNotes } from '../../../../extensions/pi-rea/src/tools/elf-tools.ts';
 import { inspectByteEntropy } from '../../../../extensions/pi-rea/src/tools/entropy-tools.ts';
 import { inspectErlangBeam } from '../../../../extensions/pi-rea/src/tools/erlang-beam-tools.ts';
+import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from '../../../../extensions/pi-rea/src/tools/evidence-tools.ts';
 import { identifyFlutterBuild, inspectDartAot } from '../../../../extensions/pi-rea/src/tools/flutter-tools.ts';
 import { inspectGoBinary } from '../../../../extensions/pi-rea/src/tools/go-binary-tools.ts';
 import { inspectGpuCodeObjects } from '../../../../extensions/pi-rea/src/tools/gpu-code-object-tools.ts';
 import { inspectWebNetworkCapture } from '../../../../extensions/pi-rea/src/tools/har-tools.ts';
-import { exportEvidenceBundle, getEvidenceBundle, importEvidenceBundle, inspectAnalysisView } from '../../../../extensions/pi-rea/src/tools/evidence-tools.ts';
-import { listUnknowns, recordUnknown, updateUnknown } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
 import { inspectIl2CppMetadata } from '../../../../extensions/pi-rea/src/tools/il2cpp-tools.ts';
 import { decodeInterfaceBuilder } from '../../../../extensions/pi-rea/src/tools/interface-builder-tools.ts';
 import { analyzeJavascriptApplication } from '../../../../extensions/pi-rea/src/tools/javascript-tools.ts';
@@ -44,8 +43,9 @@ import { binarySession, closeBinary, openBinary } from '../../../../extensions/p
 import { inspectAnalysisSettings, updateAnalysisSettings } from '../../../../extensions/pi-rea/src/tools/settings-tools.ts';
 import { inspectSignature } from '../../../../extensions/pi-rea/src/tools/signature-tools.ts';
 import { inspectSqliteDatabase } from '../../../../extensions/pi-rea/src/tools/sqlite-tools.ts';
-import { verifyUnknownResolution } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
+import { listUnknowns, recordUnknown, updateUnknown, verifyUnknownResolution } from '../../../../extensions/pi-rea/src/tools/unknown-tools.ts';
 import { exportWebScriptsTool } from '../../../../extensions/pi-rea/src/tools/web-script-tools.ts';
+import { batchDecompile } from '../../../../extensions/pi-rea/src/tools/workflow-tools.ts';
 
 const runtime = () => ({ name: 'pi-rea-differential', version: PI_REA_VERSION, cwd: process.cwd() });
 
@@ -159,6 +159,7 @@ export const piHandlers = {
   inspect_packet_fields: refuse('inspect_packet_fields'),
   inspect_pcap_capture: (session, params) => asResult(() => inspectPcapCapture(session, params ?? {})),
   inspect_pcap_client: (session) => asResult(() => inspectPcapClient(session)),
+  batch_decompile: (session, params) => asResult(() => batchDecompile(session, params ?? {})),
   inspect_signal_decoders: refuse('inspect_signal_decoders'),
   decode_signal_recording: refuse('decode_signal_recording'),
   inspect_evm_interface: refuse('inspect_evm_interface'),

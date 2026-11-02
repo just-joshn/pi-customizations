@@ -1,6 +1,7 @@
 {
   "kernelToolNames": [
     "analyze_javascript_application",
+    "batch_decompile",
     "binary_session",
     "close_binary",
     "compare_application_versions",

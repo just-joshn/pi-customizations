@@ -1,17 +1,26 @@
 {
   "kind": "error",
   "body": {
-    "code": "capability_unavailable",
-    "category": "unsupported_provider",
-    "message": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap.",
+    "code": "invalid_request",
+    "category": "invalid_input",
+    "message": "The arguments for MCP tool verify_reconstruction do not match its advertised input schema.",
     "retryable": false,
     "remediation": {
-      "action": "pi-rea has not implemented this engine-free surface yet, so the call fails closed instead of returning a substitute result. parity/pi-rea/ tracks the gap."
+      "action": "Read the declared input schema or CLI usage for verify_reconstruction; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call."
+    },
+    "recovery": {
+      "kind": "inspect_input_contract",
+      "operation": "verify_reconstruction"
     },
     "details": {
-      "provider_id": "engine-free",
       "operation": "verify_reconstruction",
-      "reason": "not_implemented"
+      "issues": [
+        {
+          "path": [],
+          "reason": "invalid_value",
+          "message": "specification.name: Invalid input: expected string, received undefined, specification.claims: Invalid input: expected array, received undefined"
+        }
+      ]
     }
   }
 }

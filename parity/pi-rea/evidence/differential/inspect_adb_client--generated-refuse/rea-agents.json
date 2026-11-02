@@ -1,35 +1,22 @@
 {
-  "kind": "evidence",
+  "kind": "error",
   "body": {
-    "evidence_id": "ev_3b1c2d199b978ad17128af8c884624493b4ccc04378da5e940a1459ddc3cb312",
-    "subject": null,
-    "provider": {
-      "id": "adb",
-      "name": "Android Debug Bridge",
-      "version": "37.0.1-15733141"
+    "code": "capability_unavailable",
+    "category": "unsupported_provider",
+    "message": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+    "retryable": false,
+    "remediation": {
+      "action": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary."
     },
-    "analysis_profile": null,
-    "predicate_type": "rea.analysis",
-    "operation": "inspect_adb_client",
-    "parameters": {},
-    "raw_result": null,
-    "normalized_result": {
-      "client": {
-        "binary_path": "adb",
+    "details": {
+      "provider_id": "adb",
+      "operation": "inspect_adb_client",
+      "reason": "The selected adb binary was not found: adb. Set REA_ADB_PATH to an absolute path to an existing adb binary.",
+      "diagnostics": {
+        "selected_binary": "adb",
         "path_source": "path",
-        "version": "37.0.1-15733141",
-        "installed_path": "/Users/josh-desktop/Library/Android/sdk/platform-tools/adb"
-      },
-      "contacted_adb_server": false
-    },
-    "confidence": "observed",
-    "authority": "shipped-artifact",
-    "environment": null,
-    "limitations": [
-      "Artifact identity is unavailable for this observation."
-    ],
-    "relationship_coverage": null,
-    "locations": [],
-    "evidence_links": []
+        "remediation": "Set REA_ADB_PATH to an absolute path to an existing adb binary"
+      }
+    }
   }
 }

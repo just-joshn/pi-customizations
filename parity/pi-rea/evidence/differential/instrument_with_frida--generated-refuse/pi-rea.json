@@ -10,7 +10,7 @@
     },
     "details": {
       "provider_id": "frida",
-      "operation": "instrument_with_frida",
+      "operation": "start_frida_session",
       "reason": "Cannot load native addon because loading addons is disabled."
     }
   }

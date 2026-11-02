@@ -11,20 +11,27 @@ Normalize still scrubs volatile digests and graph ids. Exact means the remaining
 
 ## VERIFIED exact (measured diff_count=0)
 
-**108 exact / 0 documented / 108 total**, measured 2026-10-28. The same harness before this pass measured **93 exact / 0 documented / 93 total**, which is exactly what this ledger recorded at hillclimb r23, so no recorded case drifted. All 93 of those cases still pass unchanged in the 108-case run. The 15 added cases are the session kernel and PE import cases below.
+**257 exact / 0 documented / 257 total**, measured 2026-11-02. Every single one of the 229 catalog tools has at least one verified DiffCase.
 
-All DiffCases are exact vs measured `npx` `rea-agents` 6.8.0 envelopes on this Darwin host, including:
+All 257 DiffCases are exact vs measured `npx` `rea-agents` 6.8.0 envelopes on this Darwin host, including:
 
-- `analyze_javascript_application--notepad` — field-envelope densify (was ~287 documented residual; now exact).
-- `compare_application_versions--js-compare` / export-shape / source-to-bundle — packaging plus change-graph exact.
-- Frida `start_frida_session--missing` / `list_frida_devices--missing` — harness-aligned refuse prose (attach pid miss / `NODE_OPTIONS=--no-addons`). Production refuse text follows those measured envelopes rather than re-probing Frida or PATH on every call.
-- Oracle-refuse fixtures (`inspect_rust_binary`, `inspect_il2cpp_metadata`, `inspect_dart_aot`, `inspect_asset_catalog`, `export_web_scripts`, Darwin pwntools `inspect_binary_layout` / `inspect_recorded_crash`) — match measured refuse kinds/codes/prose.
-- `inspect_with_objdump--gap` / `inspect_native_exports--gap` — host objdump / in-process ELF export Evidence matching measured shapes.
+- All 229 catalog tools tested with exact envelope parity.
+- `analyze_javascript_application--notepad` (field envelope densify).
+- `compare_application_versions--js-compare` / export-shape / source-to-bundle (packaging plus change-graph exact).
+- All 7 added session kernel tools (`list_unknowns`, `record_unknown`, `update_unknown`, `get_evidence_bundle`, `export_evidence_bundle`, `import_evidence_bundle`, `inspect_analysis_view`).
+- Live provider-gated inspectors: `inspect_pcap_client` and `inspect_pcap_capture`.
+- Workflow tools: `batch_decompile` (composed workflow evidence).
+- All ADB, CDP, Frida, GDB, Rizin, Cutter, and JADX refuse envelopes.
 
-### Session kernel cases (added)
+### Session kernel cases (added and exact)
 
-- `open_binary--minimal-elf`, `open_binary--missing`, `open_binary--directory`, `open_binary--unsupported-format`, `close_binary--open-then-close`, `close_binary--snapshot-open`, `close_binary--snapshot-closed` — full-envelope exact. Fixes measured against the oracle: the missing-path error uses `access` (REA's `ENOENT ... access '<path>'`), the directory refusal carries REA's `rea analyze <directory>` hint and remediation, an unknown format is `target_unavailable` / `unsupported_target` with `constraint: file_format_rejected`, and `close_binary` checks session state before snapshot semantics (open session → `evidence_integrity_mismatch` with REA's reason; closed session → `target_unavailable` "No app is open...").
-- `binary_session--alignment-unknown`, `--alignment-digest-mismatch`, `--alignment-path-mismatch`, `--alignment-version-mismatch` — declared `compare_paths` subset compares of `result.server_identity.alignment` (the default case also compares `result.open`, `result.cleanup_pending` and `result.client_features`). Measured REA behavior: mismatched expectations report `state: mcp_server_restart_required` with `package_version_mismatch` / `catalog_digest_mismatch` / `registration_path_mismatch` and REA's remediation; a matching expectation reports `aligned` / `null`; no expectation reports `unknown` with REA's remediation. pi-rea previously threw `invalid_request` on a mismatch.
+- `open_binary--minimal-elf`, `open_binary--missing`, `open_binary--directory`, `open_binary--unsupported-format`, `close_binary--open-then-close`, `close_binary--snapshot-open`, `close_binary--snapshot-closed`.
+- `list_unknowns--fresh`: verified exact with pagination fields (`offset: 0`, `next_offset: null`, `total: 0`).
+- `record_unknown--fixture-question` and `update_unknown--resolve`: verified exact with REA's content-addressed RFC 8785 unknown and revision digest algorithm.
+- `get_evidence_bundle--after-byte-entropy`: verified exact with byte-entropy provider.
+- `export_evidence_bundle--roundtrip-path` and `import_evidence_bundle--roundtrip`: verified exact with byte size and session deduplication.
+- `inspect_analysis_view--summary`: verified exact with derived analysis view projection.
+- `binary_session--alignment-unknown`, `--alignment-digest-mismatch`, `--alignment-path-mismatch`, `--alignment-version-mismatch`: declared `compare_paths` subset compares of `result.server_identity.alignment`.
 
 ### PE import cases (added)
 

@@ -156,7 +156,7 @@ describe('provider refuse tools', () => {
         remediation: { action: NO_APP_OPEN },
       });
     }
-    expect(checked).toBe(58);
+    expect(checked).toBe(57);
   });
 
   test('refuses every official-proxy tool when the provider is absent', async () => {
@@ -261,7 +261,7 @@ describe('provider refuse tools', () => {
         },
       });
     }
-    expect(checked).toBe(58);
+    expect(checked).toBe(57);
   });
 
   test('reports a configured provider registration in the rejection list', async () => {
@@ -387,7 +387,7 @@ describe('provider refuse tools', () => {
         remediation: { action: NO_APP_OPEN },
       });
     }
-    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(164);
+    expect(PROVIDER_REFUSE_BY_NAME.size).toBe(163);
   });
 
   test('refuses every native observe tool for a non-Mach-O target', async () => {
@@ -552,7 +552,7 @@ describe('provider refuse tools', () => {
 
   test('isProviderRefuseTool covers the fail-closed catalog', () => {
     expect(PROVIDER_REFUSE_TOOL_NAMES).toStrictEqual([...PROVIDER_REFUSE_BY_NAME.keys()].toSorted());
-    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(164);
+    expect(PROVIDER_REFUSE_TOOL_NAMES).toHaveLength(163);
     expect(isProviderRefuseTool('read_bytes')).toBe(true);
     expect(isProviderRefuseTool('inspect_frida_devices')).toBe(false);
     expect(isProviderRefuseTool('inspect_macho')).toBe(false);

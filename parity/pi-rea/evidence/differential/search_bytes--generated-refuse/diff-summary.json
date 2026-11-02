@@ -1,61 +1,14 @@
 {
   "id": "search_bytes--generated-refuse",
   "tool": "search_bytes",
-  "status": "fail_undocumented",
+  "status": "pass",
   "pi_kind": "error",
   "oracle_kind": "error",
   "contract_issues": [],
-  "diff_count": 6,
+  "diff_count": 0,
   "compared_paths": null,
   "documented_count": 0,
-  "undocumented_count": 6,
-  "undocumented": [
-    {
-      "path": "category",
-      "left": "unavailable",
-      "right": "invalid_input",
-      "kind": "value"
-    },
-    {
-      "path": "code",
-      "left": "target_unavailable",
-      "right": "invalid_request",
-      "kind": "value"
-    },
-    {
-      "path": "details",
-      "right": {
-        "operation": "search_bytes",
-        "issues": [
-          {
-            "path": [],
-            "reason": "invalid_value",
-            "message": "pattern: Use hexadecimal byte pairs or ?? wildcards"
-          }
-        ]
-      },
-      "kind": "type_or_null"
-    },
-    {
-      "path": "message",
-      "left": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
-      "right": "The arguments for MCP tool search_bytes do not match its advertised input schema.",
-      "kind": "value"
-    },
-    {
-      "path": "recovery",
-      "right": {
-        "kind": "inspect_input_contract",
-        "operation": "search_bytes"
-      },
-      "kind": "missing_left"
-    },
-    {
-      "path": "remediation.action",
-      "left": "No app is open. Ask the user which app to investigate, then call open_binary with its local path.",
-      "right": "Read the declared input schema or CLI usage for search_bytes; if using MCP and the catalog may be stale, call tools/list. Correct the listed fields, then retry. Do not repeat the unchanged call.",
-      "kind": "value"
-    }
-  ],
+  "undocumented_count": 0,
+  "undocumented": [],
   "documented": []
 }
