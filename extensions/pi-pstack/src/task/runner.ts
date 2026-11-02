@@ -4,7 +4,7 @@ import { homedir } from 'node:os';
 import { isAbsolute, join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 
-import type { ImageContent, Usage } from '@earendil-works/pi-ai';
+import type { ImageContent, Usage as ProviderUsage } from '@earendil-works/pi-ai';
 import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
@@ -16,6 +16,11 @@ const AGENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,126}[A-Za-z0-9]$/;
 export const KILL_GRACE_MS = 3_000;
 // Dialogs block a run until answered. A subagent has nobody to ask, so its owner dismisses them.
 const DIALOG_METHODS = new Set(['select', 'confirm', 'input', 'editor']);
+
+/** Provider usage, plus whether `cost.total` was reported by the provider rather than priced locally. */
+export interface Usage extends ProviderUsage {
+  cost: ProviderUsage['cost'] & { totalFromProvider?: boolean | undefined };
+}
 
 export interface ChildArgsOptions {
   sessionDir: string;
