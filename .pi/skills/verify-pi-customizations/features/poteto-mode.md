@@ -7,7 +7,7 @@ Poteto mode is Cursor's Custom Mode: `/mode poteto-mode` keeps the skill in the 
 - `mode-on` turns the mode on with `/mode poteto-mode` and notifies `Mode on: poteto-mode. /mode off exits.`
 - `mode-entry` appends a `pstack/mode` custom entry with `data.skill: "poteto-mode"` when the mode turns on.
 - `mode-off` turns the mode off with `/mode off`, notifies `Mode off.`, and appends a `pstack/mode` entry with `data: null`.
-- `mode-status` reflects the mode in the footer status under the key `pstack-mode`.
+- `mode-status` shows `♛ mode: poteto-mode` in the footer status under the key `pstack-mode` and clears it on `/mode off`.
 
 ## How to get to it (user POV)
 
@@ -23,8 +23,8 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - `extensions/pi-pstack` is present and unchanged.
 
-- **Turn the mode on, then off.** Send `/mode poteto-mode` and then `/mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. The driver asserts both notifications, the on entry's `data.skill`, and the off entry's `data: null`.
-- **Proof.** Verify that the artifact exists at `artifacts/verify-pi-customizations/poteto-mode/mode.json`. The JSON file captures every notification and every appended entry from the drive.
+- **Turn the mode on, then off.** Send `/mode poteto-mode` and then `/mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. The driver asserts both notifications, exactly two `pstack/mode` entries (the on entry's `data.skill` and the off entry's `data: null`), and the `pstack-mode` status set on and cleared off.
+- **Proof.** Verify that the artifact exists at `artifacts/verify-pi-customizations/poteto-mode/mode.json`. The JSON file captures every notification, appended entry, and `setStatus` update from the drive.
 
 ## Gotchas
 

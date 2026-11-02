@@ -43,13 +43,13 @@ Exits `0` on success. If doctor fails, resolve environment issues before driving
 Drive features end-to-end using the project harness:
 
 ```bash
-# Verify the pstack extension command surface (/mode, /loop, pstack skills)
+# Verify the pstack extension command surface (/mode, /loop, /plan, /routines, pstack skills)
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands
 
-# Verify custom mode on/off notifications and branch state entries
+# Verify custom mode on/off notifications, footer status, and branch state entries
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode
 
-# Verify OAuth subscription model providers
+# Verify OAuth subscription model providers and the logged-out /antigravity report
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers
 ```
 
@@ -63,20 +63,21 @@ To choose a custom evidence directory for a supported feature drive:
 Every drive captures user-observable evidence written directly to `artifacts/verify-pi-customizations/<feature>/`:
 
 - **pstack-commands:**
-  - `commands.json`: the registered command list, including the extension commands `mode` and `loop` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
+  - `commands.json`: the registered command list, including the extension commands `mode`, `loop`, `plan`, and `routines` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
   - `mode-status.txt`: the `/mode` report when no mode is on (`No mode is on.`).
 - **poteto-mode:**
-  - `mode.json`: the on notification (`"Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Mode off."`), and the closing entry with `data: null`.
+  - `mode.json`: the on notification (`"Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Mode off."`), the closing entry with `data: null`, and the `pstack-mode` `setStatus` updates.
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.
   - `grok-build-models.txt`: table of registered `grok-build` models.
+  - `antigravity-command.json`: the logged-out `/antigravity` error notification.
 
 Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
 - Evidence records action, responses, notifications, and branch state mutations.
 - Proof artifacts survive cleanup.
-- Coverage is limited to the mapped drives: the command surface and the no-mode report, the mode on/off notifications and appended entries, and fixture-backed provider model listing. These drives do not prove restart persistence, Task subagents, `/loop` timing, workflow execution, OAuth login, or inference.
+- Coverage is limited to the mapped drives: the command surface and the no-mode report, the mode on/off notifications, appended entries, and footer status, fixture-backed provider model listing, and the logged-out `/antigravity` report. These drives do not prove restart persistence, Task subagents, `/loop` timing, workflow execution, OAuth login, or inference.
 - Run doctor before each fresh drive and again after a failure. Check saved artifacts at their named paths after cleanup.
 
 ## Cleanup
