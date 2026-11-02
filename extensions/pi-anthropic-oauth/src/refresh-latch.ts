@@ -6,9 +6,10 @@ export function createRefreshLatch<T>() {
       if (inflight) return inflight;
       const pending = work();
       inflight = pending;
-      void pending.finally(() => {
+      const clear = () => {
         if (inflight === pending) inflight = undefined;
-      });
+      };
+      void pending.then(clear, clear);
       return pending;
     },
   };

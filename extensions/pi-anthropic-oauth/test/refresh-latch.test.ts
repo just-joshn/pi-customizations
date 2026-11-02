@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import { createRefreshLatch } from '../src/refresh-latch.ts';
 
 test('concurrent run calls share one attempt', async () => {
@@ -24,4 +24,20 @@ test('a later run starts a new attempt after the first settles', async () => {
   await expect(latch.run(work)).resolves.toBe(1);
   await expect(latch.run(work)).resolves.toBe(2);
   expect(starts).toBe(2);
+});
+
+test('a failed attempt rejects its caller without an unhandled rejection', async () => {
+  const unhandled: unknown[] = [];
+  const record = (reason: unknown) => unhandled.push(reason);
+  process.on('unhandledRejection', record);
+  onTestFinished(() => {
+    process.off('unhandledRejection', record);
+  });
+  const latch = createRefreshLatch<number>();
+
+  await expect(latch.run(async () => Promise.reject(new Error('refresh failed')))).rejects.toThrow('refresh failed');
+  await new Promise((resolve) => setImmediate(resolve));
+
+  expect(unhandled).toStrictEqual([]);
+  await expect(latch.run(async () => 2)).resolves.toBe(2);
 });
