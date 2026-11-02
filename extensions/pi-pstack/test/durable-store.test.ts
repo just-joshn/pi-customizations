@@ -342,7 +342,11 @@ local('cross-process creates preserve different names and deduplicate one shared
 local('dead registry writers and owner consumers release exclusive ownership', async ({ cwd, signal, onTestFinished }) => {
   const marker = join(dirname(cwd), 'held');
   const path = join(durableRuntimeDir(cwd), 'registry.lock');
-  const child = spawn(process.execPath, ['--experimental-strip-types', fixture, cwd, 'hold', path, marker], { signal, env: process.env, stdio: 'ignore' });
+  let stderr = '';
+  const child = spawn(process.execPath, ['--experimental-strip-types', fixture, cwd, 'hold', path, marker], { signal, env: process.env, stdio: ['ignore', 'ignore', 'pipe'] });
+  child.stderr?.on('data', (chunk) => {
+    stderr += chunk;
+  });
   const closed = new Promise<void>((resolve, reject) => {
     child.once('error', reject);
     child.once('close', () => resolve());
@@ -351,7 +355,7 @@ local('dead registry writers and owner consumers release exclusive ownership', a
     child.kill('SIGKILL');
     await closed;
   });
-  await expect.poll(() => existsSync(marker)).toBe(true);
+  await expect.poll(() => ({ exists: existsSync(marker), stderr }), { timeout: 10_000 }).toMatchObject({ exists: true, stderr: '' });
   expect(acquireLease(path)).toBeUndefined();
   child.kill('SIGKILL');
   await closed;

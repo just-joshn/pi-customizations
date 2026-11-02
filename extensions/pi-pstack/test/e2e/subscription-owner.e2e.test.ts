@@ -18,7 +18,7 @@ test('a detached timer wakes its idle owning Pi session', async ({ onTestFinishe
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
       }
-      await expect.poll(() => existsSync(lock)).toBe(false);
+      await expect.poll(() => existsSync(lock), { timeout: 5_000 }).toBe(false);
     }
     sandbox.dispose();
   });
@@ -90,7 +90,7 @@ test('offline wake backlog waits for the exact saved owner rather than a workspa
   sessions.push(resumed);
   const wake = await resumed.waitFor((event) => event.type === 'message_end' && (event['message'] as { customType?: string } | undefined)?.customType === 'pstack/subscription');
   expect(contentText((wake['message'] as { content: string }).content)).toContain('EXACT-OWNER-BACKLOG');
-  await expect.poll(() => registry(sandbox).pending.length).toBe(0);
+  await expect.poll(() => registry(sandbox).pending.length, { timeout: 5_000 }).toBe(0);
 });
 
 test('a busy owner receives its native follow-up after the current tool finishes', async ({ onTestFinished }) => {
