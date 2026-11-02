@@ -1,0 +1,35 @@
+$ vitest run test/durable-store.test.ts -t "refuses another workspace"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+
+ ❯ test/durable-store.test.ts (22 tests | 1 failed | 21 skipped) 8ms
+   × refuses another workspace whose path collides in the storage folder name 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/durable-store.test.ts > refuses another workspace whose path collides in the storage folder name
+AssertionError: expected [Function] to throw an error
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ test/durable-store.test.ts:69:37
+     67|   createDesired(first, timer());
+     68|   expect(durableRegistryPath(first)).toBe(durableRegistryPath(other));
+     69|   expect(() => readRegistry(other)).toThrow('different workspace');
+       |                                     ^
+     70|   expect(() => cancelDesired(other, 'nudge')).toThrow('different works…
+     71|   expect(readRegistry(first).subscriptions[0]?.lifecycle).toBe('active…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 21 skipped (22)
+   Start at  12:33:16
+   Duration  421ms (import 87%, transform 10%, tests 2%)
+
+error: script "test" exited with code 1

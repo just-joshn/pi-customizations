@@ -1,0 +1,37 @@
+$ vitest run "test/e2e/package.e2e.test.ts" -t "publishes bundled tools"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/package.e2e.test.ts (2 tests | 1 failed | 1 skipped) 829ms
+   × publishes bundled tools without locally installed script dependencies 829ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/package.e2e.test.ts > publishes bundled tools without locally installed script dependencies
+AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "skills/statechart/scripts/node_modules/local-only/index.js",
++ ]
+
+ ❯ test/e2e/package.e2e.test.ts:43:66
+     41|   const packed = JSON.parse(stdout) as { files: { path: string }[] }[];
+     42|   const paths = packed.flatMap((entry) => entry.files.map((file) => fi…
+     43|   expect(paths.filter((path) => path.includes('node_modules/'))).toEqu…
+       |                                                                  ^
+     44|   expect(paths).toEqual(expect.arrayContaining(['src/index.ts', 'bin/p…
+     45|   expect(paths.filter((path) => path.startsWith('skills/') && path.end…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 skipped (2)
+   Start at  11:48:10
+   Duration  1.22s (tests 71%, import 26%, transform 2%)
+
+error: script "test" exited with code 1

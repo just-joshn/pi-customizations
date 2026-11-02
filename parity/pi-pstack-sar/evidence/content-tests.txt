@@ -1,0 +1,10 @@
+$ vitest run test/resources.test.ts test/sections.test.ts
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  11:49:39
+   Duration  543ms (import 64%, tests 26%, transform 9%, worker 1%)
+

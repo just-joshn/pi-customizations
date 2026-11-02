@@ -1,0 +1,3221 @@
+[
+  {
+    "id": "@justjoshn/pi-pstack@0.15.36-pi.5",
+    "name": "@justjoshn/pi-pstack",
+    "version": "0.15.36-pi.5",
+    "size": 3302408,
+    "unpackedSize": 6685957,
+    "shasum": "e675381fce35fd94a273628d911959a92f41cdd6",
+    "integrity": "sha512-7112s1BN71lxehHlXLmnygJx5hElcVxyW0hje6U8Wtj1115K83lpcYyzlolGsxaKExLCFGSZWASypjmMODAADQ==",
+    "filename": "justjoshn-pi-pstack-0.15.36-pi.5.tgz",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "size": 2068,
+        "mode": 420
+      },
+      {
+        "path": "LICENSE",
+        "size": 1061,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 21178,
+        "mode": 420
+      },
+      {
+        "path": "agents/ci-watcher.md",
+        "size": 972,
+        "mode": 420
+      },
+      {
+        "path": "agents/comment-sicko.md",
+        "size": 2230,
+        "mode": 420
+      },
+      {
+        "path": "agents/poteto-agent.md",
+        "size": 1216,
+        "mode": 420
+      },
+      {
+        "path": "agents/thermo-nuclear-code-quality-review.md",
+        "size": 1966,
+        "mode": 420
+      },
+      {
+        "path": "assets/logo.png",
+        "size": 361140,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/FOR_AGENTS.md",
+        "size": 8257,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/README.md",
+        "size": 2848,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+        "size": 5513,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+        "size": 5638,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+        "size": 3186,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "size": 14734,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/setup-benny/SKILL.md",
+        "size": 17500,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/triage-issue-reports/references/routing.example.md",
+        "size": 1884,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/skills/triage-issue-reports/SKILL.md",
+        "size": 10560,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/templates/configuration.example.yaml",
+        "size": 4308,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/templates/reproduce-automation-prompt.md",
+        "size": 4050,
+        "mode": 420
+      },
+      {
+        "path": "automations/benny/templates/triage-automation-prompt.md",
+        "size": 3268,
+        "mode": 420
+      },
+      {
+        "path": "bin/pstack-routines-supervisor",
+        "size": 309,
+        "mode": 493
+      },
+      {
+        "path": "docs/guide/01-setup.md",
+        "size": 5523,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/02-poteto-mode.md",
+        "size": 8095,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/03-understand.md",
+        "size": 5141,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/04-design.md",
+        "size": 8748,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/05-build-and-clean.md",
+        "size": 5666,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/06-verify-and-ship.md",
+        "size": 13318,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/07-overnight.md",
+        "size": 10519,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/08-principles.md",
+        "size": 5868,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/09-make-it-yours.md",
+        "size": 8262,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/10-recipes-and-pitfalls.md",
+        "size": 8839,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/design.jpg",
+        "size": 402373,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/overnight.jpg",
+        "size": 347071,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/recipes.jpg",
+        "size": 410550,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/router.jpg",
+        "size": 450945,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/understanding.jpg",
+        "size": 376523,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/images/verification.jpg",
+        "size": 331450,
+        "mode": 420
+      },
+      {
+        "path": "docs/guide/README.md",
+        "size": 2650,
+        "mode": 420
+      },
+      {
+        "path": "docs/native-gaps.md",
+        "size": 5154,
+        "mode": 420
+      },
+      {
+        "path": "docs/parity-reverse-engineering.md",
+        "size": 13027,
+        "mode": 420
+      },
+      {
+        "path": "licenses/cursor-team-kit.LICENSE",
+        "size": 1063,
+        "mode": 420
+      },
+      {
+        "path": "licenses/pstack.LICENSE",
+        "size": 1067,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 2491,
+        "mode": 420
+      },
+      {
+        "path": "packaging/install-supervisor-unit.sh",
+        "size": 4082,
+        "mode": 493
+      },
+      {
+        "path": "packaging/launchd/com.pstack.routines-supervisor.plist.example",
+        "size": 807,
+        "mode": 420
+      },
+      {
+        "path": "packaging/systemd/pstack-routines-supervisor.service.example",
+        "size": 450,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/design-red-flags.md",
+        "size": 3009,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/rationale-template.md",
+        "size": 3050,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/references/runner-prompt.md",
+        "size": 3371,
+        "mode": 420
+      },
+      {
+        "path": "skills/architect/SKILL.md",
+        "size": 5486,
+        "mode": 420
+      },
+      {
+        "path": "skills/arena/SKILL.md",
+        "size": 5804,
+        "mode": 420
+      },
+      {
+        "path": "skills/automate-me/SKILL.md",
+        "size": 7422,
+        "mode": 420
+      },
+      {
+        "path": "skills/benchmark-checklist/SKILL.md",
+        "size": 5002,
+        "mode": 420
+      },
+      {
+        "path": "skills/blast-radius/SKILL.md",
+        "size": 3856,
+        "mode": 420
+      },
+      {
+        "path": "skills/bro/SKILL.md",
+        "size": 267,
+        "mode": 420
+      },
+      {
+        "path": "skills/check-compiler-errors/SKILL.md",
+        "size": 535,
+        "mode": 420
+      },
+      {
+        "path": "skills/control-cli/SKILL.md",
+        "size": 4333,
+        "mode": 420
+      },
+      {
+        "path": "skills/control-ui/SKILL.md",
+        "size": 4802,
+        "mode": 420
+      },
+      {
+        "path": "skills/correct/SKILL.md",
+        "size": 2478,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-formal-verification-skill/SKILL.md",
+        "size": 5626,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-skill/SKILL.md",
+        "size": 17633,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/create-note.md",
+        "size": 2926,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/README.md",
+        "size": 2601,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/references/feature-map-example/search.md",
+        "size": 3478,
+        "mode": 420
+      },
+      {
+        "path": "skills/create-verification-skill/SKILL.md",
+        "size": 6521,
+        "mode": 420
+      },
+      {
+        "path": "skills/deslop/SKILL.md",
+        "size": 719,
+        "mode": 420
+      },
+      {
+        "path": "skills/figure-it-out/SKILL.md",
+        "size": 4174,
+        "mode": 420
+      },
+      {
+        "path": "skills/fix-ci/SKILL.md",
+        "size": 901,
+        "mode": 420
+      },
+      {
+        "path": "skills/fix-merge-conflicts/SKILL.md",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "skills/get-pr-comments/SKILL.md",
+        "size": 529,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/references/explainer-prompt.md",
+        "size": 3091,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/references/explorer-prompt.md",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "skills/how/SKILL.md",
+        "size": 2731,
+        "mode": 420
+      },
+      {
+        "path": "skills/in-your-own-words/SKILL.md",
+        "size": 315,
+        "mode": 420
+      },
+      {
+        "path": "skills/interrogate/SKILL.md",
+        "size": 2314,
+        "mode": 420
+      },
+      {
+        "path": "skills/ketchup-video/SKILL.md",
+        "size": 4322,
+        "mode": 420
+      },
+      {
+        "path": "skills/ketchup/SKILL.md",
+        "size": 6438,
+        "mode": 420
+      },
+      {
+        "path": "skills/loop-on-ci/SKILL.md",
+        "size": 1611,
+        "mode": 420
+      },
+      {
+        "path": "skills/maintain-formal-verification-skill/SKILL.md",
+        "size": 7012,
+        "mode": 420
+      },
+      {
+        "path": "skills/maintain-verification-skill/SKILL.md",
+        "size": 4918,
+        "mode": 420
+      },
+      {
+        "path": "skills/make-bot-ui/SKILL.md",
+        "size": 5000,
+        "mode": 420
+      },
+      {
+        "path": "skills/make-pr-easy-to-review/SKILL.md",
+        "size": 2275,
+        "mode": 420
+      },
+      {
+        "path": "skills/new-branch-and-pr/SKILL.md",
+        "size": 665,
+        "mode": 420
+      },
+      {
+        "path": "skills/no-comments/SKILL.md",
+        "size": 2756,
+        "mode": 420
+      },
+      {
+        "path": "skills/no-inline-imports/SKILL.md",
+        "size": 373,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-help/references/prompting.md",
+        "size": 3166,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-help/references/recipes.md",
+        "size": 3661,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-help/SKILL.md",
+        "size": 15784,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/authoring-a-skill.md",
+        "size": 836,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autonomous-run.md",
+        "size": 2070,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autopilot-full.md",
+        "size": 6745,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/autopilot-stack.md",
+        "size": 877,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/babysit.md",
+        "size": 7586,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/bug-fix.md",
+        "size": 2412,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/eval.md",
+        "size": 2726,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/feature.md",
+        "size": 2928,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/hillclimb.md",
+        "size": 4565,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/investigation.md",
+        "size": 928,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "size": 14113,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/opening-a-pr.md",
+        "size": 5623,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/orchestrate.md",
+        "size": 5111,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/pause-safely.md",
+        "size": 1135,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/perf-issue.md",
+        "size": 1608,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/prototype.md",
+        "size": 2161,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/refactoring.md",
+        "size": 3373,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/runtime-forensics.md",
+        "size": 1377,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/session-pickup.md",
+        "size": 1924,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/shipping.md",
+        "size": 4410,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/trace-forensics.md",
+        "size": 1930,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/visual-parity.md",
+        "size": 1197,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "size": 3025,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/references/bugbot-triage.md",
+        "size": 9629,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/bootstrap.ts",
+        "size": 1737,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/bun.lock",
+        "size": 6676,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/check-plan.mjs",
+        "size": 8179,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/scripts/check-plan.test.ts",
+        "size": 3876,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/package.json",
+        "size": 363,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/cli.test.ts",
+        "size": 6161,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/cli.ts",
+        "size": 6983,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/fakes.test-helper.ts",
+        "size": 3357,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/github.test.ts",
+        "size": 16206,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/github.ts",
+        "size": 25642,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/policy.test.ts",
+        "size": 14759,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/policy.ts",
+        "size": 25407,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/render.ts",
+        "size": 7083,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/tsconfig.json",
+        "size": 270,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/types.compile.ts",
+        "size": 2258,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/types.ts",
+        "size": 12688,
+        "mode": 420
+      },
+      {
+        "path": "skills/poteto-mode/scripts/watch-pr/watch-pr",
+        "size": 211,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/scripts/worktree-audit.sh",
+        "size": 7612,
+        "mode": 493
+      },
+      {
+        "path": "skills/poteto-mode/SKILL.md",
+        "size": 21775,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/renderer.js",
+        "size": 6762,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/SKILL.md",
+        "size": 9088,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/styles.css",
+        "size": 5788,
+        "mode": 420
+      },
+      {
+        "path": "skills/pr-review-canvas/template.html",
+        "size": 513,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-attack-the-premise/SKILL.md",
+        "size": 1916,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-boundary-discipline/SKILL.md",
+        "size": 1883,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-build-the-lever/SKILL.md",
+        "size": 2386,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-encode-lessons-in-structure/SKILL.md",
+        "size": 558,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-exhaust-the-design-space/SKILL.md",
+        "size": 395,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-experience-first/SKILL.md",
+        "size": 1184,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-explain-the-number/SKILL.md",
+        "size": 1922,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-fix-root-causes/SKILL.md",
+        "size": 1821,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-foundational-thinking/SKILL.md",
+        "size": 1530,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-guard-the-context-window/SKILL.md",
+        "size": 519,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-laziness-protocol/SKILL.md",
+        "size": 552,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-make-operations-idempotent/SKILL.md",
+        "size": 1809,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-migrate-callers-then-delete-legacy-apis/SKILL.md",
+        "size": 637,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-minimize-reader-load/SKILL.md",
+        "size": 1996,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-model-the-domain/SKILL.md",
+        "size": 1858,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-never-block-on-the-human/SKILL.md",
+        "size": 910,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-outcome-oriented-execution/SKILL.md",
+        "size": 1078,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-prove-it-works/SKILL.md",
+        "size": 1371,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-redesign-from-first-principles/SKILL.md",
+        "size": 758,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-separate-before-serializing-shared-state/SKILL.md",
+        "size": 1565,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-sequence-verifiable-units/SKILL.md",
+        "size": 1705,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-subtract-before-you-add/SKILL.md",
+        "size": 909,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-test-behavior-not-implementation/SKILL.md",
+        "size": 2614,
+        "mode": 420
+      },
+      {
+        "path": "skills/principle-type-system-discipline/SKILL.md",
+        "size": 1557,
+        "mode": 420
+      },
+      {
+        "path": "skills/recall/SKILL.md",
+        "size": 5408,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/divergent-reviewer.md",
+        "size": 3688,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/judgment-reviewer.md",
+        "size": 3127,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/synthesizer.md",
+        "size": 4141,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/references/tooling-reviewer.md",
+        "size": 4468,
+        "mode": 420
+      },
+      {
+        "path": "skills/reflect/SKILL.md",
+        "size": 5211,
+        "mode": 420
+      },
+      {
+        "path": "skills/review-and-ship/SKILL.md",
+        "size": 1398,
+        "mode": 420
+      },
+      {
+        "path": "skills/run-smoke-tests/SKILL.md",
+        "size": 967,
+        "mode": 420
+      },
+      {
+        "path": "skills/setup-pstack/SKILL.md",
+        "size": 6597,
+        "mode": 420
+      },
+      {
+        "path": "skills/sharpen/SKILL.md",
+        "size": 661,
+        "mode": 420
+      },
+      {
+        "path": "skills/show-me-your-work/references/decision-log-template.tsv",
+        "size": 38,
+        "mode": 420
+      },
+      {
+        "path": "skills/show-me-your-work/scripts/log.sh",
+        "size": 1377,
+        "mode": 493
+      },
+      {
+        "path": "skills/show-me-your-work/SKILL.md",
+        "size": 6650,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/references/render.md",
+        "size": 3716,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/backends/cfg.ts",
+        "size": 1230,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/backends/mermaid.ts",
+        "size": 7437,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/backends/plain-text.ts",
+        "size": 2343,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/backends/report.ts",
+        "size": 7060,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/config.ts",
+        "size": 10698,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/dot.ts",
+        "size": 2484,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/marks.ts",
+        "size": 3257,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/messages.ts",
+        "size": 1842,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/spec.ts",
+        "size": 4198,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/trace.ts",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/value.ts",
+        "size": 4757,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/verdict.ts",
+        "size": 1756,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/frontends/view.ts",
+        "size": 4354,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/ir.ts",
+        "size": 15141,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/package.json",
+        "size": 230,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/annotate.ts",
+        "size": 3738,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/label.ts",
+        "size": 8555,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/lift.ts",
+        "size": 2888,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/loop-check.ts",
+        "size": 2149,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/paths.ts",
+        "size": 1900,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/reach.ts",
+        "size": 4063,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/region-check.ts",
+        "size": 3525,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/passes/regions.ts",
+        "size": 9475,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/pipeline.ts",
+        "size": 2931,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/run.ts",
+        "size": 17319,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/statechart",
+        "size": 991,
+        "mode": 493
+      },
+      {
+        "path": "skills/statechart/scripts/statechart.ts",
+        "size": 6044,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/chart.test.ts",
+        "size": 39702,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/charts/Braces.mmd",
+        "size": 312,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/charts/Escapes.mmd",
+        "size": 244,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/charts/Phases.mmd",
+        "size": 584,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/cli.test.ts",
+        "size": 50354,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/config-fuzz.test.ts",
+        "size": 8719,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/ConfigOracle.java",
+        "size": 2717,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus.test.ts",
+        "size": 12763,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/chart.mmd",
+        "size": 112,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/ChartRun.out",
+        "size": 2658,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/Counter.cfg",
+        "size": 64,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/Counter.tla",
+        "size": 185,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/graph.dot",
+        "size": 633,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/report.md",
+        "size": 243,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/sany.out",
+        "size": 38148,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Counter/verdict-1.out",
+        "size": 2199,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/chart.mmd",
+        "size": 518,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/ChartRun.out",
+        "size": 2780,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/CounterAction.cfg",
+        "size": 89,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/CounterAction.tla",
+        "size": 255,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/graph.dot",
+        "size": 798,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/report.md",
+        "size": 436,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/sany.out",
+        "size": 43961,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/verdict-1.out",
+        "size": 2152,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/verdict-2.out",
+        "size": 3148,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterAction/verdict-3.out",
+        "size": 2690,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/chart.mmd",
+        "size": 462,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/ChartRun.out",
+        "size": 2752,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/CounterDeadlock.cfg",
+        "size": 63,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/CounterDeadlock.tla",
+        "size": 225,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/graph.dot",
+        "size": 633,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/report.md",
+        "size": 624,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/sany.out",
+        "size": 42836,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/verdict-1.out",
+        "size": 2160,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterDeadlock/verdict-2.out",
+        "size": 3024,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/chart.mmd",
+        "size": 1771,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/ChartRun.out",
+        "size": 3140,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/CounterFan.cfg",
+        "size": 37,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/CounterFan.tla",
+        "size": 338,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/graph.dot",
+        "size": 5433,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/report.md",
+        "size": 239,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/sany.out",
+        "size": 49584,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/verdict-1.out",
+        "size": 2497,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterFan/verdict-2.out",
+        "size": 2688,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/chart.mmd",
+        "size": 63,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/ChartRun.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/ChartRun.out",
+        "size": 3415,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/CounterGuard.cfg",
+        "size": 66,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/CounterGuard.tla",
+        "size": 192,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/graph.dot",
+        "size": 302,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/report.md",
+        "size": 954,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/sany.out",
+        "size": 36948,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/verdict-1.out",
+        "size": 2433,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterGuard/verdict-2.out",
+        "size": 2985,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/chart.mmd",
+        "size": 282,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/ChartRun.out",
+        "size": 2564,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/CounterInitPast.cfg",
+        "size": 54,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/CounterInitPast.tla",
+        "size": 169,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/graph.dot",
+        "size": 84,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/report.md",
+        "size": 425,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/sany.out",
+        "size": 36125,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/verdict-1.out",
+        "size": 1362,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPast/verdict-2.out",
+        "size": 2540,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/chart.mmd",
+        "size": 16,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/ChartRun.out",
+        "size": 2547,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/CounterInitPastHolds.cfg",
+        "size": 50,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/CounterInitPastHolds.tla",
+        "size": 171,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/graph.dot",
+        "size": 84,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/report.md",
+        "size": 211,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/sany.out",
+        "size": 35616,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInitPastHolds/verdict-1.out",
+        "size": 2089,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/chart.mmd",
+        "size": 326,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/ChartRun.out",
+        "size": 2833,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/CounterInstance.cfg",
+        "size": 41,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/CounterInstance.tla",
+        "size": 217,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/CounterSteps.tla",
+        "size": 113,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/graph.dot",
+        "size": 599,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/report.md",
+        "size": 295,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/sany.out",
+        "size": 75094,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterInstance/verdict-1.out",
+        "size": 3043,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/chart.mmd",
+        "size": 547,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/ChartRun.out",
+        "size": 2752,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/CounterJump.cfg",
+        "size": 57,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/CounterJump.tla",
+        "size": 303,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/graph.dot",
+        "size": 1075,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/report.md",
+        "size": 374,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/sany.out",
+        "size": 46017,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/verdict-1.out",
+        "size": 2178,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterJump/verdict-2.out",
+        "size": 2687,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/chart.mmd",
+        "size": 320,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/ChartRun.out",
+        "size": 2674,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/CounterLoop.cfg",
+        "size": 41,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/CounterLoop.tla",
+        "size": 232,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/graph.dot",
+        "size": 593,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/report.md",
+        "size": 285,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/sany.out",
+        "size": 42493,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterLoop/verdict-1.out",
+        "size": 2866,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/chart.mmd",
+        "size": 406,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/ChartRun.out",
+        "size": 2734,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/CounterOrder.cfg",
+        "size": 51,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/CounterOrder.tla",
+        "size": 194,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/graph.dot",
+        "size": 299,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/report.md",
+        "size": 606,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/sany.out",
+        "size": 39895,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/verdict-1.out",
+        "size": 2141,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterOrder/verdict-2.out",
+        "size": 2762,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/chart.mmd",
+        "size": 485,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/ChartRun.out",
+        "size": 2927,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/CounterRules.cfg",
+        "size": 79,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/CounterRules.tla",
+        "size": 265,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/graph.dot",
+        "size": 302,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/Moves.tla",
+        "size": 70,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/report.md",
+        "size": 509,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/sany.out",
+        "size": 62215,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-1.out",
+        "size": 2290,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-2.out",
+        "size": 2758,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-3.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-3.out",
+        "size": 3041,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterRules/verdict-4.out",
+        "size": 2824,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/chart.mmd",
+        "size": 351,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/ChartRun.out",
+        "size": 2725,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/CounterStart.cfg",
+        "size": 53,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/CounterStart.tla",
+        "size": 180,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/graph.dot",
+        "size": 466,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/report.md",
+        "size": 343,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/sany.out",
+        "size": 37436,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/verdict-1.out",
+        "size": 1353,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStart/verdict-2.out",
+        "size": 2702,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/chart.mmd",
+        "size": 87,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/ChartRun.out",
+        "size": 2674,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/CounterStop.cfg",
+        "size": 53,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/CounterStop.tla",
+        "size": 172,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/graph.dot",
+        "size": 466,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/report.md",
+        "size": 127,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/sany.out",
+        "size": 36919,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterStop/verdict-1.out",
+        "size": 2217,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/chart.mmd",
+        "size": 600,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/ChartRun.out",
+        "size": 2833,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/CounterTie.cfg",
+        "size": 96,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/CounterTie.tla",
+        "size": 263,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/graph.dot",
+        "size": 798,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/report.md",
+        "size": 675,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/sany.out",
+        "size": 45338,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-1.out",
+        "size": 2137,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-2.out",
+        "size": 2606,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-3.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-3.out",
+        "size": 3248,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTie/verdict-4.out",
+        "size": 2682,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/chart.mmd",
+        "size": 455,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/ChartRun.out",
+        "size": 2798,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/CounterTieInGraph.cfg",
+        "size": 72,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/CounterTieInGraph.tla",
+        "size": 283,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/graph.dot",
+        "size": 933,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/report.md",
+        "size": 192,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/sany.out",
+        "size": 47544,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/verdict-1.out",
+        "size": 2168,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterTieInGraph/verdict-2.out",
+        "size": 2702,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/chart.mmd",
+        "size": 502,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/ChartRun.out",
+        "size": 2836,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/CounterView.cfg",
+        "size": 96,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/CounterView.tla",
+        "size": 264,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/graph.dot",
+        "size": 798,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/report.md",
+        "size": 686,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/sany.out",
+        "size": 45402,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-1.out",
+        "size": 2141,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-2.out",
+        "size": 2610,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-3.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-3.out",
+        "size": 3256,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/verdict-4.out",
+        "size": 2683,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/CounterView/view.mjs",
+        "size": 67,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/chart.mmd",
+        "size": 2098,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/ChartRun.out",
+        "size": 2746,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/DieHard.cfg",
+        "size": 51,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/DieHard.tla",
+        "size": 900,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/graph.dot",
+        "size": 10782,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/report.md",
+        "size": 427,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/sany.out",
+        "size": 67417,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/verdict-1.out",
+        "size": 3059,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/DieHard/verdict-2.out",
+        "size": 2679,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/chart.mmd",
+        "size": 523,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/ChartRun.out",
+        "size": 2773,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/FirstRule.cfg",
+        "size": 69,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/FirstRule.tla",
+        "size": 173,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/graph.dot",
+        "size": 636,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/report.md",
+        "size": 380,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/sany.out",
+        "size": 35468,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-1.out",
+        "size": 2134,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-2.out",
+        "size": 2607,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-3.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-3.out",
+        "size": 2604,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-4.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/FirstRule/verdict-4.out",
+        "size": 2991,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/chart.mmd",
+        "size": 277,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/ChartRun.out",
+        "size": 2675,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/graph.dot",
+        "size": 467,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/HiddenClock.cfg",
+        "size": 71,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/HiddenClock.tla",
+        "size": 290,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/report.md",
+        "size": 491,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/sany.out",
+        "size": 44753,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/HiddenClock/verdict-1.out",
+        "size": 2716,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/chart.mmd",
+        "size": 735,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/ChartRun.out",
+        "size": 2662,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/graph.dot",
+        "size": 2946,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/Login.cfg",
+        "size": 46,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/Login.tla",
+        "size": 2804,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/report.md",
+        "size": 304,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/sany.out",
+        "size": 61094,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/verdict-1.out",
+        "size": 2084,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Login/view.mjs",
+        "size": 47,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/chart.mmd",
+        "size": 856,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/ChartRun.out",
+        "size": 2683,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/graph.dot",
+        "size": 2836,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/LoginGuarded.cfg",
+        "size": 56,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/LoginGuarded.tla",
+        "size": 3297,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/report.md",
+        "size": 295,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/sany.out",
+        "size": 86678,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/verdict-1.out",
+        "size": 2105,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginGuarded/view.mjs",
+        "size": 75,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/chart.mmd",
+        "size": 1114,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/ChartRun.out",
+        "size": 2765,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/graph.dot",
+        "size": 5138,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/LoginParallel.cfg",
+        "size": 76,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/LoginParallel.tla",
+        "size": 2619,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/report.md",
+        "size": 696,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/sany.out",
+        "size": 65596,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/verdict-1.out",
+        "size": 3109,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/verdict-2.out",
+        "size": 2697,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/LoginParallel/view.mjs",
+        "size": 75,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/chart.mmd",
+        "size": 1202,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/ChartRun.out",
+        "size": 2747,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/graph.dot",
+        "size": 8433,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/MediaPlayer.cfg",
+        "size": 77,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/MediaPlayer.tla",
+        "size": 3514,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/report.md",
+        "size": 506,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/sany.out",
+        "size": 106159,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/verdict-1.out",
+        "size": 2239,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/verdict-2.out",
+        "size": 3573,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayer/view.mjs",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/chart.mmd",
+        "size": 880,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/ChartRun.out",
+        "size": 2698,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/graph.dot",
+        "size": 7629,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/MediaPlayerFixed.cfg",
+        "size": 52,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/MediaPlayerFixed.tla",
+        "size": 3472,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/report.md",
+        "size": 363,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/sany.out",
+        "size": 107448,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/verdict-1.out",
+        "size": 2120,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerFixed/view.mjs",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/chart.mmd",
+        "size": 1125,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/ChartRun.out",
+        "size": 2853,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/graph.dot",
+        "size": 8433,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/MediaPlayer.tla",
+        "size": 3514,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/MediaPlayerProps.cfg",
+        "size": 107,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/MediaPlayerProps.tla",
+        "size": 164,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/report.md",
+        "size": 766,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/sany.out",
+        "size": 110999,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-1.out",
+        "size": 2408,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-2.out",
+        "size": 2861,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-3.out",
+        "size": 2828,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-4.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-4.out",
+        "size": 2669,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-5.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-5.out",
+        "size": 2292,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/verdict-6.out",
+        "size": 2274,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/MediaPlayerProps/view.mjs",
+        "size": 195,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/chart.mmd",
+        "size": 67,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/ChartRun.out",
+        "size": 2672,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/graph.dot",
+        "size": 403,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/PickWorker.cfg",
+        "size": 125,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/PickWorker.tla",
+        "size": 298,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/report.md",
+        "size": 303,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/sany.out",
+        "size": 262944,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/PickWorker/verdict-1.out",
+        "size": 3349,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/chart.mmd",
+        "size": 115,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/ChartRun.out",
+        "size": 2935,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/graph.dot",
+        "size": 636,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/report.md",
+        "size": 372,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/sany.out",
+        "size": 44875,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/Shadow.cfg",
+        "size": 88,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/Shadow.tla",
+        "size": 225,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/ShadowLib.tla",
+        "size": 146,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/ShadowSub.tla",
+        "size": 43,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/Shadow/verdict-1.out",
+        "size": 3026,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/chart.mmd",
+        "size": 513,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/ChartRun.out",
+        "size": 2745,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/graph.dot",
+        "size": 855,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/report.md",
+        "size": 297,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/sany.out",
+        "size": 24142,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/SpacedNames.cfg",
+        "size": 35,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/SpacedNames.tla",
+        "size": 268,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/verdict-1.out",
+        "size": 2353,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/SpacedNames/verdict-2.out",
+        "size": 2928,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/chart.mmd",
+        "size": 1878,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/ChartRun.out",
+        "size": 3023,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/graph.dot",
+        "size": 38927,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/report.md",
+        "size": 818,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/sany.out",
+        "size": 89545,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/TwoPhase.cfg",
+        "size": 76,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/TwoPhase.tla",
+        "size": 2140,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/verdict-1.out",
+        "size": 3529,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/verdict-2.out",
+        "size": 2685,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhase/view.mjs",
+        "size": 90,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/chart.mmd",
+        "size": 1068,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/ChartRun.out",
+        "size": 2692,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/graph.dot",
+        "size": 28548,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/report.md",
+        "size": 468,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/sany.out",
+        "size": 90332,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/TwoPhaseFixed.cfg",
+        "size": 76,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/TwoPhaseFixed.tla",
+        "size": 2108,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/verdict-1.out",
+        "size": 2113,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TwoPhaseFixed/view.mjs",
+        "size": 90,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/chart.mmd",
+        "size": 370,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/ChartRun.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/ChartRun.out",
+        "size": 2966,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/graph.dot",
+        "size": 560,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/report.md",
+        "size": 738,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/sany.out",
+        "size": 37427,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/TypeGuard.cfg",
+        "size": 54,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/TypeGuard.tla",
+        "size": 187,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/verdict-1.out",
+        "size": 2419,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/TypeGuard/verdict-2.out",
+        "size": 2975,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/chart.mmd",
+        "size": 477,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/ChartRun.out",
+        "size": 2713,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/graph.dot",
+        "size": 636,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/report.md",
+        "size": 254,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/sany.out",
+        "size": 35387,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/UserNoDeadlock.cfg",
+        "size": 40,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/UserNoDeadlock.tla",
+        "size": 154,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/verdict-1.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/verdict-1.out",
+        "size": 2158,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/verdict-2.exit",
+        "size": 3,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/corpus/UserNoDeadlock/verdict-2.out",
+        "size": 3022,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/differential.test.ts",
+        "size": 18644,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/grid/Grid.cfg",
+        "size": 40,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/grid/Grid.tla",
+        "size": 205,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/grid/sany.out",
+        "size": 40105,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/java.ts",
+        "size": 2639,
+        "mode": 493
+      },
+      {
+        "path": "skills/statechart/scripts/test/labels.ts",
+        "size": 19769,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/messages.test.ts",
+        "size": 7763,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/pipeline.test.ts",
+        "size": 9720,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/plain-tlc.test.ts",
+        "size": 7180,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/render.test.ts",
+        "size": 3257,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/tlc-out.test.ts",
+        "size": 3630,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/test/tlc.ts",
+        "size": 5743,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/tsconfig.json",
+        "size": 225,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/scripts/worker.ts",
+        "size": 1095,
+        "mode": 420
+      },
+      {
+        "path": "skills/statechart/SKILL.md",
+        "size": 9100,
+        "mode": 420
+      },
+      {
+        "path": "skills/swarm/SKILL.md",
+        "size": 3196,
+        "mode": 420
+      },
+      {
+        "path": "skills/tdd/SKILL.md",
+        "size": 3143,
+        "mode": 420
+      },
+      {
+        "path": "skills/teach/SKILL.md",
+        "size": 5738,
+        "mode": 420
+      },
+      {
+        "path": "skills/technical-writing/SKILL.md",
+        "size": 9093,
+        "mode": 420
+      },
+      {
+        "path": "skills/thermo-nuclear-code-quality-review/SKILL.md",
+        "size": 12437,
+        "mode": 420
+      },
+      {
+        "path": "skills/typescript-best-practices/references/patterns.md",
+        "size": 9287,
+        "mode": 420
+      },
+      {
+        "path": "skills/typescript-best-practices/SKILL.md",
+        "size": 2777,
+        "mode": 420
+      },
+      {
+        "path": "skills/typescript-exhaustive-switch/SKILL.md",
+        "size": 378,
+        "mode": 420
+      },
+      {
+        "path": "skills/unslop/SKILL.md",
+        "size": 5827,
+        "mode": 420
+      },
+      {
+        "path": "skills/verify-this/SKILL.md",
+        "size": 2805,
+        "mode": 420
+      },
+      {
+        "path": "skills/weekly-review/SKILL.md",
+        "size": 902,
+        "mode": 420
+      },
+      {
+        "path": "skills/what-did-i-get-done/SKILL.md",
+        "size": 1012,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/epistemics.md",
+        "size": 6736,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/investigator-prompt.md",
+        "size": 5554,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/source-playbook.md",
+        "size": 1363,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/code-archaeology.md",
+        "size": 1440,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/databricks.md",
+        "size": 6994,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/datadog.md",
+        "size": 4971,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/incident-postmortem.md",
+        "size": 372,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/linear.md",
+        "size": 2996,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/notion.md",
+        "size": 2853,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/sentry.md",
+        "size": 2089,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/sources/slack.md",
+        "size": 1336,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/references/synthesizer-prompt.md",
+        "size": 7146,
+        "mode": 420
+      },
+      {
+        "path": "skills/why/SKILL.md",
+        "size": 8955,
+        "mode": 420
+      },
+      {
+        "path": "skills/workflow-from-chats/SKILL.md",
+        "size": 2681,
+        "mode": 420
+      },
+      {
+        "path": "src/aliases.ts",
+        "size": 3306,
+        "mode": 420
+      },
+      {
+        "path": "src/ask.ts",
+        "size": 7461,
+        "mode": 420
+      },
+      {
+        "path": "src/autocomplete.ts",
+        "size": 1615,
+        "mode": 420
+      },
+      {
+        "path": "src/child-env.ts",
+        "size": 2153,
+        "mode": 420
+      },
+      {
+        "path": "src/index.ts",
+        "size": 5716,
+        "mode": 420
+      },
+      {
+        "path": "src/loop.ts",
+        "size": 10870,
+        "mode": 420
+      },
+      {
+        "path": "src/mode.ts",
+        "size": 7652,
+        "mode": 420
+      },
+      {
+        "path": "src/modes.ts",
+        "size": 614,
+        "mode": 420
+      },
+      {
+        "path": "src/paths.ts",
+        "size": 3459,
+        "mode": 420
+      },
+      {
+        "path": "src/pi-command.ts",
+        "size": 561,
+        "mode": 420
+      },
+      {
+        "path": "src/plan.ts",
+        "size": 7303,
+        "mode": 420
+      },
+      {
+        "path": "src/readonly-shell.ts",
+        "size": 5431,
+        "mode": 420
+      },
+      {
+        "path": "src/rule.ts",
+        "size": 2152,
+        "mode": 420
+      },
+      {
+        "path": "src/sections.ts",
+        "size": 10605,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/cron.ts",
+        "size": 3507,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/durable-store.ts",
+        "size": 18905,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/durable-types.ts",
+        "size": 1578,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/ensure-supervisor.ts",
+        "size": 2643,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/github.ts",
+        "size": 7453,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/index.ts",
+        "size": 34040,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/supervisor-main.ts",
+        "size": 2905,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/supervisor.ts",
+        "size": 10632,
+        "mode": 420
+      },
+      {
+        "path": "src/subscriptions/webhook.ts",
+        "size": 8444,
+        "mode": 420
+      },
+      {
+        "path": "src/task/agents.ts",
+        "size": 2235,
+        "mode": 420
+      },
+      {
+        "path": "src/task/card.ts",
+        "size": 3483,
+        "mode": 420
+      },
+      {
+        "path": "src/task/format.ts",
+        "size": 4755,
+        "mode": 420
+      },
+      {
+        "path": "src/task/models.ts",
+        "size": 7007,
+        "mode": 420
+      },
+      {
+        "path": "src/task/records.ts",
+        "size": 10177,
+        "mode": 420
+      },
+      {
+        "path": "src/task/registry.ts",
+        "size": 3600,
+        "mode": 420
+      },
+      {
+        "path": "src/task/runner.ts",
+        "size": 15983,
+        "mode": 420
+      },
+      {
+        "path": "src/task/status.ts",
+        "size": 7706,
+        "mode": 420
+      },
+      {
+        "path": "src/task/stop.ts",
+        "size": 4998,
+        "mode": 420
+      },
+      {
+        "path": "src/task/tool.ts",
+        "size": 29560,
+        "mode": 420
+      },
+      {
+        "path": "src/task/worktree.ts",
+        "size": 3805,
+        "mode": 420
+      },
+      {
+        "path": "src/todo.ts",
+        "size": 5755,
+        "mode": 420
+      },
+      {
+        "path": "src/visualize.ts",
+        "size": 12049,
+        "mode": 420
+      }
+    ],
+    "entryCount": 641,
+    "bundled": []
+  }
+]

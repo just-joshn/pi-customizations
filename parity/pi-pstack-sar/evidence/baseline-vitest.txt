@@ -1,0 +1,10 @@
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test:  RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test:  Test Files  38 passed (38)
+@justjoshn/pi-pstack test:       Tests  501 passed (501)
+@justjoshn/pi-pstack test:    Start at  11:15:34
+@justjoshn/pi-pstack test:    Duration  43.08s (tests 84%, import 15%, transform 1%)
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test: Exited with code 0

@@ -1,0 +1,10 @@
+$ vitest run test/subscriptions.test.ts test/durable-store.test.ts test/supervisor-reconcile.test.ts test/ensure-supervisor.test.ts "test/e2e/subscription-owner.e2e.test.ts"
+
+ RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  5 passed (5)
+      Tests  91 passed (91)
+   Start at  12:21:35
+   Duration  11.87s (tests 90%, import 8%, transform 1%)
+
