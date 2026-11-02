@@ -1,5 +1,6 @@
 import type { ApiKeyAuth, AuthResult, OAuthAuth, OAuthCredential, ProviderAuth, ProviderEnv } from '@earendil-works/pi-ai';
 import { createClaudeOAuth, isClaudeTokenEndpointError, LOGIN_CANCELLED, LOGIN_TIMED_OUT, PASTE_INVALID_CODE, PASTE_WRONG_SIGNIN } from './oauth.ts';
+import { type RefreshClaimOptions, rotateRefreshToken } from './refresh-claim.ts';
 
 export {
   buildAuthorizeUrl,
@@ -95,6 +96,8 @@ function wrapRefreshErrors(oauth: OAuthAuth): OAuthAuth['refresh'] {
 
 export type SubscriptionAuthOptions = {
   onCredential?: (credential: OAuthCredential) => void;
+  /** Cross-process rotation log. With no directory, refresh runs without claims. */
+  rotation?: { directory(): string | undefined; claimOptions?: RefreshClaimOptions };
 };
 
 export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options: SubscriptionAuthOptions = {}): ProviderAuth {
@@ -107,7 +110,9 @@ export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options
       loginLabel: 'Claude subscription (Provider CLI)',
       login: wrapLoginErrors(oauth),
       refresh: async (credential, signal) => {
-        const next = await refresh(credential, signal);
+        const directory = options.rotation?.directory();
+        const next =
+          directory === undefined ? await refresh(credential, signal) : await rotateRefreshToken(directory, credential, refresh, options.rotation?.claimOptions, signal);
         options.onCredential?.(next);
         return next;
       },

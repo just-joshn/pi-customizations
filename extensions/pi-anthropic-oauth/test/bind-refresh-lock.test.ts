@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
@@ -42,7 +42,13 @@ async function claimDuringFetch(directory: string): Promise<'present' | 'absent'
   }
 }
 
-async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void): Promise<{ claimDuringRefresh: 'present' | 'absent'; sharePath: string }> {
+type RefreshOutcome = {
+  claimDuringRefresh: 'present' | 'absent';
+  sharePath: string;
+  tokenRequestsAfterResendingOriginal: () => Promise<number>;
+};
+
+async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void): Promise<RefreshOutcome> {
   const dir = await mkdtemp(join(tmpdir(), 'pi-anth-bind-lock-'));
   onTestFinished(async () => {
     await rm(dir, { recursive: true, force: true });
@@ -54,7 +60,8 @@ async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void)
 
   const credential = oauthCredential();
   const toAuth = provider.auth.oauth?.toAuth;
-  if (!toAuth) throw new Error('provider oauth toAuth is missing');
+  const refresh = provider.auth.oauth?.refresh;
+  if (!toAuth || !refresh) throw new Error('provider oauth hooks are missing');
   await toAuth(credential);
   bind();
 
@@ -93,22 +100,30 @@ async function refreshWithoutStore(networkGuard: typeof fetch, bind: () => void)
   expect(server.requests).toHaveLength(2);
   expect(tokenRequests).toBe(1);
   if (claimDuringRefresh === undefined) throw new Error('token refresh did not observe the claims directory');
-  return { claimDuringRefresh, sharePath };
+  return {
+    claimDuringRefresh,
+    sharePath,
+    tokenRequestsAfterResendingOriginal: async () => {
+      await refresh(credential, AbortSignal.timeout(3_000));
+      return tokenRequests;
+    },
+  };
 }
 
-test('bindSubscriptionRefreshLock(undefined) skips the refresh claim and writes no share file', async ({ networkGuard }) => {
+test('bindSubscriptionRefreshLock(undefined) skips the rotation log', async ({ networkGuard }) => {
   const result = await refreshWithoutStore(networkGuard, () => {
     bindSubscriptionRefreshLock(undefined);
   });
   expect(result.claimDuringRefresh).toBe('absent');
-  await expect(stat(result.sharePath)).rejects.toMatchObject({ code: 'ENOENT' });
+  await expect(result.tokenRequestsAfterResendingOriginal()).resolves.toBe(2);
 });
 
-test('bindSubscriptionRefreshLock() keeps the refresh claim and writes the share file', async ({ networkGuard }) => {
+test('bindSubscriptionRefreshLock() never resends a rotated token', async ({ networkGuard }) => {
   const result = await refreshWithoutStore(networkGuard, () => {
     bindSubscriptionRefreshLock(undefined);
     bindSubscriptionRefreshLock();
   });
   expect(result.claimDuringRefresh).toBe('present');
-  expect(JSON.parse(await readFile(result.sharePath, 'utf8'))).toMatchObject({ access: REFRESHED_ACCESS_TOKEN });
+  await expect(result.tokenRequestsAfterResendingOriginal()).resolves.toBe(1);
+  await expect(stat(result.sharePath)).rejects.toMatchObject({ code: 'ENOENT' });
 });

@@ -7,6 +7,7 @@ import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dis
 import { expect, onTestFinished, test } from 'vitest';
 import { subscriptionAuth } from '../src/auth.ts';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
+import { refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
 
 const PROVIDER_ID = 'claude-subscription';
 const HOUR = 3_600_000;
@@ -40,8 +41,11 @@ test('an expiry refresh after a 401 recovery never resends the rotated refresh t
   await store.modify(PROVIDER_ID, async () => ({ type: 'oauth', access: 'access-1', refresh: 'refresh-1', expires: Date.now() + 30 * 60_000 }));
   const server = oauthServer();
   let recovery: ReturnType<typeof createAuthRecovery> | undefined;
-  const auth = subscriptionAuth(server.oauth, { onCredential: (credential) => recovery?.remember(credential) });
-  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth, refreshLockTarget: authPath });
+  const auth = subscriptionAuth(server.oauth, {
+    onCredential: (credential) => recovery?.remember(credential),
+    rotation: { directory: () => refreshClaimDirectoryFor(authPath) },
+  });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
   const models = createModels({ credentials: store });
   models.setProvider(createProvider({ id: PROVIDER_ID, auth, models: [], api: { stream: () => { throw new Error('not streamed'); }, streamSimple: () => { throw new Error('not streamed'); } } } as unknown as Parameters<typeof createProvider>[0]));
   const revokedFirstAccess: FetchFunction = async (_input, init) => {
@@ -74,8 +78,11 @@ test('a recovery holding an already rotated token refreshes the newest token aft
   };
   const recoveries = [0, 1].map(() => {
     let recovery: ReturnType<typeof createAuthRecovery> | undefined;
-    const auth = subscriptionAuth(server.oauth, { onCredential: (credential) => recovery?.remember(credential) });
-    recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth, refreshLockTarget: authPath, refreshClaimOptions: lock });
+    const auth = subscriptionAuth(server.oauth, {
+      onCredential: (credential) => recovery?.remember(credential),
+      rotation: { directory: () => refreshClaimDirectoryFor(authPath), claimOptions: lock },
+    });
+    recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
     recovery.remember(original);
     return recovery.wrapFetch(revokedFirstAccess);
   });

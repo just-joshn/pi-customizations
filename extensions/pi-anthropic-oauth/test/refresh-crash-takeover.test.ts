@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
 import { expect, onTestFinished, test, vi } from 'vitest';
+import type { RefreshClaimOptions } from '../src/refresh-claim.ts';
 
 vi.mock(import('node:fs/promises'), async (importOriginal) => {
   const real = await importOriginal();
@@ -23,11 +24,24 @@ vi.mock(import('node:fs/promises'), async (importOriginal) => {
 });
 
 const { createAuthRecovery } = await import('../src/auth-recovery.ts');
+const { subscriptionAuth } = await import('../src/auth.ts');
+const { refreshClaimDirectoryFor } = await import('../src/refresh-claim.ts');
 
 const URL = 'https://api.anthropic.invalid/v1/messages';
 
 function staleCredential(): OAuthCredential {
   return { type: 'oauth', access: 'old-access', refresh: 'old-refresh', expires: Date.now() + 3_600_000 };
+}
+
+function recoveryFor(oauth: OAuthAuth, authPath: string, lock: RefreshClaimOptions) {
+  let recovery: ReturnType<typeof createAuthRecovery> | undefined;
+  const auth = subscriptionAuth(oauth, {
+    onCredential: (credential) => recovery?.remember(credential),
+    rotation: { directory: () => refreshClaimDirectoryFor(authPath), claimOptions: lock },
+  });
+  recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth: auth.oauth as OAuthAuth });
+  recovery.remember(staleCredential());
+  return recovery;
 }
 
 const baseFetch: FetchFunction = async (_input, init) => {
@@ -48,18 +62,16 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))(
       crash = () => reject(new Error('refresher crashed before sending'));
     });
     let crasherEntered = false;
-    const crasher = createAuthRecovery({
-      providerId: 'claude-subscription',
-      oauth: {
+    const crasher = recoveryFor(
+      {
         refresh: () => {
           crasherEntered = true;
           return crashed;
         },
       } as unknown as OAuthAuth,
-      refreshLockTarget: authPath,
-      refreshClaimOptions: lock,
-    });
-    crasher.remember(staleCredential());
+      authPath,
+      lock,
+    );
     const crasherResponse = crasher.wrapFetch(baseFetch)(URL, { headers: { authorization: 'Bearer old-access' } });
     await vi.waitFor(() => {
       if (!crasherEntered) throw new Error('the crashing refresher has not started');
@@ -72,11 +84,7 @@ test.for(Array.from({ length: 10 }, (_, trial) => trial))(
         return { ...credential, access: 'new-access', refresh: 'new-refresh', expires: Date.now() + 3_600_000 };
       },
     } as unknown as OAuthAuth;
-    const survivors = Array.from({ length: 8 }, () => {
-      const recovery = createAuthRecovery({ providerId: 'claude-subscription', oauth, refreshLockTarget: authPath, refreshClaimOptions: lock });
-      recovery.remember(staleCredential());
-      return recovery.wrapFetch(baseFetch);
-    });
+    const survivors = Array.from({ length: 8 }, () => recoveryFor(oauth, authPath, lock).wrapFetch(baseFetch));
     const responses = await Promise.all(survivors.map((fetch) => fetch(URL, { headers: { authorization: 'Bearer old-access' } })));
     crash();
     await crasherResponse;

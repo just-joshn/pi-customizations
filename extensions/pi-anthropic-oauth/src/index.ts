@@ -1,18 +1,20 @@
 import { join } from 'node:path';
 
-import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type OAuthCredential, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
-import { type ExtensionAPI, getAgentDir } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, getAgentDir, readStoredCredential } from '@earendil-works/pi-coding-agent';
 import { attestingFetch } from './attesting-fetch.ts';
 import { createClaudeOAuth, subscriptionAuth } from './auth.ts';
 import { type AuthRecovery, createAuthRecovery } from './auth-recovery.ts';
 import { type ContextGuard, GUARD_ENTRY_TYPE, installContextGuard } from './context/guard.ts';
 import { billingBlock, CLAUDE_USER_AGENT } from './identity.ts';
+import { refreshClaimDirectoryFor } from './refresh-claim.ts';
 import { attributionFor } from './request-session.ts';
 
 export const PROVIDER_ID = 'claude-subscription';
 
 let activeRecovery: AuthRecovery | undefined;
+let rotationAuthPath: string | undefined;
 
 function defaultAuthJsonPath(): string {
   return join(getAgentDir(), 'auth.json');
@@ -24,14 +26,19 @@ export function bindSubscriptionCredentials(store: CredentialStore): void {
 }
 
 /**
- * Bind the auth.json path whose directory holds the cross-process refresh claims.
- * Claims live in `claude-subscription-refresh.claims` in that directory, not `auth.json.lock`.
- * A bound credential store does not use these claims. Pi AuthStorage already locks `auth.json`.
- * Omit the argument to use `<agentDir>/auth.json`. Pass `undefined` to keep the in-process latch only.
+ * Bind the auth.json path whose directory holds the cross-process rotation log.
+ * Every refresh, Pi's expiry refresh and 401 recovery alike, claims the refresh token in
+ * `claude-subscription-refresh.claims` in that directory and records its successor there.
+ * A caller holding a rotated token gets the recorded successor instead of resending the token.
+ * Omit the argument to use `<agentDir>/auth.json`. Pass `undefined` to refresh without the log.
  */
 export function bindSubscriptionRefreshLock(...args: [] | [authJsonPath: string | undefined]): void {
-  const authJsonPath = args.length === 0 ? defaultAuthJsonPath() : args[0];
-  activeRecovery?.bindRefreshLockTarget(authJsonPath);
+  rotationAuthPath = args.length === 0 ? defaultAuthJsonPath() : args[0];
+}
+
+function storedOAuthCredential(authPath: string): OAuthCredential | undefined {
+  const stored = readStoredCredential(PROVIDER_ID, authPath);
+  return stored?.type === 'oauth' ? stored : undefined;
 }
 
 // Provider CLI writes its prompt cache with a one-hour lifetime, and Pi's own
@@ -204,15 +211,16 @@ export default function (pi: ExtensionHost) {
   if (!anthropic) throw new Error("Pi's built-in anthropic provider is not available.");
   const oauth = createClaudeOAuth();
   let recovery: AuthRecovery | undefined;
+  rotationAuthPath = defaultAuthJsonPath();
   const auth = subscriptionAuth(oauth, {
     onCredential: (credential) => recovery?.remember(credential),
+    rotation: {
+      directory: () => (rotationAuthPath === undefined ? undefined : refreshClaimDirectoryFor(rotationAuthPath)),
+      claimOptions: { liveCredential: () => (rotationAuthPath === undefined ? undefined : storedOAuthCredential(rotationAuthPath)) },
+    },
   });
   if (!auth.oauth) throw new Error('Claude subscription OAuth is not initialized.');
-  recovery = createAuthRecovery({
-    providerId: PROVIDER_ID,
-    oauth: auth.oauth,
-    refreshLockTarget: defaultAuthJsonPath(),
-  });
+  recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth });
   activeRecovery = recovery;
   const guard = installContextGuard(pi, {
     providerId: PROVIDER_ID,

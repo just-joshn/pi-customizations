@@ -1,61 +1,67 @@
-import { mkdir, mkdtemp, readdir, rm, utimes, writeFile } from 'node:fs/promises';
+import { mkdtemp, readdir, rm, stat, utimes, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { OAuthCredential } from '@earendil-works/pi-ai';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import {
-  defaultRefreshClaimRetryDelayMs,
-  REFRESH_CLAIM_ELOCKED,
-  REFRESH_CLAIM_MAX_RETRIES,
-  refreshClaimDirectoryFor,
-  withRefreshTokenClaim,
-} from '../src/refresh-claim.ts';
+import { defaultRefreshClaimRetryDelayMs, REFRESH_CLAIM_ELOCKED, REFRESH_CLAIM_MAX_RETRIES, rotateRefreshToken } from '../src/refresh-claim.ts';
 
-const TOKEN = 'refresh-token-secret';
+const HOUR = 3_600_000;
+const DAY = 24 * HOUR;
 
-async function tempAuthPath(): Promise<string> {
+function credential(name: string, expiresInMs = HOUR): OAuthCredential {
+  return { type: 'oauth', access: `${name}-access`, refresh: `${name}-refresh-secret`, expires: Date.now() + expiresInMs };
+}
+
+async function tempClaims(): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'pi-anth-refresh-claim-'));
   onTestFinished(() => rm(dir, { recursive: true, force: true }));
-  return join(dir, 'auth.json');
+  return join(dir, 'claude-subscription-refresh.claims');
 }
 
-function nothingToReuse(): Promise<undefined> {
-  return Promise.resolve(undefined);
+async function age(directory: string, ms: number): Promise<void> {
+  const old = new Date(Date.now() - ms);
+  for (const name of await readdir(directory)) await utimes(join(directory, name), old, old);
 }
 
-async function claimFiles(target: string): Promise<string[]> {
-  return readdir(refreshClaimDirectoryFor(target));
+function returning(next: OAuthCredential) {
+  return vi.fn(async (_credential: OAuthCredential, _signal: AbortSignal) => next);
 }
 
-async function holdClaim(target: string): Promise<{ finish: () => void; held: Promise<string> }> {
-  let finish: () => void = () => {};
+async function holdClaim(directory: string, held: OAuthCredential, signal: AbortSignal) {
+  let settle: (outcome: OAuthCredential | Error) => void = () => {};
   let entered: () => void = () => {};
   const inRefresh = new Promise<void>((resolve) => {
     entered = resolve;
   });
-  const held = withRefreshTokenClaim(target, TOKEN, {
-    reuse: nothingToReuse,
-    refresh: () => {
+  const rotation = rotateRefreshToken(
+    directory,
+    held,
+    () => {
       entered();
-      return new Promise<string>((resolve) => {
-        finish = () => resolve('first');
+      return new Promise<OAuthCredential>((resolve, reject) => {
+        settle = (outcome) => (outcome instanceof Error ? reject(outcome) : resolve(outcome));
       });
     },
-  });
+    {},
+    signal,
+  );
   await inRefresh;
-  return { finish, held };
+  return { settle: (outcome: OAuthCredential | Error) => settle(outcome), rotation };
 }
 
-test('a contended claim retries with the configured delays then rejects with ELOCKED', async () => {
-  const target = await tempAuthPath();
-  const { finish, held } = await holdClaim(target);
+test('a contended claim retries with the configured delays then rejects with ELOCKED', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
+  const { settle, rotation } = await holdClaim(directory, a, signal);
   const delays: number[] = [];
-  const refresh = vi.fn(async () => 'never');
+  const refresh = returning(credential('never'));
 
   await expect(
-    withRefreshTokenClaim(
-      target,
-      TOKEN,
-      { reuse: nothingToReuse, refresh },
+    rotateRefreshToken(
+      directory,
+      a,
+      refresh,
       {
         retries: REFRESH_CLAIM_MAX_RETRIES,
         retryDelayMs: () => {
@@ -63,97 +69,161 @@ test('a contended claim retries with the configured delays then rejects with ELO
           return 3;
         },
       },
+      signal,
     ),
-  ).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED, file: target });
+  ).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED, file: directory });
   expect(delays).toStrictEqual(Array(REFRESH_CLAIM_MAX_RETRIES).fill(3));
   expect(refresh).not.toHaveBeenCalled();
 
-  finish();
-  await expect(held).resolves.toBe('first');
+  settle(b);
+  await expect(rotation).resolves.toStrictEqual(b);
 });
 
-test('a stale claim is taken over and refresh runs once', async () => {
-  const target = await tempAuthPath();
-  const directory = refreshClaimDirectoryFor(target);
-  await withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => 'crashed' });
-  const [abandoned] = await claimFiles(target);
-  if (abandoned === undefined) throw new Error('first claim left no file');
-  const old = new Date(Date.now() - 60_000);
-  await utimes(join(directory, abandoned), old, old);
-  const refresh = vi.fn(async () => 'ran');
+test('a stale claim is taken over and refresh runs once', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
+  const { settle, rotation } = await holdClaim(directory, a, signal);
+  await age(directory, 60_000);
+  const refresh = returning(b);
 
-  await expect(withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh }, { staleMs: 1_000, retries: 0 })).resolves.toBe('ran');
-  expect(refresh).toHaveBeenCalledTimes(1);
-  expect(await claimFiles(target)).toHaveLength(2);
+  await expect(rotateRefreshToken(directory, a, refresh, { staleMs: 1_000, retries: 0 }, signal)).resolves.toStrictEqual(b);
+  expect(refresh.mock.calls.map(([sent]) => sent.refresh)).toStrictEqual([a.refresh]);
+  expect(await readdir(directory)).toHaveLength(2);
+
+  settle(new Error('the abandoned refresher gave up'));
+  await expect(rotation).rejects.toThrow('the abandoned refresher gave up');
 });
 
-test('a failed refresh rejects and a later call claims and refreshes', async () => {
-  const target = await tempAuthPath();
+test('a failed refresh rejects and a later call claims and refreshes', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
   const options = { retries: 0, staleMs: 0 };
 
-  await expect(
-    withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => Promise.reject(new Error('network down')) }, options),
-  ).rejects.toThrow('network down');
-  await expect(withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => 'second' }, options)).resolves.toBe('second');
+  await expect(rotateRefreshToken(directory, a, async () => Promise.reject(new Error('network down')), options, signal)).rejects.toThrow('network down');
+  await expect(rotateRefreshToken(directory, a, returning(b), options, signal)).resolves.toStrictEqual(b);
 });
 
-test('staleMs 0 never takes over an old claim', async () => {
-  const target = await tempAuthPath();
-  const directory = refreshClaimDirectoryFor(target);
-  await withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => 'first' });
-  const [claim] = await claimFiles(target);
-  if (claim === undefined) throw new Error('first claim left no file');
-  const old = new Date(Date.now() - 3_600_000);
-  await utimes(join(directory, claim), old, old);
-  const refresh = vi.fn(async () => 'second');
+test('staleMs 0 never takes over an old claim', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const { settle, rotation } = await holdClaim(directory, a, signal);
+  await age(directory, HOUR);
+  const refresh = returning(credential('b'));
 
-  await expect(withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh }, { staleMs: 0, retries: 0 })).rejects.toMatchObject({
-    code: REFRESH_CLAIM_ELOCKED,
-  });
+  await expect(rotateRefreshToken(directory, a, refresh, { staleMs: 0, retries: 0 }, signal)).rejects.toMatchObject({ code: REFRESH_CLAIM_ELOCKED });
+  expect(refresh).not.toHaveBeenCalled();
+
+  settle(new Error('released'));
+  await expect(rotation).rejects.toThrow('released');
+});
+
+test('a recorded successor is returned without a refresh', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
+  await rotateRefreshToken(directory, a, returning(b), {}, signal);
+  const refresh = returning(credential('c'));
+
+  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(b);
   expect(refresh).not.toHaveBeenCalled();
 });
 
-test('a reused result skips refresh', async () => {
-  const target = await tempAuthPath();
-  const refresh = vi.fn(async () => 'refreshed');
+test('a chain of two successors returns the newest', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
+  const c = credential('c');
+  await rotateRefreshToken(directory, a, returning(b), {}, signal);
+  await rotateRefreshToken(directory, b, returning(c), {}, signal);
+  const refresh = returning(credential('d'));
 
-  await expect(withRefreshTokenClaim(target, TOKEN, { reuse: async () => 'published', refresh })).resolves.toBe('published');
+  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(c);
   expect(refresh).not.toHaveBeenCalled();
 });
 
-test('a result published while claiming skips refresh', async () => {
-  const target = await tempAuthPath();
-  const reuse = vi.fn<() => Promise<string | undefined>>().mockResolvedValueOnce(undefined).mockResolvedValue('published');
-  const refresh = vi.fn(async () => 'refreshed');
+test('an expiring newest successor is rotated with its own refresh token', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const expiring = credential('b', 60_000);
+  const c = credential('c');
+  await rotateRefreshToken(directory, a, returning(expiring), {}, signal);
+  const refresh = returning(c);
 
-  await expect(withRefreshTokenClaim(target, TOKEN, { reuse, refresh })).resolves.toBe('published');
-  expect(refresh).not.toHaveBeenCalled();
+  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(c);
+  expect(refresh.mock.calls.map(([sent]) => sent.refresh)).toStrictEqual([expiring.refresh]);
 });
 
-test('claim file names do not contain the refresh token', async () => {
-  const target = await tempAuthPath();
-  await withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => 'done' });
+test.for([
+  { name: 'a later legacy share file is followed', legacyExpiresInMs: 2 * HOUR, refreshes: 0 },
+  { name: 'an earlier legacy share file is ignored', legacyExpiresInMs: HOUR / 2, refreshes: 1 },
+])('$name', async ({ legacyExpiresInMs, refreshes }, { signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const legacy = credential('legacy', legacyExpiresInMs);
+  const b = credential('b');
+  await writeFile(join(directory, '..', 'claude-subscription-refresh.json'), `${JSON.stringify(legacy)}\n`);
+  const refresh = returning(b);
 
-  const names = await claimFiles(target);
+  await expect(rotateRefreshToken(directory, a, refresh, {}, signal)).resolves.toStrictEqual(refreshes === 0 ? legacy : b);
+  expect(refresh).toHaveBeenCalledTimes(refreshes);
+});
+
+test('claim file names do not contain the refresh token', async ({ signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  await rotateRefreshToken(directory, a, returning(credential('b')), {}, signal);
+
+  const names = await readdir(directory);
   expect(names).toHaveLength(1);
-  expect(names.join('\n')).not.toContain(TOKEN);
+  expect(names.join('\n')).not.toContain(a.refresh);
 });
 
-test('a successful refresh removes claims older than a day', async () => {
-  const target = await tempAuthPath();
-  const directory = refreshClaimDirectoryFor(target);
-  await mkdir(directory, { recursive: true });
-  const leftover = join(directory, 'leftover.1');
-  await writeFile(leftover, '');
-  const old = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-  await utimes(leftover, old, old);
+test('a log entry is readable only by its owner', async ({ signal }) => {
+  const directory = await tempClaims();
+  await rotateRefreshToken(directory, credential('a'), returning(credential('b')), {}, signal);
 
-  await withRefreshTokenClaim(target, TOKEN, { reuse: nothingToReuse, refresh: async () => 'done' });
-  expect(await claimFiles(target)).not.toContain('leftover.1');
-  expect(await claimFiles(target)).toHaveLength(1);
+  const [entry] = await readdir(directory);
+  if (entry === undefined) throw new Error('rotation left no log entry');
+  expect((await stat(join(directory, entry))).mode & 0o777).toBe(0o600);
+});
+
+test.for([
+  { name: 'the sweep removes day-old entries off the live chain', live: 'unrelated', agedMs: 2 * DAY, swept: true },
+  { name: 'the sweep keeps day-old entries on the live chain', live: 'a', agedMs: 2 * DAY, swept: false },
+  { name: 'with no live credential the sweep keeps entries under 30 days', live: undefined, agedMs: 2 * DAY, swept: false },
+  { name: 'with no live credential the sweep removes entries over 30 days', live: undefined, agedMs: 31 * DAY, swept: true },
+])('$name', async ({ live, agedMs, swept }, { signal }) => {
+  const directory = await tempClaims();
+  const a = credential('a');
+  const b = credential('b');
+  const liveCredential = () => (live === 'a' ? a : live === undefined ? undefined : credential(live));
+  await rotateRefreshToken(directory, a, returning(b), {}, signal);
+  await age(directory, agedMs);
+  await rotateRefreshToken(directory, credential('x'), returning(credential('y')), { liveCredential }, signal);
+  const refresh = returning(credential('c'));
+
+  await rotateRefreshToken(directory, a, refresh, {}, signal);
+  expect(refresh).toHaveBeenCalledTimes(swept ? 1 : 0);
 });
 
 test('default retry delay stays in Claude 1000..2000 ms range', () => {
   using _spy = vi.spyOn(Math, 'random').mockReturnValue(0.25);
   expect(defaultRefreshClaimRetryDelayMs()).toBe(1250);
+});
+
+test('a started refresh is not cancelled by the caller signal', async () => {
+  const directory = await tempClaims();
+  const caller = new AbortController();
+  const next = credential('b');
+  let refreshCancelled: boolean | undefined;
+  const refresh = vi.fn(async (_current: OAuthCredential, refreshSignal: AbortSignal) => {
+    caller.abort(new Error('caller gave up'));
+    refreshCancelled = refreshSignal.aborted;
+    return next;
+  });
+
+  await expect(rotateRefreshToken(directory, credential('a'), refresh, {}, caller.signal)).resolves.toStrictEqual(next);
+  expect(refreshCancelled).toBe(false);
 });
