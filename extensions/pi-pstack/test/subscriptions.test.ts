@@ -12,7 +12,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { acceptEvent, acquireSupervisorLock, createDesired, isSupervisorLive, readRegistry, releaseSupervisorLock, visibleSubscriptions } from '../src/subscriptions/durable-store.ts';
 import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
-import { createSupervisor } from '../src/subscriptions/supervisor.ts';
+import { createSupervisor, type FreshMeta } from '../src/subscriptions/supervisor.ts';
 import { routineSlug } from '../src/subscriptions/webhook.ts';
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
@@ -42,6 +42,9 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown }[]
     mode,
     hasUI,
     cwd,
+    model: { provider: 'test', id: 'model' },
+    thinkingLevel: 'high',
+    isProjectTrusted: () => true,
     ui: { notify: (text: string) => notices.push(text) },
     sessionManager: { getBranch: () => entries, getSessionFile: () => sessionFile, getSessionId: () => sessionId },
   });
@@ -87,9 +90,9 @@ function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entri
   }
   const cwd = previous?.cwd ?? join(agentDir, 'workspace');
   const fake = fakePi(entries, cwd, sessionId);
-  const fresh: { prompt: string; name: string }[] = [];
+  const fresh: { prompt: string; name: string; meta: FreshMeta }[] = [];
   const controller = registerSubscriptions(fake.pi, {
-    runFresh: (prompt, name) => void fresh.push({ prompt, name }),
+    runFresh: (prompt, name, meta) => void fresh.push({ prompt, name, meta }),
     routinesPort: 0,
     ensureSupervisor: () => {},
     supervisorReadyMs: 0,
@@ -152,9 +155,10 @@ describe('subscribe_timer', () => {
 
   test('new_session calls runFresh instead of waking this session', async () => {
     const fake = setup();
-    await fake.call('subscribe_timer', { name: 'audit', prompt: 'run the audit', delaySeconds: 5, once: true, sessionStrategy: 'new_session' });
+    const created = await fake.call('subscribe_timer', { name: 'audit', prompt: 'run the audit', delaySeconds: 5, once: true, sessionStrategy: 'new_session' });
     await vi.advanceTimersByTimeAsync(5_000);
-    expect(fake.fresh).toEqual([{ prompt: 'run the audit', name: 'audit' }]);
+    expect(readRegistry(fake.cwd).subscriptions[0]?.config).toMatchObject({ model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true });
+    expect(fake.fresh).toEqual([{ prompt: 'run the audit', name: 'audit', meta: { subscriptionId: created.details['id'], cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true } }]);
     expect(fake.sent).toEqual([]);
   });
 
@@ -569,7 +573,7 @@ describe('workspace authority and owner delivery', () => {
     onTestFinished(() => supervisor?.stop());
     await fake.call('subscribe_timer', { name: 'task-backed', prompt: 'fresh', delaySeconds: 1, once: true, sessionStrategy: 'new_session' });
     await vi.advanceTimersByTimeAsync(1_250);
-    expect(fake.fresh).toEqual([{ name: 'task-backed', prompt: 'fresh' }]);
+    expect(fake.fresh).toEqual([{ name: 'task-backed', prompt: 'fresh', meta: { subscriptionId: expect.any(String), cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true } }]);
     expect(offline).toEqual([]);
     expect(wakes(fake)).toEqual([]);
   });

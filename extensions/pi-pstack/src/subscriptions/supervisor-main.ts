@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { PACKAGE_ROOT } from '../paths.ts';
-import { createSupervisor } from './supervisor.ts';
+import { createSupervisor, type FreshMeta } from './supervisor.ts';
 
 function usage(): never {
   console.error('Usage: pstack-routines-supervisor --workspace <cwd>');
@@ -27,8 +28,15 @@ function parseArgs(argv: string[]): { workspace: string } {
   return { workspace: resolve(workspace) };
 }
 
+/** The model, trust, and print arguments a detached new_session fire uses. */
+export function freshArgs(meta: FreshMeta): string[] {
+  const model = meta.model === undefined ? [] : ['--model', `${meta.model.provider}/${meta.model.id}`, ...(meta.model.thinking === undefined ? [] : ['--thinking', meta.model.thinking])];
+  const trust = meta.trusted === undefined ? [] : [meta.trusted ? '--approve' : '--no-approve'];
+  return [...trust, ...model, '-p', '--'];
+}
+
 /** Spawns a headless Pi print run; resolves only when the child exits 0. */
-function runFresh(prompt: string, name: string, meta: { subscriptionId: string; cwd: string }): Promise<void> {
+function runFresh(prompt: string, name: string, meta: FreshMeta): Promise<void> {
   return new Promise((resolvePromise, reject) => {
     const raw: unknown = JSON.parse(process.env['PI_PSTACK_PI_COMMAND'] ?? '["pi"]');
     if (!Array.isArray(raw) || raw.length === 0 || !raw.every((part) => typeof part === 'string' && part !== '')) {
@@ -40,7 +48,7 @@ function runFresh(prompt: string, name: string, meta: { subscriptionId: string; 
       reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): no pi command`));
       return;
     }
-    const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, '-p', '--', prompt], {
+    const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, ...freshArgs(meta), prompt], {
       cwd: meta.cwd,
       env: process.env,
       stdio: 'ignore',
@@ -82,7 +90,9 @@ async function main(): Promise<void> {
   });
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error);
-  process.exit(1);
-});
+if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  });
+}

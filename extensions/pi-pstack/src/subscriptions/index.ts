@@ -11,7 +11,7 @@ import { acquireLease, cancelDesired, canonicalPath, createDesired, deliverOwner
 import type { StoredSubscription } from './durable-types.ts';
 import { defaultEnsureSupervisor, waitForArm, waitForSupervisor } from './ensure-supervisor.ts';
 import { type GhRunner, targetText } from './github.ts';
-import { createSupervisor, type Supervisor } from './supervisor.ts';
+import { createSupervisor, type FreshMeta, type Supervisor } from './supervisor.ts';
 import { credentialFile, routineSlug } from './webhook.ts';
 
 export const SUBSCRIPTIONS_ENTRY = 'pstack/subscriptions';
@@ -29,7 +29,16 @@ const TargetSchema = Type.Union([
 const StrategySchema = Type.Union([Type.Literal('wake_self'), Type.Literal('new_session')]);
 const ConfigSchema = Type.Union([
   Type.Object({ kind: Type.Literal('github'), target: TargetSchema }),
-  Type.Object({ kind: Type.Literal('timer'), prompt: Type.String(), cron: Type.Optional(Type.String()), delaySeconds: Type.Optional(Type.Integer({ minimum: 1 })), once: Type.Boolean(), strategy: StrategySchema }),
+  Type.Object({
+    kind: Type.Literal('timer'),
+    prompt: Type.String(),
+    cron: Type.Optional(Type.String()),
+    delaySeconds: Type.Optional(Type.Integer({ minimum: 1 })),
+    once: Type.Boolean(),
+    strategy: StrategySchema,
+    model: Type.Optional(Type.Object({ provider: Type.String(), id: Type.String(), thinking: Type.Optional(Type.String()) })),
+    trusted: Type.Optional(Type.Boolean()),
+  }),
   Type.Object({ kind: Type.Literal('webhook'), prompt: Type.String(), slug: Type.String() }),
 ]);
 const SubscriptionSchema = Type.Object({ id: Type.String(), name: Type.String(), createdAt: Type.Number(), expiresAt: Type.Number(), config: ConfigSchema });
@@ -41,7 +50,7 @@ type Strategy = TimerConfig['strategy'];
 
 export interface SubscriptionOptions {
   /** Runs a prompt in a fresh background session (a `new_session` timer fire). */
-  runFresh: (prompt: string, name: string) => Promise<void> | void;
+  runFresh: (prompt: string, name: string, meta: FreshMeta) => Promise<void> | void;
   gh?: GhRunner;
   pollIntervalMs?: number;
   /** Routines listener port; defaults to PSTACK_ROUTINES_PORT, else 47913. 0 picks a free port. */
@@ -176,7 +185,14 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
         pi.sendMessage({ customType: WAKE_TYPE, content: event.content, display: true, details: { id: sub.id, eventId: event.id, kind: sub.config.kind, name: sub.name } }, { triggerTurn: true, deliverAs: 'followUp' });
       });
       for (const event of pending) {
-        const claim = startFresh(session.cwd, event.id, session.id, eligible, (sub, pending) => options.runFresh(pending.content, sub.name));
+        const claim = startFresh(session.cwd, event.id, session.id, eligible, (sub, pending) =>
+          options.runFresh(pending.content, sub.name, {
+            subscriptionId: sub.id,
+            cwd: session.cwd,
+            ...(sub.config.kind === 'timer' && sub.config.model !== undefined ? { model: sub.config.model } : {}),
+            ...(sub.config.kind === 'timer' && sub.config.trusted !== undefined ? { trusted: sub.config.trusted } : {}),
+          }),
+        );
         if (claim !== undefined)
           void claim.result
             .then(
@@ -453,6 +469,8 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
         ...(params.cron === undefined ? { delaySeconds: params.delaySeconds ?? 1 } : { cron: params.cron.trim() }),
         once: params.once ?? false,
         strategy: params.sessionStrategy ?? 'wake_self',
+        ...(ctx.model === undefined ? {} : { model: { provider: ctx.model.provider, id: ctx.model.id, ...(ctx.thinkingLevel === undefined ? {} : { thinking: ctx.thinkingLevel }) } }),
+        trusted: ctx.isProjectTrusted(),
       };
       return text(await subs.create(ctx, 'subscribe_timer', params.name, config, params.expiresInHours));
     },

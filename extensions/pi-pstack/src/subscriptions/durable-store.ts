@@ -5,7 +5,7 @@ import { performance } from 'node:perf_hooks';
 
 import { durableRegistryPath, durableRuntimeDir } from '../paths.ts';
 import { parseCron } from './cron.ts';
-import type { ArmStatus, DurableRegistry, DurableSubscription, PendingEvent, StoredSubscription, SupervisorLock } from './durable-types.ts';
+import type { ArmStatus, DurableRegistry, DurableSubscription, EventAdmission, PendingEvent, StoredSubscription, SupervisorLock } from './durable-types.ts';
 import { routineSlug } from './webhook.ts';
 
 export function canonicalPath(path: string): string {
@@ -18,11 +18,23 @@ export function canonicalPath(path: string): string {
   }
 }
 
+function zombie(pid: number): boolean {
+  if (process.platform !== 'linux') return false;
+  try {
+    const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+    const close = stat.lastIndexOf(')');
+    return close !== -1 && stat.slice(close + 2, close + 3) === 'Z';
+  } catch {
+    return false;
+  }
+}
+
 export function alive(pid: number): boolean {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
     process.kill(pid, 0);
-    return true;
+    // A zombie still answers kill(pid, 0) until its parent reaps it, but it holds no lock and runs nothing.
+    return !zombie(pid);
   } catch (error) {
     return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
@@ -297,18 +309,13 @@ export function expireDesired(cwd: string, at = Date.now()): void {
 
 export const MAX_PENDING_PER_SUBSCRIPTION = 20;
 
-export function acceptEvent(cwd: string, subscriptionId: string, occurrence: string, content: string, at = Date.now()): 'accepted' | 'duplicate' | 'inactive' {
+export function acceptEvent(cwd: string, subscriptionId: string, occurrence: string, content: string, at = Date.now()): EventAdmission {
   return transaction(cwd, (registry) => {
     const sub = registry.subscriptions.find((entry) => entry.id === subscriptionId);
     if (sub === undefined || !isDesired(sub, at)) return 'inactive';
     if (sub.lastOccurrence === occurrence || registry.pending.some((event) => event.id === occurrence)) return 'duplicate';
     const forSub = registry.pending.filter((event) => event.subscriptionId === subscriptionId);
-    if (forSub.length >= MAX_PENDING_PER_SUBSCRIPTION) {
-      const oldest = forSub[0];
-      if (oldest !== undefined) {
-        registry.pending = registry.pending.filter((event) => event.id !== oldest.id);
-      }
-    }
+    if (forSub.length >= MAX_PENDING_PER_SUBSCRIPTION) return 'full';
     registry.pending.push({ id: occurrence, subscriptionId, acceptedAt: at, content });
     sub.lastOccurrence = occurrence;
     sub.lastEvent = { at, text: 'accepted' };
@@ -350,7 +357,6 @@ export function startFresh(
       sub.ownerSessionId === undefined ||
       (event.claim !== undefined && alive(event.claim.pid)) ||
       (event.retryAt !== undefined && Date.now() < event.retryAt) ||
-      Date.now() >= sub.expiresAt ||
       !eligible()
     )
       return undefined;
@@ -381,7 +387,7 @@ export function finishFresh(cwd: string, eventId: string, token: string, error?:
       sub.lastError = { at: Date.now(), text: error instanceof Error ? error.message : String(error) };
       delete event.claim;
       event.attempts = attempts;
-      if (attempts >= MAX_ATTEMPTS || Date.now() >= sub.expiresAt) {
+      if (attempts >= MAX_ATTEMPTS) {
         registry.pending = registry.pending.filter((entry) => entry.id !== eventId);
       } else {
         const backoffMs = Math.min(60_000, 250 * 2 ** (attempts - 1));
@@ -425,6 +431,18 @@ export function isSupervisorLive(cwd: string): boolean {
   const lock = readLock(cwd);
   return lock !== undefined && alive(lock.pid);
 }
+
+function supervisorProcess(pid: number, cwd: string): boolean {
+  if (process.platform !== 'linux') return false;
+  try {
+    // The bin is a bash shim that execs bun or node on supervisor-main.ts, so either name can be the live argv.
+    const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ');
+    return cmdline.includes(cwd) && (cmdline.includes('supervisor-main.ts') || cmdline.includes('pstack-routines-supervisor'));
+  } catch {
+    return false;
+  }
+}
+
 export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt = Date.now()): { acquired: true } | { acquired: false; alreadyRunning: true; pid: number } {
   return withRegistryLock(cwd, () => {
     try {
@@ -433,6 +451,9 @@ export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt 
         if (typeof raw.epoch === 'string' && raw.epoch !== '') {
           return { acquired: false, alreadyRunning: true, pid: raw.pid };
         }
+        // A pre-epoch lock names no verified owner. Signal it only when its command line is this supervisor, so a
+        // reused pid cannot make a stale lock terminate an unrelated process.
+        if (!supervisorProcess(raw.pid, cwd)) return { acquired: false, alreadyRunning: true, pid: raw.pid };
         try {
           process.kill(raw.pid, 'SIGTERM');
         } catch {}

@@ -4,6 +4,8 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 
+import type { EventAdmission } from './durable-types.ts';
+
 export const DEFAULT_ROUTINES_PORT = 47913;
 export const MAX_BODY_BYTES = 64 * 1024;
 const HOST = '127.0.0.1';
@@ -100,8 +102,11 @@ export function webhookEventBlock(event: WebhookEvent): string {
 export interface RoutineRoute {
   slug: string;
   credentialFile: string;
-  onEvent: (event: WebhookEvent) => Promise<boolean>;
+  onEvent: (event: WebhookEvent) => Promise<EventAdmission>;
 }
+
+/** How long a sender should wait before the owner has had time to drain accepted work. */
+export const FULL_RETRY_AFTER_SECONDS = 30;
 
 const reply = (response: ServerResponse, status: number, message: string) => {
   response.writeHead(status, { 'content-type': 'application/json', connection: 'close' });
@@ -212,8 +217,13 @@ export class RoutineServer {
       }
       if (this.routes.get(route.slug) !== route) return reply(response, 404, 'No such routine.');
       try {
-        const accepted = await route.onEvent({ eventId: randomUUID(), headers, bodyDigest: createHash('sha256').update(raw).digest('hex'), body, timestampMs: Date.now() });
-        reply(response, accepted ? 200 : 404, accepted ? 'ok' : 'No such routine.');
+        const admission = await route.onEvent({ eventId: randomUUID(), headers, bodyDigest: createHash('sha256').update(raw).digest('hex'), body, timestampMs: Date.now() });
+        if (admission === 'inactive') return reply(response, 404, 'No such routine.');
+        if (admission === 'full') {
+          response.setHeader('retry-after', String(FULL_RETRY_AFTER_SECONDS));
+          return reply(response, 503, 'Delivery queue is full. Retry later.');
+        }
+        reply(response, 200, 'ok');
       } catch {
         reply(response, 503, 'Could not durably accept this event. Retry later.');
       }

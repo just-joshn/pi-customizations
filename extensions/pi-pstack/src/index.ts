@@ -99,7 +99,13 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
   const task = registerTask(pi, { agents, depth: childIdentity.depth, planMode: plan.enabled });
   registerAgentStatus(pi);
-  registerSubscriptions(pi, { runFresh: async (prompt, name) => void (await task.startBackground(`timer ${name}`, prompt)) });
+  registerSubscriptions(pi, {
+    runFresh: async (prompt, name, meta) =>
+      void (await task.startBackground(`timer ${name}`, prompt, {
+        ...(meta.model === undefined ? {} : { model: `${meta.model.provider}/${meta.model.id}${meta.model.thinking === undefined ? '' : `:${meta.model.thinking}`}` }),
+        ...(meta.trusted === undefined ? {} : { trusted: meta.trusted }),
+      })),
+  });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
   registerTodoWrite(pi);
   registerAskQuestion(pi);

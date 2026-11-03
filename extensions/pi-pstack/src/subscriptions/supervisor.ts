@@ -3,13 +3,22 @@ import { randomUUID } from 'node:crypto';
 import { routinesDir } from '../paths.ts';
 import { cronMatches, parseCron } from './cron.ts';
 import { acceptEvent, acquireSupervisorLock, alive, canonicalPath, clearError, expireDesired, finishFresh, isDesired, readLock, readRegistry, recordError, releaseSupervisorLock, startFresh, writeArm } from './durable-store.ts';
-import type { DurableSubscription, StoredSubscription } from './durable-types.ts';
+import type { DurableSubscription, EventAdmission, RunModel, StoredSubscription } from './durable-types.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges } from './github.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, type WebhookEvent, webhookEventBlock } from './webhook.ts';
 
 const MAX_STEP_MS = 24 * 24 * 3_600_000;
 const MINUTE_MS = 60_000;
-export type RunFresh = (prompt: string, name: string, meta: { subscriptionId: string; cwd: string }) => Promise<void> | void;
+const ADMISSION_FULL = 'The delivery queue is full; the event was not accepted and will be offered again.';
+export interface FreshMeta {
+  subscriptionId: string;
+  cwd: string;
+  /** The owner's model when it created a new_session timer. */
+  model?: RunModel;
+  /** The owner's project-trust decision when it created the timer. */
+  trusted?: boolean;
+}
+export type RunFresh = (prompt: string, name: string, meta: FreshMeta) => Promise<void> | void;
 export interface SupervisorOptions {
   workspaceCwd: string;
   runFresh: RunFresh;
@@ -93,7 +102,13 @@ export function createSupervisor(options: SupervisorOptions) {
         event.id,
         undefined,
         () => active,
-        (sub, pending) => options.runFresh(pending.content, sub.name, { subscriptionId: sub.id, cwd }),
+        (sub, pending) =>
+          options.runFresh(pending.content, sub.name, {
+            subscriptionId: sub.id,
+            cwd,
+            ...(sub.config.kind === 'timer' && sub.config.model !== undefined ? { model: sub.config.model } : {}),
+            ...(sub.config.kind === 'timer' && sub.config.trusted !== undefined ? { trusted: sub.config.trusted } : {}),
+          }),
       );
       if (claim !== undefined)
         void claim.result
@@ -114,7 +129,9 @@ export function createSupervisor(options: SupervisorOptions) {
     if (!owns(entry)) return;
     try {
       const prompt = config.strategy === 'wake_self' ? `[timer] ${entry.sub.name}\n\n${config.prompt}` : config.prompt;
-      if (acceptEvent(cwd, entry.sub.id, timerClaimKey(entry.sub, config, now()), prompt, now()) === 'accepted') accepted();
+      const admission = acceptEvent(cwd, entry.sub.id, timerClaimKey(entry.sub, config, now()), prompt, now());
+      if (admission === 'accepted') accepted();
+      else if (admission === 'full') error(entry.sub.id, new Error(ADMISSION_FULL));
     } catch (cause) {
       error(entry.sub.id, cause);
     }
@@ -141,13 +158,13 @@ export function createSupervisor(options: SupervisorOptions) {
   };
   const onWebhook =
     (entry: Armed, prompt: string) =>
-    async (event: WebhookEvent): Promise<boolean> => {
-      if (!owns(entry)) return false;
+    async (event: WebhookEvent): Promise<EventAdmission> => {
+      if (!owns(entry)) return 'inactive';
       const content = [`[routine] ${entry.sub.name}`, prompt, webhookEventBlock(event)].join('\n\n');
-      const result = acceptEvent(cwd, entry.sub.id, event.eventId, content, now());
-      if (result === 'inactive') return false;
+      const result: EventAdmission = acceptEvent(cwd, entry.sub.id, event.eventId, content, now());
       if (result === 'accepted') accepted();
-      return true;
+      else if (result === 'full') error(entry.sub.id, new Error(ADMISSION_FULL));
+      return result;
     };
   const poll = async (entry: Armed, target: Extract<DurableSubscription['config'], { kind: 'github' }>['target']) => {
     if (entry.polling || !owns(entry)) return;
@@ -155,13 +172,22 @@ export function createSupervisor(options: SupervisorOptions) {
     try {
       const after = await fetchPrs(gh, target);
       if (!owns(entry)) return;
+      let blocked = false;
       if (entry.baseline !== undefined) {
         const blocks = await pollChanges(gh, target, entry.baseline, after);
         if (!owns(entry)) return;
-        if (blocks.length > 0 && acceptEvent(cwd, entry.sub.id, randomUUID(), [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'), now()) === 'accepted') accepted();
+        if (blocks.length > 0) {
+          const admission = acceptEvent(cwd, entry.sub.id, randomUUID(), [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'), now());
+          if (admission === 'full') {
+            error(entry.sub.id, new Error(ADMISSION_FULL));
+            blocked = true;
+          } else if (admission === 'accepted') accepted();
+        }
       }
-      entry.baseline = after;
-      clearError(cwd, entry.sub.id);
+      if (!blocked) {
+        entry.baseline = after;
+        clearError(cwd, entry.sub.id);
+      }
     } finally {
       entry.polling = false;
     }

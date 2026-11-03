@@ -15,8 +15,10 @@ import {
   canonicalPath,
   createDesired,
   deliverOwner,
+  expireDesired,
   finishFresh,
   isSupervisorLive,
+  MAX_PENDING_PER_SUBSCRIPTION,
   ownerLockPath,
   readRegistry,
   releaseSupervisorLock,
@@ -444,4 +446,74 @@ local('cross-process cancellation wins over either acceptance ordering', async (
   );
   expect(received).toEqual([]);
   expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'cancelled' }], pending: [] });
+});
+
+local('a full delivery queue refuses a new event without evicting accepted work', ({ cwd }) => {
+  createDesired(cwd, timer({ config: { kind: 'timer', prompt: 'check', delaySeconds: 15, once: false, strategy: 'wake_self' } }));
+  for (let index = 0; index < MAX_PENDING_PER_SUBSCRIPTION; index += 1) expect(acceptEvent(cwd, 'sub-aaaa', `e${index}`, `check ${index}`)).toBe('accepted');
+  expect(acceptEvent(cwd, 'sub-aaaa', 'overflow', 'must not displace accepted work')).toBe('full');
+  const pending = readRegistry(cwd).pending;
+  expect(pending.map((event) => event.id)).toEqual(Array.from({ length: MAX_PENDING_PER_SUBSCRIPTION }, (_value, index) => `e${index}`));
+  expect(readRegistry(cwd).subscriptions[0]?.lastOccurrence).toBe(`e${MAX_PENDING_PER_SUBSCRIPTION - 1}`);
+  deliverOwner(
+    cwd,
+    'owner',
+    () => true,
+    () => undefined,
+  );
+  expect(acceptEvent(cwd, 'sub-aaaa', 'after-drain', 'accepted after capacity freed')).toBe('accepted');
+});
+
+local('an accepted fresh event still runs after the subscription expires', async ({ cwd }) => {
+  vi.useFakeTimers();
+  const startedAt = new Date('2026-11-03T12:00:00.000Z').valueOf();
+  vi.setSystemTime(startedAt);
+  const sub = timer({ expiresAt: startedAt + 30, config: { kind: 'timer', prompt: 'fresh', delaySeconds: 1, once: false, strategy: 'new_session' } });
+  createDesired(cwd, sub);
+  expect(acceptEvent(cwd, sub.id, 'accepted-before-expiry', 'fresh')).toBe('accepted');
+  vi.setSystemTime(startedAt + 40);
+  expect(readRegistry(cwd).subscriptions[0]?.lifecycle).toBe('active');
+  expireDesired(cwd);
+  const runs: string[] = [];
+  const claim = startFresh(
+    cwd,
+    'accepted-before-expiry',
+    undefined,
+    () => true,
+    (_stored, event) => {
+      runs.push(event.id);
+    },
+  );
+  expect(claim?.token).toEqual(expect.any(String));
+  await claim?.result;
+  if (claim !== undefined) finishFresh(cwd, 'accepted-before-expiry', claim.token);
+  expect(runs).toEqual(['accepted-before-expiry']);
+  vi.useRealTimers();
+});
+
+local('a legacy lock is taken over only from a live process identified as this supervisor', async ({ cwd, onTestFinished }) => {
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)', 'supervisor-main.ts', '--workspace', cwd], { stdio: 'ignore' });
+  onTestFinished(() => {
+    child.kill('SIGKILL');
+  });
+  await new Promise((resolve) => child.once('spawn', resolve));
+  if (child.pid === undefined) throw new Error('the supervisor fixture did not start');
+  mkdirSync(dirname(supervisorLockPath(cwd)), { recursive: true });
+  writeFileSync(supervisorLockPath(cwd), JSON.stringify({ pid: child.pid, startedAt: Date.now() }));
+  expect(acquireSupervisorLock(cwd)).toEqual({ acquired: true });
+  await new Promise((resolve) => child.once('exit', resolve));
+  expect(child.exitCode !== null || child.signalCode !== null).toBe(true);
+});
+
+local('a legacy lock naming an unrelated live process is left alone', async ({ cwd, onTestFinished }) => {
+  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)'], { stdio: 'ignore' });
+  onTestFinished(() => {
+    child.kill('SIGKILL');
+  });
+  await new Promise((resolve) => child.once('spawn', resolve));
+  if (child.pid === undefined) throw new Error('the unrelated fixture did not start');
+  mkdirSync(dirname(supervisorLockPath(cwd)), { recursive: true });
+  writeFileSync(supervisorLockPath(cwd), JSON.stringify({ pid: child.pid, startedAt: Date.now() }));
+  expect(acquireSupervisorLock(cwd)).toEqual({ acquired: false, alreadyRunning: true, pid: child.pid });
+  expect(child.exitCode).toBeNull();
 });
