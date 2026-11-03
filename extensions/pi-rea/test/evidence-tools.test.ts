@@ -120,7 +120,7 @@ test('KERN-008: exporting over an existing file needs overwrite and leaves no st
   expect(payload.retryable).toBe(true);
   expect(payload.details).toStrictEqual({ operation: 'write', reason: 'exists', path });
   expect((await readdir(dir)).toSorted()).toStrictEqual(['bundle.json']);
-  await expect(exportEvidenceBundle(session, { path, overwrite: true })).resolves.toBeDefined();
+  expect(payloadOf(await exportEvidenceBundle(session, { path, overwrite: true }))).toMatchObject({ path, records: 1, unknowns: 0 });
 });
 
 test('KERN-008: an export creates its parent directory and stays readable', async ({ onTestFinished }) => {
@@ -130,7 +130,7 @@ test('KERN-008: an export creates its parent directory and stays readable', asyn
   onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'nested', 'deeper', 'bundle.json');
   const result = payloadOf(await exportEvidenceBundle(session, { path }));
-  expect(result['bytes']).toBeGreaterThan(0);
+  expect(result['bytes']).toBe((await readFile(path)).length);
   expect(JSON.parse(await readFile(path, 'utf8'))['records']).toHaveLength(1);
 });
 

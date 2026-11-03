@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -15,6 +16,8 @@ import { inspectManagedMembers } from '../src/tools/managed-tools.ts';
 import { inspectRecordedCrash } from '../src/tools/recorded-crash-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
 import { fixturePath } from './support/fixtures.ts';
+import { stubHost } from './support/host.ts';
+import { provideSwiftDemangle } from './support/swift-demangle.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 
@@ -43,6 +46,7 @@ test('mapDemangleOutputs: underscore is invalid without consuming a stdout line'
 });
 
 test('demangle_swift: requires an open target and demangles via swift-demangle', async () => {
+  provideSwiftDemangle();
   const session = new ReaSession(runtime);
   const closed = await asError(() => demangleSwift(session, { symbols: ['_$sSSN'] }));
   expect(closed.code).toBe('target_unavailable');
@@ -86,8 +90,8 @@ test('extract_artifact: materializes ZIP members into a fresh directory', async 
   expect(artifacts.map((row) => row.relative_path).sort()).toStrictEqual(['app.js', 'manifest.json']);
   expect(record['containment_verified']).toBe(true);
   const root = record['output_root'] as string;
-  const appJs = await readFile(join(root, 'app.js'), 'utf8');
-  expect(appJs.length).toBeGreaterThan(0);
+  const appJs = await readFile(join(root, 'app.js'));
+  expect(createHash('sha256').update(appJs).digest('hex')).toBe(artifacts.find((row) => row.relative_path === 'app.js')?.sha256);
   await rm(root, { recursive: true, force: true });
 });
 
@@ -107,9 +111,10 @@ test('compare_artifacts: unchanged when both inventories match', async () => {
   expect(record['changes']).toStrictEqual([]);
 });
 
-test('compare_bundles: absolute empty bundles are unchanged; relative paths fail closed', async () => {
+test('compare_bundles: absolute empty bundles are unchanged; relative paths fail closed', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-bundles-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const empty = JSON.stringify({
     artifacts: [],
     captures: [],
@@ -132,11 +137,12 @@ test('compare_bundles: absolute empty bundles are unchanged; relative paths fail
   expect(relative.message).toContain('absolute');
 });
 
-test('compare_managed_members: distinct not-managed inventories compare without inventing members', async () => {
+test('compare_managed_members: distinct not-managed inventories compare without inventing members', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const left = await inspectManagedMembers(session, { path: fixturePath('targets/pe/fixture-go-pe.exe') });
   const peBytes = await readFile(fixturePath('targets/pe/fixture-go-pe.exe'));
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-mm-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const alt = join(dir, 'alt.exe');
   await writeFile(alt, Buffer.concat([peBytes, Buffer.from([0])]));
   const right = await inspectManagedMembers(session, { path: alt });
@@ -160,19 +166,27 @@ test('compare_managed_members: distinct not-managed inventories compare without 
   expect((record['limitations'] as string[]).some((line) => line.includes('CIL'))).toBe(true);
 });
 
-test('inspect_recorded_crash: matches REA pwntools Linux-x64 host gate', async () => {
+test('inspect_recorded_crash: decodes an ELF core on a Linux-x64 host', async ({ onTestFinished }) => {
+  stubHost('linux', 'x64');
   const session = new ReaSession(runtime);
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-core-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'core');
   await writeFile(path, minimalElf64CoreFixture());
-  if (process.platform === 'linux' && process.arch === 'x64') {
-    const record = await normalized(() => inspectRecordedCrash(session, { path }));
-    expect(record['format']).toBe('elf64-core');
-    expect(record['machine_name']).toBe('x86_64');
-    expect(Array.isArray(record['segments'])).toBe(true);
-    expect((record['limitations'] as string[]).some((line) => line.includes('does not launch'))).toBe(true);
-    return;
-  }
+  const record = await normalized(() => inspectRecordedCrash(session, { path }));
+  expect(record['format']).toBe('elf64-core');
+  expect(record['machine_name']).toBe('x86_64');
+  expect(Array.isArray(record['segments'])).toBe(true);
+  expect((record['limitations'] as string[]).some((line) => line.includes('does not launch'))).toBe(true);
+});
+
+test('inspect_recorded_crash: refuses an unsupported pwntools host', async ({ onTestFinished }) => {
+  stubHost('darwin', 'arm64');
+  const session = new ReaSession(runtime);
+  const dir = await mkdtemp(join(tmpdir(), 'pi-rea-core-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, 'core');
+  await writeFile(path, minimalElf64CoreFixture());
   let thrown: unknown;
   try {
     await inspectRecordedCrash(session, { path });

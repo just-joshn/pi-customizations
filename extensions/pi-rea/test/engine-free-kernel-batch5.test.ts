@@ -35,10 +35,12 @@ const writeJsApp = async (root: string, mainBody: string): Promise<void> => {
   await writeFile(join(root, 'src/main.js'), mainBody);
 };
 
-test('compare_javascript_export_shapes: reports added return property across distinct graphs', async () => {
+test('compare_javascript_export_shapes: reports added return property across distinct graphs', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const leftDir = await mkdtemp(join(tmpdir(), 'pi-rea-jesc-l-'));
+  onTestFinished(async () => rm(leftDir, { recursive: true, force: true }));
   const rightDir = await mkdtemp(join(tmpdir(), 'pi-rea-jesc-r-'));
+  onTestFinished(async () => rm(rightDir, { recursive: true, force: true }));
   await writeJsApp(
     leftDir,
     `export function shape(kind) {
@@ -83,14 +85,14 @@ test('compare_javascript_export_shapes: reports added return property across dis
     }),
   );
   expect(same.code).toBe('invalid_request');
-  await rm(leftDir, { recursive: true, force: true });
-  await rm(rightDir, { recursive: true, force: true });
 });
 
-test('compare_application_versions: distinct graphs produce added/removed or changed items', async () => {
+test('compare_application_versions: distinct graphs produce added/removed or changed items', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const leftDir = await mkdtemp(join(tmpdir(), 'pi-rea-javc-l-'));
+  onTestFinished(async () => rm(leftDir, { recursive: true, force: true }));
   const rightDir = await mkdtemp(join(tmpdir(), 'pi-rea-javc-r-'));
+  onTestFinished(async () => rm(rightDir, { recursive: true, force: true }));
   await writeJsApp(leftDir, 'export const plain = { a: 1 };\n');
   await writeJsApp(rightDir, 'export const plain = { a: 2 };\nexport const extra = 1;\n');
   const left = await analyzeJavascriptApplication(session, { input_path: leftDir }, { cwd: leftDir });
@@ -102,15 +104,14 @@ test('compare_application_versions: distinct graphs produce added/removed or cha
     }),
   );
   const summary = record['summary'];
-  expect(summary).toEqual({ unchanged: 1, added: 4, removed: 3, changed: 1, unknown: 2 });
+  expect(summary).toStrictEqual({ unchanged: 1, added: 4, removed: 3, changed: 1, unknown: 2 });
   expect((record['items'] as { status: string }[]).filter((item) => item.status === 'added')).toHaveLength(4);
-  await rm(leftDir, { recursive: true, force: true });
-  await rm(rightDir, { recursive: true, force: true });
 });
 
-test('compare_source_to_bundle: exact digest maps unchanged; missing source is removed', async () => {
+test('compare_source_to_bundle: exact digest maps unchanged; missing source is removed', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const appDir = await mkdtemp(join(tmpdir(), 'pi-rea-stbc-'));
+  onTestFinished(async () => rm(appDir, { recursive: true, force: true }));
   await writeJsApp(appDir, 'export const plain = { a: 1 };\n');
   const app = await analyzeJavascriptApplication(session, { input_path: appDir }, { cwd: appDir });
   const appNr = (app.structuredContent as { normalized_result: Record<string, unknown> }).normalized_result;
@@ -144,12 +145,12 @@ test('compare_source_to_bundle: exact digest maps unchanged; missing source is r
   expect((record['summary'] as { removed: number }).removed).toBe(1);
   expect((record['items'] as unknown[]).length).toBe(2);
   expect((record['scoring'] as { weights: { signal: string }[] }).weights[0]?.signal).toBe('exact-source-digest');
-  await rm(appDir, { recursive: true, force: true });
 });
 
-test('export_web_scripts: writes retained script bytes when capture is full Evidence-shaped', async () => {
+test('export_web_scripts: writes retained script bytes when capture is full Evidence-shaped', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-ews-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const capturePath = join(dir, 'capture.json');
   const output = join(dir, 'out');
   await writeFile(
@@ -191,12 +192,12 @@ test('export_web_scripts: writes retained script bytes when capture is full Evid
   expect(body).toBe('export const x = 1;\n');
   const closed = await asError(() => exportWebScriptsTool(session, { capture_path: capturePath, output_directory: output }));
   expect(closed.code).toBe('invalid_request');
-  await rm(dir, { recursive: true, force: true });
 });
 
-test('export_web_scripts: incomplete offline capture refuses like REA schema admission', async () => {
+test('export_web_scripts: incomplete offline capture refuses like REA schema admission', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-ews-bad-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const capturePath = join(dir, 'capture.json');
   const output = join(dir, 'out');
   await writeFile(
@@ -213,7 +214,6 @@ test('export_web_scripts: incomplete offline capture refuses like REA schema adm
   expect(closed.code).toBe('invalid_request');
   expect(closed.retryable).toBe(false);
   expect(closed.recovery).toStrictEqual({ kind: 'inspect_input_contract', operation: 'export_web_scripts' });
-  await rm(dir, { recursive: true, force: true });
 });
 
 test('project_apple_application_graph: projects path-convention roles from inventory Evidence', async () => {

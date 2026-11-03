@@ -317,9 +317,9 @@ test('wraps a corrupt SQLite page in the oracle invalid_request envelope', async
   });
 });
 
-const sqlite3 = spawnSync('sqlite3', ['--version'], { encoding: 'utf8' });
+const hasSqliteCli = spawnSync('sqlite3', ['--version'], { encoding: 'utf8' }).status === 0;
 
-test.skipIf(sqlite3.status !== 0)('rejects a NULL sqlite_schema table before reporting a table kind', async () => {
+test.skipIf(!hasSqliteCli)('rejects a NULL sqlite_schema table before reporting a table kind', async () => {
   const targets = await tempTargets();
   const path = join(targets.dir, 'null-schema.db');
   const created = spawnSync('sqlite3', [path, 'CREATE TABLE t (a INTEGER); INSERT INTO t VALUES (1);']);

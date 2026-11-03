@@ -89,6 +89,7 @@ test('KERN-016: the discovery tool carries the routing guideline', () => {
 });
 
 test('KERN-016: shared session state runs sequentially and declares the rea namespace', () => {
+  expect.hasAssertions();
   const registration = loadExtension();
   for (const tool of registration.tools) {
     expect(tool.executionMode).toBe('sequential');
@@ -165,6 +166,7 @@ test('KERN-017: a cancelled call reports cancelled and runs nothing', async () =
 });
 
 test('KERN-017: the reported tool state never contradicts the catalog', async () => {
+  expect.hasAssertions();
   const registration = loadExtension();
   const report = JSON.parse((await run(toolNamed(registration, 'binary_session'), {})).content[0]?.text ?? '{}') as {
     result: { tool_availability: { groups: { names: string[]; available: boolean; reason: string | null }[] } };
@@ -173,7 +175,7 @@ test('KERN-017: the reported tool state never contradicts the catalog', async ()
   const groups = report.result.tool_availability.groups;
   for (const contract of catalog.tools) {
     const group = groups.find((candidate) => candidate.names.includes(contract.name));
-    expect(group).toBeDefined();
+    expect(group?.names).toContain(contract.name);
     expect(group?.available).toBe(contract.implementation === 'kernel' && group?.reason !== 'target_required');
     if (contract.implementation === 'kernel') expect(['available', 'target_required']).toContain(group?.reason);
     else expect(['target_required', 'provider_unavailable']).toContain(group?.reason);
@@ -211,6 +213,7 @@ test('KERN-017: /rea status reports availability, target and retained counts', a
 });
 
 test('KERN-017: every implemented tool answers through its registered handler', async () => {
+  expect.hasAssertions();
   const registration = loadExtension();
   for (const name of KERNEL_TOOL_NAMES) {
     const result = await run(toolNamed(registration, name), {});
@@ -218,10 +221,10 @@ test('KERN-017: every implemented tool answers through its registered handler', 
       const payload = JSON.parse(result.content[0]?.text ?? '{}') as { error: { code?: string; category?: string; message?: string } };
       expect(typeof payload.error?.code, name).toBe('string');
       expect(typeof payload.error?.category, name).toBe('string');
-      expect(String(payload.error?.message).length, name).toBeGreaterThan(0);
+      expect(payload.error?.message, name).toMatch(/\S/);
       continue;
     }
-    expect(result.structuredContent, name).toBeDefined();
+    expect(typeof result.structuredContent, name).toBe('object');
   }
 });
 
@@ -269,7 +272,7 @@ test('KERN-032: session_start rebuilds the session and session_shutdown clears i
     result: { total: number };
   };
   expect(afterStart.result.total).toBe(0);
-  expect(() => shutdown?.handler({}, {})).not.toThrow();
+  expect(shutdown?.handler({}, {})).toBeUndefined();
 });
 
 test('KERN-032: /rea notifies with the session status', async () => {

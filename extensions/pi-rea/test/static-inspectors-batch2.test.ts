@@ -79,7 +79,7 @@ test('inspect_erlang_beam: decodes atoms exports and imports', async () => {
   expect((record['atoms'] as { name: string }[]).map((atom) => atom.name)).toContain('foo');
   expect((record['exports'] as { function: string; arity: number }[])[0]).toMatchObject({ function: 'foo', arity: 1 });
   expect((record['imports'] as { module: string; function: string }[])[0]).toMatchObject({ module: 'erlang', function: 'length' });
-  expect((record['chunks'] as unknown[]).length).toBeGreaterThanOrEqual(4);
+  expect(record['chunks']).toHaveLength(4);
 });
 
 test('inspect_desktop_application: marks Electron candidate from resources/app.asar', async () => {
@@ -87,7 +87,7 @@ test('inspect_desktop_application: marks Electron candidate from resources/app.a
   const record = await normalized(() => inspectDesktopApplication(session, { path: fixturePath('targets/desktop/electron-app') }));
   const candidates = record['candidates'] as { family: string; confidence: string }[];
   expect(candidates.some((candidate) => candidate.family === 'electron' && candidate.confidence === 'inferred')).toBe(true);
-  expect((record['files'] as unknown[]).length).toBeGreaterThan(0);
+  expect(record['files']).toHaveLength(4);
   expect((record['components'] as unknown[]).length).toBe(0);
   const probes = (record['next_probes'] as { operation: string }[]).map((probe) => probe.operation);
   expect(probes).toContain('open_binary');

@@ -6,7 +6,7 @@ import { expect, test } from 'vitest';
 import type { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { listArchitectures } from '../src/tools/arch-tools.ts';
-import { closeBinary, openBinary } from '../src/tools/session-tools.ts';
+import { binarySession, closeBinary, openBinary } from '../src/tools/session-tools.ts';
 import { fixturePath, readFixture } from './support/fixtures.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
@@ -162,7 +162,7 @@ test('TOOL-061: the open_binary availability report reflects the target format',
   onTestFinished(cleanup);
   const session = new ReaSession(runtime);
   await openBinary(session, { path });
-  const report = payloadOf((await import('../src/tools/session-tools.ts')).binarySession(session, {}));
+  const report = payloadOf(binarySession(session, {}));
   const availability = (report['tool_availability'] as { groups: { names: string[]; available: boolean }[] }).groups.find((group) => group.names.includes('list_architectures'));
   expect(availability?.available).toBe(true);
 });

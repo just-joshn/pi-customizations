@@ -21,6 +21,7 @@ import { inspectPlist } from '../src/tools/plist-tools.ts';
 import { isProviderRefuseTool, PROVIDER_REFUSE_BY_NAME, PROVIDER_REFUSE_TOOL_NAMES, providerRefuseAvailability, type RefuseStrategy, refuseProviderTool } from '../src/tools/provider-refuse-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
 import { fixturePath, fixtureSha256 } from './support/fixtures.ts';
+import { stubHost } from './support/host.ts';
 import { tempTargets } from './support/temp-targets.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
@@ -348,7 +349,7 @@ describe('provider refuse tools', () => {
     });
   });
 
-  test('selects a Hopper launcher from the user Applications folder', async () => {
+  const userApplicationsHopper = async (): Promise<{ hopper: Record<string, unknown>; launcher: string }> => {
     vi.stubEnv('HOPPER_LAUNCHER_PATH', undefined);
     const targets = await tempTargets();
     const launcher = join(targets.dir, 'Applications', 'Hopper Disassembler.app', 'Contents', 'MacOS', 'hopper');
@@ -358,11 +359,18 @@ describe('provider refuse tools', () => {
     const open = session();
     await openBinary(open, { path: fixturePath('targets/minimal-elf.bin') });
     const payload = catchPayload(() => refuseProviderTool(open, 'list_bookmarks'));
-    const hopper = (payload.details as { rejections: Record<string, unknown>[] }).rejections[1];
-    if (process.platform !== 'darwin') {
-      expect(hopper).toMatchObject({ provider_id: 'hopper', code: 'executable_missing', diagnostics: { platform: process.platform } });
-      return;
-    }
+    return { hopper: (payload.details as { rejections: Record<string, unknown>[] }).rejections[1] as Record<string, unknown>, launcher };
+  };
+
+  test('ignores the user Applications Hopper launcher off macOS', async () => {
+    stubHost('linux', 'x64');
+    const { hopper } = await userApplicationsHopper();
+    expect(hopper).toMatchObject({ provider_id: 'hopper', code: 'executable_missing', diagnostics: { platform: 'linux' } });
+  });
+
+  test('selects a Hopper launcher from the user Applications folder on macOS', async () => {
+    stubHost('darwin', 'arm64');
+    const { hopper, launcher } = await userApplicationsHopper();
     expect(hopper).toMatchObject({
       provider_id: 'hopper',
       code: 'not_configured',
@@ -435,6 +443,7 @@ describe('provider refuse tools', () => {
   });
 
   test('reports availability for every refuse tool', async () => {
+    expect.hasAssertions();
     const open = session();
     await openBinary(open, { path: fixturePath('targets/minimal-elf.bin') });
     for (const [name, strategy] of PROVIDER_REFUSE_BY_NAME) {
@@ -496,6 +505,7 @@ describe('provider refuse tools', () => {
   });
 
   test('compare_functions falls through without usable Evidence', () => {
+    expect.hasAssertions();
     for (const params of [{}, { left: 'not-a-record' }, { left: { operation: 'analyze_function', predicate_type: 'rea.analysis' } }]) {
       const payload = catchPayload(() => refuseProviderTool(session(), 'compare_functions', params));
       expect(payload.code).toBe('capability_unavailable');
@@ -1323,6 +1333,7 @@ describe('artifact identity', () => {
   ];
 
   test.for(identityCases)('identifies $fixture', async ({ fixture, format, kind, architecture, sha256 }) => {
+    stubHost('darwin', 'arm64');
     const identity = await identifyArtifact(fixturePath(`targets/${fixture}`));
     expect(identity.path.endsWith(fixture)).toBe(true);
     expect(identity).toStrictEqual({
@@ -1699,7 +1710,7 @@ describe('macho tools', () => {
     expect(normalized.provenance[0]).toMatchObject({ tool: 'pi-rea/macho-parser', tool_version: PI_REA_VERSION });
     expect(normalized.limitations).toHaveLength(2);
     const offsets = record.locations.filter((location) => location['kind'] === 'file-offset');
-    expect(offsets).toStrictEqual([{ kind: 'file-offset', offset: 489_280 }]);
+    expect(offsets).toStrictEqual([{ kind: 'file-offset', offset: normalized.entrypoints.items[0]?.file_offset }]);
     const ranges = record.locations.filter((location) => location['kind'] === 'file-offset-range');
     expect(ranges).toHaveLength(normalized.segments.items.filter((segment) => segment.file_size > 0).length);
     for (const [index, segment] of normalized.segments.items.filter((item) => item.file_size > 0).entries()) {
@@ -1852,21 +1863,24 @@ describe('binary layout tools', () => {
     });
   });
 
-  test('inspect_binary_layout follows the pwntools host profile', async () => {
+  test('inspect_binary_layout reads an ELF on a Linux-x64 host', async () => {
+    stubHost('linux', 'x64');
     const open = session();
     const path = fixturePath('targets/minimal-elf.bin');
-    if (process.platform === 'linux' && process.arch === 'x64') {
-      const record = recordOf(await inspectBinaryLayout(open, { path, detail: 'summary' }));
-      const normalized = record.normalized_result as { format: string; architecture: string | null; limitations: string[] };
-      expect(record.operation).toBe('inspect_binary_layout');
-      expect(record.parameters).toStrictEqual({ path, detail: 'summary' });
-      expect(normalized.format).toBe('elf');
-      expect(normalized.architecture).toBe('x86_64');
-      expect(normalized.limitations.at(-1)).toBe('Static facts only; the port performs no execution and opens no disassembler.');
-      expect(open.evidence.size).toBe(1);
-      return;
-    }
-    const payload = await catchRejection(() => inspectBinaryLayout(open, { path }));
+    const record = recordOf(await inspectBinaryLayout(open, { path, detail: 'summary' }));
+    const normalized = record.normalized_result as { format: string; architecture: string | null };
+    expect(record.operation).toBe('inspect_binary_layout');
+    expect(record.parameters).toStrictEqual({ path, detail: 'summary' });
+    expect(normalized.format).toBe('elf');
+    expect(normalized.architecture).toBe('x86_64');
+    expect(record.limitations).toContain('Static facts only; the port performs no execution and opens no disassembler.');
+    expect(open.evidence.size).toBe(1);
+  });
+
+  test('inspect_binary_layout refuses an unsupported pwntools host', async () => {
+    stubHost('darwin', 'arm64');
+    const open = session();
+    const payload = await catchRejection(() => inspectBinaryLayout(open, { path: fixturePath('targets/minimal-elf.bin') }));
     expect(payload).toStrictEqual({
       code: 'capability_unavailable',
       category: 'unsupported_provider',

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { catalogDigest, loadCatalog } from '../src/contract/catalog.ts';
 import { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
@@ -74,7 +74,7 @@ test('KERN-011: availability groups partition the catalog with the reference fie
   const targetRequired = availability.groups.find((group) => group['reason'] === 'target_required');
   expect(targetRequired?.['remediation']).toBe('Call open_binary with a supported local target.');
   const targetRequiredNames = availability.groups.filter((group) => group['reason'] === 'target_required').flatMap((group) => group['names']);
-  expect(targetRequiredNames.length).toBeGreaterThan(30);
+  expect(targetRequiredNames).toHaveLength(62);
   expect(targetRequiredNames).toContain('decompile_all');
 });
 
@@ -181,6 +181,7 @@ test('KERN-012: a directory is refused with the reference constraint', async () 
 });
 
 test('KERN-012: unsupported content and missing paths fail closed as target_unavailable', async () => {
+  expect.hasAssertions();
   for (const path of [fixturePath('targets/note.txt'), fixturePath('targets/absent.bin')]) {
     let thrown: unknown;
     try {
@@ -224,7 +225,7 @@ test('KERN-013: close_binary returns the reference null result and clears the se
     supporting_evidence_ids: [],
     contradicting_evidence_ids: [],
   });
-  expect(session.evidence.size).toBeGreaterThan(0);
+  expect(session.evidence.size).toBe(1);
   expect(session.unknowns.size).toBe(1);
   const result = closeBinary(session, {});
   expect(result.structuredContent).toStrictEqual({ result: null });
@@ -283,6 +284,7 @@ test('KERN-013: closing a session with a removed working directory needs no file
 });
 
 test('KERN-025: an available group reports the reference reason and annotation vocabulary', () => {
+  expect.hasAssertions();
   const report = payloadOf(binarySession(new ReaSession(runtime), {}));
   const availability = report['tool_availability'] as { groups: Record<string, unknown>[] };
   for (const group of availability.groups) {
@@ -316,30 +318,35 @@ test('KERN-028: a universal Mach-O reports the slice this host runs', async ({ o
   expect(identity['architecture']).toBe(process.arch === 'arm64' ? 'arm64' : process.arch === 'x64' ? 'x86_64' : null);
 });
 
-test('KERN-028: mach-O variants and PE headers are identified from their headers', async ({ onTestFinished }) => {
+const openHeader = async (name: string, bytes: Buffer, onTestFinished: (cleanup: () => Promise<void>) => void): Promise<ReaSession> => {
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-headers-'));
   onTestFinished(async () => rm(dir, { recursive: true, force: true }));
+  const path = join(dir, name);
+  await writeFile(path, bytes);
+  const session = new ReaSession(runtime);
+  await openBinary(session, { path });
+  return session;
+};
 
+test('KERN-028: a thin 64-bit Mach-O header is identified as x86_64', async ({ onTestFinished }) => {
   const thin64 = Buffer.alloc(32);
   thin64.writeUInt32LE(0xfeedfacf, 0);
   thin64.writeUInt32LE(0x01000007, 4);
-  const thinPath = join(dir, 'thin-x64.bin');
-  await writeFile(thinPath, thin64);
-  await expect(openBinary(new ReaSession(runtime), { path: thinPath })).resolves.toBeDefined();
-  expect(payloadOf(await openBinary(new ReaSession(runtime), { path: thinPath }))['architecture']).toBe('x86_64');
+  const session = await openHeader('thin-x64.bin', thin64, onTestFinished);
+  expect(session.target?.identity.architecture).toBe('x86_64');
+});
 
+test('KERN-028: an MZ header is identified as a PE executable', async ({ onTestFinished }) => {
   const pe = Buffer.alloc(64);
   pe.write('MZ', 0, 'latin1');
-  const pePath = join(dir, 'pe.bin');
-  await writeFile(pePath, pe);
-  const peIdentity = payloadOf(await openBinary(new ReaSession(runtime), { path: pePath }));
-  expect(peIdentity).toMatchObject({ format: 'pe', kind: 'executable', architecture: null });
+  const session = await openHeader('pe.bin', pe, onTestFinished);
+  expect(session.target?.identity).toMatchObject({ format: 'pe', kind: 'executable', architecture: null });
+});
 
+test('KERN-028: an unrecognized header is refused as an unsupported binary format', async ({ onTestFinished }) => {
   const unknown = Buffer.alloc(64);
   unknown.write('\u007fNOTELF', 0, 'latin1');
-  const unknownPath = join(dir, 'unknown.bin');
-  await writeFile(unknownPath, unknown);
-  await expect(openBinary(new ReaSession(runtime), { path: unknownPath })).rejects.toThrowError(/unsupported binary format/);
+  await expect(openHeader('unknown.bin', unknown, onTestFinished)).rejects.toThrowError(/unsupported binary format/);
 });
 
 test('KERN-012: open_binary refuses a non-regular file instead of blocking', async ({ onTestFinished }) => {
@@ -357,16 +364,13 @@ test('KERN-012: open_binary refuses a non-regular file instead of blocking', asy
   expect((thrown as ReaError).payload.details).toMatchObject({ reason: 'not a regular file' });
 });
 
-test('KERN-030: an unusable budget is rejected before the session changes', async () => {
+test('KERN-030: an unusable budget is rejected before the session changes', async ({ onTestFinished }) => {
   const session = new ReaSession(runtime);
-  const previous = process.env['REA_MCP_MAX_RESPONSE_BYTES'];
-  process.env['REA_MCP_MAX_RESPONSE_BYTES'] = '1';
-  try {
-    await expect(openBinary(session, { path: fixturePath('targets/minimal-elf.bin') })).rejects.toThrowError(/REA_MCP_MAX_RESPONSE_BYTES/);
-  } finally {
-    if (previous === undefined) delete process.env['REA_MCP_MAX_RESPONSE_BYTES'];
-    else process.env['REA_MCP_MAX_RESPONSE_BYTES'] = previous;
-  }
+  vi.stubEnv('REA_MCP_MAX_RESPONSE_BYTES', '1');
+  onTestFinished(() => {
+    vi.unstubAllEnvs();
+  });
+  await expect(openBinary(session, { path: fixturePath('targets/minimal-elf.bin') })).rejects.toThrowError(/REA_MCP_MAX_RESPONSE_BYTES/);
   expect(session.open).toBe(false);
 });
 

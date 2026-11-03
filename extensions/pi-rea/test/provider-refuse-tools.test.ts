@@ -1,7 +1,8 @@
-import { homedir } from 'node:os';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { listCutterSessions } from '../src/tools/cutter-tools.ts';
@@ -137,6 +138,7 @@ test('frida/jeb/rizin/gdb/cutter/wakaru/apktool/binwalk/jadx capability envelope
 });
 
 test('cdp/electron page family: provider_unavailable endpoint_unreachable', () => {
+  expect.hasAssertions();
   for (const name of ['list_browser_targets', 'inspect_web_page', 'list_electron_targets', 'analyze_web_bundle']) {
     const payload = catchPayload(() => refuseProviderTool(new ReaSession(runtime), name));
     expect(payload.code, name).toBe('provider_unavailable');
@@ -167,6 +169,7 @@ test('compare fail-closed family refuses without inventing diffs when Evidence s
 });
 
 test('wabt/tshark/sigrok/evm capability envelopes match REA missing-provider probes', () => {
+  expect.hasAssertions();
   const cases = [
     { name: 'inspect_wasm_artifact', provider_id: 'wabt-artifact', needle: 'REA_WABT_BIN_DIRECTORY' },
     { name: 'inspect_packet_capture', provider_id: 'tshark-capture', needle: 'TShark' },
@@ -202,6 +205,7 @@ test('native observe family: closed is target_unavailable; open is capability_un
 });
 
 test('engine-free gap family refuses without inventing findings', () => {
+  expect.hasAssertions();
   for (const name of ['capture_process_scenario', 'verify_reconstruction', 'project_android_application_graph']) {
     const payload = catchPayload(() => refuseProviderTool(new ReaSession(runtime), name));
     expect(payload.code, name).toBe('capability_unavailable');
@@ -213,12 +217,18 @@ test('engine-free gap family refuses without inventing findings', () => {
   }
 });
 
-test('list_cutter_sessions: empty bridge inventory is configuration not refuse', () => {
+test('list_cutter_sessions: empty bridge inventory is configuration not refuse', async ({ onTestFinished }) => {
+  const home = await mkdtemp(join(tmpdir(), 'pi-rea-home-'));
+  onTestFinished(async () => rm(home, { recursive: true, force: true }));
+  vi.stubEnv('HOME', home);
+  onTestFinished(() => {
+    vi.unstubAllEnvs();
+  });
   const result = listCutterSessions(new ReaSession(runtime), {});
   const body = result.structuredContent as Record<string, unknown>;
   expect(body).toStrictEqual({
     sessions: [],
-    bridge_directory: join(homedir(), '.cache', 'rea', 'cutter-bridge'),
+    bridge_directory: join(home, '.cache', 'rea', 'cutter-bridge'),
     discovery_status: 'no_live_bridge_found',
     bridge_directory_security: 'not_checked',
   });

@@ -210,7 +210,7 @@ test('KERN-021: an unknown record that is not canonical is not imported', () => 
   expect(session.unknowns.insertImported([good])).toBe(1);
 });
 
-test('KERN-051: a verified resolution requires retained Evidence and a rationale', () => {
+test('KERN-051: a verified resolution is refused when its Evidence is not retained', () => {
   const session = new ReaSession(runtime);
   const first = payloadOf(recordUnknown(session, draft()));
   const unknownId = first['unknown_id'] as string;
@@ -225,7 +225,12 @@ test('KERN-051: a verified resolution requires retained Evidence and a rationale
   ).toThrowError(/not retained in this session/);
   expect(session.unknowns.revisionCount).toBe(1);
   expect(session.evidence.size).toBe(1);
+});
 
+test('KERN-051: a verified resolution is accepted with retained Evidence and a rationale', () => {
+  const session = new ReaSession(runtime);
+  const first = payloadOf(recordUnknown(session, draft()));
+  const unknownId = first['unknown_id'] as string;
   const own = session.evidence.list()[0]?.evidence_id as string;
   const updated = payloadOf(
     updateUnknown(session, {

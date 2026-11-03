@@ -958,7 +958,7 @@ test('model derives tensor totals from declared shapes', async () => {
   expect(record.alignment).toBe(32);
   expect(record.tensor_data_offset % 32).toBe(0);
   expect(record.artifact.header_length).toBe(bytes.length);
-  expect(record.tensor_data_offset).toBeGreaterThanOrEqual(record.artifact.header_length);
+  expect(record.tensor_data_offset).toBe(128);
   expect(record.tensors).toStrictEqual([
     {
       index: 0,

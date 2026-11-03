@@ -42,6 +42,7 @@ test('KERN-044: a reference-produced bundle is refused by the identity check', (
 });
 
 test('KERN-006: any recorded fact changes the identifier', () => {
+  expect.hasAssertions();
   const base = createEvidence(draft()).evidence_id;
   const changes: Partial<EvidenceDraft>[] = [
     { operation: 'inspect_macho' },

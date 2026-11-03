@@ -1578,7 +1578,7 @@ test('inspect_kernel_module reports absent metadata for a nameless table', async
   );
   const { record } = await inspectKernelModuleFromPath(path);
 
-  expect(names).toBeGreaterThan(0);
+  expect(names).toBe(72);
   expect(record.modinfo.status).toBe('absent');
   expect(record.this_module.status).toBe('absent');
 });

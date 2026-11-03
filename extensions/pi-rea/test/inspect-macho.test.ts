@@ -1,9 +1,14 @@
-import { expect, test } from 'vitest';
+import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+import { expect, onTestFinished, test } from 'vitest';
 import type { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { inspectMacho } from '../src/tools/macho-tools.ts';
 import { openBinary } from '../src/tools/session-tools.ts';
 import { fixturePath } from './support/fixtures.ts';
+import { stubHost } from './support/host.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 const CPU_ARM64 = 0x0100000c;
@@ -176,8 +181,6 @@ const fatBinary = (): Buffer => {
 };
 
 const recordOf = async (path: string): Promise<Record<string, unknown>> => {
-  const bytes = await import('node:fs/promises').then((fs) => fs.readFile(path));
-  void bytes;
   const session = new ReaSession(runtime);
   await openBinary(session, { path });
   const result = await inspectMacho(session, {});
@@ -185,10 +188,8 @@ const recordOf = async (path: string): Promise<Record<string, unknown>> => {
 };
 
 const write = async (name: string, bytes: Buffer): Promise<string> => {
-  const { mkdtemp, writeFile } = await import('node:fs/promises');
-  const { tmpdir } = await import('node:os');
-  const { join } = await import('node:path');
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-macho-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const path = join(dir, name);
   await writeFile(path, bytes);
   return path;
@@ -269,6 +270,7 @@ test('TOOL-058: load commands are listed with their decoded fields', async () =>
 });
 
 test('TOOL-058: a universal image lists every slice and reports the host slice', async () => {
+  stubHost('darwin', 'arm64');
   const path = await write('fat', fatBinary());
   const normalized = (await recordOf(path))['normalized_result'] as Record<string, unknown>;
   const architectures = normalized['architectures'] as { items: Record<string, unknown>[]; total: number };
@@ -287,6 +289,7 @@ test('TOOL-058: a universal image lists every slice and reports the host slice',
 });
 
 test('TOOL-058: an image with no symbol table reports bounded empty symbol coverage', async () => {
+  expect.hasAssertions();
   const path = await write('symbols', thinBinary());
   const normalized = (await recordOf(path))['normalized_result'] as Record<string, unknown>;
   for (const facet of ['imports', 'exports']) {
@@ -311,7 +314,6 @@ test('TOOL-058: the analysis needs an open target and is retained as Evidence', 
   const structured = record.structuredContent as Record<string, unknown>;
   expect(session.evidence.get(structured['evidence_id'] as string)?.operation).toBe('inspect_macho');
   expect(structured['subject']).toMatchObject({ format: 'mach-o', architecture: 'arm64' });
-  const { realpath } = await import('node:fs/promises');
   const resolved = await realpath(path);
   expect(structured['parameters']).toStrictEqual({ input_path: resolved });
   const locations = structured['locations'] as { kind: string; offset?: number; start?: number; end?: number }[];
