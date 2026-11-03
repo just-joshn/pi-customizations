@@ -109,17 +109,23 @@ describe('input validation (SEC-001, TASK-016)', () => {
     expect([childArgs({ ...base, trusted: true }).includes('--approve'), childArgs({ ...base, trusted: false }).includes('--no-approve')]).toEqual([true, true]);
   });
 
-  test('rejects a directory attachment and expands ~ as Pi read paths do (review r2: security 4)', () => {
+  test('rejects a directory attachment (review r2: security 4)', () => {
     mkdirSync(join(dir, 'adir'));
+    expect(() => resolveAttachments(['adir'], dir)).toThrow(`file_attachments: ${join(dir, 'adir')} is not a file`);
+  });
+
+  test('expands ~ in an attachment as Pi read paths do (review r2: security 4)', () => {
     mkdirSync(join(dir, 'home'));
     writeFileSync(join(dir, 'home/x.txt'), 'x');
-    expect(() => resolveAttachments(['adir'], dir)).toThrow(`file_attachments: ${join(dir, 'adir')} is not a file`);
     expect(resolveAttachments(['~/x.txt'], dir, join(dir, 'home'))).toEqual([join(dir, 'home/x.txt')]);
   });
 
-  test('resolves attachments against the working directory and rejects missing files', () => {
+  test('resolves attachments against the working directory', () => {
     writeFileSync(join(dir, 'shot.png'), 'png');
     expect(resolveAttachments(['shot.png', join(dir, 'shot.png')], dir)).toEqual([join(dir, 'shot.png'), join(dir, 'shot.png')]);
+  });
+
+  test('rejects a missing attachment file', () => {
     expect(() => resolveAttachments(['missing.png'], dir)).toThrow(`file_attachments: ${join(dir, 'missing.png')} does not exist`);
   });
 });
@@ -136,15 +142,6 @@ const alive = (pid: number) => {
     return false;
   }
 };
-
-async function eventually(check: () => boolean, timeoutMs = 8_000): Promise<boolean> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (check()) return true;
-    await new Promise<void>((resolve) => setImmediate(resolve));
-  }
-  return check();
-}
 
 describe('startChild', () => {
   test('sends the prompt as an RPC prompt and returns the final assistant text with summed usage', async () => {
@@ -217,11 +214,11 @@ describe('startChild', () => {
         if (event.type === 'fake_pids') pids.push(...(event['pids'] as number[]));
       },
     });
-    expect(await eventually(() => pids.length === 2)).toBe(true);
+    await expect.poll(() => pids.length, { timeout: 8_000 }).toBe(2);
     controller.abort();
     const outcome = await handle.done;
     expect(outcome.failure).toBe('Subagent was aborted');
-    expect(await eventually(() => pids.every((pid) => !alive(pid)))).toBe(true);
+    await expect.poll(() => pids.every((pid) => !alive(pid)), { timeout: 8_000 }).toBe(true);
   });
 
   test('kill() stops a running child for session shutdown (TASK-013)', async () => {
@@ -236,10 +233,10 @@ describe('startChild', () => {
         if (event.type === 'fake_pids') pids.push(...(event['pids'] as number[]));
       },
     });
-    expect(await eventually(() => pids.length === 2)).toBe(true);
+    await expect.poll(() => pids.length, { timeout: 8_000 }).toBe(2);
     handle.kill();
     expect((await handle.done).failure).toBe('Subagent was aborted');
-    expect(await eventually(() => pids.every((pid) => !alive(pid)))).toBe(true);
+    await expect.poll(() => pids.every((pid) => !alive(pid)), { timeout: 8_000 }).toBe(true);
   });
 
   test('sends attachment images with the prompt', async () => {

@@ -672,14 +672,7 @@ describe('cancellation', () => {
       return false;
     }
   };
-  async function gone(pids: readonly number[], timeoutMs = 12_000): Promise<boolean> {
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      if (pids.every((pid) => !alive(pid))) return true;
-      await new Promise<void>((resolve) => setImmediate(resolve));
-    }
-    return pids.every((pid) => !alive(pid));
-  }
+  const gone = (pids: readonly number[]) => expect.poll(() => pids.every((pid) => !alive(pid)), { timeout: 12_000 }).toBe(true);
   const childrenOf = (pid: number) =>
     execFileSync('ps', ['-axo', 'pid=,ppid='], { encoding: 'utf8' })
       .trim()
@@ -698,7 +691,7 @@ describe('cancellation', () => {
       expect(alive(pid)).toBe(true);
       rpc.send({ type: 'abort' });
       await rpc.waitFor((event) => event.type === 'agent_settled');
-      expect(await gone([pid])).toBe(true);
+      await gone([pid]);
     } finally {
       await rpc.close();
     }
@@ -714,7 +707,8 @@ describe('cancellation', () => {
     // Pi's exit also orphans the child, and its watchdog would end it, so this checks the outcome and the notice.
     // The shutdown kill itself is proven by the reload and new-session tests in lifecycle.e2e.test.ts.
     const notice = rpc.events.find((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('Stopped '));
-    expect([notice?.['message'], await gone([pid])]).toEqual(['Stopped 1 background subagent (session quit). Resume one with its agent ID.', true]);
+    expect(notice?.['message']).toBe('Stopped 1 background subagent (session quit). Resume one with its agent ID.');
+    await gone([pid]);
   });
 
   // A silent bash command writes nothing to stdout, so an orphaned child gets no EPIPE and only the watchdog ends it.
@@ -723,12 +717,11 @@ describe('cancellation', () => {
     rpc.send({ type: 'prompt', message: script([task({ prompt: 'go\n@@script [{"tool":"bash","args":{"command":"sleep 45"}}]', run_in_background: true })]) });
     const launch = await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'Task');
     const pid = detailsPid(launch, 'result');
-    const deadline = Date.now() + 10_000;
-    while (childrenOf(pid).length === 0 && Date.now() < deadline) await new Promise<void>((resolve) => setImmediate(resolve));
+    await expect.poll(() => childrenOf(pid), { timeout: 10_000 }).not.toHaveLength(0);
     const shell = childrenOf(pid);
     expect([alive(pid), shell.length > 0]).toEqual([true, true]);
     rpc.child.kill('SIGKILL');
     await rpc.close();
-    expect(await gone([pid, ...shell])).toBe(true);
+    await gone([pid, ...shell]);
   });
 });

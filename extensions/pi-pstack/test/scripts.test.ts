@@ -22,10 +22,13 @@ describe('bundled scripts run from the package (SCRIPT-001)', () => {
     expect(result.status).toBe(0);
   });
 
-  test('watch-pr starts and prints usage, and orch is gone (pstack 0.15.36 runs orchestrate with agent tools)', () => {
+  test('watch-pr starts and prints usage', () => {
     const watch = spawnSync(join(SCRIPTS, 'watch-pr/watch-pr'), ['--help'], { encoding: 'utf8', timeout: 60_000 });
     expect(watch.stdout.split('\n')[0]).toBe('Usage: watch-pr [options]');
     expect(watch.status).toBe(0);
+  });
+
+  test('orch is gone (pstack 0.15.36 runs orchestrate with agent tools)', () => {
     expect(existsSync(join(SCRIPTS, 'orch'))).toBe(false);
   });
 

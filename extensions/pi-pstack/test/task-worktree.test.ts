@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { addWorktree, planWorktree } from '../src/task/worktree.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
@@ -96,11 +96,15 @@ describe('addWorktree', () => {
 
   test('an abort stops a slow checkout instead of blocking until it ends', async () => {
     commitFile('a.txt', 'A', 'first');
-    writeFileSync(join(repo, '.git/hooks/post-checkout'), '#!/bin/sh\nsleep 30\n', { mode: 0o755 });
+    const hookStarted = join(root, 'hook-started');
+    writeFileSync(join(repo, '.git/hooks/post-checkout'), `#!/bin/sh\ntouch ${hookStarted}\nsleep 30\n`, { mode: 0o755 });
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), 200);
+    const creating = addWorktree(repo, planWorktree(repo, worktrees, id), controller.signal);
+    const outcome = expect(creating).rejects.toThrow(`Stopped creating the subagent's worktree at ${join(worktrees, id)}.`);
+    await vi.waitFor(() => expect(existsSync(hookStarted)).toBe(true));
     const started = Date.now();
-    await expect(addWorktree(repo, planWorktree(repo, worktrees, id), controller.signal)).rejects.toThrow(`Stopped creating the subagent's worktree at ${join(worktrees, id)}.`);
+    controller.abort();
+    await outcome;
     expect(Date.now() - started).toBeLessThan(5000);
   });
 });

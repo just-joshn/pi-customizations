@@ -29,7 +29,7 @@ describe('alias autocomplete (CMD-003)', () => {
   test('leaves completions alone outside a leading command token', async () => {
     const provider = aliasAutocomplete(current, aliases);
     expect(await provider.getSuggestions(['/how why'], 0, 8, { signal })).toEqual({ items: builtin, prefix: '/how why' });
-    expect(await provider.getSuggestions(['say /pot'], 0, 8, { signal })).toEqual(null);
+    expect(await provider.getSuggestions(['say /pot'], 0, 8, { signal })).toBeNull();
   });
 
   test('applies an alias like any command completion', () => {

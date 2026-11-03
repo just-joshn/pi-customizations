@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { type ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { subagentDir } from '../src/paths.ts';
 import { type AgentDefinition, GENERAL_PURPOSE } from '../src/task/agents.ts';
 import { type AgentRecord, acquireRunLock, forkTranscript, transcriptFor, writeRecord } from '../src/task/records.ts';
@@ -19,7 +19,6 @@ const notRunning = () => false;
 let root = '';
 let workspace = '';
 let dir = '';
-let previousAgentDir: string | undefined;
 
 const ctx = () =>
   ({ cwd: workspace, model: undefined, thinkingLevel: undefined, modelRegistry: { getAvailable: () => [] }, sessionManager: { getSessionId: () => 'parent-session' }, isProjectTrusted: () => true }) as unknown as ExtensionContext;
@@ -49,14 +48,12 @@ beforeEach(() => {
   root = realpathSync(mkdtempSync(join(tmpdir(), 'fork-')));
   workspace = join(root, 'workspace');
   mkdirSync(workspace);
-  previousAgentDir = process.env['PI_CODING_AGENT_DIR'];
-  process.env['PI_CODING_AGENT_DIR'] = join(root, 'agent');
+  vi.stubEnv('PI_CODING_AGENT_DIR', join(root, 'agent'));
   dir = subagentDir(workspace);
   mkdirSync(dir, { recursive: true });
 });
 afterEach(() => {
-  if (previousAgentDir === undefined) delete process.env['PI_CODING_AGENT_DIR'];
-  else process.env['PI_CODING_AGENT_DIR'] = previousAgentDir;
+  vi.unstubAllEnvs();
   rmSync(root, { recursive: true, force: true });
 });
 

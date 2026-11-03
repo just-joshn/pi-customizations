@@ -22,14 +22,7 @@ const alive = (pid: number) => {
   }
 };
 
-async function gone(pids: readonly number[], timeoutMs = 12_000): Promise<boolean> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (pids.every((pid) => !alive(pid))) return true;
-    await new Promise<void>((resolve) => setImmediate(resolve));
-  }
-  return pids.every((pid) => !alive(pid));
-}
+const gone = (pids: readonly number[]) => expect.poll(() => pids.every((pid) => !alive(pid)), { timeout: 12_000 }).toBe(true);
 
 async function reply(message: string): Promise<string> {
   const mark = rpc.events.length;
@@ -73,7 +66,7 @@ test('/reload keeps aliases and tools, and stops the old runtime children (PKG-0
   expect(alive(pid)).toBe(true);
   rpc.send({ id: 'reload', type: 'prompt', message: '/test-reload' });
   await rpc.waitFor((event) => event['id'] === 'reload');
-  expect(await gone([pid])).toBe(true);
+  await gone([pid]);
   expect(await reply('/how @@say STILL-ALIASED')).toBe('STILL-ALIASED');
   expect(
     (await reply('tools\n@@tools-list'))
@@ -91,7 +84,7 @@ test('a new session resets mode and todos and stops the old children (PKG-002)',
   expect(alive(pid)).toBe(true);
   rpc.send({ id: 'new', type: 'new_session' });
   await rpc.waitFor((event) => event['id'] === 'new');
-  expect(await gone([pid])).toBe(true);
+  await gone([pid]);
   const notice = rpc.events.find((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('Stopped 1 background'));
   expect(notice?.['message']).toBe('Stopped 1 background subagent (session new). Resume one with its agent ID.');
   expect(await reply('fresh\n@@sys')).not.toContain('<pstack_mode>');
