@@ -16,7 +16,7 @@ function cacheMarkers(value: unknown): readonly unknown[] {
 test('every cache breakpoint lasts one hour by default', async ({ models, model, server }) => {
   await collect(models.streamSimple(model, prompt));
   const markers = cacheMarkers(soleRequest(server).body);
-  expect(markers.length).toBeGreaterThanOrEqual(3);
+  expect(markers).toHaveLength(4);
   expect(markers).toStrictEqual(markers.map(() => ONE_HOUR));
 });
 
@@ -44,6 +44,6 @@ test('an explicit short retention is still lifted to one hour', async ({ models,
 
 test('every model declares the one-hour lifetime for both retention tiers', ({ provider }) => {
   const lifetimes = provider.getModels().map((model) => model.promptCache);
-  expect(lifetimes.length).toBeGreaterThan(0);
+  expect(lifetimes).toContainEqual({ short: 3600, long: 3600 });
   expect(lifetimes).toStrictEqual(lifetimes.map(() => ({ short: 3600, long: 3600 })));
 });

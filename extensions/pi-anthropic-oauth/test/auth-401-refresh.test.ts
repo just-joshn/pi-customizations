@@ -26,8 +26,7 @@ test('a 401 refreshes once then retries the request', async ({ models, model, se
   const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0 }));
   expect(message.stopReason).toBe('stop');
   expect(server.requests).toHaveLength(2);
-  expect(authorization(server.requests[0]!)).toBe(`Bearer ${OAUTH_ACCESS_TOKEN}`);
-  expect(authorization(server.requests[1]!)).toBe(`Bearer ${REFRESHED_ACCESS_TOKEN}`);
+  expect(server.requests.map((request) => authorization(request))).toStrictEqual([`Bearer ${OAUTH_ACCESS_TOKEN}`, `Bearer ${REFRESHED_ACCESS_TOKEN}`]);
   expect(tokenEndpoint.requests).toHaveLength(1);
   await expect(credentials.read(model.provider)).resolves.toMatchObject({
     type: 'oauth',
@@ -61,8 +60,7 @@ test('a 403 with revoked OAuth body refreshes once then retries the request', as
   const { message } = await collect(models.streamSimple(model, ask('hi'), { maxRetries: 0 }));
   expect(message.stopReason).toBe('stop');
   expect(server.requests).toHaveLength(2);
-  expect(authorization(server.requests[0]!)).toBe(`Bearer ${OAUTH_ACCESS_TOKEN}`);
-  expect(authorization(server.requests[1]!)).toBe(`Bearer ${REFRESHED_ACCESS_TOKEN}`);
+  expect(server.requests.map((request) => authorization(request))).toStrictEqual([`Bearer ${OAUTH_ACCESS_TOKEN}`, `Bearer ${REFRESHED_ACCESS_TOKEN}`]);
   expect(tokenEndpoint.requests).toHaveLength(1);
   await expect(credentials.read(model.provider)).resolves.toMatchObject({
     type: 'oauth',

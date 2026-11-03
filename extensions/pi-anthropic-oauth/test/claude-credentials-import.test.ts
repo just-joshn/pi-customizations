@@ -2,18 +2,9 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test, vi } from 'vitest';
-
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { createClaudeOAuth, subscriptionAuth } from '../src/auth.ts';
-import {
-  CLAUDE_KEYCHAIN_SERVICE_DEFAULT,
-  claudeKeychainAccount,
-  claudeKeychainService,
-  importClaudeAiOauth,
-  parseClaudeCredentialsJson,
-  resolveClaudeCredentialsLayout,
-  toPiOAuthCredential,
-} from '../src/claude-credentials.ts';
+import { CLAUDE_KEYCHAIN_SERVICE_DEFAULT, claudeKeychainAccount, claudeKeychainService, importClaudeAiOauth, parseClaudeCredentialsJson, resolveClaudeCredentialsLayout, toPiOAuthCredential } from '../src/claude-credentials.ts';
 
 const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
@@ -166,7 +157,7 @@ test('import throws when neither store has credentials', async () => {
   ).rejects.toThrow(/No Claude Code credentials found/);
 });
 
-test('subscription login import path returns a Pi oauth credential without fetch or claude', async () => {
+test('subscription login import path returns a Pi oauth credential without fetch or claude', async ({ signal }) => {
   const sample = await readFile(join(fixturesDir, 'credentials-layout.sample.json'), 'utf8');
   const imported = toPiOAuthCredential(parseClaudeCredentialsJson(sample));
   const oauth = subscriptionAuth(
@@ -176,31 +167,30 @@ test('subscription login import path returns a Pi oauth credential without fetch
   ).oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let fetchCalls = 0;
+  onTestFinished(() => {
+    vi.unstubAllGlobals();
+  });
   vi.stubGlobal('fetch', async () => {
     fetchCalls += 1;
     throw new Error('import must not contact the token endpoint');
   });
-  try {
-    const progress: string[] = [];
-    const credential = await oauth.login({
-      signal: new AbortController().signal,
-      notify: (event) => {
-        if (event.type === 'progress') progress.push(event.message);
-      },
-      prompt: async (prompt) => {
-        if (prompt.type === 'select') return 'import';
-        throw new Error(`unexpected prompt ${prompt.type}`);
-      },
-    });
-    expect(fetchCalls).toBe(0);
-    expect(progress.some((message) => /Importing Claude Code/.test(message))).toBe(true);
-    expect(credential).toEqual(imported);
-  } finally {
-    vi.unstubAllGlobals();
-  }
+  const progress: string[] = [];
+  const credential = await oauth.login({
+    signal,
+    notify: (event) => {
+      if (event.type === 'progress') progress.push(event.message);
+    },
+    prompt: async (prompt) => {
+      if (prompt.type === 'select') return 'import';
+      throw new Error(`unexpected prompt ${prompt.type}`);
+    },
+  });
+  expect(fetchCalls).toBe(0);
+  expect(progress.some((message) => /Importing Claude Code/.test(message))).toBe(true);
+  expect(credential).toEqual(imported);
 });
 
-test('subscription login surfaces a missing Claude Code store without wrapping it away', async () => {
+test('subscription login surfaces a missing Claude Code store without wrapping it away', async ({ signal }) => {
   const oauth = subscriptionAuth(
     createClaudeOAuth({
       importCredentials: async () => {
@@ -211,7 +201,7 @@ test('subscription login surfaces a missing Claude Code store without wrapping i
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async (prompt) => {
         if (prompt.type === 'select') return 'import';

@@ -49,7 +49,8 @@ test('the credential store holds the refreshed tokens', async ({ models, model, 
 test('a refresh with an aborted signal rejects before any request', async ({ provider, tokenEndpoint }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('provider has no OAuth');
-  await expect(oauth.refresh(oauthCredential(), AbortSignal.abort())).rejects.toThrow();
+  const signal = AbortSignal.abort();
+  await expect(oauth.refresh(oauthCredential(), signal)).rejects.toBe(signal.reason);
   expect(tokenEndpoint.requests).toHaveLength(0);
 });
 
@@ -63,5 +64,5 @@ test('a login with an aborted signal rejects', async ({ provider }) => {
   if (!oauth) throw new Error('provider has no OAuth');
   const signal = AbortSignal.abort();
   const interaction = { signal, notify: () => undefined, prompt: () => Promise.reject(signal.reason) };
-  await expect(oauth.login(interaction)).rejects.toThrow();
+  await expect(oauth.login(interaction)).rejects.toBe(signal.reason);
 });

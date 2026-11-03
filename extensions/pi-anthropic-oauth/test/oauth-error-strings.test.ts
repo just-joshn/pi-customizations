@@ -1,10 +1,10 @@
 import { expect, vi } from 'vitest';
 import { LOGIN_CANCELLED, LOGIN_TIMED_OUT, subscriptionAuth } from '../src/auth.ts';
-import { OAUTH_ACCESS_TOKEN, oauthCredential } from './support/credentials.ts';
 import { test } from './network-guard.ts';
+import { OAUTH_ACCESS_TOKEN, oauthCredential } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
-async function pasteLogin(status: number, statusText: string): Promise<unknown> {
+async function pasteLogin(signal: AbortSignal, status: number, statusText: string): Promise<unknown> {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let authorizeUrl: URL | undefined;
@@ -20,7 +20,7 @@ async function pasteLogin(status: number, statusText: string): Promise<unknown> 
     }),
   );
   return oauth.login({
-    signal: new AbortController().signal,
+    signal,
     notify: (event) => {
       if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
     },
@@ -32,15 +32,15 @@ async function pasteLogin(status: number, statusText: string): Promise<unknown> 
   });
 }
 
-test('exchange 401 surfaces Claude invalid authorization code string', async () => {
-  await expect(pasteLogin(401, 'Unauthorized')).rejects.toThrow('Authentication failed: Invalid authorization code');
+test('exchange 401 surfaces Claude invalid authorization code string', async ({ signal }) => {
+  await expect(pasteLogin(signal, 401, 'Unauthorized')).rejects.toThrow('Authentication failed: Invalid authorization code');
 });
 
-test('exchange non-401 surfaces Claude token exchange failed string', async () => {
-  await expect(pasteLogin(503, 'Service Unavailable')).rejects.toThrow('Token exchange failed (503): Service Unavailable');
+test('exchange non-401 surfaces Claude token exchange failed string', async ({ signal }) => {
+  await expect(pasteLogin(signal, 503, 'Service Unavailable')).rejects.toThrow('Token exchange failed (503): Service Unavailable');
 });
 
-test('refresh non-200 surfaces Claude token refresh failed string', async () => {
+test('refresh non-200 surfaces Claude token refresh failed string', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   vi.stubGlobal(
@@ -53,17 +53,15 @@ test('refresh non-200 surfaces Claude token refresh failed string', async () => 
       }),
     ),
   );
-  await expect(oauth.refresh(oauthCredential(), new AbortController().signal)).rejects.toThrow(
-    'Token refresh failed: Bad Request',
-  );
+  await expect(oauth.refresh(oauthCredential(), signal)).rejects.toThrow('Token refresh failed: Bad Request');
 });
 
-test('login cancellation still passes through', async () => {
+test('login cancellation still passes through', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async () => {
         throw new Error(LOGIN_CANCELLED);
@@ -72,12 +70,12 @@ test('login cancellation still passes through', async () => {
   ).rejects.toThrow(LOGIN_CANCELLED);
 });
 
-test('login timeout still passes through', async () => {
+test('login timeout still passes through', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async () => {
         throw new Error(LOGIN_TIMED_OUT);

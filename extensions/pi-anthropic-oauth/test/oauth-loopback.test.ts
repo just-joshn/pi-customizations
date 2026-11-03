@@ -1,26 +1,23 @@
 import type { AuthEvent, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-import { expect, vi } from 'vitest';
-import {
-  CLAUDE_AUTHORIZE_ORIGIN,
-  CLAUDE_AUTHORIZE_PATH,
-  CLAUDE_OAUTH_CLIENT_ID,
-  LOGIN_CANCELLED,
-  LOGIN_TIMED_OUT,
-  subscriptionAuth,
-} from '../src/auth.ts';
+import { expect, onTestFinished, vi } from 'vitest';
+import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_CLIENT_ID, LOGIN_CANCELLED, LOGIN_TIMED_OUT, subscriptionAuth } from '../src/auth.ts';
 import { test } from './network-guard.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
 const LOOPBACK_LIMIT_MS = 15 * 60 * 1000;
 
-function interaction(select: 'copy-code' | 'loopback', manual?: string): {
+function interaction(
+  signal: AbortSignal,
+  select: 'copy-code' | 'loopback',
+  manual?: string,
+): {
   login: ProviderAuthInteraction;
   events: AuthEvent[];
 } {
   const events: AuthEvent[] = [];
   const login: ProviderAuthInteraction = {
-    signal: new AbortController().signal,
+    signal,
     notify(event) {
       events.push(event);
     },
@@ -41,7 +38,7 @@ async function waitForUrl(events: AuthEvent[]): Promise<string> {
   });
 }
 
-test('loopback login exchanges the callback code with a matching localhost redirect_uri', async () => {
+test('loopback login exchanges the callback code with a matching localhost redirect_uri', async ({ signal }) => {
   const exchangeBodies: Record<string, string>[] = [];
   const realFetch = globalThis.fetch;
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
@@ -54,7 +51,7 @@ test('loopback login exchanges the callback code with a matching localhost redir
 
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-  const { login, events } = interaction('loopback');
+  const { login, events } = interaction(signal, 'loopback');
   const pending = oauth.login(login);
   const authorize = new URL(await waitForUrl(events));
   expect(authorize.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
@@ -84,10 +81,10 @@ test('loopback login exchanges the callback code with a matching localhost redir
   expect(exchangeBodies[0]?.['code_verifier']).not.toBe(exchangeBodies[0]?.['state']);
 });
 
-test('loopback login rejects a callback with the wrong state', async () => {
+test('loopback login rejects a callback with the wrong state', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-  const { login, events } = interaction('loopback');
+  const { login, events } = interaction(signal, 'loopback');
   const pending = oauth.login(login);
   const failure = pending.then(
     () => {
@@ -106,19 +103,18 @@ test('loopback login rejects a callback with the wrong state', async () => {
   expect((error as Error).message).toBe('Claude subscription login failed. Try /login again.');
 });
 
-test('loopback listen timeout is not login cancellation', async () => {
+test('loopback listen timeout is not login cancellation', async ({ signal }) => {
   vi.useFakeTimers();
-  try {
-    expect(LOGIN_TIMED_OUT).not.toBe(LOGIN_CANCELLED);
-    const oauth = subscriptionAuth().oauth;
-    if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
-    const { login, events } = interaction('loopback');
-    const pending = oauth.login(login);
-    await waitForUrl(events);
-    const failure = expect(pending).rejects.toThrow(LOGIN_TIMED_OUT);
-    await vi.advanceTimersByTimeAsync(LOOPBACK_LIMIT_MS);
-    await failure;
-  } finally {
+  onTestFinished(() => {
     vi.useRealTimers();
-  }
+  });
+  expect(LOGIN_TIMED_OUT).not.toBe(LOGIN_CANCELLED);
+  const oauth = subscriptionAuth().oauth;
+  if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
+  const { login, events } = interaction(signal, 'loopback');
+  const pending = oauth.login(login);
+  await waitForUrl(events);
+  const failure = expect(pending).rejects.toThrow(LOGIN_TIMED_OUT);
+  await vi.advanceTimersByTimeAsync(LOOPBACK_LIMIT_MS);
+  await failure;
 });

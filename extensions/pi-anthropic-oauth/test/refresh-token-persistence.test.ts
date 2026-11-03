@@ -1,10 +1,11 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
 import { createModels, createProvider } from '@earendil-works/pi-ai/models';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
-import { expect, onTestFinished, test } from 'vitest';
 import { subscriptionAuth } from '../src/auth.ts';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
 import { refreshClaimDirectoryFor } from '../src/refresh-claim.ts';
@@ -47,7 +48,21 @@ test('an expiry refresh after a 401 recovery never resends the rotated refresh t
   });
   recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
   const models = createModels({ credentials: store });
-  models.setProvider(createProvider({ id: PROVIDER_ID, auth, models: [], api: { stream: () => { throw new Error('not streamed'); }, streamSimple: () => { throw new Error('not streamed'); } } } as unknown as Parameters<typeof createProvider>[0]));
+  models.setProvider(
+    createProvider({
+      id: PROVIDER_ID,
+      auth,
+      models: [],
+      api: {
+        stream: () => {
+          throw new Error('not streamed');
+        },
+        streamSimple: () => {
+          throw new Error('not streamed');
+        },
+      },
+    } as unknown as Parameters<typeof createProvider>[0]),
+  );
   const revokedFirstAccess: FetchFunction = async (_input, init) => {
     const authorization = new Headers(init?.headers).get('authorization');
     return new Response('', { status: authorization === 'Bearer access-1' ? 401 : 200 });
@@ -78,7 +93,21 @@ test('a bearer token export after a 401 recovery gets a token valid for its 30 m
   });
   recovery = createAuthRecovery({ providerId: PROVIDER_ID, oauth: auth.oauth as OAuthAuth });
   const models = createModels({ credentials: store });
-  models.setProvider(createProvider({ id: PROVIDER_ID, auth, models: [], api: { stream: () => { throw new Error('not streamed'); }, streamSimple: () => { throw new Error('not streamed'); } } } as unknown as Parameters<typeof createProvider>[0]));
+  models.setProvider(
+    createProvider({
+      id: PROVIDER_ID,
+      auth,
+      models: [],
+      api: {
+        stream: () => {
+          throw new Error('not streamed');
+        },
+        streamSimple: () => {
+          throw new Error('not streamed');
+        },
+      },
+    } as unknown as Parameters<typeof createProvider>[0]),
+  );
   const revokedFirstAccess: FetchFunction = async (_input, init) => {
     const authorization = new Headers(init?.headers).get('authorization');
     return new Response('', { status: authorization === 'Bearer access-1' ? 401 : 200 });
@@ -96,6 +125,10 @@ test('a bearer token export after a 401 recovery gets a token valid for its 30 m
 });
 
 test('a recovery holding an already rotated token refreshes the newest token after it expired', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  onTestFinished(() => {
+    vi.useRealTimers();
+  });
   const dir = await mkdtemp(join(tmpdir(), 'pi-anth-persist-'));
   onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const authPath = join(dir, 'auth.json');
@@ -118,12 +151,11 @@ test('a recovery holding an already rotated token refreshes the newest token aft
     return recovery.wrapFetch(revokedFirstAccess);
   });
 
-  const first = await recoveries[0]!('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer access-1' } });
-  const rotatedExpires = Date.now() + 20;
-  await expect.poll(() => Date.now() > rotatedExpires + 5).toBe(true);
-  const second = await recoveries[1]!('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer access-1' } });
+  const first = await recoveries[0]?.('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer access-1' } });
+  vi.advanceTimersByTime(25);
+  const second = await recoveries[1]?.('https://api.anthropic.invalid/v1/messages', { headers: { authorization: 'Bearer access-1' } });
 
-  expect(first.status).toBe(200);
+  expect(first?.status).toBe(200);
   expect(server.reused).toStrictEqual([]);
-  expect(second.status).toBe(200);
+  expect(second?.status).toBe(200);
 });

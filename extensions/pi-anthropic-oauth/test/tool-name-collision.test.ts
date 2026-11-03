@@ -53,5 +53,5 @@ test('dropping a colliding last tool keeps the one-hour marker on the new last t
   expect(toolNames(body)).toStrictEqual(['Read', 'Task']);
   const tools = isRecord(body) && Array.isArray(body['tools']) ? body['tools'] : [];
   expect(cacheMarkers(tools[tools.length - 1])).toHaveLength(1);
-  expect(cacheMarkers(body).length).toBeGreaterThanOrEqual(3);
+  expect(cacheMarkers(body)).toHaveLength(3);
 });

@@ -1,9 +1,10 @@
 import { mkdtemp, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
-import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
 import { expect, onTestFinished, test, vi } from 'vitest';
+import { AuthStorage } from '../node_modules/@earendil-works/pi-coding-agent/dist/core/auth-storage.js';
 import { subscriptionAuth } from '../src/auth.ts';
 import { createAuthRecovery } from '../src/auth-recovery.ts';
 import { type RefreshClaimOptions, refreshClaimDirectoryFor } from '../src/refresh-claim.ts';

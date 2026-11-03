@@ -3,11 +3,11 @@ import { CLAUDE_OAUTH_CLIENT_ID, CLAUDE_REVOKE_URL, revokeAccessToken, revokeRef
 import { test } from './network-guard.ts';
 import { OAUTH_ACCESS_TOKEN, OAUTH_REFRESH_TOKEN } from './support/credentials.ts';
 
-test('revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and client_id', async () => {
+test('revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and client_id', async ({ signal }) => {
   const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200, headers: { 'request-id': 'req_test' } }));
   vi.stubGlobal('fetch', fetchMock);
 
-  await revokeAccessToken(OAUTH_ACCESS_TOKEN, new AbortController().signal);
+  await revokeAccessToken(OAUTH_ACCESS_TOKEN, signal);
 
   expect(fetchMock).toHaveBeenCalledOnce();
   const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -22,11 +22,11 @@ test('revokeAccessToken POSTs Claude revoke URL with token, token_type_hint, and
   });
 });
 
-test('revokeRefreshToken POSTs Claude revoke URL with refresh_token hint', async () => {
+test('revokeRefreshToken POSTs Claude revoke URL with refresh_token hint', async ({ signal }) => {
   const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200, headers: { 'request-id': 'req_refresh' } }));
   vi.stubGlobal('fetch', fetchMock);
 
-  await revokeRefreshToken(OAUTH_REFRESH_TOKEN, new AbortController().signal);
+  await revokeRefreshToken(OAUTH_REFRESH_TOKEN, signal);
 
   expect(fetchMock).toHaveBeenCalledOnce();
   const [url, init] = fetchMock.mock.calls[0] ?? [];
@@ -40,14 +40,14 @@ test('revokeRefreshToken POSTs Claude revoke URL with refresh_token hint', async
   });
 });
 
-test('revokeAccessToken reports a network failure as not acknowledged', async () => {
+test('revokeAccessToken reports a network failure as not acknowledged', async ({ signal }) => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
-  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, new AbortController().signal)).resolves.toBe(false);
+  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, signal)).resolves.toBe(false);
 });
 
-test('revokeRefreshToken reports a network failure as not acknowledged', async () => {
+test('revokeRefreshToken reports a network failure as not acknowledged', async ({ signal }) => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network down')));
-  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, new AbortController().signal)).resolves.toBe(false);
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, signal)).resolves.toBe(false);
 });
 
 test('revokeAccessToken aborts before fetch when the signal is already aborted', async () => {
@@ -55,7 +55,7 @@ test('revokeAccessToken aborts before fetch when the signal is already aborted',
   vi.stubGlobal('fetch', fetchMock);
   const controller = new AbortController();
   controller.abort();
-  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toThrow();
+  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toBe(controller.signal.reason);
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -64,7 +64,7 @@ test('revokeRefreshToken aborts before fetch when the signal is already aborted'
   vi.stubGlobal('fetch', fetchMock);
   const controller = new AbortController();
   controller.abort();
-  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toThrow();
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toBe(controller.signal.reason);
   expect(fetchMock).not.toHaveBeenCalled();
 });
 
@@ -78,7 +78,7 @@ test('revokeAccessToken rethrows when the caller aborts during fetch', async () 
       return new Response(null, { status: 200 });
     }),
   );
-  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toThrow();
+  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, controller.signal)).rejects.toBe(controller.signal.reason);
 });
 
 test('revokeRefreshToken rethrows when the caller aborts during fetch', async () => {
@@ -91,23 +91,23 @@ test('revokeRefreshToken rethrows when the caller aborts during fetch', async ()
       return new Response(null, { status: 200 });
     }),
   );
-  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toThrow();
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, controller.signal)).rejects.toBe(controller.signal.reason);
 });
 
-test('a 2xx without a request id is not an acknowledgement', async () => {
+test('a 2xx without a request id is not an acknowledgement', async ({ signal }) => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 200 })));
-  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, new AbortController().signal)).resolves.toBe(false);
+  await expect(revokeAccessToken(OAUTH_ACCESS_TOKEN, signal)).resolves.toBe(false);
 });
 
-test('a 2xx stamped with a request id is acknowledged', async () => {
+test('a 2xx stamped with a request id is acknowledged', async ({ signal }) => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 200, headers: { 'request-id': 'req_ack' } })));
-  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, new AbortController().signal)).resolves.toBe(true);
+  await expect(revokeRefreshToken(OAUTH_REFRESH_TOKEN, signal)).resolves.toBe(true);
 });
 
-test('a custom base revokes at its own URL with its own client id', async () => {
+test('a custom base revokes at its own URL with its own client id', async ({ signal }) => {
   const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 200, headers: { 'request-id': 'req_custom' } }));
   vi.stubGlobal('fetch', fetchMock);
-  await revokeAccessToken(OAUTH_ACCESS_TOKEN, new AbortController().signal, { revokeUrl: 'https://claude.fedstart.com/v1/oauth/token/revoke', clientId: 'custom-client' });
+  await revokeAccessToken(OAUTH_ACCESS_TOKEN, signal, { revokeUrl: 'https://claude.fedstart.com/v1/oauth/token/revoke', clientId: 'custom-client' });
   const [url, init] = fetchMock.mock.calls[0] ?? [];
   expect(String(url)).toBe('https://claude.fedstart.com/v1/oauth/token/revoke');
   expect(JSON.parse(String(init?.body))).toMatchObject({ client_id: 'custom-client' });

@@ -44,9 +44,7 @@ test('billing skips a leading isMeta user for the fingerprint sample', async ({ 
 test('billing samples a leading isCompactSummary user for the fingerprint', async ({ models, model, server }) => {
   const summary = Object.assign(user('changed first message'), { isCompactSummary: true });
   await collect(models.streamSimple(model, { messages: [summary, user('Reply LOCAL_OK.')] }));
-  expect(systemTexts(soleRequest(server).body)[0]).toBe(
-    'x-anthropic-billing-header: cc_version=2.1.316.c94; cc_entrypoint=sdk-cli;',
-  );
+  expect(systemTexts(soleRequest(server).body)[0]).toBe('x-anthropic-billing-header: cc_version=2.1.316.c94; cc_entrypoint=sdk-cli;');
 });
 
 test('concurrent requests keep identity request-local', async ({ models, model, server }) => {
@@ -105,16 +103,7 @@ test('login uses Claude paste-code authorize URL with independent exchange state
   expect(urls[0]?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
   expect(urls[0]?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);
   expect(urls[0]?.searchParams.get('code_challenge_method')).toBe('S256');
-  expect([...urls[0]!.searchParams.keys()]).toStrictEqual([
-    'code',
-    'client_id',
-    'response_type',
-    'redirect_uri',
-    'scope',
-    'code_challenge',
-    'code_challenge_method',
-    'state',
-  ]);
+  expect([...(urls[0]?.searchParams.keys() ?? [])]).toStrictEqual(['code', 'client_id', 'response_type', 'redirect_uri', 'scope', 'code_challenge', 'code_challenge_method', 'state']);
   const state = urls[0]?.searchParams.get('state');
   expect(tokenEndpoint.requests).toMatchObject([
     {
@@ -133,7 +122,7 @@ test('login uses Claude paste-code authorize URL with independent exchange state
   await expect(credentials.read(provider.id)).resolves.toStrictEqual(credential);
 });
 
-test('refresh errors do not expose server tokens', async ({ provider }) => {
+test('refresh errors do not expose server tokens', async ({ provider, signal }) => {
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue(
@@ -146,7 +135,7 @@ test('refresh errors do not expose server tokens', async ({ provider }) => {
   );
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth login');
-  const failure = oauth.refresh({ type: 'oauth', access: OAUTH_ACCESS_TOKEN, refresh: 'local-refresh', expires: 0 }, new AbortController().signal);
+  const failure = oauth.refresh({ type: 'oauth', access: OAUTH_ACCESS_TOKEN, refresh: 'local-refresh', expires: 0 }, signal);
   await expect(failure).rejects.toThrow('Token refresh failed: Bad Request');
   await expect(failure).rejects.not.toThrow('sensitive-server-value');
 });
