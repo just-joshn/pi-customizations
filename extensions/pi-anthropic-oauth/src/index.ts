@@ -1,6 +1,18 @@
 import { join } from 'node:path';
 
-import { type Api, type AssistantMessage, type AssistantMessageEventStream, type CredentialStore, createProvider, getDeclaredTools, type Model, type OAuthCredential, type StopReason, type StreamOptions, type TranscriptContext } from '@earendil-works/pi-ai';
+import {
+  type Api,
+  type AssistantMessage,
+  type AssistantMessageEventStream,
+  type CredentialStore,
+  createProvider,
+  getDeclaredTools,
+  type Model,
+  type OAuthCredential,
+  type StopReason,
+  type StreamOptions,
+  type TranscriptContext,
+} from '@earendil-works/pi-ai';
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import { type ExtensionAPI, getAgentDir, readStoredCredential } from '@earendil-works/pi-coding-agent';
 import { attestingFetch } from './attesting-fetch.ts';

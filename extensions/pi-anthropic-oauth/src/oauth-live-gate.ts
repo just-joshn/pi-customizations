@@ -69,18 +69,13 @@ export function parseLiveExchangeGateStatus(gatesMarkdown: string): LiveGateStat
   return status;
 }
 
-export function assertLiveExchangeAllowed(input: {
-  env?: NodeJS.ProcessEnv;
-  gatesMarkdown: string;
-}): void {
+export function assertLiveExchangeAllowed(input: { env?: NodeJS.ProcessEnv; gatesMarkdown: string }): void {
   if (!isLiveExchangeEnvEnabled(input.env)) {
     throw new Error(`Set ${LIVE_EXCHANGE_ENV}=1 to run the live Anthropic authorize→exchange probe.`);
   }
   const status = parseLiveExchangeGateStatus(input.gatesMarkdown);
   if (status !== 'approved') {
-    throw new Error(
-      `gates.md ${LIVE_EXCHANGE_GATE_ID} status is "${status}". Set status to approved before a live probe.`,
-    );
+    throw new Error(`gates.md ${LIVE_EXCHANGE_GATE_ID} status is "${status}". Set status to approved before a live probe.`);
   }
 }
 
@@ -88,10 +83,7 @@ export async function readLiveExchangeGateFile(path: string): Promise<string> {
   return readFile(path, 'utf8');
 }
 
-export function assertTokenJsonShape(
-  body: unknown,
-  shape: TokenResponseFieldShape = AUTHORIZATION_CODE_RESPONSE_SHAPE,
-): TokenJson {
+export function assertTokenJsonShape(body: unknown, shape: TokenResponseFieldShape = AUTHORIZATION_CODE_RESPONSE_SHAPE): TokenJson {
   if (!isRecord(body)) throw new Error('Token endpoint response is not a JSON object');
   for (const key of shape.required) {
     if (!(key in body)) throw new Error(`Token JSON missing required field ${key}`);
@@ -117,12 +109,7 @@ function redactSecret(value: string): RedactedSecret {
   return { present: true, length: value.length, redacted: '[redacted]' };
 }
 
-export function buildLiveExchangeReceipt(input: {
-  body: TokenJson;
-  httpStatus: number;
-  probedAt?: string;
-  tokenUrl?: string;
-}): LiveExchangeReceipt {
+export function buildLiveExchangeReceipt(input: { body: TokenJson; httpStatus: number; probedAt?: string; tokenUrl?: string }): LiveExchangeReceipt {
   const response: LiveExchangeReceipt['response'] = {
     keys: Object.keys(input.body).sort(),
     access_token: redactSecret(input.body.access_token),

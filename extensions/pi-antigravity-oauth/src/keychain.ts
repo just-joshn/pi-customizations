@@ -106,10 +106,7 @@ export function tokensFromGoKeyringPassword(password: string, now = Date.now()):
   return parseAgyKeychainPayload(decodeGoKeyringPassword(password), now);
 }
 
-export function readAgyKeychainPassword(
-  spawnImpl: typeof spawn = spawn,
-  item: { service: string; account: string } = AGY_KEYCHAIN,
-): Promise<string> {
+export function readAgyKeychainPassword(spawnImpl: typeof spawn = spawn, item: { service: string; account: string } = AGY_KEYCHAIN): Promise<string> {
   return new Promise((resolve, reject) => {
     const child = spawnImpl('security', ['find-generic-password', '-s', item.service, '-a', item.account, '-w'], {
       stdio: ['ignore', 'pipe', 'pipe'],

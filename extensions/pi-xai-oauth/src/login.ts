@@ -2,7 +2,6 @@ import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 
 import type { OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-
 import { GROK_CLIENT_VERSION } from './request.ts';
 
 export const GROK_OAUTH_CLIENT_ID = 'b1a00492-073a-47ea-816f-4c329264a828';
@@ -162,12 +161,7 @@ function pollOutcome(status: number, body: unknown): 'complete' | 'pending' | 's
   return 'failed';
 }
 
-async function postForm(
-  url: string,
-  fields: Record<string, string>,
-  signal: AbortSignal,
-  extraHeaders: Record<string, string> = {},
-): Promise<{ ok: boolean; status: number; body: unknown }> {
+async function postForm(url: string, fields: Record<string, string>, signal: AbortSignal, extraHeaders: Record<string, string> = {}): Promise<{ ok: boolean; status: number; body: unknown }> {
   throwIfCancelled(signal);
   let response: Response;
   try {

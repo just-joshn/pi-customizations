@@ -1,8 +1,4 @@
-export const ALLOWED_OAUTH_BASE_URLS = [
-  'https://beacon.claude-ai.staging.ant.dev',
-  'https://claude.fedstart.com',
-  'https://claude-staging.fedstart.com',
-] as const;
+export const ALLOWED_OAUTH_BASE_URLS = ['https://beacon.claude-ai.staging.ant.dev', 'https://claude.fedstart.com', 'https://claude-staging.fedstart.com'] as const;
 
 export const CUSTOM_OAUTH_URL_ENV = 'CLAUDE_CODE_CUSTOM_OAUTH_URL';
 

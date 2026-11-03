@@ -18,6 +18,8 @@
       "!!parity/pi-rea/rea-6.8.0-*.json",
       "!!extensions/pi-rea/schemas/tool-contracts.json",
       "!!parity/private",
+      "!!parity/oauth-rea-2026-10-31/*/extracted-js",
+      "!!parity/oauth-rea-2026-10-31/**/*.json",
       "!!parity/artifacts",
       "!!parity/research",
       "!!parity/reviews",

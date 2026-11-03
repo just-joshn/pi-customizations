@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdir, open, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
+
 import type { OAuthCredential } from '@earendil-works/pi-ai';
 
 /** Error code thrown when claim retries run out. Matches Claude's proper-lockfile contention code. */
@@ -162,8 +163,7 @@ async function rotationChain(directory: string, credential: OAuthCredential): Pr
     const key = claimKey(current.refresh);
     if (seen.has(key)) return chain;
     seen.add(key);
-    const next =
-      (await recordedSuccessor(directory, names, key)) ?? (legacy && legacy.refresh !== current.refresh && legacy.expires > current.expires ? legacy : undefined);
+    const next = (await recordedSuccessor(directory, names, key)) ?? (legacy && legacy.refresh !== current.refresh && legacy.expires > current.expires ? legacy : undefined);
     if (!next) return chain;
     chain.push(next);
     current = next;
@@ -195,9 +195,7 @@ async function sweepOldClaimsBestEffort(directory: string, liveCredential: (() =
       const path = join(directory, name);
       try {
         if ((await stat(path)).mtimeMs < cutoff) await rm(path, { force: true });
-      } catch {
-        continue;
-      }
+      } catch {}
     }
   } catch {
     return;

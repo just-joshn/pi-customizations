@@ -1,6 +1,6 @@
 export const title = 'Cross-process OAuth refresh token claims';
 
-export function state(vars: Record<string, any>) {
+export function state(vars: { exists?: Record<string, boolean>; pc?: { p1?: string; p2?: string; p3?: string } }) {
   const claims = Object.entries(vars.exists ?? {})
     .filter(([, held]) => held)
     .map(([gen]) => gen);
@@ -12,7 +12,7 @@ export function state(vars: Record<string, any>) {
   };
 }
 
-export function step(action: string, _from: Record<string, any>, _to: Record<string, any>) {
+export function step(action: string, _from: unknown, _to: unknown) {
   switch (action) {
     case 'Reuse':
       return 'reads shared credential';
