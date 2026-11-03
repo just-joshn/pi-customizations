@@ -82,7 +82,7 @@ bun install
 make verify
 ```
 
-`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh), Go (to build the Mach-O fixtures) and Node 24.15 or newer (pi-rea's SQLite inspector needs it). `mise install` reads `mise.toml` and provides all three. On Ubuntu the read-only shell sandbox also needs `bubblewrap`, `socat`, and `ripgrep` (`sudo apt install bubblewrap socat ripgrep`); macOS uses the built-in `sandbox-exec`. Every extension targets Pi 1.5.0.
+`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh), Go (to build the Mach-O fixtures) and Node 24.15 or newer (pi-rea's SQLite inspector needs it). `mise install` reads `mise.toml` and provides all three, plus Temurin 25 and `tla2tools.jar` for the refresh-lock model check. On Ubuntu the read-only shell sandbox also needs `bubblewrap`, `socat`, and `ripgrep` (`sudo apt install bubblewrap socat ripgrep`); macOS uses the built-in `sandbox-exec`. Every extension targets Pi 1.5.0.
 
 `make verify-sources` installs every package from npm, git, and a local path. It needs network access, so it stays out of `make verify`.
 

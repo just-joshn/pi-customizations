@@ -95,6 +95,6 @@ the tags; they are false release markers.
 Third-party actions are pinned to full-length commit SHAs per GitHub's
 security hardening guidance
 (<https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions>).
-`release.yml` pins `actions/checkout` and `actions/setup-node` to their `v6`
-tags and reuses the `oven-sh/setup-bun` SHA already audited in
+`release.yml` pins `actions/checkout` and `actions/setup-node` to full SHAs
+with a `# v6` comment, and reuses the `oven-sh/setup-bun` SHA already audited in
 `.github/workflows/pi-pstack.yml`.
