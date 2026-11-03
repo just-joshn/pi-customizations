@@ -32,25 +32,22 @@ test.for([
   expect(endpoint.requests.map((request) => request.url)).toStrictEqual([modelsUrl]);
 });
 
-test('a models.json base URL moves discovery to the same endpoint chat uses', async () => {
+test('a models.json base URL moves discovery to the same endpoint chat uses', async ({ onTestFinished }) => {
   const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-base-'));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const authPath = join(dir, 'auth.json');
   const modelsPath = join(dir, 'models.json');
   const configured = 'http://127.0.0.1:9/v1';
   const endpoint = stubCatalogEndpoint(() => Response.json(liveBody()), `${configured}/models`);
-  try {
-    await writeFile(authPath, JSON.stringify({ 'grok-build': oauthCredential() }), { mode: 0o600 });
-    await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { baseUrl: configured } } }));
-    const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
-    runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
-    await runtime.refresh({ allowNetwork: false });
-    const result = await runtime.refresh({ allowNetwork: true, providers: ['grok-build'] });
-    expect(result.errors.get('grok-build')).toBeUndefined();
-    expect(endpoint.requests.map((request) => request.url)).toStrictEqual([`${configured}/models`]);
-    expect(runtime.getModel('grok-build', 'grok-4.7')?.baseUrl).toBe(configured);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+  await writeFile(authPath, JSON.stringify({ 'grok-build': oauthCredential() }), { mode: 0o600 });
+  await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { baseUrl: configured } } }));
+  const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
+  runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
+  await runtime.refresh({ allowNetwork: false });
+  const result = await runtime.refresh({ allowNetwork: true, providers: ['grok-build'] });
+  expect(result.errors.get('grok-build')).toBeUndefined();
+  expect(endpoint.requests.map((request) => request.url)).toStrictEqual([`${configured}/models`]);
+  expect(runtime.getModel('grok-build', 'grok-4.7')?.baseUrl).toBe(configured);
 });
 
 test('the refresh sends the bearer token to the catalog endpoint', async () => {

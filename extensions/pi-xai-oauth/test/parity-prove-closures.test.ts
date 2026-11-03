@@ -54,14 +54,17 @@ test('responses live capture accepts the Pi header set without speculative extra
   expect(responses.conclusions.piCurrentSetAccepted).toBe(true);
 });
 
-test('responses reject a missing client version and a wrong token-auth value', () => {
+test('responses reject a request without the client version', () => {
   expect(probe('missing_version').status).toBe(426);
   expect(probe('bearer_only').status).toBe(426);
+});
+
+test('responses reject a wrong token-auth value', () => {
   expect(probe('wrong_token_auth').status).toBe(401);
   expect(responses.conclusions.wrongTokenAuthRejects).toBe(true);
 });
 
-test('responses enforce the 1.0.13 client-version floor while 1.0.70 clears it', () => {
+test('responses enforce a 1.0.13 version floor that 1.0.70 clears', () => {
   expect(probe('version_1.0.12').status).toBe(426);
   expect(probe('version_1.0.13').status).toBe(200);
   expect(probe('version_1.0.70').status).toBe(200);

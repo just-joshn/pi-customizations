@@ -42,26 +42,24 @@ test('the login is labeled as a Grok Build subscription', () => {
   expect(provider.auth.oauth?.loginLabel).toBe('Sign in with SuperGrok or X Premium');
 });
 
-test('login is the Grok Build flow and refresh stays on the given xAI client', () => {
-  const refresh = async () => {
+function providerOver(overrides: { refresh?: () => Promise<never>; toAuth?: () => Promise<{ apiKey: string }> }) {
+  const unused = async (): Promise<never> => {
+    throw new Error('not called');
+  };
+  const oauth = { name: 'probe', login: unused, refresh: overrides.refresh ?? unused, toAuth: overrides.toAuth ?? (async () => ({ apiKey: 'kept' })) };
+  return createGrokBuildProvider({ ...xai, auth: { oauth } });
+}
+
+test('login is the Grok Build flow', () => {
+  expect(providerOver({}).auth.oauth?.login).toBe(loginGrokBuild);
+});
+
+test('refresh stays on the given xAI client', () => {
+  const refresh = async (): Promise<never> => {
     throw new Error('not called');
   };
   const toAuth = async () => ({ apiKey: 'kept' });
-  const custom = {
-    ...xai,
-    auth: {
-      oauth: {
-        name: 'probe',
-        login: async () => {
-          throw new Error('not called');
-        },
-        refresh,
-        toAuth,
-      },
-    },
-  };
-  const built = createGrokBuildProvider(custom);
-  expect(built.auth.oauth?.login).toBe(loginGrokBuild);
+  const built = providerOver({ refresh, toAuth });
   expect(built.auth.oauth?.refresh).toBe(refresh);
   expect(built.auth.oauth?.toAuth).toBe(toAuth);
 });
