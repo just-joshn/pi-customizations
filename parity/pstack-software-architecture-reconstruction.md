@@ -95,7 +95,7 @@ All 18 skills, 2 agents, 2 rules (vendored as skills plus always-applied system-
 
 ### 5. Host IDE mechanism contract (Cursor host vs Pi native mechanisms)
 
-REA analysis of `extensions/pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2abb9162f70c102ccab8860f`, outgoing trace `ev_22556088c77e2fa9073d079a7ed0796b2545e2f36a6223d130b2df64a8b04d12`) maps every host mechanism assumed by `pstack` to Pi 1.4.0 APIs:
+REA analysis of `extensions/pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2abb9162f70c102ccab8860f`, outgoing trace `ev_22556088c77e2fa9073d079a7ed0796b2545e2f36a6223d130b2df64a8b04d12`) maps every host mechanism assumed by `pstack` to Pi APIs. The table was written against Pi 1.4.0. `extensions/pi-pstack` now develops against Pi 1.5.0 and keeps the same mechanisms (see `pi-1.5.0/verification.md`):
 
 | Upstream host mechanism | `pi-pstack` module | Pi 1.4.0 native mechanism used |
 | --- | --- | --- |

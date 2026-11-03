@@ -43,7 +43,7 @@ None. `mismatches.json` cases map is empty.
 
 ## Subset compares
 
-`binary_session` is the only tool whose normalized envelope is compared through `compare_paths`. `result.tool_availability`, `result.capabilities`, `result.analysis_provider_*` and the rest of `result.server_identity` state each server's own measured coverage: pi-rea implements 63 of the 229 catalog tools, and the oracle reports this host's Ghidra/Hopper/IDA/Kuna diagnostics. Comparing those subtrees would measure port scope, not the kernel contract. `diff-summary.json` records `compared_paths` for every case, and the four cases above compare exactly the request-level alignment contract. The frozen-capture test in `test/session-tools.test.ts` (KERN-011) still pins the full `binary_session` shape against `rea-6.8.0-binary_session.json`.
+`binary_session` is the only tool whose normalized envelope is compared through `compare_paths`. `result.tool_availability`, `result.capabilities`, `result.analysis_provider_*` and the rest of `result.server_identity` state each server's own measured coverage: pi-rea implements 66 of the 229 catalog tools, and the oracle reports this host's Ghidra/Hopper/IDA/Kuna diagnostics. Comparing those subtrees would measure port scope, not the kernel contract. `diff-summary.json` records `compared_paths` for every case, and the four cases above compare exactly the request-level alignment contract. The frozen-capture test in `test/session-tools.test.ts` (KERN-011) still pins the full `binary_session` shape against `rea-6.8.0-binary_session.json`.
 
 ## Analyzer findings proven by oracle-pinned unit tests (not live DiffCases)
 
