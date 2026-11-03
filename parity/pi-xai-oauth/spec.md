@@ -1,3 +1,5 @@
+> Status. This record describes the 2026-10-28 audit against Grok 1.0.50 and Pi 1.4.0. It is not current. The package now sends client version 1.0.70 and ships the Grok 1.0.70 authorize capture. Read `extensions/pi-xai-oauth/README.md` for current behavior.
+
 # pi-xai-oauth behavioral specification
 
 Source harness: Grok Build TUI `grok` 1.0.50 (`c58f321264ba`), the subscription OAuth that signs in to `auth.x.ai` and the request dependencies required for that token to be accepted by `https://cli-chat-proxy.grok.com/v1`.

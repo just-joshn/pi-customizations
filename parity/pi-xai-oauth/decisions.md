@@ -1,3 +1,5 @@
+> Status. This record describes the 2026-10-28 audit against Grok 1.0.50 and Pi 1.4.0. It is not current. The package now sends client version 1.0.70 and ships the Grok 1.0.70 authorize capture. Read `extensions/pi-xai-oauth/README.md` for current behavior.
+
 # Design record
 
 ## D1: Whose OAuth client runs at login

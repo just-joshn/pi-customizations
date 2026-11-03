@@ -1,3 +1,5 @@
+> Status. This record describes the 2026-10-12 audit against Claude Code 2.1.296 and Pi 1.1.0. It is not current. The package now ships its own Claude OAuth client (`src/oauth.ts`), the Claude Code 2.1.316 identity, and Claude Code credential import. Read `extensions/pi-anthropic-oauth/docs/claude-oauth-parity.md` for current behavior.
+
 ## Implementation summary
 
 `pi-anthropic-oauth` is a project-local Pi package that registers `claude-subscription` on Pi's native Anthropic provider. It does not have 100% parity with Claude Code 2.1.296 OAuth or with the request, credential, and context behavior that OAuth depends on.

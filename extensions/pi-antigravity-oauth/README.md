@@ -2,7 +2,7 @@
 
 This Pi package lets a Google Antigravity subscription answer in Pi. It signs in the way the Antigravity CLI (`agy`) signs in, and it sends the requests that `agy` sends to the Cloud Code Assist API (`v1internal`). It registers the provider `google-antigravity`, which Pi removed from its built-in providers.
 
-The provider reuses Pi's own parts where the wire allows. Pi's transcript helpers and cost accounting come from `@earendil-works/pi-ai`, the entry point Pi supplies to extensions. Pi's Google message and tool conversion and stop-reason mapping build each request too, but Pi does not supply those modules to extensions. `src/pi-ai/` therefore holds verbatim copies of them from the `@earendil-works/pi-ai` 1.4.0 that the installed Pi loads. `bun run vendor` regenerates the copies from the `@earendil-works/pi-ai` devDependency, which must match the version the installed Pi loads, and `bun run check:vendor` fails when the copies drift or when those two versions differ. Pi stores the login in `auth.json` and refreshes it. The package adds the Cloud Code envelope, its streaming reader, and the login flow. Pi's `google-generative-ai` API cannot send the envelope, because it rejects a custom `fetch`.
+The provider reuses Pi's own parts where the wire allows. Pi's transcript helpers and cost accounting come from `@earendil-works/pi-ai`, the entry point Pi supplies to extensions. Pi's Google message and tool conversion and stop-reason mapping build each request too, but Pi does not supply those modules to extensions. `src/pi-ai/` therefore holds verbatim copies of them from the `@earendil-works/pi-ai` 1.5.0 that the installed Pi loads. `bun run vendor` regenerates the copies from the `@earendil-works/pi-ai` devDependency, which must match the version the installed Pi loads, and `bun run check:vendor` fails when the copies drift or when those two versions differ. Pi stores the login in `auth.json` and refreshes it. The package adds the Cloud Code envelope, its streaming reader, and the login flow. Pi's `google-generative-ai` API cannot send the envelope, because it rejects a custom `fetch`.
 
 Cloud Code has no provider-specific request options, so the provider's `stream` and `streamSimple` entries are the same implementation. Pi's thinking level, not a provider option, selects the Cloud Code model variant, so a direct `stream` call uses the model's lowest effort because `StreamOptions` carries no thinking level.
 
@@ -38,7 +38,7 @@ Three differences from `agy` remain. `agy` adds `labels` with its own conversati
 
 ## Verify it
 
-Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.4.0. Pi does not install development dependencies when it loads the package.
+Run `bun install` first. It installs the Pi packages the tests import, pinned to 1.5.0. Pi does not install development dependencies when it loads the package.
 
 - `bun run test` runs the provider, login, model catalog, and `/antigravity` against local servers that stand in for Google.
 - `bun run typecheck` runs `tsc` in strict mode.

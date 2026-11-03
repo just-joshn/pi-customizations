@@ -1,3 +1,5 @@
+> Status. This record describes the 2026-10-12 audit against Claude Code 2.1.296 and Pi 1.1.0. It is not current. The package now ships its own Claude OAuth client (`src/oauth.ts`), the Claude Code 2.1.316 identity, and Claude Code credential import. Read `extensions/pi-anthropic-oauth/docs/claude-oauth-parity.md` for current behavior.
+
 # Design decisions
 
 ## Inputs and scope
