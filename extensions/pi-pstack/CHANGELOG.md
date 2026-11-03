@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.36-pi.10] - 2026-11-03
+
+- Resume and fork a descendant that a worktree worker started inside its worktree, from the root chat, while keeping unrelated-directory records refused.
+- Recover a steering message stranded at settlement with its recorded images and its own message boundary instead of joining text and dropping attachments.
+- Refuse a new subscription event with HTTP 503 and `Retry-After` when 20 events are undelivered, instead of evicting an event the sender was told was accepted.
+- Keep accepted `new_session` work eligible after the subscription expires; expiry only stops new occurrences.
+- Run a `new_session` timer on the model, thinking level, and project-trust decision it was created with, live or detached.
+- Append Task settle-time notices to entries another extension proposed at the same boundary.
+- Signal a pre-epoch supervisor lock only when its command line identifies this supervisor, so a reused pid cannot target an unrelated process.
+- Report durable subscriptions and detached supervision in the host section instead of saying they live only in the current Pi process.
+
 ## [0.15.36-pi.9] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. No runtime change.
