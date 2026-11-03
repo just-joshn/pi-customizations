@@ -17,7 +17,7 @@ as search hints from the 1.4.0 audit, not as 1.5.0 line references. This is a co
 
 - **Spawn shape.** `start()` runs `spawn("node", [cliPath, ...args], { cwd, env, stdio })` (`:42`) with no spawn
   options and a single script path. pi-pstack starts `[process.execPath, script]`, `[process.execPath]`, or `pi` from
-  `PATH` (`src/task/tool.ts:105-109`), and `RpcClientOptions` accepts none of those.
+  `PATH` (`src/pi-command.ts:9-11`), and `RpcClientOptions` accepts none of those.
 - **Process-group kill.** The runner spawns with `detached: true` (`src/task/runner.ts:253`) and signals `-pid`
   (`signalGroup`, `:202-210`), so abort and session shutdown stop the child and everything it started. `stop()` signals
   the direct child pid only, SIGTERM then SIGKILL after 1 s (`rpc-client.js:94`), and there is no `detached` option.
@@ -49,7 +49,7 @@ one skill block. **When this goes away.** Pi exports the block formatter and `mo
 
 ## 3. The `fork_turns` truncation
 
-`keepFirstTurns` (`src/task/records.ts:110-121`) rewrites the forked transcript file by hand.
+`keepFirstTurns` (`src/task/records.ts:110-116`) rewrites the forked transcript file by hand.
 `SessionManager.createBranchedSession(leafId)` (`dist/core/session-manager.d.ts:365`) always mints a new session ID and
 file name (`dist/core/session-manager.js:1205-1264`), so it cannot produce the `<timestamp>_<agentId>.jsonl` that
 `SessionManager.forkFrom(..., { id: agentId })` just created. No export truncates an existing session file at an entry.
@@ -57,7 +57,7 @@ file name (`dist/core/session-manager.js:1205-1264`), so it cannot produce the `
 
 ## 4. The workspace folder name
 
-`workspaceSlug` (`src/paths.ts:26-35`) repeats Pi's session-folder rule (`getDefaultSessionDirPath`,
+`workspaceSlug` (`src/paths.ts:44-48`) repeats Pi's session-folder rule (`getDefaultSessionDirPath`,
 `dist/core/session-manager.js:290-295`). The only public accessor is `ctx.sessionManager.getSessionDir()`
 (`ReadonlySessionManager`, `dist/core/session-manager.d.ts:178`), and it is not a substitute:
 

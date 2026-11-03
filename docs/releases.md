@@ -20,9 +20,9 @@ release flow and the one-time setup each package needs.
    Java and a downloaded `tla2tools.jar`; release gates run each package's
    own `test` script.
 
-Release gates run on ARM macOS because the native analyzer tests require
-Apple's `codesign`, `swift-demangle`, and `lipo` tools. The workflow builds
-the ignored Go Mach-O and crash fixtures before running the tests.
+Release gates run on the ARM `macos-15` runner. The tests need no Apple
+tools. The workflow cross-compiles the ignored Go Mach-O fixtures, builds the
+crash fixture, and then runs the tests.
 `release-checks.yml` runs the same package gates on pull requests without
 publishing or accessing npm credentials. Linux sandbox verification remains
 in the separate pi-pstack workflow.
@@ -95,6 +95,6 @@ the tags; they are false release markers.
 Third-party actions are pinned to full-length commit SHAs per GitHub's
 security hardening guidance
 (<https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions>).
-`release.yml` pins `actions/checkout` and `actions/setup-node` to their `v6`
-tags and reuses the `oven-sh/setup-bun` SHA already audited in
+`release.yml` pins `actions/checkout` and `actions/setup-node` to full SHAs
+with a `# v6` comment, and reuses the `oven-sh/setup-bun` SHA already audited in
 `.github/workflows/pi-pstack.yml`.

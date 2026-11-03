@@ -18,6 +18,7 @@ const shippedFiles = SHIPPED.flatMap((entry) => walk(join(ROOT, entry)));
 const read = (path: string): string => readFileSync(path, 'utf8');
 
 test('KERN-019: no shipped file spawns, downloads or installs the reference', () => {
+  expect.hasAssertions();
   const forbidden = [/\bnpx\b/, /\bbunx\b/, /npm install/, /rea-agents@/, /--mcp\b/, /@modelcontextprotocol/, /registerMcpServer/, /fetch\(/, /node:https?/];
   for (const file of shippedFiles) {
     const text = read(file);
@@ -40,6 +41,7 @@ test('KERN-002: the package declares no reference dependency', () => {
 });
 
 test('KERN-002: the extension only imports Pi, typebox, Babel parser, and relative modules', () => {
+  expect.hasAssertions();
   const specifiers = (source: string): string[] => [...source.matchAll(/(?:^|[\s;])(?:import|export)\s(?:[^'"]*?\sfrom\s)?['"]([^'"]+)['"]|import\(\s*['"]([^'"]+)['"]\s*\)/gm)].map((match) => match[1] ?? match[2] ?? '');
   const sources = shippedFiles.filter((path) => path.endsWith('.ts') || path.endsWith('.mjs'));
   for (const file of sources) {

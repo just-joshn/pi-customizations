@@ -111,8 +111,7 @@ export function subscriptionAuth(oauth: OAuthAuth = createClaudeOAuth(), options
       login: wrapLoginErrors(oauth),
       refresh: async (credential, signal) => {
         const directory = options.rotation?.directory();
-        const next =
-          directory === undefined ? await refresh(credential, signal) : await rotateRefreshToken(directory, credential, refresh, options.rotation?.claimOptions, signal);
+        const next = directory === undefined ? await refresh(credential, signal) : await rotateRefreshToken(directory, credential, refresh, options.rotation?.claimOptions, signal);
         options.onCredential?.(next);
         return next;
       },

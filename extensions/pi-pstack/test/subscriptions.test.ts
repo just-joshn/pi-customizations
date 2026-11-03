@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { once } from 'node:events';
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { request } from 'node:http';
@@ -9,7 +10,9 @@ import { pathToFileURL } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { acceptEvent, acquireSupervisorLock, createDesired, isSupervisorLive, readRegistry, releaseSupervisorLock, visibleSubscriptions } from '../src/subscriptions/durable-store.ts';
 import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
+import { createSupervisor } from '../src/subscriptions/supervisor.ts';
 import { routineSlug } from '../src/subscriptions/webhook.ts';
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
@@ -422,7 +425,6 @@ describe('workspace authority and owner delivery', () => {
   afterEach(() => vi.useRealTimers());
 
   test('create persists authority and cancellation retains an inactive identity', async () => {
-    const { readRegistry, visibleSubscriptions } = await import('../src/subscriptions/durable-store.ts');
     const fake = setup();
     const first = await fake.call('subscribe_timer', { name: 'tick', prompt: 'first', delaySeconds: 10 });
     expect(readRegistry(fake.cwd).subscriptions).toEqual([expect.objectContaining({ id: first.details['id'], name: 'tick', ownerSessionId: 'owner', lifecycle: 'active' })]);
@@ -452,7 +454,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('offline owner backlog is delivered only when the exact session resumes', async () => {
-    const { acceptEvent, readRegistry } = await import('../src/subscriptions/durable-store.ts');
     vi.useFakeTimers();
     const first = setup();
     const result = await first.call('subscribe_timer', { name: 'private', prompt: 'private', delaySeconds: 1, once: true });
@@ -468,7 +469,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('cancellation clears a completed-once pending event before owner resume', async () => {
-    const { acceptEvent, readRegistry } = await import('../src/subscriptions/durable-store.ts');
     const first = setup();
     const result = await first.call('subscribe_timer', { name: 'pending', prompt: 'private', delaySeconds: 1, once: true });
     first.emit('session_shutdown');
@@ -517,7 +517,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('pid-only supervisor presence cannot fake readiness and failed creation is rolled back', async () => {
-    const { acquireSupervisorLock, readRegistry, releaseSupervisorLock } = await import('../src/subscriptions/durable-store.ts');
     const fake = setup({
       ensureSupervisor: (cwd) => {
         acquireSupervisorLock(cwd);
@@ -530,7 +529,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('normal supervisor events wake an idle owner through its continuous native drain', async () => {
-    const { createSupervisor } = await import('../src/subscriptions/supervisor.ts');
     vi.useFakeTimers();
     let supervisor: ReturnType<typeof createSupervisor> | undefined;
     const fake = setup({
@@ -553,7 +551,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('normal supervisor fresh events use the live Task callback instead of detached fallback', async () => {
-    const { createSupervisor } = await import('../src/subscriptions/supervisor.ts');
     vi.useFakeTimers();
     const offline: string[] = [];
     let supervisor: ReturnType<typeof createSupervisor> | undefined;
@@ -578,7 +575,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('shutdown during supervisor startup cannot arm a late fallback', async () => {
-    const { isSupervisorLive, readRegistry } = await import('../src/subscriptions/durable-store.ts');
     vi.useFakeTimers();
     let release = () => {};
     const gate = new Promise<void>((resolve) => {
@@ -607,7 +603,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('the shared-engine fallback holds exclusive ownership until session shutdown', async () => {
-    const { acquireSupervisorLock, isSupervisorLive } = await import('../src/subscriptions/durable-store.ts');
     const fake = setup();
     const result = await fake.call('subscribe_timer', { name: 'local', prompt: 'go', delaySeconds: 600 });
     expect(result.details['durability']).toMatch(/in-process/);
@@ -618,7 +613,6 @@ describe('workspace authority and owner delivery', () => {
   });
 
   test('resubscription from a peer preserves the original owner', async () => {
-    const { readRegistry } = await import('../src/subscriptions/durable-store.ts');
     vi.useFakeTimers();
     const first = setup();
     const original = await first.call('subscribe_timer', { name: 'shared', prompt: 'theirs', delaySeconds: 1, once: true });
@@ -679,7 +673,7 @@ describe('subscribe_webhook', () => {
     const event = JSON.parse(match?.[1] ?? '') as Record<string, unknown>;
     expect(event).toEqual({
       headers: { 'content-type': 'application/json', 'user-agent': 'bot-ui/1' },
-      body_digest: (await import('node:crypto')).createHash('sha256').update(body).digest('hex'),
+      body_digest: createHash('sha256').update(body).digest('hex'),
       body,
       timestamp_ms: expect.any(Number),
     });
@@ -739,13 +733,10 @@ describe('subscribe_webhook', () => {
   test('/routines notifies when the session has no UI and does not write stdout', async () => {
     await create();
     const spy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-    try {
-      const notice = await fake.command('routines', false);
-      expect(notice).toContain('Bot UI [enabled]');
-      expect(spy).not.toHaveBeenCalled();
-    } finally {
-      spy.mockRestore();
-    }
+    onTestFinished(() => spy.mockRestore());
+    const notice = await fake.command('routines', false);
+    expect(notice).toContain('Bot UI [enabled]');
+    expect(spy).not.toHaveBeenCalled();
   });
 
   test('two processes keep one sender key', async () => {
@@ -841,7 +832,6 @@ describe('subscribe_webhook', () => {
   });
 
   test('same-name retries preserve active configuration while checking real listener readiness', async () => {
-    const { createDesired } = await import('../src/subscriptions/durable-store.ts');
     const occupied = createServer();
     onTestFinished(() => {
       occupied.close();

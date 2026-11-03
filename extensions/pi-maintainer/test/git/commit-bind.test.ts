@@ -49,7 +49,7 @@ test('a commit stages and commits the whole content of named files', { meta: { a
   const show = await isolatedExec({ command: 'git', args: ['show', 'HEAD:edited.py'], cwd: root }, env);
   expect(show.stdout).toBe('new whole file\n');
   const status = await isolatedExec({ command: 'git', args: ['status', '--porcelain', '--', 'other.py'], cwd: root }, env);
-  expect(status.stdout.trim().length).toBeGreaterThan(0);
+  expect(status.stdout.trim()).toBe('M other.py');
 });
 
 test('buildCommitMessageRequest places context above the diffs block', () => {

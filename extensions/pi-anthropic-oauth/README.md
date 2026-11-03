@@ -20,7 +20,7 @@ Run `/login`, choose **Claude subscription**, then **Claude subscription (Provid
 
 - **Paste code.** Opens Claude Code's copy-code authorize URL (`https://claude.com/cai/oauth/authorize` with the measured scope set, including `user:plugins`), then you paste the code Anthropic shows.
 - **Browser callback.** Binds an ephemeral `http://localhost:{port}/callback` and uses that same `redirect_uri` on authorize and token exchange.
-- **Import from Claude Code.** Reads an existing Claude Code session from the macOS Keychain item `Claude Code-credentials` (account is your `USER`) when present, otherwise from `~/.claude/.credentials.json` (or `CLAUDE_CONFIG_DIR` / `CLAUDE_SECURESTORAGE_CONFIG_DIR`). It maps `claudeAiOauth` into a Pi oauth credential and writes only Pi's store. It never runs the `claude` binary and never writes Claude's credential files.
+- **Import from Claude Code.** Reads an existing Claude Code session from the macOS Keychain item `Claude Code-credentials` (account is your `USER`) when present on macOS, otherwise from `~/.claude/.credentials.json` (or `CLAUDE_CONFIG_DIR` / `CLAUDE_SECURESTORAGE_CONFIG_DIR`). Ubuntu and other non-macOS systems read only the file. It maps `claudeAiOauth` into a Pi oauth credential and writes only Pi's store. It never runs the `claude` binary and never writes Claude's credential files.
 
 Paste code and browser callback both exchange with an independent OAuth `state` and refresh with Claude's measured refresh scopes. Select a `claude-subscription` model with `/model`.
 
@@ -64,7 +64,7 @@ Read the [parity matrix](docs/claude-oauth-parity.md) for verified behavior, del
 
 ## Tool-name limits
 
-OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi supports inline tool changes on capable models. The Pi `1.4.0` receipts below verify the collision workaround on that host. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
+OAuth tool renaming can fold names such as `Task` and `task`. The first declaration wins, so rename one tool if both are required. Pi supports inline tool changes on capable models. The Pi `1.4.0` receipts under `docs/verification/` verify the collision workaround on that host. When a transcript has colliding identities, the package preserves the upstream request-local compatibility adjustment that selects Pi's current-tool path. Other transcripts keep native inline tool changes. This trades inline cache reuse for consistent declarations and reply dispatch.
 
 ## Verify the integration
 

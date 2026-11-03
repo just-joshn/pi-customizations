@@ -1,5 +1,5 @@
 import { type Api, type AssistantMessage, type Context, isContextOverflow, isRetryableAssistantError, type Model, normalizeContext, type SimpleStreamOptions } from '@earendil-works/pi-ai';
-import { expect } from 'vitest';
+import { expect, onTestFinished, vi } from 'vitest';
 import { userAgent } from '../src/cloudcode.ts';
 import { createAntigravityProvider } from '../src/index.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
@@ -54,21 +54,18 @@ async function run(
   } = {},
 ): Promise<Run> {
   const server = await fakeServer(reply);
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
-    const base = provider.getModels().find((item) => item.id === (options.modelId ?? 'gemini-3.1-pro'));
-    if (!base) throw new Error('missing base model');
-    const model = options.model?.(base) ?? base;
-    const result = provider.streamSimple(model, normalizeContext(options.context ?? hello), {
-      apiKey: API_KEY,
-      ...options.stream,
-    });
-    const events: string[] = [];
-    for await (const event of result) events.push(event.type);
-    return { server, message: await result.result(), events };
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+  const base = provider.getModels().find((item) => item.id === (options.modelId ?? 'gemini-3.1-pro'));
+  if (!base) throw new Error('missing base model');
+  const model = options.model?.(base) ?? base;
+  const result = provider.streamSimple(model, normalizeContext(options.context ?? hello), {
+    apiKey: API_KEY,
+    ...options.stream,
+  });
+  const events: string[] = [];
+  for await (const event of result) events.push(event.type);
+  return { server, message: await result.result(), events };
 }
 
 function body(request: Recorded | undefined): CloudCodeRequest {
@@ -100,14 +97,11 @@ test('text and thinking stream into balanced Pi events with usage', async () => 
 
 test('the provider-scoped CLOUD_CODE_URL override replaces the model endpoint', async () => {
   const override = await fakeServer((_, res) => stream(res, textAndThinking));
-  try {
-    const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { env: { CLOUD_CODE_URL: override.url } } });
-    expect(server.requests).toEqual([]);
-    expect(override.requests.map((request) => request.path)).toEqual(['/v1internal:streamGenerateContent?alt=sse']);
-    expect(message.stopReason).toBe('stop');
-  } finally {
-    override.close();
-  }
+  onTestFinished(() => override.close());
+  const { server, message } = await run((_, res) => stream(res, textAndThinking), { stream: { env: { CLOUD_CODE_URL: override.url } } });
+  expect(server.requests).toEqual([]);
+  expect(override.requests.map((request) => request.path)).toEqual(['/v1internal:streamGenerateContent?alt=sse']);
+  expect(message.stopReason).toBe('stop');
 });
 
 test('the envelope matches the Antigravity CLI agent request for the selected effort', async () => {
@@ -272,12 +266,21 @@ test("a 429 reaches Pi's own retry without a provider retry by default", async (
 });
 
 test('with retry.provider.maxRetries set, a 429 waits for retry-after and then succeeds', async () => {
-  let calls = 0;
-  const started = Date.now();
-  const { server, message } = await run((_, res) => (calls++ === 0 ? json(res, 429, { error: { message: 'Resource has been exhausted' } }, { 'retry-after': '0.01' }) : stream(res, textAndThinking)), { stream: { maxRetries: 1 } });
-  expect(server.requests.length).toBe(2);
-  expect(message.stopReason).toBe('stop');
-  expect(Date.now() - started).toBeGreaterThanOrEqual(1000);
+  vi.useFakeTimers();
+  const fetchMock = vi
+    .fn<typeof fetch>()
+    .mockResolvedValueOnce(Response.json({ error: { message: 'Resource has been exhausted' } }, { status: 429, headers: { 'retry-after': '0.01' } }))
+    .mockResolvedValueOnce(new Response(textAndThinking, { headers: { 'content-type': 'text/event-stream' } }));
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: 'http://cloud.example' });
+  const model = provider.getModels().find((item) => item.id === 'gemini-3.1-pro');
+  if (!model) throw new Error('missing base model');
+  const result = provider.streamSimple(model, normalizeContext(hello), { apiKey: API_KEY, maxRetries: 1, fetch: fetchMock });
+  const pending = result.result();
+  await vi.advanceTimersByTimeAsync(1009);
+  expect(fetchMock).toHaveBeenCalledTimes(1);
+  await vi.advanceTimersByTimeAsync(1);
+  expect((await pending).stopReason).toBe('stop');
+  expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
 test('a retry-after above maxRetryDelayMs fails instead of waiting', async () => {
@@ -476,16 +479,13 @@ test('a non-Error payload failure is reported as text', async () => {
 
 test('a model base URL replaces the configured endpoint', async () => {
   const server = await fakeServer((_, res) => stream(res, textAndThinking));
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: 'https://ignored.example' });
-    const base = provider.getModels()[0];
-    if (!base) throw new Error('missing base model');
-    const message = await provider.streamSimple({ ...base, baseUrl: server.url }, normalizeContext(hello), { apiKey: API_KEY }).result();
-    expect(server.requests[0]?.path).toBe('/v1internal:streamGenerateContent?alt=sse');
-    expect(message.stopReason).toBe('stop');
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: 'https://ignored.example' });
+  const base = provider.getModels()[0];
+  if (!base) throw new Error('missing base model');
+  const message = await provider.streamSimple({ ...base, baseUrl: server.url }, normalizeContext(hello), { apiKey: API_KEY }).result();
+  expect(server.requests[0]?.path).toBe('/v1internal:streamGenerateContent?alt=sse');
+  expect(message.stopReason).toBe('stop');
 });
 
 test('onProviderStreamEvent observes each raw chunk before normalization', async () => {

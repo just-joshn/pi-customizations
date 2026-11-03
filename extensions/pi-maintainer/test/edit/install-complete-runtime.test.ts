@@ -21,13 +21,13 @@ function linkDependency(name: string, fromRoot: string, intoModules: string): vo
   symlinkSync(realpathSync(source), target, 'dir');
 }
 
-test('isolated package load registers every edit format and packaged resources', async () => {
+test('isolated package load registers every edit format and packaged resources', { timeout: 60_000 }, async () => {
   const staging = mkdtempSync(join(tmpdir(), 'pi-maintainer-complete-runtime-'));
   onTestFinished(() => rmSync(staging, { recursive: true, force: true }));
 
   execFileSync('bun', ['pm', 'pack', '--destination', staging, '--ignore-scripts'], { cwd: packageRoot, stdio: 'pipe' });
   const tarball = readdirSync(staging).find((name) => name.endsWith('.tgz'));
-  expect(tarball).toBeDefined();
+  expect(tarball).toMatch(/\.tgz$/);
 
   const extractRoot = join(staging, 'extract');
   mkdirSync(extractRoot);

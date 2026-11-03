@@ -30,7 +30,7 @@ pi install npm:@justjoshn/pi-maintainer
 pi install npm:@justjoshn/pi-rea
 ```
 
-To release a new version, bump `version` in that package's `package.json`, then run `npm publish --access public` inside its `extensions/<dir>`.
+To release a new version, bump `version` in that package's `package.json` and merge to `main`. The release workflow publishes it and tags it. See [`docs/releases.md`](docs/releases.md).
 
 ### Install from git
 
@@ -82,7 +82,7 @@ bun install
 make verify
 ```
 
-`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh) and Node 22.19 or newer. Every extension targets Pi 1.4.0.
+`make verify` runs Biome, the Pi package-mechanism check, the bun toolchain check, the Vitest conventions check from [`AGENTS.md`](AGENTS.md), every extension's typecheck and test suite with coverage, the OAuth extensions' offline proof scripts, and a fresh-install check. It needs [bun](https://bun.sh), Go (to build the Mach-O fixtures) and Node 24.15 or newer (pi-rea's SQLite inspector needs it). `mise install` reads `mise.toml` and provides all three, plus Temurin 25 and `tla2tools.jar` for the refresh-lock model check. On Ubuntu the read-only shell sandbox also needs `bubblewrap`, `socat`, and `ripgrep` (`sudo apt install bubblewrap socat ripgrep`); macOS uses the built-in `sandbox-exec`. Every extension targets Pi 1.5.0.
 
 `make verify-sources` installs every package from npm, git, and a local path. It needs network access, so it stays out of `make verify`.
 

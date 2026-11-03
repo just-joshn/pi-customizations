@@ -38,10 +38,7 @@ async function isAuthRecoveryTrigger(response: Response): Promise<boolean> {
 }
 
 /** One forced refresh under an in-process latch, then one HTTP retry on 401 or revoked 403. */
-export function createAuthRecovery(input: {
-  providerId: string;
-  oauth: OAuthAuth;
-}): AuthRecovery {
+export function createAuthRecovery(input: { providerId: string; oauth: OAuthAuth }): AuthRecovery {
   let store: CredentialStore | undefined;
   let remembered: OAuthCredential | undefined;
   const latch = createRefreshLatch<string | undefined>();

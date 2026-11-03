@@ -1,24 +1,12 @@
 #!/usr/bin/env node
-import { createInterface } from 'node:readline/promises';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { stdin as input, stdout as output } from 'node:process';
+import { createInterface } from 'node:readline/promises';
+import { fileURLToPath } from 'node:url';
 
-import {
-  buildAuthorizeUrl,
-  CLAUDE_COPY_CODE_REDIRECT_URI,
-  createPkcePair,
-  exchangeAuthorizationCodeResult,
-} from '../src/oauth.ts';
-import {
-  assertLiveExchangeAllowed,
-  assertTokenJsonShape,
-  buildLiveExchangeReceipt,
-  LIVE_EXCHANGE_ENV,
-  LIVE_EXCHANGE_GATE_ID,
-  readLiveExchangeGateFile,
-} from '../src/oauth-live-gate.ts';
+import { buildAuthorizeUrl, CLAUDE_COPY_CODE_REDIRECT_URI, createPkcePair, exchangeAuthorizationCodeResult } from '../src/oauth.ts';
+import { assertLiveExchangeAllowed, assertTokenJsonShape, buildLiveExchangeReceipt, LIVE_EXCHANGE_ENV, LIVE_EXCHANGE_GATE_ID, readLiveExchangeGateFile } from '../src/oauth-live-gate.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 const GATES_PATH = join(ROOT, 'parity/oauth-rea-2026-10-31/claude/gates.md');
@@ -74,10 +62,7 @@ async function main(): Promise<void> {
 
   const paste = await readPaste(state);
   const signal = AbortSignal.timeout(30_000);
-  const exchanged = await exchangeAuthorizationCodeResult(
-    { code: paste.code, state: paste.state, redirectUri, verifier },
-    signal,
-  );
+  const exchanged = await exchangeAuthorizationCodeResult({ code: paste.code, state: paste.state, redirectUri, verifier }, signal);
 
   if (exchanged.httpStatus !== 200) {
     throw new Error(`Live token exchange returned HTTP ${exchanged.httpStatus}, expected 200`);

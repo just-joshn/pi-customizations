@@ -12,6 +12,7 @@ import { inspectGoBinary } from '../src/tools/go-binary-tools.ts';
 import { inspectWebNetworkCapture } from '../src/tools/har-tools.ts';
 import { analyzeJavascriptApplication } from '../src/tools/javascript-tools.ts';
 import { fixturePath } from './support/fixtures.ts';
+import { stubHost } from './support/host.ts';
 
 const runtime = { name: 'pi-rea', version: '0.1.0', cwd: '/tmp' };
 
@@ -33,7 +34,7 @@ test('ABSORB-001: analyze_javascript_application returns Evidence for a director
   evidenceIdOf(result);
   const normalized = record['normalized_result'] as { format: string; graph: { nodes: unknown[] } };
   expect(normalized.format).toBe('directory');
-  expect(normalized.graph.nodes.length).toBeGreaterThan(0);
+  expect(normalized.graph.nodes).toHaveLength(36);
   expect(session.evidence.size).toBe(1);
 });
 
@@ -51,26 +52,28 @@ test('ABSORB-002: inspect_artifact returns Evidence for an open ZIP target', asy
     substeps: { operation: string }[];
   };
   expect(normalized.subject.root_format).toBe('zip');
-  expect(normalized.observations.length).toBeGreaterThan(0);
+  expect(normalized.observations).toHaveLength(1);
   expect(normalized.substeps.some((step) => step.operation === 'inventory_artifact')).toBe(true);
 });
 
-test('ABSORB-003: inspect_binary_layout matches REA pwntools Linux-x64 host gate', async () => {
+test('ABSORB-003: inspect_binary_layout reads an ELF on a Linux-x64 host', async () => {
+  stubHost('linux', 'x64');
   const session = new ReaSession(runtime);
-  const path = fixturePath('targets/minimal-elf.bin');
-  if (process.platform === 'linux' && process.arch === 'x64') {
-    const result = await inspectBinaryLayout(session, { path });
-    const record = result.structuredContent as Record<string, unknown>;
-    expect(record['operation']).toBe('inspect_binary_layout');
-    evidenceIdOf(result);
-    const normalized = record['normalized_result'] as { format: string; architecture: string | null };
-    expect(normalized.format).toBe('elf');
-    expect(normalized.architecture).toBe('x86_64');
-    return;
-  }
+  const result = await inspectBinaryLayout(session, { path: fixturePath('targets/minimal-elf.bin') });
+  const record = result.structuredContent as Record<string, unknown>;
+  expect(record['operation']).toBe('inspect_binary_layout');
+  evidenceIdOf(result);
+  const normalized = record['normalized_result'] as { format: string; architecture: string | null };
+  expect(normalized.format).toBe('elf');
+  expect(normalized.architecture).toBe('x86_64');
+});
+
+test('ABSORB-003: inspect_binary_layout refuses an unsupported pwntools host', async () => {
+  stubHost('darwin', 'arm64');
+  const session = new ReaSession(runtime);
   let thrown: unknown;
   try {
-    await inspectBinaryLayout(session, { path });
+    await inspectBinaryLayout(session, { path: fixturePath('targets/minimal-elf.bin') });
   } catch (error) {
     thrown = error;
   }
@@ -99,7 +102,7 @@ test('ABSORB-004: inspect_go_binary returns Evidence for an embedded buildinfo b
   evidenceIdOf(result);
   const normalized = record['normalized_result'] as { build_info: { go_version: string }; format: string };
   expect(normalized.build_info.go_version).toBe('go1.17.5');
-  expect(normalized.format).toBeDefined();
+  expect(normalized.format).toBe('unknown');
 });
 
 test('ABSORB-005: inspect_web_network_capture returns Evidence for a HAR document', async ({ onTestFinished }) => {

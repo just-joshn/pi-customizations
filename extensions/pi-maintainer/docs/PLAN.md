@@ -10,7 +10,7 @@ The run is done when all of these hold on the branch head.
 - Each SAR passed its own gate, listed below, before the next SAR started.
 - A PR for `feat/pi-maintainer-2` is open.
 
-Current status (measured, not planned): `check-parity` passes, `--feature edit` passes, `--feature git`, `--feature map`, `--feature lint`, and `--final` fail on open rows and on census units whose ported test is not yet tagged. The open rows are documented native gaps in `docs/NATIVE-GAPS.md`; each needs either an implementation Pi's API can express or the ledger must stop claiming it. No PR is open.
+Current status: `parity/ledger.json` holds 296 rows, 285 verified and 11 open native gaps. `--final` stays red on those 11 rows, each documented in `docs/NATIVE-GAPS.md`. Each needs either an implementation Pi's API can express or the ledger must stop claiming it. The gate scripts need the pinned Aider checkout and reconstruction documents, which this status does not rerun.
 
 ## Rigor
 

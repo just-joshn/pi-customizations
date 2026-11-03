@@ -110,7 +110,11 @@ describe('per-workspace state (review: parity 4)', () => {
   });
 
   test('keeps subagents and the agent store under the workspace', () => {
-    const base = join(process.env['PI_CODING_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi/agent'), 'pstack/workspaces/--w-app--');
+    vi.stubEnv('PI_CODING_AGENT_DIR', '/agent');
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
+    const base = join('/agent', 'pstack/workspaces/--w-app--');
     expect([subagentDir('/w/app'), storeDir('/w/app', 'session-1'), worktreesDir('/w/app')]).toEqual([join(base, 'subagents'), join(base, 'store/session-1'), join(base, 'worktrees')]);
   });
 });

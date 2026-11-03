@@ -1,5 +1,5 @@
 import type { ExtensionCommandContext } from '@earendil-works/pi-coding-agent';
-import { expect, vi } from 'vitest';
+import { expect, onTestFinished, vi } from 'vitest';
 import { createAntigravityCommand, fetchAccountSummary, formatAccountSummary, parseQuotaSummary } from '../src/command.ts';
 import { fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
@@ -29,63 +29,57 @@ async function cloudCode() {
 
 test('the account summary shows email, project, paid tier, and the quota groups the CLI reads', async () => {
   const server = await cloudCode();
-  try {
-    const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
-    const quotaRequest = server.requests.find((request) => request.path === '/v1internal:retrieveUserQuotaSummary');
-    expect(quotaRequest?.body).toBe('{"project":"proj-9"}');
-    expect(formatAccountSummary(summary, Date.parse('2026-01-01T00:00:00Z'))).toBe(
-      [
-        'Account: dev@example.com',
-        'Project: proj-9',
-        'Tier: Google AI Pro (g1-pro-tier)',
-        'Quota:',
-        '  Gemini Models:',
-        '    Weekly Limit Remaining: 100% left, resets in 96h 0m',
-        '    Five Hour Limit Remaining: 75% left, resets in 2h 30m',
-        '  Claude and GPT models:',
-        '    Weekly Limit Remaining: unknown',
-      ].join('\n'),
-    );
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
+  const quotaRequest = server.requests.find((request) => request.path === '/v1internal:retrieveUserQuotaSummary');
+  expect(quotaRequest?.body).toBe('{"project":"proj-9"}');
+  expect(formatAccountSummary(summary, Date.parse('2026-01-01T00:00:00Z'))).toBe(
+    [
+      'Account: dev@example.com',
+      'Project: proj-9',
+      'Tier: Google AI Pro (g1-pro-tier)',
+      'Quota:',
+      '  Gemini Models:',
+      '    Weekly Limit Remaining: 100% left, resets in 96h 0m',
+      '    Five Hour Limit Remaining: 75% left, resets in 2h 30m',
+      '  Claude and GPT models:',
+      '    Weekly Limit Remaining: unknown',
+    ].join('\n'),
+  );
 });
 
 test("without a UI the command writes plain text to stderr using the registry's refreshed credential", async () => {
   const server = await cloudCode();
+  onTestFinished(() => server.close());
   const written: string[] = [];
   const printed: string[] = [];
-  try {
-    let askedFor = '';
-    const ctx = {
-      hasUI: false,
-      modelRegistry: {
-        getApiKeyForProvider: async (provider: string) => {
-          askedFor = provider;
-          return API_KEY;
-        },
+  let askedFor = '';
+  const ctx = {
+    hasUI: false,
+    modelRegistry: {
+      getApiKeyForProvider: async (provider: string) => {
+        askedFor = provider;
+        return API_KEY;
       },
-    } as unknown as ExtensionCommandContext;
-    vi.spyOn(process.stderr, 'write').mockImplementation(((chunk: string | Uint8Array) => {
-      if (typeof chunk === 'string' && chunk.startsWith('Account:')) {
-        written.push(chunk);
-      }
-      return true;
-    }) as typeof process.stderr.write);
-    vi.spyOn(process.stdout, 'write').mockImplementation(((chunk: string | Uint8Array) => {
-      if (typeof chunk === 'string' && chunk.startsWith('Account:')) {
-        printed.push(chunk);
-      }
-      return true;
-    }) as typeof process.stdout.write);
-    await createAntigravityCommand({ cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` }).handler('', ctx);
-    expect(askedFor).toBe('google-antigravity');
-    expect(printed).toEqual([]);
-    expect(written.length).toBe(1);
-    expect(written[0]).toMatch(/^Account: dev@example.com\nProject: proj-9\nTier: Google AI Pro \(g1-pro-tier\)\nQuota:\n/);
-  } finally {
-    server.close();
-  }
+    },
+  } as unknown as ExtensionCommandContext;
+  vi.spyOn(process.stderr, 'write').mockImplementation(((chunk: string | Uint8Array) => {
+    if (typeof chunk === 'string' && chunk.startsWith('Account:')) {
+      written.push(chunk);
+    }
+    return true;
+  }) as typeof process.stderr.write);
+  vi.spyOn(process.stdout, 'write').mockImplementation(((chunk: string | Uint8Array) => {
+    if (typeof chunk === 'string' && chunk.startsWith('Account:')) {
+      printed.push(chunk);
+    }
+    return true;
+  }) as typeof process.stdout.write);
+  await createAntigravityCommand({ cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` }).handler('', ctx);
+  expect(askedFor).toBe('google-antigravity');
+  expect(printed).toEqual([]);
+  expect(written.length).toBe(1);
+  expect(written[0]).toMatch(/^Account: dev@example.com\nProject: proj-9\nTier: Google AI Pro \(g1-pro-tier\)\nQuota:\n/);
 });
 
 test('with a UI and no login the command tells the user to log in', async () => {
@@ -110,58 +104,46 @@ test('a summary whose quota lookup failed reports the failure', () => {
 test('the account summary reads a tier that carries only an id', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    onTestFinished(() => server.close());
     if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, { paidTier: { id: 'legacy' } });
     return json(res, 200, { groups: [] });
   });
-  try {
-    const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
-    expect(summary.tier).toBe('legacy');
-  } finally {
-    server.close();
-  }
+  const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
+  expect(summary.tier).toBe('legacy');
 });
 
 test('the account summary reads a tier that carries only a name', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    onTestFinished(() => server.close());
     if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, { currentTier: { name: 'Plus' } });
     return json(res, 200, { groups: [] });
   });
-  try {
-    const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
-    expect(summary.tier).toBe('Plus');
-  } finally {
-    server.close();
-  }
+  const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
+  expect(summary.tier).toBe('Plus');
 });
 
 test('the account summary reports no tier for an empty loadCodeAssist body', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    onTestFinished(() => server.close());
     if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, null);
     return json(res, 200, { groups: [] });
   });
-  try {
-    const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
-    expect(summary.tier).toBe(undefined);
-  } finally {
-    server.close();
-  }
+  const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
+  expect(summary.tier).toBe(undefined);
 });
 
 test('a failed quota lookup is reported instead of failing the summary', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
+    onTestFinished(() => server.close());
     if (request.path === '/v1internal:loadCodeAssist') return json(res, 200, {});
     return json(res, 500, { error: { message: 'denied' } });
   });
-  try {
-    const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
-    expect(summary.quotaError).toBe('retrieveUserQuotaSummary failed (500): denied');
-    expect(summary.quota).toEqual([]);
-  } finally {
-    server.close();
-  }
+  const summary = await fetchAccountSummary(API_KEY, { cloudCode: server.url, userInfoUrl: `${server.url}/userinfo` });
+  expect(summary.quotaError).toBe('retrieveUserQuotaSummary failed (500): denied');
+  expect(summary.quota).toEqual([]);
 });
 
 test('with a UI the command reports a credential error', async () => {

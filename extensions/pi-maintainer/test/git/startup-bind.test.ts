@@ -1,12 +1,8 @@
 import { realpathSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-
-const canon = (path: string) => realpathSync(path);
-
 import { BRANDING } from '../../src/branding.ts';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import type { Host } from '../../src/core/host.ts';
@@ -18,6 +14,8 @@ import { checkGitignore, discoverGitRoot, openSingleRoot, prepareGitRepository, 
 import { findGitRoot } from '../../src/settings/config-files.ts';
 import { defined } from '../support/defined.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
+
+const canon = (path: string) => realpathSync(path);
 
 function confirmingHost(answer: boolean | ((question: string) => boolean) = true): Host & {
   readonly outputs: string[];
@@ -66,19 +64,22 @@ test('openSingleRoot returns one root and refuses zero or multiple roots', { met
   expect(host.errors).toContain('Files are in different git repos.');
 });
 
-test('setupGit offers init outside home, creates ignore patterns without a second confirm, and skips the home directory', {
+test('setupGit offers init, announces the new repository, and writes the ignore pattern without a second confirm', {
   meta: { aider: ['test_main/TestMain.test_setup_git', 'test_main/TestMain.test_main_with_empty_git_dir_new_file'] },
 }, async () => {
   const root = await tempDir('git-setup-');
   const host = confirmingHost(true);
-  const created = await setupGit(host, root, homedir());
+  const created = await setupGit(host, root, await tempDir('git-setup-home-'));
   expect(created).toBe(canon(root));
   expect(host.confirms).toEqual(["No git repo found, create one to track aider's changes (recommended)?"]);
   expect(host.outputs).toContain(`Git repository created in ${canon(root)}`);
   const ignore = await readFile(join(root, '.gitignore'), 'utf8');
   expect(ignore.split('\n')[0]).toBe(BRANDING.gitignorePattern);
-  expect(host.confirms).toHaveLength(1);
+});
 
+test('setupGit skips the home directory with a warning and no confirm', {
+  meta: { aider: ['test_main/TestMain.test_setup_git'] },
+}, async () => {
   const home = await tempDir('git-home-');
   const homeHost = confirmingHost(true);
   expect(await setupGit(homeHost, home, home)).toBe(null);
@@ -86,33 +87,28 @@ test('setupGit offers init outside home, creates ignore patterns without a secon
   expect(homeHost.confirms).toEqual([]);
 });
 
-test('sanityCheckRepo refuses bare and corrupt repos and an unreadable index, warns above index version 3, and accepts detached HEAD', {
-  meta: {
-    aider: [
-      'test_sanity_check_repo/test_bare_repository',
-      'test_sanity_check_repo/test_sanity_check_repo_with_corrupt_repo',
-      'test_sanity_check_repo/test_git_index_version_greater_than_2',
-      'test_sanity_check_repo/test_detached_head_state',
-    ],
-    evidence: ['ev-git/probe/index-version-3', 'ev-git/probe/index-version-4'],
-  },
-}, async () => {
+test('sanityCheckRepo refuses a bare repository', { meta: { aider: ['test_sanity_check_repo/test_bare_repository'] } }, async () => {
   const bare = await tempDir('git-bare-');
   await git(bare, ['init', '--bare']);
   const bareHost = recordingHost();
   expect(await sanityCheckRepo(bareHost, bare)).toBe(false);
   expect(bareHost.errors).toContain('The git repo does not seem to have a working tree?');
+});
 
+test('sanityCheckRepo refuses a corrupt repository', { meta: { aider: ['test_sanity_check_repo/test_sanity_check_repo_with_corrupt_repo'] } }, async () => {
   const corrupt = await tempDir('git-corrupt-');
   await initRepo(corrupt);
   await git(corrupt, ['commit', '--allow-empty', '-m', 'empty']).catch(() => undefined);
-  const { rm } = await import('node:fs/promises');
   await rm(join(corrupt, '.git'), { recursive: true, force: true });
   await mkdir(join(corrupt, '.git'));
   const corruptHost = recordingHost();
   expect(await sanityCheckRepo(corruptHost, corrupt)).toBe(false);
   expect(corruptHost.errors).toContain('Unable to read git repository, it may be corrupt?');
+});
 
+test('sanityCheckRepo accepts an index at version 3 without errors', {
+  meta: { aider: ['test_sanity_check_repo/test_git_index_version_greater_than_2'], evidence: ['ev-git/probe/index-version-3'] },
+}, async () => {
   const indexed = await tempDir('git-index-');
   await initRepo(indexed);
   await commitFile(indexed, 'README.md', '# hi');
@@ -123,7 +119,11 @@ test('sanityCheckRepo refuses bare and corrupt repos and an unreadable index, wa
   const indexHost = recordingHost();
   expect(await sanityCheckRepo(indexHost, indexed)).toBe(true);
   expect(indexHost.errors).toEqual([]);
+});
 
+test('sanityCheckRepo warns about an index above version 3 and still accepts the repository', {
+  meta: { aider: ['test_sanity_check_repo/test_git_index_version_greater_than_2'], evidence: ['ev-git/probe/index-version-4'] },
+}, async () => {
   const version4 = await tempDir('git-index4-');
   await initRepo(version4);
   await commitFile(version4, 'README.md', '# hi');
@@ -131,7 +131,9 @@ test('sanityCheckRepo refuses bare and corrupt repos and an unreadable index, wa
   const version4Host = recordingHost();
   expect(await sanityCheckRepo(version4Host, version4)).toBe(true);
   expect(version4Host.errors).toEqual(['Unable to read staged files: Unsupported git index version 4, only 1, 2, and 3 are supported']);
+});
 
+test('sanityCheckRepo refuses a repository whose index git cannot list and suggests a conversion', async () => {
   const unreadable = await tempDir('git-index-refused-');
   await initRepo(unreadable);
   const unreadableBase = recordingHost();
@@ -143,7 +145,9 @@ test('sanityCheckRepo refuses bare and corrupt repos and an unreadable index, wa
   expect(unreadableHost.errors).toContain('Aider only works with git repos with version number 1 or 2.');
   expect(unreadableHost.outputs).toContain('You may be able to convert your repo: git update-index --index-version=2');
   expect(unreadableHost.outputs).toContain('Or run aider --no-git to proceed without using git.');
+});
 
+test('sanityCheckRepo accepts a detached HEAD', { meta: { aider: ['test_sanity_check_repo/test_detached_head_state'] } }, async () => {
   const detached = await tempDir('git-detach-');
   await initRepo(detached);
   await commitFile(detached, 'a.txt', 'a');
@@ -174,10 +178,11 @@ test('prepareGitRepository disables when git is off or the executable is missing
   const root = await tempDir('git-prep-');
   await initRepo(root);
   await commitFile(root, 'f.txt', 'f');
+  const home = await tempDir('git-prep-home-');
   const off = await prepareGitRepository({
     host: recordingHost(),
     cwd: root,
-    home: homedir(),
+    home,
     gitEnabled: false,
     gitignoreOffer: true,
   });
@@ -188,7 +193,7 @@ test('prepareGitRepository disables when git is off or the executable is missing
   const unavailable = await prepareGitRepository({
     host: missing,
     cwd: root,
-    home: homedir(),
+    home,
     gitEnabled: true,
     gitignoreOffer: false,
   });
@@ -198,7 +203,7 @@ test('prepareGitRepository disables when git is off or the executable is missing
   const ready = await prepareGitRepository({
     host: readyHost,
     cwd: root,
-    home: homedir(),
+    home,
     gitEnabled: true,
     gitignoreOffer: true,
   });

@@ -26,15 +26,16 @@ import { decodeInterfaceBuilder } from '../src/tools/interface-builder-tools.ts'
 import { openBinary } from '../src/tools/session-tools.ts';
 import { inspectSignature } from '../src/tools/signature-tools.ts';
 import { fixtureCdhash, fixturePath } from './support/fixtures.ts';
+import { provideSwiftDemangle } from './support/swift-demangle.ts';
 import { tempTargets } from './support/temp-targets.ts';
 
 const spawnControl = vi.hoisted(() => ({ impl: undefined as (() => unknown) | undefined }));
 
-vi.mock('node:child_process', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('node:child_process')>();
+vi.mock(import('node:child_process'), async (importOriginal) => {
+  const actual = await importOriginal();
   return {
     ...actual,
-    spawn: (command: string, args: readonly string[], options: unknown) => (spawnControl.impl === undefined ? actual.spawn(command, args as string[], options as never) : spawnControl.impl()),
+    spawn: ((command: string, args: readonly string[], options: unknown) => (spawnControl.impl === undefined ? actual.spawn(command, args as string[], options as never) : spawnControl.impl())) as typeof actual.spawn,
   };
 });
 
@@ -1329,7 +1330,9 @@ test('inspectDesktopApplicationFromPath omits symlinks without following them', 
   expect(record.coverage.symlinks_not_followed).toBe(1);
 });
 
-test.skipIf(!existsSync('/usr/bin/mkfifo'))('inspectDesktopApplicationFromPath omits special entries', async () => {
+const hasMkfifo = existsSync('/usr/bin/mkfifo');
+
+test.skipIf(!hasMkfifo)('inspectDesktopApplicationFromPath omits special entries', async () => {
   const root = await writeTree({ 'plain.txt': 'x' });
   execFileSync('/usr/bin/mkfifo', [join(root, 'pipe')]);
 
@@ -1461,6 +1464,7 @@ test.for([
 });
 
 test('demangleSwiftSymbols demangles with the host tool', async () => {
+  provideSwiftDemangle();
   const inspection = await demangleSwiftSymbols(['_$sSSN', 'not_swift'], { hasOpenTarget: true });
 
   expect(inspection.symbols).toStrictEqual([
@@ -1676,7 +1680,7 @@ test('open_bundle_resources detects a root layout Info.plist', async () => {
     layout: 'root',
     executable_sha256: null,
   });
-  expect(payload['run_id']).toEqual(expect.any(String));
+  expect(payload['run_id']).toMatch(/^[0-9a-f-]{36}$/);
   expect(session.bundleResources?.layout).toBe('root');
 });
 
@@ -1805,6 +1809,7 @@ test('demangle_swift requires an open target', async () => {
 });
 
 test('demangle_swift records demangled symbols for the open target', async () => {
+  provideSwiftDemangle();
   const session = new ReaSession(runtime);
   const path = fixturePath('targets/minimal-macho.bin');
   await openBinary(session, { path });
@@ -1854,6 +1859,8 @@ test.for([
   { name: 'a spawn failure', mode: 'error' as const },
   { name: 'a non-zero exit', mode: 'nonzero-exit' as const },
 ])('demangleSwiftSymbols reports $name from the host tool', async ({ mode }) => {
+  expect.hasAssertions();
+  provideSwiftDemangle();
   spawnControl.impl = () => fakeChildProcess(mode);
   onTestFinished(() => {
     spawnControl.impl = undefined;

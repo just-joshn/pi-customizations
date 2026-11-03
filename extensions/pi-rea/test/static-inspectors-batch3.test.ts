@@ -1,4 +1,5 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -22,8 +23,9 @@ const normalized = async (run: () => Promise<{ structuredContent?: unknown }>): 
   return (result.structuredContent as { normalized_result: Record<string, unknown> }).normalized_result;
 };
 
-test('inspect_electron_fuses: decodes sentinel wire from a thin Mach-O fixture', async () => {
+test('inspect_electron_fuses: decodes sentinel wire from a thin Mach-O fixture', async ({ onTestFinished }) => {
   const dir = await mkdtemp(join(tmpdir(), 'pi-rea-fuse-'));
+  onTestFinished(async () => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'Electron');
   await writeFile(
     path,
@@ -77,9 +79,11 @@ test('open_bundle_resources + inspect_keyed_archive: projects NSKeyedArchiver ob
   expect((opened.structuredContent as { result: { layout: string } }).result.layout).toBe('contents');
   const record = await normalized(() => inspectKeyedArchive(session, { path: 'Contents/Resources/archive.plist' }));
   expect(record['archive_format']).toBe('xml-plist');
-  expect((record['objects'] as unknown[]).length).toBeGreaterThanOrEqual(3);
+  expect(record['objects']).toHaveLength(3);
   expect((record['objects'] as { kind: string }[]).some((object) => object.kind === 'class-descriptor')).toBe(true);
 });
+
+const hasAssetutil = existsSync('/usr/bin/assetutil');
 
 test('inspect_asset_catalog: fixture Assets.car refuses with unreadable_output like REA assetutil', async () => {
   const session = new ReaSession(runtime);
@@ -94,7 +98,7 @@ test('inspect_asset_catalog: fixture Assets.car refuses with unreadable_output l
   expect(payload.code).toBe('unreadable_output');
   expect(payload.details).toMatchObject({
     operation: 'inspect_asset_catalog',
-    reason: expect.stringContaining('assetutil did not produce usable catalog metadata'),
+    reason: hasAssetutil ? expect.stringContaining('assetutil did not produce usable catalog metadata') : 'macOS assetutil is unavailable',
   });
 });
 

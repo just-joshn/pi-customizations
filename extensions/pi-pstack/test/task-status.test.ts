@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { subagentDir } from '../src/paths.ts';
 import { writeRecord } from '../src/task/records.ts';
 import { agentStatus, lastAssistantText, listAgentStatuses, registerAgentStatus, statusText } from '../src/task/status.ts';
@@ -132,24 +132,21 @@ describe('agent_status tool', () => {
   });
 
   test('reads the workspace subagent directory and never takes a run lock', async () => {
-    const previous = process.env['PI_CODING_AGENT_DIR'];
-    process.env['PI_CODING_AGENT_DIR'] = join(dir, 'agent');
-    try {
-      const tool = register();
-      expect(tool.name).toBe('agent_status');
-      const workspace = join(dir, 'w');
-      expect((await tool.execute('t', {}, undefined, undefined, { cwd: workspace })).content[0]?.text).toBe('No subagents in this workspace yet.');
-      dir = subagentDir(workspace);
-      const agentId = addAgent(1);
-      addTranscript(agentId, ['task', 'all done']);
-      const text = (await tool.execute('t', { agent_id: agentId }, undefined, undefined, { cwd: workspace })).content[0]?.text ?? '';
-      expect(text).toContain('state: idle');
-      expect(text).toContain('all done');
-      expect(listAgentStatuses(dir).agents[0]?.state).toBe('idle');
-      await expect(tool.execute('t', { agent_id: '../x' }, undefined, undefined, { cwd: workspace })).rejects.toThrow('is not a valid agent ID');
-    } finally {
-      if (previous === undefined) delete process.env['PI_CODING_AGENT_DIR'];
-      else process.env['PI_CODING_AGENT_DIR'] = previous;
-    }
+    vi.stubEnv('PI_CODING_AGENT_DIR', join(dir, 'agent'));
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+    });
+    const tool = register();
+    expect(tool.name).toBe('agent_status');
+    const workspace = join(dir, 'w');
+    expect((await tool.execute('t', {}, undefined, undefined, { cwd: workspace })).content[0]?.text).toBe('No subagents in this workspace yet.');
+    dir = subagentDir(workspace);
+    const agentId = addAgent(1);
+    addTranscript(agentId, ['task', 'all done']);
+    const text = (await tool.execute('t', { agent_id: agentId }, undefined, undefined, { cwd: workspace })).content[0]?.text ?? '';
+    expect(text).toContain('state: idle');
+    expect(text).toContain('all done');
+    expect(listAgentStatuses(dir).agents[0]?.state).toBe('idle');
+    await expect(tool.execute('t', { agent_id: '../x' }, undefined, undefined, { cwd: workspace })).rejects.toThrow('is not a valid agent ID');
   });
 });

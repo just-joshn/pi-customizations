@@ -1,17 +1,9 @@
 import { createHash } from 'node:crypto';
 
 import type { AuthEvent, AuthPrompt, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-import { expect, vi } from 'vitest';
+import { expect, onTestFinished, vi } from 'vitest';
 import { parseApiKey } from '../src/cloudcode.ts';
-import {
-  createAntigravityOAuth,
-  fetchEmail,
-  GOOGLE_OAUTH,
-  type OAuthEndpoints,
-  parseCredential,
-  projectFromLoadCodeAssist,
-  validateAccessToken,
-} from '../src/oauth.ts';
+import { createAntigravityOAuth, fetchEmail, GOOGLE_OAUTH, type OAuthEndpoints, parseCredential, projectFromLoadCodeAssist, validateAccessToken } from '../src/oauth.ts';
 import { type FakeServer, fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
 
@@ -58,24 +50,21 @@ const pasteCode = () => interaction(async () => '  4/0Ab-code  ');
 
 test('login sends the Antigravity CLI authorization URL', async () => {
   const server = await google();
-  try {
-    const flow = interaction(async () => 'code');
-    await createAntigravityOAuth(endpoints(server)).login(flow.value);
-    const authUrl = new URL((flow.events[0] as { url: string }).url);
-    expect(authUrl.origin + authUrl.pathname).toBe(`${server.url}/auth`);
-    expect([...authUrl.searchParams.keys()]).toEqual(['access_type', 'client_id', 'code_challenge', 'code_challenge_method', 'prompt', 'redirect_uri', 'response_type', 'scope', 'state']);
-    expect(authUrl.searchParams.get('client_id')).toBe('1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com');
-    expect(authUrl.searchParams.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
-    expect(authUrl.searchParams.get('scope')).toBe(
-      'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs https://www.googleapis.com/auth/aicode openid',
-    );
-    expect(authUrl.searchParams.get('access_type')).toBe('offline');
-    expect(authUrl.searchParams.get('prompt')).toBe('consent');
-    expect(authUrl.searchParams.get('code_challenge_method')).toBe('S256');
-    expect(authUrl.searchParams.get('state')).toMatch(/^[\w-]{22}$/);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const flow = interaction(async () => 'code');
+  await createAntigravityOAuth(endpoints(server)).login(flow.value);
+  const authUrl = new URL((flow.events[0] as { url: string }).url);
+  expect(authUrl.origin + authUrl.pathname).toBe(`${server.url}/auth`);
+  expect([...authUrl.searchParams.keys()]).toEqual(['access_type', 'client_id', 'code_challenge', 'code_challenge_method', 'prompt', 'redirect_uri', 'response_type', 'scope', 'state']);
+  expect(authUrl.searchParams.get('client_id')).toBe('1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com');
+  expect(authUrl.searchParams.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
+  expect(authUrl.searchParams.get('scope')).toBe(
+    'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs https://www.googleapis.com/auth/aicode openid',
+  );
+  expect(authUrl.searchParams.get('access_type')).toBe('offline');
+  expect(authUrl.searchParams.get('prompt')).toBe('consent');
+  expect(authUrl.searchParams.get('code_challenge_method')).toBe('S256');
+  expect(authUrl.searchParams.get('state')).toMatch(/^[\w-]{22}$/);
 });
 
 test('the production endpoints match the Antigravity CLI', () => {
@@ -90,52 +79,47 @@ test('the production endpoints match the Antigravity CLI', () => {
 
 test('login asks for the pasted authorization code and exchanges it with PKCE', async () => {
   const server = await google();
-  try {
-    const prompts: AuthPrompt[] = [];
-    const flow = interaction(async (_, prompt) => {
-      prompts.push(prompt);
-      return '  4/0Ab-code  ';
-    });
-    const before = Date.now();
-    const credential = await createAntigravityOAuth(endpoints(server)).login(flow.value);
-    expect(prompts.map((prompt) => prompt.type)).toEqual(['manual_code']);
-    const authUrl = new URL((flow.events[0] as { url: string }).url);
-    const form = new URLSearchParams(server.requests.find((request) => request.path === '/token')?.body);
-    expect([...form.keys()]).toEqual(['code', 'code_verifier', 'grant_type', 'redirect_uri', 'client_id', 'client_secret']);
-    expect(form.get('code')).toBe('4/0Ab-code');
-    expect(form.get('grant_type')).toBe('authorization_code');
-    expect(form.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
-    expect(
-      createHash('sha256')
-        .update(form.get('code_verifier') ?? '')
-        .digest('base64url'),
-    ).toBe(authUrl.searchParams.get('code_challenge'));
-    expect(credential).toMatchObject({ type: 'oauth', access: 'ya29.first', refresh: '1//refresh', projectId: 'aicode-consumers', email: 'dev@example.com' });
-    expect(credential.expires).toBeGreaterThanOrEqual(before + 3590 * 1000);
-    expect(credential.expires).toBeLessThanOrEqual(Date.now() + 3590 * 1000);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const prompts: AuthPrompt[] = [];
+  const flow = interaction(async (_, prompt) => {
+    prompts.push(prompt);
+    return '  4/0Ab-code  ';
+  });
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(0);
+  const credential = await createAntigravityOAuth(endpoints(server)).login(flow.value);
+  expect(prompts.map((prompt) => prompt.type)).toEqual(['manual_code']);
+  const authUrl = new URL((flow.events[0] as { url: string }).url);
+  const form = new URLSearchParams(server.requests.find((request) => request.path === '/token')?.body);
+  expect([...form.keys()]).toEqual(['code', 'code_verifier', 'grant_type', 'redirect_uri', 'client_id', 'client_secret']);
+  expect(form.get('code')).toBe('4/0Ab-code');
+  expect(form.get('grant_type')).toBe('authorization_code');
+  expect(form.get('redirect_uri')).toBe('https://antigravity.google/oauth-callback');
+  expect(
+    createHash('sha256')
+      .update(form.get('code_verifier') ?? '')
+      .digest('base64url'),
+  ).toBe(authUrl.searchParams.get('code_challenge'));
+  expect(credential).toMatchObject({ type: 'oauth', access: 'ya29.first', refresh: '1//refresh', projectId: 'aicode-consumers', email: 'dev@example.com' });
+  expect(credential.expires).toBe(3590 * 1000);
 });
 
 test('login reads the project with the CLI loadCodeAssist body and the email from userinfo', async () => {
   const server = await google({ cloudaicompanionProject: { id: 'companion-42' } });
-  try {
-    const credential = await createAntigravityOAuth(endpoints(server)).login(pasteCode().value);
-    const load = server.requests.find((request) => request.path.endsWith('loadCodeAssist'));
-    expect(load?.body).toBe('{"metadata":{"ideType":"ANTIGRAVITY"}}');
-    expect(load?.headers.authorization).toBe('Bearer ya29.first');
-    expect(server.requests.find((request) => request.path === '/userinfo')?.headers.authorization).toBe('Bearer ya29.first');
-    expect(credential['projectId']).toBe('companion-42');
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const credential = await createAntigravityOAuth(endpoints(server)).login(pasteCode().value);
+  const load = server.requests.find((request) => request.path.endsWith('loadCodeAssist'));
+  expect(load?.body).toBe('{"metadata":{"ideType":"ANTIGRAVITY"}}');
+  expect(load?.headers.authorization).toBe('Bearer ya29.first');
+  expect(server.requests.find((request) => request.path === '/userinfo')?.headers.authorization).toBe('Bearer ya29.first');
+  expect(credential['projectId']).toBe('companion-42');
 });
 
 test('login onboards when loadCodeAssist names no project, then reloads the project', async () => {
   let loads = 0;
   const server = await fakeServer((request, res) => {
     if (request.path === '/token') return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
+    onTestFinished(() => server.close());
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
     if (request.path === '/cc/v1internal:loadCodeAssist') {
       loads += 1;
@@ -144,135 +128,103 @@ test('login onboards when loadCodeAssist names no project, then reloads the proj
     if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
     return json(res, 404, {});
   });
-  try {
-    const credential = await createAntigravityOAuth(endpoints(server)).login(pasteCode().value);
-    const onboard = server.requests.find((request) => request.path.endsWith('onboardUser'));
-    expect(onboard?.body).toBe('{"tierId":"free-tier","metadata":{"ideType":"ANTIGRAVITY"}}');
-    expect(onboard?.headers.authorization).toBe('Bearer ya29.first');
-    expect(server.requests.filter((request) => request.path.endsWith('loadCodeAssist'))).toHaveLength(2);
-    expect(credential['projectId']).toBe('onboarded-project');
-  } finally {
-    server.close();
-  }
+  const credential = await createAntigravityOAuth(endpoints(server)).login(pasteCode().value);
+  const onboard = server.requests.find((request) => request.path.endsWith('onboardUser'));
+  expect(onboard?.body).toBe('{"tierId":"free-tier","metadata":{"ideType":"ANTIGRAVITY"}}');
+  expect(onboard?.headers.authorization).toBe('Bearer ya29.first');
+  expect(server.requests.filter((request) => request.path.endsWith('loadCodeAssist'))).toHaveLength(2);
+  expect(credential['projectId']).toBe('onboarded-project');
 });
 
 test('login fails without mentioning the Antigravity CLI when onboarding still yields no project', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/token') return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
+    onTestFinished(() => server.close());
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, {});
     if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
     return json(res, 404, {});
   });
-  try {
-    const error = await createAntigravityOAuth(endpoints(server))
-      .login(pasteCode().value)
-      .then(
-        () => {
-          throw new Error('expected login to fail');
-        },
-        (err: unknown) => err,
-      );
-    expect(error).toBeInstanceOf(Error);
-    expect((error as Error).message).toBe('Cloud Code named no Antigravity project for this account after onboarding.');
-    expect((error as Error).message).not.toMatch(/Antigravity CLI|\bagy\b/);
-  } finally {
-    server.close();
-  }
+  const error = await createAntigravityOAuth(endpoints(server))
+    .login(pasteCode().value)
+    .then(
+      () => {
+        throw new Error('expected login to fail');
+      },
+      (err: unknown) => err,
+    );
+  expect(error).toBeInstanceOf(Error);
+  expect((error as Error).message).toBe('Cloud Code named no Antigravity project for this account after onboarding.');
+  expect((error as Error).message).not.toMatch(/Antigravity CLI|\bagy\b/);
 });
 
 test('login surfaces a failed project lookup', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/token') return json(res, 200, { access_token: 'a', refresh_token: 'r', expires_in: 3600 });
+    onTestFinished(() => server.close());
     return json(res, 500, { error: { message: 'boom' } });
   });
-  try {
-    await expect(createAntigravityOAuth(endpoints(server)).login(pasteCode().value)).rejects.toThrow('loadCodeAssist failed (500): boom');
-  } finally {
-    server.close();
-  }
+  await expect(createAntigravityOAuth(endpoints(server)).login(pasteCode().value)).rejects.toThrow('loadCodeAssist failed (500): boom');
 });
 
 test('an empty pasted code is rejected before any request', async () => {
   const server = await google();
-  try {
-    await expect(createAntigravityOAuth(endpoints(server)).login(interaction(async () => '   ').value)).rejects.toThrow('Missing authorization code');
-    expect(server.requests).toHaveLength(0);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  await expect(createAntigravityOAuth(endpoints(server)).login(interaction(async () => '   ').value)).rejects.toThrow('Missing authorization code');
+  expect(server.requests).toHaveLength(0);
 });
 
 test('login fails when Google returns no refresh token', async () => {
   const server = await fakeServer((_, res) => json(res, 200, { access_token: 'ya29.first', expires_in: 3600 }));
-  try {
-    await expect(createAntigravityOAuth(endpoints(server)).login(pasteCode().value)).rejects.toThrow('Google returned no refresh token. Try /login again.');
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  await expect(createAntigravityOAuth(endpoints(server)).login(pasteCode().value)).rejects.toThrow('Google returned no refresh token. Try /login again.');
 });
 
 test('refresh keeps the refresh token and project when Google omits a new refresh token', async () => {
   const server = await google();
-  try {
-    const stored: OAuthCredential = { type: 'oauth', access: 'ya29.old', refresh: '1//refresh', expires: 0, projectId: 'companion-42', email: 'dev@example.com' };
-    const refreshed = await createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal);
-    const form = new URLSearchParams(server.requests[0]?.body);
-    expect([...form.entries()]).toEqual([
-      ['grant_type', 'refresh_token'],
-      ['refresh_token', '1//refresh'],
-      ['client_id', '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com'],
-      ['client_secret', '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'],
-    ]);
-    expect(refreshed).toMatchObject({ access: 'ya29.refreshed', refresh: '1//refresh', projectId: 'companion-42', email: 'dev@example.com' });
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const stored: OAuthCredential = { type: 'oauth', access: 'ya29.old', refresh: '1//refresh', expires: 0, projectId: 'companion-42', email: 'dev@example.com' };
+  const refreshed = await createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal);
+  const form = new URLSearchParams(server.requests[0]?.body);
+  expect([...form.entries()]).toEqual([
+    ['grant_type', 'refresh_token'],
+    ['refresh_token', '1//refresh'],
+    ['client_id', '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com'],
+    ['client_secret', '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'],
+  ]);
+  expect(refreshed).toMatchObject({ access: 'ya29.refreshed', refresh: '1//refresh', projectId: 'companion-42', email: 'dev@example.com' });
 });
 
 test('a refreshed token expires ten seconds before Google says, like golang.org/x/oauth2', async () => {
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
   const server = await google();
-  try {
-    const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
-    const refreshed = await createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal);
-    expect(refreshed.expires).toBe(Date.parse('2026-01-01T00:59:50Z'));
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
+  const refreshed = await createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal);
+  expect(refreshed.expires).toBe(Date.parse('2026-01-01T00:59:50Z'));
 });
 
 test("a failed refresh surfaces Google's error when tokeninfo still accepts the access token", async () => {
   const server = await fakeServer((request, res) => {
     if (request.path.startsWith('/tokeninfo')) return json(res, 200, { aud: 'test' });
+    onTestFinished(() => server.close());
     return json(res, 400, { error: 'invalid_grant' });
   });
-  try {
-    const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
-    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow(
-      'Google token request failed (400): {"error":"invalid_grant"}',
-    );
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=a'))).toBe(true);
-  } finally {
-    server.close();
-  }
+  const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
+  await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow('Google token request failed (400): {"error":"invalid_grant"}');
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=a'))).toBe(true);
 });
 
 test('a failed refresh with an invalid access token surfaces the tokeninfo status', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
+    onTestFinished(() => server.close());
     return json(res, 400, { error: 'invalid_grant' });
   });
-  try {
-    const stored: OAuthCredential = { type: 'oauth', access: 'ya29.dead', refresh: 'r', expires: 0, projectId: 'p' };
-    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow(
-      'tokeninfo returned status 400',
-    );
-    expect(server.requests.some((request) => request.path === '/tokeninfo?access_token=ya29.dead')).toBe(true);
-  } finally {
-    server.close();
-  }
+  const stored: OAuthCredential = { type: 'oauth', access: 'ya29.dead', refresh: 'r', expires: 0, projectId: 'p' };
+  await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow('tokeninfo returned status 400');
+  expect(server.requests.some((request) => request.path === '/tokeninfo?access_token=ya29.dead')).toBe(true);
 });
 
 test.for([
@@ -280,17 +232,14 @@ test.for([
   { name: 'a 400 tokeninfo body', status: 400, body: { error: 'invalid_token' } },
 ])('validateAccessToken handles $name', async ({ status, body }) => {
   const server = await fakeServer((_, res) => json(res, status, body));
-  try {
-    const run = validateAccessToken(`${server.url}/tokeninfo`, 'ya29.tok', new AbortController().signal);
-    if (status >= 200 && status < 300) {
-      await expect(run).resolves.toBeUndefined();
-    } else {
-      await expect(run).rejects.toThrow(`tokeninfo returned status ${status}`);
-    }
-    expect(server.requests).toMatchObject([{ method: 'GET', path: '/tokeninfo?access_token=ya29.tok', body: '' }]);
-  } finally {
-    server.close();
+  onTestFinished(() => server.close());
+  const run = validateAccessToken(`${server.url}/tokeninfo`, 'ya29.tok', new AbortController().signal);
+  if (status >= 200 && status < 300) {
+    await expect(run).resolves.toBeUndefined();
+  } else {
+    await expect(run).rejects.toThrow(`tokeninfo returned status ${status}`);
   }
+  expect(server.requests).toMatchObject([{ method: 'GET', path: '/tokeninfo?access_token=ya29.tok', body: '' }]);
 });
 
 test('validateAccessToken reports a failed fetch like agy', async () => {
@@ -299,12 +248,9 @@ test('validateAccessToken reports a failed fetch like agy', async () => {
 
 test('a token response without an access token is rejected', async () => {
   const server = await fakeServer((_, res) => json(res, 200, { expires_in: 3600 }));
-  try {
-    const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
-    await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow('Google token response lacks an access token');
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const stored: OAuthCredential = { type: 'oauth', access: 'a', refresh: 'r', expires: 0, projectId: 'p' };
+  await expect(createAntigravityOAuth(endpoints(server)).refresh(stored, new AbortController().signal)).rejects.toThrow('Google token response lacks an access token');
 });
 
 test('refresh refuses a credential without a project', async () => {
@@ -332,12 +278,9 @@ test('an api key without a token or project asks for a new login', () => {
 
 test.for([{ status: 500 }, { status: 200 }])('fetchEmail returns nothing for an empty HTTP $status userinfo body', async ({ status }) => {
   const server = await fakeServer((_, res) => json(res, status, {}));
-  try {
-    expect(await fetchEmail(`${server.url}/userinfo`, 't')).toBeUndefined();
-    expect(server.requests).toMatchObject([{ method: 'GET', path: '/userinfo', headers: { authorization: 'Bearer t' }, body: '' }]);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  expect(await fetchEmail(`${server.url}/userinfo`, 't')).toBeUndefined();
+  expect(server.requests).toMatchObject([{ method: 'GET', path: '/userinfo', headers: { authorization: 'Bearer t' }, body: '' }]);
 });
 
 test('fetchEmail returns nothing when the request itself fails', async () => {

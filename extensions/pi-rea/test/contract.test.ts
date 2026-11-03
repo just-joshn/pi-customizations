@@ -10,6 +10,25 @@ import { isProviderRefuseTool } from '../src/tools/provider-refuse-tools.ts';
 
 const catalog = loadCatalog();
 const manifest = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../schemas/kernel-manifest.json'), 'utf8')) as { kernelToolNames: readonly string[] };
+const SURFACES = [
+  'application',
+  'artifact-provider',
+  'official-proxy',
+  'enhanced',
+  'native-provider',
+  'managed-provider',
+  'android-provider',
+  'jeb-provider',
+  'firmware-provider',
+  'browser-provider',
+  'adb-provider',
+  'pcap-provider',
+  'flutter-provider',
+  'apktool-provider',
+  'electron-provider',
+  'runtime-provider',
+  'session',
+];
 const kernelNames = [...manifest.kernelToolNames].toSorted();
 
 test('KERN-001: the contract carries 229 uniquely named tools', () => {
@@ -36,18 +55,20 @@ test('KERN-001: kernel-manifest matches the registered handler table', () => {
 });
 
 test('KERN-001: every tool advertises parameters, annotations, effects and a surface', () => {
+  expect.hasAssertions();
   for (const tool of catalog.tools) {
     expect(tool.parameters['type']).toBe('object');
     expect(tool.parameters['additionalProperties']).toBe(false);
-    expect(tool.description.length).toBeGreaterThan(20);
+    expect(tool.description).toMatch(/^\S.{19}/s);
     expect(Object.keys(tool.annotations).toSorted()).toStrictEqual(['destructiveHint', 'idempotentHint', 'openWorldHint', 'readOnlyHint']);
     expect(Object.values(tool.annotations).every((value) => typeof value === 'boolean')).toBe(true);
     expect(Object.values(tool.effects).every((value) => typeof value === 'boolean')).toBe(true);
-    expect(tool.surface.length).toBeGreaterThan(0);
+    expect(SURFACES).toContain(tool.surface);
   }
 });
 
 test('KERN-002: the contract ships no reference expression', () => {
+  expect.hasAssertions();
   const requiredKeys = ['annotations', 'clientRequirements', 'description', 'effects', 'implementation', 'modes', 'name', 'parameters', 'surface'];
   const allowedKeys = [...requiredKeys, 'defaultModeAvailable'].toSorted();
   for (const tool of catalog.tools) {

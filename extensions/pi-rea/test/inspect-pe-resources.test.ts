@@ -111,7 +111,7 @@ test('TOOL-087: the inventory is retained as Evidence and clears with the sessio
   expect(session.evidence.size).toBe(0);
 });
 
-test('TOOL-087: the inventory works without an open target', async () => {
+test('TOOL-087: a resource inventory needs no open target', async () => {
   const session = new ReaSession(runtime);
   expect(session.open).toBe(false);
   const normalized = ((await inspectPeResources(session, { path: FIXTURE })).structuredContent as { normalized_result: Record<string, unknown> }).normalized_result;
@@ -121,6 +121,7 @@ test('TOOL-087: the inventory works without an open target', async () => {
 test('TOOL-087: relative paths resolve against the session working directory', async () => {
   const session = new ReaSession(runtime);
   const root = FIXTURE.slice(0, FIXTURE.indexOf('/parity/pi-rea/'));
-  await expect(inspectPeResources(session, { path: 'parity/pi-rea/fixtures/targets/pe/fixture-pe-resources.exe' }, { cwd: root })).resolves.toBeDefined();
+  const result = await inspectPeResources(session, { path: 'parity/pi-rea/fixtures/targets/pe/fixture-pe-resources.exe' }, { cwd: root });
+  expect((result.structuredContent as { subject: { local_path: string } }).subject.local_path).toBe(FIXTURE);
   expect(session.evidence.size).toBe(1);
 });

@@ -14,9 +14,9 @@ The review covered source, tests, probes, captured reference data, the parity ma
 
 ## Verification
 
-The merged targeted suite passed 136 tests in 16 files. The current checkout passes 253 tests in 21 files, and `bun run typecheck`, Biome, the test-convention check, and the native-mechanism check pass on it.
+The merged targeted suite passed 136 tests in 16 files. At review time the checkout passed 253 tests in 21 files, and `bun run typecheck`, Biome, the test-convention check, and the native-mechanism check passed on it.
 
-Host evidence now covers Pi `1.4.0`, the current `devDependencies` pin. `verification/pi-1.4.0-native.json` and `verification/pi-1.4.0-paths.json` cover print, JSON, RPC, ambient authentication without credential persistence, request identity, the Claude session header on every request path, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides. `scripts/prove-context-guard.ts --expect green` also passes on that host. The `verification/pi-1.0.0-*.json`, `pi-1.0.1-*.json`, and `pi-1.1.0-*.json` receipts are historical.
+Host evidence now covers Pi `1.4.0`, the `devDependencies` pin at review time. `verification/pi-1.4.0-native.json` and `verification/pi-1.4.0-paths.json` cover print, JSON, RPC, ambient authentication without credential persistence, request identity, the Claude session header on every request path, fork, reload, session replacement, native tools, cancellation, usage, compaction, virtual routing, and explicit header overrides. `scripts/prove-context-guard.ts --expect green` also passes on that host. The `verification/pi-1.0.0-*.json`, `pi-1.0.1-*.json`, and `pi-1.1.0-*.json` receipts are historical.
 
 The packaging and disclosure follow-up did not change the original reviewed production source. The request-local tool-transition compatibility fix remains. Runtime reports for the pinned host were regenerated on Pi `1.4.0`.
 

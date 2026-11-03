@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { CLOUD_CODE_URL, encodeApiKey, errorText, postCloudCode } from './cloudcode.ts';
-import { readAgyKeychainPassword, tokensFromGoKeyringPassword, type ImportedAgyTokens } from './keychain.ts';
+import { type ImportedAgyTokens, readAgyKeychainPassword, tokensFromGoKeyringPassword } from './keychain.ts';
 
 export type AntigravityCredential = OAuthCredential & { projectId: string; email?: string | undefined };
 
@@ -150,12 +150,7 @@ export function credentialFromImportedTokens(tokens: ImportedAgyTokens, projectI
   };
 }
 
-export async function importAgyKeychainCredential(
-  endpoints: Pick<OAuthEndpoints, 'cloudCode' | 'tokenInfoUrl'>,
-  password: string,
-  signal: AbortSignal,
-  now = Date.now(),
-): Promise<AntigravityCredential> {
+export async function importAgyKeychainCredential(endpoints: Pick<OAuthEndpoints, 'cloudCode' | 'tokenInfoUrl'>, password: string, signal: AbortSignal, now = Date.now()): Promise<AntigravityCredential> {
   const tokens = tokensFromGoKeyringPassword(password, now);
   try {
     const projectId = await discoverProject(endpoints.cloudCode, tokens.access, signal);

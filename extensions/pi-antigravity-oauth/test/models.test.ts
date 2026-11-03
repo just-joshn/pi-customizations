@@ -1,6 +1,6 @@
 import type { ModelsPublication, Provider, RefreshModelsContext } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
-import { expect } from 'vitest';
+import { expect, onTestFinished } from 'vitest';
 import extension, { createAntigravityProvider } from '../src/index.ts';
 import { catalogModels, createFetchModels, parseVariant } from '../src/models.ts';
 import { GOOGLE_OAUTH } from '../src/oauth.ts';
@@ -32,7 +32,7 @@ function refreshContext(credential: RefreshModelsContext['credential']): Refresh
   };
 }
 
-const CREDENTIAL = { type: 'oauth' as const, access: 'ya29.t', refresh: 'r', expires: Date.now() + 60000, projectId: 'proj-9' };
+const CREDENTIAL = { type: 'oauth' as const, access: 'ya29.t', refresh: 'r', expires: 4102444800000, projectId: 'proj-9' };
 
 const BASELINE_IDS = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash', 'gemini-3.1-pro', 'claude-opus-5-5', 'claude-sonnet-5-5', 'gpt-oss-120b'];
 
@@ -115,65 +115,50 @@ test('parseVariant rejects a value without a model id', () => {
 
 test('fetchModels adds the account catalog to the baseline', async () => {
   const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
-    await provider.refreshModels?.(refreshContext(CREDENTIAL));
-    expect(server.requests[0]?.path).toBe('/v1internal:fetchAvailableModels');
-    expect(server.requests[0]?.body).toBe('{"project":"proj-9"}');
-    expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
-    expect(provider.getModels().map((model) => model.id)).toEqual([...BASELINE_IDS, 'gemini-3.9-flash', 'claude-opus-6']);
-    expect(provider.getModels().find((model) => model.id === 'gemini-3.1-pro')?.thinkingLevelMap?.low).toBe(null);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+  await provider.refreshModels?.(refreshContext(CREDENTIAL));
+  expect(server.requests[0]?.path).toBe('/v1internal:fetchAvailableModels');
+  expect(server.requests[0]?.body).toBe('{"project":"proj-9"}');
+  expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
+  expect(provider.getModels().map((model) => model.id)).toEqual([...BASELINE_IDS, 'gemini-3.9-flash', 'claude-opus-6']);
+  expect(provider.getModels().find((model) => model.id === 'gemini-3.1-pro')?.thinkingLevelMap?.low).toBe(null);
 });
 
 test('a live catalog hides snapshot models it no longer lists', async () => {
   const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
-    expect(provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id)).toEqual(BASELINE_IDS);
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+  expect(provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id)).toEqual(BASELINE_IDS);
 
-    await provider.refreshModels?.(refreshContext(CREDENTIAL));
+  await provider.refreshModels?.(refreshContext(CREDENTIAL));
 
-    const listed = provider.getModels().map((model) => model.id);
-    expect(listed).toContain('gemini-3.7-flash');
-    const available = provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id) ?? [];
-    expect([...available].sort()).toEqual(['claude-opus-6', 'gemini-3.1-pro', 'gemini-3.9-flash', 'gpt-oss-120b']);
-  } finally {
-    server.close();
-  }
+  const listed = provider.getModels().map((model) => model.id);
+  expect(listed).toContain('gemini-3.7-flash');
+  const available = provider.filterModels?.(provider.getModels(), CREDENTIAL)?.map((model) => model.id) ?? [];
+  expect([...available].sort()).toEqual(['claude-opus-6', 'gemini-3.1-pro', 'gemini-3.9-flash', 'gpt-oss-120b']);
 });
 
 test('fetchModels returns the bundled catalog when network access is disallowed', async () => {
   const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
-  try {
-    const models = await createFetchModels(server.url)({ allowNetwork: false, signal: new AbortController().signal, publish: async () => true });
-    expect(server.requests).toEqual([]);
-    expect(models.map((model) => model.id)).toEqual(BASELINE_IDS);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const models = await createFetchModels(server.url)({ allowNetwork: false, signal: new AbortController().signal, publish: async () => true });
+  expect(server.requests).toEqual([]);
+  expect(models.map((model) => model.id)).toEqual(BASELINE_IDS);
 });
 
 test('a failed fetchAvailableModels keeps the baseline', async () => {
   const server = await fakeServer((_, res) => json(res, 403, { error: { message: 'denied' } }));
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
-    await expect(provider.refreshModels?.(refreshContext(CREDENTIAL))).rejects.toThrow('fetchAvailableModels failed (403): denied');
-    expect(provider.getModels().map((model) => model.id)).toEqual(BASELINE_IDS);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+  await expect(provider.refreshModels?.(refreshContext(CREDENTIAL))).rejects.toThrow('fetchAvailableModels failed (403): denied');
+  expect(provider.getModels().map((model) => model.id)).toEqual(BASELINE_IDS);
 });
 
 test('refreshing without an OAuth credential asks for a login', async () => {
   const server = await fakeServer((_, res) => json(res, 200, AVAILABLE));
-  try {
-    const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
-    await expect(provider.refreshModels?.(refreshContext(undefined))).rejects.toThrow('Google Antigravity is not logged in');
-    expect(server.requests).toEqual([]);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const provider = createAntigravityProvider({ ...GOOGLE_OAUTH, cloudCode: server.url });
+  await expect(provider.refreshModels?.(refreshContext(undefined))).rejects.toThrow('Google Antigravity is not logged in');
+  expect(server.requests).toEqual([]);
 });

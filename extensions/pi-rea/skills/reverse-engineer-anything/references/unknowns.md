@@ -45,5 +45,5 @@ and `status`.
 ## Before finishing
 
 Revisit every open unknown. Mark it resolved with its verifying Evidence,
-withdrawn, or out of scope — and say so in the answer. An unknown that is
+withdrawn, or out of scope, and say so in the answer. An unknown that is
 neither resolved nor reported is a finding you failed to report.

@@ -1,13 +1,14 @@
 import { createHash } from 'node:crypto';
-import { chmodSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, expect, onTestFinished, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 import { ReaError } from '../src/contract/errors.ts';
 import { ReaSession } from '../src/session/binary-session.ts';
 import { inspectPcapCapture, inspectPcapClient } from '../src/tools/pcap-tools.ts';
+import { stubHost } from './support/host.ts';
 
 const runtime = { name: 'pi-rea-test', version: '0.0.0', cwd: tmpdir() };
 
@@ -39,16 +40,9 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-const withDarwinPlatform = (): void => {
-  const original = process.platform;
-  Object.defineProperty(process, 'platform', { value: 'darwin' });
-  onTestFinished(() => {
-    Object.defineProperty(process, 'platform', { value: original });
-  });
-};
-
-test('inspect_pcap_client probes env-selected tools and reports verified identities', async () => {
+test('inspect_pcap_client probes env-selected tools and reports verified identities', async ({ onTestFinished }) => {
   const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
+  onTestFinished(() => rmSync(directory, { recursive: true, force: true }));
   const tshark = writeFakeTool(directory, 'tshark', 'tshark (Wireshark) 4.2.0 (v4.2.0)');
   const capinfos = writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.6.9');
   stubEnvs({ REA_TSHARK_COMMAND: tshark, REA_CAPINFOS_COMMAND: capinfos });
@@ -69,11 +63,12 @@ test('inspect_pcap_client probes env-selected tools and reports verified identit
   expect(client['tshark_identity_status']).toBe('verified');
   expect(client['capinfos_source']).toBe('environment');
   expect(client['capinfos_version']).toBe('Capinfos (Wireshark) 4.6.9');
-  expect(target.evidence.get(String(evidence['evidence_id']))).toBeDefined();
+  expect(target.evidence.get(String(evidence['evidence_id']))?.operation).toBe('inspect_pcap_client');
 });
 
-test('inspect_pcap_client refuses when PATH holds no tshark', async () => {
+test('inspect_pcap_client refuses when PATH holds no tshark', async ({ onTestFinished }) => {
   const empty = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-empty-'));
+  onTestFinished(() => rmSync(empty, { recursive: true, force: true }));
   stubEnvs({ REA_TSHARK_COMMAND: '', REA_CAPINFOS_COMMAND: '', PATH: empty });
 
   const payload = await payloadOf(() => inspectPcapClient(session()));
@@ -100,8 +95,9 @@ const bannerCases = [
   { name: 'an unsupported major version', banner: 'tshark (Wireshark) 5.0.0', needle: 'Packet capture inspection currently requires Wireshark 4.x tools' },
 ];
 
-test.for(bannerCases)('inspect_pcap_client refuses $name', async (caseItem) => {
+test.for(bannerCases)('inspect_pcap_client refuses $name', async (caseItem, { onTestFinished }) => {
   const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
+  onTestFinished(() => rmSync(directory, { recursive: true, force: true }));
   const tshark = writeFakeTool(directory, 'tshark', caseItem.banner);
   const capinfos = writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.6.9');
   stubEnvs({ REA_TSHARK_COMMAND: tshark, REA_CAPINFOS_COMMAND: capinfos });
@@ -112,9 +108,10 @@ test.for(bannerCases)('inspect_pcap_client refuses $name', async (caseItem) => {
   expect(payload['details']).toMatchObject({ provider_id: 'pcap', operation: 'inspect_pcap_client' });
 });
 
-test('inspect_pcap_capture refuses the unsupported capture host before reading any file', async () => {
-  withDarwinPlatform();
+test('inspect_pcap_capture refuses the unsupported capture host before reading any file', async ({ onTestFinished }) => {
+  stubHost('darwin');
   const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
+  onTestFinished(() => rmSync(directory, { recursive: true, force: true }));
   stubEnvs({
     REA_TSHARK_COMMAND: writeFakeTool(directory, 'tshark', 'tshark (Wireshark) 4.2.0'),
     REA_CAPINFOS_COMMAND: writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.2.0'),
@@ -133,9 +130,10 @@ test('inspect_pcap_capture refuses the unsupported capture host before reading a
   });
 });
 
-test('inspect_pcap_capture still refuses the host when the capture file is missing', async () => {
-  withDarwinPlatform();
+test('inspect_pcap_capture still refuses the host when the capture file is missing', async ({ onTestFinished }) => {
+  stubHost('darwin');
   const directory = mkdtempSync(join(tmpdir(), 'pi-rea-pcap-'));
+  onTestFinished(() => rmSync(directory, { recursive: true, force: true }));
   stubEnvs({ PATH: directory });
   writeFakeTool(directory, 'tshark', 'tshark (Wireshark) 4.2.0');
   writeFakeTool(directory, 'capinfos', 'Capinfos (Wireshark) 4.2.0');

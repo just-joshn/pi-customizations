@@ -6,7 +6,7 @@ import { type AssistantMessage, isRetryableAssistantError } from '@earendil-work
 import { ModelRuntime, readStoredCredential } from '@earendil-works/pi-coding-agent';
 import { expect } from 'vitest';
 import { createGrokBuildProvider } from '../src/index.ts';
-import { test } from './network-guard.ts';
+import { test as base } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
 
 const FAR_FUTURE = Date.UTC(2100, 0, 1);
@@ -33,32 +33,53 @@ function rejected401(): AssistantMessage {
   } as AssistantMessage;
 }
 
-test('Pi creates auth.json owner-only, reloads an external rewrite, and logout clears it', async () => {
-  const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-auth-'));
-  const authPath = join(dir, 'auth.json');
-  const modelsPath = join(dir, 'models.json');
-  try {
-    await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { modelOverrides: { 'grok-4.7': { contextWindow: 500000, maxTokens: 500000 } } } } }));
-    const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
-    expect((await stat(authPath)).mode & 0o777).toBe(0o600);
-
-    runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
-    await writeFile(authPath, authFile('first-token'), { mode: 0o600 });
-    expect((await runtime.getAuth('grok-build'))?.auth.apiKey).toBe('first-token');
-
-    await writeFile(authPath, authFile('second-token'), { mode: 0o600 });
-    expect((await runtime.getAuth('grok-build'))?.auth.apiKey).toBe('second-token');
-
-    await runtime.logout('grok-build');
-    expect(await runtime.getAuth('grok-build')).toBeUndefined();
-    expect(readStoredCredential('grok-build', authPath)).toBeUndefined();
-    expect((await stat(authPath)).mode & 0o777).toBe(0o600);
-    expect(runtime.getModel('grok-build', 'grok-4.7')?.contextWindow).toBe(500000);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
+const test = base.extend<{ paths: { authPath: string; modelsPath: string } }>({
+  paths: async ({ networkGuard: _networkGuard }, use) => {
+    const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-auth-'));
+    try {
+      const modelsPath = join(dir, 'models.json');
+      await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { modelOverrides: { 'grok-4.7': { contextWindow: 500000, maxTokens: 500000 } } } } }));
+      await use({ authPath: join(dir, 'auth.json'), modelsPath });
+    } finally {
+      await rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 20 });
+    }
+  },
 });
 
-test('Pi does not retry a 401, so this package does not add a second recovery path', () => {
+async function openRuntime({ authPath, modelsPath }: { authPath: string; modelsPath: string }) {
+  const runtime = await ModelRuntime.create({ authPath, modelsPath, refreshOnCreate: false });
+  runtime.registerNativeProvider(createGrokBuildProvider(builtinXai()));
+  return runtime;
+}
+
+test('Pi creates auth.json owner-only', async ({ paths }) => {
+  await openRuntime(paths);
+  expect((await stat(paths.authPath)).mode & 0o777).toBe(0o600);
+});
+
+test('Pi reloads an external auth.json rewrite', async ({ paths }) => {
+  const runtime = await openRuntime(paths);
+  await writeFile(paths.authPath, authFile('first-token'), { mode: 0o600 });
+  expect((await runtime.getAuth('grok-build'))?.auth.apiKey).toBe('first-token');
+  await writeFile(paths.authPath, authFile('second-token'), { mode: 0o600 });
+  expect((await runtime.getAuth('grok-build'))?.auth.apiKey).toBe('second-token');
+});
+
+test('logout clears the stored credential, leaving auth.json owner-only', async ({ paths }) => {
+  const runtime = await openRuntime(paths);
+  await writeFile(paths.authPath, authFile('first-token'), { mode: 0o600 });
+  await runtime.logout('grok-build');
+  expect(await runtime.getAuth('grok-build')).toBeUndefined();
+  expect(readStoredCredential('grok-build', paths.authPath)).toBeUndefined();
+  expect((await stat(paths.authPath)).mode & 0o777).toBe(0o600);
+});
+
+test('a models.json override survives logout', async ({ paths }) => {
+  const runtime = await openRuntime(paths);
+  await runtime.logout('grok-build');
+  expect(runtime.getModel('grok-build', 'grok-4.7')?.contextWindow).toBe(500000);
+});
+
+test('Pi does not retry a 401 assistant error', () => {
   expect(isRetryableAssistantError(rejected401())).toBe(false);
 });

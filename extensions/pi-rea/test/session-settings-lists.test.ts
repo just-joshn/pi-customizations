@@ -103,7 +103,7 @@ test('inspect_analysis_settings: filters intersect on setting id', () => {
   const report = configOf(inspectAnalysisSettings(new ReaSession(runtime), { settings: ['wasm.command_timeout_ms'] }));
   expect(report['settings']).toHaveLength(1);
   expect((report['settings'] as Record<string, unknown>[])[0]?.['setting']).toBe('wasm.command_timeout_ms');
-  expect(report['constraints']).toBeDefined();
+  expect(report['constraints']).toHaveLength(5);
 });
 
 test('update_analysis_settings: sets, reports change, and resets to launch', () => {
@@ -209,6 +209,7 @@ test('list_bookmarks: no open target matches REA target_unavailable', () => {
 });
 
 test('list_documents/list_strings: open target without a provider fails closed', async () => {
+  expect.hasAssertions();
   const session = new ReaSession(runtime);
   await openBinary(session, { path: fixturePath('targets/minimal-elf.bin') });
   for (const call of [() => listDocuments(session, {}), () => listStrings(session, {})]) {

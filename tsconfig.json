@@ -59,7 +59,7 @@
     "skipLibCheck": true
   },
 
-  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts", ".pi/**/*.ts"],
 
-  "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "extensions/pi-pstack/skills/**", "parity/research/dep-typescript-oracle-001/cases/**"]
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "extensions/pi-pstack/skills/**", "parity/research/dep-typescript-oracle-001/cases/**", "parity/pi-rea/designs/**"]
 }

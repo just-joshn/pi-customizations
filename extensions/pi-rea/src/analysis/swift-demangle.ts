@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { access, constants, readFile } from 'node:fs/promises';
+import { delimiter, join } from 'node:path';
 
 import { capabilityUnavailable, executionFailure, invalidRequest, targetUnavailable } from '../contract/errors.ts';
 
@@ -35,6 +36,14 @@ const CANDIDATES = ['/Library/Developer/CommandLineTools/usr/bin/swift-demangle'
 
 const resolveExecutable = async (): Promise<string> => {
   for (const candidate of CANDIDATES) {
+    try {
+      await access(candidate, constants.X_OK);
+      return candidate;
+    } catch {}
+  }
+  for (const directory of (process.env['PATH'] ?? '').split(delimiter)) {
+    if (directory.length === 0) continue;
+    const candidate = join(directory, 'swift-demangle');
     try {
       await access(candidate, constants.X_OK);
       return candidate;

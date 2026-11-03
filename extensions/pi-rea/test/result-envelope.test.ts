@@ -98,7 +98,7 @@ test('KERN-040: an oversized result is truncated to the budget with a marker and
   const marker = (result.structuredContent as { result: Record<string, unknown> }).result;
   expect(marker['truncated']).toBe(true);
   expect(marker['response_budget_bytes']).toBe(DEFAULT_RESPONSE_BUDGET_BYTES - 1024);
-  expect(marker['required_bytes']).toBeGreaterThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+  expect(marker['required_bytes']).toBe(DEFAULT_RESPONSE_BUDGET_BYTES + 23);
   expect(String(marker['guidance'])).toContain('REA_MCP_MAX_RESPONSE_BYTES');
   expect(byteLength(textOf(result))).toBeLessThan(DEFAULT_RESPONSE_BUDGET_BYTES);
 });
@@ -131,7 +131,7 @@ test('KERN-040: an oversized configuration payload is truncated to the budget', 
   const result = configurationResult({ blob: 'x'.repeat(DEFAULT_RESPONSE_BUDGET_BYTES + 1) });
   const marker = result.structuredContent as Record<string, unknown>;
   expect(marker['truncated']).toBe(true);
-  expect(marker['required_bytes']).toBeGreaterThan(DEFAULT_RESPONSE_BUDGET_BYTES);
+  expect(marker['required_bytes']).toBe(DEFAULT_RESPONSE_BUDGET_BYTES + 12);
   expect(String(marker['guidance'])).toContain('response budget');
   expect(result.details).toStrictEqual({});
 });

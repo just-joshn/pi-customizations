@@ -176,7 +176,7 @@ test('the fast model supports four thinking levels', () => {
   expect(getSupportedThinkingLevels(toPiModel(baseline('grok-4.7-build-fast'), prices))).toStrictEqual(['low', 'medium', 'high', 'xhigh']);
 });
 
-test('a model that offers minimal and max exposes both to Pi', () => {
+test('extreme efforts (minimal, max) map to Pi thinking levels', () => {
   const model = toPiModel({ id: 'grok-4.8', name: 'Grok 4.8', contextWindow: 256000, efforts: ['minimal', 'low', 'max'] }, prices);
   expect(model.thinkingLevelMap).toStrictEqual({ off: null, minimal: 'minimal', low: 'low', medium: null, high: null, xhigh: null, max: 'max' });
   expect(getSupportedThinkingLevels(model)).toStrictEqual(['minimal', 'low', 'max']);

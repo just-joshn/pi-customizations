@@ -37,13 +37,13 @@ test/
   <sar>/              oracle tests, ported Aider tests, Pi integration tests
   support/
 parity/
-  oracle/ops/<sar>_<module>.py
+  oracle/ops/<area>.py
   journeys/<sar>/     real-Pi journey scripts and their saved artifacts
 ```
 
 Rules that keep the symmetry real:
 
-- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.appendEntry`, `pi.sendMessage`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so Pi-native compliance is reviewed in one place.
+- Only `src/core/` calls `pi.on`, `pi.registerCommand`, `pi.registerFlag`, `pi.registerVirtualModel`, `pi.registerEntryRenderer`, `pi.appendEntry`, `pi.sendUserMessage`, and `pi.setActiveTools`. A SAR declares options, commands, and its port. The core registers them. This keeps one Pi adapter, so Pi-native compliance is reviewed in one place.
 - Ports never import Pi. They receive what they need (a `WorkingTree`, a `Host` with UI and process capabilities, resolved settings) as arguments.
 - Every SAR registers through the same three lists: `options`, `commands`, and one port. No SAR has a private registration path.
 
@@ -55,7 +55,7 @@ type SarName = 'edit' | 'git' | 'map' | 'lint';
 interface Feature<Port> {
   readonly name: SarName;
   /** Every documented option of this SAR, with Aider's CLI default and help text. */
-  readonly options: readonly OptionSpec[];
+  readonly options: readonly AnyOptionSpec[];
   /** Every documented slash command of this SAR. */
   readonly commands: readonly CommandSpec[];
   /** Builds this SAR's lifecycle port from resolved settings and host capabilities. */

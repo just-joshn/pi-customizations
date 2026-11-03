@@ -1,9 +1,9 @@
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import {
   AUTHORIZATION_CODE_RESPONSE_SHAPE,
   assertLiveExchangeAllowed,
@@ -15,15 +15,9 @@ import {
   parseLiveExchangeGateStatus,
 } from '../src/oauth-live-gate.ts';
 
-const FIXTURE = join(
-  fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)),
-  'token-endpoints-2.1.312.json',
-);
+const FIXTURE = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)), 'token-endpoints-2.1.312.json');
 const GATES = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude', import.meta.url)), 'gates.md');
-const EXAMPLE_RECEIPT = join(
-  fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/receipts', import.meta.url)),
-  'live-exchange-redacted.example.json',
-);
+const EXAMPLE_RECEIPT = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/receipts', import.meta.url)), 'live-exchange-redacted.example.json');
 
 test('CI default leaves the live exchange env disabled', () => {
   expect(isLiveExchangeEnvEnabled({})).toBe(false);
@@ -34,9 +28,7 @@ test('CI default leaves the live exchange env disabled', () => {
 
 test('a hyphenated ANTH-LIVE-021 lookalike is not the live gate', () => {
   const markdown = `## ${LIVE_EXCHANGE_GATE_ID}-typo\n\n- status: approved\n`;
-  expect(() => parseLiveExchangeGateStatus(markdown)).toThrow(
-    `gates.md is missing section ## ${LIVE_EXCHANGE_GATE_ID}`,
-  );
+  expect(() => parseLiveExchangeGateStatus(markdown)).toThrow(`gates.md is missing section ## ${LIVE_EXCHANGE_GATE_ID}`);
 });
 
 test('the exact ANTH-LIVE-021 heading is used when a hyphenated lookalike comes first', () => {
@@ -47,16 +39,12 @@ test('the exact ANTH-LIVE-021 heading is used when a hyphenated lookalike comes 
 test('gates.md parks ANTH-LIVE-021 until an operator approves it', async () => {
   const markdown = await readFile(GATES, 'utf8');
   expect(parseLiveExchangeGateStatus(markdown)).toBe('parked');
-  expect(() => assertLiveExchangeAllowed({ env: { [LIVE_EXCHANGE_ENV]: '1' }, gatesMarkdown: markdown })).toThrow(
-    /status is "parked"/,
-  );
+  expect(() => assertLiveExchangeAllowed({ env: { [LIVE_EXCHANGE_ENV]: '1' }, gatesMarkdown: markdown })).toThrow(/status is "parked"/);
 });
 
 test('live exchange requires both the env flag and an approved gates.md section', () => {
   const approved = `## ${LIVE_EXCHANGE_GATE_ID}\n\n- status: approved\n`;
-  expect(() => assertLiveExchangeAllowed({ env: {}, gatesMarkdown: approved })).toThrow(
-    new RegExp(LIVE_EXCHANGE_ENV),
-  );
+  expect(() => assertLiveExchangeAllowed({ env: {}, gatesMarkdown: approved })).toThrow(new RegExp(LIVE_EXCHANGE_ENV));
   expect(() => assertLiveExchangeAllowed({ env: { [LIVE_EXCHANGE_ENV]: '1' }, gatesMarkdown: approved })).not.toThrow();
 });
 
@@ -67,12 +55,8 @@ test('token JSON shape matches Claude token-endpoints fixture response fields', 
       optional: readonly string[];
     };
   };
-  expect(fixture.authorization_code_response_fields.required).toStrictEqual([
-    ...AUTHORIZATION_CODE_RESPONSE_SHAPE.required,
-  ]);
-  expect(fixture.authorization_code_response_fields.optional).toStrictEqual([
-    ...AUTHORIZATION_CODE_RESPONSE_SHAPE.optional,
-  ]);
+  expect(fixture.authorization_code_response_fields.required).toStrictEqual([...AUTHORIZATION_CODE_RESPONSE_SHAPE.required]);
+  expect(fixture.authorization_code_response_fields.optional).toStrictEqual([...AUTHORIZATION_CODE_RESPONSE_SHAPE.optional]);
 
   const shaped = assertTokenJsonShape(
     {
@@ -86,15 +70,8 @@ test('token JSON shape matches Claude token-endpoints fixture response fields', 
   expect(shaped.expires_in).toBe(3600);
   expect(shaped.refresh_token).toBe('sk-ant-ort01-example');
 
-  expect(() =>
-    assertTokenJsonShape({ access_token: 'x', expires_in: 3600 }, fixture.authorization_code_response_fields),
-  ).toThrow(/refresh_token/);
-  expect(() =>
-    assertTokenJsonShape(
-      { access_token: 'x', expires_in: '3600', refresh_token: 'y' },
-      fixture.authorization_code_response_fields,
-    ),
-  ).toThrow(/expires_in/);
+  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: 3600 }, fixture.authorization_code_response_fields)).toThrow(/refresh_token/);
+  expect(() => assertTokenJsonShape({ access_token: 'x', expires_in: '3600', refresh_token: 'y' }, fixture.authorization_code_response_fields)).toThrow(/expires_in/);
 });
 
 test('redacted receipt omits secret values and keeps lengths plus numeric fields', async () => {
@@ -123,13 +100,9 @@ test('redacted receipt omits secret values and keeps lengths plus numeric fields
   expect(JSON.stringify(example)).not.toMatch(/sk-ant-/);
 
   const dir = await mkdtemp(join(tmpdir(), 'oauth-live-receipt-'));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const path = join(dir, 'live-exchange-redacted.json');
   await writeFile(path, `${JSON.stringify(receipt, null, 2)}\n`);
   const written = JSON.parse(await readFile(path, 'utf8')) as typeof receipt;
-  expect(written.response.keys).toStrictEqual([
-    'access_token',
-    'expires_in',
-    'refresh_token',
-    'refresh_token_expires_in',
-  ]);
+  expect(written.response.keys).toStrictEqual(['access_token', 'expires_in', 'refresh_token', 'refresh_token_expires_in']);
 });

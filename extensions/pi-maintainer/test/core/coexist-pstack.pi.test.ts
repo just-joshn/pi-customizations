@@ -1,5 +1,6 @@
 import { getCurrentSystemPrompt } from '@earendil-works/pi-ai';
 import { expect, test } from 'vitest';
+import pstack from '../../../pi-pstack/src/index.ts';
 import piMaintainer from '../../src/index.ts';
 import { textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle } from '../support/pi-session.ts';
@@ -12,7 +13,6 @@ Use Task agents.
 hello from coexist`;
 
 test('with pstack loaded, session keeps skill delivery while maintainer strips it from the provider request', async () => {
-  const pstack = (await import('../../../pi-pstack/src/index.ts')).default;
   const f = await piSessionFixture({ extension: piMaintainer, before: [pstack] });
   f.replies.push({ text: '' });
   const session = await f.open();

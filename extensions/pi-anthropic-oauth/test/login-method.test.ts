@@ -1,86 +1,84 @@
-import { expect, test, vi } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_OAUTH_SCOPES, subscriptionAuth } from '../src/auth.ts';
 import { OAUTH_ACCESS_TOKEN } from './support/credentials.ts';
 import { TOKEN_URL } from './support/token-endpoint.ts';
 
-test('subscription login offers paste, loopback, and Claude Code import, then defaults to paste-code authorize', async () => {
+test('subscription login offers paste, loopback, and Claude Code import, then defaults to paste-code authorize', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let selectOptions: { id: string; label: string }[] | undefined;
   let authorizeUrl: URL | undefined;
   const fetchCalls: unknown[] = [];
+  onTestFinished(() => {
+    vi.unstubAllGlobals();
+  });
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     fetchCalls.push({ url: String(input), body: init?.body ? JSON.parse(String(init.body)) : undefined });
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
   });
-  try {
-    const credential = await oauth.login({
-      signal: new AbortController().signal,
-      notify: (event) => {
-        if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
+  const credential = await oauth.login({
+    signal,
+    notify: (event) => {
+      if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
+    },
+    prompt: async (prompt) => {
+      if (prompt.type === 'select') {
+        selectOptions = prompt.options.map((option) => ({ id: option.id, label: option.label }));
+        return prompt.options[0]?.id ?? '';
+      }
+      if (!authorizeUrl) throw new Error('No authorization URL was shown');
+      return `local-code#${authorizeUrl.searchParams.get('state')}`;
+    },
+  });
+  expect(selectOptions).toEqual([
+    { id: 'copy-code', label: 'Paste code' },
+    { id: 'loopback', label: 'Browser callback' },
+    { id: 'import', label: 'Import from Claude Code' },
+  ]);
+  expect(authorizeUrl?.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
+  expect(authorizeUrl?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
+  expect(authorizeUrl?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);
+  expect(authorizeUrl?.searchParams.get('redirect_uri')).toBe('https://platform.claude.com/oauth/code/callback');
+  expect(credential).toMatchObject({ type: 'oauth', access: OAUTH_ACCESS_TOKEN });
+  expect(fetchCalls).toMatchObject([
+    {
+      url: TOKEN_URL,
+      body: {
+        grant_type: 'authorization_code',
+        redirect_uri: 'https://platform.claude.com/oauth/code/callback',
       },
-      prompt: async (prompt) => {
-        if (prompt.type === 'select') {
-          selectOptions = prompt.options.map((option) => ({ id: option.id, label: option.label }));
-          return prompt.options[0]?.id ?? '';
-        }
-        if (!authorizeUrl) throw new Error('No authorization URL was shown');
-        return `local-code#${authorizeUrl.searchParams.get('state')}`;
-      },
-    });
-    expect(selectOptions).toEqual([
-      { id: 'copy-code', label: 'Paste code' },
-      { id: 'loopback', label: 'Browser callback' },
-      { id: 'import', label: 'Import from Claude Code' },
-    ]);
-    expect(authorizeUrl?.origin).toBe(CLAUDE_AUTHORIZE_ORIGIN);
-    expect(authorizeUrl?.pathname).toBe(CLAUDE_AUTHORIZE_PATH);
-    expect(authorizeUrl?.searchParams.get('scope')).toBe(CLAUDE_OAUTH_SCOPES);
-    expect(authorizeUrl?.searchParams.get('redirect_uri')).toBe('https://platform.claude.com/oauth/code/callback');
-    expect(credential).toMatchObject({ type: 'oauth', access: OAUTH_ACCESS_TOKEN });
-    expect(fetchCalls).toMatchObject([
-      {
-        url: TOKEN_URL,
-        body: {
-          grant_type: 'authorization_code',
-          redirect_uri: 'https://platform.claude.com/oauth/code/callback',
-        },
-      },
-    ]);
-  } finally {
-    vi.unstubAllGlobals();
-  }
+    },
+  ]);
 });
 
-test('subscription login posts the independent state with the authorization code', async () => {
+test('subscription login posts the independent state with the authorization code', async ({ signal }) => {
   const oauth = subscriptionAuth().oauth;
   if (!oauth) throw new Error('subscriptionAuth must provide an OAuth method');
   let authorizeUrl: URL | undefined;
   let exchangeBody: Record<string, string> | undefined;
+  onTestFinished(() => {
+    vi.unstubAllGlobals();
+  });
   vi.stubGlobal('fetch', async (_input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     exchangeBody = JSON.parse(String(init?.body)) as Record<string, string>;
     return Response.json({ access_token: OAUTH_ACCESS_TOKEN, refresh_token: 'local-refresh', expires_in: 3600 });
   });
-  try {
-    await oauth.login({
-      signal: new AbortController().signal,
-      notify: (event) => {
-        if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
-      },
-      prompt: async (prompt) => {
-        if (prompt.type === 'select') return 'copy-code';
-        if (!authorizeUrl) throw new Error('No authorization URL was shown');
-        const state = authorizeUrl.searchParams.get('state');
-        if (!state) throw new Error('Authorize URL lacks state');
-        return `local-code#${state}`;
-      },
-    });
-    expect(exchangeBody?.['state']).toBe(authorizeUrl?.searchParams.get('state'));
-    expect(exchangeBody?.['code_verifier']).not.toBe(exchangeBody?.['state']);
-    expect(exchangeBody?.['redirect_uri']).toBe('https://platform.claude.com/oauth/code/callback');
-  } finally {
-    vi.unstubAllGlobals();
-  }
+  await oauth.login({
+    signal,
+    notify: (event) => {
+      if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
+    },
+    prompt: async (prompt) => {
+      if (prompt.type === 'select') return 'copy-code';
+      if (!authorizeUrl) throw new Error('No authorization URL was shown');
+      const state = authorizeUrl.searchParams.get('state');
+      if (!state) throw new Error('Authorize URL lacks state');
+      return `local-code#${state}`;
+    },
+  });
+  expect(exchangeBody?.['state']).toBe(authorizeUrl?.searchParams.get('state'));
+  expect(exchangeBody?.['code_verifier']).not.toBe(exchangeBody?.['state']);
+  expect(exchangeBody?.['redirect_uri']).toBe('https://platform.claude.com/oauth/code/callback');
 });
 
 test('subscriptionAuth labels match the Claude subscription UX', () => {

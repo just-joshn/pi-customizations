@@ -36,5 +36,5 @@ test('KERN-018: the declared skill path loads the REA workflow skill', async () 
   expect(diagnostics).toStrictEqual([]);
   expect(skills.map((skill) => skill.name)).toContain('reverse-engineer-anything');
   const skill = skills.find((candidate) => candidate.name === 'reverse-engineer-anything');
-  expect(skill?.description.length ?? 0).toBeGreaterThan(20);
+  expect(skill?.description).toMatch(/^Reverse engineer native binaries/);
 });

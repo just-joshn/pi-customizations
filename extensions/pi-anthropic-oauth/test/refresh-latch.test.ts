@@ -1,7 +1,11 @@
-import { expect, onTestFinished, test } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { createRefreshLatch } from '../src/refresh-latch.ts';
 
 test('concurrent run calls share one attempt', async () => {
+  vi.useFakeTimers();
+  onTestFinished(() => {
+    vi.useRealTimers();
+  });
   const latch = createRefreshLatch<number>();
   let starts = 0;
   const work = () =>
@@ -9,7 +13,9 @@ test('concurrent run calls share one attempt', async () => {
       starts += 1;
       setTimeout(() => resolve(starts), 20);
     });
-  const [a, b, c] = await Promise.all([latch.run(work), latch.run(work), latch.run(work)]);
+  const pending = Promise.all([latch.run(work), latch.run(work), latch.run(work)]);
+  await vi.advanceTimersByTimeAsync(20);
+  const [a, b, c] = await pending;
   expect(starts).toBe(1);
   expect([a, b, c]).toStrictEqual([1, 1, 1]);
 });

@@ -1,8 +1,8 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import { requestRepoMap } from '../../src/core/repo-map.ts';
 import { disabledGitPolicy } from '../../src/feature.ts';
 import { getRepoMapTokens, resolveMapEnablement } from '../../src/map/budget.ts';
@@ -37,16 +37,9 @@ const MEMORY_META = {
   evidence: ['ev-map/boundary/sqlite-creation-failure-falls-back-to-memory-and-maps'],
 };
 
-const roots: string[] = [];
-
-afterEach(async () => {
-  const { rm } = await import('node:fs/promises');
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
-
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'pm-map-render-'));
-  roots.push(root);
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
   return root;
 }
 
@@ -109,10 +102,7 @@ test('manual refresh reuses the last map, files refresh reuses file-set and budg
     mapMulNoFiles: 8,
     mapRefresh: 'manual',
     repoContentPrefix: null,
-    readText: async (path) => {
-      const { readFile } = await import('node:fs/promises');
-      return readFile(path, 'utf8');
-    },
+    readText: (path) => readFile(path, 'utf8'),
     now: () => {
       builds += 1;
       return builds === 1 ? 0 : 2;
@@ -456,10 +446,7 @@ test('filename-only map entries truncate each rendered line to 100 characters wi
     mapMulNoFiles: 8,
     mapRefresh: 'always',
     repoContentPrefix: 'Here are summaries of some files present in my git repository.\n\n',
-    readText: async (path) => {
-      const { readFile } = await import('node:fs/promises');
-      return readFile(path, 'utf8');
-    },
+    readText: (path) => readFile(path, 'utf8'),
   });
   const text = await map.repoMap({
     chatFiles: new Set(),

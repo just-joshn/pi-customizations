@@ -3,16 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
-import {
-  CLAUDE_AUTHORIZE_ORIGIN,
-  CLAUDE_AUTHORIZE_PATH,
-  CLAUDE_AUTHORIZE_QUERY_ORDER,
-  CLAUDE_COPY_CODE_REDIRECT_URI,
-  CLAUDE_OAUTH_CLIENT_ID,
-  CLAUDE_OAUTH_SCOPES,
-  buildAuthorizeUrl,
-  createPkcePair,
-} from '../src/auth.ts';
+import { buildAuthorizeUrl, CLAUDE_AUTHORIZE_ORIGIN, CLAUDE_AUTHORIZE_PATH, CLAUDE_AUTHORIZE_QUERY_ORDER, CLAUDE_COPY_CODE_REDIRECT_URI, CLAUDE_OAUTH_CLIENT_ID, CLAUDE_OAUTH_SCOPES, createPkcePair } from '../src/auth.ts';
 
 const FIXTURE = join(fileURLToPath(new URL('../../../parity/oauth-rea-2026-10-31/claude/fixtures', import.meta.url)), 'authorize-url-2.1.312.json');
 
@@ -53,16 +44,7 @@ test('authorize URL constants match the package exports', () => {
   expect(CLAUDE_OAUTH_CLIENT_ID).toBe('9d1c250a-e61b-44d9-88ed-5944d1962f5e');
   expect(CLAUDE_OAUTH_SCOPES).toContain('user:plugins');
   expect(CLAUDE_COPY_CODE_REDIRECT_URI).toBe('https://platform.claude.com/oauth/code/callback');
-  expect(CLAUDE_AUTHORIZE_QUERY_ORDER).toStrictEqual([
-    'code',
-    'client_id',
-    'response_type',
-    'redirect_uri',
-    'scope',
-    'code_challenge',
-    'code_challenge_method',
-    'state',
-  ]);
+  expect(CLAUDE_AUTHORIZE_QUERY_ORDER).toStrictEqual(['code', 'client_id', 'response_type', 'redirect_uri', 'scope', 'code_challenge', 'code_challenge_method', 'state']);
 });
 
 test('PKCE state is independent of the verifier', () => {
@@ -70,6 +52,6 @@ test('PKCE state is independent of the verifier', () => {
   expect(state).not.toBe(verifier);
   expect(challenge).not.toBe(verifier);
   expect(challenge).not.toBe(state);
-  expect(verifier.length).toBeGreaterThan(20);
-  expect(state.length).toBeGreaterThan(20);
+  expect(verifier).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  expect(state).toMatch(/^[A-Za-z0-9_-]{43}$/);
 });

@@ -66,23 +66,30 @@ test('the authorize URL matches the captured Grok 1.0.70 request byte for byte',
   expect(GROK_OAUTH_SCOPE).toContain('conversations:read');
 });
 
-test('browser login exchanges the callback code and does not leak the token', async () => {
-  tokenFetch((url) => {
-    expect(url).toBe('https://auth.x.ai/oauth2/token');
-    return TOKEN;
-  });
-  const { login, events } = interaction('browser');
+async function completeBrowserLogin(login: ProviderAuthInteraction, events: AuthEvent[]) {
   const pending = loginGrokBuild(login);
-  const url = await waitForUrl(events);
-  const authorize = new URL(url);
+  const authorize = new URL(await waitForUrl(events));
   const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '');
   redirect.searchParams.set('code', 'auth-code');
   redirect.searchParams.set('state', authorize.searchParams.get('state') ?? '');
   await fetch(redirect);
-  const credential = await pending;
+  return pending;
+}
+
+test('browser login exchanges the callback code for the credential', async () => {
+  const calls = tokenFetch(() => TOKEN);
+  const { login, events } = interaction('browser');
+  const credential = await completeBrowserLogin(login, events);
+  expect(calls.map((call) => call.url)).toStrictEqual(['https://auth.x.ai/oauth2/token']);
+  expect(calls[0]?.body.get('code')).toBe('auth-code');
   expect(credential.access).toBe('access-token');
   expect(credential.refresh).toBe('refresh-token');
-  expect(credential.expires).toBeGreaterThan(Date.now());
+});
+
+test('browser login keeps the token out of the auth events', async () => {
+  tokenFetch(() => TOKEN);
+  const { login, events } = interaction('browser');
+  await completeBrowserLogin(login, events);
   expect(JSON.stringify(events)).not.toContain('access-token');
 });
 
@@ -182,7 +189,7 @@ test('device login polls until the token endpoint completes', async () => {
   expect(deviceStart?.body.get('scope')).toBe(GROK_OAUTH_SCOPE);
   expect(deviceStart?.body.get('referrer')).toBe('grok-build');
   const tokenPolls = calls.filter((call) => call.url.endsWith('/oauth2/token'));
-  expect(tokenPolls.length).toBeGreaterThan(0);
+  expect(tokenPolls).toHaveLength(2);
   for (const poll of tokenPolls) {
     expect(poll.headers.get('x-grok-client-version')).toBe(GROK_CLIENT_VERSION);
     expect(poll.headers.get('x-grok-client-surface')).toBe('ui');
@@ -229,7 +236,7 @@ test('a slow_down response waits five more seconds before the next poll', async 
 test.for([
   { name: 'an OAuth error code', body: { error: 'invalid_scope', access_token: 'secret-token' }, message: 'xAI OAuth device authorization failed (HTTP 400): invalid_scope' },
   { name: 'no OAuth error code', body: {}, message: 'xAI OAuth device authorization failed (HTTP 400)' },
-])('a rejected device authorization reports $name and keeps the body out', async ({ body, message }) => {
+])('a rejected device authorization reports $name without the response body', async ({ body, message }) => {
   tokenFetch(() => new Response(JSON.stringify(body), { status: 400 }));
   const { login } = interaction('device');
   const error = await loginGrokBuild(login).catch((thrown: unknown) => thrown);
@@ -368,7 +375,7 @@ test('a token error does not include the response body', async () => {
   expect((error as Error).message).not.toContain('secret-token');
 });
 
-test('aborting login rejects and stops waiting', async () => {
+test('aborting a login stuck on the network rejects as cancelled', async () => {
   tokenFetch(() => new Promise(() => undefined));
   const { login, controller } = interaction('device');
   const pending = loginGrokBuild(login);

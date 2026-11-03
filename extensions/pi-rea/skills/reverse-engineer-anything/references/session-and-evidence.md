@@ -27,21 +27,24 @@ to narrow it. Without `detail`, it returns the complete bundle:
 
 `inspect_analysis_view` reads one view of Evidence you already hold, either as
 `{ "kind": "retained-evidence", "evidence_id": "ev_…" }` or
-`{ "kind": "inline", "evidence": { … } }`. Its projections are not implemented
-here, so it reports `capability_unavailable` after resolving the source; a
-missing reference reports `evidence_integrity_mismatch` with
+`{ "kind": "inline", "evidence": { … } }`. The `summary`, `section`, `item`, `inventory` and `api-surface` view kinds are
+projected. Any other view kind reports `capability_unavailable` after resolving
+the source. A missing reference reports `evidence_integrity_mismatch` with
 `details.reason: "missing"`.
 
 ## Portability
 
-`export_evidence_bundle` writes canonical JSON — keys sorted at every level,
-one line, one file — at mode 0600, published atomically. An existing path needs
+`export_evidence_bundle` writes canonical JSON (keys sorted at every level,
+one line, one file) at mode 0600, published atomically. An existing path needs
 `overwrite: true`. `import_evidence_bundle` validates the envelope and every
 record identity before merging, so a rejected import leaves the session
 unchanged, and it reports `imported`, `unknowns_added` and `total`.
 
 ## Lifetime
 
-The ledger is per session. `close_binary`, `/reload`, `/new`, `/resume` and
-`/fork` end it and clear the records. Export before any of those when the
-investigation must continue, and re-import afterwards.
+The ledger follows the active Pi branch. Each Evidence and unknown mutation is
+saved as a session entry, and `/reload`, `/resume` and `/fork` rebuild the
+ledger from the entries on their branch. The open target is not restored, so
+call `open_binary` again. `close_binary` clears the running ledger, and `/new`
+starts empty. Export before either when the records must outlive the session,
+and re-import afterwards.

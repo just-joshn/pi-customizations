@@ -4,7 +4,7 @@ import { PROVIDER_ID } from './cloudcode.ts';
 import { createAntigravityCommand } from './command.ts';
 import { keychainImportAvailable } from './keychain.ts';
 import { baselineModels, createFetchModels } from './models.ts';
-import { createAntigravityOAuth, GOOGLE_OAUTH, type AntigravityOAuthOptions, type OAuthEndpoints } from './oauth.ts';
+import { type AntigravityOAuthOptions, createAntigravityOAuth, GOOGLE_OAUTH, type OAuthEndpoints } from './oauth.ts';
 import { createCloudCodeStream } from './stream.ts';
 
 export function createAntigravityProvider(oauth: OAuthEndpoints = GOOGLE_OAUTH, options: AntigravityOAuthOptions = {}): Provider {

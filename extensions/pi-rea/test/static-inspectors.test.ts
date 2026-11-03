@@ -21,7 +21,7 @@ test('inspect_pe_imports: inventories DLLs from the Go PE fixture', async () => 
   expect(record['format']).toBe('pe32-plus');
   expect(record['import_directory']).toMatchObject({ rva: expect.any(Number), size: expect.any(Number) });
   const imports = record['imports'] as { name: string; functions: unknown[] }[];
-  expect(imports.length).toBeGreaterThan(0);
+  expect(imports).toHaveLength(1);
   expect(imports.some((entry) => typeof entry.name === 'string' && entry.name.toLowerCase().endsWith('.dll'))).toBe(true);
   expect(imports.some((entry) => entry.functions.length > 0)).toBe(true);
   expect(record['imphash']).toMatchObject({ algorithm: 'pefile', md5: expect.stringMatching(/^[a-f0-9]{32}$/) });
@@ -48,7 +48,7 @@ test('inspect_pe_certificates: decodes Authenticode PKCS#7 basics from the signe
   expect(entries).toHaveLength(1);
   expect(entries[0]?.certificate_type_name).toBe('pkcs7');
   expect(entries[0]?.pkcs7?.content_type_oid).toBe('1.2.840.113549.1.7.2');
-  expect(entries[0]?.pkcs7?.certificates.length).toBeGreaterThan(0);
+  expect(entries[0]?.pkcs7?.certificates).toHaveLength(1);
 });
 
 test('inspect_pe_certificates: reports observed absence on an unsigned PE', async () => {
@@ -72,7 +72,7 @@ test('inspect_elf_notes: returns GNU build-id from the crafted ELF', async () =>
   const session = new ReaSession(runtime);
   const record = await normalized(() => inspectElfNotes(session, { path: fixturePath('targets/elf/notes-and-dep.so') }));
   expect(record['format']).toBe('elf64');
-  expect((record['tables'] as unknown[]).length).toBeGreaterThan(0);
+  expect(record['tables']).toHaveLength(2);
   const entries = record['entries'] as { type_name: string; gnu: { build_id_hex: string | null } | null }[];
   const buildId = entries.find((entry) => entry.type_name === 'gnu_build_id');
   expect(buildId?.gnu?.build_id_hex).toBe('0102030405060708090a0b0c0d0e0f10');
@@ -108,7 +108,7 @@ test('inspect_byte_entropy: reports file entropy, blocks and high/low runs', asy
   const record = await normalized(() => inspectByteEntropy(session, { path: fixturePath('targets/entropy/mixed.bin'), block_size: 4096 }));
   expect(record['block_size']).toBe(4096);
   expect((record['blocks'] as unknown[]).length).toBe(2);
-  expect(record['file_entropy']).toBeGreaterThan(0);
+  expect(record['file_entropy']).toBe(4.9816);
   const runs = record['runs'] as { classification: string; length: number }[];
   expect(runs.some((run) => run.classification === 'low')).toBe(true);
   expect(runs.some((run) => run.classification === 'high')).toBe(true);

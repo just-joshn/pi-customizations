@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
 import type { FetchFunction, OAuthAuth, OAuthCredential } from '@earendil-works/pi-ai';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import type { RefreshClaimOptions } from '../src/refresh-claim.ts';
@@ -49,47 +50,44 @@ const baseFetch: FetchFunction = async (_input, init) => {
   return new Response('', { status: authorization === 'Bearer old-access' ? 401 : 200 });
 };
 
-test.for(Array.from({ length: 10 }, (_, trial) => trial))(
-  'recoveries that take over from a crashed refresher send the refresh token once (trial %i)',
-  async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-anth-takeover-'));
-    onTestFinished(() => rm(dir, { recursive: true, force: true }));
-    const authPath = join(dir, 'auth.json');
-    const lock = { retries: 10_000, retryDelayMs: () => Math.random() * 2, staleMs: 30 };
+test.for(Array.from({ length: 10 }, (_, trial) => trial))('recoveries that take over from a crashed refresher send the refresh token once (trial %i)', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'pi-anth-takeover-'));
+  onTestFinished(() => rm(dir, { recursive: true, force: true }));
+  const authPath = join(dir, 'auth.json');
+  const lock = { retries: 10_000, retryDelayMs: () => Math.random() * 2, staleMs: 30 };
 
-    let crash: () => void = () => {};
-    const crashed = new Promise<never>((_resolve, reject) => {
-      crash = () => reject(new Error('refresher crashed before sending'));
-    });
-    let crasherEntered = false;
-    const crasher = recoveryFor(
-      {
-        refresh: () => {
-          crasherEntered = true;
-          return crashed;
-        },
-      } as unknown as OAuthAuth,
-      authPath,
-      lock,
-    );
-    const crasherResponse = crasher.wrapFetch(baseFetch)(URL, { headers: { authorization: 'Bearer old-access' } });
-    await vi.waitFor(() => {
-      if (!crasherEntered) throw new Error('the crashing refresher has not started');
-    });
-
-    const sentRefreshTokens: string[] = [];
-    const oauth = {
-      refresh: async (credential: OAuthCredential) => {
-        sentRefreshTokens.push(credential.refresh);
-        return { ...credential, access: 'new-access', refresh: 'new-refresh', expires: Date.now() + 3_600_000 };
+  let crash: () => void = () => {};
+  const crashed = new Promise<never>((_resolve, reject) => {
+    crash = () => reject(new Error('refresher crashed before sending'));
+  });
+  let crasherEntered = false;
+  const crasher = recoveryFor(
+    {
+      refresh: () => {
+        crasherEntered = true;
+        return crashed;
       },
-    } as unknown as OAuthAuth;
-    const survivors = Array.from({ length: 8 }, () => recoveryFor(oauth, authPath, lock).wrapFetch(baseFetch));
-    const responses = await Promise.all(survivors.map((fetch) => fetch(URL, { headers: { authorization: 'Bearer old-access' } })));
-    crash();
-    await crasherResponse;
+    } as unknown as OAuthAuth,
+    authPath,
+    lock,
+  );
+  const crasherResponse = crasher.wrapFetch(baseFetch)(URL, { headers: { authorization: 'Bearer old-access' } });
+  await vi.waitFor(() => {
+    if (!crasherEntered) throw new Error('the crashing refresher has not started');
+  });
 
-    expect(sentRefreshTokens).toStrictEqual(['old-refresh']);
-    expect(responses.map((response) => response.status)).toStrictEqual(Array(8).fill(200));
-  },
-);
+  const sentRefreshTokens: string[] = [];
+  const oauth = {
+    refresh: async (credential: OAuthCredential) => {
+      sentRefreshTokens.push(credential.refresh);
+      return { ...credential, access: 'new-access', refresh: 'new-refresh', expires: Date.now() + 3_600_000 };
+    },
+  } as unknown as OAuthAuth;
+  const survivors = Array.from({ length: 8 }, () => recoveryFor(oauth, authPath, lock).wrapFetch(baseFetch));
+  const responses = await Promise.all(survivors.map((fetch) => fetch(URL, { headers: { authorization: 'Bearer old-access' } })));
+  crash();
+  await crasherResponse;
+
+  expect(sentRefreshTokens).toStrictEqual(['old-refresh']);
+  expect(responses.map((response) => response.status)).toStrictEqual(Array(8).fill(200));
+});

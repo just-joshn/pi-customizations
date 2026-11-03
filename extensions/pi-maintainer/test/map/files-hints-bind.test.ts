@@ -1,9 +1,10 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { absRootPath, allRelativeFiles, type ChatFiles } from '../../src/core/chat-files.ts';
 import { type ContextMessage, getCurMessageText } from '../../src/core/context.ts';
+import { isolatedExec } from '../../src/core/isolated-exec.ts';
 import { getFileMentions } from '../../src/core/mentions.ts';
 import { getIdentFilenameMatches, getIdentMentions, type RepoMapEnv, requestRepoMap } from '../../src/core/repo-map.ts';
 import { disabledGitPolicy, type MapRequest } from '../../src/feature.ts';
@@ -26,7 +27,6 @@ test('map file universe is sorted deduplicated Git HEAD-and-index inventory afte
   await writeFile(join(root, 'skip.py'), 's\n');
   await writeFile(join(root, 'untracked.py'), 'u\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'pkg/mod.py', 'skip.py'], cwd: root }, env);
   await writeFile(join(root, '.aiderignore'), 'skip.py\n');
 
@@ -38,7 +38,6 @@ test('map file universe is sorted deduplicated Git HEAD-and-index inventory afte
   expect(universe).not.toContain('skip.py');
 
   await writeFile(join(root, 'keep.py'), 'changed working tree\n');
-  const { readFile } = await import('node:fs/promises');
   expect(await readFile(join(root, 'keep.py'), 'utf8')).toBe('changed working tree\n');
 });
 
@@ -130,7 +129,7 @@ test('rendered map text lists other files and omits every chat file', {
     mapMulNoFiles: 8,
     mapRefresh: 'always',
     repoContentPrefix: null,
-    readText: async (path) => (await import('node:fs/promises')).readFile(path, 'utf8'),
+    readText: async (path) => readFile(path, 'utf8'),
   });
   const text = await map.repoMap({
     chatFiles: new Set([join(root, 'chat.py')]),

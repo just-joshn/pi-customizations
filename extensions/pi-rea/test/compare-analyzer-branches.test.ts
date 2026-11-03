@@ -546,6 +546,7 @@ test('inventories unpaired variants without an exclusive discriminant', () => {
 });
 
 test('rejects unusable export evidence or empty requests', async () => {
+  expect.hasAssertions();
   const cases = [
     { label: 'left is null', params: exportParams({ left: null }), message: 'compare_javascript_export_shapes left must be an Evidence object.', details: { parameter: 'left' } },
     {

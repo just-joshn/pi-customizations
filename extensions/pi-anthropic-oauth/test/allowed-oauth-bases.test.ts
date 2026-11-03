@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { expect, test, vi } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { ALLOWED_OAUTH_BASE_URLS, CUSTOM_OAUTH_URL_UNAPPROVED, readCustomOAuthBaseFromEnv, resolveCustomOAuthBase } from '../src/allowed-oauth-bases.ts';
 import { CLAUDE_AUTHORIZE_URL, CLAUDE_COPY_CODE_REDIRECT_URI, CLAUDE_TOKEN_URL, createClaudeOAuth, prodClaudeOAuthEndpoints, resolveClaudeOAuthEndpoints } from '../src/oauth.ts';
 
@@ -83,7 +83,7 @@ test('createClaudeOAuth rejects an unapproved custom base at construction', () =
   expect(() => createClaudeOAuth({ customOAuthUrl: 'https://evil.example' })).toThrow(CUSTOM_OAUTH_URL_UNAPPROVED);
 });
 
-test('custom copy-code flow stays on the allowlisted host', async () => {
+test('custom copy-code flow stays on the allowlisted host', async ({ signal }) => {
   const base = 'https://claude.fedstart.com';
   const tokenBody = {
     access_token: 'sk-ant-oat01-custom-host',
@@ -91,58 +91,56 @@ test('custom copy-code flow stays on the allowlisted host', async () => {
     expires_in: 3600,
   };
   const calls: { url: string; body: Record<string, string> }[] = [];
+  onTestFinished(() => {
+    vi.unstubAllGlobals();
+  });
   vi.stubGlobal('fetch', async (input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     calls.push({ url: String(input), body: JSON.parse(String(init?.body)) as Record<string, string> });
     return Response.json(tokenBody);
   });
-  try {
-    const oauth = createClaudeOAuth({ customOAuthUrl: base });
-    let authorizeUrl: URL | undefined;
-    const credential = await oauth.login({
-      signal: new AbortController().signal,
-      notify: (event) => {
-        if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
-      },
-      prompt: async (prompt) => {
-        if (prompt.type === 'select') return 'copy-code';
-        if (!authorizeUrl) throw new Error('No authorization URL was shown');
-        return `local-code#${authorizeUrl.searchParams.get('state')}`;
-      },
-    });
-    expect(credential).toMatchObject({
-      type: 'oauth',
-      access: tokenBody.access_token,
-      refresh: tokenBody.refresh_token,
-    });
-    expect(authorizeUrl?.origin).toBe(base);
-    expect(authorizeUrl?.pathname).toBe('/oauth/authorize');
-    expect(authorizeUrl?.searchParams.get('redirect_uri')).toBe(`${base}/oauth/code/callback`);
-    expect(authorizeUrl?.searchParams.get('scope')).toBe(CUSTOM_LOGIN_SCOPE);
-    await oauth.refresh(credential, new AbortController().signal);
-    expect(calls.map((call) => call.url)).toEqual([`${base}/v1/oauth/token`, `${base}/v1/oauth/token`]);
-    expect(calls[0]?.body).toMatchObject({
-      grant_type: 'authorization_code',
-      code: 'local-code',
-      redirect_uri: `${base}/oauth/code/callback`,
-    });
-    expect(calls[1]?.body).toMatchObject({
-      grant_type: 'refresh_token',
-      scope: CUSTOM_REFRESH_SCOPE,
-      refresh_token: tokenBody.refresh_token,
-    });
-  } finally {
-    vi.unstubAllGlobals();
-  }
+  const oauth = createClaudeOAuth({ customOAuthUrl: base });
+  let authorizeUrl: URL | undefined;
+  const credential = await oauth.login({
+    signal,
+    notify: (event) => {
+      if (event.type === 'auth_url') authorizeUrl = new URL(event.url);
+    },
+    prompt: async (prompt) => {
+      if (prompt.type === 'select') return 'copy-code';
+      if (!authorizeUrl) throw new Error('No authorization URL was shown');
+      return `local-code#${authorizeUrl.searchParams.get('state')}`;
+    },
+  });
+  expect(credential).toMatchObject({
+    type: 'oauth',
+    access: tokenBody.access_token,
+    refresh: tokenBody.refresh_token,
+  });
+  expect(authorizeUrl?.origin).toBe(base);
+  expect(authorizeUrl?.pathname).toBe('/oauth/authorize');
+  expect(authorizeUrl?.searchParams.get('redirect_uri')).toBe(`${base}/oauth/code/callback`);
+  expect(authorizeUrl?.searchParams.get('scope')).toBe(CUSTOM_LOGIN_SCOPE);
+  await oauth.refresh(credential, signal);
+  expect(calls.map((call) => call.url)).toEqual([`${base}/v1/oauth/token`, `${base}/v1/oauth/token`]);
+  expect(calls[0]?.body).toMatchObject({
+    grant_type: 'authorization_code',
+    code: 'local-code',
+    redirect_uri: `${base}/oauth/code/callback`,
+  });
+  expect(calls[1]?.body).toMatchObject({
+    grant_type: 'refresh_token',
+    scope: CUSTOM_REFRESH_SCOPE,
+    refresh_token: tokenBody.refresh_token,
+  });
 });
 
 test('createClaudeOAuth with empty customOAuthUrl forces prod even when env is set', () => {
-  vi.stubEnv('CLAUDE_CODE_CUSTOM_OAUTH_URL', 'https://evil.example');
-  try {
-    const oauth = createClaudeOAuth({ customOAuthUrl: '' });
-    expect(oauth.name).toBe('Claude subscription (Provider CLI)');
-  } finally {
+  onTestFinished(() => {
     vi.unstubAllEnvs();
-  }
+  });
+  vi.stubEnv('CLAUDE_CODE_CUSTOM_OAUTH_URL', 'https://evil.example');
+  const oauth = createClaudeOAuth({ customOAuthUrl: '' });
+  expect(oauth.name).toBe('Claude subscription (Provider CLI)');
 });
 
 test('a client id override replaces the client id and drops the plugins scope', () => {

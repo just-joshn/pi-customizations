@@ -4,6 +4,8 @@
 
 Deliver the complete Pi-native package with 100% user-visible parity under the full eleven-section contract in the initiating user message. The native goal remains active. No research artifact or checkpoint constitutes completion.
 
+This file is an append-only log. Each checkpoint describes the state on its own date, and the "Current status" section below is from 2026-10-08. The latest entry (2026-10-09) records 98/98 requirements `verified-pass-paired` with completion still BLOCKED. `completion.json` holds the current verdict, `source-lock.json` the current pins, and `pi-1.5.0/verification.md` the Pi 1.5.0 upgrade.
+
 ## Continuation checkpoint — 2026-10-08T06:17:27Z
 
 The coordinator re-inspected the real checkout and installed launchers. Official `cursor/plugins` HEAD remains `ccb5507cec1546dc88135c1139c811e6c59115ba`; the official latest Pi release remains `v1.1.0`. Installed `cursor-agent` reports `2026.10.01-e373342`; its updater was not re-run in this continuation. No auth file contents were read, account changes made, or approvals broadened.
@@ -1517,15 +1519,15 @@ Moved Pi-authored `/automate` to `host/skills/automate` + `host/prompts/automate
 
 ### 2026-10-09 checkpoint (setup-benny Pi adapter → /automate)
 
-[u-pi-setup-benny-adapter-automate-001](parity/briefs/reports/u-pi-setup-benny-adapter-automate-001-report.md) MERGED. Host adapter routes Slack Benny creation through `/automate` + AutomationPrepare/OpenEditor; refuses webhook Routine* finish. Probe `piSetupBennyAdapterUsesAutomatePath=true`. Catalog+structure+full suite green (220/2275). Design gap 6 closed. Open mismatches still 3 (triage/make-bot/thread-safety). Wait-unlock still `IOConsoleLocked=Yes`. Verified still 95/98. completeDependencyClosure false.
+[u-pi-setup-benny-adapter-automate-001](briefs/reports/u-pi-setup-benny-adapter-automate-001-report.md) MERGED. Host adapter routes Slack Benny creation through `/automate` + AutomationPrepare/OpenEditor; refuses webhook Routine* finish. Probe `piSetupBennyAdapterUsesAutomatePath=true`. Catalog+structure+full suite green (220/2275). Design gap 6 closed. Open mismatches still 3 (triage/make-bot/thread-safety). Wait-unlock still `IOConsoleLocked=Yes`. Verified still 95/98. completeDependencyClosure false.
 
 ### 2026-10-09 checkpoint (AutomationEnable after receipt)
 
-[u-pi-automation-enable-receipt-001](parity/briefs/reports/u-pi-automation-enable-receipt-001-report.md) MERGED. AutomationEnable marks local status.json enabled after thread-safety receipt + ui.confirm; no Slack ingress. Design gap 5 Enable gate closed; live Slack seven-checks still unpaid. Wait-unlock still IOConsoleLocked. Verified 95/98.
+[u-pi-automation-enable-receipt-001](briefs/reports/u-pi-automation-enable-receipt-001-report.md) MERGED. AutomationEnable marks local status.json enabled after thread-safety receipt + ui.confirm; no Slack ingress. Design gap 5 Enable gate closed; live Slack seven-checks still unpaid. Wait-unlock still IOConsoleLocked. Verified 95/98.
 
 ### 2026-10-09 checkpoint (AutomationDisable)
 
-[u-pi-automation-disable-001](parity/briefs/reports/u-pi-automation-disable-001-report.md) MERGED. Local status clear via AutomationDisable. Source-lock note refreshed (Enable after receipt). Wait-unlock still IOConsoleLocked. Verified 95/98.
+[u-pi-automation-disable-001](briefs/reports/u-pi-automation-disable-001-report.md) MERGED. Local status clear via AutomationDisable. Source-lock note refreshed (Enable after receipt). Wait-unlock still IOConsoleLocked. Verified 95/98.
 
 ### 2026-10-09 checkpoint (automation metadata + help)
 

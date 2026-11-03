@@ -102,11 +102,13 @@ test('TOOL-060: the binary decoder refuses malformed containers', () => {
   expect(() => parseBinaryPlist(badExtendedLength)).toThrowError(/extended length/);
 });
 
-test('TOOL-060: an extended length and a wide integer decode correctly', () => {
+test('TOOL-060: an extended-length data object decodes to its exact bytes', () => {
   const payload = Buffer.concat([Buffer.from([0x4f, 0x10, 0x10]), Buffer.alloc(16, 0x7f)]);
   const decoded = parseBinaryPlist(binary([payload]));
   expect(decoded).toStrictEqual({ $plist_type: 'data', base64: Buffer.alloc(16, 0x7f).toString('base64') });
+});
 
+test('TOOL-060: a 16-byte integer decodes to its signed 64-bit decimal string', () => {
   const wide = Buffer.concat([Buffer.from([0x14]), Buffer.alloc(16, 0x7f)]);
   expect(parseBinaryPlist(binary([wide]))).toBe(BigInt.asIntN(64, BigInt('0x7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f')).toString());
 });
@@ -148,6 +150,7 @@ test('TOOL-060: the XML decoder reads every element type', () => {
 });
 
 test('TOOL-060: the XML decoder refuses malformed documents', () => {
+  expect.hasAssertions();
   const cases: [string, RegExp][] = [
     ['<plist version="1.0"><dict><key>a</key><bogus/></dict></plist>', /unsupported element/],
     ['<plist version="1.0"><dict><key>a</key><date></date></dict></plist>', /no ISO-8601 date/],

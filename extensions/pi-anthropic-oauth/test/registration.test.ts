@@ -44,7 +44,7 @@ test('Pi loads the manifest extensions with one provider', async ({ onTestFinish
   const registrations = runtime.pendingNativeProviderRegistrations;
   expect(registrations).toHaveLength(1);
   const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ provider: provider.id, owner: model.provider })));
-  expect(models.length).toBeGreaterThan(0);
+  expect(models).toContainEqual({ provider: 'claude-subscription', owner: 'claude-subscription' });
   expect(models.filter(({ provider, owner }) => provider !== owner)).toStrictEqual([]);
 });
 

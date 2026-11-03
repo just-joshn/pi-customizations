@@ -9,6 +9,8 @@ export default defineConfig({
     pool: 'forks',
     isolate: true,
 
+    globalSetup: ['test/support/global-setup.mjs'],
+
     exclude: [...configDefaults.exclude, 'dist/**'],
 
     coverage: {

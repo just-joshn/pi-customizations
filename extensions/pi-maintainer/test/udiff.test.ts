@@ -267,7 +267,7 @@ test('rebuilds before text from the file when direct replace fails', () => {
   const [rebuiltBefore] = hunkToBeforeAfter(rebuilt);
   expect(pyLength(strip(rebuiltBefore))).toBeGreaterThanOrEqual(10);
   expect(splitlines(rebuiltBefore, true).length).toBeGreaterThanOrEqual(splitlines(originalBefore, true).length * 0.66);
-  expect(applyHunk(content, hunk)).toBeDefined();
+  expect(applyHunk(content, hunk)).toBe('AAAAAAAAAA\nBBBBBBBBBB\nCCCCCCCCCC\ncccccccccc\ndddddddddd\n');
 });
 
 test('keeps the original hunk when repaired before text is too short', () => {

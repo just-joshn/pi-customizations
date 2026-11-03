@@ -1,44 +1,35 @@
-import { expect, vi } from 'vitest';
+import { expect, onTestFinished, vi } from 'vitest';
 import { errorText, extractRetryDelay, parseApiKey, postCloudCode } from '../src/cloudcode.ts';
 import { fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
 
 test('postCloudCode parses a successful JSON body', async () => {
   const server = await fakeServer((_, res) => json(res, 200, { cloudaicompanionProject: 'p1' }));
-  try {
-    const body = { metadata: { ideType: 'ANTIGRAVITY' } };
-    const data = await postCloudCode(server.url, 'loadCodeAssist', 'ya29.t', body);
-    expect(data).toEqual({ cloudaicompanionProject: 'p1' });
-    expect(server.requests[0]?.path).toBe('/v1internal:loadCodeAssist');
-    expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
-    expect(server.requests[0]?.body).toBe(JSON.stringify(body));
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const body = { metadata: { ideType: 'ANTIGRAVITY' } };
+  const data = await postCloudCode(server.url, 'loadCodeAssist', 'ya29.t', body);
+  expect(data).toEqual({ cloudaicompanionProject: 'p1' });
+  expect(server.requests[0]?.path).toBe('/v1internal:loadCodeAssist');
+  expect(server.requests[0]?.headers.authorization).toBe('Bearer ya29.t');
+  expect(server.requests[0]?.body).toBe(JSON.stringify(body));
 });
 
 test('a non-JSON success body rejects with the parse failure', async () => {
   const server = await fakeServer((_, res) => {
     res.writeHead(200, { 'content-type': 'text/plain' });
+    onTestFinished(() => server.close());
     res.end('not json');
   });
-  try {
-    await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toBeInstanceOf(SyntaxError);
-  } finally {
-    server.close();
-  }
+  await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toBeInstanceOf(SyntaxError);
 });
 
 test('a non-JSON error body is surfaced verbatim', async () => {
   const server = await fakeServer((_, res) => {
     res.writeHead(503, { 'content-type': 'text/plain' });
+    onTestFinished(() => server.close());
     res.end('upstream down');
   });
-  try {
-    await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toThrow('loadCodeAssist failed (503): upstream down');
-  } finally {
-    server.close();
-  }
+  await expect(postCloudCode(server.url, 'loadCodeAssist', 't', {})).rejects.toThrow('loadCodeAssist failed (503): upstream down');
 });
 
 test('an aborted signal rethrows the fetch failure', async () => {
@@ -72,22 +63,14 @@ test('extractRetryDelay ignores a zero retry-after', () => {
 test('extractRetryDelay reads an HTTP-date retry-after', () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-  try {
-    expect(extractRetryDelay('', new Headers({ 'retry-after': 'Thu, 01 Jan 2026 00:00:05 GMT' }))).toBe(6000);
-  } finally {
-    vi.useRealTimers();
-  }
+  expect(extractRetryDelay('', new Headers({ 'retry-after': 'Thu, 01 Jan 2026 00:00:05 GMT' }))).toBe(6000);
 });
 
 test('extractRetryDelay reads the x-ratelimit-reset epoch seconds', () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
-  try {
-    const resetAt = String(Math.floor(Date.now() / 1000) + 5);
-    expect(extractRetryDelay('', new Headers({ 'x-ratelimit-reset': resetAt }))).toBe(6000);
-  } finally {
-    vi.useRealTimers();
-  }
+  const resetAt = String(Math.floor(Date.now() / 1000) + 5);
+  expect(extractRetryDelay('', new Headers({ 'x-ratelimit-reset': resetAt }))).toBe(6000);
 });
 
 test('extractRetryDelay reads x-ratelimit-reset-after seconds', () => {

@@ -13,7 +13,7 @@ const PACKAGE_DIR = fileURLToPath(new URL('..', import.meta.url));
 
 test('the default export is a Pi extension factory', () => {
   const factory: ExtensionFactory = extension;
-  expect(factory).toBe(extension);
+  expect(typeof factory).toBe('function');
 });
 
 // Pi loads the package through jiti. Loading the checkout itself would register a second copy

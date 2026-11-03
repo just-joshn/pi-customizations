@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -29,7 +30,6 @@ test('Host.exec /bin/sh -c runs trusted shell under the user account; filename q
     select: async () => undefined,
     exec: async (request) => {
       calls.push({ command: request.command, args: request.args });
-      const { spawnSync } = await import('node:child_process');
       const result = spawnSync(request.command, [...request.args], {
         cwd: request.cwd,
         encoding: 'utf8',

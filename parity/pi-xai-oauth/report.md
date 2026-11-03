@@ -1,3 +1,5 @@
+> Status. This record describes the 2026-10-28 audit against Grok 1.0.50 and Pi 1.4.0. It is not current. The package now sends client version 1.0.70 and ships the Grok 1.0.70 authorize capture. Read `extensions/pi-xai-oauth/README.md` for current behavior.
+
 ## Implementation summary
 
 `pi-xai-oauth` registers the `grok-build` provider. Login offers the captured Grok 1.0.50 browser flow and a device-code flow, both with the captured scope. Pi stores the credential and still refreshes it, and a first login expires 300 seconds before the server's expiry the way Pi's refresh does. Requests go to `https://cli-chat-proxy.grok.com/v1` through Pi's OpenAI Responses stream, with the headers the proxy requires. The client version sent is `1.0.50`.

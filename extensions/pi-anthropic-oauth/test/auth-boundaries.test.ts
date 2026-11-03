@@ -1,5 +1,6 @@
 import { createModels, InMemoryCredentialStore } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
+import { bindSubscriptionRefreshLock } from '../src/index.ts';
 import { ask } from './support/context.ts';
 import { OAUTH_ACCESS_TOKEN, oauthCredential } from './support/credentials.ts';
 import { test } from './support/fixtures.ts';
@@ -97,6 +98,7 @@ test('ambient auth preserves cancellation during environment access', async ({ p
 test('refresh cancellation keeps its abort reason', async ({ provider }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
+  bindSubscriptionRefreshLock(undefined);
   const controller = new AbortController();
   const reason = new DOMException('Cancelled', 'AbortError');
   vi.stubGlobal(
@@ -126,13 +128,13 @@ test('login cancellation keeps its abort reason', async ({ provider }) => {
   ).rejects.toBe(reason);
 });
 
-test('Pi login cancellation stays cancellation', async ({ provider }) => {
+test('Pi login cancellation stays cancellation', async ({ provider, signal }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
   const cancelled = new Error('Login cancelled');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async () => {
         throw cancelled;
@@ -141,12 +143,12 @@ test('Pi login cancellation stays cancellation', async ({ provider }) => {
   ).rejects.toBe(cancelled);
 });
 
-test('a state mismatch never exchanges the authorization code', async ({ provider, tokenEndpoint }) => {
+test('a state mismatch never exchanges the authorization code', async ({ provider, tokenEndpoint, signal }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async (prompt) => {
         if (prompt.type === 'select') return 'copy-code';
@@ -157,12 +159,12 @@ test('a state mismatch never exchanges the authorization code', async ({ provide
   expect(tokenEndpoint.requests).toStrictEqual([]);
 });
 
-test('a pasted code without a state is rejected with Claude wording and never exchanged', async ({ provider, tokenEndpoint }) => {
+test('a pasted code without a state is rejected with Claude wording and never exchanged', async ({ provider, tokenEndpoint, signal }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
   await expect(
     oauth.login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async (prompt) => (prompt.type === 'select' ? 'copy-code' : 'local-code'),
     }),
@@ -170,13 +172,13 @@ test('a pasted code without a state is rejected with Claude wording and never ex
   expect(tokenEndpoint.requests).toStrictEqual([]);
 });
 
-test('the paste prompt is the text Claude Code shows', async ({ provider }) => {
+test('the paste prompt is the text Claude Code shows', async ({ provider, signal }) => {
   const oauth = provider.auth.oauth;
   if (!oauth) throw new Error('No OAuth');
   const messages: string[] = [];
   await oauth
     .login({
-      signal: new AbortController().signal,
+      signal,
       notify: () => undefined,
       prompt: async (prompt) => {
         if (prompt.type === 'select') return 'copy-code';

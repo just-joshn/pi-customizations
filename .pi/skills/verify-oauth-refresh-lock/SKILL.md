@@ -35,6 +35,8 @@ From the repository root:
 ./.pi/skills/verify-oauth-refresh-lock/bin/verify-oauth-refresh-lock
 ```
 
+The script needs Java and `tla2tools.jar` 1.7.4. `mise install` provides Temurin 25 and the jar from `mise.toml`, so run it as `mise exec -- ./.pi/skills/verify-oauth-refresh-lock/bin/verify-oauth-refresh-lock` unless `mise activate` is on. Without mise, put `java` on `PATH` (or set `JAVA_HOME`) and set `TLA2TOOLS_JAR`.
+
 The script runs TLC on `specs/OAuthRefreshClaim.tla` with `specs/OAuthRefreshClaim.cfg`. It exits `0` when every property holds and `1` with the counterexample trace when one fails.
 
 To render the state graph or read a counterexample as steps, use the pstack `/statechart` skill with the view module `specs/OAuthRefreshClaimView.ts`.

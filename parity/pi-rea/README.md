@@ -11,17 +11,18 @@ Compares each implemented kernel tool that has a safe offline fixture:
 3. Write both outputs and a normalized diff under `evidence/differential/<case-id>/`.
 4. Fail on Evidence-envelope regressions. Document known field-level deviations in `evidence/differential/mismatches.json` instead of ignoring them.
 
-A case may set `compare_paths` to compare a declared subset of the normalized envelope. Only `binary_session` uses it, because `tool_availability`, `capabilities` and most of `server_identity` describe each server's own measured coverage: pi-rea implements 63 of the 229 catalog tools, so comparing them would measure the port's scope, not the kernel contract. `diff-summary.json` records the compared paths for every case.
+A case may set `compare_paths` to compare a declared subset of the normalized envelope. Only `binary_session` uses it, because `tool_availability`, `capabilities` and most of `server_identity` describe each server's own measured coverage: pi-rea implements 66 of the 229 catalog tools, so comparing them would measure the port's scope, not the kernel contract. `diff-summary.json` records the compared paths for every case.
 
 ### Run
 
-From the repo root (requires Node ≥ 22, Bun, Go for Mach-O fixtures, network for the first `npx` pull):
+From the repo root (requires Node ≥ 22.19, Bun, Go for the Mach-O fixtures, network for the first `npx` pull). Under mise, prefix with `mise exec --`.
 
 ```bash
 bun parity/pi-rea/scripts/run-differential.mjs
+CASE=inspect_plist bun parity/pi-rea/scripts/run-differential.mjs   # one case id or tool
 ```
 
-Thin/fat Go Mach-O fixtures under `fixtures/targets/fixture-go-macho*` are built on demand and gitignored. Other fixtures (plist, PE, ZIP, HAR, notepad app) are already in-tree.
+`scripts/lib/ensure-fixtures.mjs` builds the thin and fat Go Mach-O fixtures (`fixtures/targets/fixture-go-macho` and `fixture-go-macho-fat`) on demand with `go build`. Both are gitignored. The thin binary is `darwin/arm64`, cross-compiled with `GOOS=darwin CGO_ENABLED=0`, so it builds the same on macOS and Ubuntu. The fat binary packs that slice with a cross-compiled `darwin/amd64` slice in JavaScript, so `lipo` is not needed. Other fixtures (plist, PE, ZIP, HAR, notepad app) are already in-tree.
 
 ### Outputs
 

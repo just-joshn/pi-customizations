@@ -37,7 +37,7 @@ test('a loopback response does not follow redirects', async ({ onTestFinished })
   onTestFinished(() => new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve()))));
   const address = server.address();
   if (!address || typeof address === 'string') throw new Error('No loopback listener');
-  await expect(fetch(`http://127.0.0.1:${address.port}/redirect`, { redirect: 'follow' })).rejects.toThrow();
+  await expect(fetch(`http://127.0.0.1:${address.port}/redirect`, { redirect: 'follow' })).rejects.toThrow('fetch failed');
   expect(paths).toStrictEqual(['/redirect']);
 });
 
