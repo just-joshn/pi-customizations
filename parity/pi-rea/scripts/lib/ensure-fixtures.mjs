@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 import { minimalElf64CoreFixture } from '../../../../extensions/pi-rea/src/analysis/recorded-crash.ts';
 import { TARGETS } from './paths.mjs';
@@ -46,27 +47,50 @@ export const ensureDevicetreeFixture = () => {
   return path;
 };
 
+const FAT_MAGIC = 0xcafebabe;
+const FAT_ARCH_ALIGN_LOG2 = 14;
+
+const packFatMachO = (slices) => {
+  const headerBytes = 8 + 20 * slices.length;
+  const alignment = 2 ** FAT_ARCH_ALIGN_LOG2;
+  const header = Buffer.alloc(headerBytes);
+  header.writeUInt32BE(FAT_MAGIC, 0);
+  header.writeUInt32BE(slices.length, 4);
+  const parts = [header];
+  let offset = headerBytes;
+  slices.forEach((slice, index) => {
+    const aligned = Math.ceil(offset / alignment) * alignment;
+    parts.push(Buffer.alloc(aligned - offset), slice);
+    const entry = 8 + index * 20;
+    header.writeUInt32BE(slice.readUInt32LE(4), entry);
+    header.writeUInt32BE(slice.readUInt32LE(8), entry + 4);
+    header.writeUInt32BE(aligned, entry + 8);
+    header.writeUInt32BE(slice.length, entry + 12);
+    header.writeUInt32BE(FAT_ARCH_ALIGN_LOG2, entry + 16);
+    offset = aligned + slice.length;
+  });
+  return Buffer.concat(parts);
+};
+
+const buildGoMacho = (goFixture, output, goarch) => {
+  const built = spawnSync('go', ['build', '-o', output, '-ldflags', '-X main.banner=injected', '.'], {
+    cwd: goFixture,
+    encoding: 'utf8',
+    env: { ...process.env, GOOS: 'darwin', GOARCH: goarch, CGO_ENABLED: '0' },
+  });
+  if (built.status !== 0) throw new Error(`go build ${goarch} failed: ${built.stderr || built.stdout}`);
+};
+
 export const ensureGoMachoFixtures = () => {
   const thin = join(TARGETS, 'fixture-go-macho');
   const fat = join(TARGETS, 'fixture-go-macho-fat');
   const goFixture = join(TARGETS, 'go-fixture');
-  if (!existsSync(thin)) {
-    const built = spawnSync('go', ['build', '-o', thin, '-ldflags', '-X main.banner=injected', '.'], {
-      cwd: goFixture,
-      encoding: 'utf8',
-    });
-    if (built.status !== 0) throw new Error(`go build thin failed: ${built.stderr || built.stdout}`);
-  }
+  if (!existsSync(thin)) buildGoMacho(goFixture, thin, 'arm64');
   if (!existsSync(fat)) {
-    const amd64 = join('/tmp', 'fixture-go-amd64-parity');
-    const built = spawnSync('go', ['build', '-o', amd64, '-ldflags', '-X main.banner=injected', '.'], {
-      cwd: goFixture,
-      encoding: 'utf8',
-      env: { ...process.env, GOOS: 'darwin', GOARCH: 'amd64' },
-    });
-    if (built.status !== 0) throw new Error(`go build amd64 failed: ${built.stderr || built.stdout}`);
-    const lipo = spawnSync('lipo', ['-create', thin, amd64, '-output', fat], { encoding: 'utf8' });
-    if (lipo.status !== 0) throw new Error(`lipo create failed: ${lipo.stderr || lipo.stdout}`);
+    const amd64 = join(mkdtempSync(join(tmpdir(), 'fixture-go-amd64-')), 'fixture-go-amd64');
+    buildGoMacho(goFixture, amd64, 'amd64');
+    writeFileSync(fat, packFatMachO([readFileSync(thin), readFileSync(amd64)]));
+    rmSync(dirname(amd64), { recursive: true, force: true });
   }
   return { thin, fat };
 };
