@@ -16,6 +16,15 @@ describe('resolveSubagentModel (TASK-007)', () => {
     expect(resolveSubagentModel(value, available, parent)).toEqual({ provider: 'claude-subscription', id: 'claude-haiku-4-5', thinking: 'low' });
   });
 
+  test('fast runs on the parent -fast variant when listed, else the parent model', () => {
+    const fast = [...available, { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', reasoning: true, levels: ['low', 'high'] }];
+    expect([resolveSubagentModel('fast', fast, parent), resolveSubagentModel('fast', available, parent), resolveSubagentModel('fast', fast, undefined)]).toEqual([
+      { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', thinking: 'low' },
+      parent,
+      undefined,
+    ]);
+  });
+
   test('inherit with no parent model leaves the choice to the child', () => {
     expect([resolveSubagentModel('inherit', available, undefined), resolveSubagentModel('inherit', available, parent)]).toEqual([undefined, parent]);
   });
