@@ -3,6 +3,7 @@
 ## [0.1.5] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. Source changes are formatting and import order only.
+- Correct stale documentation against the current code, including versions, counts, paths and host requirements.
 
 ## [0.1.4] - 2026-11-02
 

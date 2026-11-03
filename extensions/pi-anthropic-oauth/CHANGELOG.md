@@ -3,6 +3,7 @@
 ## [0.1.9] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite and unbind the refresh lock in the cancellation test. Source changes are formatting and import order only.
+- Correct stale documentation against the current code, including versions, counts, paths and host requirements.
 
 ## [0.1.8] - 2026-11-02
 

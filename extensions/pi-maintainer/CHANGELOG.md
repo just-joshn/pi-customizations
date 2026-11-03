@@ -3,6 +3,7 @@
 ## [0.1.3] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. No runtime change.
+- Correct stale documentation against the current code, including versions, counts, paths and host requirements.
 
 ## [0.1.2] - 2026-11-02
 

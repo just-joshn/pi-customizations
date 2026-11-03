@@ -3,6 +3,7 @@
 ## [0.2.1] - 2026-11-03
 
 - Resolve `swift-demangle` from `PATH` as well as the macOS locations, so a Linux Swift toolchain works. Build the Mach-O parity fixtures on any host and follow the repository Vitest rules in the test suite.
+- Correct stale documentation against the current code, including versions, counts, paths and host requirements.
 
 ## [0.2.0]
 
