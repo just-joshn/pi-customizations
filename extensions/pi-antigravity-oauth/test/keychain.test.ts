@@ -4,16 +4,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { AuthEvent, AuthPrompt, ProviderAuthInteraction } from '@earendil-works/pi-ai';
-import { expect } from 'vitest';
-import {
-  AGY_KEYCHAIN,
-  decodeGoKeyringPassword,
-  GO_KEYRING_PREFIX,
-  keychainImportAvailable,
-  parseAgyKeychainPayload,
-  readAgyKeychainPassword,
-  tokensFromGoKeyringPassword,
-} from '../src/keychain.ts';
+import { expect, onTestFinished } from 'vitest';
+import { AGY_KEYCHAIN, decodeGoKeyringPassword, GO_KEYRING_PREFIX, keychainImportAvailable, parseAgyKeychainPayload, readAgyKeychainPassword, tokensFromGoKeyringPassword } from '../src/keychain.ts';
 import { createAntigravityOAuth, importAgyKeychainCredential, LOGIN_BROWSER, LOGIN_KEYCHAIN, type OAuthEndpoints } from '../src/oauth.ts';
 import { type FakeServer, fakeServer, json } from './fake-server.ts';
 import { test } from './network-guard.ts';
@@ -156,156 +148,126 @@ test.for([
 
 test('importAgyKeychainCredential fills projectId through loadCodeAssist', async () => {
   const server = await cloudCode({ cloudaicompanionProject: 'aicode-consumers' });
-  try {
-    const credential = await importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal);
-    const load = server.requests.find((request) => request.path.endsWith('loadCodeAssist'));
-    expect(load?.body).toBe('{"metadata":{"ideType":"ANTIGRAVITY"}}');
-    expect(load?.headers.authorization).toBe('Bearer ya29.fixture-access');
-    expect(credential).toEqual({
-      type: 'oauth',
-      access: 'ya29.fixture-access',
-      refresh: '1//fixture-refresh',
-      expires: Date.parse(FIXTURE_PAYLOAD.token.expiry) - 10_000,
-      projectId: 'aicode-consumers',
-      email: 'dev@example.com',
-    });
-    expect(Object.keys(credential).sort()).toEqual(['access', 'email', 'expires', 'projectId', 'refresh', 'type']);
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const credential = await importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal);
+  const load = server.requests.find((request) => request.path.endsWith('loadCodeAssist'));
+  expect(load?.body).toBe('{"metadata":{"ideType":"ANTIGRAVITY"}}');
+  expect(load?.headers.authorization).toBe('Bearer ya29.fixture-access');
+  expect(credential).toEqual({
+    type: 'oauth',
+    access: 'ya29.fixture-access',
+    refresh: '1//fixture-refresh',
+    expires: Date.parse(FIXTURE_PAYLOAD.token.expiry) - 10_000,
+    projectId: 'aicode-consumers',
+    email: 'dev@example.com',
+  });
+  expect(Object.keys(credential).sort()).toEqual(['access', 'email', 'expires', 'projectId', 'refresh', 'type']);
 });
 
 test('importAgyKeychainCredential surfaces tokeninfo when Cloud Code rejects the access token', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 401, { error: { message: 'invalid_token' } });
+    onTestFinished(() => server.close());
     if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
     return json(res, 404, {});
   });
-  try {
-    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
-      'tokeninfo returned status 400',
-    );
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=ya29.fixture-access'))).toBe(true);
-  } finally {
-    server.close();
-  }
+  await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow('tokeninfo returned status 400');
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo?access_token=ya29.fixture-access'))).toBe(true);
 });
 
 test('importAgyKeychainCredential keeps an aborted discovery as AbortError and skips tokeninfo', async () => {
   const server = await fakeServer(() => {});
+  onTestFinished(() => server.close());
   const controller = new AbortController();
   const pending = importAgyKeychainCredential(endpoints(server), goKeyringPassword(), controller.signal);
   const aborted = expect(pending).rejects.toMatchObject({ name: 'AbortError' });
-  try {
-    await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
-    controller.abort();
-    await aborted;
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
-  } finally {
-    server.close();
-  }
+  await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
+  controller.abort();
+  await aborted;
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
 });
 
 test('importAgyKeychainCredential returns an auth-like abort reason without calling tokeninfo', async () => {
   const server = await fakeServer(() => {});
+  onTestFinished(() => server.close());
   const controller = new AbortController();
   const reason = new Error('invalid_token');
   const pending = importAgyKeychainCredential(endpoints(server), goKeyringPassword(), controller.signal);
   const aborted = expect(pending).rejects.toBe(reason);
-  try {
-    await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
-    controller.abort(reason);
-    await aborted;
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
-  } finally {
-    server.close();
-  }
+  await expect.poll(() => server.requests.some((request) => request.path.endsWith('loadCodeAssist'))).toBe(true);
+  controller.abort(reason);
+  await aborted;
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
 });
 
 test('importAgyKeychainCredential rethrows a missing project without calling tokeninfo', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, {});
+    onTestFinished(() => server.close());
     if (request.path === '/cc/v1internal:onboardUser') return json(res, 200, {});
     if (request.path.startsWith('/tokeninfo')) return json(res, 500, { error: 'unavailable' });
     return json(res, 404, {});
   });
-  try {
-    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
-      'Cloud Code named no Antigravity project for this account after onboarding.',
-    );
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
-  } finally {
-    server.close();
-  }
+  await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow('Cloud Code named no Antigravity project for this account after onboarding.');
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
 });
 
 test('importAgyKeychainCredential rethrows a Cloud Code outage without calling tokeninfo', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 503, { error: { message: 'unavailable' } });
+    onTestFinished(() => server.close());
     if (request.path.startsWith('/tokeninfo')) return json(res, 400, { error: 'invalid_token' });
     return json(res, 404, {});
   });
-  try {
-    await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow(
-      'loadCodeAssist failed (503): unavailable',
-    );
-    expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
-  } finally {
-    server.close();
-  }
+  await expect(importAgyKeychainCredential(endpoints(server), goKeyringPassword(), new AbortController().signal)).rejects.toThrow('loadCodeAssist failed (503): unavailable');
+  expect(server.requests.some((request) => request.path.startsWith('/tokeninfo'))).toBe(false);
 });
 
 test('login can import the keychain credential when opted in', async () => {
   const server = await cloudCode();
-  try {
-    const prompts: AuthPrompt[] = [];
-    const flow = interaction(async (prompt) => {
-      prompts.push(prompt);
-      if (prompt.type === 'select') return LOGIN_KEYCHAIN;
-      throw new Error(`unexpected prompt ${prompt.type}`);
-    });
-    const credential = await createAntigravityOAuth(endpoints(server), {
-      offerKeychainImport: true,
-      readKeychainPassword: async () => goKeyringPassword(),
-    }).login(flow.value);
-    expect(prompts.map((prompt) => prompt.type)).toEqual(['select']);
-    expect(prompts[0]).toMatchObject({
-      type: 'select',
-      options: [{ id: LOGIN_BROWSER }, { id: LOGIN_KEYCHAIN }],
-    });
-    expect(credential['projectId']).toBe('aicode-consumers');
-    expect(credential.access).toBe('ya29.fixture-access');
-    expect(flow.events).toContainEqual({ type: 'progress', message: 'Reading the Antigravity keychain credential' });
-    expect(flow.events).toContainEqual({ type: 'progress', message: 'Finding your Antigravity project' });
-  } finally {
-    server.close();
-  }
+  onTestFinished(() => server.close());
+  const prompts: AuthPrompt[] = [];
+  const flow = interaction(async (prompt) => {
+    prompts.push(prompt);
+    if (prompt.type === 'select') return LOGIN_KEYCHAIN;
+    throw new Error(`unexpected prompt ${prompt.type}`);
+  });
+  const credential = await createAntigravityOAuth(endpoints(server), {
+    offerKeychainImport: true,
+    readKeychainPassword: async () => goKeyringPassword(),
+  }).login(flow.value);
+  expect(prompts.map((prompt) => prompt.type)).toEqual(['select']);
+  expect(prompts[0]).toMatchObject({
+    type: 'select',
+    options: [{ id: LOGIN_BROWSER }, { id: LOGIN_KEYCHAIN }],
+  });
+  expect(credential['projectId']).toBe('aicode-consumers');
+  expect(credential.access).toBe('ya29.fixture-access');
+  expect(flow.events).toContainEqual({ type: 'progress', message: 'Reading the Antigravity keychain credential' });
+  expect(flow.events).toContainEqual({ type: 'progress', message: 'Finding your Antigravity project' });
 });
 
 test('login still offers the browser path when keychain import is enabled', async () => {
   const server = await fakeServer((request, res) => {
     if (request.path === '/token') return json(res, 200, { access_token: 'ya29.first', refresh_token: '1//refresh', expires_in: 3600 });
+    onTestFinished(() => server.close());
     if (request.path === '/userinfo') return json(res, 200, { email: 'dev@example.com' });
     if (request.path === '/cc/v1internal:loadCodeAssist') return json(res, 200, { cloudaicompanionProject: 'aicode-consumers' });
     return json(res, 404, {});
   });
-  try {
-    const flow = interaction(async (prompt) => {
-      if (prompt.type === 'select') return LOGIN_BROWSER;
-      if (prompt.type === 'manual_code') return 'code';
-      throw new Error(`unexpected prompt ${prompt.type}`);
-    });
-    const credential = await createAntigravityOAuth(endpoints(server), {
-      offerKeychainImport: true,
-      readKeychainPassword: async () => {
-        throw new Error('keychain should not be read');
-      },
-    }).login(flow.value);
-    expect(credential.access).toBe('ya29.first');
-    expect(credential['projectId']).toBe('aicode-consumers');
-  } finally {
-    server.close();
-  }
+  const flow = interaction(async (prompt) => {
+    if (prompt.type === 'select') return LOGIN_BROWSER;
+    if (prompt.type === 'manual_code') return 'code';
+    throw new Error(`unexpected prompt ${prompt.type}`);
+  });
+  const credential = await createAntigravityOAuth(endpoints(server), {
+    offerKeychainImport: true,
+    readKeychainPassword: async () => {
+      throw new Error('keychain should not be read');
+    },
+  }).login(flow.value);
+  expect(credential.access).toBe('ya29.first');
+  expect(credential['projectId']).toBe('aicode-consumers');
 });
 
 test('readAgyKeychainPassword asks security for the measured service and account', async () => {
