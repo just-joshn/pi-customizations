@@ -1,8 +1,8 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import { requestRepoMap } from '../../src/core/repo-map.ts';
 import { disabledGitPolicy, type MapRequest } from '../../src/feature.ts';
 import { effectiveMapBudget, getRepoMapTokens, resolveMapEnablement } from '../../src/map/budget.ts';
@@ -14,16 +14,9 @@ import { filenameOnlyEntries } from '../../src/map/rank.ts';
 import { renderFilenameMap, truncateMapLines } from '../../src/map/render.ts';
 import { lexicalReferenceTags, type Tag } from '../../src/map/tag.ts';
 
-const roots: string[] = [];
-
-afterEach(async () => {
-  const { rm } = await import('node:fs/promises');
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
-
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'pm-map-'));
-  roots.push(root);
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
   return root;
 }
 
@@ -182,10 +175,7 @@ test('repository context expands no-files budget and returns a filename map', as
     mapMulNoFiles: 8,
     mapRefresh: 'auto',
     repoContentPrefix: 'Here are summaries of some files present in my git repository.\n\n',
-    readText: async (path) => {
-      const { readFile } = await import('node:fs/promises');
-      return readFile(path, 'utf8');
-    },
+    readText: (path) => readFile(path, 'utf8'),
   });
   const text = await map.repoMap({
     chatFiles: new Set(),

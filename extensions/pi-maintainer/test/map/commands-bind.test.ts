@@ -1,8 +1,8 @@
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, expect, test } from 'vitest';
+import { expect, onTestFinished, test } from 'vitest';
 import type { Snapshot } from '../../src/core/branch.ts';
 import { chatFilesOf } from '../../src/core/branch.ts';
 import type { CommandEnv } from '../../src/core/command.ts';
@@ -17,16 +17,9 @@ import { formatRepositoryMapTokenLine, tokensRepoMapContent } from '../../src/ma
 import { resolveSettings } from '../../src/settings/resolve.ts';
 import { defined } from '../support/defined.ts';
 
-const roots: string[] = [];
-
-afterEach(async () => {
-  const { rm } = await import('node:fs/promises');
-  await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
-});
-
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(join(tmpdir(), 'pm-map-cmd-'));
-  roots.push(root);
+  onTestFinished(() => rm(root, { recursive: true, force: true }));
   return root;
 }
 

@@ -108,7 +108,6 @@ test('cli encoding wins and reaches the edit working tree', {
   });
   expect(loaded.settings.value(editOptions.encoding)).toBe('iso-8859-15');
   const ports = editFeature.create({ settings: loaded.settings, cwd, host });
-  expect(ports.tree).toBeDefined();
   const path = join(cwd, 'latin.txt');
   await writeFile(path, Buffer.from([0xe9]));
   expect(await ports.tree.read(path)).toBe('é');

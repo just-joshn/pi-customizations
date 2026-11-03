@@ -67,7 +67,7 @@ test('context-usage file rows list editable and read-only names with estimates a
   });
   expect(rows.map((row) => row.label)).toEqual(['foo.txt', 'note.md (read-only)', 'bar.txt']);
   expect(rows.every((row) => row.tip === '/drop to remove')).toBe(true);
-  expect(rows.every((row) => row.tokens > 0)).toBe(true);
+  expect(rows.map((row) => row.tokens)).toEqual([12, 20, 47]);
   const lines = formatFileTokenLines(rows).join('\n');
   expect(lines).toContain('foo.txt');
   expect(lines).toContain('bar.txt');
@@ -130,7 +130,6 @@ test('/model adopts the new packaged default and keeps editor and weak selection
   },
 }, async () => {
   const model = editCommands.find((command) => command.name === 'model');
-  expect(model).toBeDefined();
   const { env, saves } = commandEnv({
     snapshot: baseSnapshot({ mode: 'diff' }),
     defaults: { 'gpt-3.5': 'diff', 'gpt-4': 'whole' },

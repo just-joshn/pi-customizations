@@ -22,6 +22,7 @@ test('every Aider option has exactly one disposition', () => {
 });
 
 test('every registered option names a spelling the extension registers', () => {
+  expect.hasAssertions();
   for (const [option, disposition] of Object.entries(inventory.options)) {
     if (disposition.registered === undefined) continue;
     expect(registeredSpellings.has(disposition.registered), `${option} -> ${disposition.registered}`).toBe(true);
@@ -29,6 +30,7 @@ test('every registered option names a spelling the extension registers', () => {
 });
 
 test('nonclaimed options carry a category and a reason', () => {
+  expect.hasAssertions();
   for (const [option, disposition] of Object.entries(inventory.options)) {
     if (disposition.registered !== undefined) continue;
     expect(NONCLAIMS.has(disposition.nonclaim ?? ''), option).toBe(true);

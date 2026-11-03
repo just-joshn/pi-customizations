@@ -135,7 +135,6 @@ test('an unbound idle exchange refuses automatic reflection follow-ups', async (
 
 test('/undo dispatches to the git port and surfaces a disabled refusal', async () => {
   const undo = editCommands.find((command) => command.name === 'undo');
-  expect(undo).toBeDefined();
   let calls = 0;
   const git: GitPolicy = {
     ...disabledGitPolicy,

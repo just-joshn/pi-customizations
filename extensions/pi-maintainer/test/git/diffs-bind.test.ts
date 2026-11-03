@@ -39,7 +39,7 @@ test('commit-message diffs keep non-ASCII working-tree bytes for the model promp
   const diffs = await git.getDiffs(['foo.txt']);
   expect(diffs).toContain('index');
   expect(diffs).toContain('АБВ');
-  expect(() => Buffer.from(diffs, 'utf8').toString('utf8')).not.toThrow();
+  expect(diffs).not.toContain('\uFFFD');
 });
 
 test('unborn-branch diffs use cached and working-tree diffs without a HEAD comparison', {

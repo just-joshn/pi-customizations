@@ -183,7 +183,7 @@ test('context mode expands repository-map refresh and budget on the map port', a
   f.replies.push({ text: 'alpha.txt is enough.\n' });
   const session = await f.open();
   await promptAndSettle(session, 'which files?');
-  expect(calls.length).toBeGreaterThan(0);
+  expect(calls).toHaveLength(1);
   expect(calls[0]).toMatchObject({ refresh: 'always', expandNoFilesBudget: true, forceRefresh: true });
   expect(f.requests[0]?.messages.map(textOf)).toContain('CONTEXT MAP');
   expect(f.errors).toEqual([]);

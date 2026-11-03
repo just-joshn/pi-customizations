@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
+import { isolatedExec } from '../../src/core/isolated-exec.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
 
 test('tracked inventory merges committed blobs and index entries without unstaged untracked files', {
@@ -15,7 +16,6 @@ test('tracked inventory merges committed blobs and index entries without unstage
   await writeFile(join(root, 'subdir/nested.txt'), 'n\n');
   await writeFile(join(root, 'untracked.txt'), 'u\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'subdir/nested.txt'], cwd: root }, env);
 
   const git = policyIn(root, host);
@@ -32,7 +32,6 @@ test('aiderignore excludes matching tracked paths from inventory', { meta: { aid
   await commitFile(root, 'keep.py', 'k\n', 'keep');
   await writeFile(join(root, 'skip.py'), 's\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'skip.py'], cwd: root }, env);
   await writeFile(join(root, '.aiderignore'), 'skip.py\n');
 

@@ -37,7 +37,7 @@ test.for(oracleCases('settings', 'settings.resolve', resolveArgs))('resolves opt
   const cli = args.cli ?? {};
   const loaded = await loadSettings({ specs: editOptionList, getFlag: (name) => cli[name], processEnvironment: environment, cwd: places.cwd, home: places.home });
   if ('error' in expected) {
-    expect(loaded.problems.filter((problem) => !problem.includes('unrecognized option')).length).toBeGreaterThan(0);
+    expect(loaded.problems.filter((problem) => !problem.includes('unrecognized option'))).not.toEqual([]);
     return;
   }
   const specs: readonly AnyOptionSpec[] = editOptionList;

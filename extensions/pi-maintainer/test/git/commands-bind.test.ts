@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { expect, onTestFinished, test } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import { absRootPath } from '../../src/core/chat-files.ts';
 import type { CommandEnv } from '../../src/core/command.ts';
 import type { ExecRequest } from '../../src/core/host.ts';
@@ -11,6 +11,7 @@ import { createWorkingTree } from '../../src/edit/working-tree.ts';
 import { disabledGitPolicy, disabledRepositoryContext, disabledValidation } from '../../src/feature.ts';
 import { createGitRun } from '../../src/git/cli.ts';
 import { gitCommands } from '../../src/git/commands.ts';
+import { defined } from '../support/defined.ts';
 import { commitFile, initRepo, policyIn, recordingHost, tempDir } from './support.ts';
 
 function envOf() {
@@ -66,18 +67,16 @@ test('/git runs argv git with GIT_EDITOR=true from process cwd and shows combine
   const host = recordingHost();
   await initRepo(root);
   await writeFile(join(root, 'test.txt'), 'test');
-  const previous = process.cwd();
-  process.chdir(root);
-  onTestFinished(() => process.chdir(previous));
+  const cwd = vi.spyOn(process, 'cwd').mockReturnValue(root);
+  onTestFinished(() => cwd.mockRestore());
   const git = policyIn(root, host);
   const env = commandEnv(root, host, git);
-  const run = gitCommands.find((command) => command.name === 'git');
-  expect(run).toBeDefined();
-  await run?.run('add test.txt', env);
-  await run?.run('commit -a -m msg', env);
+  const run = defined(gitCommands.find((command) => command.name === 'git'));
+  await run.run('add test.txt', env);
+  await run.run('commit -a -m msg', env);
   const listed = await isolatedExec({ command: 'git', args: ['ls-files'], cwd: root }, envOf());
   expect(listed.stdout).toContain('test.txt');
-  expect(host.outputs.join('\n').length).toBeGreaterThan(0);
+  expect(host.outputs.join('\n')).toContain('create mode 100644 test.txt');
 });
 
 test('/commit commits dirty working-tree changes with an optional message', { meta: { aider: ['test_commands/TestCommands.test_cmd_commit'] } }, async () => {
@@ -168,6 +167,8 @@ test('gitCommands registers git, commit, and diff through the feature command li
 
 test('/git hands GIT_EDITOR to Host.exec instead of spawning its own child', async () => {
   const root = await tempDir('git-cmd-env-');
+  const cwd = vi.spyOn(process, 'cwd').mockReturnValue(root);
+  onTestFinished(() => cwd.mockRestore());
   const requests: ExecRequest[] = [];
   const base = recordingHost();
   const host = {
@@ -180,7 +181,7 @@ test('/git hands GIT_EDITOR to Host.exec instead of spawning its own child', asy
   const git = policyIn(root, host);
   const run = gitCommands.find((command) => command.name === 'git');
   await run?.run('status', commandEnv(root, host, git));
-  expect(requests).toEqual([{ command: 'git', args: ['status'], cwd: process.cwd(), env: { GIT_EDITOR: 'true' } }]);
+  expect(requests).toEqual([{ command: 'git', args: ['status'], cwd: root, env: { GIT_EDITOR: 'true' } }]);
   expect(base.outputs).toContain('from-host\n');
 });
 

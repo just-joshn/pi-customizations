@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { absRootPath, addableRelativeFiles, allRelativeFiles, type ChatFiles } from '../../src/core/chat-files.ts';
+import { isolatedExec } from '../../src/core/isolated-exec.ts';
 import { addFiles, type SelectionEnv, type SelectionState } from '../../src/edit/selection.ts';
 import { admitInitialEditable } from '../../src/edit/startup-input.ts';
 import { createWorkingTree } from '../../src/edit/working-tree.ts';
@@ -38,7 +39,6 @@ test('aiderignore excludes matching tracked paths and marks them policy-ignored'
   await commitFile(root, 'keep.py', 'k\n', 'keep');
   await writeFile(join(root, 'skip.py'), 's\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'skip.py'], cwd: root }, env);
   await writeFile(join(root, '.aiderignore'), 'skip.py\n');
 
@@ -66,7 +66,6 @@ test('subtree-only inventory and isIgnored stay under the cwd tree', {
   await writeFile(join(root, 'subdir/subdir_file.txt'), 's\n');
   await writeFile(join(root, 'another_subdir/another_file.txt'), 'a\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'subdir/subdir_file.txt', 'another_subdir/another_file.txt'], cwd: root }, env);
   await isolatedExec({ command: 'git', args: ['commit', '-m', 'more'], cwd: root }, env);
 
@@ -89,7 +88,6 @@ test('configured aiderignore path resolves relative to the git root and filters 
   await commitFile(root, 'keep.py', 'k\n', 'keep');
   await writeFile(join(root, 'skip.py'), 's\n');
   const env = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined));
-  const { isolatedExec } = await import('../../src/core/isolated-exec.ts');
   await isolatedExec({ command: 'git', args: ['add', '--', 'skip.py'], cwd: root }, env);
   await writeFile(join(root, 'custom.ignore'), 'skip.py\n');
 

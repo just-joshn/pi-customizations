@@ -94,6 +94,7 @@ test('UnknownEditFormat message names the requested format and valid formats', {
 test('selectEditFormat returns the registered protocol for each explicit name', {
   meta: { aider: ['test_main/TestMain.test_return_coder'] },
 }, () => {
+  expect.hasAssertions();
   const formats = formatsFromFeature();
   for (const name of formats.keys()) {
     expect(selectEditFormat(formats, name, { modelDefault: 'whole' }).name).toBe(name);

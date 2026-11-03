@@ -152,18 +152,15 @@ test('filter keeps under-root AI-comment files under one MiB and drops ignored p
 
 test('starting clears pending changes and stop joins the monitor before discarding it', () => {
   const events: string[] = [];
-  let stopped = false;
   const monitor: WatchMonitor = {
     start() {
       events.push('start');
     },
     stop() {
       events.push('stop');
-      stopped = true;
     },
     join() {
       events.push('join');
-      expect(stopped).toBe(true);
     },
   };
   const watcher = new FileWatcher({
