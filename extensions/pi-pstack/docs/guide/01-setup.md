@@ -13,7 +13,7 @@ bun install
 pi install ./extensions/pi-pstack
 ```
 
-`pi install <path-to-pi-pstack>` loads the package in place, so keep the checkout where it is. To install the published package instead, run `pi install npm:@justjoshn/pi-pstack`. Start Pi, and the pstack commands appear in the `/` menu.
+`pi install <path-to-pi-pstack>` loads the package in place, so keep the checkout where it is. To install the published package instead, run `pi install npm:@justjoshn/pi-pstack`. On Linux, the read-only shell also needs `bubblewrap`, `socat`, and `ripgrep`, as the package README explains. Start Pi, and the pstack commands appear in the `/` menu.
 
 ## Pick your models
 
@@ -23,7 +23,7 @@ Run:
 /setup-pstack
 ```
 
-[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, asks for a reasoning budget, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.pi/agent/pstack/pstack-models.md`, the model rule. pi-pstack adds it to every request, so every pstack skill reads it.
+[`/setup-pstack`](../../skills/setup-pstack/SKILL.md) detects the models you have access to, asks for a reasoning budget, shows you each role (code delegates, judgment, the review panels), and asks what you want. Answer the questions. It writes `~/.pi/agent/pstack/pstack-models.md` (`$PI_CODING_AGENT_DIR/pstack/pstack-models.md` when that variable is set), the model rule. pi-pstack adds it to every request, so every pstack skill reads it.
 
 The defaults run at `xhigh` reasoning, the same as the `large` budget. `unlimited` lifts each model to its highest tier, up to `max`. Opus goes to `max`. Grok tops out at `xhigh`, so it stays there. `medium` and `small` lower the reasoning and spend fewer tokens.
 
