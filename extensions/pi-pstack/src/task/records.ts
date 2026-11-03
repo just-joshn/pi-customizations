@@ -11,8 +11,10 @@ export interface AgentRecord {
   type: string;
   model?: ModelSpec;
   readonly: boolean;
-  /** The parent workspace the agent belongs to; a cloud agent runs in `worktree` instead. */
+  /** The directory the agent was launched from; a cloud agent runs in `worktree` instead. */
   cwd: string;
+  /** The main chat's workspace that owns this record when it differs from `cwd` (a descendant of a cloud worker). */
+  workspaceRoot?: string;
   createdAt: string;
   /** 1 for a subagent of the main chat, 2 for a subagent of a subagent; absent in records written before it existed. */
   depth?: number;
@@ -41,6 +43,7 @@ function isRecord(value: unknown, agentId: string): value is AgentRecord {
     typeof record.type === 'string' &&
     typeof record.readonly === 'boolean' &&
     typeof record.cwd === 'string' &&
+    (record.workspaceRoot === undefined || typeof record.workspaceRoot === 'string') &&
     typeof record.createdAt === 'string' &&
     (record.model === undefined || isModel(record.model)) &&
     (record.depth === undefined || Number.isInteger(record.depth)) &&

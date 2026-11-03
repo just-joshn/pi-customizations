@@ -10,6 +10,9 @@ const respond = (command, data) => emit({ id: command.id, type: 'response', comm
 let running = false;
 // Set while a run waits for a steer or a dialog answer.
 let finish;
+// Stranded mode: the first run ends while a steer is still queued, as a settlement race does.
+let stranded = false;
+let queued = [];
 
 function settle(aborted = false) {
   running = false;
@@ -31,7 +34,11 @@ function run(message, images) {
   } else if (mode === 'noise') {
     process.stdout.write('an extension printed this to stdout\n');
     assistant('after noise');
-  } else if (mode === 'echo') {
+  } else if (mode === 'stranded' && !stranded) {
+    stranded = true;
+    setTimeout(() => settle(), 50);
+    return;
+  } else if (mode === 'echo' || mode === 'stranded') {
     assistant('thinking out loud');
     const shown = images.length === 0 ? '' : `|IMAGES:${images.map((image) => image.mimeType).join(',')}`;
     assistant(`GOT:${message}${shown}|ARGS:${process.argv.slice(2).join(' ')}`);
@@ -77,6 +84,7 @@ function handle(command) {
       respond(command, { disposition: 'queued' });
       if (mode === 'split-utf8') settle();
       if (mode === 'wait' || mode === 'deaf') finish?.(`STEERED:${command.message}|${command.streamingBehavior}`);
+      if (mode === 'stranded') queued.push(command.message);
     }
   } else if (command.type === 'extension_ui_response') {
     if (mode === 'dialog') finish?.(`ANSWER:${JSON.stringify(command)}`);
@@ -88,7 +96,8 @@ function handle(command) {
     }
     respond(command);
   } else if (command.type === 'clear_queue') {
-    respond(command, { steering: [], followUp: [] });
+    respond(command, { steering: queued, followUp: [] });
+    queued = [];
   }
 }
 

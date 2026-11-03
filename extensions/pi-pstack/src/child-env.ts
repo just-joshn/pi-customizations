@@ -6,6 +6,7 @@ export const PARENT_ENV = 'PI_PSTACK_PARENT_PID';
 export const READONLY_ENV = 'PI_PSTACK_READONLY';
 export const ROOT_STORE_ENV = 'PI_PSTACK_ROOT_STORE';
 export const WORKSPACE_ENV = 'PI_PSTACK_WORKSPACE_STATE';
+export const ROOT_WORKSPACE_ENV = 'PI_PSTACK_ROOT_WORKSPACE';
 
 export interface ChildIdentity {
   depth: number;
@@ -15,6 +16,8 @@ export interface ChildIdentity {
   rootStore: string | undefined;
   /** The main chat's workspace state folder, which every agent in the tree shares, an isolated worker included. */
   workspaceState: string | undefined;
+  /** The main chat's working directory, which authorizes every record stored in its shared workspace. */
+  rootWorkspace: string | undefined;
 }
 
 function read(): ChildIdentity {
@@ -27,6 +30,7 @@ function read(): ChildIdentity {
     readonly: process.env[READONLY_ENV] === '1',
     rootStore: process.env[ROOT_STORE_ENV] || undefined,
     workspaceState: process.env[WORKSPACE_ENV] || undefined,
+    rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
   };
 }
 
@@ -37,8 +41,17 @@ delete process.env[PARENT_ENV];
 delete process.env[READONLY_ENV];
 delete process.env[ROOT_STORE_ENV];
 delete process.env[WORKSPACE_ENV];
+delete process.env[ROOT_WORKSPACE_ENV];
 
 /** Variables for a child of this process at `depth` (an agent keeps the depth it was created at). */
-export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string): Record<string, string> {
-  return { [DEPTH_ENV]: String(depth), [AGENT_ENV]: agentType, [PARENT_ENV]: String(process.pid), [ROOT_STORE_ENV]: rootStore, [WORKSPACE_ENV]: workspaceState, ...(readonly ? { [READONLY_ENV]: '1' } : {}) };
+export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string): Record<string, string> {
+  return {
+    [DEPTH_ENV]: String(depth),
+    [AGENT_ENV]: agentType,
+    [PARENT_ENV]: String(process.pid),
+    [ROOT_STORE_ENV]: rootStore,
+    [WORKSPACE_ENV]: workspaceState,
+    [ROOT_WORKSPACE_ENV]: rootWorkspace,
+    ...(readonly ? { [READONLY_ENV]: '1' } : {}),
+  };
 }

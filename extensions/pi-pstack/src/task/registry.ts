@@ -1,4 +1,4 @@
-import type { AgentActivityOutcome, BoundaryResult, ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { AgentActivityOutcome, BoundaryResult, ExtensionAPI, ExtensionContext, SessionBoundaryDraft } from '@earendil-works/pi-coding-agent';
 import { isOneShot } from '../modes.ts';
 import { type NotificationFields, notificationText } from './format.ts';
 import type { ChildHandle, ChildOutcome } from './runner.ts';
@@ -50,11 +50,15 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   const backgroundRunning = () => [...running.values()].filter((entry) => entry.background);
 
   /** An aborted run ends now: a one-shot run does not hold its exit for background subagents after Escape or a watchdog abort. */
-  const beforeSettle = async (ctx: ExtensionContext, outcome: AgentActivityOutcome): Promise<BoundaryResult | undefined> => {
+  const beforeSettle = async (ctx: ExtensionContext, outcome: AgentActivityOutcome, entries: readonly SessionBoundaryDraft[]): Promise<BoundaryResult | undefined> => {
     if (!isOneShot(ctx.mode) || outcome === 'aborted' || (pending.length === 0 && backgroundRunning().length === 0)) return undefined;
     if (pending.length === 0) await Promise.race(backgroundRunning().map((entry) => entry.settled));
     const ready = pending.splice(0);
-    return { entries: ready.map((fields) => ({ type: 'custom_message' as const, customType: NOTIFICATION_TYPE, content: notificationText(fields), display: true, details: fields })), continue: true };
+    // Appending keeps entries another extension proposed at this boundary; returning a fresh list would drop them.
+    return {
+      entries: [...entries, ...ready.map((fields) => ({ type: 'custom_message' as const, customType: NOTIFICATION_TYPE, content: notificationText(fields), display: true, details: fields }))],
+      continue: true,
+    };
   };
 
   const shutdown = (): number => {

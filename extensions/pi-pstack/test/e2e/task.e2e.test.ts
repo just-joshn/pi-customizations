@@ -151,6 +151,21 @@ describe('cloud worktrees (TASK-010)', () => {
     expect(resumed.result.details).toMatchObject({ worktree: { path: worktreeOf(agentId), branch: `pstack/${agentId}` } });
   });
 
+  test('the root resumes and forks a descendant its cloud worker started inside the worktree', async () => {
+    repoWith('A');
+    const first = await runTask({ environment: 'cloud', prompt: script([task({ description: 'nested', prompt: 'go\n@@say DESCENDANT' })]) });
+    expect(first.result.isError, first.result.text).toBe(false);
+    const records = readdirSync(subagentDir())
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => JSON.parse(readFileSync(join(subagentDir(), name), 'utf8')) as { agentId: string; cwd: string; workspaceRoot?: string });
+    const descendant = records.find((record) => record.workspaceRoot === sandbox.workDir && record.cwd !== sandbox.workDir);
+    if (descendant === undefined) throw new Error('the cloud worker did not create a descendant record');
+    const resumed = await runTask({ resume: descendant.agentId, prompt: 'again\n@@say DESCENDANT_RESUMED' });
+    expect([resumed.result.isError, resumed.result.text.includes('DESCENDANT_RESUMED')]).toEqual([false, true]);
+    const forked = await runTask({ fork: descendant.agentId, prompt: 'copy\n@@say FORKED' });
+    expect([forked.result.isError, forked.result.text.includes('FORKED')]).toEqual([false, true]);
+  });
+
   test('resume fails when the recorded worktree is gone', async () => {
     repoWith('A');
     const first = await runTask({ prompt: 'go\n@@say ONE', environment: 'cloud' });

@@ -73,6 +73,8 @@ export interface ChildInput {
   images: ImageContent[];
 }
 
+const VIDEO = /\.(?:mp4|m4v|mov|webm|avi|mkv)$/i;
+
 /**
  * The first message Pi builds from piped input and `@file` arguments, which RPC mode does not accept: the trimmed
  * prompt, then each non-empty text file in a <file> block, and each image as an attachment with an empty <file> block.
@@ -83,6 +85,11 @@ export async function withAttachments(prompt: string, attachments: readonly stri
   for (const path of attachments) {
     const bytes = readFileSync(path);
     if (bytes.length === 0) continue;
+    // Pi model inputs have no video type. Name the file instead of feeding binary bytes to the text parser.
+    if (VIDEO.test(path)) {
+      text += `<file name="${path}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>\n`;
+      continue;
+    }
     const mimeType = await detectSupportedImageMimeTypeFromFile(path);
     if (mimeType === null) {
       text += `<file name="${path}">\n${bytes.toString('utf8').replace(/^\uFEFF/, '')}\n</file>\n`;
@@ -174,6 +181,42 @@ function readAssistant(event: Record<string, unknown>): AssistantRecord | undefi
   };
 }
 
+function readUser(event: Record<string, unknown>): { text: string; images: ImageContent[] } | undefined {
+  if (event['type'] !== 'message_end') return undefined;
+  const message = event['message'] as { role?: string; content?: unknown } | undefined;
+  if (message?.role !== 'user') return undefined;
+  if (typeof message.content === 'string') return { text: message.content, images: [] };
+  if (!Array.isArray(message.content)) return undefined;
+  const text: string[] = [];
+  const images: ImageContent[] = [];
+  for (const part of message.content as { type?: string; text?: string; data?: string; mimeType?: string }[]) {
+    if (part.type === 'text') text.push(part.text ?? '');
+    if (part.type === 'image' && typeof part.data === 'string' && typeof part.mimeType === 'string') images.push({ type: 'image', data: part.data, mimeType: part.mimeType });
+  }
+  return { text: text.join(''), images };
+}
+
+const sameImages = (left: readonly ImageContent[], right: readonly ImageContent[]): boolean => left.length === right.length && left.every((image, index) => image.data === right[index]?.data && image.mimeType === right[index]?.mimeType);
+/** A steering input this runner accepted, kept until Pi stores it as a user message. */
+export interface AcceptedSteer {
+  text: string;
+  images: readonly ImageContent[];
+}
+
+/**
+ * Rebuilds messages from a queue drain. Only steering entries were sent by this runner, so only they may reclaim a
+ * recorded image. Each recorded steer is used once, which keeps two identical texts with different images in order.
+ */
+export function recoverDrained(drained: readonly { queue: 'steering' | 'followUp'; text: string }[], accepted: readonly AcceptedSteer[]): AcceptedSteer[] {
+  const unused = [...accepted];
+  return drained.map(({ queue, text }) => {
+    if (queue === 'followUp') return { text, images: [] };
+    const exact = unused.findIndex((entry) => entry.text === text);
+    const [entry] = unused.splice(exact === -1 ? 0 : exact, 1);
+    return { text, images: entry?.images ?? [] };
+  });
+}
+
 function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
   const decoder = new StringDecoder('utf8');
   let buffer = '';
@@ -221,6 +264,8 @@ interface ChildState {
   stopped: boolean;
   /** Why Pi refused the first prompt. */
   refused?: string;
+  /** The recovery after a steer stranded at settlement could not continue the run. */
+  recoveryFailed?: string;
 }
 
 function outcomeOf(last: AssistantRecord | undefined, state: ChildState, code: number | null): ChildOutcome {
@@ -228,6 +273,7 @@ function outcomeOf(last: AssistantRecord | undefined, state: ChildState, code: n
   if (state.aborted) return { ...base, failure: 'Subagent was aborted' };
   if (state.stopped) return { ...base, failure: 'Subagent was stopped with stop_agent' };
   if (state.refused !== undefined) return { ...base, failure: state.refused };
+  if (state.recoveryFailed !== undefined) return { ...base, failure: state.recoveryFailed };
   if (last?.stopReason === 'error' || last?.stopReason === 'aborted') return { ...base, failure: last.errorMessage ?? `subagent stopped: ${last.stopReason}` };
   if (code !== 0) return { ...base, failure: `pi exited with code ${code}: ${state.stderr.trim().split('\n').at(-1) ?? ''}`.trim() };
   return base;
@@ -255,7 +301,8 @@ export function startChild(options: ChildOptions): ChildHandle {
   let last: AssistantRecord | undefined;
   let open = true;
   let idle = true;
-  let steered = false;
+  let steering: AcceptedSteer[] = [];
+  let recoveryRounds = 0;
   let nextId = 0;
   let grace: ReturnType<typeof setTimeout> | undefined;
   const waiting = new Map<string, (response: RpcResponse) => void>();
@@ -278,14 +325,26 @@ export function startChild(options: ChildOptions): ChildHandle {
       if (response.data?.disposition === 'started') idle = false;
       onResponse(response);
     });
-  // A steer can reach Pi just as its run ends and stay queued with no run to take it, so it goes out as a new prompt.
+  // A steer can reach Pi just as its run ends and stay queued with no run to take it. Draining that queue is the
+  // only native way to continue it, and the drain returns text only, so each drained message gets its recorded
+  // attachments back and keeps its own message boundary.
   const closeWhenSettled = () => {
     if (!open || !idle || waiting.size > 0) return;
-    if (!steered || state.stopped) return close();
-    steered = false;
+    if (state.stopped || steering.length === 0) return close();
+    if (recoveryRounds >= 3) {
+      state.recoveryFailed = `A steering message stayed queued after ${recoveryRounds} resume attempts: ${steering.map((entry) => entry.text).join(' | ')}`;
+      steering = [];
+      return close();
+    }
+    recoveryRounds += 1;
+    const accepted = steering;
+    steering = [];
     request({ type: 'clear_queue' }, (response) => {
-      const left = [...(response.data?.steering ?? []), ...(response.data?.followUp ?? [])];
-      if (left.length > 0) prompt(left.join('\n\n'), [], () => undefined);
+      const drained = [...(response.data?.steering ?? []).map((text) => ({ queue: 'steering' as const, text })), ...(response.data?.followUp ?? []).map((text) => ({ queue: 'followUp' as const, text }))];
+      if (drained.length === 0) return closeWhenSettled();
+      const recovered = recoverDrained(drained, accepted);
+      steering = recovered;
+      for (const [index, entry] of recovered.entries()) prompt(entry.text, entry.images, () => undefined, index === 0 ? undefined : 'steer');
     });
   };
 
@@ -304,8 +363,21 @@ export function startChild(options: ChildOptions): ChildHandle {
   const steer = (text: string, images: readonly ImageContent[]) =>
     new Promise<void>((resolve, reject) => {
       if (!open || state.stopped || state.aborted) return reject(new Error('The subagent has finished its run.'));
-      steered = true;
-      prompt(text, images, (response) => (response.success ? resolve() : reject(new Error(response.error ?? 'Pi refused the message.'))), 'steer');
+      const entry = { text, images };
+      steering.push(entry);
+      prompt(
+        text,
+        images,
+        (response) => {
+          if (!response.success) {
+            steering = steering.filter((candidate) => candidate !== entry);
+            return reject(new Error(response.error ?? 'Pi refused the message.'));
+          }
+          if (response.data?.disposition === 'handled') steering = steering.filter((candidate) => candidate !== entry);
+          resolve();
+        },
+        'steer',
+      );
     });
 
   const onRecord = (record: { type: string } & Record<string, unknown>) => {
@@ -322,6 +394,23 @@ export function startChild(options: ChildOptions): ChildHandle {
       return;
     }
     options.onEvent?.(record);
+    const user = readUser(record);
+    if (user !== undefined) {
+      const matchers = [
+        (entry: { text: string; images: readonly ImageContent[] }) => entry.text === user.text && sameImages(entry.images, user.images),
+        (entry: { text: string }) => entry.text === user.text,
+        (entry: { images: readonly ImageContent[] }) => entry.images.length > 0 && sameImages(entry.images, user.images),
+      ];
+      let index = -1;
+      for (const matches of matchers) {
+        index = steering.findIndex(matches);
+        if (index !== -1) break;
+      }
+      if (index !== -1) {
+        steering.splice(index, 1);
+        recoveryRounds = 0;
+      }
+    }
     if (record.type === 'agent_start') idle = false;
     const usage = usageOf(record);
     if (usage !== undefined) state.usage = addUsage(state.usage, usage);
