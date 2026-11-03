@@ -47,6 +47,7 @@ missing providers. Measured residual envelope divergences are listed in
 | WABT / TShark / pcap / sigrok / EVM (8) | Kernel fail-closed with measured missing-provider envelopes (`wabt-artifact`, `tshark-capture`, `pcap`, `sigrok-recording`, `evmole-interface`) |
 | Native observe / dylib (4) | Kernel fail-closed: `target_unavailable` when closed, `capability_unavailable`/`native-macos` when open (no LLDB bridge) |
 | Engine-free / host Evidence (selected) | `inspect_with_objdump` and `inspect_native_exports` emit measured Evidence; other reconstruction/process/env gaps still refuse closed |
+| Workflow and capture-client probes (3) | `batch_decompile` returns a per-address `target_unavailable` error because no decompiler is bridged. `inspect_pcap_client` probes `tshark` and `capinfos` and records Evidence. `inspect_pcap_capture` probes the same tools, then refuses closed because capture summaries are not implemented |
 | Six Pi prompt templates under `prompts/` | Implemented (`investigate_feature`, `compare_application_versions`, `verify_reconstruction`, `trace_crash`, `audit_residual_unknowns`, `prepare_bounded_process_capture`) |
 | `route` helper | Skill/CLI helper only; not an oracle MCP tool in 6.8.0 |
 | `rea` CLI | Not implemented inside this package |
@@ -75,8 +76,8 @@ During development, load the entry directly:
 pi -e ./extensions/pi-rea/src/index.ts
 ```
 
-The extension registers its 63 implemented handlers with `direct` exposure and
-the 166 refuse handlers with `deferred`, so `tool_search` carries the catalog
+The extension registers its 66 implemented handlers with `direct` exposure and
+the 163 refuse handlers with `deferred`, so `tool_search` carries the catalog
 instead of filling the prompt with tools that cannot run. A refuse is a coverage
 gap, never a finding about the target.
 
@@ -96,6 +97,45 @@ registered handler table in `src/registry.ts`. Every parameter the oracle
 publishes survives regeneration; the script only adds documented field detail
 where the oracle schema is a bare object. Do not hand-edit the generated catalog.
 
+## Host requirements
+
+pi-rea targets Node 22.19 or newer (`engines`). The tools below need more on
+the host. A missing tool answers with a refuse, never a substitute result.
+
+| Tool | Requirement |
+| --- | --- |
+| `inspect_sqlite_database` | Node 24.15 or newer in the 24 line, or Node 26 or newer, for `node:sqlite` with `DatabaseSync.limits`. Other versions answer `capability_unavailable` |
+| `demangle_swift` | `swift-demangle`, found in `/Library/Developer/CommandLineTools/usr/bin`, then `/usr/bin`, then `PATH`, then `xcrun --find`. A Linux Swift toolchain on `PATH` works |
+| `inspect_asset_catalog`, `open_bundle_resources` (asset catalogs) | macOS `/usr/bin/assetutil`. Without it, catalog metadata is not decoded |
+| `inspect_signature` | None. It decodes `LC_CODE_SIGNATURE` in process and does not run `codesign` |
+| `inspect_pcap_client`, `inspect_pcap_capture` | Wireshark 4.x `tshark` and `capinfos` on `PATH` or through absolute `REA_TSHARK_COMMAND` and `REA_CAPINFOS_COMMAND`. Capture summaries also need Linux with util-linux `prlimit`, or Windows, so macOS is refused. Summaries are not implemented on any host |
+| `inspect_with_objdump` | An `objdump` executable on `PATH` |
+
+`inspect_pe_*`, `inspect_macho` and the other binary-format inspectors parse in
+process and behave the same on macOS and Linux.
+
+The `REA_*` variables below are read from the launch environment. The first
+group tunes implemented behavior.
+
+- `REA_MCP_MAX_RESPONSE_BYTES`, `REA_ASAR_MAX_HEADER_BYTES`,
+  `REA_REGEX_MATCHING_DEADLINE_MS`, `REA_REGEX_WORKER_HEAP_REQUEST_MIB` and
+  `REA_CAPTURE_DECODER_OLD_GENERATION_MIB` set the response budget and the
+  analysis limits that `inspect_analysis_settings` and `update_analysis_settings`
+  report.
+- `REA_GHIDRA_STARTUP_TIMEOUT_MS`, `REA_HOPPER_STARTUP_TIMEOUT_MS`,
+  `REA_GHIDRA_DECOMPILE_TIMEOUT_SECONDS` and `REA_JADX_OPERATION_TIMEOUT_MS` are
+  reported by the same settings tools. They have no effect until a provider is
+  bridged.
+
+The provider variables `REA_IDA_MCP_CONFIG`, `REA_KUNA_COMMAND`, `REA_ADB_PATH`,
+`REA_JEB_MCP_URL`, `REA_RIZIN_COMMAND`, `REA_APKTOOL_COMMAND`,
+`REA_BINWALK_COMMAND`, `REA_UNBLOB_COMMAND`, `REA_WAKARU_COMMAND`,
+`REA_JADX_MCP_JAR`, `REA_WABT_BIN_DIRECTORY`, `REA_SIGROK_COMMAND`,
+`REA_TSHARK_PRLIMIT_COMMAND` and `REA_SIGROK_PRLIMIT_COMMAND` appear only in
+refuse remediation text. `REA_IDA_MCP_CONFIG` and `REA_KUNA_COMMAND` also change
+the refuse diagnostics. Setting any of them does not enable a tool, because no
+provider bridge exists.
+
 ## Use
 
 Ask for an investigation that depends on a shipped artifact rather than source:
@@ -107,14 +147,14 @@ what you could not establish about it.
 
 Typical kernel session:
 
-1. `binary_session` — what is available, what is open, what provider exists.
-2. `open_binary` — bind a file and read its identity (format, kind, architecture,
+1. `binary_session`: what is available, what is open, what provider exists.
+2. `open_binary`: bind a file and read its identity (format, kind, architecture,
    SHA-256).
-3. `record_unknown` — keep every open question explicit, with the authority and
+3. `record_unknown`: keep every open question explicit, with the authority and
    confidence a resolution would need.
-4. `get_evidence_bundle` / `export_evidence_bundle` — read or publish the session
+4. `get_evidence_bundle` / `export_evidence_bundle`: read or publish the session
    as canonical JSON. `close_binary` clears the session, so export first.
-5. `close_binary` — drain, clear and finish.
+5. `close_binary`: drain, clear and finish.
 
 `/rea` prints the current status: open target, availability counts and retained
 Evidence.
@@ -122,7 +162,8 @@ Evidence.
 ## Independence
 
 - No REA dependency: no npm package, no vendored code, no CLI, no MCP server, no
-  network, no child process.
+  network. The only child processes are host tools such as `objdump`, `tshark`
+  and `swift-demangle`.
 - No REA bytes: the shipped contract transcribes interface facts only (tool
   names, parameter names, types, bounds, required sets, flags, effect metadata,
   observed result shapes). The reference's prose, titles, examples, defaults,
@@ -131,7 +172,7 @@ Evidence.
 - The workflow skill is this project's own text.
 
 `extensions/pi-rea/test/independence.test.ts` enforces this over the shipped
-source, schemas, skills and prompts, and over `package.json`. It does not scan
+`src`, `schemas` and `skills` directories and over `package.json`. It does not scan
 `README.md` or `THIRD_PARTY_NOTICES.md`, which carry no code.
 
 ## Verification
@@ -142,10 +183,13 @@ bun run test
 bun run typecheck
 ```
 
-`bun run typecheck` exits 0. `bun run test` passes 1496 tests in 43 files.
-`bun run test:coverage` meets its configured 80% thresholds: the measured suite
-covers 97.49% of statements, 90.87% of branches, 98.21% of functions and 98.47%
-of lines. Behavior tests drive the absorbed analyzers through their public
+`bun run typecheck` exits 0. `bun run test` passes 1510 tests in 44 files on
+Ubuntu with Node 24 (one SQLite test is skipped when the `sqlite3` CLI is
+absent, so the count can differ by host). `bun run test:coverage` meets its
+configured 80% thresholds: the measured suite covers 96.84% of statements,
+90.41% of branches, 95.75% of functions and 97.76% of lines. Coverage
+instrumentation slows `test/pi-loading.test.ts` past its 5 s default timeout on
+a cold run, so rerun with `--testTimeout=60000` if only that test fails. Behavior tests drive the absorbed analyzers through their public
 functions with synthetic bytes and real fixtures; the successful paths are also
 exercised through the DiffCase envelopes in `parity/pi-rea/`.
 
@@ -185,7 +229,7 @@ round trip.
   Evidence results keep the full record in the tool result's `details` and the
   guidance points at `export_evidence_bundle`; other payloads are not retained,
   so their guidance asks for a narrower request. `REA_MCP_MAX_RESPONSE_BYTES`
-  still raises the threshold or lowers it for a caller that wants smaller results.
+  raises the threshold. It must be a decimal integer of at least 10485760.
 
 ## License
 

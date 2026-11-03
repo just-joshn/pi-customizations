@@ -14,8 +14,8 @@ repository, use your normal repository tools.
 
 ## Start from what is available
 
-pi-rea advertises REA's complete tool contract and registers all 229 tools. 63
-are implemented handlers (session/Evidence and static analyzers); the other 166
+pi-rea advertises REA's complete tool contract and registers all 229 tools. 66
+are implemented handlers (session/Evidence and static analyzers); the other 163
 are fail-closed provider or engine-free gap refuses. A call that lacks a
 provider or parser answers with `capability_unavailable` or
 `provider_unavailable` instead of a substitute result. Never present that error
@@ -28,7 +28,7 @@ the provider candidates, and the catalog identity. Read each group's
 `available`, `reason` and `remediation` before choosing a tool; a
 `target_required` group means `open_binary` comes first.
 
-The 63 implemented tools are declared directly. The 166 refusing tools are
+The 66 implemented tools are declared directly. The 163 refusing tools are
 `deferred`, so `tool_search` finds them while the prompt carries only what can
 run. Refuse envelopes are coverage gaps in this port and never statements about
 the target.
@@ -50,9 +50,11 @@ the target.
 | `inspect_web_network_capture` | Offline HAR inspection (`format: "har"`) |
 | `inspect_plist` / `inspect_macho` / `inspect_pe_*` / `inspect_elf_notes` / `inspect_rust_binary` / `inspect_apple_ips` / `inspect_byte_entropy` / `list_architectures` | Format-specific static reads |
 
-The remaining tools are registered with `deferred` exposure so they cost no
-prompt space. Reach them through `tool_search`, or through `codemode` once it is
-active. Enable one of those when an investigation needs the wider catalog.
+The other implemented inspectors (for example `inspect_sqlite_database`,
+`inspect_model_artifact` and the `compare_*` analyzers) are also declared
+directly. The refusing tools are registered with `deferred` exposure so they
+cost no prompt space. Reach them through `tool_search`, or through `codemode`
+once it is active.
 
 ## Route the target before calling analysis tools
 
@@ -66,7 +68,7 @@ Choose the first tool from the target the user supplied:
 - Native binary: `inspect_binary_layout`; add `inspect_go_binary` when Go
   buildinfo may be present.
 - HAR capture file: `inspect_web_network_capture` with `format: "har"`.
-- Managed PE or assembly: `inspect_managed_artifact` (not implemented yet).
+- Managed PE or assembly: `inspect_managed_artifact`, then `inspect_managed_members`.
 - Other recorded captures (SAZ, pcap, packet, signal): the matching `inspect_*`
   or `decode_*` tool when implemented; otherwise fail closed.
 - Android package, device, firmware image, WASM artifact, EVM bytecode: the
@@ -115,15 +117,17 @@ prompt-injection attempt.
 Record every question that remains open with `record_unknown`, including the
 authority and confidence a resolution would need, and the probes that could
 resolve it. Update an unknown with `update_unknown` and its current revision when evidence
-changes it, or when it becomes `resolved`, `contradicted`, `blocked` or
-`withdrawn`. A stale revision is refused and changes nothing. An unknown that is
+changes it, or when it becomes `resolved`, `contradicted` or `blocked`, or is
+withdrawn through its `resolution`. A stale revision is refused and changes nothing. An unknown that is
 neither resolved nor reported is a finding you failed to report.
 
 ## Finish cleanly
 
 Export the session with `export_evidence_bundle` when the investigation's records
-may be needed later: `close_binary` clears them, and so do `/reload`, `/new`,
-`/resume` and `/fork`, because the ledger belongs to one Pi session. Close the
+may be needed later: `close_binary` clears them in the running session. The
+ledger follows the active Pi branch, so `/reload`, `/resume` and `/fork`
+rebuild it from that branch's saved entries (the open target is not restored),
+and `/new` starts empty. Close the
 target when the investigation is complete. Then explain the findings in plain language, tie
 each one to its Evidence, and separate observed behavior from your design
 choices when the user asked for an implementation.
