@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5] - 2026-11-03
+
+- Follow the repository Vitest rules in the test suite. Source changes are formatting and import order only.
+
 ## [0.1.4] - 2026-11-02
 
 - Target Pi 1.5.0 development dependencies and import TypeBox directly in standalone tests.

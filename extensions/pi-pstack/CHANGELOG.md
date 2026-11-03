@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.9] - 2026-11-03
+
+- Follow the repository Vitest rules in the test suite. No runtime change.
+
 ## [0.15.36-pi.8] - 2026-11-02
 
 - Declare `cost.totalFromProvider` on the exported `Usage` type so the package typechecks again, completing the provider-reported cost provenance aggregation shipped in 0.15.36-pi.7.

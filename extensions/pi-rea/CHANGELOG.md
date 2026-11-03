@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1] - 2026-11-03
+
+- Resolve `swift-demangle` from `PATH` as well as the macOS locations, so a Linux Swift toolchain works. Build the Mach-O parity fixtures on any host and follow the repository Vitest rules in the test suite.
+
 ## [0.2.0]
 
 - Reach catalog-complete differential parity: all 229 rea-agents 6.8.0 catalog tools carry an exact measured DiffCase (257 total) in `parity/pi-rea/`.

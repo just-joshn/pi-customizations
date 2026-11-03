@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.3] - 2026-11-03
+
+- Follow the repository Vitest rules in the test suite. No runtime change.
+
 ## [0.1.2] - 2026-11-02
 
 - Update the documented host baseline to Pi 1.5.0. Retain all 11 open native-gap contracts rather than claim complete Aider parity.

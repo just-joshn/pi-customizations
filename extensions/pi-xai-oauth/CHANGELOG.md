@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.5] - 2026-11-03
+
+- Follow the repository Vitest rules in the test suite. Source changes are formatting and import order only.
+
 ## [0.1.4] - 2026-11-02
 
 - Document the Pi 1.5.0 upgrade target and the native provider, authentication, model discovery, streaming, and virtual-model contracts it retains.
