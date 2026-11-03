@@ -1,6 +1,6 @@
 # Candidate 2. An exchange controller with nested coder frames
 
-Exploratory design for installed Pi 1.1.0. No executable implementation exists. This package is conditional on the feasibility limits in [PI-WIRING.md](PI-WIRING.md). It is not a claim that every fixed constraint is simultaneously implementable.
+Exploratory design for installed Pi 1.1.0. This was written before the implementation, which now lives in `src/core/` (`install.ts`, `exchange.ts`, `branch.ts`, `context.ts`) instead of the `lifecycle/` files named below. `../../ARCHITECTURE.md` is the current contract. This package is conditional on the feasibility limits in [PI-WIRING.md](PI-WIRING.md). It is not a claim that every fixed constraint is simultaneously implementable.
 
 ## Usage written before the types
 

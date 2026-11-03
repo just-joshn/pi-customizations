@@ -25,6 +25,8 @@ Pi loads this package from the checkout and does not install its npm dependencie
 
 ## Verify
 
+The package needs Node 22.19 or newer. `typecheck`, `test`, `test:coverage`, and `journey:edit` run from a plain `bun install`. The `census`, `check:parity`, `check:options`, and oracle scripts also need the pinned Aider checkout and the four reconstruction documents. `parity/sources.json` points at them under `/Users/josh-desktop`. Set `AIDER_CHECKOUT` and `PI_MAINTAINER_SOURCES` to your own copies on macOS or Ubuntu.
+
 From the extension directory:
 
 ```sh
