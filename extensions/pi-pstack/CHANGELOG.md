@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.15.36-pi.14] - 2026-11-04
+
+Each item below was checked against Cursor CLI 2026.10.22 with pstack and cursor-team-kit loaded, through live captures. `parity/pstack-native-parity-2026-11-04/` in the repository records the evidence and the decisions.
+
+- Add background shells: `bash_background` runs a command in the background, or after a foreground wait, writes `terminals/<id>.txt` with a status header and an exit footer, and sends a `kind: shell` notification when the command ends or prints a watched line. `AwaitShell` polls, waits for a pattern, or sleeps. pstack's babysit watcher, worktree-cleanup scan, PR review canvas server, and event-gated `/loop` wakes use them. The host section sends commands that can run for minutes to `bash_background`, because `bash` waits until a command ends.
+- Run the Linux read-only shell under bubblewrap with a seccomp filter that bubblewrap loads itself, so readonly subagents get a working shell on Ubuntu 24.04 and later. Writes, the network, and Unix sockets stay blocked. macOS keeps sandbox-runtime.
+- Tell the agent to run a loop's prompt once in the turn that arms it, as Cursor's loop skill does.
+- Remove `AskQuestion` from subagents.
+- State today's date in the host section.
+- Restore upstream text in the architect runner prompt and arena where the port had added instructions with no host reason.
+
 ## [0.15.36-pi.13] - 2026-11-04
 
 - Parse leading word intervals and preserve multiline prompts in `/loop`.
