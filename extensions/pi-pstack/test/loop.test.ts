@@ -93,16 +93,91 @@ describe('loop ticks during a run (HOST-004)', () => {
   });
 });
 
+describe('independent loops', () => {
+  test('arming a different prompt preserves each cadence and stopping one leaves the other running', async () => {
+    vi.useFakeTimers();
+    try {
+      const loop = fakeLoop();
+      const first = (await loop.loopTool({ prompt: 'check CI', interval: '1s' })) as { details?: { loopId?: string } };
+      const second = (await loop.loopTool({ prompt: 'check deploy', interval: '2s' })) as { details?: { loopId?: string } };
+      loop.settle();
+      vi.advanceTimersByTime(1_000);
+      expect(loop.sent).toEqual(['check CI']);
+      loop.settle();
+      vi.advanceTimersByTime(1_000);
+      loop.settle();
+      expect(loop.sent.filter((prompt) => prompt === 'check CI')).toHaveLength(2);
+      expect(loop.sent.filter((prompt) => prompt === 'check deploy')).toHaveLength(1);
+      expect(first.details?.loopId).not.toBe(second.details?.loopId);
+      await loop.loopTool({ stop: true, loop_id: first.details?.loopId });
+      loop.settle();
+      vi.advanceTimersByTime(2_000);
+      loop.settle();
+      expect(loop.sent.filter((prompt) => prompt === 'check CI')).toHaveLength(2);
+      expect(loop.sent.filter((prompt) => prompt === 'check deploy')).toHaveLength(2);
+      await loop.loopTool({ stop: true, loop_id: second.details?.loopId });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('an explicit wake changes only the selected agent-paced loop', async () => {
+    vi.useFakeTimers();
+    try {
+      const loop = fakeLoop();
+      const first = (await loop.loopTool({ prompt: 'check CI', wake_in: '10s' })) as { details: { loopId: string } };
+      const second = (await loop.loopTool({ prompt: 'check deploy', wake_in: '2s' })) as { details: { loopId: string } };
+      loop.settle();
+      vi.advanceTimersByTime(2_000);
+      expect(loop.sent).toEqual(['check deploy']);
+      await loop.loopTool({ loop_id: second.details.loopId, wake_in: '3s' });
+      loop.settle();
+      vi.advanceTimersByTime(3_000);
+      expect(loop.sent).toEqual(['check deploy', 'check deploy']);
+      await loop.loopTool({ stop: true, loop_id: second.details.loopId });
+      loop.settle();
+      vi.advanceTimersByTime(5_000);
+      expect(loop.sent).toEqual(['check deploy', 'check deploy', 'check CI']);
+      await loop.loopTool({ stop: true, loop_id: first.details.loopId });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('rearming the same prompt replaces its schedule rather than creating an ambiguous duplicate', async () => {
+    const loop = fakeLoop();
+    const first = (await loop.loopTool({ prompt: 'check CI', interval: '1s' })) as { details: { loopId: string } };
+    const second = (await loop.loopTool({ prompt: 'check CI', interval: '2s' })) as { details: { loopId: string } };
+    expect(second.details.loopId).toBe(first.details.loopId);
+    await expect(loop.loopTool({ stop: true })).resolves.toMatchObject({ content: [{ text: `Loop stopped.\nLoop ID: ${first.details.loopId}` }] });
+  });
+
+  test('a wake or stop without an id refuses to choose between different loops', async () => {
+    const loop = fakeLoop();
+    await loop.loopTool({ prompt: 'check CI', wake_in: '1s' });
+    await loop.loopTool({ prompt: 'check deploy', wake_in: '2s' });
+    await expect(loop.loopTool({ wake_in: '3s' })).rejects.toThrow('loop_id');
+    await expect(loop.loopTool({ stop: true })).rejects.toThrow('loop_id');
+  });
+});
+
 describe('parseLoopArgs (HOST-004)', () => {
   test.for([
     { args: '', expected: { kind: 'status' } },
     { args: 'stop', expected: { kind: 'stop' } },
     { args: 'off', expected: { kind: 'stop' } },
+    { args: 'stop ci', expected: { kind: 'stop', loopId: 'ci' } },
+    { args: 'off deploy', expected: { kind: 'stop', loopId: 'deploy' } },
     { args: '1h run the audit tick', expected: { kind: 'start', intervalMs: 3_600_000, prompt: 'run the audit tick' } },
     { args: 'run the audit tick 1h', expected: { kind: 'start', intervalMs: 3_600_000, prompt: 'run the audit tick' } },
     { args: 'check CI until green 10m', expected: { kind: 'start', intervalMs: 600_000, prompt: 'check CI until green' } },
     { args: 'check deploy every 5m', expected: { kind: 'start', intervalMs: 300_000, prompt: 'check deploy' } },
     { args: 'run tests every 10 minutes', expected: { kind: 'start', intervalMs: 600_000, prompt: 'run tests' } },
+    { args: '10 minutes run tests', expected: { kind: 'start', intervalMs: 600_000, prompt: 'run tests' } },
+    { args: 'every 10 minutes run tests', expected: { kind: 'start', intervalMs: 600_000, prompt: 'run tests' } },
+    { args: '1 hour 30 minutes run tests', expected: { kind: 'start', intervalMs: 5_400_000, prompt: 'run tests' } },
+    { args: 'every 1h30m run tests', expected: { kind: 'start', intervalMs: 5_400_000, prompt: 'run tests' } },
+    { args: '/ketchup now\n@@say TICK every 10 minutes', expected: { kind: 'start', intervalMs: 600_000, prompt: '/ketchup now\n@@say TICK' } },
     { args: 'check CI until green', expected: { kind: 'start', prompt: 'check CI until green' } },
     { args: '1 hour 30 minutes', expected: { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } },
     { args: 'wait for 5 things', expected: { kind: 'start', prompt: 'wait for 5 things' } },
@@ -143,6 +218,18 @@ describe('/loop through Pi (HOST-004)', () => {
       await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('Loop stopped'));
       expect(rpc.events.slice(afterStop).filter((event) => event.type === 'agent_start')).toEqual([]);
       expect(users(rpc.events)).toHaveLength(count);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test.for(['10 minutes', 'every 10 minutes'])('a leading word interval %s runs only the literal prompt through Pi', async (interval) => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      rpc.send({ type: 'prompt', message: `/loop ${interval} tick\n@@sys` });
+      await rpc.waitFor(() => replies(rpc.events).length >= 1);
+      expect(users(rpc.events)).toEqual(['tick\n@@sys']);
+      expect(loopSection(replies(rpc.events)[0])).toContain('every 10m');
     } finally {
       await rpc.close();
     }
@@ -198,11 +285,36 @@ describe('/loop through Pi (HOST-004)', () => {
       await rpc.waitFor(() => users(rpc.events).includes('tick\n@@say TICK'), 15_000);
       rpc.send({ id: 'stop', type: 'prompt', message: '/loop stop' });
       await rpc.waitFor((event) => event['id'] === 'stop');
-      const armed = toolEnds(rpc.events, 'Loop').map((end) => end.text);
+      const armed = toolEnds(rpc.events, 'Loop').map((end) => end.text.replace(/\nLoop ID: [0-9a-f-]+$/, ''));
       expect([armed[0], users(rpc.events).slice(0, 2)]).toEqual([
         'Loop armed: "tick\n@@say TICK" every 1s; the first run starts 1s after this turn ends.',
         ['arm it\n@@script [{"tool":"Loop","args":{"prompt":"tick\\n@@say TICK","interval":"1s"}}]', 'tick\n@@say TICK'],
       ]);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('independent fixed loops both repeat through Pi and one can be stopped by id', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      rpc.send({ type: 'prompt', message: 'arm both\n@@script [{"tool":"Loop","args":{"prompt":"check CI\\n@@say CI","interval":"1s"}},{"tool":"Loop","args":{"prompt":"check deploy\\n@@say DEPLOY","interval":"1s"}}]' });
+      await rpc.waitFor(() => users(rpc.events).filter((prompt) => prompt === 'check CI\n@@say CI').length >= 2 && users(rpc.events).filter((prompt) => prompt === 'check deploy\n@@say DEPLOY').length >= 2, 10_000);
+      const launches = toolEnds(rpc.events, 'Loop');
+      const [first, second] = launches.map((end) => end.details as { loopId: string });
+      expect(typeof first?.loopId).toBe('string');
+      expect(typeof second?.loopId).toBe('string');
+      expect(launches[0]?.text).toContain(`Loop ID: ${first?.loopId}`);
+      expect(launches[1]?.text).toContain(`Loop ID: ${second?.loopId}`);
+      const mark = rpc.events.length;
+      rpc.send({ type: 'prompt', message: `stop CI\n@@script ${JSON.stringify([{ tool: 'Loop', args: { stop: true, loop_id: first?.loopId } }])}` });
+      await rpc.waitFor((event) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark);
+      const ciCount = users(rpc.events).filter((prompt) => prompt === 'check CI\n@@say CI').length;
+      const deployCount = users(rpc.events).filter((prompt) => prompt === 'check deploy\n@@say DEPLOY').length;
+      await rpc.waitFor(() => users(rpc.events).filter((prompt) => prompt === 'check deploy\n@@say DEPLOY').length > deployCount);
+      expect(users(rpc.events).filter((prompt) => prompt === 'check CI\n@@say CI')).toHaveLength(ciCount);
+      rpc.send({ type: 'prompt', message: `stop deploy\n@@script ${JSON.stringify([{ tool: 'Loop', args: { stop: true, loop_id: second?.loopId } }])}` });
+      await rpc.waitFor(() => toolEnds(rpc.events, 'Loop').length >= 4);
     } finally {
       await rpc.close();
     }
@@ -215,7 +327,10 @@ describe('/loop through Pi (HOST-004)', () => {
       await rpc.waitFor((event) => event.type === 'agent_settled');
       rpc.send({ type: 'prompt', message: 'sooner\n@@script [{"tool":"Loop","args":{"wake_in":"1s"}}]' });
       await rpc.waitFor(() => users(rpc.events).includes('tick\n@@say TICK'), 10_000);
-      expect(toolEnds(rpc.events, 'Loop').map((end) => end.text)).toEqual(['Loop armed: "tick\n@@say TICK", agent-paced; the first run starts 1m after this turn ends.', 'Next loop run in 1s, after this turn ends.']);
+      expect(toolEnds(rpc.events, 'Loop').map((end) => end.text.replace(/\nLoop ID: [0-9a-f-]+$/, ''))).toEqual([
+        'Loop armed: "tick\n@@say TICK", agent-paced; the first run starts 1m after this turn ends.',
+        'Next loop run in 1s, after this turn ends.',
+      ]);
     } finally {
       await rpc.close();
     }
