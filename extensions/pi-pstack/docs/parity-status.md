@@ -132,6 +132,15 @@ These are not closed by extension code.
 - **Hosted guidance and pages are outside the package.** MCP providers, ticket trackers, browsers, simulators, and Tailscale remain the user's own dependencies, as they are for Cursor.
 - **Background usage cannot enter parent totals.** Pi exposes no API that adds a later notification's usage to the parent session. It stays in the notification details and the child transcript.
 
+## Session probes on 2026-11-04 (continuation)
+
+These observations update earlier open notes. They do not make the package VERIFIED.
+
+- Cursor's live `TodoWrite` accepted a one-item write even though the published schema sets `minItems: 2` and requires `content` and `status` on every item. Pi keeps `minItems: 1` and status-only merges, which matches that runtime behavior. Evidence: this session's `CallDynamicTool` one-item call, plus `test/e2e/todo.e2e.test.ts` merge updates.
+- On this Linux host, `kernel.apparmor_restrict_unprivileged_userns=1`. Socket-restricted sandbox commands fail in `apply-seccomp` while writing `/proc/self/setgroups`. The same sandbox with `allowAllUnixSockets: true` runs under bubblewrap and denies writes. Docker and passwordless sudo were unavailable here, so the positive restricted path remains a host blocker. CI on Ubuntu 24.04 still owns that green path.
+- Benny operational skills now resolve `SOURCE_THREAD_TS` from `thread_ts`, then `message_ts`, then `ts`, so the documented webhook payload works when `thread_ts` is empty. Upstream Cursor skills still name only `trigger.ts`. Completeness audit: `parity/pstack-reconstruction-2026-11-04/session-2026-11-04T19-completeness.json`.
+- The sibling `cursor-sdk` plugin remains out of scope. No pstack skill or agent references it.
+
 ## Open evidence
 
 The following were not observed end to end and are not claimed.
