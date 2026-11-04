@@ -5,12 +5,13 @@ import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
 import { registerAskQuestion } from './ask.ts';
 import { aliasAutocomplete } from './autocomplete.ts';
+import { registerBackgroundShell } from './background-shell.ts';
 import { childIdentity } from './child-env.ts';
 import { registerGenerateImage } from './generate-image.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
-import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
+import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir, terminalsDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
@@ -51,6 +52,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       rootStoreDir: rootStoreDir(ctx.cwd, ctx.sessionManager.getSessionId(), childIdentity.rootStore),
       projectsDir: projectsDir(ctx.cwd),
       artifactsDir: artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()),
+      terminalsDir: terminalsDir(ctx.cwd),
       loopAvailable: !isOneShot(ctx.mode),
       questionsAvailable: canAsk(ctx),
       activeTools,
@@ -122,7 +124,15 @@ export default function piPstack(pi: ExtensionAPI): void {
       return undefined;
     },
   });
-  const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
+  // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox.
+  const shells = childIdentity.readonly
+    ? undefined
+    : registerBackgroundShell(pi, {
+        terminalsDir: (ctx) => terminalsDir(ctx.cwd),
+        waitsForJobs: (ctx) => childIdentity.depth === 0 && (ctx.mode === 'print' || ctx.mode === 'json'),
+        endsWithTurn: childIdentity.depth > 0,
+      });
+  const loop = registerLoop(pi, { hasPendingWork: () => task.hasBackgroundWork() || shells?.hasRunningJobs() === true });
   const todos = registerTodoWrite(pi, childIdentity.readonly ? {} : { onWrite: plan.syncTodos });
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);

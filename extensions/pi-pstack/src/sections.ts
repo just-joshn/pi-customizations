@@ -18,6 +18,8 @@ export interface HostFacts {
   rootStoreDir: string;
   projectsDir: string;
   artifactsDir: string;
+  /** Background shell jobs' output files. */
+  terminalsDir: string;
   /** False in print and JSON runs, including subagents, which exit when they settle. */
   loopAvailable: boolean;
   /** False when nobody can answer a dialog (print and JSON runs, including subagents). */
@@ -30,6 +32,8 @@ export interface HostFacts {
 
 const LOOP_LINE =
   '- /loop: the user starts `/loop [interval] <prompt>`. When a playbook says to arm /loop, call the Loop tool with prompt plus interval (fixed cadence) or wake_in (agent-paced). Inside a loop, Loop with wake_in schedules the next run and stop: true ends it.';
+const EVENT_LOOP_SENTENCE =
+  " When the next run waits on an event (CI finishing, a ref advancing, a log line), start a watcher with bash_background that exits, or prints a line its notify_on_output pattern matches, when the event fires, and keep a long wake_in as the fallback heartbeat: the watcher's notification wakes you.";
 const NO_LOOP_LINE =
   '- /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.';
 
@@ -95,7 +99,12 @@ export function hostSection(facts: HostFacts): string {
     `- Files a tool makes for the user, such as visualize charts, go in ${facts.artifactsDir}.`,
     facts.loopAvailable ? SUBSCRIPTIONS_LINE : NO_SUBSCRIPTIONS_LINE,
     ...agentToolsLine(facts.activeTools),
-    facts.loopAvailable ? LOOP_LINE : NO_LOOP_LINE,
+    facts.loopAvailable ? `${LOOP_LINE}${facts.activeTools.includes('bash_background') ? EVENT_LOOP_SENTENCE : ''}` : NO_LOOP_LINE,
+    ...(facts.activeTools.includes('bash_background')
+      ? [
+          `- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to ${facts.terminalsDir}/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (\`head -n 10 *.txt\` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with \`kill <pid>\`. bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.`,
+        ]
+      : []),
     facts.activeTools.includes('GenerateImage')
       ? '- Image generation: the GenerateImage tool, which saves each image to the artifacts folder below and shows it in its result.'
       : '- Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.',
