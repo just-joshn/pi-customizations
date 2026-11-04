@@ -34,8 +34,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bubblewrap socat ripgrep
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          # Match sandbox-runtime's CI host setup. The read-only shell also sets
-          # allowAllUnixSockets so apply-seccomp (nested userns / setgroups) is skipped.
           sudo chmod u+s "$(which bwrap)"
           bwrap --ro-bind / / --unshare-net true
       - run: bun install --frozen-lockfile
