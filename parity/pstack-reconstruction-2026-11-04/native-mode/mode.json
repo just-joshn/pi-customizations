@@ -1,0 +1,50 @@
+{
+  "notifications": [
+    {
+      "message": "Mode on: poteto-mode. /mode off exits.",
+      "notifyType": "info"
+    },
+    {
+      "message": "Mode off.",
+      "notifyType": "info"
+    }
+  ],
+  "entries": [
+    {
+      "type": "custom",
+      "customType": "pstack/mode",
+      "data": {
+        "skill": "poteto-mode"
+      },
+      "id": "b0223a96",
+      "parentId": "f24f1202",
+      "timestamp": "2026-11-04T09:28:41.178Z"
+    },
+    {
+      "type": "custom",
+      "customType": "pstack/mode",
+      "data": null,
+      "id": "f186ffbb",
+      "parentId": "b0223a96",
+      "timestamp": "2026-11-04T09:28:41.182Z"
+    }
+  ],
+  "statuses": [
+    {
+      "statusKey": "pstack-mode",
+      "statusText": null
+    },
+    {
+      "statusKey": "pstack-plan",
+      "statusText": null
+    },
+    {
+      "statusKey": "pstack-mode",
+      "statusText": "\u001b[38;5;3m♛ mode: poteto-mode\u001b[39m"
+    },
+    {
+      "statusKey": "pstack-mode",
+      "statusText": null
+    }
+  ]
+}

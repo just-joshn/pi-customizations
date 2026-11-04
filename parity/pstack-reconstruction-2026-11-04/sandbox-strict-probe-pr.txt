@@ -1,0 +1,2 @@
+{"platform":"linux","dependencies":{"errors":[],"warnings":[]}}
+apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied

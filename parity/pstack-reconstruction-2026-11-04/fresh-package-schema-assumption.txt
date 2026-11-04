@@ -1,0 +1,39 @@
+$ vitest run "test/e2e/package.e2e.test.ts"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/package.e2e.test.ts (3 tests | 1 failed) 3444ms
+   × a missing YAML dependency rejects metadata operations without blocking other tools 944ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/package.e2e.test.ts > a missing YAML dependency rejects metadata operations without blocking other tools
+AssertionError: expected [ true, undefined ] to deeply equal [ false, StringContaining{…} ]
+
+- Expected
++ Received
+
+  [
+-   false,
+-   StringContaining "Plan metadata needs the yaml dependency.",
++   true,
++   undefined,
+  ]
+
+ ❯ test/e2e/package.e2e.test.ts:61:50
+     59|     rpc.send({ id: 'build', type: 'prompt', message: '/plan build' });
+     60|     const result = await rpc.waitFor((event) => event['id'] === 'build…
+     61|     expect([result['success'], result['error']]).toEqual([false, expec…
+       |                                                  ^
+     62|     rpc.send({ id: 'off', type: 'prompt', message: '/plan off' });
+     63|     await rpc.waitFor((event) => event['id'] === 'off');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  02:06:29
+   Duration  3.91s (tests 90%, import 9%, transform 1%)
+
+error: script "test" exited with code 1

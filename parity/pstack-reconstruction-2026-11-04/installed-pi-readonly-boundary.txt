@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/task.e2e.test.ts" -t "Unix socket|environment credentials"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 58 skipped (60)
+   Start at  08:41:04
+   Duration  1.71s (tests 73%, import 23%, transform 4%)
+

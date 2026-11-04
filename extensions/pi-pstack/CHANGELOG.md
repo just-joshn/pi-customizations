@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Parse leading word intervals and preserve multiline prompts in `/loop`.
+- Run different loop prompts independently. Return loop IDs and require an explicit ID for ambiguous wake or stop operations.
+- Restore writable tools after leaving a planning branch with no recorded tool loadout.
+- Preserve plan todo dependencies and project phases. Import unfinished root todos when building and synchronize later status updates without rewriting the rest of the plan file.
+- Preserve completion when a reviewed plan omits a todo's optional status. Insert the missing field without rewriting existing metadata, comments, line endings, or body text.
+- Persist plan-imported todos through native Pi branch entries so they survive a restart. Worktree plan builders import their own lists before the first request and retain the plan association on resume. Readonly resumes cannot synchronize plan files.
+- Serialize Task stale-lock recovery with token-directory leases. Treat unreaped Linux zombies as exited writers.
+- Open PR review canvases with the system browser instead of assuming Cursor's in-app browser.
+- Keep Unix sockets blocked in the readonly shell. Refuse a missing seccomp helper instead of allowing a host service to change state on the command's behalf. Linux hosts that refuse the helper's nested namespaces cannot run readonly shell commands.
+- Correct Benny's credential-isolation gate. Readonly children still inherit environment variables and can read credential files. Setup fails closed without separate isolation, and operational runs keep analysis and code work in the coordinator when isolation is unavailable.
+
 ## [0.15.36-pi.12] - 2026-11-04
 
 Each item below was checked against Cursor CLI 2026.10.22 with pstack and cursor-team-kit loaded, through its bundle and live runs. `parity/pi-pstack-behavior-parity/` in the repository records the evidence and the decisions.

@@ -1,0 +1,33 @@
+$ vitest run
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/package.e2e.test.ts (2 tests | 1 failed) 32943ms
+   × installs from a fresh copy without node_modules, then removes cleanly (PKG-001) 30503ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/package.e2e.test.ts > installs from a fresh copy without node_modules, then removes cleanly (PKG-001)
+Error: timed out waiting for an RPC event
+Error: Failed to load extension "/tmp/pi-pstack-e2e-AqdJcL/pi-pstack/src/index.ts": Failed to load extension: Cannot find module 'yaml'
+Require stack:
+- /tmp/pi-pstack-e2e-AqdJcL/pi-pstack/src/plan.ts
+Hint: Start without extensions using "pi -ne".
+
+ ❯ Timeout._onTimeout test/e2e/harness.ts:161:45
+    159|       const seen = events.find(predicate);
+    160|       if (seen) return resolve(seen);
+    161|       const timer = setTimeout(() => reject(new Error(`timed out waiti…
+       |                                             ^
+    162|       waiters.push({
+    163|         predicate,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 44 passed (45)
+      Tests  1 failed | 664 passed | 8 skipped (673)
+   Start at  02:02:34
+   Duration  61.64s (tests 84%, import 15%, transform 1%)
+
+error: script "test" exited with code 1

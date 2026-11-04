@@ -1,0 +1,24 @@
+{
+  "referenceRevision": "6ea74587e384e1a8035c09ae33a46fe3f881eb9b",
+  "summary": {
+    "pstack": {
+      "identical": 498,
+      "adapted": 71,
+      "no-counterpart": 4,
+      "dependency-candidate": 0
+    },
+    "cursor-team-kit": {
+      "identical": 20,
+      "adapted": 7,
+      "no-counterpart": 2,
+      "dependency-candidate": 0
+    },
+    "cursor-sdk": {
+      "identical": 0,
+      "adapted": 0,
+      "no-counterpart": 0,
+      "dependency-candidate": 11
+    }
+  },
+  "adaptationDiff": "/home/josh/Documents/GitHub/pi-customizations/parity/pstack-reconstruction-2026-11-04/adaptation-diff-pr.patch"
+}

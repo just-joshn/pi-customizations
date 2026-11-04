@@ -1,0 +1,6 @@
+[doctor] Checking environment and Pi CLI...
+✓ Node.js 24.22.2 (>= 22.19.0)
+✓ Pi CLI executable on PATH (1.5.0)
+✓ Workspace root verified at /home/josh/Documents/GitHub/pi-customizations
+✓ Pi RPC initialized with extensions/pi-pstack (87 commands available)
+[doctor] Doctor check passed cleanly.

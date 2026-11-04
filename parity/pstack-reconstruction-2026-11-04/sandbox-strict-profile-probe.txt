@@ -1,0 +1,57 @@
+{"platform":"linux","dependencies":{"errors":[],"warnings":[]}}
+Error: Command failed: /bin/bash -c bwrap --new-session --die-with-parent --unshare-net --bind /tmp/claude-http-39893fbcbddf4936.sock /tmp/claude-http-39893fbcbddf4936.sock --setenv SANDBOX_RUNTIME 1 --setenv TMPDIR /tmp/claude --setenv NO_PROXY localhost,127.0.0.1,::1,169.254.0.0/16,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 --setenv no_proxy localhost,127.0.0.1,::1,169.254.0.0/16,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 --setenv HTTP_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv HTTPS_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv http_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv https_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GIT_CONFIG_PARAMETERS ''"'"'http.proxyAuthMethod=basic'"'"'' --setenv ALL_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv all_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GRPC_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv grpc_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GIT_SSH_COMMAND 'ssh -o ControlMaster=no -o ControlPath=none -o ProxyCommand='"'"'socat - PROXY:localhost:%h:%p,proxyport=3128,proxyauth=REDACTED_PROXY_AUTH'"'"'' --setenv FTP_PROXY socks5h://REDACTED_PROXY_AUTH@localhost:1080 --setenv ftp_proxy socks5h://REDACTED_PROXY_AUTH@localhost:1080 --setenv RSYNC_PROXY localhost:1080 --setenv DOCKER_HTTP_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv DOCKER_HTTPS_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv CLOUDSDK_PROXY_TYPE http --setenv CLOUDSDK_PROXY_ADDRESS localhost --setenv CLOUDSDK_PROXY_PORT 3128 --setenv CLOUDSDK_PROXY_USERNAME REDACTED_PROXY_USER --setenv CLOUDSDK_PROXY_PASSWORD REDACTED_PROXY_PASSWORD --setenv JAVA_TOOL_OPTIONS -javaagent:/home/josh/Documents/GitHub/pi-customizations/node_modules/.bun/@anthropic-ai+sandbox-runtime@0.0.79/node_modules/@anthropic-ai/sandbox-runtime/vendor/java-proxy-agent/srt-proxy-agent.jar --setenv CLAUDE_CODE_HOST_HTTP_PROXY_PORT 40995 --setenv CLAUDE_CODE_HOST_SOCKS_PROXY_PORT 40995 --ro-bind / / --tmpfs /etc/ssh/ssh_config.d --tmpfs /home/josh/.npm/_logs --dev /dev --unshare-pid --unshare-user --cap-drop ALL --proc /proc -- /bin/bash -c '/bin/bash -c '"'"'socat TCP-LISTEN:3128,fork,reuseaddr UNIX-CONNECT:/tmp/claude-http-39893fbcbddf4936.sock >/dev/null 2>&1 &
+_srt_http=$!
+socat TCP-LISTEN:1080,fork,reuseaddr UNIX-CONNECT:/tmp/claude-http-39893fbcbddf4936.sock >/dev/null 2>&1 &
+_srt_socks=$!
+trap '"'"'"'"'"'"'"'"'rc=$?; kill %1 %2 2>/dev/null; exit $rc'"'"'"'"'"'"'"'"' EXIT
+_srt_since=
+while [ -r /proc/net/sockstat ] && kill -0 "$_srt_http" "$_srt_socks" 2>/dev/null; do
+  _srt_up=0
+  for _srt_counts in /proc/net/sockstat /proc/net/sockstat6; do
+    [ -r "$_srt_counts" ] || continue
+    while read -r _srt_kind _srt_skip _srt_inuse _srt_skip; do
+      case "$_srt_kind" in TCP: | TCP6:) _srt_up=$((_srt_up + _srt_inuse)); break ;; esac
+    done < "$_srt_counts"
+  done
+  [ "$_srt_up" -lt 2 ] || break
+  read -r _srt_now _srt_skip 2>/dev/null < /proc/uptime || break
+  _srt_now=1${_srt_now%.*}${_srt_now#*.}
+  [ "$((_srt_now - ${_srt_since:=$_srt_now}))" -lt 30 ] || break
+done
+unset _srt_since _srt_now _srt_up _srt_counts _srt_kind _srt_skip _srt_inuse _srt_http _srt_socks
+/home/josh/Documents/GitHub/pi-customizations/node_modules/.bun/@anthropic-ai+sandbox-runtime@0.0.79/node_modules/@anthropic-ai/sandbox-runtime/vendor/seccomp/x64/apply-seccomp /bin/bash -c '"'"'"'"'"'"'"'"'printf STRICT-SANDBOX-OK'"'"'"'"'"'"'"'"''"'"''
+apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
+
+    at genericNodeError (node:internal/errors:986:15)
+    at wrappedFn (node:internal/errors:540:14)
+    at ChildProcess.exithandler (node:child_process:417:12)
+    at ChildProcess.emit (node:events:514:28)
+    at maybeClose (node:internal/child_process:1172:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:335:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: `/bin/bash -c bwrap --new-session --die-with-parent --unshare-net --bind /tmp/claude-http-39893fbcbddf4936.sock /tmp/claude-http-39893fbcbddf4936.sock --setenv SANDBOX_RUNTIME 1 --setenv TMPDIR /tmp/claude --setenv NO_PROXY localhost,127.0.0.1,::1,169.254.0.0/16,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 --setenv no_proxy localhost,127.0.0.1,::1,169.254.0.0/16,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16 --setenv HTTP_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv HTTPS_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv http_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv https_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GIT_CONFIG_PARAMETERS ''"'"'http.proxyAuthMethod=basic'"'"'' --setenv ALL_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv all_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GRPC_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv grpc_proxy http://REDACTED_PROXY_AUTH@localhost:3128 --setenv GIT_SSH_COMMAND 'ssh -o ControlMaster=no -o ControlPath=none -o ProxyCommand='"'"'socat - PROXY:localhost:%h:%p,proxyport=3128,proxyauth=REDACTED_PROXY_AUTH'"'"'' --setenv FTP_PROXY socks5h://REDACTED_PROXY_AUTH@localhost:1080 --setenv ftp_proxy socks5h://REDACTED_PROXY_AUTH@localhost:1080 --setenv RSYNC_PROXY localhost:1080 --setenv DOCKER_HTTP_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv DOCKER_HTTPS_PROXY http://REDACTED_PROXY_AUTH@localhost:3128 --setenv CLOUDSDK_PROXY_TYPE http --setenv CLOUDSDK_PROXY_ADDRESS localhost --setenv CLOUDSDK_PROXY_PORT 3128 --setenv CLOUDSDK_PROXY_USERNAME REDACTED_PROXY_USER --setenv CLOUDSDK_PROXY_PASSWORD REDACTED_PROXY_PASSWORD --setenv JAVA_TOOL_OPTIONS -javaagent:/home/josh/Documents/GitHub/pi-customizations/node_modules/.bun/@anthropic-ai+sandbox-runtime@0.0.79/node_modules/@anthropic-ai/sandbox-runtime/vendor/java-proxy-agent/srt-proxy-agent.jar --setenv CLAUDE_CODE_HOST_HTTP_PROXY_PORT 40995 --setenv CLAUDE_CODE_HOST_SOCKS_PROXY_PORT 40995 --ro-bind / / --tmpfs /etc/ssh/ssh_config.d --tmpfs /home/josh/.npm/_logs --dev /dev --unshare-pid --unshare-user --cap-drop ALL --proc /proc -- /bin/bash -c '/bin/bash -c '"'"'socat TCP-LISTEN:3128,fork,reuseaddr UNIX-CONNECT:/tmp/claude-http-39893fbcbddf4936.sock >/dev/null 2>&1 &\n` +
+    '_srt_http=$!\n' +
+    'socat TCP-LISTEN:1080,fork,reuseaddr UNIX-CONNECT:/tmp/claude-http-39893fbcbddf4936.sock >/dev/null 2>&1 &\n' +
+    '_srt_socks=$!\n' +
+    `trap '"'"'"'"'"'"'"'"'rc=$?; kill %1 %2 2>/dev/null; exit $rc'"'"'"'"'"'"'"'"' EXIT\n` +
+    '_srt_since=\n' +
+    'while [ -r /proc/net/sockstat ] && kill -0 "$_srt_http" "$_srt_socks" 2>/dev/null; do\n' +
+    '  _srt_up=0\n' +
+    '  for _srt_counts in /proc/net/sockstat /proc/net/sockstat6; do\n' +
+    '    [ -r "$_srt_counts" ] || continue\n' +
+    '    while read -r _srt_kind _srt_skip _srt_inuse _srt_skip; do\n' +
+    '      case "$_srt_kind" in TCP: | TCP6:) _srt_up=$((_srt_up + _srt_inuse)); break ;; esac\n' +
+    '    done < "$_srt_counts"\n' +
+    '  done\n' +
+    '  [ "$_srt_up" -lt 2 ] || break\n' +
+    '  read -r _srt_now _srt_skip 2>/dev/null < /proc/uptime || break\n' +
+    '  _srt_now=1${_srt_now%.*}${_srt_now#*.}\n' +
+    '  [ "$((_srt_now - ${_srt_since:=$_srt_now}))" -lt 30 ] || break\n' +
+    'done\n' +
+    'unset _srt_since _srt_now _srt_up _srt_counts _srt_kind _srt_skip _srt_inuse _srt_http _srt_socks\n' +
+    `/home/josh/Documents/GitHub/pi-customizations/node_modules/.bun/@anthropic-ai+sandbox-runtime@0.0.79/node_modules/@anthropic-ai/sandbox-runtime/vendor/seccomp/x64/apply-seccomp /bin/bash -c '"'"'"'"'"'"'"'"'printf STRICT-SANDBOX-OK'"'"'"'"'"'"'"'"''"'"''`,
+  stdout: '',
+  stderr: 'apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied\n'
+}

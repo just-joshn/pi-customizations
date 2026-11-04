@@ -1,0 +1,10 @@
+$ vitest run
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  45 passed (45)
+      Tests  647 passed | 8 skipped (655)
+   Start at  01:28:36
+   Duration  58.36s (tests 80%, import 18%, transform 1%)
+

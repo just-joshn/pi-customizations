@@ -1,0 +1,21 @@
+extensions/pi-pstack/test/readonly-shell-dependency.test.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Formatter would have printed the following content:
+  
+    15 15 │     onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+    16 16 │   
+    17    │ - ··await·expect(createReadonlyBashTool().execute('call',·{·command:·'touch·escaped.txt'·},·undefined,·undefined,·{·cwd·}·as·ExtensionToolContext)).rejects.toThrow('no·verified·OS·sandbox·is·available:·seccomp·not·available·-·unix·socket·access·not·restricted');
+       17 │ + ··await·expect(createReadonlyBashTool().execute('call',·{·command:·'touch·escaped.txt'·},·undefined,·undefined,·{·cwd·}·as·ExtensionToolContext)).rejects.toThrow(
+       18 │ + ····'no·verified·OS·sandbox·is·available:·seccomp·not·available·-·unix·socket·access·not·restricted',
+       19 │ + ··);
+    18 20 │     expect(existsSync(join(cwd, 'escaped.txt'))).toBe(false);
+    19 21 │   });
+  
+
+Checked 4 files in 398ms. No fixes applied.
+Found 1 error.
+check ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  × Some errors were emitted while running checks.
+  
+

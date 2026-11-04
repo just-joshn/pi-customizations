@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/plan.e2e.test.ts" -t "preexisting status"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 9 skipped (11)
+   Start at  08:55:53
+   Duration  1.20s (tests 61%, import 34%, transform 5%)
+

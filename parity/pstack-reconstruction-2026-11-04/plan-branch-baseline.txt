@@ -1,0 +1,89 @@
+$ vitest run test/plan.test.ts "test/e2e/plan.e2e.test.ts" -t "planning branch"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/plan.test.ts (16 tests | 1 failed | 15 skipped) 9ms
+   × leaving the planning branch restores the tools from before planning 7ms
+ ❯ test/e2e/plan.e2e.test.ts (4 tests | 1 failed | 2 skipped) 596ms
+   × navigating out of the planning branch restores tools with an earlier recorded loadout false 297ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/plan.test.ts > leaving the planning branch restores the tools from before planning
+AssertionError: expected [ 'read', 'grep', 'find', 'ls', …(7) ] to deeply equal [ 'read', 'bash', 'edit', …(7) ]
+
+- Expected
++ Received
+
+  [
+    "read",
+-   "bash",
++   "grep",
++   "find",
++   "ls",
+    "edit",
+    "write",
+    "Task",
+    "TodoWrite",
+    "AskQuestion",
+    "stop_agent",
+-   "mcp",
+    "SwitchMode",
+  ]
+
+ ❯ test/plan.test.ts:273:22
+    271|
+    272|   expect(h.plan.enabled()).toBe(false);
+    273|   expect(h.active()).toEqual(before);
+       |                      ^
+    274| });
+    275|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/e2e/plan.e2e.test.ts > navigating out of the planning branch restores tools with an earlier recorded loadout false
+AssertionError: expected [ 'AskQuestion', 'SwitchMode', …(10) ] to deeply equal [ 'AskQuestion', 'Loop', …(15) ]
+
+- Expected
++ Received
+
+  [
+    "AskQuestion",
+-   "Loop",
+    "SwitchMode",
+    "Task",
+    "TodoWrite",
+    "agent_status",
+-   "bash",
+    "edit",
+-   "list_subscriptions",
++   "find",
++   "grep",
++   "ls",
+    "read",
+    "stop_agent",
+-   "subscribe_github_pr",
+-   "subscribe_timer",
+-   "subscribe_webhook",
+-   "unsubscribe",
+-   "visualize",
+    "write",
+  ]
+
+ ❯ test/e2e/plan.e2e.test.ts:96:70
+     94|   await rpc.waitFor((event) => event['id'] === 'tree');
+     95|
+     96|   expect((await reply('after\n@@tools-list')).split(',').toSorted()).t…
+       |                                                                      ^
+     97|   expect(await reply('after\n@@sys')).not.toContain('<pstack_plan>');
+     98| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 1 passed | 17 skipped (20)
+   Start at  01:18:17
+   Duration  1.11s (import 52%, tests 41%, transform 7%)
+
+error: script "test" exited with code 1

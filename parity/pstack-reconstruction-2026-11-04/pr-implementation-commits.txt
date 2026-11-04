@@ -1,0 +1,6 @@
+423e2019873632c8f353447edeb7735454a700b2 fix(pi-pstack): serialize Task stale-lock recovery
+38a8a3e271a77f6d1115f8b885f1f8d893edd72a fix(pi-pstack): preserve independent loop schedules and prompts
+8a1734bfa6b03f934cf55b9992581a3f6948533e fix(pi-pstack): persist reviewed plan todos across sessions
+b092a489a22b41913dc2541195f68974b2934cc0 fix(pi-pstack): block host Unix sockets in readonly shells
+405f2421da4c6be5eb4e0a1090d00169ee0bde99 docs(pi-pstack): correct native integration assumptions
+1e55f204d6883ec69e566c494a54729776449795 test(pi-pstack): enable Linux worktree audit coverage

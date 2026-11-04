@@ -1,0 +1,2 @@
+$ biome ci . --error-on-warnings --max-diagnostics=none
+[0m[34mChecked 991 files in 809[0m[0m[2m[34mms[0m[0m[34m.[0m[0m[34m No fixes applied.[0m

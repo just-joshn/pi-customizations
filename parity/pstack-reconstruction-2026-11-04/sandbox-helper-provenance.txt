@@ -1,0 +1,4 @@
+Fetched URL https://raw.githubusercontent.com/anthropic-experimental/sandbox-runtime/v0.0.79/vendor/seccomp-src/apply-seccomp.c
+Source statements are tag evidence, not proof that the installed binary was built from these bytes.
+74e2ddfdef60edaf849ce13ab03def2d3ef42bf784ed79b86bab2823098f15dc  /tmp/pstack-reconstruction/apply-seccomp.c
+a6fdbdbe5875d32183754f1895c6e550300808e6297a07b569664b8beb2c5f17  extensions/pi-pstack/node_modules/@anthropic-ai/sandbox-runtime/vendor/seccomp/x64/apply-seccomp

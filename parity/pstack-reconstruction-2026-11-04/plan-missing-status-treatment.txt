@@ -1,0 +1,10 @@
+$ vitest run test/plan.test.ts "test/e2e/plan.e2e.test.ts" -t "omitted optional status|preexisting status"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  2 passed (2)
+      Tests  6 passed | 32 skipped (38)
+   Start at  08:55:52
+   Duration  1.27s (import 56%, tests 36%, transform 7%)
+

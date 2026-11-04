@@ -1,0 +1,10 @@
+$ vitest run test/records.test.ts -t "two processes|Linux zombie"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 21 skipped (23)
+   Start at  01:51:06
+   Duration  1.79s (tests 76%, import 21%, transform 3%)
+

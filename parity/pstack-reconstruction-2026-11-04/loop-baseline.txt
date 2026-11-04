@@ -1,0 +1,162 @@
+$ vitest run test/loop.test.ts -t "parseLoopArgs|leading word interval"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/loop.test.ts (49 tests | 6 failed | 29 skipped) 1178ms
+   ❯ parseLoopArgs (HOST-004) (18)
+     × reads "10 minutes run tests" 5ms
+     × reads "every 10 minutes run tests" 1ms
+     × reads "1 hour 30 minutes run tests" 1ms
+     × reads "/ketchup now
+@@say TICK every 10 minutes" 1ms
+   ❯ /loop through Pi (HOST-004) (14)
+     × a leading word interval 10 minutes runs only the literal prompt through Pi 881ms
+     × a leading word interval every 10 minutes runs only the literal prompt through Pi 284ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/loop.test.ts > parseLoopArgs (HOST-004) > reads "10 minutes run tests"
+AssertionError: expected { kind: 'start', …(1) } to deeply equal { kind: 'start', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "intervalMs": 600000,
+    "kind": "start",
+-   "prompt": "run tests",
++   "prompt": "10 minutes run tests",
+  }
+
+ ❯ test/loop.test.ts:117:33
+    115|     { args: '10m', expected: { kind: 'error', message: '/loop needs a …
+    116|   ])('reads "$args"', ({ args, expected }) => {
+    117|     expect(parseLoopArgs(args)).toEqual(expected);
+       |                                 ^
+    118|   });
+    119| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  test/loop.test.ts > parseLoopArgs (HOST-004) > reads "every 10 minutes run tests"
+AssertionError: expected { kind: 'start', …(1) } to deeply equal { kind: 'start', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "intervalMs": 600000,
+    "kind": "start",
+-   "prompt": "run tests",
++   "prompt": "every 10 minutes run tests",
+  }
+
+ ❯ test/loop.test.ts:117:33
+    115|     { args: '10m', expected: { kind: 'error', message: '/loop needs a …
+    116|   ])('reads "$args"', ({ args, expected }) => {
+    117|     expect(parseLoopArgs(args)).toEqual(expected);
+       |                                 ^
+    118|   });
+    119| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  test/loop.test.ts > parseLoopArgs (HOST-004) > reads "1 hour 30 minutes run tests"
+AssertionError: expected { kind: 'start', …(1) } to deeply equal { kind: 'start', …(2) }
+
+- Expected
++ Received
+
+  {
+-   "intervalMs": 5400000,
+    "kind": "start",
+-   "prompt": "run tests",
++   "prompt": "1 hour 30 minutes run tests",
+  }
+
+ ❯ test/loop.test.ts:117:33
+    115|     { args: '10m', expected: { kind: 'error', message: '/loop needs a …
+    116|   ])('reads "$args"', ({ args, expected }) => {
+    117|     expect(parseLoopArgs(args)).toEqual(expected);
+       |                                 ^
+    118|   });
+    119| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  test/loop.test.ts > parseLoopArgs (HOST-004) > reads "/ketchup now
+@@say TICK every 10 minutes"
+AssertionError: expected { kind: 'start', …(2) } to deeply equal { kind: 'start', …(2) }
+
+- Expected
++ Received
+
+  {
+    "intervalMs": 600000,
+    "kind": "start",
+-   "prompt": "/ketchup now
+- @@say TICK",
++   "prompt": "/ketchup now @@say TICK",
+  }
+
+ ❯ test/loop.test.ts:117:33
+    115|     { args: '10m', expected: { kind: 'error', message: '/loop needs a …
+    116|   ])('reads "$args"', ({ args, expected }) => {
+    117|     expect(parseLoopArgs(args)).toEqual(expected);
+       |                                 ^
+    118|   });
+    119| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  test/loop.test.ts > /loop through Pi (HOST-004) > a leading word interval 10 minutes runs only the literal prompt through Pi
+AssertionError: expected [ '10 minutes tick\n@@sys' ] to deeply equal [ 'tick\n@@sys' ]
+
+- Expected
++ Received
+
+  [
+-   "tick
++   "10 minutes tick
+  @@sys",
+  ]
+
+ ❯ test/loop.test.ts:161:33
+    159|       rpc.send({ type: 'prompt', message: `/loop ${interval} tick\n@@s…
+    160|       await rpc.waitFor(() => replies(rpc.events).length >= 1);
+    161|       expect(users(rpc.events)).toEqual(['tick\n@@sys']);
+       |                                 ^
+    162|       expect(loopSection(replies(rpc.events)[0])).toContain('every 10m…
+    163|     } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  test/loop.test.ts > /loop through Pi (HOST-004) > a leading word interval every 10 minutes runs only the literal prompt through Pi
+AssertionError: expected [ 'every 10 minutes tick\n@@sys' ] to deeply equal [ 'tick\n@@sys' ]
+
+- Expected
++ Received
+
+  [
+-   "tick
++   "every 10 minutes tick
+  @@sys",
+  ]
+
+ ❯ test/loop.test.ts:161:33
+    159|       rpc.send({ type: 'prompt', message: `/loop ${interval} tick\n@@s…
+    160|       await rpc.waitFor(() => replies(rpc.events).length >= 1);
+    161|       expect(users(rpc.events)).toEqual(['tick\n@@sys']);
+       |                                 ^
+    162|       expect(loopSection(replies(rpc.events)[0])).toContain('every 10m…
+    163|     } finally {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 14 passed | 29 skipped (49)
+   Start at  01:15:28
+   Duration  1.88s (tests 66%, import 31%, transform 3%)
+
+error: script "test" exited with code 1

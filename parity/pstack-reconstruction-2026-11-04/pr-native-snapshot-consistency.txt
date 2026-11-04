@@ -1,0 +1,5 @@
+{
+  "snapshot": "source-inventory-pr.json",
+  "nativeFiles": 706,
+  "mismatches": []
+}

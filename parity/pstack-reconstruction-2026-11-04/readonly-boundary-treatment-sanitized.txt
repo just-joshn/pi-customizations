@@ -1,0 +1,10 @@
+$ vitest run test/readonly-shell-dependency.test.ts "test/e2e/task.e2e.test.ts" -t "Unix socket|environment credentials"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  2 passed (2)
+      Tests  3 passed | 58 skipped (61)
+   Start at  08:38:32
+   Duration  1.67s (tests 57%, import 38%, transform 5%)
+

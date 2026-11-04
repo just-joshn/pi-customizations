@@ -1,0 +1,82 @@
+$ vitest run test/loop.test.ts -t independent
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/loop.test.ts (52 tests | 3 failed | 49 skipped) 10025ms
+   ❯ independent loops (2)
+     × arming a different prompt preserves each cadence and stopping one leaves the other running 8ms
+     × a wake or stop without an id refuses to choose between different loops 2ms
+   ❯ /loop through Pi (HOST-004) (15)
+     × independent fixed loops both repeat through Pi and one can be stopped by id 10014ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/loop.test.ts > independent loops > arming a different prompt preserves each cadence and stopping one leaves the other running
+AssertionError: expected [] to deeply equal [ 'check CI' ]
+
+- Expected
++ Received
+
+- [
+-   "check CI",
+- ]
++ []
+
+ ❯ test/loop.test.ts:105:25
+    103|       loop.settle();
+    104|       vi.advanceTimersByTime(1_000);
+    105|       expect(loop.sent).toEqual(['check CI']);
+       |                         ^
+    106|       loop.settle();
+    107|       vi.advanceTimersByTime(1_000);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/loop.test.ts > independent loops > a wake or stop without an id refuses to choose between different loops
+AssertionError: promise resolved "{ content: [ { …(2) } ], …(1) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "content": [
++     {
++       "text": "Next loop run in 3s, after this turn ends.",
++       "type": "text",
++     },
++   ],
++   "details": undefined,
+  }
+
+ ❯ test/loop.test.ts:128:51
+    126|     await loop.loopTool({ prompt: 'check CI', wake_in: '1s' });
+    127|     await loop.loopTool({ prompt: 'check deploy', wake_in: '2s' });
+    128|     await expect(loop.loopTool({ wake_in: '3s' })).rejects.toThrow('lo…
+       |                                                   ^
+    129|     await expect(loop.loopTool({ stop: true })).rejects.toThrow('loop_…
+    130|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/loop.test.ts > /loop through Pi (HOST-004) > independent fixed loops both repeat through Pi and one can be stopped by id
+Error: timed out waiting for an RPC event
+
+ ❯ Timeout._onTimeout test/e2e/harness.ts:161:45
+    159|       const seen = events.find(predicate);
+    160|       if (seen) return resolve(seen);
+    161|       const timer = setTimeout(() => reject(new Error(`timed out waiti…
+       |                                             ^
+    162|       waiters.push({
+    163|         predicate,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 49 skipped (52)
+   Start at  01:23:45
+   Duration  10.51s (tests 96%, import 3%, transform 1%)
+
+error: script "test" exited with code 1
