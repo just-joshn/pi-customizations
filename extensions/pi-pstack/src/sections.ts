@@ -31,7 +31,7 @@ export interface HostFacts {
 }
 
 const LOOP_LINE =
-  '- /loop: the user starts `/loop [interval] <prompt>`. When a playbook says to arm /loop, call the Loop tool with prompt plus interval (fixed cadence) or wake_in (agent-paced). Inside a loop, Loop with wake_in schedules the next run and stop: true ends it.';
+  '- /loop: the user starts `/loop [interval] <prompt>`. When a playbook says to arm /loop, run the prompt once now, in this turn, then call the Loop tool with prompt plus interval (fixed cadence) or wake_in (agent-paced); its first scheduled run comes after that interval or wake. Inside a loop, Loop with wake_in schedules the next run and stop: true ends it.';
 const EVENT_LOOP_SENTENCE =
   " When the next run waits on an event (CI finishing, a ref advancing, a log line), start a watcher with bash_background that exits, or prints a line its notify_on_output pattern matches, when the event fires, and keep a long wake_in as the fallback heartbeat: the watcher's notification wakes you.";
 const NO_LOOP_LINE =

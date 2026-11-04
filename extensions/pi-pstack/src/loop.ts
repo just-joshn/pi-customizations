@@ -258,7 +258,7 @@ function registerLoopTool(pi: ExtensionAPI, registry: LoopRegistry): void {
     name: 'Loop',
     label: 'Loop',
     description:
-      '/loop for you: start an independent loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule its next wake, or stop it once its goal is met. Use it when a playbook says to arm /loop. Each result names the loop ID. With several loops running, pass loop_id to wake or stop the intended loop.',
+      '/loop for you: start an independent loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule its next wake, or stop it once its goal is met. Use it when a playbook says to arm /loop. Run the prompt once yourself in the turn that arms the loop; the first scheduled run comes after the interval or wake_in. Then confirm the interval, that the prompt already ran once, and when the first run comes. Each result names the loop ID. With several loops running, pass loop_id to wake or stop the intended loop.',
     promptSnippet: 'Start a /loop, schedule its next wake, or stop it',
     parameters: LoopParams,
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },

@@ -90,7 +90,8 @@ describe('host map (HOST-001)', () => {
   test('tells a long-lived session how to arm /loop (HOST-004)', async () => {
     const host = section(await rpcSystemPrompt(), 'pstack_host');
     expect(host).toContain(
-      '- /loop: the user starts `/loop [interval] <prompt>`. When a playbook says to arm /loop, call the Loop tool with prompt plus interval (fixed cadence) or wake_in (agent-paced). Inside a loop, Loop with wake_in schedules the next run and stop: true ends it.',
+      // Cursor's built-in loop skill: "Run the prompt once immediately after arming the loop" (skills-cursor/loop, step 5).
+      '- /loop: the user starts `/loop [interval] <prompt>`. When a playbook says to arm /loop, run the prompt once now, in this turn, then call the Loop tool with prompt plus interval (fixed cadence) or wake_in (agent-paced); its first scheduled run comes after that interval or wake. Inside a loop, Loop with wake_in schedules the next run and stop: true ends it.',
     );
   });
 
