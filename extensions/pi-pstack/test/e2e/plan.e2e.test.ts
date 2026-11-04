@@ -82,7 +82,7 @@ test('SwitchMode enters plan mode with the user approving, and /plan build start
     ['SwitchMode', false],
     ['CreatePlan', false],
   ]);
-  const planFile = String((ends[1]?.['result'] as { details?: { planFile?: string } }).details?.planFile);
+  const planFile = String((ends[1]?.['result'] as { details?: { planFile?: string } } | undefined)?.details?.planFile);
   await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'select');
   rpc.send({ type: 'prompt', message: '/plan build' });
   const build = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'user' && contentText((event['message'] as { content: string }).content).startsWith('Build the plan saved at'));

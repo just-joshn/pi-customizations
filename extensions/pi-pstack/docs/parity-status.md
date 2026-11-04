@@ -8,23 +8,24 @@ This page records what `pi-pstack` reproduces from Cursor `pstack` 0.15.36 and i
 - Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`.
 - Native implementation: this package, which pins its upstream provenance in `package.json.pstackSource`.
 
-A path and byte comparison of the tracked trees shows every pstack skill, both pstack agents, all 18 team-kit skills, both team-kit agents, and both team-kit rules in this package. Seventeen team-kit skill files are byte-identical; `workflow-from-chats` describes Pi paths instead of Cursor paths. The changed pstack files are host translations. One upstream paragraph has no counterpart: `poteto-help`'s Claude Code install path and its `docs/harness/claude-code.md` adapter, because this package targets Pi only. The two non-portable frontmatter keys Cursor ships (`icon`/`color` on `poteto-mode`, `paths` on `typescript-best-practices`) are kept under `metadata`, the Agent Skills extension point; the port reads both, and it attaches `typescript-best-practices` by path through `src/path-skills.ts`.
+A path and byte comparison of the tracked trees shows every pstack skill, both pstack agents, all 18 team-kit skills, both team-kit agents, and both team-kit rules in this package. Seventeen team-kit skill files are byte-identical; `workflow-from-chats` describes Pi paths instead of Cursor paths. The changed pstack files are host translations. One upstream paragraph has no counterpart: `poteto-help`'s Claude Code install path and its `docs/harness/claude-code.md` adapter, because this package targets Pi only. The two non-portable frontmatter keys Cursor ships (`icon`/`color` on `poteto-mode`, `paths` on `typescript-best-practices`) are kept under `metadata`, the Agent Skills extension point. The port reads `icon` and `color` for the mode badge. `paths` stays as metadata only, because Cursor loads a `paths` skill that sets `disable-model-invocation` only when it is invoked by name. team-kit's thermo-nuclear agent changes only where it names the plugin that ships its rubric.
 
 ## Native translations
 
 | Cursor dependency | Pi mechanism |
 | --- | --- |
 | Skill invocation and the slash menu | `pi.getCommands()` plus `/name` to `/skill:name` input rewriting, with TUI completions |
-| Custom Mode | `/mode <skill>`, a branch-persisted entry, the skill attached once on the entering request, and a path-naming reminder in a `pstack_mode` prompt section on every later request |
-| Plan mode | `/plan`, a reduced tool set, `bash_readonly` in an OS sandbox, a `create_plan` artifact under `plans/`, and `/plan build` |
+| Custom Mode | `/mode <skill>`, a branch-persisted entry, the skill in a `pstack_mode_skill` prompt section on every request while the mode is on, and Cursor's entered, reminder, and exit or switch notices in `pstack_mode` |
+| Plan mode | `/plan` and `SwitchMode`, Cursor's plan-mode instructions in `pstack_plan`, a reduced tool set with `bash_readonly` in an OS sandbox and markdown-only `edit` and `write`, `CreatePlan` writing Cursor's plan file under `plans/`, and a build prompt after a saved plan (`/plan build` too) |
 | Always-applied model rule | `pstack-models.md` read before every request and injected as `pstack_models` |
-| Task subagents | One `pi --mode rpc` process per agent, with resume, steer, fork, `fork_turns`, readonly, attachments, background notices, and local worktrees |
-| Agent types | The four bundled agent Markdown files, loaded into the child system prompt |
+| Task subagents | One `pi --mode rpc` process per agent, with resume, steer, fork, `fork_turns`, readonly, attachments, Cursor's result and completion texts, Cursor's subagent reminder, and local worktrees |
+| Agent types | Cursor's built-in `generalPurpose` and `explore`, then the four bundled agent Markdown files, loaded into the child system prompt |
 | Project and agent stores | Workspace state folders named in the host system prompt |
 | Todo list | `TodoWrite` with branch reconstruction and a TUI widget |
-| Structured questions | `AskQuestion` over Pi select and input dialogs |
-| `/loop` | `Loop` tool and `/loop` command. A fixed interval is wall-clock from each fire, like Cursor's sleep loop, and accepts the interval first or last (`5m`, `10 minutes`, `every 10 minutes`). An interval-less loop is agent-paced through `Loop` `wake_in`. |
-| Path-scoped skills | `src/path-skills.ts` attaches a loaded skill once per session when the session reads or edits a file matching its `paths`/`globs` (also under `metadata`), the way Cursor files a skill under `fileGlobbed` |
+| Structured questions | `AskQuestion` over Pi select and input dialogs, with Cursor's schema minimums and usage rules |
+| Image generation (`GenerateImage`) | `GenerateImage` on `ctx.modelRegistry.generateImages()`, offered when an image model is available |
+| `/loop` | `Loop` tool and `/loop` command. A fixed interval is wall-clock from each fire, like Cursor's sleep loop, and accepts the interval first or last (`5m`, `10 minutes`, `every 10 minutes`). An interval-less loop is agent-paced through `Loop` `wake_in`. A wake that comes due mid-run fires once when the run settles, as Cursor's monitored shell output notifies after the turn. |
+| Path-scoped skills | None needed. pstack's only `paths` skill also sets `disable-model-invocation`, and Cursor loads such a skill only by name, which Pi does natively |
 | Always-applied rules | The two shipped rule bodies are read into `pstack_host` verbatim on every request, not paraphrased |
 | Todo list state | `TodoWrite` writes branch entries, and the current list rides in the `pstack_todos` prompt section on every request, so a compacted context still sees it |
 | Automations | Durable timer, GitHub, and webhook subscriptions with a detached supervisor |
@@ -43,6 +44,19 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 - A live Task asked for `environment: "cloud"` ran in the same working directory on the same machine, with `environment: SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED`. In this CLI, the cloud argument was inert too. Pi's local worktree is a stronger isolation than that observation, though still weaker than the documented cloud VM.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
+
+## Repairs in 0.15.36-pi.12
+
+A fresh reverse engineering of Cursor CLI 2026.10.22 with pstack and cursor-team-kit loaded found these differences. The repository's `parity/pi-pstack-behavior-parity/` holds the findings, the decision trail, and `probe-cursor.sh`, which reruns every Cursor probe. Each change has a test that failed on the earlier code.
+
+- A Custom Mode keeps its skill in context for the whole session in Cursor (its docs, and `durable_skill_blocks` in the CLI's conversation state). pi-pstack sent the body on one request, so a model that replays the system prompt lost it after a turn. The skill now rides every request, and Cursor's exit and switch notice is sent once after a mode ends.
+- A background completion uses Cursor's `<system_notification>` text, a title from the prompt's first line (80 characters at most), and its follow-up request; the launch text and Agent ID line use Cursor's words. An earlier repair had titled it by `description`, which Cursor shows in its UI but not in the model-facing notice.
+- Task, TodoWrite, and AskQuestion carry Cursor's usage rules; AskQuestion needs two options per question.
+- `explore` exists, and every subagent hears Cursor's subagent reminder. team-kit's thermo-nuclear agent text is upstream's again.
+- `GenerateImage` exists on Pi's image models. pstack's `teach` and `ketchup` reach for an image tool, which codemode, off by default, did not provide.
+- The path-skills module is gone. A live probe showed Cursor never surfaces a `paths` skill that sets `disable-model-invocation`, which is `typescript-best-practices`.
+- Plan mode follows Cursor's instructions and `CreatePlan` contract, allows markdown edits, offers `SwitchMode`, and asks whether to build a saved plan.
+- A `/loop` wake that comes due mid-run fires once after the run instead of being dropped, which had also stalled agent-paced loops.
 
 ## Repairs in 0.15.36-pi.11
 
@@ -85,10 +99,11 @@ Each code change has a regression in the package suite. Text restorations are re
 These are not closed by extension code.
 
 - **Background workers stop when the chat exits.** A Pi subagent is a child process of the chat, so quitting or shutting the session stops the agents it started and reports how many. Whether a Cursor background subagent outlives its parent is unobserved; the CLI changelog says cancelling the prompt stops its subagents, and only the cloud-agent product promises work after the laptop closes. A `new_session` subscription fire is Pi's one detached path, and it starts a fresh run rather than continuing a subagent.
-- **A mode carries its body once, then a reminder.** Cursor attaches the skill body on the turn that enters the mode and sends a path-naming reminder every turn after, in a user-message field. Pi rebuilds its prompt per request, so the body rides the first request after entry as a `pstack_mode` section and later requests carry the reminder. A process restart re-sends the body once, since the new process cannot know the conversation already saw it.
+- **A mode's skill rides the system prompt.** Cursor attaches the skill to the user message that enters the mode and keeps it durable in the conversation; its notices travel in user-message fields. Pi carries the skill and the notices in system-prompt sections, which reach the model on every request and survive compaction, so the model sees the same text in a different place.
 - **A fork needs an idle source.** Cursor exposes `fork` only on its internal and cloud-agent protos, never on the CLI Task schema, and no doc states whether a fork may start while the source runs. A Pi fork runs in the source's directory or worktree, so a running source is refused; the orchestrate playbook says to wait for its completion notification.
-- **Plan mode's restriction is stricter than the host's.** Cursor's inspected CLI carries no client-side plan-mode filter, and its docs recommend stating read-only intent in the prompt, so the restriction on that surface is prompt or backend side; no source shows a plan-mode network rule. Pi enforces a tool allowlist and a sandboxed shell that also denies network, so `gh`, `curl`, and package queries can fail while planning.
-- **No host-managed plan review UI.** The plan is a file the agent writes with `create_plan`, and `/plan build` starts the work from it. Cursor also renders a plan review menu with "build locally", "build in cloud", and "no, propose changes", and can hand the plan to a cloud agent. Pi has no equivalent UI, and its plan review is the file plus the reply.
+- **Plan mode's restriction is stricter than the host's.** Cursor's plan mode keeps every tool and restricts by instruction: edit only markdown files, run only read-only commands. Pi enforces the same rules with a tool allowlist, markdown-only `edit` and `write`, and a sandboxed shell that also denies network, so `gh`, `curl`, and package queries can fail while planning. Allowing network in a read-only shell would also open a path for remote changes, so the sandbox keeps it closed.
+- **The plan review is a dialog, not a card.** Cursor renders the plan with a build menu. Pi shows the same three choices in a select dialog after the run that saved the plan, and "build in cloud" starts a background isolated worktree worker, Pi's counterpart to a cloud agent, rather than a remote VM.
+- **One loop at a time.** Cursor's local `/loop` runs one shell loop per purpose, so several can run at once. pi-pstack runs one loop per session; a new `/loop` or `Loop` call replaces the running one. pstack's playbooks arm one audit loop at a time.
 - **benny's default cadence still needs its owning session open.** `wake_self` timers and webhook routines park while the owner is offline. A timer or webhook routine created with `sessionStrategy: "new_session"` runs detached with no chat open, but a detached run is one-shot: it must do the work in that run, because a background `Task` ends with it. Cursor automations run in the cloud and can hand work to anything. So benny keeps `wake_self` by default and setup names the tradeoff before switching.
 - **A routines listener is local, one port per workspace.** Cursor hosts each routine URL. Pi binds a loopback port per workspace, so two workspaces serve routines at once only because the default port falls back to an ephemeral one that the workspace then reuses and reports. A sender outside the machine still needs its own forwarding path.
 - **Cloud execution is local.** Cursor documents cloud VMs for its cloud product, but the inspected CLI schema omits `environment` and a requested cloud Task ran on the same machine and directory. Pi's `environment: "cloud"` goes further with a git worktree and a separate local process. Neither runs with the laptop off or provides a remote VM.

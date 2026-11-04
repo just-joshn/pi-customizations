@@ -54,7 +54,7 @@ function fakeLoop() {
     busy = false;
     for (const handler of handlers.get('agent_settled') ?? []) handler({ aborted: false }, ctx);
   };
-  return { sent, settle, startBusyRun: () => (busy = true), command: (args: string) => commands.get('loop')?.('' + args, ctx), loopTool: (params: unknown) => tools.get('Loop')?.('id', params, undefined, undefined, ctx) };
+  return { sent, settle, startBusyRun: () => (busy = true), command: (args: string) => commands.get('loop')?.(args, ctx), loopTool: (params: unknown) => tools.get('Loop')?.('id', params, undefined, undefined, ctx) };
 }
 
 describe('loop ticks during a run (HOST-004)', () => {
