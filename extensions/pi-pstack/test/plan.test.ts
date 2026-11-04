@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { ExtensionAPI, ToolDefinition } from '@earendil-works/pi-coding-agent';
-import { expect, onTestFinished, test } from 'vitest';
+import { expect, onTestFinished, test, vi } from 'vitest';
 import {
   BUILD_IN_WORKER,
   BUILD_LOCALLY,
@@ -176,14 +176,16 @@ test("after a run that saved a plan, the user picks build or propose changes, as
   const path = String(saved.details['planFile']);
   onTestFinished(() => rmSync(path, { force: true }));
   h.answers.push(PROPOSE_CHANGES);
-  await Promise.all(h.emit('agent_settled', { aborted: false }));
+  h.emit('agent_settled', { aborted: false });
+  await vi.waitFor(() => expect(h.answers).toEqual([]));
   expect([h.asked.at(-1)?.options, h.plan.enabled(), h.sent]).toEqual([[BUILD_LOCALLY, PROPOSE_CHANGES], true, []]);
 
   await h.call(PLAN_SAVE, { plan: '# Review me\n\n- two' });
   h.answers.push(BUILD_LOCALLY);
-  await Promise.all(h.emit('agent_settled', { aborted: false }));
+  h.emit('agent_settled', { aborted: false });
+  await vi.waitFor(() => expect(h.sent).toHaveLength(1));
   expect([h.plan.enabled(), h.sent.at(-1)?.text]).toEqual([false, [`Build the plan saved at ${path}. Follow it.`, '', '# Review me', '', '- two'].join('\n')]);
-  await Promise.all(h.emit('agent_settled', { aborted: false }));
+  h.emit('agent_settled', { aborted: false });
   expect(h.asked).toHaveLength(2);
 });
 
@@ -199,7 +201,8 @@ test('the build-in-a-worker choice leaves plan mode and starts an isolated worke
   const path = String((await h.call(PLAN_SAVE, { plan: '# Worker plan' })).details['planFile']);
   onTestFinished(() => rmSync(path, { force: true }));
   h.answers.push(BUILD_IN_WORKER);
-  await Promise.all(h.emit('agent_settled', { aborted: false }));
+  h.emit('agent_settled', { aborted: false });
+  await vi.waitFor(() => expect(h.notes.at(-1)).toContain('isolated worker'));
   expect([h.asked.at(-1)?.options, h.plan.enabled(), builds, h.notes.at(-1)]).toEqual([
     [BUILD_LOCALLY, BUILD_IN_WORKER, PROPOSE_CHANGES],
     false,

@@ -313,21 +313,27 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     pi.sendUserMessage(buildRequest(planFile, planBody(planFile)), { expandPromptTemplates: true, ...(ctx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
   };
 
-  // After a run that saved a plan, the user picks what happens next, as Cursor's plan card asks.
-  pi.on('agent_settled', async (event, ctx) => {
-    const planFile = review;
-    review = undefined;
-    if (event.aborted || planFile === undefined || !state.enabled || !canAsk(ctx) || !existsSync(planFile)) return;
+  const reviewPlan = async (ctx: ExtensionContext, planFile: string) => {
     const worker = options.buildInWorker !== undefined && isGitRepository(ctx.cwd);
     const choice = await ctx.ui.select(`Plan saved at ${planFile}. Build it?`, worker ? [BUILD_LOCALLY, BUILD_IN_WORKER, PROPOSE_CHANGES] : [BUILD_LOCALLY, PROPOSE_CHANGES]);
+    if (!state.enabled || state.planFile !== planFile) return;
     if (choice === BUILD_LOCALLY) build(ctx, planFile);
     else if (choice === BUILD_IN_WORKER && options.buildInWorker !== undefined) {
-      if (state.enabled) disable();
+      disable();
       pi.appendEntry(PLAN_ENTRY, state);
       show(ctx);
       const agentId = await options.buildInWorker(planFile, buildRequest(planFile, planBody(planFile)));
       ctx.ui.notify(`Building ${planFile} in an isolated worker (agent ${agentId}). Its result arrives as a Task notification.`, 'info');
     }
+  };
+
+  // After a run that saved a plan, the user picks what happens next, as Cursor's plan card asks. The dialog runs on
+  // its own so that other settle handlers, such as a loop's next tick, do not wait for the user's answer.
+  pi.on('agent_settled', (event, ctx) => {
+    const planFile = review;
+    review = undefined;
+    if (event.aborted || planFile === undefined || !state.enabled || !canAsk(ctx) || !existsSync(planFile)) return;
+    reviewPlan(ctx, planFile).catch((error: Error) => ctx.ui.notify(`Could not start the plan build: ${error.message}`, 'error'));
   });
 
   pi.registerTool({

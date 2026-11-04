@@ -64,7 +64,13 @@ function rpc(box, answers) {
       const seen = events.find(predicate);
       if (seen !== undefined) return resolveWait(seen);
       const timer = setTimeout(() => reject(new Error(`timed out\n${stderr.slice(-2000)}`)), ms);
-      waiters.push({ predicate, resolve: (event) => (clearTimeout(timer), resolveWait(event)) });
+      waiters.push({
+        predicate,
+        resolve: (event) => {
+          clearTimeout(timer);
+          resolveWait(event);
+        },
+      });
     });
   const prompt = async (message) => {
     const mark = events.length;
@@ -73,14 +79,24 @@ function rpc(box, answers) {
     await waitFor((event) => event.type === 'agent_settled' && events.indexOf(event) >= mark);
     return events.slice(mark);
   };
-  const close = () => new Promise((done) => (child.once('close', done), child.stdin.end(), setTimeout(() => child.kill('SIGKILL'), 10_000).unref()));
+  const close = () =>
+    new Promise((done) => {
+      child.once('close', done);
+      child.stdin.end();
+      setTimeout(() => child.kill('SIGKILL'), 10_000).unref();
+    });
   return { events, prompt, waitFor, close };
 }
 
 const replies = (events) =>
   events
     .filter((event) => event.type === 'message_end' && event.message?.role === 'assistant')
-    .map((event) => event.message.content.filter((part) => part.type === 'text').map((part) => part.text).join(''))
+    .map((event) =>
+      event.message.content
+        .filter((part) => part.type === 'text')
+        .map((part) => part.text)
+        .join(''),
+    )
     .filter((text) => text !== '');
 const calls = (events) => events.filter((event) => event.type === 'tool_execution_end').map((event) => event.toolName);
 
@@ -98,7 +114,9 @@ try {
     await session.prompt('/mode tdd');
     await session.prompt('Reply with only the word READY. Do not call any tool.');
     await session.prompt('Reply with only the word STILL. Do not call any tool.');
-    const third = await session.prompt('Without calling any tool or reading any file, quote verbatim the first markdown heading line (starting with #) of the skill your current mode follows. If it is not in your context, reply exactly NOT IN CONTEXT.');
+    const third = await session.prompt(
+      'Without calling any tool or reading any file, quote verbatim the first markdown heading line (starting with #) of the skill your current mode follows. If it is not in your context, reply exactly NOT IN CONTEXT.',
+    );
     const quote = replies(third).at(-1) ?? '';
     record('mode skill stays in context on the third turn', calls(third).length === 0 && /#\s*TDD|#\s*Test-driven/i.test(quote), `tools: ${calls(third).join(',') || 'none'}; reply: ${quote}`);
     await session.prompt('/mode off');
@@ -109,15 +127,25 @@ try {
   // Task: Cursor's background launch text and completion notification, and the explore type.
   {
     const session = rpc(box, []);
-    const launch = await session.prompt('Use the Task tool once: description "Bg pong", subagent_type generalPurpose, run_in_background true, prompt "Reply with the single word ZING. Do not use tools." Then quote the Task result text verbatim and end your turn.');
+    const launch = await session.prompt(
+      'Use the Task tool once: description "Bg pong", subagent_type generalPurpose, run_in_background true, prompt "Reply with the single word ZING. Do not use tools." Then quote the Task result text verbatim and end your turn.',
+    );
     const launchEnd = launch.find((event) => event.type === 'tool_execution_end' && event.toolName === 'Task');
     const launchText = (launchEnd?.result?.content ?? []).map((part) => part.text ?? '').join('');
     record('background launch text', launchText.startsWith("Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion"), launchText);
     const notice = await session.waitFor((event) => event.type === 'message_end' && event.message?.role === 'custom');
     const text = typeof notice.message.content === 'string' ? notice.message.content : notice.message.content.map((part) => part.text ?? '').join('');
-    record('completion notification text', text.startsWith('<system_notification>\nThe following task has finished. If you were already aware') && text.includes('title: Reply with the single word ZING. Do not use tools.') && text.includes('Perform any necessary follow-up actions'), text);
+    record(
+      'completion notification text',
+      text.startsWith('<system_notification>\nThe following task has finished. If you were already aware') &&
+        text.includes('title: Reply with the single word ZING. Do not use tools.') &&
+        text.includes('Perform any necessary follow-up actions'),
+      text,
+    );
     await session.waitFor((event) => event.type === 'agent_settled' && session.events.indexOf(event) > session.events.indexOf(notice));
-    const explore = await session.prompt('Use the Task tool once with subagent_type explore, run_in_background false, description "Find add", prompt "quick: find where the add function is defined in this repository and report the absolute path." Then reply with the path it reported.');
+    const explore = await session.prompt(
+      'Use the Task tool once with subagent_type explore, run_in_background false, description "Find add", prompt "quick: find where the add function is defined in this repository and report the absolute path." Then reply with the path it reported.',
+    );
     const exploreEnd = explore.find((event) => event.type === 'tool_execution_end' && event.toolName === 'Task');
     record('explore subagent runs and reports a path', exploreEnd?.isError === false && /calc\.js/.test(replies(explore).at(-1) ?? ''), replies(explore).at(-1));
     await session.close();
@@ -130,7 +158,7 @@ try {
     const end = planned.find((event) => event.type === 'tool_execution_end' && event.toolName === 'CreatePlan');
     const file = end?.result?.details?.planFile ?? '';
     const content = file !== '' && existsSync(file) ? readFileSync(file, 'utf8') : '';
-    record('plan mode ends in CreatePlan with Cursor\'s file shape', /\.plan\.md$/.test(file) && /^<!-- [0-9a-f-]+ -->\n(---\ntodos:\n[\s\S]*?\nisProject: false\n---\n)?\S/.test(content), `${file}\n${content.slice(0, 600)}`);
+    record("plan mode ends in CreatePlan with Cursor's file shape", /\.plan\.md$/.test(file) && /^<!-- [0-9a-f-]+ -->\n(---\ntodos:\n[\s\S]*?\nisProject: false\n---\n)?\S/.test(content), `${file}\n${content.slice(0, 600)}`);
     const review = await session.waitFor((event) => event.type === 'extension_ui_request' && event.method === 'select', 60_000).catch(() => undefined);
     record('the user is asked whether to build the plan', review?.options?.includes('Yes, build locally') === true, JSON.stringify(review?.options));
     record('no code edit happened in plan mode', readFileSync(join(box.work, 'calc.js'), 'utf8') === 'export function add(a, b) {\n  return a + b;\n}\n', calls(planned).join(','));
