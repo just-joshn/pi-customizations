@@ -16,7 +16,7 @@ Memory: `{{BENNY_MEMORY_DIR}}`. Read `MEMORIES.md` first. Record claims only in 
 
 Trigger, timer mode (this session woke from a `subscribe_timer` fire):
 
-1. Read top-level messages in the configured source Slack channel from the last `{{SWEEP_LOOKBACK_MINUTES}}` minutes with the configured Slack read tool.
+1. Read top-level messages in the configured source Slack channel with the configured Slack read tool, starting `{{SWEEP_LOOKBACK_MINUTES}}` minutes ago or from the last successful sweep time recorded in `MEMORIES.md` when that is earlier, so reports posted while the session was offline are still seen. Record this sweep's start time in `MEMORIES.md` when the sweep ends.
 2. Skip every message that `ledger.tsv` lists as `done` for `benny-triage`, and every message with a `claimed` line from the last `{{TRIAGE_TOTAL_MINUTES}}` minutes. A `claimed` line older than that with no `done` line belongs to a run that died, so retry that message.
 3. Take the oldest remaining message. If none remain, end the turn with `no new report` and post nothing.
 4. Append a `claimed` line for it to `ledger.tsv` before any other work. Handle only this one report. The next fire takes the next one.

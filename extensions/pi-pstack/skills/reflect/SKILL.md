@@ -29,7 +29,7 @@ Each reviewer and the synthesizer name a role line in the model rule at the path
 | Lens | Role line | Default `model` | Prompt template |
 |---|---|---|---|
 | Judgment | `reflect judgment, divergent, synthesizer` | `claude-opus-5-5:xhigh` | `references/judgment-reviewer.md` |
-| Tooling | `reflect tooling` | `grok-4.7:xhigh` | `references/tooling-reviewer.md` |
+| Tooling | `reflect tooling` | `grok-4.7[effort=xhigh,fast=true]` | `references/tooling-reviewer.md` |
 | Divergent | `reflect judgment, divergent, synthesizer` | `claude-opus-5-5:xhigh` | `references/divergent-reviewer.md` |
 
 Pass each template verbatim, substituting the transcript path or digest where marked. Reviewers return findings in the `Task` response body.

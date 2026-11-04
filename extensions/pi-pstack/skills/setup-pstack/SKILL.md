@@ -26,7 +26,7 @@ The default role-to-model mapping is the rule shape shown in step 5 below. If th
 - `medium — high reasoning`
 - `small — medium reasoning`
 
-**(b) Apply it.** Build the working table from the skill defaults, and on a re-run keep any role you changed by family, list, or alias (`inherit-parent`, `auto`). `unlimited`, `large`, `medium`, and `small` set the effort token of every real model spec, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The effort token is the `:<level>` suffix, or `effort=<level>` inside `[...]` (a `fast=true` there is speed, not effort), on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the result is not a detected model at that level (Task rejects a level the model does not list), use the same family's detected model at the highest effort at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `claude-opus-5-5:xhigh` into `claude-opus-5-5:max`. Grok tops out at `xhigh`, so under `unlimited` the fallback puts Grok at `xhigh` and keeps `grok-4.7:xhigh` as it is. `large` keeps both defaults. `small` turns them into `claude-opus-5-5:medium` and `grok-4.7:medium`.
+**(b) Apply it.** Build the working table from the skill defaults, and on a re-run keep any role you changed by family, list, or alias (`inherit-parent`, `auto`). `unlimited`, `large`, `medium`, and `small` set the effort token of every real model spec, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The effort token is the `:<level>` suffix, or `effort=<level>` inside `[...]` (a `fast=true` there is speed, not effort), on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the result is not a detected model at that level (Task rejects a level the model does not list), use the same family's detected model at the highest effort at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `claude-opus-5-5:xhigh` into `claude-opus-5-5:max`. Grok tops out at `xhigh`, so under `unlimited` the fallback puts Grok at `xhigh` and keeps `grok-4.7[effort=xhigh,fast=true]` as it is. `large` keeps both defaults. `small` turns them into `claude-opus-5-5:medium` and `grok-4.7[effort=medium,fast=true]`.
 
 **(c) Show the roles and confirm.** Show every role with its model, marking any real model spec not in the detected set as needing a choice. Also list each line step 2 dropped. Ask whether to accept as-is or change specific roles, offering the detected models plus `inherit-parent` and `auto` (both mean: this role runs on the parent chat model, which is how a role follows the chat model when the user switches it) as the options. Prefer AskQuestion over free text. For panel roles (arena runners, architect runners, interrogate reviewers) the value is a list, and one subagent runs per entry, alias entries included, so the list length sets the count. `arena cross-judge pool` is also a list, but Arena runs one judge. It tries only values from a family other than the parent's, in list order, so order it by preference. An `inherit-parent` or `auto` value never judges. `swarm workers` is the default model for every worker unless a race or comparison assigns another model per arm.
 
@@ -42,23 +42,23 @@ Write the model rule at the path the system prompt names, as plain Markdown with
 # pstack model configuration. One line per role. Delete a line to fall back to the skill default.
 # `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.
 # budget: large (xhigh)
-feature, refactoring: grok-4.7:xhigh
-bug-fix: grok-4.7:xhigh
-perf-issue: grok-4.7:xhigh
-hillclimb: grok-4.7:xhigh
+feature, refactoring: grok-4.7[effort=xhigh,fast=true]
+bug-fix: grok-4.7[effort=xhigh,fast=true]
+perf-issue: grok-4.7[effort=xhigh,fast=true]
+hillclimb: grok-4.7[effort=xhigh,fast=true]
 judgment and prose: claude-opus-5-5:xhigh
 hardest tasks: claude-opus-5-5:xhigh
-how explorer: grok-4.7:xhigh
+how explorer: grok-4.7[effort=xhigh,fast=true]
 how explainer: claude-opus-5-5:xhigh
-why investigators: grok-4.7:xhigh
+why investigators: grok-4.7[effort=xhigh,fast=true]
 why synthesizer: claude-opus-5-5:xhigh
-reflect tooling: grok-4.7:xhigh
+reflect tooling: grok-4.7[effort=xhigh,fast=true]
 reflect judgment, divergent, synthesizer: claude-opus-5-5:xhigh
-arena runners: claude-opus-5-5:xhigh, grok-4.7:xhigh
-arena cross-judge pool: claude-opus-5-5:xhigh, grok-4.7:xhigh
-swarm workers: grok-4.7:xhigh
-architect runners: claude-opus-5-5:xhigh, grok-4.7:xhigh
-interrogate reviewers: claude-opus-5-5:xhigh, grok-4.7:xhigh
+arena runners: claude-opus-5-5:xhigh, grok-4.7[effort=xhigh,fast=true]
+arena cross-judge pool: claude-opus-5-5:xhigh, grok-4.7[effort=xhigh,fast=true]
+swarm workers: grok-4.7[effort=xhigh,fast=true]
+architect runners: claude-opus-5-5:xhigh, grok-4.7[effort=xhigh,fast=true]
+interrogate reviewers: claude-opus-5-5:xhigh, grok-4.7[effort=xhigh,fast=true]
 ```
 
 ### 6. Confirm

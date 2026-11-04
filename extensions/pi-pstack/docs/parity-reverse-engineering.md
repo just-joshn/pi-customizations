@@ -67,7 +67,7 @@ pstack 0.15.36
 
 REA analysis of `pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2abb9162f70c102ccab8860f`, trace `ev_22556088c77e2fa9073d079a7ed0796b2545e2f36a6223d130b2df64a8b04d12`) maps each host feature to Pi 1.4.0 native extension mechanisms (`native-gaps.md` documents the remaining lower-level surfaces):
 
-| Host capability | `pi-pstack` module | Pi 1.4.0 native mechanism |
+| Host capability | `pi-pstack` module | Pi 1.5.0 native mechanism |
 | --- | --- | --- |
 | `/name` skill aliases and completions | `src/aliases.ts`, `src/autocomplete.ts` | `pi.on('input')` rewriting `/name` to `/skill:name`, `ctx.ui.addAutocompleteProvider`, `pi.getCommands()` |
 | Sticky mode (`/mode <skill>`) | `src/mode.ts` | `pi.registerCommand('mode')`, `pi.appendEntry('pstack/mode')`, `ctx.sessionManager.getBranch()`, `stripFrontmatter`, `ctx.ui.setStatus`, `before_agent_start` `systemPromptOptions.sections.pstack_mode` |
@@ -91,4 +91,4 @@ REA analysis of `pi-pstack/src` (`ev_6fe43d2bbfab36c6763a2d1e940ee728fdbbe2ad2ab
 
 ## REA coverage notes
 
-Static JavaScript and TypeScript semantic graphs report bounded unknowns for dynamic property lookups and cross-function value flows (3,303 in `poteto-mode/scripts`, 12,803 in `statechart/scripts`, 356 in `pr-review-canvas`, and 7,204 in `pi-pstack/src`), and 1 unanalyzed inline script in `pr-review-canvas/template.html`. The Vitest tests cover their asserted extension contracts. They do not prove all runtime behavior, external services, or the separately executed statechart suite. See [`native-gaps.md`](native-gaps.md) for the remaining lower-level Pi 1.4.0 surfaces.
+Static JavaScript and TypeScript semantic graphs report bounded unknowns for dynamic property lookups and cross-function value flows (3,303 in `poteto-mode/scripts`, 12,803 in `statechart/scripts`, 356 in `pr-review-canvas`, and 7,204 in `pi-pstack/src`), and 1 unanalyzed inline script in `pr-review-canvas/template.html`. The Vitest tests cover their asserted extension contracts. They do not prove all runtime behavior, external services, or the separately executed statechart suite. See [`native-gaps.md`](native-gaps.md) for the remaining lower-level Pi 1.5.0 surfaces.

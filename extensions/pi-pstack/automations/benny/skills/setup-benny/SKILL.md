@@ -15,7 +15,7 @@ Benny needs external configuration and two live automations. Each automation is 
 - Timer mode (default): `subscribe_timer` with a 5-field `cron`. Each fire wakes the owning session, which sweeps the source channel, claims one report, and hands it to one background `Task` on the automation's configured model. The run's result arrives as a Task notification.
 - Webhook mode: `subscribe_webhook`. Each POST to the local routine URL wakes the owning session with a `[routine]` turn, and the prompt hands the event to one background `Task` on the automation's configured model.
 
-Creating a subscription auto-starts `pstack-routines-supervisor`. Benny's `wake_self` timers and webhook routines target the owning session. While it is offline, wakes park until that session is restored. Only `new_session` timers can start detached work while the owner is offline. Subscriptions expire after seven days unless renewed. Tell the user this before creating anything. For fires that survive a reboot, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` (resolve the script from the pi-pstack package root) and run it when they say yes.
+Creating a subscription auto-starts `pstack-routines-supervisor`. Benny's `wake_self` timers and webhook routines target the owning session. While it is offline, wakes park durably until that session is restored. A timer or webhook routine created with `sessionStrategy: "new_session"` instead starts a fresh detached run per fire, with no chat open, and records each outcome in `list_subscriptions`. Routines do not expire unless `expiresInHours` names a limit. Tell the user this before creating anything. For fires that survive a reboot, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` (resolve the script from the pi-pstack package root) and run it when they say yes.
 
 Do not create or update a subscription until the user explicitly asks. Never put a secret value in pack files, prompts, memory, or committed configuration.
 
@@ -59,7 +59,7 @@ Confirm that `pi mcp list` shows the Slack MCP server the user names, and that i
 
 The Benny files are read directly from `<target-repository>/.pi/automations/benny/`. Do not move that directory into `.pi/skills/` or expect its `SKILL.md` files to appear in the slash-skill list.
 
-Tell the user to commit `.pi/automations/benny/` and any referenced secret-free configuration, so pack refreshes stay reviewable. Do not commit them unless the user asks.
+Tell the user that `.pi/automations/benny/`, any referenced secret-free configuration, and, for a project install, the target repository's `.pi/settings.json` must be committed on the branch the owning session has checked out before either subscription is enabled. A subscription reads the working tree, so an uncommitted instruction would run unreviewed. Do not commit them unless the user asks.
 
 Once this check passes, subscription prompts read the operational files by their absolute paths in the target checkout. They must not embed a pi-pstack package path or copy the file contents.
 
@@ -183,7 +183,8 @@ For each automation:
 4. Show the user the subscription name, mode, schedule, and full prompt, and get approval.
 5. Create the subscription:
    - Timer mode: `subscribe_timer` with `name`, `prompt`, and `cron`. Keep the default `sessionStrategy`, `wake_self`, so each fire reaches the owning session, which starts the `Task` on the configured model.
-   - Webhook mode: `subscribe_webhook` with `name` and `prompt`. It returns the local URL (`http://127.0.0.1:<port>/routines/<slug>`, where the slug is the kebab-case form of the name) and the credential file path. The key stays in that file. Never print it, paste it into chat, or copy it into the configuration.
+   - Webhook mode: `subscribe_webhook` with `name` and `prompt`. Keep the default `sessionStrategy`, `wake_self`, for the same handoff. It returns the local URL (`http://127.0.0.1:<port>/routines/<slug>`, where the slug is the kebab-case form of the name) and the credential file path. The key stays in that file. Never print it, paste it into chat, or copy it into the configuration.
+   - Only when the user asks for the automations to run with no chat open, pass `sessionStrategy: "new_session"` and replace the background `Task` handoff in the prompt with the same work performed in that run, because a detached run ends when it settles and takes any background child with it. State that tradeoff before switching.
 6. Run `list_subscriptions`. Confirm the subscription appears with the expected name, schedule or URL, and `expiresAt`. A result of `created: false` means a subscription with that name already exists and kept its old prompt; follow the existing-subscription path instead.
 7. Finish the thread-safety checks that apply to this automation before creating the next one.
 
@@ -225,7 +226,7 @@ Finish configuration, routing, control-adapter, and feature-map validation. Then
 3. Create it again with the same name and the new prompt. A webhook routine keeps its slug, so check whether its URL or credential file changed and tell the user to update the relay.
 4. Run `list_subscriptions` and confirm exactly one subscription per name.
 
-To renew an expiring subscription, do the same with the unchanged prompt. Do not create replacements under new names.
+To renew a subscription created with `expiresInHours`, do the same with the unchanged prompt. Do not create replacements under new names.
 
 ### Creation boundary
 
@@ -237,7 +238,7 @@ Do not let either automation handle normal traffic until the thread-safety test 
 
 Create both subscriptions with a test channel as the source channel, or test with a harmless report.
 
-Before testing, confirm that both subscription prompts point at their exact operational files in the target checkout, that the memory directory exists, and that `list_subscriptions` shows both subscriptions. If any check fails, stop. Tell the user that the automation cannot handle traffic yet.
+Before testing, confirm that the target repository's `.pi/automations/benny/`, every referenced secret-free configuration file, and, for a project install, its `.pi/settings.json` are committed on the branch the owning session has checked out. Confirm that both subscription prompts point at their exact committed operational files in the target checkout, that the memory directory exists, and that `list_subscriptions` shows both subscriptions. If any check fails, stop. Tell the user that the automation cannot handle traffic yet.
 
 Verify:
 
