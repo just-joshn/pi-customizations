@@ -132,6 +132,33 @@ describe('subagent catalog (HOST-002)', () => {
   });
 });
 
+describe('declared tool descriptions', () => {
+  const described = async (tool: string) => {
+    const [text] = assistantTexts((await runJson(sandbox, `describe\n@@tool-description ${tool}`, ['--no-session'])).events);
+    return text ?? '';
+  };
+
+  test("Task carries Cursor's delegation rules", async () => {
+    const text = await described('Task');
+    expect([
+      text.includes('Do not use Task for a narrow or specific question.'),
+      text.includes('put several Task calls in one message'),
+      text.includes("The agent cannot see the user's messages or your earlier steps"),
+      text.includes('A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it'),
+    ]).toEqual([true, true, true, true]);
+  });
+
+  test("TodoWrite carries Cursor's todo rules", async () => {
+    const text = await described('TodoWrite');
+    expect([
+      text.includes('do not tell the user you are updating todos'),
+      text.includes('keep only one task in_progress at a time'),
+      text.includes('Skip it for a single straightforward task'),
+      text.includes('Batch todo updates with your other tool calls.'),
+    ]).toEqual([true, true, true, true]);
+  });
+});
+
 describe('capability-aware sections (C-M4)', () => {
   test('a readonly subagent gets no subagent catalog and no Task or stop_agent lines; its parent gets both', async () => {
     const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'probe', prompt: 'go\n@@sys', readonly: true } }]), ['--no-session']);

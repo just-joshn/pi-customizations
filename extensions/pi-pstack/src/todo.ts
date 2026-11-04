@@ -96,6 +96,26 @@ export function todoSection(todos: readonly TodoItem[]): string | undefined {
   return todos.length === 0 ? undefined : `Current todo list, owned by this session:\n${formatTodos(todos)}`;
 }
 
+// Cursor's TodoWrite rules: when to keep a list, the four states, one task in progress at a time, and batching.
+const TODO_DESCRIPTION = [
+  'Use this tool to create and manage a structured task list for your current coding session. It tracks progress, organizes complex tasks, and shows the user what you are doing. Each item has an id, content, and status.',
+  '',
+  'Other than when you first create the list, do not tell the user you are updating todos. Just update them.',
+  '',
+  'Use it for:',
+  '- A task with three or more distinct steps, or non-trivial work that needs planning.',
+  '- An explicit request for a todo list, or several tasks given at once (numbered or comma-separated).',
+  '- New instructions: capture the requirements as todos.',
+  '- A finished task: mark it completed (merge=true) and add any follow-ups.',
+  '- A task you start: mark it in_progress.',
+  '',
+  'Skip it for a single straightforward task, a trivial task done in fewer than three steps, or a purely conversational or informational request. Do not add a task to test a change unless asked.',
+  '',
+  'States: pending (not started), in_progress (working on it now), completed (finished), cancelled (no longer needed). Update states as you work, mark a task completed as soon as it is done, keep only one task in_progress at a time, and finish the current task before you start a new one. Write specific, actionable items with clear names.',
+  '',
+  'Prefer creating the first todo as in_progress, and start on it with tool calls in the same batch as the write. Batch todo updates with your other tool calls.',
+].join('\n');
+
 export function registerTodoWrite(pi: ExtensionAPI): { section: () => string | undefined } {
   let todos: TodoItem[] = [];
   const show = (ctx: ExtensionContext) => {
@@ -111,7 +131,7 @@ export function registerTodoWrite(pi: ExtensionAPI): { section: () => string | u
   pi.registerTool({
     name: 'TodoWrite',
     label: 'Todos',
-    description: 'Use this tool to create and manage a structured task list for your current coding session. Each item has an id, content, and status (pending, in_progress, completed, cancelled).',
+    description: TODO_DESCRIPTION,
     promptSnippet: 'Create and update the todo list for this session',
     promptGuidelines: ['When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.'],
     parameters: TodoParams,
