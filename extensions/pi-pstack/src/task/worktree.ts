@@ -9,7 +9,7 @@ export interface Worktree {
   /** The child's working directory: the parent's place in the repository, mapped into the worktree. */
   cwd: string;
   branch: string;
-  /** The ref the branch starts from: cloud_base_branch, origin/<cloud_base_branch>, or HEAD. */
+  /** The ref the branch starts from: origin/<cloud_base_branch>, cloud_base_branch, or HEAD. */
   base: string;
   commit: string;
 }
@@ -36,11 +36,13 @@ function resolveBase(cwd: string, baseBranch: string | undefined): { base: strin
     if (commit === undefined) throw new Error(`environment "cloud" branches the subagent's worktree from HEAD, but ${cwd} has no commits yet.`);
     return { base: 'HEAD', commit };
   }
-  for (const base of [baseBranch, `origin/${baseBranch}`]) {
+  // Cursor's cloud workers start from the pushed branch, so the remote-tracking ref wins over a local branch that may be
+  // behind it. A local-only branch or any other ref still works when no origin ref of that name exists.
+  for (const base of [`origin/${baseBranch}`, baseBranch]) {
     const commit = commitOf(cwd, base);
     if (commit !== undefined) return { base, commit };
   }
-  throw new Error(`cloud_base_branch "${baseBranch}" names no commit in ${cwd}: neither ${baseBranch} nor origin/${baseBranch} exists. Pass an existing branch or omit cloud_base_branch to start from HEAD.`);
+  throw new Error(`cloud_base_branch "${baseBranch}" names no commit in ${cwd}: neither origin/${baseBranch} nor ${baseBranch} exists. Pass an existing branch or omit cloud_base_branch to start from HEAD.`);
 }
 
 /** Resolves where a cloud agent will run without changing anything, so a bad base fails before any side effect. */

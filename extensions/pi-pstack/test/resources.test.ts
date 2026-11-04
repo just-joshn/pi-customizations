@@ -87,7 +87,10 @@ const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
 ];
 
+const WHOLE_FILE_EXEMPT = new Map([['docs/parity-status.md', 'records the upstream source, its host translations, and the host differences that remain']]);
+
 function hostTermLines(file: string, text: string): string[] {
+  if (WHOLE_FILE_EXEMPT.has(file)) return [];
   const exempt = OUTSIDE_DATA.filter((entry) => entry.file === file);
   return text.split('\n').flatMap((line, index) => {
     const rest = exempt.reduce((remaining, entry) => remaining.replace(entry.span, ''), line);

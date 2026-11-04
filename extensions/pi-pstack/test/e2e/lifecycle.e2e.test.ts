@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { contentText, makeSandbox, type PiEvent, type RpcSession, type Sandbox, script, startRpc } from './harness.ts';
 
@@ -89,4 +92,17 @@ test('a new session resets mode and todos and stops the old children (PKG-002)',
   expect(notice?.['message']).toBe('Stopped 1 background subagent (session new). Resume one with its agent ID.');
   expect(await reply('fresh\n@@sys')).not.toContain('<pstack_mode>');
   expect(await reply(script([{ tool: 'TodoWrite', args: { merge: true, todos: [{ id: 'b', content: 'Beta', status: 'pending' }] } }]))).toBe('RESULTS:\n[TodoWrite] Todos (0/1 completed):\n[ ] b: Beta');
+});
+
+test('a bare /plan enters plan mode and the next turn cannot write a file', async () => {
+  rpc.send({ type: 'prompt', message: '/plan' });
+  await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('Plan mode on'));
+  const mark = rpc.events.length;
+  rpc.send({ type: 'prompt', message: script([{ tool: 'write', args: { path: 'escaped.txt', content: 'x' } }]) });
+  await rpc.waitFor((event) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark);
+  const texts = rpc.events
+    .slice(mark)
+    .filter((event) => event.type === 'tool_execution_end')
+    .map((event) => (event['result'] as { content: { text: string }[] } | undefined)?.content[0]?.text ?? '');
+  expect([existsSync(join(sandbox.workDir, 'escaped.txt')), texts]).toEqual([false, ['Tool write not found']]);
 });

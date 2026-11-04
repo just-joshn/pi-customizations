@@ -16,6 +16,7 @@ export interface ModelSpec {
 }
 
 const INHERIT = new Set(['', 'inherit', 'inherit-parent', 'auto', 'default']);
+const FAST = new Set(['fast']);
 const EFFORTS = new Set<string>(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
 const DASH_SLUG = /^(.+?)(?:-thinking)?(?:-(none|minimal|low|medium|high|xhigh|max))?(-fast)?$/;
 
@@ -128,6 +129,12 @@ function resolveBracketed(value: string, find: Find): ModelSpec | undefined {
 export function resolveSubagentModel(value: string | undefined, available: readonly AvailableModel[], parent: ModelSpec | undefined): ModelSpec | undefined {
   const requested = (value ?? '').trim();
   if (INHERIT.has(requested)) return parent;
+  if (FAST.has(requested)) {
+    if (parent === undefined) return undefined;
+    const candidate = available.find((model) => model.provider === parent.provider && model.id === `${parent.id}-fast`);
+    if (candidate === undefined) return parent;
+    return { provider: candidate.provider, id: candidate.id, ...(parent.thinking === undefined || !candidate.levels.includes(parent.thinking) ? {} : { thinking: parent.thinking }) };
+  }
   try {
     const find: Find = (reference) => findModel(reference, available, parent?.provider);
     const resolved = resolveBracketed(requested, find) ?? resolvePiSpec(requested, find) ?? resolveDashSlug(requested, find);

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../src/paths.ts';
-import { addUsage, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments, zeroUsage } from '../src/task/runner.ts';
+import { addUsage, childArgs, recoverDrained, resolveAttachments, startChild, validateAgentId, withAttachments, zeroUsage } from '../src/task/runner.ts';
 
 const FAKE_PI = join(PACKAGE_ROOT, 'test/fixtures/fake-pi.mjs');
 const base = { sessionDir: '/state/subagents', agentId: '11111111-2222-4333-8444-555555555555' };
@@ -143,6 +143,29 @@ const alive = (pid: number) => {
   }
 };
 
+test('a drained follow-up never takes a steering image, and identical steers keep their own attachments', () => {
+  const first = { type: 'image' as const, mimeType: 'image/png', data: 'Zmlyc3Q=' };
+  const second = { type: 'image' as const, mimeType: 'image/png', data: 'c2Vjb25k' };
+  const recovered = recoverDrained(
+    [
+      { queue: 'followUp', text: 'server note' },
+      { queue: 'steering', text: 'retry' },
+      { queue: 'steering', text: 'retry' },
+      { queue: 'steering', text: 'rewritten by an input handler' },
+    ],
+    [
+      { text: 'retry', images: [first] },
+      { text: 'retry', images: [second] },
+    ],
+  );
+  expect(recovered).toEqual([
+    { text: 'server note', images: [] },
+    { text: 'retry', images: [first] },
+    { text: 'retry', images: [second] },
+    { text: 'rewritten by an input handler', images: [] },
+  ]);
+});
+
 describe('startChild', () => {
   test('sends the prompt as an RPC prompt and returns the final assistant text with summed usage', async () => {
     const outcome = await run('echo', 'line one\n"quoted" $HOME').done;
@@ -270,6 +293,14 @@ describe('steer and stop (C-H4)', () => {
     expect([outcome.finalText, outcome.failure]).toEqual(['STEERED:change course|steer', undefined]);
   });
 
+  test('a steer stranded at settlement is resumed with its image, in its own message', async () => {
+    const { handle, running } = started('stranded');
+    await running;
+    await handle.steer('change course', [{ type: 'image', mimeType: 'image/png', data: 'aGVsbG8=' }]);
+    const outcome = await handle.done;
+    expect([outcome.finalText, outcome.failure]).toEqual(['GOT:change course|IMAGES:image/png|ARGS:--x y', undefined]);
+  });
+
   test('steer refuses once the agent has finished', async () => {
     const handle = run('echo');
     await handle.done;
@@ -292,4 +323,13 @@ describe('steer and stop (C-H4)', () => {
     const outcome = await handle.done;
     expect([outcome.failure, Date.now() - before >= 2_500]).toEqual(['Subagent was stopped with stop_agent', true]);
   });
+});
+
+test('a video attachment is named for the model instead of decoded as text', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'attach-video-'));
+  const file = join(dir, 'clip.mp4');
+  writeFileSync(file, Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]));
+  const input = await withAttachments('watch', [file]);
+  rmSync(dir, { recursive: true, force: true });
+  expect(input).toEqual({ text: `watch<file name="${file}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>\n`, images: [] });
 });

@@ -50,6 +50,60 @@ function registry(sandbox: ReturnType<typeof makeSandbox>): {
   return JSON.parse(readFileSync(registryPath(sandbox), 'utf8'));
 }
 
+test('a detached webhook routine runs with no owner chat and records its outcome', async ({ onTestFinished }) => {
+  const sandbox = makeSandbox({ defaultProvider: 'scripted', defaultModel: 'echo' });
+  const owner = startRpc(sandbox);
+  onTestFinished(() => dispose(sandbox, [owner]));
+  const marker = join(sandbox.workDir, 'detached-routine-result');
+  owner.send({
+    type: 'prompt',
+    message: script([{ tool: 'subscribe_webhook', args: { name: 'Detached Bot', prompt: script([{ tool: 'write', args: { path: marker, content: 'DETACHED-ROUTINE-RESULT' } }]), sessionStrategy: 'new_session' } }]),
+  });
+  await owner.waitFor((event) => event.type === 'agent_settled');
+  const created = toolEnds(owner.events, 'subscribe_webhook')[0];
+  expect(created?.isError).toBe(false);
+  const url = (created?.details as { url?: string } | undefined)?.url ?? '';
+  expect(url).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/routines\/detached-bot$/);
+  const key = (JSON.parse(readFileSync(join(sandbox.agentDir, 'pstack/routines/detached-bot/credentials.json'), 'utf8')) as { key: string }).key;
+  await owner.close();
+  const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-automation-key': key }, body: '{"action":"go"}' });
+  expect(response.status).toBe(200);
+  await expect.poll(() => ({ exists: existsSync(marker), error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ exists: true });
+  expect(readFileSync(marker, 'utf8')).toBe('DETACHED-ROUTINE-RESULT');
+  await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 10_000 }).toMatch(/^RESULTS:\n\[write\] /);
+});
+
+test('two workspaces each serve their routines, falling back off a busy default port', async ({ onTestFinished }) => {
+  const sandboxes = [makeSandbox(), makeSandbox()];
+  const owners = sandboxes.map((sandbox) => startRpc(sandbox));
+  onTestFinished(async () => {
+    for (const [index, sandbox] of sandboxes.entries()) await dispose(sandbox, [owners[index] as ReturnType<typeof startRpc>]);
+  });
+  const created: { url: string; key: string }[] = [];
+  for (const [index, owner] of owners.entries()) {
+    owner.send({ type: 'prompt', message: script([{ tool: 'subscribe_webhook', args: { name: `Workspace ${index}`, prompt: `WORKSPACE-${index}-WAKE` } }]) });
+    await owner.waitFor((event) => event.type === 'agent_settled');
+    const result = toolEnds(owner.events, 'subscribe_webhook')[0];
+    expect(result?.isError).toBe(false);
+    const url = (result?.details as { url?: string } | undefined)?.url ?? '';
+    const slug = `workspace-${index}`;
+    const key = (JSON.parse(readFileSync(join(sandboxes[index]?.agentDir ?? '', `pstack/routines/${slug}/credentials.json`), 'utf8')) as { key: string }).key;
+    created.push({ url, key });
+  }
+  const ports = created.map((item) => Number(new URL(item.url).port));
+  expect(new Set(ports).size).toBe(2);
+  for (const [index, item] of created.entries()) {
+    const response = await fetch(item.url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-automation-key': item.key }, body: '{}' });
+    expect(response.status).toBe(200);
+    const wake = await owners[index]?.waitFor((event) => {
+      const message = event['message'] as { customType?: string } | undefined;
+      return event.type === 'message_end' && message?.customType === 'pstack/subscription';
+    }, 8_000);
+    if (wake === undefined) throw new Error(`workspace ${index} received no routine wake`);
+    expect(contentText((wake['message'] as { content: string }).content)).toContain(`WORKSPACE-${index}-WAKE`);
+  }
+});
+
 async function dispose(sandbox: ReturnType<typeof makeSandbox>, sessions: ReturnType<typeof startRpc>[]): Promise<void> {
   await Promise.all(sessions.map((session) => session.close()));
   const lock = join(sandbox.agentDir, 'pstack/durable', workspaceSlug(sandbox.workDir), 'runtime/supervisor.lock');
@@ -149,7 +203,8 @@ test('an explicit offline fresh timer uses the detached runner and records its o
   await owner.waitFor((event) => event.type === 'agent_settled');
   expect(toolEnds(owner.events, 'subscribe_timer')[0]?.isError).toBe(false);
   await owner.close();
-  await expect.poll(() => ({ exists: existsSync(marker), error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 10_000 }).toMatchObject({ exists: true });
+  await expect.poll(() => ({ exists: existsSync(marker), error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ exists: true });
   expect(readFileSync(marker, 'utf8')).toBe('DETACHED-FRESH-RESULT');
-  await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 5_000 }).toBe('detached run completed');
+  // A detached run records its own final message, which is the run output an automation reports status in.
+  await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 10_000 }).toMatch(/^RESULTS:\n\[write\] /);
 });

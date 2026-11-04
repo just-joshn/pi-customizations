@@ -251,3 +251,33 @@ local('only one supervisor can own a workspace', async ({ cwd, routines, onTestF
   expect(await first.start()).toEqual({ started: true });
   expect(await second.start()).toEqual({ started: false, alreadyRunning: true, pid: process.pid });
 });
+
+test('a detached new_session fire reuses the owner model and project trust', async () => {
+  const { freshArgs } = await import('../src/subscriptions/supervisor-main.ts');
+  expect(freshArgs({ subscriptionId: 's', cwd: '/w', model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true })).toEqual(['--approve', '--model', 'test/model', '--thinking', 'high', '-p', '--']);
+  expect(freshArgs({ subscriptionId: 's', cwd: '/w', trusted: false })).toEqual(['--no-approve', '-p', '--']);
+  expect(freshArgs({ subscriptionId: 's', cwd: '/w' })).toEqual(['-p', '--']);
+});
+
+local('a detached run records its own final message as the run output', async ({ cwd, routines, onTestFinished }) => {
+  vi.useFakeTimers();
+  createDesired(cwd, timer());
+  const supervisor = createSupervisor({
+    workspaceCwd: cwd,
+    routinesDir: routines,
+    routinesPort: 0,
+    runFresh: () => 'no new report',
+  });
+  onTestFinished(() => supervisor.stop());
+  expect(await supervisor.start()).toEqual({ started: true });
+  await vi.advanceTimersByTimeAsync(15_000);
+  expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lastOutcome: { text: 'no new report' } }], pending: [] });
+});
+
+test('the JSON event reader takes an assistant message and ignores every other record', async () => {
+  const { assistantText } = await import('../src/subscriptions/supervisor-main.ts');
+  expect(assistantText({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: 'run output' }] } })).toBe('run output');
+  expect(assistantText({ type: 'message_end', message: { role: 'user', content: [{ type: 'text', text: 'prompt' }] } })).toBeUndefined();
+  expect(assistantText({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: '   ' }] } })).toBeUndefined();
+  expect(assistantText({ type: 'agent_settled', aborted: false })).toBeUndefined();
+});

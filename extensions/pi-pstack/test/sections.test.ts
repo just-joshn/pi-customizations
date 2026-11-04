@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { type HostFacts, hostSection } from '../src/sections.ts';
+import { SKILLS_DIR } from '../src/paths.ts';
+import { alwaysAppliedRules, type HostFacts, hostSection } from '../src/sections.ts';
 
 const ALL_TOOLS = ['read', 'bash', 'edit', 'write', 'Task', 'agent_status', 'stop_agent', 'TodoWrite', 'AskQuestion', 'Loop', 'subscribe_github_pr'];
 const READONLY_CHILD_TOOLS = ['read', 'grep', 'find', 'ls', 'bash', 'TodoWrite'];
@@ -21,6 +22,7 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
   loopAvailable: true,
   questionsAvailable: true,
   activeTools,
+  rules: [],
   ...extra,
 });
 
@@ -41,6 +43,15 @@ describe('host section names only the tools this session has (C-M4)', () => {
     const host = hostSection(facts(tools, { loopAvailable: false, questionsAvailable: false }));
     expect([host.includes('Task'), host.includes('stop_agent'), host.includes('<pstack_subagents>'), host.includes('Isolated workers')]).toEqual([false, false, false, false]);
     expect(host.includes('agent_status')).toBe(tools.includes('agent_status'));
+  });
+
+  test('the always-applied rules carry the shipped rule text verbatim, not a paraphrase', () => {
+    const rules = alwaysAppliedRules(SKILLS_DIR);
+    expect(rules).toHaveLength(2);
+    expect(rules[0]).toContain('interface fields');
+    expect(rules[0]).toContain('strict circular-dependency reason');
+    const host = hostSection(facts(ALL_TOOLS, { rules }));
+    expect([host.includes('interface fields'), host.includes('strict circular-dependency reason')]).toEqual([true, true]);
   });
 
   test('a session without AskQuestion is told to decide questions itself', () => {

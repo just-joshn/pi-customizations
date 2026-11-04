@@ -23,6 +23,11 @@ export function routinesDir(): string {
   return join(stateDir(), 'routines');
 }
 
+/** Plan-mode artifacts, the way Cursor keeps a plan file under `~/.cursor/plans`. */
+export function plansDir(): string {
+  return join(stateDir(), 'plans');
+}
+
 /** Desired-state registry and supervisor runtime for one workspace. */
 export function durableDir(cwd: string): string {
   return join(stateDir(), 'durable', workspaceSlug(cwd));

@@ -5,7 +5,7 @@ import { performance } from 'node:perf_hooks';
 
 import { durableRegistryPath, durableRuntimeDir } from '../paths.ts';
 import { parseCron } from './cron.ts';
-import type { ArmStatus, DurableRegistry, DurableSubscription, PendingEvent, StoredSubscription, SupervisorLock } from './durable-types.ts';
+import type { ArmStatus, DurableRegistry, DurableSubscription, EventAdmission, PendingEvent, StoredSubscription, SupervisorLock } from './durable-types.ts';
 import { routineSlug } from './webhook.ts';
 
 export function canonicalPath(path: string): string {
@@ -18,11 +18,23 @@ export function canonicalPath(path: string): string {
   }
 }
 
+function zombie(pid: number): boolean {
+  if (process.platform !== 'linux') return false;
+  try {
+    const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+    const close = stat.lastIndexOf(')');
+    return close !== -1 && stat.slice(close + 2, close + 3) === 'Z';
+  } catch {
+    return false;
+  }
+}
+
 export function alive(pid: number): boolean {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
     process.kill(pid, 0);
-    return true;
+    // A zombie still answers kill(pid, 0) until its parent reaps it, but it holds no lock and runs nothing.
+    return !zombie(pid);
   } catch (error) {
     return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
@@ -43,6 +55,27 @@ const runtime = (cwd: string) => durableRuntimeDir(canonicalPath(cwd));
 export const supervisorLockPath = (cwd: string) => join(runtime(cwd), 'supervisor.lock');
 const registryLockPath = (cwd: string) => join(runtime(cwd), 'registry.lock');
 export const ownerLockPath = (cwd: string, id: string) => join(runtime(cwd), `owner-${createHash('sha256').update(id).digest('hex')}.lock`);
+const routinesPortPath = (cwd: string) => join(runtime(cwd), 'routines.port');
+
+/** The port this workspace's listener last bound, so a restart does not invalidate sender URLs. */
+export function readRoutinesPort(cwd: string): number | undefined {
+  try {
+    const port = Number(readFileSync(routinesPortPath(cwd), 'utf8').trim());
+    return Number.isInteger(port) && port > 0 && port < 65_536 ? port : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function writeRoutinesPort(cwd: string, port: number): void {
+  if (!(Number.isInteger(port) && port > 0 && port < 65_536)) return;
+  try {
+    mkdirSync(runtime(cwd), { recursive: true, mode: 0o700 });
+    writeFileSync(routinesPortPath(cwd), `${port}\n`, { mode: 0o600 });
+  } catch {
+    // A missing runtime dir only costs a new port after restart.
+  }
+}
 
 export type Lease = { token: string; release: () => void };
 
@@ -148,11 +181,15 @@ function validSubscription(value: unknown): value is DurableSubscription {
   }
   if (typeof c.prompt !== 'string') return false;
   if (c.kind === 'webhook') {
-    try {
-      return typeof c.slug === 'string' && routineSlug(sub.name) === c.slug;
-    } catch {
-      return false;
-    }
+    const strategy = c.strategy;
+    const model = c.model;
+    return (
+      (strategy === undefined || strategy === 'wake_self' || strategy === 'new_session') &&
+      (model === undefined || (typeof model === 'object' && model !== null && typeof model.provider === 'string' && typeof model.id === 'string' && (model.thinking === undefined || typeof model.thinking === 'string'))) &&
+      (c.trusted === undefined || typeof c.trusted === 'boolean') &&
+      typeof c.slug === 'string' &&
+      routineSlug(sub.name) === c.slug
+    );
   }
   if (c.kind !== 'timer' || typeof c.once !== 'boolean' || !['wake_self', 'new_session'].includes(c.strategy)) return false;
   if ((c.cron === undefined) === (c.delaySeconds === undefined)) return false;
@@ -254,7 +291,10 @@ function transaction<T>(cwd: string, change: (registry: DurableRegistry) => T): 
   });
 }
 
-export const isDesired = (sub: StoredSubscription, now = Date.now()) => sub.lifecycle === 'active' && sub.expiresAt > now;
+/** `expiresAt` 0 means the subscription does not expire: Cursor Automations run until they are disabled. */
+export const isDesired = (sub: StoredSubscription, now = Date.now()) => sub.lifecycle === 'active' && (sub.expiresAt === 0 || sub.expiresAt > now);
+/** Whether a fire runs in its own session instead of waking the owner chat. */
+export const runsDetached = (sub: Pick<StoredSubscription, 'config'>) => (sub.config.kind === 'timer' || sub.config.kind === 'webhook' ? sub.config.strategy === 'new_session' : false);
 export function visibleSubscriptions(registry: DurableRegistry, now = Date.now()): StoredSubscription[] {
   return registry.subscriptions.filter((sub) => sub.lifecycle !== 'cancelled' && (isDesired(sub, now) || registry.pending.some((event) => event.subscriptionId === sub.id) || sub.lastOutcome !== undefined));
 }
@@ -291,24 +331,19 @@ export function cancelDesired(cwd: string, key: string): StoredSubscription | un
 
 export function expireDesired(cwd: string, at = Date.now()): void {
   transaction(cwd, (registry) => {
-    for (const sub of registry.subscriptions) if (sub.lifecycle === 'active' && sub.expiresAt <= at) sub.lifecycle = 'expired';
+    for (const sub of registry.subscriptions) if (sub.lifecycle === 'active' && sub.expiresAt !== 0 && sub.expiresAt <= at) sub.lifecycle = 'expired';
   });
 }
 
 export const MAX_PENDING_PER_SUBSCRIPTION = 20;
 
-export function acceptEvent(cwd: string, subscriptionId: string, occurrence: string, content: string, at = Date.now()): 'accepted' | 'duplicate' | 'inactive' {
+export function acceptEvent(cwd: string, subscriptionId: string, occurrence: string, content: string, at = Date.now()): EventAdmission {
   return transaction(cwd, (registry) => {
     const sub = registry.subscriptions.find((entry) => entry.id === subscriptionId);
     if (sub === undefined || !isDesired(sub, at)) return 'inactive';
     if (sub.lastOccurrence === occurrence || registry.pending.some((event) => event.id === occurrence)) return 'duplicate';
     const forSub = registry.pending.filter((event) => event.subscriptionId === subscriptionId);
-    if (forSub.length >= MAX_PENDING_PER_SUBSCRIPTION) {
-      const oldest = forSub[0];
-      if (oldest !== undefined) {
-        registry.pending = registry.pending.filter((event) => event.id !== oldest.id);
-      }
-    }
+    if (forSub.length >= MAX_PENDING_PER_SUBSCRIPTION) return 'full';
     registry.pending.push({ id: occurrence, subscriptionId, acceptedAt: at, content });
     sub.lastOccurrence = occurrence;
     sub.lastEvent = { at, text: 'accepted' };
@@ -322,7 +357,7 @@ export function deliverOwner(cwd: string, ownerSessionId: string, eligible: () =
   transaction(cwd, (registry) => {
     for (const event of [...registry.pending]) {
       const sub = registry.subscriptions.find((entry) => entry.id === event.subscriptionId);
-      if (sub === undefined || sub.ownerSessionId !== ownerSessionId || sub.lifecycle === 'cancelled' || (sub.config.kind === 'timer' && sub.config.strategy === 'new_session')) continue;
+      if (sub === undefined || sub.ownerSessionId !== ownerSessionId || sub.lifecycle === 'cancelled' || runsDetached(sub)) continue;
       if (!eligible()) return;
       // Pi enqueue and disk acknowledgement cannot commit atomically. A crash can replay this event.
       send(sub, event);
@@ -336,8 +371,8 @@ export function startFresh(
   eventId: string,
   ownerSessionId: string | undefined,
   eligible: () => boolean,
-  run: (sub: StoredSubscription, event: PendingEvent) => Promise<void> | void,
-): { token: string; result: Promise<void> } | undefined {
+  run: (sub: StoredSubscription, event: PendingEvent) => Promise<string | undefined> | string | undefined,
+): { token: string; result: Promise<string | undefined> } | undefined {
   const claim = transaction(cwd, (registry) => {
     const event = registry.pending.find((entry) => entry.id === eventId);
     const sub = registry.subscriptions.find((entry) => entry.id === event?.subscriptionId);
@@ -345,12 +380,10 @@ export function startFresh(
       event === undefined ||
       sub === undefined ||
       sub.lifecycle === 'cancelled' ||
-      sub.config.kind !== 'timer' ||
-      sub.config.strategy !== 'new_session' ||
+      !runsDetached(sub) ||
       sub.ownerSessionId === undefined ||
       (event.claim !== undefined && alive(event.claim.pid)) ||
       (event.retryAt !== undefined && Date.now() < event.retryAt) ||
-      Date.now() >= sub.expiresAt ||
       !eligible()
     )
       return undefined;
@@ -360,7 +393,7 @@ export function startFresh(
     return { token, sub, event };
   });
   if (claim === undefined) return undefined;
-  let result: Promise<void>;
+  let result: Promise<string | undefined>;
   try {
     result = Promise.resolve(run(claim.sub, claim.event));
   } catch (error) {
@@ -369,7 +402,7 @@ export function startFresh(
   return { token: claim.token, result };
 }
 
-export function finishFresh(cwd: string, eventId: string, token: string, error?: unknown): void {
+export function finishFresh(cwd: string, eventId: string, token: string, error?: unknown, outcome?: string): void {
   transaction(cwd, (registry) => {
     const event = registry.pending.find((entry) => entry.id === eventId && entry.claim?.token === token);
     if (event === undefined) return;
@@ -381,14 +414,15 @@ export function finishFresh(cwd: string, eventId: string, token: string, error?:
       sub.lastError = { at: Date.now(), text: error instanceof Error ? error.message : String(error) };
       delete event.claim;
       event.attempts = attempts;
-      if (attempts >= MAX_ATTEMPTS || Date.now() >= sub.expiresAt) {
+      if (attempts >= MAX_ATTEMPTS) {
         registry.pending = registry.pending.filter((entry) => entry.id !== eventId);
       } else {
         const backoffMs = Math.min(60_000, 250 * 2 ** (attempts - 1));
         event.retryAt = Date.now() + backoffMs;
       }
     } else {
-      sub.lastOutcome = { at: Date.now(), text: event.claim?.mode === 'live' ? 'live Task callback accepted' : 'detached run completed' };
+      // A detached run's own final message is its run output, which is where the automation records status.
+      sub.lastOutcome = { at: Date.now(), text: event.claim?.mode === 'live' ? 'live Task callback accepted' : outcome?.trim() || 'detached run completed' };
       delete sub.lastError;
       registry.pending = registry.pending.filter((entry) => entry.id !== eventId);
     }
@@ -425,6 +459,18 @@ export function isSupervisorLive(cwd: string): boolean {
   const lock = readLock(cwd);
   return lock !== undefined && alive(lock.pid);
 }
+
+function supervisorProcess(pid: number, cwd: string): boolean {
+  if (process.platform !== 'linux') return false;
+  try {
+    // The bin is a bash shim that execs bun or node on supervisor-main.ts, so either name can be the live argv.
+    const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ');
+    return cmdline.includes(cwd) && (cmdline.includes('supervisor-main.ts') || cmdline.includes('pstack-routines-supervisor'));
+  } catch {
+    return false;
+  }
+}
+
 export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt = Date.now()): { acquired: true } | { acquired: false; alreadyRunning: true; pid: number } {
   return withRegistryLock(cwd, () => {
     try {
@@ -433,6 +479,9 @@ export function acquireSupervisorLock(cwd: string, pid = process.pid, startedAt 
         if (typeof raw.epoch === 'string' && raw.epoch !== '') {
           return { acquired: false, alreadyRunning: true, pid: raw.pid };
         }
+        // A pre-epoch lock names no verified owner. Signal it only when its command line is this supervisor, so a
+        // reused pid cannot make a stale lock terminate an unrelated process.
+        if (!supervisorProcess(raw.pid, cwd)) return { acquired: false, alreadyRunning: true, pid: raw.pid };
         try {
           process.kill(raw.pid, 'SIGTERM');
         } catch {}

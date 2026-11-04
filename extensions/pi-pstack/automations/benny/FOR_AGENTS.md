@@ -31,6 +31,7 @@ i want two pi automations that work together in one slack issue channel. each on
 - i want this entire pack committed at `.pi/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not skills pi discovers.
 - i want pi-pstack installed in pi for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.
 - i want each subscription prompt to read its operational file directly from the target repository. i do not want pi-pstack package paths, copied excerpts, or slash-skill discovery.
+- i want the pack and every referenced secret-free configuration file committed on the branch the owning session has checked out before either subscription is enabled, so no subscription runs instructions i have not reviewed.
 - i keep user-owned configuration, feature maps, routing maps, memory, and secrets outside `.pi/automations/benny/` so pack refreshes cannot overwrite them.
 - i want durable memory as files in one directory setup names, such as `~/.pi/agent/pstack/automations/benny/memories/`: a claim ledger so no report runs twice, and short operating notes.
 - i want both automations to fail closed when channel coordinates, tracker access, the control adapter, or the feature map are missing or uncertain.
@@ -73,7 +74,7 @@ i want this setup session to run in the target repository, so a fresh subagent i
 
 if pi-pstack or any shared dependency does not resolve, stop and explain what failed. do not move `.pi/automations/benny/skills/` into `.pi/skills/` or expect its files to appear in the slash-skill list.
 
-tell me that creating a subscription auto-starts `pstack-routines-supervisor`, that Benny's owner-session wakes park while this chat is offline until the same session is restored, and that subscriptions expire after seven days unless renewed. only `new_session` timers can start detached work while the owner is offline. for reboot survival, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` and run it when i say yes. do not create or update a subscription until i explicitly ask.
+tell me that creating a subscription auto-starts `pstack-routines-supervisor`, that Benny's owner-session wakes park while this chat is offline until the same session is restored, and that a timer or webhook routine runs with no chat open only when it is created with `sessionStrategy: "new_session"`, in which case the run must do the work itself instead of handing it to a background `Task`. routines do not expire unless `expiresInHours` names a limit. for reboot survival, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` and run it when i say yes. do not create or update a subscription until i explicitly ask.
 
 for first-time creation, create the triage subscription first, check it with `list_subscriptions`, and confirm one harmless fire before creating the repro subscription.
 

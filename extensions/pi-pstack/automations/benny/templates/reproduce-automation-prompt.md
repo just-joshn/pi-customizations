@@ -17,7 +17,7 @@ Memory: `{{BENNY_MEMORY_DIR}}`. Read `MEMORIES.md` first. Record claims only in 
 Trigger, timer mode (this session woke from a `subscribe_timer` fire):
 
 1. If `ledger.tsv` has a `benny-reproduce` claim with no `done` line from the last `{{REPRO_PLUS_FIX_MINUTES}}` minutes, another repro run owns the app. End the turn and post nothing.
-2. Read top-level messages in the configured source Slack channel from the last `{{SWEEP_LOOKBACK_MINUTES}}` minutes. Skip every message `ledger.tsv` lists as `done` for `benny-reproduce`. A `claimed` line older than `{{REPRO_PLUS_FIX_MINUTES}}` minutes with no `done` line belongs to a run that died, so retry that message.
+2. Read top-level messages in the configured source Slack channel, starting `{{SWEEP_LOOKBACK_MINUTES}}` minutes ago or from the last successful sweep time recorded in `MEMORIES.md` when that is earlier, so reports posted while the session was offline are still seen. Skip every message `ledger.tsv` lists as `done` for `benny-reproduce`. A `claimed` line older than `{{REPRO_PLUS_FIX_MINUTES}}` minutes with no `done` line belongs to a run that died, so retry that message. Record this sweep's start time in `MEMORIES.md` when the sweep ends.
 3. Take the oldest remaining message whose thread holds a triage marker from the configured triage identity, or whose age exceeds the verdict wait. If none remain, end the turn with `no report ready` and post nothing. A newer message without a marker waits for a later fire.
 4. Append a `claimed` line for it to `ledger.tsv` before any other work. Handle only this one report.
 5. Start one background `Task` with `model: "{{REPRODUCE_MODEL}}"` whose prompt is this prompt with this trigger block replaced by this trigger JSON, and do no other work in this session:

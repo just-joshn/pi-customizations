@@ -193,3 +193,21 @@ describe('image generation (HOST-006)', () => {
     }
   });
 });
+
+test('reading a TypeScript file attaches the path-scoped skill on the next turn', async () => {
+  writeFileSync(join(sandbox.workDir, 'typed.ts'), 'export const value = 1;\n');
+  const rpc = startRpc(sandbox, ['--no-session']);
+  try {
+    rpc.send({ type: 'prompt', message: script([{ tool: 'read', args: { path: 'typed.ts' } }]) });
+    await rpc.waitFor((event) => event.type === 'agent_settled');
+    const mark = rpc.events.length;
+    rpc.send({ type: 'prompt', message: 'next\n@@sys' });
+    const reply = await rpc.waitFor((event) => rpc.events.indexOf(event) >= mark && event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
+    const prompt = contentText((reply['message'] as { content: { type: string; text?: string }[] }).content);
+    expect(prompt).toContain('<pstack_path_skills>');
+    expect(prompt).toContain('<skill name="typescript-best-practices"');
+    expect(prompt).toContain('TypeScript best practices');
+  } finally {
+    await rpc.close();
+  }
+});
