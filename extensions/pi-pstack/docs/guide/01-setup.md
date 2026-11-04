@@ -13,7 +13,7 @@ bun install
 pi install ./extensions/pi-pstack
 ```
 
-`pi install <path-to-pi-pstack>` loads the package in place, so keep the checkout where it is. To install the published package instead, run `pi install npm:@justjoshn/pi-pstack`. On Linux, the read-only shell also needs `bubblewrap`, `socat`, and `ripgrep`, as the package README explains. Start Pi, and the pstack commands appear in the `/` menu.
+`pi install <path-to-pi-pstack>` loads the package in place, so keep the checkout where it is. To install the published package instead, run `pi install npm:@justjoshn/pi-pstack`. On Linux, the read-only shell also needs `bubblewrap`, as the package README explains. Start Pi, and the pstack commands appear in the `/` menu.
 
 ## Pick your models
 

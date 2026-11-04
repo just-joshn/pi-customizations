@@ -1,12 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { SKILLS_DIR } from '../src/paths.ts';
-import { alwaysAppliedRules, type HostFacts, hostSection } from '../src/sections.ts';
+import { alwaysAppliedRules, type HostFacts, hostSection, todayText } from '../src/sections.ts';
 
 const ALL_TOOLS = ['read', 'bash', 'edit', 'write', 'Task', 'agent_status', 'stop_agent', 'TodoWrite', 'AskQuestion', 'Loop', 'subscribe_github_pr'];
 const READONLY_CHILD_TOOLS = ['read', 'grep', 'find', 'ls', 'bash', 'TodoWrite'];
 const DEPTH_TWO_TOOLS = ['read', 'bash', 'edit', 'write', 'agent_status', 'TodoWrite', 'AskQuestion'];
 
 const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): HostFacts => ({
+  today: 'Wednesday Nov 4, 2026',
   packageRoot: '/pkg',
   skillsDir: '/pkg/skills',
   skillNames: ['how'],
@@ -19,6 +20,7 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
   rootStoreDir: '/state/store/s',
   projectsDir: '/state/projects',
   artifactsDir: '/state/artifacts/s',
+  terminalsDir: '/state/terminals',
   loopAvailable: true,
   questionsAvailable: true,
   activeTools,
@@ -80,5 +82,23 @@ describe('media in a reply', () => {
     expect(host).toContain(
       "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
     );
+  });
+});
+
+describe('background shells line', () => {
+  test('names the terminals folder and the event-gated loop wake only when the session has bash_background', () => {
+    const withShells = hostSection(facts([...ALL_TOOLS, 'bash_background', 'AwaitShell']));
+    const without = hostSection(facts(ALL_TOOLS));
+    expect(withShells).toContain('- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /state/terminals/<shell id>.txt.');
+    expect(withShells).toContain('start a watcher with bash_background that exits, or prints a line its notify_on_output pattern matches, when the event fires');
+    expect(withShells).toContain('bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes');
+    expect([without.includes('bash_background'), without.includes('AwaitShell')]).toEqual([false, false]);
+  });
+});
+
+describe("today's date", () => {
+  test("states the local date the way Cursor's user info does", () => {
+    expect(todayText(new Date(2026, 10, 4, 23, 59))).toBe('Wednesday Nov 4, 2026');
+    expect(hostSection(facts(ALL_TOOLS)).split('\n')[0]).toBe("pstack runs here through the pi-pstack package at /pkg. Today's date: Wednesday Nov 4, 2026.");
   });
 });

@@ -102,10 +102,11 @@ test('installs from a fresh copy without node_modules, then removes cleanly (PKG
       .toSorted(),
   ).toEqual(['AskQuestion', 'Loop', 'Task', 'TodoWrite']);
 
-  // A local install gets no dependency install, so the readonly shell has no sandbox module and must refuse (TASK-019).
+  // A local install gets no dependency install. On macOS the readonly shell then has no sandbox module and must refuse;
+  // on Linux it runs bubblewrap from the system, so the command runs read-only (TASK-019). Neither may write.
   const steps = [{ tool: 'bash', args: { command: 'touch escaped.txt' } }];
   const readonlyRun = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'ro', prompt: `go\n@@script ${JSON.stringify(steps)}`, readonly: true } }]), ['--no-session']);
-  expect(toolEnds(readonlyRun.events, 'Task')[0]?.text).toContain('no verified OS sandbox is available');
+  expect(toolEnds(readonlyRun.events, 'Task')[0]?.text).toContain(process.platform === 'linux' ? 'Read-only file system' : 'no verified OS sandbox is available');
   expect(existsSync(join(sandbox.workDir, 'escaped.txt'))).toBe(false);
 
   pi('remove', copy);

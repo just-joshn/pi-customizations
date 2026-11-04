@@ -2,12 +2,14 @@ import { existsSync } from 'node:fs';
 
 import type { SandboxRuntimeConfig } from '@anthropic-ai/sandbox-runtime';
 import { type BashSpawnContext, createBashTool, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { linuxReadonlyCommand } from './linux-readonly-sandbox.ts';
 
 // Cursor's readonly subagent: "no file edits, no state-changing shell commands". The OS sandbox enforces it:
 // nothing may be written and no host may be reached, so a pipe, substitution, or pager cannot get around it.
+// Linux uses bubblewrap directly (linux-readonly-sandbox.ts); macOS uses sandbox-runtime's Seatbelt policy below.
 // denyWrite names the paths the sandbox makes writable for itself (/tmp/claude is a dependency default), and
 // denyRead drops the dependency's writable home defaults (~/.npm/_logs, ~/.claude/debug). Seatbelt is
-// last-match-wins with deny emitted after allow; on Linux bubblewrap binds deny last the same way.
+// last-match-wins with deny emitted after allow.
 // Unix sockets must stay blocked too: a host service can mutate files on a command's behalf.
 const READ_ONLY_POLICY: SandboxRuntimeConfig = {
   network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: false },
@@ -29,7 +31,7 @@ type Sandbox = typeof import('@anthropic-ai/sandbox-runtime')['SandboxManager'];
 let ready: Promise<Sandbox> | undefined;
 
 /**
- * Starts the sandbox once per process, loading it only in a readonly subagent: a local package install gets no
+ * Starts sandbox-runtime once per process, loading it only in a readonly subagent: a local package install gets no
  * dependency install, and everything else in the package works without it. A failure is kept, so no command ever
  * runs outside the sandbox.
  */
@@ -73,11 +75,7 @@ export function createReadonlyBashTool(name = 'bash'): ToolDefinition<BashParame
     description: `${base.description}${NOTE}`,
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionToolContext) {
       // Fail closed: when the sandbox cannot start, the call fails here and nothing spawns.
-      const sandbox = await sandboxReady();
-      // The per-command policy re-states READ_ONLY_POLICY, so the command never inherits a policy another
-      // consumer left on the shared manager. Wrapping honors abort, and Pi's own shell operations then enforce
-      // the pre-spawn abort check, timeouts, and process-tree cleanup.
-      const command = await sandbox.wrapWithSandbox(params.command, undefined, READ_ONLY_POLICY, signal);
+      const command = process.platform === 'linux' ? linuxCommand(params.command, ctx.cwd) : await wrapped(params.command, signal);
       const bash = createBashTool(ctx.cwd, {
         ...(existsSync('/bin/bash') ? { shellPath: '/bin/bash' } : {}),
         spawnHook: (spawn: BashSpawnContext) => ({ ...spawn, command, env: strippedEnv(spawn.env) }),
@@ -87,10 +85,25 @@ export function createReadonlyBashTool(name = 'bash'): ToolDefinition<BashParame
   };
 }
 
+function linuxCommand(command: string, cwd: string): string {
+  try {
+    return linuxReadonlyCommand(command, cwd);
+  } catch (error) {
+    throw new Error(`no verified OS sandbox is available: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
 /**
- * Releases the sandbox if it started. On Linux the sandbox's socat bridges keep the event loop alive, so a process
- * that used the shell never exits unless the sandbox is released.
+ * The per-command policy re-states READ_ONLY_POLICY, so the command never inherits a policy another consumer left on
+ * the shared manager. Wrapping honors abort, and Pi's own shell operations then enforce the pre-spawn abort check,
+ * timeouts, and process-tree cleanup.
  */
+async function wrapped(command: string, signal: AbortSignal | undefined): Promise<string> {
+  const sandbox = await sandboxReady();
+  return sandbox.wrapWithSandbox(command, undefined, READ_ONLY_POLICY, signal);
+}
+
+/** Releases sandbox-runtime if it started, so a process that used the shell can exit. */
 export async function releaseReadonlySandbox(): Promise<void> {
   const started = ready;
   ready = undefined;

@@ -75,6 +75,11 @@ export function artifactsDir(cwd: string, sessionId: string): string {
   return join(workspaceStateDir(cwd), 'artifacts', sessionId);
 }
 
+/** Background shell jobs' output files, `<shell id>.txt`, as Cursor keeps them in a workspace's terminals folder. */
+export function terminalsDir(cwd: string): string {
+  return join(workspaceStateDir(cwd), 'terminals');
+}
+
 export function worktreesDir(cwd: string): string {
   return join(workspaceStateDir(cwd), 'worktrees');
 }
