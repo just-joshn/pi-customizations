@@ -454,7 +454,16 @@ for (const signal of ["SIGINT", "SIGTERM"] satisfies NodeJS.Signals[]) {
       signalWhile(signal, () => ({
         dir: gridCase(150),
         reached: (parent) => {
-          for (const f of fs.readdirSync(parent, { recursive: true, encoding: "utf8" }))
+          // The command creates and replaces draft trees while it writes. A recursive
+          // readdir can see a draft entry that is gone before Node descends into it.
+          let files: string[];
+          try {
+            files = fs.readdirSync(parent, { recursive: true, encoding: "utf8" });
+          } catch (error) {
+            if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+            throw error;
+          }
+          for (const f of files)
             if (
               path.basename(f) === "chart.mmd" &&
               fs.statSync(path.join(parent, f), { throwIfNoEntry: false })?.size

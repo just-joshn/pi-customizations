@@ -1,0 +1,79 @@
+{
+  "reference": {
+    "pstack_version": "0.15.36",
+    "pstack_cache_rev": "ae5650febf4320793844c12c4adaa937f417f8da",
+    "plugins_head_pstack_last_change": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c",
+    "team_kit_version": "1.2.0",
+    "cursor_cli": "2026.10.22-27dcf5f",
+    "cursor_desktop": "3.27.22",
+    "pi": "1.5.0",
+    "pi_pstack_version": "0.15.36-pi.13"
+  },
+  "skills": {
+    "pstack_count": 58,
+    "teamkit_count": 18,
+    "pi_count": 79,
+    "pstack_missing_in_pi": [],
+    "teamkit_missing_in_pi": [],
+    "pi_only_beyond_union_and_create_skill": [
+      "no-inline-imports",
+      "typescript-exhaustive-switch"
+    ]
+  },
+  "agents": {
+    "pstack": [
+      "comment-sicko.md",
+      "poteto-agent.md"
+    ],
+    "teamkit": [
+      "ci-watcher.md",
+      "thermo-nuclear-code-quality-review.md"
+    ],
+    "pi": [
+      "ci-watcher.md",
+      "comment-sicko.md",
+      "poteto-agent.md",
+      "thermo-nuclear-code-quality-review.md"
+    ],
+    "missing": []
+  },
+  "pi_commands": [
+    "mode",
+    "plan",
+    "loop",
+    "routines"
+  ],
+  "pi_tools_known": [
+    "AskQuestion",
+    "CreatePlan",
+    "GenerateImage",
+    "Loop",
+    "SwitchMode",
+    "Task",
+    "TodoWrite",
+    "agent_status",
+    "list_subscriptions",
+    "stop_agent",
+    "subscribe_github_pr",
+    "subscribe_timer",
+    "subscribe_webhook",
+    "unsubscribe",
+    "visualize"
+  ],
+  "cursor_sdk": {
+    "in_pstack_tree": false,
+    "sibling_plugin_path": "/home/josh/Documents/GitHub/plugins/cursor-sdk",
+    "referenced_by_pstack_skills": false,
+    "disposition": "out-of-scope sibling; not a pstack soft dependency"
+  },
+  "probes_this_session": {
+    "todo_write_minItems_runtime": "Cursor accepted 1-item TodoWrite despite schema minItems 2",
+    "sandbox_unix_false": "apply-seccomp setgroups Permission denied under AppArmor",
+    "sandbox_unix_true": "bwrap FS+net isolation works (writes denied, commands run)",
+    "apparmor_restrict_unprivileged_userns": 1
+  },
+  "changes_this_session": [
+    "Benny triage/reproduce skills accept message_ts then ts",
+    "resources.test.ts RES-015"
+  ]
+}

@@ -36,7 +36,7 @@ Load the external Benny configuration supplied by the automation. If the config,
 Before making a work list or delegating:
 
 1. Require the trigger channel to equal the configured source channel.
-2. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.
+2. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.message_ts`, then `trigger.ts`.
 3. Require a nonempty `SOURCE_THREAD_TS`.
 4. Store `SOURCE_CHANNEL_ID` and `SOURCE_THREAD_TS` as immutable values.
 5. Read the source thread and verify its root has those exact coordinates.
