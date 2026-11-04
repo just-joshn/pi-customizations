@@ -95,6 +95,11 @@ describe('resolveSubagentModel (TASK-007)', () => {
     ]);
   });
 
+  test('the documented code-delegate default resolves to the fast variant when the model lists one', () => {
+    const fast = [...available, { provider: 'grok-build', id: 'grok-4.7-fast', reasoning: true, levels: ['low', 'xhigh'] }];
+    expect(resolveSubagentModel('grok-4.7[effort=xhigh,fast=true]', fast, parent)).toEqual({ provider: 'grok-build', id: 'grok-4.7-fast', thinking: 'xhigh' });
+  });
+
   test.for(['claude-opus-5-5[speed=1]', 'claude-opus-5-5[effort=turbo]', 'claude-opus-5-5[fast=maybe]', 'claude-opus-5-5[effort]', 'claude-opus-5-5-high[effort=low]'])('rejects the model parameters in %s with the allowed list', (value) => {
     expect(() => resolveSubagentModel(value, available, parent)).toThrow(`Invalid model selection "${value}".`);
   });

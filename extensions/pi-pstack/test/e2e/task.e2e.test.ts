@@ -59,6 +59,15 @@ describe('foreground', () => {
     expect(entries.filter((entry) => entry.message?.role === 'assistant').map((entry) => contentText(entry.message?.content as string))).toEqual(['PONG-FG']);
   });
 
+  test('streams the child steps into the running card before the result', async () => {
+    const run = await runJson(sandbox, script([task({ prompt: `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'echo progress' } }, { text: 'done' }])}`, run_in_background: false })]), ['--no-session']);
+    const updates = run.events
+      .filter((event) => event.type === 'tool_execution_update' && event['toolName'] === 'Task')
+      .map((event) => ((event['partialResult'] as { content?: { type: string; text?: string }[] } | undefined)?.content ?? []).map((part) => part.text ?? '').join('\n'));
+    expect(updates.some((text) => text.includes('· bash: echo progress'))).toBe(true);
+    expect(toolEnds(run.events, 'Task')[0]?.text).toContain('done');
+  });
+
   test('a failed child returns an error status with its message (TASK-015)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@fail boom' });
     expect(result.isError).toBe(true);
@@ -259,7 +268,7 @@ describe('background and parallel', () => {
       .filter((entry) => entry.type === 'custom_message' && entry.customType === 'pstack/task')
       .map((entry) => entry.content);
     expect(notice).toEqual([
-      `The following task has finished. If you already handled it, ignore this notification and do not restate earlier responses.\n\n<task>\nkind: subagent\nstatus: success\ntask_id: ${agentId}\ntitle: go @@sleep 1500 PONG-BG\ntool_call_id: ${(run.events.find((event) => event.type === 'tool_execution_end')?.['toolCallId'] as string) ?? ''}\ndetail: PONG-BG\n</task>`,
+      `The following task has finished. If you already handled it, ignore this notification and do not restate earlier responses.\n\n<task>\nkind: subagent\nstatus: success\ntask_id: ${agentId}\ntitle: probe\ntool_call_id: ${(run.events.find((event) => event.type === 'tool_execution_end')?.['toolCallId'] as string) ?? ''}\ndetail: PONG-BG\n</task>`,
     ]);
     const texts = assistantTexts(run.events).filter((text) => text !== '');
     expect(texts).toHaveLength(2);
@@ -435,6 +444,13 @@ describe('resume across processes and workspaces', () => {
 });
 
 describe('resume edge cases', () => {
+  test('a resume that names another subagent_type keeps the recorded type and says so', async () => {
+    const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
+    const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
+    const second = await runJson(sandbox, script([task({ prompt: 'again\n@@say TWO', resume: agentId, subagent_type: 'poteto-agent' })]), ['--no-session']);
+    expect(toolEnds(second.events, 'Task')[0]?.text).toContain('Note: subagent_type "poteto-agent" was ignored; a resumed agent keeps its earlier type, generalPurpose.');
+  });
+
   const record = (agentId: string, type: string) => {
     mkdirSync(subagentDir(), { recursive: true });
     writeFileSync(join(subagentDir(), `${agentId}.json`), JSON.stringify({ agentId, type, readonly: false, cwd: sandbox.workDir, createdAt: '2026-10-12T00:00:00.000Z' }));

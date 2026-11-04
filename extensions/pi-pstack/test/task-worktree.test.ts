@@ -48,12 +48,22 @@ describe('planWorktree', () => {
     expect(planWorktree(join(repo, 'untracked'), worktrees, id).cwd).toBe(join(worktrees, id));
   });
 
-  test('a cloud_base_branch that names a local branch is the base', () => {
+  test('a cloud_base_branch that names only a local branch is the base', () => {
     commitFile('a.txt', 'A', 'first');
     git('checkout', '-qb', 'feature');
     const feature = commitFile('a.txt', 'F', 'feature');
     git('checkout', '-q', 'main');
     expect(planWorktree(repo, worktrees, id, 'feature')).toMatchObject({ base: 'feature', commit: feature });
+  });
+
+  test('a pushed branch wins over a local branch of the same name that is behind it', () => {
+    commitFile('a.txt', 'A', 'first');
+    git('checkout', '-qb', 'feature');
+    const pushed = commitFile('a.txt', 'PUSHED', 'pushed');
+    git('update-ref', 'refs/remotes/origin/feature', pushed);
+    commitFile('a.txt', 'LOCAL', 'local only');
+    git('checkout', '-q', 'main');
+    expect(planWorktree(repo, worktrees, id, 'feature')).toMatchObject({ base: 'origin/feature', commit: pushed });
   });
 
   test('a cloud_base_branch that only exists on origin falls back to origin/<branch>', () => {
@@ -65,7 +75,7 @@ describe('planWorktree', () => {
 
   test('a cloud_base_branch that resolves nowhere fails, naming both refs it tried', () => {
     commitFile('a.txt', 'A', 'first');
-    expect(() => planWorktree(repo, worktrees, id, 'nope')).toThrow(`cloud_base_branch "nope" names no commit in ${repo}: neither nope nor origin/nope exists. Pass an existing branch or omit cloud_base_branch to start from HEAD.`);
+    expect(() => planWorktree(repo, worktrees, id, 'nope')).toThrow(`cloud_base_branch "nope" names no commit in ${repo}: neither origin/nope nor nope exists. Pass an existing branch or omit cloud_base_branch to start from HEAD.`);
   });
 
   test('a directory outside any git repository fails', () => {
