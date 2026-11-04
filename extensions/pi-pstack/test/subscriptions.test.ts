@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { request } from 'node:http';
 import { connect as connectNet, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -78,7 +78,8 @@ type Fake = ReturnType<typeof fakePi>;
 const wakes = (fake: Fake) => fake.sent.map((item) => item.message.content);
 
 function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entries'], mode = 'rpc', previous?: { agentDir: string; cwd: string; controllers: { shutdown: () => void }[] }, sessionId = 'owner') {
-  const agentDir = previous?.agentDir ?? mkdtempSync(join(tmpdir(), 'pstack-sub-agent-'));
+  // The code canonicals paths, so the temp root is realpath'd first. macOS reports /var for a /private/var symlink.
+  const agentDir = previous?.agentDir ?? realpathSync(mkdtempSync(join(tmpdir(), 'pstack-sub-agent-')));
   const controllers = previous?.controllers ?? [];
   if (previous === undefined) {
     vi.stubEnv('PI_CODING_AGENT_DIR', agentDir);
