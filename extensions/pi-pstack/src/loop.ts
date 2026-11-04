@@ -75,6 +75,8 @@ interface Loop {
   iteration: number;
   nextWakeMs?: number;
   timer?: ReturnType<typeof setTimeout>;
+  /** A wake came due while a run was going; it fires once when that run settles. */
+  due?: boolean;
 }
 
 const formatMs = (ms: number) => (ms % 86_400_000 === 0 ? `${ms / 86_400_000}d` : ms % 3_600_000 === 0 ? `${ms / 3_600_000}h` : ms % 60_000 === 0 ? `${ms / 60_000}m` : `${Math.round(ms / 1_000)}s`);
@@ -107,39 +109,45 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     clear();
     notify(ctx, `Loop stopped: ${reason}`);
   };
-  const fire = (first = false) => {
+  const run = () => {
     if (loop === undefined) return;
-    // A scheduled tick that lands mid-run is skipped rather than queued, so one long run cannot leave a pile of stale ticks.
-    if (!first && lastCtx !== undefined && !lastCtx.isIdle()) {
-      if (loop.intervalMs !== undefined) loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
-      return;
-    }
-    const { timer: _timer, nextWakeMs: _wake, ...rest } = loop;
-    loop = { ...rest, iteration: rest.iteration + 1 };
+    loop = { ...loop, iteration: loop.iteration + 1, due: false };
     // Expansion lets a loop run a skill or template each time.
     pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true });
-    // A fixed loop is wall-clock from each fire, like the reference's sleep loop: a long run does not push the next tick out.
-    if (loop.intervalMs !== undefined) loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
+  };
+  /**
+   * A timer fired. A fixed loop keeps its wall-clock cadence, like Cursor's sleep-and-echo shell loop, so a long run
+   * does not push the next tick out. A wake that lands while a run is going is delivered once that run settles, as
+   * Cursor's monitored shell output notifies after the turn, and several such wakes fire once, not once each.
+   */
+  const tick = () => {
+    if (loop === undefined) return;
+    const { timer: _spent, nextWakeMs: _wake, ...rest } = loop;
+    loop = rest.intervalMs === undefined ? rest : { ...rest, timer: setTimeout(tick, rest.intervalMs) };
+    if (lastCtx !== undefined && !lastCtx.isIdle()) loop = { ...loop, due: true };
+    else run();
   };
   const settled = (ctx: ExtensionContext, aborted: boolean) => {
     lastCtx = ctx;
     if (loop === undefined) return;
     if (aborted) return stop(ctx, 'the run was aborted.');
+    if (loop.due === true) return run();
     if (loop.timer !== undefined) return;
     if (loop.intervalMs !== undefined) {
       // An armed fixed loop has no timer yet; its first tick waits for this turn to end.
-      loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
+      loop = { ...loop, timer: setTimeout(tick, loop.intervalMs) };
       return;
     }
     const delay = loop.nextWakeMs;
-    if (delay !== undefined) loop = { ...loop, timer: setTimeout(fire, delay) };
+    if (delay !== undefined) loop = { ...loop, timer: setTimeout(tick, delay) };
     else if (!options.hasPendingWork()) stop(ctx, 'the agent scheduled no next wake.');
   };
   const start = (ctx: ExtensionContext, prompt: string, intervalMs: number | undefined) => {
     if (loop !== undefined) stop(ctx, 'replaced by a new /loop.');
     lastCtx = ctx;
     loop = { prompt, iteration: 0, ...(intervalMs === undefined ? {} : { intervalMs }) };
-    fire(true);
+    run();
+    if (loop.intervalMs !== undefined) loop = { ...loop, timer: setTimeout(tick, loop.intervalMs) };
   };
   /** An agent arms a loop mid-turn, so its first run waits for this turn to settle and then for the first delay. */
   const arm = (ctx: ExtensionContext, prompt: string, schedule: { intervalMs: number } | { firstWakeMs: number }) => {
