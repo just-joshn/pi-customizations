@@ -54,6 +54,9 @@ jobs:
   # The release workflow runs on macOS and publishes from it, so the same suite runs here on every pull request.
   # A /var to /private/var temp-root difference and a /proc-only lock takeover both escaped the Ubuntu leg and failed
   # the release instead.
+  #
+  # Hosted macOS ARM capacity can cancel this job before any step runs ("not acquired by Runner").
+  # retry-pi-pstack-macos-capacity.yml re-runs failed jobs once when that happens and Ubuntu already passed.
   verify-macos:
     runs-on: macos-15
     defaults:
