@@ -1,3 +1,5 @@
+import { basename } from 'node:path';
+
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
@@ -101,7 +103,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
 
   const mode = registerMode(pi);
-  const plan = registerPlanMode(pi);
+  const plan = registerPlanMode(pi, { buildInWorker: (planFile, request) => task.startBackground(`Build ${basename(planFile)}`, request, { environment: 'cloud' }) });
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
   registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);

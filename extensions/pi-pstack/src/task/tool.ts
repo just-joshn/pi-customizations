@@ -497,6 +497,8 @@ export interface TaskToolOptions {
 export interface StartBackgroundOptions {
   /** A Pi model spec, used by subscription timers so a live and a detached fire run the same model. */
   model?: string;
+  /** cloud runs the agent in its own git worktree, as plan mode's "build in cloud" does. */
+  environment?: 'cloud';
   /** The owner's project-trust decision, used when this subscription fire starts away from its chat. */
   trusted?: boolean;
 }
@@ -570,7 +572,13 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
   async function startBackground(description: string, prompt: string, startOptions?: StartBackgroundOptions): Promise<string> {
     const ctx = sessionCtx;
     if (ctx === undefined) throw new Error('No session is active, so no subagent can start.');
-    const params: TaskInput = { description, prompt, run_in_background: true, ...(startOptions?.model === undefined ? {} : { model: startOptions.model }) };
+    const params: TaskInput = {
+      description,
+      prompt,
+      run_in_background: true,
+      ...(startOptions?.model === undefined ? {} : { model: startOptions.model }),
+      ...(startOptions?.environment === undefined ? {} : { environment: startOptions.environment }),
+    };
     taskPreflight(params, options.depth);
     const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
