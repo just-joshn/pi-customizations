@@ -287,6 +287,12 @@ describe('subagent types', () => {
     expect(tools.filter((name) => ['bash', 'edit', 'write', 'Task', 'TodoWrite'].includes(name)).toSorted()).toEqual(['Task', 'TodoWrite', 'bash', 'edit', 'write']);
   });
 
+  test('a child has no AskQuestion, as Cursor gives its subagents none', async () => {
+    const { result } = await runTask({ prompt: 'go\n@@tools-list' });
+    const tools = /<response>\n(.*)\n<\/response>/.exec(result.text)?.[1]?.split(',') ?? [];
+    expect([tools.includes('TodoWrite'), tools.includes('AskQuestion')]).toEqual([true, false]);
+  });
+
   test('every child hears that it is a subagent, as Cursor tells its subagents', async () => {
     const { result } = await runTask({ prompt: 'go\n@@sys' });
     expect(result.text).toContain('<pstack_subagent>\nYou are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.\n</pstack_subagent>');

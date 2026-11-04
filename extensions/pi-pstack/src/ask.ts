@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
+import { childIdentity } from './child-env.ts';
 import { canAsk } from './modes.ts';
 
 export const DONE_LABEL = '✓ Done selecting';
@@ -122,6 +123,8 @@ export function registerAskQuestion(pi: ExtensionAPI): void {
     parameters: AskParams,
     exposure: 'model-only',
     executionMode: 'sequential',
+    // Cursor's subagents have no AskQuestion: their owner, not a person, reads what they produce.
+    defaultActive: childIdentity.depth === 0,
     annotations: { readOnlyHint: true, openWorldHint: false },
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       validateQuestions(params.questions);
