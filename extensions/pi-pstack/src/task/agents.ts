@@ -17,7 +17,7 @@ export interface AgentDefinition {
 
 export const GENERAL_PURPOSE: AgentDefinition = {
   type: 'generalPurpose',
-  description: 'General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when a search or task needs several steps of its own.',
+  description: "General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when searching for a keyword or file and not confident you'll find the match quickly.",
   readonly: false,
   background: false,
   prompt: '',

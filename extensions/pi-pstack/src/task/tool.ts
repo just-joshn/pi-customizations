@@ -10,7 +10,7 @@ import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../p
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
 import { renderTaskCard, renderTaskNotification } from './card.ts';
-import { backgroundText, bounded, foregroundText, steerText, worktreeLine, worktreePreface } from './format.ts';
+import { backgroundText, bounded, foregroundText, notificationTitle, steerText, worktreeLine, worktreePreface } from './format.ts';
 import { type AvailableModel, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { createProgress } from './progress.ts';
 import { type AgentRecord, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
@@ -19,16 +19,17 @@ import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolv
 import { registerStopAgent } from './stop.ts';
 import { addWorktree, planWorktree, type Worktree } from './worktree.ts';
 
-const TITLE_LIMIT = 200;
-
 export const TaskParams = Type.Object({
-  description: Type.String({ description: 'A short (3-5 word) title for the subagent, shown in the UI.' }),
-  prompt: Type.String({ description: 'The task for the agent to perform. The subagent sees nothing of this conversation, so include every detail and say what to report back.' }),
+  description: Type.String({
+    description:
+      "A short, user-friendly title for the subagent, shown in the UI as the subagent's name. Make it concrete and distinct from recent titles. When you resume an agent for a separate task, give it an updated title; keep the title when it continues the same work.",
+  }),
+  prompt: Type.String({ description: 'The task for the agent to perform.' }),
   subagent_type: Type.Optional(Type.String({ description: 'Subagent type from the pstack_subagents section. Defaults to generalPurpose.' })),
   model: Type.Optional(
     Type.String({
       description:
-        'Optional model for this agent, from the pstack_subagents section: inherit (default), a Pi model such as claude-opus-5-5:xhigh or provider/model:high, or claude-opus-5-5[effort=high]. An invalid value fails with the allowed list; pick a listed value or omit it. Ignored with resume; with fork, defaults to the source agent model.',
+        'Optional model for this agent, from the pstack_subagents section: inherit (default), a Pi model such as claude-opus-5-5:xhigh or provider/model:high, or claude-opus-5-5[effort=high]. An invalid value fails with the allowed list; pick a listed value or omit it, and never retry a rejected value unchanged. Omitted, the agent runs on the parent model. Use inherit unless the user or a skill asks for another listed model. Ignored with resume, which keeps the earlier model; with fork, defaults to the source agent model.',
     }),
   ),
   resume: Type.Optional(
@@ -359,11 +360,11 @@ function foregroundResult(plan: Launch, outcome: ChildOutcome) {
   return { content: [{ type: 'text' as const, text }], details: details(plan, false, 'error'), usage: outcome.usage, isError: true };
 }
 
-/** Cursor shows the Task description as the subagent's name, so the completion notice carries it too. */
-export function backgroundNotice(plan: Launch, description: string, ctx: ExtensionContext, toolCallId: string): BackgroundNotice {
-  const flat = description.replace(/\s+/g, ' ').trim();
+/** Cursor titles the completion by the prompt's first line and names the subagent in the UI by its description. */
+export function backgroundNotice(plan: Launch, prompt: string, description: string, ctx: ExtensionContext, toolCallId: string): BackgroundNotice {
   return {
-    title: flat.length > TITLE_LIMIT ? `${flat.slice(0, TITLE_LIMIT)}…` : flat,
+    title: notificationTitle(prompt),
+    description: description.replace(/\s+/g, ' ').trim(),
     toolCallId,
     mode: ctx.mode,
     detailFor: (outcome) => {
@@ -449,8 +450,21 @@ async function steerRunning(params: TaskInput, running: { handle: ChildHandle; r
   return { content: [{ type: 'text' as const, text: steerText(agentId, notes) }], details: { agentId, status: 'steered', pid: running.handle.pid ?? null, description: params.description } };
 }
 
-const TASK_DESCRIPTION =
-  'Launch a subagent: a separate Pi process with its own context that works autonomously and returns one final message. It sees nothing of this conversation, so give it a self-contained prompt and say what to report back. Put several Task calls in one message to run them in parallel. Subagent types and model values are listed in the pstack_subagents section of the system prompt.';
+const TASK_DESCRIPTION = [
+  'Launch a new agent to handle a complex, multi-step task on its own. Each agent is a separate Pi process with its own context, and each subagent_type has its own instructions and tools. Pick the type with subagent_type; the types, and the model values the model parameter takes, are listed in the pstack_subagents section of the system prompt.',
+  '',
+  'Do not use Task for a narrow or specific question. To find where one class is defined, read a known file, or search two or three files, use read, grep, or find directly. When separate areas can be explored in parallel, launch several agents at once. Do not hand the whole request to one agent and relay its answer.',
+  '',
+  'Usage notes:',
+  '- Give every call a short (3-5 word) description.',
+  '- To run agents in parallel, put several Task calls in one message. Do this whenever the work splits, and always when the user asks for agents in parallel.',
+  '- The agent returns one final message. Say exactly what it should report back.',
+  "- The agent cannot see the user's messages or your earlier steps, so the prompt must carry every detail and all the context it needs.",
+  '- Trust the agent output in general.',
+  '- When a subagent type says to use it proactively, use it without being asked.',
+  '- resume continues an earlier agent with its context preserved. Without resume, each call starts fresh.',
+  '- A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it, sleep, or check on its progress. Work on something else or end your turn, and do not mention this to the user.',
+].join('\n');
 
 // Interactive Pi redraws the chat between a replaced session's shutdown and the next session's start, which erases a
 // warning sent at shutdown. The next runtime shows it instead, so it rides on globalThis across the reload.
@@ -527,7 +541,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       const handle = start(plan, input, background ? undefined : signal, lock, progress?.onEvent);
       pid = handle.pid;
       if (background) {
-        registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, plan.description, ctx, toolCallId));
+        registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, params.prompt, plan.description, ctx, toolCallId));
         return { content: [{ type: 'text', text: backgroundText(plan.agentId, transcriptOf(plan), plan.notes) }], details: details(plan, true, 'running', handle.pid) };
       }
       registry.track(plan.agentId, handle, lock.release, runsReadonly(plan));
@@ -552,7 +566,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
     await createWorktree(plan, lock, undefined);
     const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock);
-    registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, description, ctx, `pstack-${plan.agentId}`));
+    registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, prompt, description, ctx, `pstack-${plan.agentId}`));
     return plan.agentId;
   }
 

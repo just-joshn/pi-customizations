@@ -28,7 +28,7 @@ export function bounded(text: string, transcript: string | undefined): string {
   return `${result.content}\n[truncated: showing ${result.outputLines} of ${result.totalLines} lines${size}; ${where}]`;
 }
 
-const agentIdLine = (agentId: string) => `Agent ID: ${agentId} (pass it as \`resume\` to send a follow-up after it completes)`;
+const agentIdLine = (agentId: string) => `Agent ID: ${agentId} (can be used with the \`resume\` parameter to send a follow-up after it completes)`;
 const transcriptLine = (transcript: string | undefined) => (transcript === undefined ? [] : [`Transcript: ${transcript}`]);
 
 export function foregroundText(agentId: string, response: string, transcript: string | undefined, notes: readonly string[] = []): string {
@@ -37,7 +37,7 @@ export function foregroundText(agentId: string, response: string, transcript: st
 
 export function backgroundText(agentId: string, transcript: string | undefined, notes: readonly string[] = []): string {
   return [
-    'Subagent is running in the background. Its final response arrives automatically after your turn ends, so do not wait or poll for it. End your turn or work on something else.',
+    "Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion, so do not wait for it - either end your turn or work on something else.",
     '',
     agentIdLine(agentId),
     ...transcriptLine(transcript),
@@ -65,16 +65,28 @@ export function worktreePreface(worktree: Worktree, prompt: string): string {
 export interface NotificationFields {
   status: 'success' | 'error';
   agentId: string;
+  /** The model-facing title, from the prompt as Cursor writes it. */
   title: string;
+  /** The Task description, which names the subagent in the UI. */
+  description?: string;
   toolCallId: string;
   detail: string;
   /** What the background child spent. It stays in the notification details, because Pi gives extensions no way to add it to session totals. */
   usage?: Usage;
 }
 
+const TITLE_LIMIT = 80;
+
+/** Cursor titles a completion by its prompt: the first non-empty line, cut at 80 characters. */
+export function notificationTitle(prompt: string): string {
+  const line = prompt.split('\n').find((candidate) => candidate.trim() !== '') ?? '';
+  return line.trim().slice(0, TITLE_LIMIT);
+}
+
 export function notificationText(fields: NotificationFields): string {
   return [
-    'The following task has finished. If you already handled it, ignore this notification and do not restate earlier responses.',
+    '<system_notification>',
+    'The following task has finished. If you were already aware, ignore this notification and do not restate prior responses.',
     '',
     '<task>',
     'kind: subagent',
@@ -84,5 +96,7 @@ export function notificationText(fields: NotificationFields): string {
     `tool_call_id: ${fields.toolCallId}`,
     `detail: ${fields.detail}`,
     '</task>',
+    '</system_notification>',
+    "Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. Don't repeat the same confirmation every time.",
   ].join('\n');
 }

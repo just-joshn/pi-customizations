@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { createSubagentRegistry } from '../src/task/registry.ts';
 import type { ChildOutcome } from '../src/task/runner.ts';
 
-const notice = { title: 't', toolCallId: 'c1', mode: 'json' as const, detailFor: () => ({ status: 'success' as const, detail: 'x' }) };
+const notice = { title: 't', description: 'd', toolCallId: 'c1', mode: 'json' as const, detailFor: () => ({ status: 'success' as const, detail: 'x' }) };
 const json = { mode: 'json' } as ExtensionContext;
 
 test('a one-shot run holds its exit for a running background subagent, unless the run was aborted (TASK-003; review r2: architecture)', async () => {

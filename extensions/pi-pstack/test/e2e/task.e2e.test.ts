@@ -52,7 +52,9 @@ describe('foreground', () => {
   test('returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say PONG-FG', run_in_background: false });
     expect(result.isError).toBe(false);
-    expect(result.text).toMatch(/^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(pass it as `resume` to send a follow-up after it completes\)\nTranscript: /);
+    expect(result.text).toMatch(
+      /^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(can be used with the `resume` parameter to send a follow-up after it completes\)\nTranscript: /,
+    );
     expect(result.usage?.totalTokens).toBeGreaterThan(100);
     const entries = transcriptOf(idOf(result.text));
     expect(entries[0]?.type).toBe('session');
@@ -260,7 +262,7 @@ describe('background and parallel', () => {
   test('returns at once and delivers a <task> notification after the turn (TASK-003)', async () => {
     const run = await runJson(sandbox, script([task({ prompt: 'go\n@@sleep 1500 PONG-BG', run_in_background: true })]), ['--no-session']);
     const [launch] = toolEnds(run.events, 'Task');
-    expect(launch?.text.startsWith('Subagent is running in the background. Its final response arrives automatically after your turn ends')).toBe(true);
+    expect(launch?.text.startsWith("Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion")).toBe(true);
     const agentId = idOf(launch?.text);
     const notice = run.events
       .filter((event) => event.type === 'entry_appended')
@@ -268,12 +270,12 @@ describe('background and parallel', () => {
       .filter((entry) => entry.type === 'custom_message' && entry.customType === 'pstack/task')
       .map((entry) => entry.content);
     expect(notice).toEqual([
-      `The following task has finished. If you already handled it, ignore this notification and do not restate earlier responses.\n\n<task>\nkind: subagent\nstatus: success\ntask_id: ${agentId}\ntitle: probe\ntool_call_id: ${(run.events.find((event) => event.type === 'tool_execution_end')?.['toolCallId'] as string) ?? ''}\ndetail: PONG-BG\n</task>`,
+      `<system_notification>\nThe following task has finished. If you were already aware, ignore this notification and do not restate prior responses.\n\n<task>\nkind: subagent\nstatus: success\ntask_id: ${agentId}\ntitle: go\ntool_call_id: ${(run.events.find((event) => event.type === 'tool_execution_end')?.['toolCallId'] as string) ?? ''}\ndetail: PONG-BG\n</task>\n</system_notification>\nPerform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the \`[Name](id)\` Don't use generic label such as \`[agent]\`, \`[worker]\`, or \`[subagent]\`. Don't repeat the same confirmation every time.`,
     ]);
     const texts = assistantTexts(run.events).filter((text) => text !== '');
     expect(texts).toHaveLength(2);
     expect(texts[0]?.startsWith('RESULTS:\n[Task] Subagent is running in the background.')).toBe(true);
-    expect(texts[1]?.startsWith('ECHO: The following task has finished.')).toBe(true);
+    expect(texts[1]?.startsWith('ECHO: <system_notification>\nThe following task has finished.')).toBe(true);
   });
 
   test('while a subagent runs, its run lock names the child process that writes the transcript (recheck)', async () => {
