@@ -33,7 +33,7 @@ Before making a work list or delegating:
 
 1. Read `source_channel_id` from the trigger.
 2. Require it to equal the configured source channel.
-3. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.
+3. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.message_ts`, then `trigger.ts`.
 4. Require a nonempty `SOURCE_THREAD_TS`.
 5. Store `SOURCE_CHANNEL_ID` and `SOURCE_THREAD_TS` as immutable values.
 6. Read the thread and verify that its root has exactly those coordinates.

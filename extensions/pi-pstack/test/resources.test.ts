@@ -183,6 +183,19 @@ describe('shipped resources', () => {
     expect(skills.filter((skill) => skill.filePath.includes('/automations/'))).toEqual([]);
   });
 
+  test('Benny operational skills accept message_ts when thread_ts is empty (RES-015)', () => {
+    // Templates and setup document message_ts. Upstream skills only named trigger.ts, so a top-level Slack
+    // event with empty thread_ts could not freeze SOURCE_THREAD_TS from the documented payload.
+    for (const rel of [
+      'automations/benny/skills/triage-issue-reports/SKILL.md',
+      'automations/benny/skills/reproduce-and-fix-issues/SKILL.md',
+    ]) {
+      const text = readFileSync(join(root, rel), 'utf8');
+      expect(text).toContain('trigger.message_ts');
+      expect(text).toMatch(/trigger\.thread_ts.*trigger\.message_ts.*trigger\.ts/s);
+    }
+  });
+
   test('ships both MIT license texts (RES-009)', () => {
     expect(readFileSync(join(root, 'licenses/pstack.LICENSE'), 'utf8')).toContain('Copyright (c) 2026 Lauren Tan');
     expect(readFileSync(join(root, 'licenses/cursor-team-kit.LICENSE'), 'utf8')).toContain('MIT License');
