@@ -15,34 +15,15 @@
     "pi_count": 79,
     "pstack_missing_in_pi": [],
     "teamkit_missing_in_pi": [],
-    "pi_only_beyond_union_and_create_skill": [
-      "no-inline-imports",
-      "typescript-exhaustive-switch"
-    ]
+    "pi_only_beyond_union_and_create_skill": ["no-inline-imports", "typescript-exhaustive-switch"]
   },
   "agents": {
-    "pstack": [
-      "comment-sicko.md",
-      "poteto-agent.md"
-    ],
-    "teamkit": [
-      "ci-watcher.md",
-      "thermo-nuclear-code-quality-review.md"
-    ],
-    "pi": [
-      "ci-watcher.md",
-      "comment-sicko.md",
-      "poteto-agent.md",
-      "thermo-nuclear-code-quality-review.md"
-    ],
+    "pstack": ["comment-sicko.md", "poteto-agent.md"],
+    "teamkit": ["ci-watcher.md", "thermo-nuclear-code-quality-review.md"],
+    "pi": ["ci-watcher.md", "comment-sicko.md", "poteto-agent.md", "thermo-nuclear-code-quality-review.md"],
     "missing": []
   },
-  "pi_commands": [
-    "mode",
-    "plan",
-    "loop",
-    "routines"
-  ],
+  "pi_commands": ["mode", "plan", "loop", "routines"],
   "pi_tools_known": [
     "AskQuestion",
     "CreatePlan",
@@ -72,8 +53,5 @@
     "sandbox_unix_true": "bwrap FS+net isolation works (writes denied, commands run)",
     "apparmor_restrict_unprivileged_userns": 1
   },
-  "changes_this_session": [
-    "Benny triage/reproduce skills accept message_ts then ts",
-    "resources.test.ts RES-015"
-  ]
+  "changes_this_session": ["Benny triage/reproduce skills accept message_ts then ts", "resources.test.ts RES-015"]
 }
