@@ -182,7 +182,7 @@ describe('forkTranscript: fork_turns', () => {
   test('prepareFork applies fork_turns and names it in the notes', () => {
     writeSource();
     writeTurns(3);
-    const { plan, lock } = prepareFork(params({ fork_turns: 1 }), ctx(), { agents, depth: 0 }, notRunning);
+    const { plan, lock } = prepareFork(params({ fork_turns: 1 }), ctx(), { agents, depth: 0, canSpawn: true }, notRunning);
     expect(userTexts(transcriptFor(dir, plan.agentId) ?? '')).toEqual(['task 0']);
     expect(plan.notes[0]).toBe(`Forked from agent ${source}, keeping its first 1 user turn.`);
     lock.release();
@@ -192,7 +192,7 @@ describe('forkTranscript: fork_turns', () => {
 describe('prepareFork: plan mode', () => {
   test('forks in plan mode, marking the launch for plan mode while the record keeps the source readonly (C-H3, C-M1)', () => {
     writeSource();
-    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, planMode: () => true }, notRunning);
+    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true, planMode: () => true }, notRunning);
     expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, undefined]);
     lock.release();
   });
@@ -202,7 +202,7 @@ describe('prepareFork: plan mode', () => {
     mkdirSync(tree, { recursive: true });
     const worktree: Worktree = { path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
     writeSource({ worktree }, tree);
-    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, planMode: () => true }, notRunning);
+    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true, planMode: () => true }, notRunning);
     expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, worktree]);
     lock.release();
   });
@@ -211,7 +211,7 @@ describe('prepareFork: plan mode', () => {
 describe('prepareFork: run locks', () => {
   test('copies the transcript, holds the new agent lock, and leaves the source unlocked', () => {
     writeSource();
-    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0 }, notRunning);
+    const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true }, notRunning);
     expect(plan.agentId).not.toBe(source);
     expect(transcriptFor(dir, plan.agentId)).toBeDefined();
     expect(existsSync(join(dir, `${plan.agentId}.lock`))).toBe(true);
@@ -222,7 +222,7 @@ describe('prepareFork: run locks', () => {
   test('refuses while another process holds the source run lock, copying nothing', () => {
     writeSource();
     const held = acquireRunLock(dir, source);
-    expect(() => prepareFork(params(), ctx(), { agents, depth: 0 }, notRunning)).toThrow(`Agent ${source} is still running. Wait for its completion before forking it.`);
+    expect(() => prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true }, notRunning)).toThrow(`Agent ${source} is still running. Wait for its completion before forking it.`);
     held.release();
     const leftovers = readdirSync(dir).filter((name) => name.endsWith('.jsonl') || name.endsWith('.lock'));
     expect(leftovers).toEqual([`2026-10-28T10-00-00-000Z_${source}.jsonl`]);

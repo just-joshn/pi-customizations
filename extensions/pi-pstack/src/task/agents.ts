@@ -11,6 +11,10 @@ export interface AgentDefinition {
   model?: string;
   readonly: boolean;
   background: boolean;
+  /** False for a type that never launches subagents of its own, such as Cursor's built-in explore. */
+  spawns?: boolean;
+  /** Pi tools this type turns on beyond Pi's defaults, such as explore's search tools. */
+  tools?: readonly string[];
   prompt: string;
   file?: string;
 }
@@ -21,6 +25,38 @@ export const GENERAL_PURPOSE: AgentDefinition = {
   readonly: false,
   background: false,
   prompt: '',
+};
+
+/**
+ * Cursor's built-in codebase explorer: a file-search specialist that the caller tells how thorough to be, and that has
+ * no Task tool of its own.
+ */
+export const EXPLORE: AgentDefinition = {
+  type: 'explore',
+  description:
+    'Fast agent specialized for exploring codebases. Use it to find files by pattern (such as "src/components/**/*.tsx"), search code for keywords (such as "API endpoints"), or answer questions about the codebase (such as "how do API endpoints work?"). When you call it, name the thoroughness you want: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for a comprehensive search across many locations and naming conventions.',
+  readonly: false,
+  background: false,
+  spawns: false,
+  tools: ['grep', 'find', 'ls'],
+  prompt: [
+    'You are a file search specialist. You navigate and explore codebases thoroughly.',
+    '',
+    'You are good at:',
+    '- finding files fast with glob patterns (find)',
+    '- searching code and text with regular expressions (grep)',
+    '- reading and analyzing file contents (read)',
+    '',
+    'Guidelines:',
+    '- Match how hard you search to the thoroughness the caller asked for.',
+    '- Give file paths as absolute paths in your final response.',
+    '- Do not use emojis.',
+    '- Send your final report directly as a regular message.',
+    '',
+    'You are meant to be fast and to return as soon as you can. Use your tools efficiently: think about where the files and implementations are likely to be, and run several grep and read calls in parallel wherever you can.',
+    '',
+    "Complete the caller's search request efficiently and report your findings clearly.",
+  ].join('\n'),
 };
 
 function parseAgentFile(file: string): AgentDefinition {
@@ -39,12 +75,12 @@ function parseAgentFile(file: string): AgentDefinition {
   };
 }
 
-/** generalPurpose first, then every `*.md` agent file in `dir` sorted by file name. */
+/** The built-in types (generalPurpose, explore) first, as Cursor lists them, then every `*.md` agent file in `dir` sorted by file name. */
 export function loadAgentDefinitions(dir: string = AGENTS_DIR): AgentDefinition[] {
   const files = readdirSync(dir)
     .filter((name) => name.endsWith('.md'))
     .toSorted();
-  return [GENERAL_PURPOSE, ...files.map((name) => parseAgentFile(join(dir, name)))];
+  return [GENERAL_PURPOSE, EXPLORE, ...files.map((name) => parseAgentFile(join(dir, name)))];
 }
 
 export function findAgent(agents: readonly AgentDefinition[], type: string | undefined): AgentDefinition {

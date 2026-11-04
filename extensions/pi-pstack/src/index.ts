@@ -23,10 +23,14 @@ import { registerVisualize } from './visualize.ts';
 const WATCHDOG_MS = 1_000;
 const ORPHAN_EXIT_MS = 5_000;
 
-/** In a subagent, the agent definition body joins the system prompt as the agent's own instructions. */
+// What Cursor tells every subagent in a system reminder, minus its sentence about Cursor Canvas files.
+const SUBAGENT_REMINDER = 'You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.';
+
+/** In a subagent, Cursor's subagent reminder, and the agent definition body as the agent's own instructions. */
 function agentSection(agents: readonly AgentDefinition[]): Record<string, string> {
+  if (childIdentity.depth === 0) return {};
   const prompt = agents.find((agent) => agent.type === childIdentity.agentType)?.prompt ?? '';
-  return prompt === '' ? {} : { pstack_agent: prompt };
+  return { pstack_subagent: SUBAGENT_REMINDER, ...(prompt === '' ? {} : { pstack_agent: prompt }) };
 }
 
 function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
@@ -99,7 +103,8 @@ export default function piPstack(pi: ExtensionAPI): void {
   const mode = registerMode(pi);
   const plan = registerPlanMode(pi);
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
-  const task = registerTask(pi, { agents, depth: childIdentity.depth, planMode: plan.enabled });
+  const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
+  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
     runFresh: async (prompt, name, meta) => {

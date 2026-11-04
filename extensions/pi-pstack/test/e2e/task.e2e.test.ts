@@ -247,9 +247,21 @@ describe('subagent types', () => {
     expect(tools.filter((name) => ['bash', 'edit', 'write', 'Task', 'TodoWrite'].includes(name)).toSorted()).toEqual(['Task', 'TodoWrite', 'bash', 'edit', 'write']);
   });
 
+  test('every child hears that it is a subagent, as Cursor tells its subagents', async () => {
+    const { result } = await runTask({ prompt: 'go\n@@sys' });
+    expect(result.text).toContain('<pstack_subagent>\nYou are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.\n</pstack_subagent>');
+  });
+
+  test("explore runs as a file-search specialist that cannot launch subagents, like Cursor's built-in explore", async () => {
+    const tools = /<response>\n(.*)\n<\/response>/.exec((await runTask({ prompt: 'go\n@@tools-list', subagent_type: 'explore' })).result.text)?.[1]?.split(',') ?? [];
+    expect([tools.includes('read'), tools.includes('grep'), tools.includes('bash'), tools.includes('Task'), tools.includes('stop_agent')]).toEqual([true, true, true, false, false]);
+    const { result } = await runTask({ prompt: 'go\n@@sys', subagent_type: 'explore' });
+    expect(result.text).toContain('<pstack_agent>\nYou are a file search specialist.');
+  });
+
   test('an unknown type fails with the valid list (TASK-006)', async () => {
-    const { result } = await runTask({ prompt: 'go\n@@say X', subagent_type: 'explore' });
-    expect(result.text).toBe('Unknown subagent_type "explore". Available subagent types: generalPurpose, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
+    const { result } = await runTask({ prompt: 'go\n@@say X', subagent_type: 'shell' });
+    expect(result.text).toBe('Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
   });
 
   test('a subagent of a subagent cannot launch more (TASK-011)', async () => {

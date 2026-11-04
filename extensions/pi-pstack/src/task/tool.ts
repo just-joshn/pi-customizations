@@ -272,7 +272,15 @@ function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | unde
   const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace) };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
-  const args = childArgs({ sessionDir: subagentDir(plan.workspace), agentId: plan.agentId, readonly, restoreTools, trusted: plan.trusted, ...(plan.model === undefined ? {} : { model: plan.model }) });
+  const args = childArgs({
+    sessionDir: subagentDir(plan.workspace),
+    agentId: plan.agentId,
+    readonly,
+    restoreTools,
+    trusted: plan.trusted,
+    ...(plan.agent.tools === undefined ? {} : { addTools: plan.agent.tools }),
+    ...(plan.model === undefined ? {} : { model: plan.model }),
+  });
   return startChild({ command: piCommand(), args, prompt: input.text, images: input.images, cwd: plan.executionCwd, env, ...(signal === undefined ? {} : { signal }), ...(onEvent === undefined ? {} : { onEvent }) });
 }
 
@@ -480,6 +488,8 @@ function dropTask(pi: ExtensionAPI): void {
 export interface TaskToolOptions {
   agents: readonly AgentDefinition[];
   depth: number;
+  /** False in a subagent of a subagent, and in a type that never launches subagents (explore). */
+  canSpawn: boolean;
   /** Whether plan mode is on: its Task launches run readonly and here, and record nothing of that. */
   planMode?: () => boolean;
 }
@@ -512,7 +522,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
   });
   pi.on('session_start', (_event, ctx) => {
     sessionCtx = ctx;
-    if (options.depth >= 2) dropTask(pi);
+    if (!options.canSpawn) dropTask(pi);
     const message = carrier[STOPPED_NOTICE];
     delete carrier[STOPPED_NOTICE];
     if (message !== undefined && ctx.hasUI) ctx.ui.notify(message, 'warning');
@@ -524,8 +534,8 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     description: TASK_DESCRIPTION,
     promptSnippet: 'Launch subagents (foreground, background with completion notifications, resume by agent ID)',
     parameters: TaskParams,
-    // Nesting stops at the subagent of a subagent, so that depth never sees the tool.
-    defaultActive: options.depth < 2,
+    // Nesting stops at the subagent of a subagent, so that depth never sees the tool, and so does explore.
+    defaultActive: options.canSpawn,
     renderResult: (result, renderOptions) => renderTaskCard(result, renderOptions),
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       taskPreflight(params, options.depth);
@@ -555,7 +565,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     },
   });
 
-  registerStopAgent(pi, { running: registry.get, depth: options.depth });
+  registerStopAgent(pi, { running: registry.get, canSpawn: options.canSpawn });
 
   async function startBackground(description: string, prompt: string, startOptions?: StartBackgroundOptions): Promise<string> {
     const ctx = sessionCtx;

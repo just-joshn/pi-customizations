@@ -31,10 +31,13 @@ export interface ChildArgsOptions {
   restoreTools?: readonly string[];
   /** The parent's project trust, so the child loads the same project resources (`ctx.isProjectTrusted()`). */
   trusted?: boolean;
+  /** Tools the agent type adds to Pi's default loadout (explore's search tools). */
+  addTools?: readonly string[];
 }
 
 /** Argv for one `pi --mode rpc` subagent process. Its prompts travel as RPC commands on stdin, never in argv. */
 export function childArgs(options: ChildArgsOptions): string[] {
+  const extraTools = [...new Set([...(options.restoreTools ?? []), ...(options.addTools ?? [])])];
   const model = options.model === undefined ? [] : ['--model', `${options.model.provider}/${options.model.id}`, ...(options.model.thinking === undefined ? [] : ['--thinking', options.model.thinking])];
   return [
     '--mode',
@@ -48,7 +51,7 @@ export function childArgs(options: ChildArgsOptions): string[] {
     ...(options.trusted === undefined ? [] : [options.trusted ? '--approve' : '--no-approve']),
     ...model,
     ...(options.readonly === true ? ['--tools', READONLY_TOOLS, '--no-mcp'] : []),
-    ...(options.readonly !== true && (options.restoreTools ?? []).length > 0 ? ['--tools', (options.restoreTools ?? []).map((name) => `+${name}`).join(',')] : []),
+    ...(options.readonly !== true && extraTools.length > 0 ? ['--tools', extraTools.map((name) => `+${name}`).join(',')] : []),
   ];
 }
 
