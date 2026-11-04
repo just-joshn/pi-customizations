@@ -1,4 +1,5 @@
-import { spawnSync } from 'node:child_process';
+import { fork, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
@@ -6,7 +7,7 @@ import { basename, join } from 'node:path';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { storeDir, subagentDir, workspaceSlug, workspaceStateDir, worktreesDir } from '../src/paths.ts';
-import { acquireRunLock, readonlyLaunchRestores, readRecord, writeRecord } from '../src/task/records.ts';
+import { acquireRunLock, readonlyLaunchRestores, readRecord, runningPid, writeRecord } from '../src/task/records.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
 let dir = '';
@@ -15,7 +16,52 @@ beforeEach(() => {
 });
 afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
+function lockProcess(mode: string, signal: AbortSignal) {
+  const child = fork(new URL('./fixtures/lock-process.mjs', import.meta.url), [mode, dir, id], { silent: true, signal });
+  const errors: Error[] = [];
+  child.on('error', (error) => errors.push(error));
+  child.stdout?.resume();
+  child.stderr?.resume();
+  const closed = new Promise<void>((resolve) => child.once('close', () => resolve()));
+  onTestFinished(async () => {
+    child.kill('SIGKILL');
+    await closed;
+    expect(errors.filter((error) => error.name !== 'AbortError')).toEqual([]);
+  });
+  return child;
+}
+
 describe('run lock: one writer per agent ID (review: security 3, architecture 2)', () => {
+  test('two processes recovering one stale lock cannot both become writers', async ({ signal }) => {
+    const dead = spawnSync(process.execPath, ['-e', 'process.stdout.write(String(process.pid))'], { encoding: 'utf8', signal }).stdout;
+    writeFileSync(join(dir, `${id}.lock`), dead);
+    const first = lockProcess('pause-removal', signal);
+    const [ready] = await once(first, 'message', { signal });
+    expect(ready).toEqual({ phase: 'before-stale-removal' });
+    const second = lockProcess('acquire', signal);
+    const [other] = (await once(second, 'message', { signal })) as [{ phase: string }];
+    writeFileSync(join(dir, 'continue'), '');
+    const [resumed] = (await once(first, 'message', { signal })) as [{ phase: string }];
+    expect([other.phase, resumed.phase].filter((phase) => phase === 'acquired')).toHaveLength(1);
+    expect([other.phase, resumed.phase]).toEqual(['blocked', 'acquired']);
+  });
+
+  test.skipIf(process.platform !== 'linux')('a Linux zombie is not a live writer and does not prevent recovery', async ({ signal }) => {
+    const parent = lockProcess('zombie', signal);
+    const [message] = (await once(parent, 'message', { signal })) as [{ pid: number }];
+    const pid = message.pid;
+    await expect
+      .poll(() => {
+        const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+        return stat.slice(stat.lastIndexOf(')') + 2, stat.lastIndexOf(')') + 3);
+      })
+      .toBe('Z');
+    writeFileSync(join(dir, `${id}.lock`), String(pid));
+    expect(runningPid(dir, id)).toBeUndefined();
+    const lock = acquireRunLock(dir, id);
+    expect(runningPid(dir, id)).toBe(process.pid);
+    lock.release();
+  });
   test('a second acquire while the holder lives is refused, naming the lock file', () => {
     const lock = acquireRunLock(dir, id);
     expect(() => acquireRunLock(dir, id)).toThrow(`Agent ${id} is still running (pid ${process.pid}; lock ${join(dir, `${id}.lock`)}). Wait for its completion before resuming it.`);

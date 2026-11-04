@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/plan.e2e.test.ts" -t "worktree plan builder"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 8 skipped (10)
+   Start at  02:42:26
+   Duration  2.29s (tests 80%, import 18%, transform 2%)
+

@@ -1,0 +1,10 @@
+$ vitest run test/loop.test.ts -t "parseLoopArgs|leading word interval"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  20 passed | 29 skipped (49)
+   Start at  01:15:57
+   Duration  1.17s (tests 61%, import 34%, transform 5%)
+

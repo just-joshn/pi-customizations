@@ -38,7 +38,7 @@ If this file is already being read from the target destination, treat the copy a
 
 Confirm that pi-pstack is installed in Pi. A personal install (`pi install <path-to-pi-pstack>`) serves every repository on this machine. A project install (`pi install -l <path-to-pi-pstack>`) writes the target repository's `.pi/settings.json`; preserve every unrelated setting and package entry when that file exists, and validate it after editing.
 
-This setup session must run in the target repository, because a `Task` subagent starts in its parent's working directory. If it does not, stop and tell the user to start Pi in the target repository and point it at `FOR_AGENTS.md` again. Start a fresh `Task` subagent with `readonly: true`. Ask it to resolve `<SKILLS>` from its own system prompt and read each required `<SKILLS>/<name>/SKILL.md` file below. It must report each absolute path and confirm the file's frontmatter names the required skill. Hidden skills need not appear in Pi's automatic skill catalog.
+This setup session must run in the target repository, because a `Task` subagent starts in its parent's working directory. If it does not, stop and tell the user to start Pi in the target repository and point it at `FOR_AGENTS.md` again. Before the dependency check, prove that its child cannot read Slack credentials from the inherited environment or files. `readonly: true` removes MCP tools and restricts shell operations, but does not remove credentials or restrict the `read` tool. If credential isolation is unavailable, stop setup before starting a child or enabling subscriptions. Otherwise start a fresh `Task` subagent with `readonly: true`. Ask it to resolve `<SKILLS>` from its own system prompt and read each required `<SKILLS>/<name>/SKILL.md` file below. It must report each absolute path and confirm the file's frontmatter names the required skill. Hidden skills need not appear in Pi's automatic skill catalog.
 
 - `how`
 - `why`
@@ -132,7 +132,7 @@ The repro automation needs:
 - `gh` authenticated for the repository, so `gh pr create --draft` can open a draft pull request
 - The configured control-adapter skill
 
-Prefer the configured Slack MCP tools for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or the owning session's environment, not in YAML. A writable subagent inherits that environment, which is one reason Benny's workers run readonly.
+Prefer the configured Slack MCP tools for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or the owning session's environment, not in YAML. Every subagent inherits that environment, including readonly children. Removing a token from the prompt does not remove it from the process or make credential files unreadable. Unless separate credential isolation is established, keep analysis and code work in the coordinator.
 
 Do not use undocumented integration endpoints.
 
@@ -247,7 +247,7 @@ Verify:
 3. Repro accepts the marker only from the configured triage identity.
 4. Repro keeps the same immutable source coordinates.
 5. No source-channel root message appears.
-6. A delegated worker cannot use any Slack write action: it runs as a `readonly` `Task`, so it has no MCP tools.
+6. Every delegated worker has verified credential isolation as well as no Slack write actions. `readonly: true` alone is insufficient. If that isolation is unavailable, the coordinator performs the work without an analysis or code child.
 7. Missing coordinates, a deleted parent, or a failed preflight produces no post and no tracker issue.
 8. A second fire, or a repeated webhook POST, for the same report does no work, because the ledger already lists it.
 

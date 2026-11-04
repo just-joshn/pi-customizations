@@ -1,0 +1,56 @@
+$ vitest run test/records.test.ts -t "two processes|Linux zombie"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/records.test.ts (23 tests | 2 failed | 21 skipped) 1370ms
+   ❯ run lock: one writer per agent ID (review: security 3, architecture 2) (8)
+     × two processes recovering one stale lock cannot both become writers 888ms
+     × a Linux zombie is not a live writer and does not prevent recovery 481ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/records.test.ts > run lock: one writer per agent ID (review: security 3, architecture 2) > two processes recovering one stale lock cannot both become writers
+AssertionError: expected [ 'acquired', 'acquired' ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ test/records.test.ts:45:82
+     43|     writeFileSync(join(dir, 'continue'), '');
+     44|     const [resumed] = await once(first, 'message', { signal }) as [{ p…
+     45|     expect([other.phase, resumed.phase].filter((phase) => phase === 'a…
+       |                                                                                  ^
+     46|     expect([other.phase, resumed.phase]).toEqual(['blocked', 'acquired…
+     47|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/records.test.ts > run lock: one writer per agent ID (review: security 3, architecture 2) > a Linux zombie is not a live writer and does not prevent recovery
+AssertionError: expected 18259 to be undefined
+
+- Expected:
+undefined
+
++ Received:
+18259
+
+ ❯ test/records.test.ts:58:33
+     56|     }).toBe('Z');
+     57|     writeFileSync(join(dir, `${id}.lock`), String(pid));
+     58|     expect(runningPid(dir, id)).toBeUndefined();
+       |                                 ^
+     59|     const lock = acquireRunLock(dir, id);
+     60|     expect(runningPid(dir, id)).toBe(process.pid);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 21 skipped (23)
+   Start at  01:49:01
+   Duration  1.86s (tests 77%, import 21%, transform 2%)
+
+error: script "test" exited with code 1

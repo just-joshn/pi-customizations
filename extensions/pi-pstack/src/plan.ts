@@ -1,16 +1,27 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join, resolve, sep } from 'node:path';
 
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { type ExtensionAPI, type ExtensionCommandContext, type ExtensionContext, stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import type * as YAML from 'yaml';
 import { canAsk } from './modes.ts';
 import { plansDir } from './paths.ts';
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
+import type { TodoItem } from './todo.ts';
 
 export const PLAN_ENTRY = 'pstack/plan';
 const STATUS_KEY = 'pstack-plan';
+
+// Pi's local package installer does not install dependencies, so missing YAML must not block unrelated tools.
+let yaml: typeof YAML | undefined;
+try {
+  yaml = createRequire(import.meta.url)('yaml') as typeof YAML;
+} catch (error) {
+  if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') throw error;
+}
 
 /**
  * Pi's `bash` cannot be swapped for the sandboxed shell by name without replacing it for the whole session, so plan
@@ -120,6 +131,12 @@ export function planSection(planFile: string | undefined): string {
 export interface PlanTodo {
   id: string;
   content: string;
+  dependencies?: string[];
+}
+
+export interface PlanProject {
+  is_project?: boolean;
+  phases?: { name: string; todos?: PlanTodo[] }[];
 }
 
 /** The plan's title as Cursor finds it: the first level-1 heading, else the first line of text. */
@@ -141,13 +158,24 @@ export function planFileName(name: string, chatKey: string): string {
 
 const yamlString = (value: string) => `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t')}"`;
 
+function planTodoLines(todo: PlanTodo): string[] {
+  const lines = [`  - id: ${yamlString(todo.id)}`, `    content: ${yamlString(todo.content)}`, '    status: pending'];
+  if (todo.dependencies !== undefined && todo.dependencies.length > 0) lines.push('    dependencies:', ...todo.dependencies.map((id) => `      - ${yamlString(id)}`));
+  return lines;
+}
+
 /** The plan file as Cursor writes it: the chat id in a comment, the todos as front matter, then the plan. */
-export function planFileContent(sessionId: string, plan: string, todos: readonly PlanTodo[]): string {
+export function planFileContent(sessionId: string, plan: string, todos: readonly PlanTodo[], project: PlanProject = {}): string {
   const lines = [`<!-- ${sessionId} -->`];
-  if (todos.length > 0) {
-    lines.push('---', 'todos:');
-    for (const todo of todos) lines.push(`  - id: ${yamlString(todo.id)}`, `    content: ${yamlString(todo.content)}`, '    status: pending');
-    lines.push('isProject: false', '---');
+  if (todos.length > 0 || project.is_project === true) {
+    lines.push('---');
+    if (todos.length > 0) lines.push('todos:', ...todos.flatMap(planTodoLines));
+    lines.push(`isProject: ${project.is_project === true}`);
+    if (project.is_project === true && project.phases !== undefined && project.phases.length > 0) {
+      lines.push('phases:');
+      for (const phase of project.phases) lines.push(`  - name: ${yamlString(phase.name)}`, '    todos:', ...(phase.todos ?? []).flatMap((todo) => planTodoLines(todo).map((line) => `    ${line}`)));
+    }
+    lines.push('---');
   }
   lines.push(plan);
   return lines.join('\n');
@@ -157,29 +185,94 @@ export function planFileContent(sessionId: string, plan: string, todos: readonly
  * Writes the plan under the plans folder and returns its path. A chat keeps one file per plan name, as Cursor keys the
  * name by its conversation; Pi's session ids start with a timestamp, so the 8 characters come from a hash of the id.
  */
-export function savePlan(sessionId: string, plan: string, name: string | undefined, todos: readonly PlanTodo[], dir = plansDir()): string {
+export function savePlan(sessionId: string, plan: string, name: string | undefined, todos: readonly PlanTodo[], dir = plansDir(), project: PlanProject = {}): string {
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const chatKey = createHash('sha256').update(sessionId).digest('hex');
   const path = join(dir, planFileName(name === undefined || name.trim() === '' ? planTitle(plan) : name, chatKey));
-  writeFileSync(path, planFileContent(sessionId, plan, todos), { mode: 0o600 });
+  writeFileSync(path, planFileContent(sessionId, plan, todos, project), { mode: 0o600 });
   return path;
 }
 
 /** The plan text the build turn carries: the file without Cursor's chat comment and todo front matter. */
 export function planBody(file: string): string {
-  return readFileSync(file, 'utf8')
-    .replace(/^<!-- [^\n]*-->\n/, '')
-    .replace(/^---\n[\s\S]*?\n---\n/, '')
-    .trim();
+  return stripFrontmatter(readFileSync(file, 'utf8').replace(/^<!-- [^\n]*-->\r?\n/, '')).trim();
 }
+
+function planMetadata(file: string) {
+  const source = readFileSync(file, 'utf8');
+  const comment = /^<!-- [^\n]*-->\r?\n/.exec(source)?.[0] ?? '';
+  const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(source.slice(comment.length));
+  if (frontmatter === null) return undefined;
+  if (yaml === undefined) throw new Error('Plan metadata needs the yaml dependency. Run bun install in the pi-pstack package directory, then reload Pi.');
+  const document = yaml.parseDocument(frontmatter[1] ?? '');
+  if (document.errors.length > 0) throw new Error(`Invalid plan metadata in ${file}: ${document.errors[0]?.message}`);
+  return { source, offset: comment.length + frontmatter[0].indexOf('\n') + 1, document, yaml };
+}
+
+export function planTodos(file: string): TodoItem[] {
+  const metadata = planMetadata(file);
+  if (metadata === undefined) return [];
+  const { isSeq, isMap, isScalar } = metadata.yaml;
+  const field = metadata.document.get('todos');
+  if (field === undefined || field === null) return [];
+  if (!isSeq(field)) throw new Error(`Plan todos in ${file} must be a list.`);
+  return field.items.map((todo) => {
+    if (!isMap(todo)) throw new Error(`Each plan todo in ${file} must have an id, content, and status.`);
+    const id = todo.get('id');
+    const content = todo.get('content');
+    const status = todo.get('status') ?? 'pending';
+    const dependencies = todo.get('dependencies');
+    if (typeof id !== 'string' || typeof content !== 'string' || !(status === 'pending' || status === 'in_progress' || status === 'completed' || status === 'cancelled')) throw new Error(`Invalid plan todo in ${file}.`);
+    if (dependencies !== undefined && (!isSeq(dependencies) || dependencies.items.some((dependency) => !isScalar(dependency) || typeof dependency.value !== 'string'))) throw new Error(`Invalid todo dependencies in ${file}.`);
+    return { id, content, status, ...(isSeq(dependencies) ? { dependencies: dependencies.toJSON() as string[] } : {}) };
+  });
+}
+
+export function syncPlanTodoStatuses(file: string, todos: readonly TodoItem[]): void {
+  const metadata = planMetadata(file);
+  if (metadata === undefined) return;
+  const { source, offset, document, yaml: parser } = metadata;
+  const { isSeq, isMap, isScalar } = parser;
+  const field = document.get('todos');
+  if (!isSeq(field)) return;
+  const statuses = new Map(todos.map((todo) => [todo.id, todo.status]));
+  const edits: { start: number; end: number; text: string }[] = [];
+  for (const todo of field.items) {
+    if (!isMap(todo)) continue;
+    const status = statuses.get(String(todo.get('id')));
+    const node = todo.get('status', true);
+    if (status === undefined || (node === undefined && status === 'pending')) continue;
+    if (node === undefined && todo.range != null) {
+      const start = offset + todo.range[0] + (todo.flow ? 1 : 0);
+      const indent = start - source.lastIndexOf('\n', start) - 1;
+      const newline = source.includes('\r\n') ? '\r\n' : '\n';
+      const text = todo.flow ? `status: ${status}, ` : `status: ${status}${newline}${' '.repeat(indent)}`;
+      edits.push({ start, end: start, text });
+      continue;
+    }
+    if (!isScalar(node) || node.range == null || node.value === status) continue;
+    const value = node.type === 'QUOTE_DOUBLE' ? JSON.stringify(status) : node.type === 'QUOTE_SINGLE' ? `'${status}'` : status;
+    edits.push({ start: offset + node.range[0], end: offset + node.range[1], text: value });
+  }
+  if (edits.length === 0) return;
+  let updated = source;
+  for (const edit of edits.sort((a, b) => b.start - a.start)) updated = updated.slice(0, edit.start) + edit.text + updated.slice(edit.end);
+  writeFileSync(file, updated);
+}
+
+const PlanTodoParams = Type.Object({
+  id: Type.String({ description: 'Unique identifier for the todo' }),
+  content: Type.String({ description: 'Description of the todo task' }),
+  dependencies: Type.Optional(Type.Array(Type.String(), { description: 'IDs of todos that must finish before this todo' })),
+});
 
 const CreatePlanParams = Type.Object({
   plan: Type.String({ description: "A detailed, concrete plan for accomplishing the user's request" }),
   name: Type.Optional(Type.String({ description: 'A short 3-4 word name for the plan. Give it only on the first CreatePlan call, so the plan file name stays stable.' })),
   overview: Type.Optional(Type.String({ description: 'A 1-2 sentence high-level description of what the plan accomplishes' })),
-  todos: Type.Optional(
-    Type.Array(Type.Object({ id: Type.String({ description: 'Unique identifier for the todo' }), content: Type.String({ description: 'Description of the todo task' }) }), { description: 'Array of implementation todos' }),
-  ),
+  todos: Type.Optional(Type.Array(PlanTodoParams, { description: 'Array of implementation todos' })),
+  is_project: Type.Optional(Type.Boolean({ description: 'Whether the plan is a project organized into phases' })),
+  phases: Type.Optional(Type.Array(Type.Object({ name: Type.String(), todos: Type.Optional(Type.Array(PlanTodoParams)) }), { description: 'Named project phases and their todos, saved when is_project is true' })),
 });
 
 // Cursor's CreatePlan rules: a glanceable markdown plan with a title, todos, no tables, and edits in the file afterwards.
@@ -236,12 +329,15 @@ const isGitRepository = (cwd: string): boolean => {
 };
 
 export interface PlanModeOptions {
+  buildPlan?: string;
+  setTodos?: (todos: TodoItem[], ctx: ExtensionContext) => void;
   /** Starts the build in an isolated worktree worker, Pi's counterpart to Cursor's "build in cloud". Returns the agent ID. */
   buildInWorker?: (planFile: string, request: string) => Promise<string>;
 }
 
-export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}): { section: () => string | undefined; enabled: () => boolean } {
+export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}) {
   let state: PlanState = { enabled: false };
+  let buildPlan = options.buildPlan;
   // A plan saved during the current run, which the user reviews once the run settles.
   let review: string | undefined;
 
@@ -259,7 +355,7 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     async execute(_id, params, _signal, _onUpdate, ctx) {
       if (!state.enabled) throw new Error(`${PLAN_SAVE} is available only in plan mode. Enter it with /plan.`);
-      const planFile = savePlan(ctx.sessionManager.getSessionId(), params.plan, params.name, params.todos ?? []);
+      const planFile = savePlan(ctx.sessionManager.getSessionId(), params.plan, params.name, params.todos ?? [], undefined, params);
       state = { ...state, planFile };
       review = planFile;
       pi.appendEntry(PLAN_ENTRY, state);
@@ -284,7 +380,10 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
   };
 
   const restore = (ctx: ExtensionContext) => {
-    const stored = planFromBranch(ctx.sessionManager.getBranch());
+    const branch = ctx.sessionManager.getBranch();
+    const stored = planFromBranch(branch);
+    // Pi replays tools from system messages before session_tree. A branch without one has no loadout to restore.
+    if (!stored.enabled && state.enabled && !branch.some((entry) => entry.type === 'message' && entry.message.role === 'system')) disable();
     state = { ...stored };
     review = undefined;
     if (stored.enabled) enable(stored.toolsBefore ?? state.toolsBefore ?? pi.getActiveTools());
@@ -293,7 +392,17 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     if (!canAsk(ctx) && pi.getActiveTools().includes(SWITCH_MODE)) pi.setActiveTools(pi.getActiveTools().filter((name) => name !== SWITCH_MODE));
     show(ctx);
   };
-  pi.on('session_start', (_event, ctx) => restore(ctx));
+  pi.on('session_start', (_event, ctx) => {
+    restore(ctx);
+    const initialPlan = buildPlan;
+    buildPlan = undefined;
+    if (initialPlan === undefined) return;
+    const planFile = storedPlanFile(initialPlan, plansDir());
+    if (planFile === undefined) throw new Error('The plan build must use a file inside the pi-pstack plans directory.');
+    prepareBuild(ctx, planFile);
+    state = { enabled: false, planFile };
+    pi.appendEntry(PLAN_ENTRY, state);
+  });
   pi.on('session_tree', (_event, ctx) => restore(ctx));
 
   // Active tools decide what the model is offered; this decides what may run, including names the model
@@ -305,7 +414,13 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     return reason === undefined ? undefined : { block: true, reason };
   });
 
+  const prepareBuild = (ctx: ExtensionContext, planFile: string) => {
+    const todos = planTodos(planFile).filter((todo) => todo.status !== 'completed' && todo.status !== 'cancelled');
+    options.setTodos?.(todos, ctx);
+  };
+
   const build = (ctx: ExtensionContext, planFile: string) => {
+    prepareBuild(ctx, planFile);
     if (state.enabled) disable();
     pi.appendEntry(PLAN_ENTRY, state);
     show(ctx);
@@ -319,6 +434,7 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     if (!state.enabled || state.planFile !== planFile) return;
     if (choice === BUILD_LOCALLY) build(ctx, planFile);
     else if (choice === BUILD_IN_WORKER && options.buildInWorker !== undefined) {
+      prepareBuild(ctx, planFile);
       disable();
       pi.appendEntry(PLAN_ENTRY, state);
       show(ctx);
@@ -392,5 +508,11 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     },
   });
 
-  return { section: () => (state.enabled ? planSection(state.planFile) : undefined), enabled: () => state.enabled };
+  return {
+    section: () => (state.enabled ? planSection(state.planFile) : undefined),
+    enabled: () => state.enabled,
+    syncTodos: (todos: readonly TodoItem[]) => {
+      if (state.planFile !== undefined && existsSync(state.planFile)) syncPlanTodoStatuses(state.planFile, todos);
+    },
+  };
 }

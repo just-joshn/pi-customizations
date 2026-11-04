@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/plan.e2e.test.ts" -t "dependencies|unfinished|synchronizes"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed | 4 skipped (7)
+   Start at  01:42:05
+   Duration  1.47s (tests 72%, import 26%, transform 3%)
+

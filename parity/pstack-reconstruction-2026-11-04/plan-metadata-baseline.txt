@@ -1,0 +1,97 @@
+$ vitest run "test/e2e/plan.e2e.test.ts" -t "dependencies|unfinished|synchronizes"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/plan.e2e.test.ts (7 tests | 3 failed | 4 skipped) 842ms
+   × CreatePlan retains todo dependencies and project phases in its saved file 284ms
+   × building a plan imports its unfinished todos from the edited file 286ms
+   × TodoWrite synchronizes plan statuses without losing dependencies, custom metadata, or body text 271ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/plan.e2e.test.ts > CreatePlan retains todo dependencies and project phases in its saved file
+AssertionError: expected '<!-- 01a1a5ed-92f6-760a-b4aa-33903115…' to contain '    dependencies:\n      - "design"'
+
+- Expected
++ Received
+
+-     dependencies:
+-       - "design"
++ <!-- 01a1a5ed-92f6-760a-b4aa-33903115f83f -->
++ ---
++ todos:
++   - id: "build"
++     content: "Build"
++     status: pending
++ isProject: false
++ ---
++ # Project plan
+
+ ❯ test/e2e/plan.e2e.test.ts:85:17
+     83|   const file = String((end?.['result'] as { details: { planFile: strin…
+     84|   const saved = readFileSync(file, 'utf8');
+     85|   expect(saved).toContain('    dependencies:\n      - "design"');
+       |                 ^
+     86|   expect(saved).toContain('isProject: true\nphases:\n  - name: "Design…
+     87|   expect(saved).toContain('      - id: "implement"\n        content: "…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/e2e/plan.e2e.test.ts > building a plan imports its unfinished todos from the edited file
+AssertionError: expected undefined to be 'Current todo list, owned by this sess…' // Object.is equality
+
+- Expected:
+"Current todo list, owned by this session:
+Todos (0/1 completed):
+[ ] next: Do the next step"
+
++ Received:
+undefined
+
+ ❯ test/e2e/plan.e2e.test.ts:109:17
+    107|   const reply = rpc.events.slice(build).filter((event) => event.type =…
+    108|   const todos = /<pstack_todos>\n([\s\S]*?)\n<\/pstack_todos>/.exec(co…
+    109|   expect(todos).toBe('Current todo list, owned by this session:\nTodos…
+       |                 ^
+    110| });
+    111|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/e2e/plan.e2e.test.ts > TodoWrite synchronizes plan statuses without losing dependencies, custom metadata, or body text
+AssertionError: expected '<!-- 01a1a5ed-952a-740b-8b03-5b15044d…' to be '<!-- 01a1a5ed-952a-740b-8b03-5b15044d…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -1,11 +1,11 @@
+  <!-- 01a1a5ed-952a-740b-8b03-5b15044d4184 -->
+  ---
+  todos:
+    - id: "step"
+      content: "Finish this step"
+-     status: completed
++     status: pending
+      dependencies: [prior]
+  custom: "Keep this value"
+  isProject: false
+  ---
+  # Preserve me
+
+ ❯ test/e2e/plan.e2e.test.ts:132:38
+    130|   const result = rpc.events.slice(update).find((event) => event.type =…
+    131|   expect(result?.['isError']).toBe(false);
+    132|   expect(readFileSync(file, 'utf8')).toBe(before.replace('status: pend…
+       |                                      ^
+    133| });
+    134|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 skipped (7)
+   Start at  01:39:32
+   Duration  1.32s (tests 68%, import 29%, transform 3%)
+
+error: script "test" exited with code 1

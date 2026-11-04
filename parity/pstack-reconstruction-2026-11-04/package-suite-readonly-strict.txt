@@ -1,0 +1,156 @@
+$ vitest run
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/readonly-shell.test.ts (3 tests | 1 failed) 1601ms
+   × a process that used the shell exits on its own once its session shuts down 1421ms
+ ❯ test/readonly-shell-security.test.ts (4 tests | 3 failed) 528ms
+   × a shared pre-initialized sandbox policy does not weaken the shell (TASK-019) 336ms
+   × the dependency default write paths stay denied (TASK-019) 88ms
+   × an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019) 97ms
+ ❯ test/e2e/task.e2e.test.ts (60 tests | 1 failed) 55212ms
+   ❯ subagent types (13)
+     × a readonly child runs git log but cannot write files or reach the network (TASK-019) 776ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/readonly-shell-security.test.ts > a shared pre-initialized sandbox policy does not weaken the shell (TASK-019)
+AssertionError: expected 'apply-seccomp: write /proc/self/setgr…' to match /Operation not permitted|Read-only fil…/
+
+- Expected:
+/Operation not permitted|Read-only file system/
+
++ Received:
+"apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
+
+
+Command exited with code 1"
+
+ ❯ test/readonly-shell-security.test.ts:48:16
+     46|   const dir = tempDir('pi-pstack-ro-shared-');
+     47|   const text = await run(dir, bash(), `printf shared-escape > ${join(d…
+     48|   expect(text).toMatch(/Operation not permitted|Read-only file system/…
+       |                ^
+     49|   expect(existsSync(join(dir, 'shared-escape.txt'))).toBe(false);
+     50| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > the dependency default write paths stay denied (TASK-019)
+AssertionError: expected 'apply-seccomp: write /proc/self/setgr…' to contain 'done'
+
+- Expected
++ Received
+
+- done
++ apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
+
+ ❯ test/readonly-shell-security.test.ts:62:16
+     60|   expect(text).not.toContain('TMP-CLAUDE-WROTE');
+     61|   expect(text).not.toContain('HOME-DEBUG-WROTE');
+     62|   expect(text).toContain('done');
+       |                ^
+     63|   expect(existsSync(homeEscape)).toBe(false);
+     64|   rmSync(join(tmpClaude, 'pstack-escape'), { force: true });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)
+AssertionError: expected 'apply-seccomp: write /proc/self/setgr…' to contain 'sandbox-ran'
+
+- Expected
++ Received
+
+- sandbox-ran
++ apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
+
+ ❯ test/readonly-shell-security.test.ts:77:16
+     75|   });
+     76|   const text = await run(dir, bash(), 'echo sandbox-ran');
+     77|   expect(text).toContain('sandbox-ran');
+       |                ^
+     78|   expect(existsSync(marker)).toBe(false);
+     79| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/readonly-shell.test.ts > a process that used the shell exits on its own once its session shuts down
+AssertionError: expected 'apply-seccomp: write /proc/self/setgr…' to contain 'SANDBOXED'
+
+- Expected
++ Received
+
+- SANDBOXED
++ apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ SHUTDOWN-DONE
++
+
+ ❯ test/readonly-shell.test.ts:30:25
+     28|   onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+     29|   const result = spawnSync(process.execPath, [join(import.meta.dirname…
+     30|   expect(result.stdout).toContain('SANDBOXED');
+       |                         ^
+     31|   expect(result.stdout).toContain('SHUTDOWN-DONE');
+     32|   expect([result.error?.message, result.signal, result.status]).toEqua…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > a readonly child runs git log but cannot write files or reach the network (TASK-019)
+AssertionError: expected 'RESULTS:\n[bash error] apply-seccomp:…' to contain 'RO-COMMIT-MARK'
+
+- Expected
++ Received
+
+- RO-COMMIT-MARK
++ RESULTS:
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
++ [bash error] apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
++
++
++ Command exited with code 1
+
+ ❯ test/e2e/task.e2e.test.ts:218:19
+    216|     const { result } = await runTask({ prompt: `go\n@@script ${JSON.st…
+    217|     const lines = /<response>\n([\s\S]*)\n<\/response>/.exec(result.te…
+    218|     expect(lines).toContain('RO-COMMIT-MARK');
+       |                   ^
+    219|     expect(lines).toContain('KEPT');
+    220|     expect(lines.match(/\[bash error\]/g)?.length).toBe(4);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  3 failed | 43 passed (46)
+      Tests  5 failed | 675 passed (680)
+   Start at  08:35:22
+   Duration  62.62s (tests 81%, import 17%, transform 1%)
+
+error: script "test" exited with code 1

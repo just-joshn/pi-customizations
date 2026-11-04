@@ -1,0 +1,125 @@
+$ vitest run test/plan.test.ts -t "omitted optional status"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/plan.test.ts (27 tests | 4 failed | 23 skipped) 15ms
+   × synchronizes an omitted optional status in block LF metadata 10ms
+   × synchronizes an omitted optional status in block CRLF metadata 1ms
+   × synchronizes an omitted optional status in flow metadata 2ms
+   × synchronizes an omitted optional status in flow with trailing comma metadata 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in block LF metadata
+AssertionError: expected '<!-- session -->\n---\ntodos:\n  - st…' to be '<!-- session -->\n---\ntodos:\n  - id…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+  todos:
+-   - id: work
++   - status: pending
++     id: work
+      content: Work # keep
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:212:38
+    210|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    211|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    212|   expect(readFileSync(file, 'utf8')).toBe(before);
+       |                                      ^
+    213|
+    214|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in block CRLF metadata
+AssertionError: expected '<!-- session -->\r\n---\r\ntodos:\r\n…' to be '<!-- session -->\r\n---\r\ntodos:\r\n…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+  todos:
+-   - id: work
++   - status: pending
++     id: work
+      content: Work # keep
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:212:38
+    210|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    211|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    212|   expect(readFileSync(file, 'utf8')).toBe(before);
+       |                                      ^
+    213|
+    214|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in flow metadata
+AssertionError: expected '<!-- session -->\n---\ntodos: [{statu…' to be '<!-- session -->\n---\ntodos: [{ id: …' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+- todos: [{ id: work, content: Work }]
++ todos: [{status: pending,  id: work, content: Work }]
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:212:38
+    210|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    211|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    212|   expect(readFileSync(file, 'utf8')).toBe(before);
+       |                                      ^
+    213|
+    214|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in flow with trailing comma metadata
+AssertionError: expected '<!-- session -->\n---\ntodos: [{statu…' to be '<!-- session -->\n---\ntodos: [{ id: …' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+- todos: [{ id: work, content: Work, }]
++ todos: [{status: pending,  id: work, content: Work, }]
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:212:38
+    210|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    211|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    212|   expect(readFileSync(file, 'utf8')).toBe(before);
+       |                                      ^
+    213|
+    214|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 23 skipped (27)
+   Start at  08:55:11
+   Duration  525ms (import 83%, transform 13%, tests 3%)
+
+error: script "test" exited with code 1

@@ -1,0 +1,10 @@
+$ vitest run test/plan.test.ts "test/e2e/plan.e2e.test.ts" test/todo.test.ts
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  3 passed (3)
+      Tests  48 passed (48)
+   Start at  08:55:54
+   Duration  5.34s (tests 83%, import 15%, transform 2%)
+

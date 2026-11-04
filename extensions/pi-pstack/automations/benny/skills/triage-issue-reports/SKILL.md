@@ -19,7 +19,7 @@ Load the external Benny configuration supplied by the automation. If the config 
 - If the parent is missing, deleted, inaccessible, or uncertain, stop with no writes.
 - Post one substantive verdict. Do not narrate progress.
 - The coordinator is the only Slack poster.
-- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions. In Pi, start each one with `Task` and `readonly: true`: a readonly subagent gets no MCP servers, and its shell can neither write files nor reach the network.
+- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions. In Pi, `Task` with `readonly: true` removes MCP tools and restricts shell operations, but still inherits environment credentials and can read credential files. Launch a child only after separate credential isolation is proven. Otherwise do the work in the coordinator.
 - Every child prompt must forbid every Slack MCP write tool (`mcp__<slack-server>__*` tools that post, edit, react, or upload), `chat.postMessage`, and every other Slack write.
 - If worker isolation cannot enforce those limits, do the work in the coordinator.
 - Never create an issue that cannot link back to the source thread.

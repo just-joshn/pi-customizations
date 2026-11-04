@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { performance } from 'node:perf_hooks';
 
 import { durableRegistryPath, durableRuntimeDir } from '../paths.ts';
+import { acquireLease, alive } from '../process-lock.ts';
 import { parseCron } from './cron.ts';
 import type { ArmStatus, DurableRegistry, DurableSubscription, EventAdmission, PendingEvent, StoredSubscription, SupervisorLock } from './durable-types.ts';
 import { routineSlug } from './webhook.ts';
@@ -15,28 +16,6 @@ export function canonicalPath(path: string): string {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
     const absolute = resolve(path);
     return absolute === dirname(absolute) ? absolute : join(canonicalPath(dirname(absolute)), absolute.slice(dirname(absolute).length + 1));
-  }
-}
-
-function zombie(pid: number): boolean {
-  if (process.platform !== 'linux') return false;
-  try {
-    const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
-    const close = stat.lastIndexOf(')');
-    return close !== -1 && stat.slice(close + 2, close + 3) === 'Z';
-  } catch {
-    return false;
-  }
-}
-
-export function alive(pid: number): boolean {
-  if (!Number.isInteger(pid) || pid <= 0) return false;
-  try {
-    process.kill(pid, 0);
-    // A zombie still answers kill(pid, 0) until its parent reaps it, but it holds no lock and runs nothing.
-    return !zombie(pid);
-  } catch (error) {
-    return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
 }
 
@@ -74,58 +53,6 @@ export function writeRoutinesPort(cwd: string, port: number): void {
     writeFileSync(routinesPortPath(cwd), `${port}\n`, { mode: 0o600 });
   } catch {
     // A missing runtime dir only costs a new port after restart.
-  }
-}
-
-export type Lease = { token: string; release: () => void };
-
-/** Publish a nonempty directory atomically. Recovery removes only the dead holder's token. */
-export function acquireLease(path: string): Lease | undefined {
-  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
-  const token = `${process.pid}-${randomUUID()}`;
-  const temporary = `${path}.${token}.tmp`;
-  mkdirSync(temporary, { mode: 0o700 });
-  try {
-    writeFileSync(join(temporary, token), '', { mode: 0o600 });
-    for (let attempt = 0; attempt < 4; attempt += 1) {
-      try {
-        renameSync(temporary, path);
-        return {
-          token,
-          release: () => {
-            rmSync(join(path, token), { force: true });
-            try {
-              rmdirSync(path);
-            } catch (error) {
-              if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
-            }
-          },
-        };
-      } catch (error) {
-        if (!['ENOTEMPTY', 'EEXIST'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
-      }
-      let holders: string[];
-      try {
-        holders = readdirSync(path);
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue;
-        throw error;
-      }
-      for (const holder of holders) {
-        const pid = Number(/^(\d+)-[a-f0-9-]+$/.exec(holder)?.[1]);
-        if (!Number.isInteger(pid)) throw new Error(`Invalid subscription lock ${path}. Retain it for diagnosis.`);
-        if (alive(pid)) return undefined;
-        rmSync(join(path, holder), { force: true });
-      }
-      try {
-        rmdirSync(path);
-      } catch (error) {
-        if (!['ENOENT', 'ENOTEMPTY', 'EEXIST'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
-      }
-    }
-    return undefined;
-  } finally {
-    rmSync(temporary, { recursive: true, force: true });
   }
 }
 

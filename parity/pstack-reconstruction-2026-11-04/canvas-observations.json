@@ -1,0 +1,23 @@
+{
+  "browser": "157.0.8103.38",
+  "observations": [
+    {
+      "name": "reference",
+      "changed": "\t\t@@ -1,2 +1,3 @@\n1\t\tconst previous = 1;\n\t1\tconst next = 2;\n\t2\tconst literal = \"</script><script>window.unexpectedCanvasExecution=true</script>\";",
+      "movedAdds": 3,
+      "movedDeletes": 3,
+      "whitespaceContexts": 1,
+      "toggled": true,
+      "errors": []
+    },
+    {
+      "name": "native",
+      "changed": "\t\t@@ -1,2 +1,3 @@\n1\t\tconst previous = 1;\n\t1\tconst next = 2;\n\t2\tconst literal = \"</script><script>window.unexpectedCanvasExecution=true</script>\";",
+      "movedAdds": 3,
+      "movedDeletes": 3,
+      "whitespaceContexts": 1,
+      "toggled": true,
+      "errors": []
+    }
+  ]
+}

@@ -103,7 +103,11 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
 
   const mode = registerMode(pi);
-  const plan = registerPlanMode(pi, { buildInWorker: (planFile, request) => task.startBackground(`Build ${basename(planFile)}`, request, { environment: 'cloud' }) });
+  const plan = registerPlanMode(pi, {
+    ...(childIdentity.buildPlan === undefined ? {} : { buildPlan: childIdentity.buildPlan }),
+    setTodos: (items, ctx) => todos.replace(items, ctx),
+    buildInWorker: (planFile, request) => task.startBackground(`Build ${basename(planFile)}`, request, { environment: 'cloud', buildPlan: planFile }),
+  });
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
   registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
@@ -119,7 +123,7 @@ export default function piPstack(pi: ExtensionAPI): void {
     },
   });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
-  const todos = registerTodoWrite(pi);
+  const todos = registerTodoWrite(pi, childIdentity.readonly ? {} : { onWrite: plan.syncTodos });
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly) registerReadonlyShell(pi);

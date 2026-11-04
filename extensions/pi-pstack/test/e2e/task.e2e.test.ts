@@ -1,8 +1,9 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { assistantTexts, contentText, makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
@@ -218,6 +219,45 @@ describe('subagent types', () => {
     expect(lines).toContain('KEPT');
     expect(lines.match(/\[bash error\]/g)?.length).toBe(4);
     expect([existsSync(join(sandbox.workDir, 'made.txt')), existsSync(outside), existsSync(join(sandbox.workDir, 'kept.txt'))]).toEqual([false, false, true]);
+  });
+
+  test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a readonly child cannot mutate host state through a Unix socket', async ({ signal }) => {
+    const socketPath = join(sandbox.root, 'host.sock');
+    const hostFile = join(sandbox.root, 'host-state.txt');
+    writeFileSync(hostFile, 'UNCHANGED');
+    const server = createServer((client) => {
+      client.on('data', () => {
+        writeFileSync(hostFile, 'CHANGED');
+        client.end('HOST-SOCKET-REACHED');
+      });
+    });
+    onTestFinished(() => {
+      if (server.listening) return new Promise<void>((resolve, reject) => server.close((error) => (error === undefined ? resolve() : reject(error))));
+      return undefined;
+    });
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen({ path: socketPath, signal }, resolve);
+    });
+    const command = `${JSON.stringify(process.execPath)} -e 'const net = require("node:net"); const client = net.createConnection(process.argv[1]); client.on("error", error => { console.error(error.code); process.exitCode = 1; }); client.on("data", data => process.stdout.write(data)); client.end("mutate");' ${JSON.stringify(socketPath)}`;
+    const { result } = await runTask({ prompt: script([{ tool: 'bash', args: { command } }]), readonly: true });
+    expect.soft(result.text).not.toContain('HOST-SOCKET-REACHED');
+    expect.soft(readFileSync(hostFile, 'utf8')).toBe('UNCHANGED');
+    expect(result.text).toContain('[bash error]');
+  });
+
+  test.skipIf(process.platform !== 'linux')('readonly children still inherit environment credentials', async () => {
+    sandbox.env = {
+      HOME: sandbox.root,
+      PATH: process.env['PATH'] ?? '',
+      PI_CODING_AGENT_DIR: sandbox.agentDir,
+      PI_OFFLINE: '1',
+      PI_SKIP_VERSION_CHECK: '1',
+      BENNY_SLACK_BOT_TOKEN: 'FAKE-BENNY-CREDENTIAL',
+    };
+    const { result } = await runTask({ prompt: script([{ tool: 'read', args: { path: '/proc/self/environ' } }]), readonly: true });
+    expect(result.isError).toBe(false);
+    expect(result.text).toContain('BENNY_SLACK_BOT_TOKEN=FAKE-BENNY-CREDENTIAL');
   });
 
   test('a writable child keeps the ordinary shell (TASK-019)', async () => {

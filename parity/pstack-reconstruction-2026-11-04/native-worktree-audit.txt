@@ -1,0 +1,10 @@
+$ vitest run test/scripts.test.ts
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  02:10:06
+   Duration  1.85s (tests 78%, import 20%, transform 2%)
+

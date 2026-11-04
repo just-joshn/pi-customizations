@@ -6,24 +6,9 @@ import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
+import { acquireLease, type Lease } from '../process-lock.ts';
 import { parseCron } from './cron.ts';
-import {
-  acquireLease,
-  cancelDesired,
-  canonicalPath,
-  createDesired,
-  deliverOwner,
-  finishFresh,
-  isDesired,
-  isSupervisorLive,
-  type Lease,
-  ownerLockPath,
-  readArm,
-  readRegistry,
-  runsDetached,
-  startFresh,
-  visibleSubscriptions,
-} from './durable-store.ts';
+import { cancelDesired, canonicalPath, createDesired, deliverOwner, finishFresh, isDesired, isSupervisorLive, ownerLockPath, readArm, readRegistry, runsDetached, startFresh, visibleSubscriptions } from './durable-store.ts';
 import type { StoredSubscription } from './durable-types.ts';
 import { defaultEnsureSupervisor, waitForArm, waitForSupervisor } from './ensure-supervisor.ts';
 import { type GhRunner, targetText } from './github.ts';

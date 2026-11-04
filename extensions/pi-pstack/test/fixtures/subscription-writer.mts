@@ -1,6 +1,7 @@
 import { appendFileSync, writeFileSync } from 'node:fs';
 
-import { acceptEvent, acquireLease, cancelDesired, createDesired, deliverOwner, readRegistry } from '../../src/subscriptions/durable-store.ts';
+import { acquireLease } from '../../src/process-lock.ts';
+import { acceptEvent, cancelDesired, createDesired, deliverOwner, readRegistry } from '../../src/subscriptions/durable-store.ts';
 
 const [cwd, operation, value, marker] = process.argv.slice(2);
 if (cwd === undefined || value === undefined) throw new Error('Missing fixture arguments.');

@@ -1,0 +1,10 @@
+$ vitest run test/records.test.ts test/durable-store.test.ts
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  2 passed (2)
+      Tests  52 passed (52)
+   Start at  01:56:40
+   Duration  3.68s (tests 84%, import 13%, transform 2%)
+

@@ -1,5 +1,7 @@
+import { randomUUID } from 'node:crypto';
+
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
-import { Type } from 'typebox';
+import { type Static, Type } from 'typebox';
 import { isOneShot } from './modes.ts';
 
 const DAY_MS = 86_400_000;
@@ -30,19 +32,16 @@ function delayOf(text: string): number {
   return ms;
 }
 
-export type LoopCommand = { kind: 'status' } | { kind: 'stop' } | { kind: 'start'; prompt: string; intervalMs?: number } | { kind: 'error'; message: string };
+export type LoopCommand = { kind: 'status' } | { kind: 'stop'; loopId?: string } | { kind: 'start'; prompt: string; intervalMs?: number } | { kind: 'error'; message: string };
 
-/** The longest trailing phrase that parses as a duration, such as `5m`, `every 10 minutes`, or `1 hour 30 minutes`. */
-function trailingInterval(text: string): { prompt: string; intervalMs: number } | undefined {
-  const tokens = text.split(/\s+/);
-  for (let take = Math.min(6, tokens.length); take >= 1; take -= 1) {
-    const intervalMs = parseDuration(tokens.slice(-take).join(' '));
+function edgeInterval(text: string, edge: 'leading' | 'trailing'): { prompt: string; intervalMs: number } | undefined {
+  const tokens = [...text.matchAll(/\S+/g)];
+  for (let take = tokens.length; take >= 1; take -= 1) {
+    const start = edge === 'leading' ? 0 : (tokens[tokens.length - take]?.index ?? 0);
+    const end = edge === 'trailing' ? text.length : (tokens[take - 1]?.index ?? 0) + (tokens[take - 1]?.[0].length ?? 0);
+    const intervalMs = parseDuration(text.slice(start, end));
     if (intervalMs === undefined) continue;
-    const prompt = tokens
-      .slice(0, -take)
-      .join(' ')
-      .replace(/\s+every$/i, '')
-      .trim();
+    const prompt = (edge === 'leading' ? text.slice(end) : text.slice(0, start).replace(/\s+every\s*$/i, '')).trim();
     return { prompt, intervalMs };
   }
   return undefined;
@@ -51,20 +50,13 @@ function trailingInterval(text: string): { prompt: string; intervalMs: number } 
 export function parseLoopArgs(args: string): LoopCommand {
   const trimmed = args.trim();
   if (trimmed === '') return { kind: 'status' };
-  if (trimmed === 'stop' || trimmed === 'off') return { kind: 'stop' };
-  const [, first = '', rest = ''] = /^(\S+)\s*([\s\S]*)$/.exec(trimmed) ?? [];
-  const leadMs = parseDuration(first) ?? (first.toLowerCase() === 'every' ? parseDuration(rest.split(/\s+/)[0] ?? '') : undefined);
-  if (leadMs !== undefined) {
-    if (leadMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
-    const after = first.toLowerCase() === 'every' ? rest.split(/\s+/).slice(1).join(' ') : rest;
-    return after.trim() === '' ? { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } : { kind: 'start', prompt: after.trim(), intervalMs: leadMs };
-  }
-  // Cursor accepts the interval at either end, including `every 10 minutes`, so both ends are tried before treating it as a prompt.
-  const trailing = trailingInterval(trimmed);
-  if (trailing !== undefined) {
-    if (trailing.intervalMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
-    if (trailing.prompt === '') return { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' };
-    return { kind: 'start', prompt: trailing.prompt, intervalMs: trailing.intervalMs };
+  const stop = /^(?:stop|off)(?:\s+(\S+))?$/.exec(trimmed);
+  if (stop !== null) return { kind: 'stop', ...(stop[1] === undefined ? {} : { loopId: stop[1] }) };
+  const interval = edgeInterval(trimmed, 'leading') ?? edgeInterval(trimmed, 'trailing');
+  if (interval !== undefined) {
+    if (interval.intervalMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
+    if (interval.prompt === '') return { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' };
+    return { kind: 'start', ...interval };
   }
   return { kind: 'start', prompt: trimmed };
 }
@@ -113,7 +105,7 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     if (loop === undefined) return;
     loop = { ...loop, iteration: loop.iteration + 1, due: false };
     // Expansion lets a loop run a skill or template each time.
-    pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true });
+    pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true, deliverAs: 'followUp' });
   };
   /**
    * A timer fired. A fixed loop keeps its wall-clock cadence, like Cursor's sleep-and-echo shell loop, so a long run
@@ -167,31 +159,77 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     loop = { ...rest, nextWakeMs: delayMs };
   };
   const section = () => (loop === undefined ? undefined : loopSection(loop));
-  return { notify, stop, settled, start, arm, status, wake, clear, section, active: () => loop !== undefined };
+  return { stop, settled, start, arm, status, wake, clear, section, prompt: () => loop?.prompt, active: () => loop !== undefined };
+}
+
+function createLoopRegistry(pi: ExtensionAPI, options: LoopOptions) {
+  const controllers = new Map<string, ReturnType<typeof createLoopController>>();
+  const entries = () => {
+    for (const [id, controller] of controllers) if (!controller.active()) controllers.delete(id);
+    return [...controllers];
+  };
+  const choose = (loopId?: string, prompt?: string) => {
+    const active = entries();
+    const existing = active.find(([id, controller]) => (loopId !== undefined ? id === loopId : prompt !== undefined ? controller.prompt() === prompt : active.length === 1));
+    if (existing !== undefined) return { loopId: existing[0], controller: existing[1] };
+    if (loopId !== undefined) throw new Error(`No running loop has id "${loopId}". /loop lists running loops.`);
+    if (prompt !== undefined) {
+      const id = randomUUID();
+      const controller = createLoopController(pi, options);
+      controllers.set(id, controller);
+      return { loopId: id, controller };
+    }
+    if (active.length === 0) throw new Error('No loop is running.');
+    throw new Error(`Several loops are running. Pass loop_id to choose one, or use /loop stop <id>. Running loops:\n${active.map(([id, controller]) => `${id} ${controller.status()}`).join('\n')}`);
+  };
+  const status = () => {
+    const active = entries();
+    if (active.length === 0) return 'No loop is running. Usage: /loop [interval] <prompt>, with the interval at either end; /loop stop ends one.';
+    return active.map(([id, controller]) => (active.length === 1 ? controller.status() : `${id} ${controller.status()}`)).join('\n');
+  };
+  const section = () => {
+    const active = entries();
+    if (active.length === 0) return undefined;
+    if (active.length === 1) return active[0]?.[1].section();
+    return [...active.map(([id, controller]) => `Loop ${id} runs ${JSON.stringify(controller.prompt())}.\n${controller.section()}`), 'Several loops are running. Pass loop_id with wake_in or stop so only the intended loop changes.'].join(
+      '\n\n',
+    );
+  };
+  return { choose, entries, status, section };
 }
 
 type LoopController = ReturnType<typeof createLoopController>;
+type LoopRegistry = ReturnType<typeof createLoopRegistry>;
 
 const ONE_SHOT = '/loop needs an interactive or RPC session; print and JSON runs exit when the agent settles.';
 
-function handleLoopCommand(controller: LoopController, args: string, ctx: ExtensionCommandContext): void {
+function handleLoopCommand(registry: LoopRegistry, args: string, ctx: ExtensionCommandContext): void {
   const command = parseLoopArgs(args);
-  if (command.kind === 'status') controller.notify(ctx, controller.status());
-  else if (command.kind === 'stop') controller.stop(ctx, 'stopped by /loop stop.');
-  else if (command.kind === 'error') controller.notify(ctx, command.message);
-  else if (isOneShot(ctx.mode)) process.stderr.write(`${ONE_SHOT}\n`);
-  else controller.start(ctx, command.prompt, command.intervalMs);
+  try {
+    if (command.kind === 'status') ctx.ui.notify(registry.status(), 'info');
+    else if (command.kind === 'stop') registry.choose(command.loopId).controller.stop(ctx, 'stopped by /loop stop.');
+    else if (command.kind === 'error') ctx.ui.notify(command.message, 'error');
+    else if (isOneShot(ctx.mode)) process.stderr.write(`${ONE_SHOT}\n`);
+    else registry.choose(undefined, command.prompt).controller.start(ctx, command.prompt, command.intervalMs);
+  } catch (error) {
+    ctx.ui.notify(error instanceof Error ? error.message : String(error), 'error');
+  }
 }
 
 const LoopParams = Type.Object({
-  prompt: Type.Optional(Type.String({ description: 'Start (or replace) a loop that sends this prompt each run. It may be a skill or template command such as /poteto-mode <task>.' })),
+  loop_id: Type.Optional(Type.String({ description: 'Loop ID from an earlier Loop result. Required to wake, stop, or replace one loop when several are running. Omit with a new prompt to start an independent loop.' })),
+  prompt: Type.Optional(
+    Type.String({
+      description:
+        'Start a loop that sends this prompt each run. A different prompt starts an independent loop; the same prompt or an explicit loop_id replaces its earlier schedule. It may be a skill or template command such as /poteto-mode <task>.',
+    }),
+  ),
   interval: Type.Optional(Type.String({ description: 'With prompt: a fixed cadence such as 30m or 1h; the first run starts that long after this turn ends.' })),
   wake_in: Type.Optional(Type.String({ description: 'With prompt: the first run of an agent-paced loop. Alone: the next run of the running agent-paced loop. A duration such as 10m, at most 24d.' })),
   stop: Type.Optional(Type.Boolean({ description: 'End the loop once its goal is met.' })),
 });
 
-function loopToolText(controller: LoopController, params: { prompt?: string; interval?: string; wake_in?: string; stop?: boolean }, ctx: ExtensionContext): string {
-  if (isOneShot(ctx.mode)) throw new Error(`${ONE_SHOT} Do the work now instead of scheduling it.`);
+function loopToolText(controller: LoopController, params: Static<typeof LoopParams>, ctx: ExtensionContext): string {
   if (params.stop === true) {
     if (!controller.active()) throw new Error('No loop is running.');
     controller.stop(ctx, 'the agent ended it.');
@@ -215,32 +253,39 @@ function loopToolText(controller: LoopController, params: { prompt?: string; int
   return `Next loop run in ${formatMs(delay)}, after this turn ends.`;
 }
 
-function registerLoopTool(pi: ExtensionAPI, controller: LoopController): void {
+function registerLoopTool(pi: ExtensionAPI, registry: LoopRegistry): void {
   pi.registerTool({
     name: 'Loop',
     label: 'Loop',
-    description: '/loop for you: start a loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule the next wake of an agent-paced loop, or stop the loop once its goal is met. Use it when a playbook says to arm /loop.',
+    description:
+      '/loop for you: start an independent loop that re-sends a prompt at a fixed interval or at wakes you pick, schedule its next wake, or stop it once its goal is met. Use it when a playbook says to arm /loop. Each result names the loop ID. With several loops running, pass loop_id to wake or stop the intended loop.',
     promptSnippet: 'Start a /loop, schedule its next wake, or stop it',
     parameters: LoopParams,
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      return { content: [{ type: 'text', text: loopToolText(controller, params, ctx) }], details: undefined };
+      if (isOneShot(ctx.mode)) throw new Error(`${ONE_SHOT} Do the work now instead of scheduling it.`);
+      const { loopId, controller } = registry.choose(params.loop_id, params.prompt);
+      return { content: [{ type: 'text', text: `${loopToolText(controller, params, ctx)}\nLoop ID: ${loopId}` }], details: { loopId } };
     },
   });
 }
 
 /** /loop: run a prompt at a fixed interval, or at wakes the agent picks, until stopped. */
 export function registerLoop(pi: ExtensionAPI, options: LoopOptions): { section: () => string | undefined } {
-  const controller = createLoopController(pi, options);
+  const registry = createLoopRegistry(pi, options);
   pi.on('session_start', (_event, ctx) => {
     if (isOneShot(ctx.mode)) pi.setActiveTools(pi.getActiveTools().filter((name) => name !== 'Loop'));
   });
-  pi.on('agent_settled', (event, ctx) => controller.settled(ctx, event.aborted));
-  pi.on('session_shutdown', () => controller.clear());
-  pi.registerCommand('loop', {
-    description: 'Run a prompt repeatedly: /loop [interval] <prompt>, interval either end and like 30s, 5m, 1h, every 10 minutes (at most 24d); /loop stop',
-    handler: async (args, ctx) => handleLoopCommand(controller, args, ctx),
+  pi.on('agent_settled', (event, ctx) => {
+    for (const [, controller] of registry.entries()) controller.settled(ctx, event.aborted);
   });
-  registerLoopTool(pi, controller);
-  return { section: controller.section };
+  pi.on('session_shutdown', () => {
+    for (const [, controller] of registry.entries()) controller.clear();
+  });
+  pi.registerCommand('loop', {
+    description: 'Run independent prompts repeatedly: /loop [interval] <prompt>, interval either end and like 30s, 5m, 1h, every 10 minutes (at most 24d); /loop lists them; /loop stop [id] stops one',
+    handler: async (args, ctx) => handleLoopCommand(registry, args, ctx),
+  });
+  registerLoopTool(pi, registry);
+  return { section: registry.section };
 }

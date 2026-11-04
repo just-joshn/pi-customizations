@@ -5,7 +5,7 @@ import { isAbsolute, join, relative } from 'node:path';
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { childIdentity, childVariables } from '../child-env.ts';
+import { BUILD_PLAN_ENV, childIdentity, childVariables } from '../child-env.ts';
 import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent } from './agents.ts';
@@ -111,6 +111,7 @@ export interface Launch {
   attachments: string[];
   notes: string[];
   description: string;
+  buildPlan?: string;
 }
 
 const runsReadonly = (plan: Launch) => plan.readonly || plan.planMode;
@@ -269,7 +270,11 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
 
 function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | undefined, onEvent?: (event: { type: string } & Record<string, unknown>) => void) {
   const readonly = runsReadonly(plan);
-  const env = { ...process.env, ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace) };
+  const env = {
+    ...process.env,
+    ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace),
+    ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
+  };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
   const args = childArgs({
@@ -501,6 +506,8 @@ export interface StartBackgroundOptions {
   environment?: 'cloud';
   /** The owner's project-trust decision, used when this subscription fire starts away from its chat. */
   trusted?: boolean;
+  /** Imports the reviewed plan's todos into the worker before its first model request. */
+  buildPlan?: string;
 }
 
 export interface TaskHandle {
@@ -582,6 +589,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     taskPreflight(params, options.depth);
     const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
+    if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
     await createWorktree(plan, lock, undefined);
     const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock);
     registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, prompt, description, ctx, `pstack-${plan.agentId}`));

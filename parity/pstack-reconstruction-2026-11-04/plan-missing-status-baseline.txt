@@ -1,0 +1,156 @@
+$ vitest run test/plan.test.ts "test/e2e/plan.e2e.test.ts" -t "omitted optional status|preexisting status"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/plan.test.ts (27 tests | 4 failed | 23 skipped) 15ms
+   × synchronizes an omitted optional status in block LF metadata 10ms
+   × synchronizes an omitted optional status in block CRLF metadata 1ms
+   × synchronizes an omitted optional status in flow metadata 2ms
+   × synchronizes an omitted optional status in flow with trailing comma metadata 1ms
+ ❯ test/e2e/plan.e2e.test.ts (11 tests | 1 failed | 9 skipped) 643ms
+   × TodoWrite preserves reviewed plan text with a preexisting status false 340ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in block LF metadata
+AssertionError: expected '<!-- session -->\n---\ntodos:\n  - id…' to be '<!-- session -->\n---\ntodos:\n  - st…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+  todos:
+-   - status: completed
+-     id: work
++   - id: work
+      content: Work # keep
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:214:38
+    212|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    213|
+    214|   expect(readFileSync(file, 'utf8')).toBe(before.replace(metadata.repl…
+       |                                      ^
+    215|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    216| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in block CRLF metadata
+AssertionError: expected '<!-- session -->\r\n---\r\ntodos:\r\n…' to be '<!-- session -->\r\n---\r\ntodos:\r\n…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+  todos:
+-   - status: completed
+-     id: work
++   - id: work
+      content: Work # keep
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:214:38
+    212|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    213|
+    214|   expect(readFileSync(file, 'utf8')).toBe(before.replace(metadata.repl…
+       |                                      ^
+    215|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    216| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in flow metadata
+AssertionError: expected '<!-- session -->\n---\ntodos: [{ id: …' to be '<!-- session -->\n---\ntodos: [{statu…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+- todos: [{status: completed,  id: work, content: Work }]
++ todos: [{ id: work, content: Work }]
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:214:38
+    212|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    213|
+    214|   expect(readFileSync(file, 'utf8')).toBe(before.replace(metadata.repl…
+       |                                      ^
+    215|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    216| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  test/plan.test.ts > synchronizes an omitted optional status in flow with trailing comma metadata
+AssertionError: expected '<!-- session -->\n---\ntodos: [{ id: …' to be '<!-- session -->\n---\ntodos: [{statu…' // Object.is equality
+
+- Expected
++ Received
+
+  <!-- session -->
+  ---
+- todos: [{status: completed,  id: work, content: Work, }]
++ todos: [{ id: work, content: Work, }]
+  custom: keep
+  ---
+  # Plan
+
+
+ ❯ test/plan.test.ts:214:38
+    212|   syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: '…
+    213|
+    214|   expect(readFileSync(file, 'utf8')).toBe(before.replace(metadata.repl…
+       |                                      ^
+    215|   expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', stat…
+    216| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+ FAIL  test/e2e/plan.e2e.test.ts > TodoWrite preserves reviewed plan text with a preexisting status false
+AssertionError: expected '<!-- 01a1a77a-2482-779f-9a90-578c7234…' to be '<!-- 01a1a77a-2482-779f-9a90-578c7234…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -1,10 +1,9 @@
+  <!-- 01a1a77a-2482-779f-9a90-578c723413de -->
+  ---
+  todos:
+-   - status: completed
+-     id: "step"
++   - id: "step"
+      content: "Finish this step"
+      dependencies: [prior]
+  custom: "Keep this value"
+  isProject: false
+  ---
+
+ ❯ test/e2e/plan.e2e.test.ts:250:38
+    248|   expect(result?.['isError']).toBe(false);
+    249|   const expected = statusPresent ? before.replace('status: pending', '…
+    250|   expect(readFileSync(file, 'utf8')).toBe(expected);
+       |                                      ^
+    251| });
+    252|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/5]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  5 failed | 1 passed | 32 skipped (38)
+   Start at  08:52:41
+   Duration  1.16s (import 49%, tests 42%, transform 8%)
+
+error: script "test" exited with code 1

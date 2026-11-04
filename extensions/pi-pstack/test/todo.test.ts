@@ -28,6 +28,14 @@ describe('applyTodoWrite (TODO-001)', () => {
     ]);
   });
 
+  test('keeps imported plan dependencies when only the status changes', () => {
+    const todos: TodoItem[] = [{ id: 'build', content: 'Build', status: 'pending', dependencies: ['design'] }];
+    const imported = applyTodoWrite([], todos, false);
+    const updated = applyTodoWrite(imported, [{ id: 'build', status: 'completed' }], true);
+    expect(updated).toEqual([{ id: 'build', content: 'Build', status: 'completed', dependencies: ['design'] }]);
+    expect(formatTodos(updated)).toBe('Todos (1/1 completed):\n[x] build: Build (depends on design)');
+  });
+
   test('rejects a new item without content or status', () => {
     expect(() => applyTodoWrite(list, [{ id: 'new', status: 'pending' }], true)).toThrow('Todo "new" is new, so it needs both content and status.');
     expect(() => applyTodoWrite([], [{ id: 'a', content: 'A' }], false)).toThrow('Todo "a" is new, so it needs both content and status.');
@@ -64,6 +72,15 @@ describe('todosFromBranch (TODO-002)', () => {
     const branch = [entry('TodoWrite', list), entry('read', []), entry('TodoWrite', [list[0] as TodoItem]), { type: 'custom', customType: 'x' }];
     expect(todosFromBranch(branch)).toEqual([list[0]]);
     expect(todosFromBranch([])).toEqual([]);
+  });
+
+  test('a plan import replaces older todos and later TodoWrite results supersede the import', () => {
+    const old = { type: 'message', message: { role: 'toolResult', toolName: 'TodoWrite', details: { todos: list } } };
+    const imported: TodoItem[] = [{ id: 'build', content: 'Build', status: 'pending', dependencies: ['design'] }];
+    const plan = { type: 'custom', customType: 'pstack/todos', data: { todos: imported } };
+    expect(todosFromBranch([old, plan])).toEqual(imported);
+    expect(todosFromBranch([plan, old])).toEqual(list);
+    expect(todosFromBranch([old, { ...plan, data: { todos: [] } }])).toEqual([]);
   });
 
   test('skips a failed TodoWrite, whose details Pi stores as {} (reviews: parity 2, architecture 1)', () => {

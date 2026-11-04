@@ -1,0 +1,8 @@
+Premise: a userns-authorized profile lets the shipped seccomp helper run without relaxing global AppArmor settings.
+
+Effective profile
+chrome//&unconfined (unconfined)
+
+Direct helper in that profile
+apply-seccomp: write /proc/self/setgroups (nested userns is capability-restricted; caller must provide CAP_SYS_ADMIN): Permission denied
+Helper exit 1

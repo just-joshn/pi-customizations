@@ -1,0 +1,30 @@
+{
+  "reason": "Sandbox failures included generated proxy authentication in HTTP, SOCKS, SSH, and Cloud SDK configuration. All occurrences of those credential values were redacted. Failure diagnostics remain unchanged.",
+  "originals": "Preserved in the current agent store outside the repository with owner-only permissions.",
+  "files": [
+    {
+      "file": "sandbox-strict-probe.txt",
+      "replacements": [
+        {
+          "authPairs": 26,
+          "separateUsernames": 2,
+          "separatePasswords": 2
+        }
+      ],
+      "originalSha256": "0823eb920fe979e5fb703c253255051ee94454513b90ceec412d17b1582ec8ef",
+      "publishedSha256": "9da675affa961d2a11cd33011d9646f5263d4708abe64a33c385aae46dbb9cec"
+    },
+    {
+      "file": "sandbox-strict-profile-probe.txt",
+      "replacements": [
+        {
+          "authPairs": 26,
+          "separateUsernames": 2,
+          "separatePasswords": 2
+        }
+      ],
+      "originalSha256": "3e01897500dd2fb6c27ebd70d204df093a3cef815fe7b1776f631b09607ff1e2",
+      "publishedSha256": "5995065a412ae56d67055dc5b606504765bd0e015b185619432071dbd555b11d"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+$ tsc --noEmit -p tsconfig.json
+$ vitest run test/plan.test.ts "test/e2e/plan.e2e.test.ts" "test/e2e/task.e2e.test.ts" "test/e2e/package.e2e.test.ts"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  4 passed (4)
+      Tests  94 passed (94)
+   Start at  02:39:21
+   Duration  49.70s (tests 97%, import 3%)
+

@@ -1,0 +1,2 @@
+VERIFIED for fixture rendering, script-safe assembly, import filtering, moved code, whitespace, and collapse/reopen on both asset sets.
+A real-model GitHub review, system-browser launch, and Cursor in-app browser integration remain unobserved.
