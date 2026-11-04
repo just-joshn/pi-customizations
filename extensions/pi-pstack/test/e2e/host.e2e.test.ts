@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -132,6 +132,42 @@ describe('subagent catalog (HOST-002)', () => {
   });
 });
 
+describe('declared tool descriptions', () => {
+  const described = async (tool: string) => {
+    const [text] = assistantTexts((await runJson(sandbox, `describe\n@@tool-description ${tool}`, ['--no-session'])).events);
+    return text ?? '';
+  };
+
+  test("Task carries Cursor's delegation rules", async () => {
+    const text = await described('Task');
+    expect([
+      text.includes('Do not use Task for a narrow or specific question.'),
+      text.includes('put several Task calls in one message'),
+      text.includes("The agent cannot see the user's messages or your earlier steps"),
+      text.includes('A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it'),
+    ]).toEqual([true, true, true, true]);
+  });
+
+  test("AskQuestion carries Cursor's question rules", async () => {
+    const text = await described('AskQuestion');
+    expect([
+      text.includes("Use this tool only when you are blocked on a decision that is genuinely the user's to make"),
+      text.includes('put it first and end its label with "(Recommended)"'),
+      text.includes('Prefer this tool over listing options in your reply text'),
+    ]).toEqual([true, true, true]);
+  });
+
+  test("TodoWrite carries Cursor's todo rules", async () => {
+    const text = await described('TodoWrite');
+    expect([
+      text.includes('do not tell the user you are updating todos'),
+      text.includes('keep only one task in_progress at a time'),
+      text.includes('Skip it for a single straightforward task'),
+      text.includes('Batch todo updates with your other tool calls.'),
+    ]).toEqual([true, true, true, true]);
+  });
+});
+
 describe('capability-aware sections (C-M4)', () => {
   test('a readonly subagent gets no subagent catalog and no Task or stop_agent lines; its parent gets both', async () => {
     const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'probe', prompt: 'go\n@@sys', readonly: true } }]), ['--no-session']);
@@ -177,24 +213,30 @@ describe('tool listing', () => {
 });
 
 describe('image generation (HOST-006)', () => {
-  test('the path the host section names generates an image when an image model is configured', async () => {
+  test("GenerateImage saves the image to the artifacts folder and shows it when an image model is configured, like Cursor's GenerateImage", async () => {
     const images = makeSandbox({ extensions: [join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts'), join(PACKAGE_ROOT, 'test/fixtures/image-model.ts')] });
     try {
-      // The script follows the host section line: codemode's models.generateImages(), shown with image().
-      const code =
-        'const [painter] = await models.getAvailableOfType("image");\nconst result = await models.generateImages(painter, { input: [{ type: "text", text: "a fox" }] });\nfor (const block of result.output) if (block.type === "image") image(block);\nreturn painter.provider + "/" + painter.id + " " + result.stopReason;';
-      const run = await runJson(images, script([{ tool: 'codemode', args: { code } }]), ['--no-session', '--tools', '+codemode']);
-      const [end] = toolEnds(run.events, 'codemode');
-      expect(end?.isError).toBe(false);
-      expect(end?.text).toContain('testimg/painter stop');
-      expect(JSON.stringify(run.events.find((event) => event.type === 'tool_execution_end' && event['toolName'] === 'codemode'))).toContain('"type":"image"');
+      const call = { tool: 'GenerateImage', args: { description: 'a red fox sitting in fresh snow, watercolor style', filename: 'fox.png', aspect_ratio: '16:9' } };
+      const run = await runJson(images, script([call]), ['--no-session']);
+      const [end] = toolEnds(run.events, 'GenerateImage');
+      const path = /saved to (\S+\.png)\./.exec(end?.text ?? '')?.[1] ?? '';
+      expect([end?.isError, path.endsWith('/fox.png'), path.includes('/artifacts/'), existsSync(path)]).toEqual([false, true, true, true]);
+      expect(JSON.stringify(run.events.find((event) => event.type === 'tool_execution_end' && event['toolName'] === 'GenerateImage'))).toContain('"type":"image"');
+      const short = toolEnds((await runJson(images, script([{ tool: 'GenerateImage', args: { description: 'a fox' } }]), ['--no-session'])).events, 'GenerateImage')[0];
+      expect([short?.isError, short?.text]).toEqual([true, 'Describe the image in at least 6 words. Descriptions of 3 words or fewer are rejected.']);
     } finally {
       images.dispose();
     }
   });
+
+  test('without an image model the session has no GenerateImage tool and the host section says to draw a diagram instead', async () => {
+    const [tools] = assistantTexts((await runJson(sandbox, 'list\n@@tools-list', ['--no-session'])).events);
+    expect(tools?.split(',').includes('GenerateImage')).toBe(false);
+    expect(section(await systemPrompt(['--no-session']), 'pstack_host')).toContain('no image model is configured, so this session has no GenerateImage tool');
+  });
 });
 
-test('reading a TypeScript file attaches the path-scoped skill on the next turn', async () => {
+test('reading a TypeScript file does not attach typescript-best-practices, which Cursor loads only when invoked by name', async () => {
   writeFileSync(join(sandbox.workDir, 'typed.ts'), 'export const value = 1;\n');
   const rpc = startRpc(sandbox, ['--no-session']);
   try {
@@ -204,9 +246,7 @@ test('reading a TypeScript file attaches the path-scoped skill on the next turn'
     rpc.send({ type: 'prompt', message: 'next\n@@sys' });
     const reply = await rpc.waitFor((event) => rpc.events.indexOf(event) >= mark && event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
     const prompt = contentText((reply['message'] as { content: { type: string; text?: string }[] }).content);
-    expect(prompt).toContain('<pstack_path_skills>');
-    expect(prompt).toContain('<skill name="typescript-best-practices"');
-    expect(prompt).toContain('TypeScript best practices');
+    expect([prompt.includes('<skill name="typescript-best-practices"'), prompt.includes('`satisfies` over `as`')]).toEqual([false, false]);
   } finally {
     await rpc.close();
   }

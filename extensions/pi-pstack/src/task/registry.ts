@@ -15,6 +15,7 @@ interface Running {
 
 export interface BackgroundNotice {
   title: string;
+  description: string;
   toolCallId: string;
   mode: ExtensionContext['mode'];
   detailFor: (outcome: ChildOutcome) => Pick<NotificationFields, 'status' | 'detail' | 'usage'>;
@@ -42,7 +43,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
       release();
       // Shutdown killed this child; the retired runtime's pi must not be touched.
       if (retired || notice === undefined) return;
-      deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, toolCallId: notice.toolCallId }, notice.mode);
+      deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, description: notice.description, toolCallId: notice.toolCallId }, notice.mode);
     });
     running.set(agentId, { settled, handle, readonly, background: notice !== undefined });
   };

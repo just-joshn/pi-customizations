@@ -13,6 +13,32 @@ export interface ActiveMode {
   path?: string;
 }
 
+/**
+ * Cursor's custom-mode lifecycle: a mode is `entered` until a request carries it, then `active`. Leaving or switching
+ * away from an `active` mode leaves it `exited` until the next request says so once.
+ */
+export interface ModeState {
+  active?: ActiveMode & { lifecycle: 'entered' | 'active' };
+  exited?: string;
+}
+
+const left = (state: ModeState): string | undefined => (state.active?.lifecycle === 'active' ? state.active.skill : state.exited);
+
+export function enterMode(state: ModeState, mode: ActiveMode): ModeState {
+  const exited = left(state);
+  return { active: { ...mode, lifecycle: 'entered' }, ...(exited === undefined ? {} : { exited }) };
+}
+
+export function exitMode(state: ModeState): ModeState {
+  const exited = left(state);
+  return exited === undefined ? {} : { exited };
+}
+
+/** What a request leaves behind: the mode it carried is now active, and its exit notice has been sent. */
+export function afterRequest(state: ModeState): ModeState {
+  return state.active === undefined ? {} : { active: { ...state.active, lifecycle: 'active' } };
+}
+
 export type ModeCommand = { kind: 'status' } | { kind: 'off' } | { kind: 'set'; skill: string; task: string };
 
 export function parseModeArgs(args: string): ModeCommand {
@@ -31,41 +57,53 @@ interface BranchEntry {
 
 const SKILL_NAME = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$/;
 
-/**
- * The last mode entry on the branch, as a skill name only: a session file can come from elsewhere, so a stored path
- * is ignored and a value that is not a plausible skill name (it would reach the system prompt) counts as no mode.
- */
-export function modeFromBranch(entries: readonly BranchEntry[]): ActiveMode | undefined {
-  for (let index = entries.length - 1; index >= 0; index -= 1) {
-    const entry = entries[index];
-    if (entry?.type !== 'custom' || entry.customType !== MODE_ENTRY) continue;
-    const skill = (entry.data as { skill?: unknown } | null)?.skill;
-    return typeof skill === 'string' && SKILL_NAME.test(skill) ? { skill } : undefined;
-  }
-  return undefined;
+/** A stored mode as a skill name only: a session file can come from elsewhere, so a stored path is ignored and a value that is not a plausible skill name (it would reach the system prompt) counts as no mode. */
+function storedSkill(data: unknown): string | undefined {
+  const skill = (data as { skill?: unknown } | null)?.skill;
+  return typeof skill === 'string' && SKILL_NAME.test(skill) ? skill : undefined;
 }
 
 /**
- * The mode text for a request. Cursor attaches the skill once, on the turn that enters the mode, then sends a reminder
- * that names the skill path each turn. Pi rebuilds its prompt per request, so the body rides the first request after
- * entry and a reminder follows. A mode whose body was never sent re-sends it, so a restart cannot leave a mode
- * unread.
+ * Replays the branch into the mode state: each mode entry enters or leaves a mode, and an assistant message after it
+ * shows a request carried the mode. Skills are resolved by name, never by a stored path.
  */
-export function modeSection(mode: ActiveMode, includeBody: boolean): string {
-  if (mode.path === undefined) return `Mode ${mode.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`;
-  if (!existsSync(mode.path)) return `Mode ${mode.skill} is on, but its skill file ${mode.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`;
-  if (!includeBody)
-    return `Reminder: you are still in ${mode.skill} mode. Follow that mode's skill on this turn. Do not drop it because the request looks small or you already have context. Do not drift back to default agent behavior. If you cannot state the mode's hard rules, read ${JSON.stringify(mode.path)} before acting.`;
-  // The frontmatter, including `reminder`, stays out of the model's context in a mode (MODE-004).
+export function modeFromBranch(entries: readonly BranchEntry[], resolve: (skill: string) => ActiveMode = (skill) => ({ skill })): ModeState {
+  let state: ModeState = {};
+  for (const entry of entries) {
+    if (entry.type === 'custom' && entry.customType === MODE_ENTRY) {
+      const skill = storedSkill(entry.data);
+      state = skill === undefined ? exitMode(state) : enterMode(state, resolve(skill));
+    } else if (entry.type === 'message' && (entry as { message?: { role?: string } }).message?.role === 'assistant') state = afterRequest(state);
+  }
+  return state;
+}
+
+/** Cursor's custom-mode notices for the next request (CLI `custom-modes` module). */
+export function modeNotice(state: ModeState): string | undefined {
+  const lines: string[] = [];
+  const { active, exited } = state;
+  if (exited !== undefined && exited !== active?.skill) lines.push(`The user has exited ${exited} custom mode. Stop following that mode's skill. Continue without those constraints.`);
+  if (active?.path === undefined && active !== undefined) lines.push(`Mode ${active.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`);
+  else if (active?.path !== undefined && !existsSync(active.path)) lines.push(`Mode ${active.skill} is on, but its skill file ${active.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`);
+  else if (active?.lifecycle === 'entered')
+    lines.push(`The user has entered ${active.skill} custom mode. Follow the skill instructions in ${JSON.stringify(active.path)} until the user exits or switches modes. Do not drift back to default agent behavior.`);
+  else if (active !== undefined)
+    lines.push(
+      `Reminder: you are still in ${active.skill} mode. Follow that mode's skill on this turn. Do not drop it because the request looks small or you already have context. Do not drift back to default agent behavior. If you cannot state the mode's hard rules, read ${JSON.stringify(active.path)} before acting.`,
+    );
+  return lines.length === 0 ? undefined : lines.join('\n\n');
+}
+
+/**
+ * The skill a mode keeps in context on every request until the user leaves it, in the block Pi's own /skill:name
+ * expansion builds. Cursor keeps the attached skill durable in the conversation; a section keeps it in every request,
+ * through compaction and restarts, and Pi re-sends a section only when it changes.
+ */
+export function modeSkill(mode: ActiveMode): string | undefined {
+  if (mode.path === undefined || !existsSync(mode.path)) return undefined;
+  // The frontmatter stays out of the model's context in a mode (MODE-004).
   const body = stripFrontmatter(readFileSync(mode.path, 'utf8')).trim();
-  return [
-    `The user has entered ${mode.skill} custom mode. Follow the skill instructions in ${JSON.stringify(mode.path)} until the user exits or switches modes. Do not drift back to default agent behavior.`,
-    `<skill name="${mode.skill}" location="${mode.path}">`,
-    `References are relative to ${dirname(mode.path)}.`,
-    '',
-    body,
-    '</skill>',
-  ].join('\n');
+  return [`<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body, '</skill>'].join('\n');
 }
 
 // A mode's badge shows the skill's `icon` (default: lightning) and `color`. Icon names map to terminal glyphs and
@@ -108,20 +146,22 @@ function loadedSkills(pi: ExtensionAPI): Map<string, string> {
   return skills;
 }
 
-export function registerMode(pi: ExtensionAPI): { section: () => string | undefined } {
-  let active: ActiveMode | undefined;
-  // The mode whose body the conversation already carries; cleared on entry, exit, and session change.
-  let bodySent: string | undefined;
+/** The mode sections of one request: Cursor's notice, and the skill the mode keeps in context. */
+export interface ModeSections {
+  pstack_mode?: string;
+  pstack_mode_skill?: string;
+}
+
+export function registerMode(pi: ExtensionAPI): { sections: () => ModeSections } {
+  let state: ModeState = {};
   const show = (ctx: ExtensionContext) => {
     if (!ctx.hasUI) return;
-    const badge = active === undefined ? undefined : modeBadge(active);
+    const badge = state.active === undefined ? undefined : modeBadge(state.active);
     ctx.ui.setStatus(STATUS_KEY, badge === undefined ? undefined : badge.color === undefined ? badge.text : ctx.ui.theme.fg(badge.color, badge.text));
   };
   // The skill is looked up by name among loaded skills; a stored path is never read, since it can be stale or crafted.
   const restore = (ctx: ExtensionContext) => {
-    const stored = modeFromBranch(ctx.sessionManager.getBranch());
-    active = stored === undefined ? undefined : (tryResolve(stored.skill) ?? { skill: stored.skill });
-    bodySent = undefined;
+    state = modeFromBranch(ctx.sessionManager.getBranch(), (skill) => tryResolve(skill) ?? { skill });
     show(ctx);
   };
   pi.on('session_start', (_event, ctx) => restore(ctx));
@@ -145,12 +185,12 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
 
   const handle = (args: string, ctx: ExtensionCommandContext) => {
     const command = parseModeArgs(args);
+    const { active } = state;
     if (command.kind === 'status') return ctx.ui.notify(active === undefined ? 'No mode is on.' : `Mode on: ${active.skill} (${active.path ?? 'no loaded skill has that name'}).`, 'info');
-    active = command.kind === 'off' ? undefined : resolveSkill(command.skill);
-    bodySent = undefined;
-    pi.appendEntry(MODE_ENTRY, active === undefined ? null : { skill: active.skill });
+    state = command.kind === 'off' ? exitMode(state) : enterMode(state, resolveSkill(command.skill));
+    pi.appendEntry(MODE_ENTRY, state.active === undefined ? null : { skill: state.active.skill });
     show(ctx);
-    ctx.ui.notify(active === undefined ? 'Mode off.' : `Mode on: ${active.skill}. /mode off exits.`, 'info');
+    ctx.ui.notify(state.active === undefined ? 'Mode off.' : `Mode on: ${state.active.skill}. /mode off exits.`, 'info');
     if (command.kind === 'set' && command.task !== '') pi.sendUserMessage(command.task, { expandPromptTemplates: true, ...(ctx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
     return undefined;
   };
@@ -168,13 +208,11 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
   });
 
   return {
-    section: () => {
-      if (active === undefined) return undefined;
-      const includeBody = bodySent !== active.skill;
-      // Only a request that actually carried the body counts as sent, so a missing skill file cannot silence the body
-      // after the file comes back.
-      if (includeBody && active.path !== undefined && existsSync(active.path)) bodySent = active.skill;
-      return modeSection(active, includeBody);
+    sections: () => {
+      const notice = modeNotice(state);
+      const skill = state.active === undefined ? undefined : modeSkill(state.active);
+      state = afterRequest(state);
+      return { ...(notice === undefined ? {} : { pstack_mode: notice }), ...(skill === undefined ? {} : { pstack_mode_skill: skill }) };
     },
   };
 }

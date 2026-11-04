@@ -6,9 +6,14 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { findAgent, loadAgentDefinitions } from '../src/task/agents.ts';
 
 describe('subagent definitions', () => {
-  test('ships generalPurpose plus pstack and team-kit agents (TASK-006)', () => {
+  test('ships the built-in generalPurpose and explore types plus pstack and team-kit agents (TASK-006)', () => {
     const agents = loadAgentDefinitions();
-    expect(agents.map((agent) => agent.type)).toEqual(['generalPurpose', 'ci-watcher', 'comment-sicko', 'poteto-agent', 'thermo-nuclear-code-quality-review']);
+    expect(agents.map((agent) => agent.type)).toEqual(['generalPurpose', 'explore', 'ci-watcher', 'comment-sicko', 'poteto-agent', 'thermo-nuclear-code-quality-review']);
+  });
+
+  test('explore never launches subagents and asks the caller for a thoroughness level', () => {
+    const explore = findAgent(loadAgentDefinitions(), 'explore');
+    expect([explore.spawns, explore.readonly, explore.description.includes('"quick"'), explore.description.includes('"very thorough"')]).toEqual([false, false, true, true]);
   });
 
   test('reads agent frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)', () => {
@@ -29,7 +34,7 @@ describe('subagent definitions', () => {
   });
 
   test('rejects an unknown type with the valid list (TASK-006)', () => {
-    expect(() => findAgent(loadAgentDefinitions(), 'explore')).toThrow('Unknown subagent_type "explore". Available subagent types: generalPurpose, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
+    expect(() => findAgent(loadAgentDefinitions(), 'shell')).toThrow('Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
   });
 
   test('the pre-0.15.20 display name is no longer a type, as upstream renamed the agent id (TASK-006)', () => {
@@ -44,7 +49,7 @@ describe('agent file parsing', () => {
   test('derives the name from the file and honors model and readonly', () => {
     dir = mkdtempSync(join(tmpdir(), 'agents-'));
     writeFileSync(join(dir, 'auditor.md'), '---\ndescription: Audits.\nmodel: claude-opus-5-5-high\nreadonly: true\n---\nAudit it.\n');
-    const [, auditor] = loadAgentDefinitions(dir);
+    const [, , auditor] = loadAgentDefinitions(dir);
     expect(auditor).toEqual({ type: 'auditor', description: 'Audits.', model: 'claude-opus-5-5-high', readonly: true, background: false, prompt: 'Audit it.', file: join(dir, 'auditor.md') });
   });
 });

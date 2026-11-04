@@ -1,13 +1,15 @@
+import { basename } from 'node:path';
+
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
 import { registerAskQuestion } from './ask.ts';
 import { aliasAutocomplete } from './autocomplete.ts';
 import { childIdentity } from './child-env.ts';
+import { registerGenerateImage } from './generate-image.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
-import { createPathSkills } from './path-skills.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
@@ -23,10 +25,14 @@ import { registerVisualize } from './visualize.ts';
 const WATCHDOG_MS = 1_000;
 const ORPHAN_EXIT_MS = 5_000;
 
-/** In a subagent, the agent definition body joins the system prompt as the agent's own instructions. */
+// What Cursor tells every subagent in a system reminder, minus its sentence about Cursor Canvas files.
+const SUBAGENT_REMINDER = 'You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.';
+
+/** In a subagent, Cursor's subagent reminder, and the agent definition body as the agent's own instructions. */
 function agentSection(agents: readonly AgentDefinition[]): Record<string, string> {
+  if (childIdentity.depth === 0) return {};
   const prompt = agents.find((agent) => agent.type === childIdentity.agentType)?.prompt ?? '';
-  return prompt === '' ? {} : { pstack_agent: prompt };
+  return { pstack_subagent: SUBAGENT_REMINDER, ...(prompt === '' ? {} : { pstack_agent: prompt }) };
 }
 
 function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
@@ -97,9 +103,11 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
 
   const mode = registerMode(pi);
-  const plan = registerPlanMode(pi);
+  const plan = registerPlanMode(pi, { buildInWorker: (planFile, request) => task.startBackground(`Build ${basename(planFile)}`, request, { environment: 'cloud' }) });
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
-  const task = registerTask(pi, { agents, depth: childIdentity.depth, planMode: plan.enabled });
+  registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
+  const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
+  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
     runFresh: async (prompt, name, meta) => {
@@ -112,25 +120,21 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
   const todos = registerTodoWrite(pi);
-  const pathSkills = createPathSkills(pi);
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly) registerReadonlyShell(pi);
 
   pi.on('before_agent_start', (event, ctx) => {
-    const modeText = mode.section();
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();
-    const pathSkillText = pathSkills.section();
     Object.assign(
       event.systemPromptOptions.sections,
       hostSections(pi, ctx, agents),
-      modeText === undefined ? {} : { pstack_mode: modeText },
+      mode.sections(),
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
       todoText === undefined ? {} : { pstack_todos: todoText },
-      pathSkillText === undefined ? {} : { pstack_path_skills: pathSkillText },
     );
   });
 

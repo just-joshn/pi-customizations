@@ -35,6 +35,7 @@ interface NotificationCardDetails {
   status: 'success' | 'error';
   agentId: string;
   title: string;
+  description?: string;
   detail: string;
 }
 
@@ -49,10 +50,11 @@ export function taskNotificationCardText(message: { content: string | { type: st
     const lines = raw.split('\n');
     return (expanded || lines.length <= COLLAPSED_LINES ? lines : [...lines.slice(0, COLLAPSED_LINES), `… ${lines.length - COLLAPSED_LINES} more lines`]).join('\n');
   }
-  const { title, status, agentId, detail } = message.details;
+  const { title, description, status, agentId, detail } = message.details;
   const lines = detail.split('\n');
   const body = expanded || lines.length <= COLLAPSED_LINES ? lines : [...lines.slice(0, COLLAPSED_LINES), `… ${lines.length - COLLAPSED_LINES} more lines`];
-  const head = `${title.trim() === '' ? 'subagent' : title.trim()} · ${status} · agent ${agentId}`;
+  const name = [description, title].map((value) => value?.trim() ?? '').find((value) => value !== '') ?? 'subagent';
+  const head = `${name} · ${status} · agent ${agentId}`;
   return [head, ...body].join('\n');
 }
 

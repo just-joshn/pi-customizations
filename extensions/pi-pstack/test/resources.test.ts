@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { loadSkills, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
+import { loadAgentDefinitions } from '../src/task/agents.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_COUNT = 79;
@@ -253,10 +254,10 @@ describe('shipped resources', () => {
     expect(existsSync(join(root, 'agents/thermo-nuclear-code-quality-review.md'))).toBe(true);
   });
 
-  test('thermo-nuclear agent does not name Task types Pi lacks (RES-014)', () => {
+  test('thermo-nuclear agent keeps team-kit orchestration, and the explore type it names exists (RES-014)', () => {
     const text = readFileSync(join(root, 'agents/thermo-nuclear-code-quality-review.md'), 'utf8');
-    expect(text).not.toMatch(/subagent_type:\s*"shell"/);
-    expect(text).not.toMatch(/subagent_type:\s*"explore"/);
-    expect(text).toContain('generalPurpose');
+    // Upstream also names a "shell" type, which Cursor's own CLI does not offer either, so a parent adapts in both hosts.
+    expect(text).toContain('run two `Task` calls in parallel — `subagent_type: "shell"` and `subagent_type: "explore"`');
+    expect(loadAgentDefinitions().some((agent) => agent.type === 'explore')).toBe(true);
   });
 });

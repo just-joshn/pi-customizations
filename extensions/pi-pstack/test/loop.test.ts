@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { parseDuration, parseLoopArgs } from '../src/loop.ts';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { parseDuration, parseLoopArgs, registerLoop } from '../src/loop.ts';
 import { contentText, makeSandbox, type PiEvent, runJson, type Sandbox, startRpc, toolEnds } from './e2e/harness.ts';
 
 describe('parseDuration', () => {
@@ -26,6 +27,69 @@ describe('parseDuration', () => {
 
   test.for(['5', 'm5', '0s', '1x', '90'])('treats %j as the start of the prompt, not an interval', (text) => {
     expect(parseLoopArgs(`${text} tick`)).toEqual({ kind: 'start', prompt: `${text} tick` });
+  });
+});
+
+/** A loop on a stand-in Pi: what the loop sends, and controls for whether a run is in progress and when it settles. */
+function fakeLoop() {
+  const handlers = new Map<string, ((event: unknown, ctx: unknown) => unknown)[]>();
+  const commands = new Map<string, (args: string, ctx: unknown) => Promise<void>>();
+  const tools = new Map<string, (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<unknown>>();
+  const sent: string[] = [];
+  let busy = false;
+  const ctx = { mode: 'rpc', hasUI: false, isIdle: () => !busy, ui: { notify: () => undefined } };
+  const pi = {
+    on: (event: string, handler: (event: unknown, ctx: unknown) => unknown) => handlers.set(event, [...(handlers.get(event) ?? []), handler]),
+    registerCommand: (name: string, command: { handler: (args: string, ctx: unknown) => Promise<void> }) => commands.set(name, command.handler),
+    registerTool: (tool: { name: string; execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<unknown> }) => tools.set(tool.name, tool.execute),
+    sendUserMessage: (text: string) => {
+      sent.push(text);
+      busy = true;
+    },
+    getActiveTools: () => ['Loop'],
+    setActiveTools: () => undefined,
+  } as unknown as ExtensionAPI;
+  registerLoop(pi, { hasPendingWork: () => false });
+  const settle = () => {
+    busy = false;
+    for (const handler of handlers.get('agent_settled') ?? []) handler({ aborted: false }, ctx);
+  };
+  return { sent, settle, startBusyRun: () => (busy = true), command: (args: string) => commands.get('loop')?.(args, ctx), loopTool: (params: unknown) => tools.get('Loop')?.('id', params, undefined, undefined, ctx) };
+}
+
+describe('loop ticks during a run (HOST-004)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('ticks that land while a run is going fire once, right after the run, as Cursor delivers a loop wake after the turn', async () => {
+    const loop = fakeLoop();
+    await loop.command('1s check CI');
+    expect(loop.sent).toEqual(['check CI']);
+    vi.advanceTimersByTime(2_500);
+    expect(loop.sent).toEqual(['check CI']);
+    loop.settle();
+    expect(loop.sent).toEqual(['check CI', 'check CI']);
+    loop.settle();
+    vi.advanceTimersByTime(400);
+    expect(loop.sent).toHaveLength(2);
+    vi.advanceTimersByTime(200);
+    expect(loop.sent).toHaveLength(3);
+  });
+
+  test('an agent-paced wake that lands during another run fires after that run instead of stalling the loop', async () => {
+    const loop = fakeLoop();
+    await loop.command('poll the deploy');
+    await loop.loopTool({ wake_in: '1s' });
+    loop.settle();
+    loop.startBusyRun();
+    vi.advanceTimersByTime(1_500);
+    expect(loop.sent).toEqual(['poll the deploy']);
+    loop.settle();
+    expect(loop.sent).toEqual(['poll the deploy', 'poll the deploy']);
   });
 });
 
@@ -170,17 +234,6 @@ describe('/loop through Pi (HOST-004)', () => {
         'No loop is running. Usage: /loop [interval] <prompt>, with the interval at either end; /loop stop ends one.',
         ['done\n@@script [{"tool":"Loop","args":{"stop":true}}]'],
       ]);
-    } finally {
-      await rpc.close();
-    }
-  });
-
-  test('a fixed tick that lands mid-run is skipped, not queued', async () => {
-    const rpc = startRpc(sandbox, ['--no-session']);
-    try {
-      rpc.send({ type: 'prompt', message: '/loop 300ms slow\n@@sleep 2500 SLOW' });
-      await rpc.waitFor((event) => event.type === 'agent_settled' && replies(rpc.events).length >= 1, 20_000);
-      expect(users(rpc.events).length).toBeLessThan(5);
     } finally {
       await rpc.close();
     }

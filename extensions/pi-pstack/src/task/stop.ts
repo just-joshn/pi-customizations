@@ -65,7 +65,8 @@ async function stopElsewhere(agentId: string, lockPath: string, pid: number): Pr
 export interface StopAgentOptions {
   /** A child this process runs, if any. */
   running: (agentId: string) => { handle: ChildHandle } | undefined;
-  depth: number;
+  /** An agent that cannot launch subagents has none to stop. */
+  canSpawn: boolean;
 }
 
 const DESCRIPTION =
@@ -79,8 +80,7 @@ export function registerStopAgent(pi: ExtensionAPI, options: StopAgentOptions): 
     promptSnippet: 'Stop a running subagent by agent ID',
     parameters: Type.Object({ agent_id: Type.String({ description: 'Agent ID from an earlier Task call in this workspace.' }) }),
     annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
-    // Nesting stops at the subagent of a subagent, which has no subagents to stop.
-    defaultActive: options.depth < 2,
+    defaultActive: options.canSpawn,
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       const agentId = validateAgentId(params.agent_id);
       const owned = options.running(agentId);

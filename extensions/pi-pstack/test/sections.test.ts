@@ -67,10 +67,10 @@ describe('subscriptions line (C-H2)', () => {
   });
 });
 
-describe('image generation substitute (gap-list item 2)', () => {
-  test('host section names the codemode and image-model gate and the Mermaid or table substitute', () => {
-    const host = hostSection(facts(ALL_TOOLS));
-    expect(host).toContain("- Image generation: codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.");
+describe('image generation line', () => {
+  test('names the GenerateImage tool when the session has it, and the Mermaid or table substitute when it does not', () => {
+    expect(hostSection(facts([...ALL_TOOLS, 'GenerateImage']))).toContain('- Image generation: the GenerateImage tool, which saves each image to the artifacts folder below and shows it in its result.');
+    expect(hostSection(facts(ALL_TOOLS))).toContain('- Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.');
   });
 });
 

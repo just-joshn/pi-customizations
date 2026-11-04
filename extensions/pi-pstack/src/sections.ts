@@ -96,7 +96,9 @@ export function hostSection(facts: HostFacts): string {
     facts.loopAvailable ? SUBSCRIPTIONS_LINE : NO_SUBSCRIPTIONS_LINE,
     ...agentToolsLine(facts.activeTools),
     facts.loopAvailable ? LOOP_LINE : NO_LOOP_LINE,
-    "- Image generation: codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+    facts.activeTools.includes('GenerateImage')
+      ? '- Image generation: the GenerateImage tool, which saves each image to the artifacts folder below and shows it in its result.'
+      : '- Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.',
     '- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).',
     '- PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.',
     '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',
@@ -132,5 +134,8 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.',
     "- Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.",
     `Available models: ${shown.join(', ') || 'none with configured credentials'}${more}`,
+    'Use inherit unless the user or a skill asks for another model. When the user names a model family without a version, use the newest listed version of that family.',
+    'If the user asks for a model that is not listed, do not substitute another model or guess: skip launching that subagent and tell the user which model was unavailable and which models are available.',
+    'When you tell the user which model a subagent used, name it the way the user named it, not by its model ID, unless the user used the ID.',
   ].join('\n');
 }

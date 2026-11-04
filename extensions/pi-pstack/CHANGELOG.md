@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.15.36-pi.12] - 2026-11-04
+
+Each item below was checked against Cursor CLI 2026.10.22 with pstack and cursor-team-kit loaded, through its bundle and live runs. `parity/pi-pstack-behavior-parity/` in the repository records the evidence and the decisions.
+
+- A mode keeps its skill in context on every request until the user leaves it, as a Cursor Custom Mode does, and sends Cursor's notices: entered, the per-turn reminder, and an exit or switch notice once. The previous version sent the body on one request only, so models that replay the system prompt lost it.
+- A background completion arrives as Cursor's system notification: its preamble, a title from the first line of the prompt (80 characters at most), and its follow-up request. The background launch text and the Agent ID line use Cursor's wording.
+- Task, TodoWrite, and AskQuestion descriptions carry Cursor's usage rules, and AskQuestion needs two options per question. The model list adds Cursor's rules for user-requested models.
+- Add Cursor's built-in `explore` subagent type, a file-search specialist with Pi's search tools and no Task tool. team-kit's thermo-nuclear agent text, which names it, is upstream's again.
+- Every subagent hears Cursor's reminder that it runs under a parent and spawns no subagents unless asked.
+- Add `GenerateImage`, Cursor's image tool, on Pi's image models. It is offered when an image model is available and saves each image to the session's artifacts folder. `teach` asks for the image tool again, as upstream does.
+- Stop attaching `typescript-best-practices` when a `.ts` file is read. Cursor loads a skill that sets `paths` and `disable-model-invocation` only when invoked by name.
+- Plan mode follows Cursor's: its instructions, `CreatePlan {plan, name, overview, todos}` writing Cursor's plan file, edits to markdown files only, `SwitchMode` with the user's consent, and a build-locally, build-in-a-worker, or propose-changes choice after a saved plan. `create_plan` is gone.
+- A `/loop` wake that comes due during a run fires once when the run settles. A fixed tick was dropped before, and an agent-paced wake that landed during another run stopped the loop.
+- `make-bot-ui` describes webhook routines as they behave: no default expiry, and `sessionStrategy: "new_session"` for webhooks.
+
 ## [0.15.36-pi.11] - 2026-11-04
 
 - Title a background completion notice with the Task `description`, as Cursor names a subagent, instead of a slice of its prompt.
