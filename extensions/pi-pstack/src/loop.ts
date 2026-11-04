@@ -5,14 +5,21 @@ import { isOneShot } from './modes.ts';
 const DAY_MS = 86_400_000;
 const UNIT_MS: Record<string, number> = { s: 1_000, m: 60_000, h: 3_600_000, d: DAY_MS };
 const DURATION = /^(?:\d+[smhd])+$/;
+const WORD_UNITS: Record<string, string> = { second: 's', seconds: 's', sec: 's', secs: 's', minute: 'm', minutes: 'm', min: 'm', mins: 'm', hour: 'h', hours: 'h', hr: 'h', hrs: 'h', day: 'd', days: 'd' };
 // setTimeout fires at once for delays past 2^31-1 ms (about 24.8 days), which would turn a long loop into a runaway.
 const MAX_DELAY_MS = 24 * DAY_MS;
 const TOO_LONG = 'Loop intervals can be at most 24d.';
 
-/** Milliseconds for a duration such as 30s, 5m, 1h30m; undefined when the text is not a duration. */
+/** Milliseconds for a duration such as 30s, 5m, 1h30m, 10 minutes, or 1 hour 30 minutes; undefined when the text is not a duration. */
 export function parseDuration(text: string): number | undefined {
-  if (!DURATION.test(text)) return undefined;
-  const total = [...text.matchAll(/(\d+)([smhd])/g)].reduce((sum, [, count, unit]) => sum + Number(count) * (UNIT_MS[unit ?? 's'] ?? 0), 0);
+  const compact = text
+    .trim()
+    .toLowerCase()
+    .replace(/^every\s+/, '')
+    .replace(/(\d+)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?)\b/g, (_match, count: string, word: string) => `${count}${WORD_UNITS[word] ?? ''}`)
+    .replace(/\s+/g, '');
+  if (!DURATION.test(compact)) return undefined;
+  const total = [...compact.matchAll(/(\d+)([smhd])/g)].reduce((sum, [, count, unit]) => sum + Number(count) * (UNIT_MS[unit ?? 's'] ?? 0), 0);
   return total > 0 ? total : undefined;
 }
 
@@ -25,15 +32,41 @@ function delayOf(text: string): number {
 
 export type LoopCommand = { kind: 'status' } | { kind: 'stop' } | { kind: 'start'; prompt: string; intervalMs?: number } | { kind: 'error'; message: string };
 
+/** The longest trailing phrase that parses as a duration, such as `5m`, `every 10 minutes`, or `1 hour 30 minutes`. */
+function trailingInterval(text: string): { prompt: string; intervalMs: number } | undefined {
+  const tokens = text.split(/\s+/);
+  for (let take = Math.min(6, tokens.length); take >= 1; take -= 1) {
+    const intervalMs = parseDuration(tokens.slice(-take).join(' '));
+    if (intervalMs === undefined) continue;
+    const prompt = tokens
+      .slice(0, -take)
+      .join(' ')
+      .replace(/\s+every$/i, '')
+      .trim();
+    return { prompt, intervalMs };
+  }
+  return undefined;
+}
+
 export function parseLoopArgs(args: string): LoopCommand {
   const trimmed = args.trim();
   if (trimmed === '') return { kind: 'status' };
   if (trimmed === 'stop' || trimmed === 'off') return { kind: 'stop' };
   const [, first = '', rest = ''] = /^(\S+)\s*([\s\S]*)$/.exec(trimmed) ?? [];
-  const intervalMs = parseDuration(first);
-  if (intervalMs === undefined) return { kind: 'start', prompt: trimmed };
-  if (intervalMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
-  return rest.trim() === '' ? { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } : { kind: 'start', prompt: rest.trim(), intervalMs };
+  const leadMs = parseDuration(first) ?? (first.toLowerCase() === 'every' ? parseDuration(rest.split(/\s+/)[0] ?? '') : undefined);
+  if (leadMs !== undefined) {
+    if (leadMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
+    const after = first.toLowerCase() === 'every' ? rest.split(/\s+/).slice(1).join(' ') : rest;
+    return after.trim() === '' ? { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } : { kind: 'start', prompt: after.trim(), intervalMs: leadMs };
+  }
+  // Cursor accepts the interval at either end, including `every 10 minutes`, so both ends are tried before treating it as a prompt.
+  const trailing = trailingInterval(trimmed);
+  if (trailing !== undefined) {
+    if (trailing.intervalMs > MAX_DELAY_MS) return { kind: 'error', message: TOO_LONG };
+    if (trailing.prompt === '') return { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' };
+    return { kind: 'start', prompt: trailing.prompt, intervalMs: trailing.intervalMs };
+  }
+  return { kind: 'start', prompt: trimmed };
 }
 
 interface Loop {
@@ -74,18 +107,31 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     clear();
     notify(ctx, `Loop stopped: ${reason}`);
   };
-  const fire = () => {
+  const fire = (first = false) => {
     if (loop === undefined) return;
+    // A scheduled tick that lands mid-run is skipped rather than queued, so one long run cannot leave a pile of stale ticks.
+    if (!first && lastCtx !== undefined && !lastCtx.isIdle()) {
+      if (loop.intervalMs !== undefined) loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
+      return;
+    }
     const { timer: _timer, nextWakeMs: _wake, ...rest } = loop;
     loop = { ...rest, iteration: rest.iteration + 1 };
     // Expansion lets a loop run a skill or template each time.
-    pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true, ...(lastCtx === undefined || lastCtx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
+    pi.sendUserMessage(loop.prompt, { expandPromptTemplates: true });
+    // A fixed loop is wall-clock from each fire, like the reference's sleep loop: a long run does not push the next tick out.
+    if (loop.intervalMs !== undefined) loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
   };
   const settled = (ctx: ExtensionContext, aborted: boolean) => {
     lastCtx = ctx;
-    if (loop === undefined || loop.timer !== undefined) return;
+    if (loop === undefined) return;
     if (aborted) return stop(ctx, 'the run was aborted.');
-    const delay = loop.intervalMs ?? loop.nextWakeMs;
+    if (loop.timer !== undefined) return;
+    if (loop.intervalMs !== undefined) {
+      // An armed fixed loop has no timer yet; its first tick waits for this turn to end.
+      loop = { ...loop, timer: setTimeout(fire, loop.intervalMs) };
+      return;
+    }
+    const delay = loop.nextWakeMs;
     if (delay !== undefined) loop = { ...loop, timer: setTimeout(fire, delay) };
     else if (!options.hasPendingWork()) stop(ctx, 'the agent scheduled no next wake.');
   };
@@ -93,14 +139,17 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     if (loop !== undefined) stop(ctx, 'replaced by a new /loop.');
     lastCtx = ctx;
     loop = { prompt, iteration: 0, ...(intervalMs === undefined ? {} : { intervalMs }) };
-    fire();
+    fire(true);
   };
   /** An agent arms a loop mid-turn, so its first run waits for this turn to settle and then for the first delay. */
   const arm = (ctx: ExtensionContext, prompt: string, schedule: { intervalMs: number } | { firstWakeMs: number }) => {
     if (loop !== undefined) stop(ctx, 'replaced by a new loop.');
     loop = 'intervalMs' in schedule ? { prompt, iteration: 0, intervalMs: schedule.intervalMs } : { prompt, iteration: 0, nextWakeMs: schedule.firstWakeMs };
   };
-  const status = () => (loop === undefined ? 'No loop is running.' : `Loop: "${loop.prompt}" (iteration ${loop.iteration}${loop.intervalMs === undefined ? ', agent-paced' : `, every ${formatMs(loop.intervalMs)}`})`);
+  const status = () =>
+    loop === undefined
+      ? 'No loop is running. Usage: /loop [interval] <prompt>, with the interval at either end; /loop stop ends one.'
+      : `Loop: "${loop.prompt}" (iteration ${loop.iteration}${loop.intervalMs === undefined ? ', agent-paced' : `, every ${formatMs(loop.intervalMs)}`})`;
   const wake = (delayMs: number) => {
     if (loop === undefined) throw new Error('No loop is running. Start one with prompt plus interval or wake_in, or ask the user to run /loop.');
     if (loop.intervalMs !== undefined) throw new Error(`This loop runs every ${formatMs(loop.intervalMs)}; only the user can change its interval. Pass stop: true to end it.`);
@@ -181,7 +230,7 @@ export function registerLoop(pi: ExtensionAPI, options: LoopOptions): { section:
   pi.on('agent_settled', (event, ctx) => controller.settled(ctx, event.aborted));
   pi.on('session_shutdown', () => controller.clear());
   pi.registerCommand('loop', {
-    description: 'Run a prompt repeatedly: /loop [interval] <prompt> (interval like 30s, 5m, 1h, at most 24d); /loop stop',
+    description: 'Run a prompt repeatedly: /loop [interval] <prompt>, interval either end and like 30s, 5m, 1h, every 10 minutes (at most 24d); /loop stop',
     handler: async (args, ctx) => handleLoopCommand(controller, args, ctx),
   });
   registerLoopTool(pi, controller);

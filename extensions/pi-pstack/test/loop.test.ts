@@ -9,6 +9,10 @@ describe('parseDuration', () => {
     { text: '1h', ms: 3_600_000 },
     { text: '1h30m', ms: 5_400_000 },
     { text: '2d', ms: 172_800_000 },
+    { text: '10 minutes', ms: 600_000 },
+    { text: 'every 10 minutes', ms: 600_000 },
+    { text: '1 hour 30 minutes', ms: 5_400_000 },
+    { text: '2 days', ms: 172_800_000 },
   ])('$text is $ms ms', ({ text, ms }) => {
     expect(parseDuration(text)).toBe(ms);
   });
@@ -31,7 +35,14 @@ describe('parseLoopArgs (HOST-004)', () => {
     { args: 'stop', expected: { kind: 'stop' } },
     { args: 'off', expected: { kind: 'stop' } },
     { args: '1h run the audit tick', expected: { kind: 'start', intervalMs: 3_600_000, prompt: 'run the audit tick' } },
+    { args: 'run the audit tick 1h', expected: { kind: 'start', intervalMs: 3_600_000, prompt: 'run the audit tick' } },
+    { args: 'check CI until green 10m', expected: { kind: 'start', intervalMs: 600_000, prompt: 'check CI until green' } },
+    { args: 'check deploy every 5m', expected: { kind: 'start', intervalMs: 300_000, prompt: 'check deploy' } },
+    { args: 'run tests every 10 minutes', expected: { kind: 'start', intervalMs: 600_000, prompt: 'run tests' } },
     { args: 'check CI until green', expected: { kind: 'start', prompt: 'check CI until green' } },
+    { args: '1 hour 30 minutes', expected: { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } },
+    { args: 'wait for 5 things', expected: { kind: 'start', prompt: 'wait for 5 things' } },
+    { args: 'tick 25d', expected: { kind: 'error', message: 'Loop intervals can be at most 24d.' } },
     { args: '10m', expected: { kind: 'error', message: '/loop needs a prompt: /loop [interval] <prompt>' } },
   ])('reads "$args"', ({ args, expected }) => {
     expect(parseLoopArgs(args)).toEqual(expected);
@@ -154,7 +165,22 @@ describe('/loop through Pi (HOST-004)', () => {
       await rpc.waitFor((event) => event.type === 'agent_settled');
       rpc.send({ type: 'prompt', message: '/loop' });
       const status = await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && rpc.events.indexOf(event) > rpc.events.indexOf(stopped));
-      expect([stopped['message'], status['message'], users(rpc.events)]).toEqual(['Loop stopped: the agent ended it.', 'No loop is running.', ['done\n@@script [{"tool":"Loop","args":{"stop":true}}]']]);
+      expect([stopped['message'], status['message'], users(rpc.events)]).toEqual([
+        'Loop stopped: the agent ended it.',
+        'No loop is running. Usage: /loop [interval] <prompt>, with the interval at either end; /loop stop ends one.',
+        ['done\n@@script [{"tool":"Loop","args":{"stop":true}}]'],
+      ]);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('a fixed tick that lands mid-run is skipped, not queued', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      rpc.send({ type: 'prompt', message: '/loop 300ms slow\n@@sleep 2500 SLOW' });
+      await rpc.waitFor((event) => event.type === 'agent_settled' && replies(rpc.events).length >= 1, 20_000);
+      expect(users(rpc.events).length).toBeLessThan(5);
     } finally {
       await rpc.close();
     }
