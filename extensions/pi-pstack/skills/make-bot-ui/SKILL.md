@@ -20,7 +20,7 @@ Call `subscribe_webhook`. Set these fields:
 The routine slug is the kebab-case form of the name.
 The result gives the routine URL, `http://127.0.0.1:<port>/routines/<slug>`, and the credential file path. Use the path the result names, such as `~/.pi/agent/pstack/routines/<slug>/credentials.json` (`PI_CODING_AGENT_DIR` moves it).
 The result does not include the sender key.
-The routine targets the owning Pi session and expires at the `expiresAt` the result names. The durable supervisor keeps the listener available after the chat exits. Wakes received while the owner is offline park until that session is restored. Keep the owner running for immediate UI actions, and check the routine with `list_subscriptions`. A timer with `sessionStrategy: "new_session"` can start detached work while the owner is offline. A webhook does not use that strategy.
+By default the routine wakes the owning Pi session, which keeps its context across presses the way a bot does. The durable supervisor keeps the listener available after the chat exits. Wakes received while the owner is offline park until that session is restored. Keep the owner running for immediate UI actions, and check the routine with `list_subscriptions`. To act on presses with no chat open, pass `sessionStrategy: "new_session"`: each accepted POST starts a fresh detached run without the owner's context, which must do the work itself. The routine does not expire unless `expiresInHours` sets a limit.
 
 ## Copy the URL and the sender key
 
