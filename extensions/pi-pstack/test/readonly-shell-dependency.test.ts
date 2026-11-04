@@ -7,7 +7,8 @@ import type { ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
 import { createReadonlyBashTool, releaseReadonlySandbox } from '../src/readonly-shell.ts';
 
-test('missing Unix socket isolation prevents the readonly command from running', async () => {
+// Only macOS uses sandbox-runtime; Linux runs bubblewrap itself, and linux-readonly-sandbox-missing.test.ts covers its fail-closed path.
+test.skipIf(process.platform === 'linux')('missing Unix socket isolation prevents the readonly command from running', async () => {
   const dependencyCheck = vi.spyOn(SandboxManager, 'checkDependencies').mockReturnValue({ errors: [], warnings: ['seccomp not available - unix socket access not restricted'] });
   onTestFinished(() => dependencyCheck.mockRestore());
   onTestFinished(releaseReadonlySandbox);
