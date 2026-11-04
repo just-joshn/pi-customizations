@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, w
 import { join } from 'node:path';
 
 import { parseSessionEntries, SessionManager } from '@earendil-works/pi-coding-agent';
+import { acquireLease, alive } from '../process-lock.ts';
 import type { ModelSpec } from './models.ts';
 import type { Worktree } from './worktree.ts';
 
@@ -142,15 +143,6 @@ export function recordIds(dir: string): string[] {
     .map((name) => name.slice(0, -'.json'.length));
 }
 
-function alive(pid: number): boolean {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (error) {
-    return (error as NodeJS.ErrnoException).code === 'EPERM';
-  }
-}
-
 const isPid = (value: number) => Number.isInteger(value) && value > 0;
 
 /** The live pid the agent's run lock names, or undefined when no live process holds it. */
@@ -198,33 +190,46 @@ export interface RunLock {
 /**
  * Pi appends to a session file without a lock, so two processes on one agent ID would interleave its transcript.
  * The lock file holds the pid of the process writing the transcript. A lock without a readable pid counts as held.
- * A dead holder's lock is removed only if it still names that holder, then created again exclusively; two
- * processes taking over the same stale lock in the narrow window between that re-read and the removal can both succeed.
+ * A token-directory lease serializes acquisition and stale recovery without changing the PID file read by stop/status.
  */
 export function acquireRunLock(dir: string, agentId: string): RunLock {
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const path = join(dir, `${agentId}.lock`);
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (createExclusive(path)) {
-      let owner = process.pid;
-      return {
-        holdFor: (pid) => {
-          writeAtomically(path, String(pid));
-          owner = pid;
-        },
-        // Best effort: a lock left behind names a pid that will be dead, so the next acquire takes it over.
-        release: () => {
-          try {
-            if (holderOf(path) === owner) rmSync(path, { force: true });
-          } catch (error) {
-            if (!['EACCES', 'EPERM', 'EROFS', 'EBUSY', 'EIO'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
-          }
-        },
-      };
+  const lease = acquireLease(`${path}.owner`);
+  if (lease === undefined) throw stillRunning(agentId, runningPid(dir, agentId), path);
+  let acquired = false;
+  try {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      if (createExclusive(path)) {
+        acquired = true;
+        let owner = process.pid;
+        return {
+          holdFor: (pid) => {
+            writeAtomically(path, String(pid));
+            owner = pid;
+          },
+          release: () => {
+            for (const release of [
+              () => {
+                if (holderOf(path) === owner) rmSync(path, { force: true });
+              },
+              lease.release,
+            ]) {
+              try {
+                release();
+              } catch (error) {
+                if (!['EACCES', 'EPERM', 'EROFS', 'EBUSY', 'EIO'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
+              }
+            }
+          },
+        };
+      }
+      const holder = holderOf(path);
+      if (holder !== undefined && (!isPid(holder) || alive(holder))) throw stillRunning(agentId, holder, path);
+      if (holder !== undefined && holderOf(path) === holder) rmSync(path, { force: true });
     }
-    const holder = holderOf(path);
-    if (holder !== undefined && (!isPid(holder) || alive(holder))) throw stillRunning(agentId, holder, path);
-    if (holder !== undefined && holderOf(path) === holder) rmSync(path, { force: true });
+    throw stillRunning(agentId, holderOf(path), path);
+  } finally {
+    if (!acquired) lease.release();
   }
-  throw stillRunning(agentId, holderOf(path), path);
 }

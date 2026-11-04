@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
 import { routinesDir } from '../paths.ts';
+import { alive } from '../process-lock.ts';
 import { cronMatches, parseCron } from './cron.ts';
 import {
   acceptEvent,
   acquireSupervisorLock,
-  alive,
   canonicalPath,
   clearError,
   expireDesired,

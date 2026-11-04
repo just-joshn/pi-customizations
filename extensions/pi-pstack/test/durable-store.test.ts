@@ -7,9 +7,9 @@ import { promisify } from 'node:util';
 
 import { expect, test, vi } from 'vitest';
 import { durableRegistryPath, durableRuntimeDir } from '../src/paths.ts';
+import { acquireLease } from '../src/process-lock.ts';
 import {
   acceptEvent,
-  acquireLease,
   acquireSupervisorLock,
   cancelDesired,
   canonicalPath,
