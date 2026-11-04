@@ -7,7 +7,6 @@ import { childIdentity } from './child-env.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
-import { createPathSkills } from './path-skills.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
@@ -117,7 +116,6 @@ export default function piPstack(pi: ExtensionAPI): void {
   });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
   const todos = registerTodoWrite(pi);
-  const pathSkills = createPathSkills(pi);
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly) registerReadonlyShell(pi);
@@ -126,7 +124,6 @@ export default function piPstack(pi: ExtensionAPI): void {
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();
-    const pathSkillText = pathSkills.section();
     Object.assign(
       event.systemPromptOptions.sections,
       hostSections(pi, ctx, agents),
@@ -134,7 +131,6 @@ export default function piPstack(pi: ExtensionAPI): void {
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
       todoText === undefined ? {} : { pstack_todos: todoText },
-      pathSkillText === undefined ? {} : { pstack_path_skills: pathSkillText },
     );
   });
 

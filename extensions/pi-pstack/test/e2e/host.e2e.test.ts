@@ -221,7 +221,7 @@ describe('image generation (HOST-006)', () => {
   });
 });
 
-test('reading a TypeScript file attaches the path-scoped skill on the next turn', async () => {
+test('reading a TypeScript file does not attach typescript-best-practices, which Cursor loads only when invoked by name', async () => {
   writeFileSync(join(sandbox.workDir, 'typed.ts'), 'export const value = 1;\n');
   const rpc = startRpc(sandbox, ['--no-session']);
   try {
@@ -231,9 +231,7 @@ test('reading a TypeScript file attaches the path-scoped skill on the next turn'
     rpc.send({ type: 'prompt', message: 'next\n@@sys' });
     const reply = await rpc.waitFor((event) => rpc.events.indexOf(event) >= mark && event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
     const prompt = contentText((reply['message'] as { content: { type: string; text?: string }[] }).content);
-    expect(prompt).toContain('<pstack_path_skills>');
-    expect(prompt).toContain('<skill name="typescript-best-practices"');
-    expect(prompt).toContain('TypeScript best practices');
+    expect([prompt.includes('<skill name="typescript-best-practices"'), prompt.includes('`satisfies` over `as`')]).toEqual([false, false]);
   } finally {
     await rpc.close();
   }
