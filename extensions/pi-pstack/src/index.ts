@@ -118,7 +118,6 @@ export default function piPstack(pi: ExtensionAPI): void {
   if (childIdentity.readonly) registerReadonlyShell(pi);
 
   pi.on('before_agent_start', (event, ctx) => {
-    const modeText = mode.section();
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();
@@ -126,7 +125,7 @@ export default function piPstack(pi: ExtensionAPI): void {
     Object.assign(
       event.systemPromptOptions.sections,
       hostSections(pi, ctx, agents),
-      modeText === undefined ? {} : { pstack_mode: modeText },
+      mode.sections(),
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
       todoText === undefined ? {} : { pstack_todos: todoText },
