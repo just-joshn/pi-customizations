@@ -72,12 +72,13 @@
     },
     "extensions/pi-pstack": {
       "name": "@justjoshn/pi-pstack",
-      "version": "0.15.36-pi.10",
+      "version": "0.15.36-pi.12",
       "bin": {
         "pstack-routines-supervisor": "./bin/pstack-routines-supervisor",
       },
       "dependencies": {
         "@anthropic-ai/sandbox-runtime": "0.0.79",
+        "yaml": "2.9.0",
       },
       "devDependencies": {
         "@earendil-works/pi-agent-core": "1.5.0",

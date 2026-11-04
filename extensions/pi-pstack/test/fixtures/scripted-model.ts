@@ -113,4 +113,10 @@ export default function scriptedModel(pi: ExtensionAPI): void {
   pi.registerProvider(handle.provider);
   // RPC has no reload command, so lifecycle tests reach ctx.reload() through this one.
   pi.registerCommand('test-reload', { description: 'Test only: reload the runtime', handler: async (_args, ctx) => ctx.reload() });
+  pi.registerCommand('test-tree', {
+    description: 'Test only: navigate the session tree',
+    handler: async (entryId, ctx) => {
+      await ctx.navigateTree(entryId.trim(), { summarize: false });
+    },
+  });
 }

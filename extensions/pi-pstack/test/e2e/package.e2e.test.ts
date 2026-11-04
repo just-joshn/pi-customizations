@@ -45,6 +45,39 @@ test('publishes bundled tools without locally installed script dependencies', as
   expect(paths.filter((path) => path.startsWith('skills/') && path.endsWith('/SKILL.md'))).toHaveLength(79);
 });
 
+test('a missing YAML dependency rejects metadata operations without blocking other tools', async () => {
+  const copy = join(sandbox.root, 'pi-pstack');
+  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  pi('install', copy);
+  const rpc = startRpc(sandbox, ['--no-session']);
+  try {
+    rpc.send({ id: 'plan', type: 'prompt', message: '/plan' });
+    await rpc.waitFor((event) => event['id'] === 'plan');
+    rpc.send({ type: 'prompt', message: script([{ tool: 'CreatePlan', args: { plan: '# Missing YAML', todos: [{ id: 'build', content: 'Build it' }] } }]) });
+    const review = await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'select');
+    rpc.send({ type: 'extension_ui_response', id: review['id'], value: 'No, propose changes' });
+    rpc.send({ id: 'build', type: 'prompt', message: '/plan build' });
+    const result = await rpc.waitFor((event) => event['id'] === 'build');
+    expect(result['success']).toBe(true);
+    const error = await rpc.waitFor((event) => event.type === 'extension_error' && String(event['error']).includes('Plan metadata needs the yaml dependency.'));
+    expect(error).toMatchObject({ extensionPath: 'command:plan', event: 'command', error: expect.stringContaining('Run bun install in the pi-pstack package directory, then reload Pi.') });
+    rpc.send({ id: 'off', type: 'prompt', message: '/plan off' });
+    await rpc.waitFor((event) => event['id'] === 'off');
+    rpc.send({ type: 'prompt', message: 'list\n@@tools-list' });
+    const reply = await rpc.waitFor(
+      (event) =>
+        event.type === 'message_end' &&
+        (event['message'] as { role: string }).role === 'assistant' &&
+        contentText((event['message'] as { content: string }).content)
+          .split(',')
+          .includes('Loop'),
+    );
+    expect(contentText((reply['message'] as { content: string }).content).split(',')).toEqual(expect.arrayContaining(['bash', 'Loop', 'TodoWrite']));
+  } finally {
+    await rpc.close();
+  }
+});
+
 test('installs from a fresh copy without node_modules, then removes cleanly (PKG-001)', async () => {
   const copy = join(sandbox.root, 'pi-pstack');
   cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });

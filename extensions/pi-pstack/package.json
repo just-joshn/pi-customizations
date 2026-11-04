@@ -64,7 +64,8 @@
     "live:e2e": "node scripts/live-e2e.mjs"
   },
   "dependencies": {
-    "@anthropic-ai/sandbox-runtime": "0.0.79"
+    "@anthropic-ai/sandbox-runtime": "0.0.79",
+    "yaml": "2.9.0"
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",

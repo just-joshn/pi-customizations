@@ -7,6 +7,7 @@ export const READONLY_ENV = 'PI_PSTACK_READONLY';
 export const ROOT_STORE_ENV = 'PI_PSTACK_ROOT_STORE';
 export const WORKSPACE_ENV = 'PI_PSTACK_WORKSPACE_STATE';
 export const ROOT_WORKSPACE_ENV = 'PI_PSTACK_ROOT_WORKSPACE';
+export const BUILD_PLAN_ENV = 'PI_PSTACK_BUILD_PLAN';
 
 export interface ChildIdentity {
   depth: number;
@@ -18,6 +19,7 @@ export interface ChildIdentity {
   workspaceState: string | undefined;
   /** The main chat's working directory, which authorizes every record stored in its shared workspace. */
   rootWorkspace: string | undefined;
+  buildPlan: string | undefined;
 }
 
 function read(): ChildIdentity {
@@ -31,6 +33,7 @@ function read(): ChildIdentity {
     rootStore: process.env[ROOT_STORE_ENV] || undefined,
     workspaceState: process.env[WORKSPACE_ENV] || undefined,
     rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
+    buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
   };
 }
 
@@ -42,6 +45,7 @@ delete process.env[READONLY_ENV];
 delete process.env[ROOT_STORE_ENV];
 delete process.env[WORKSPACE_ENV];
 delete process.env[ROOT_WORKSPACE_ENV];
+delete process.env[BUILD_PLAN_ENV];
 
 /** Variables for a child of this process at `depth` (an agent keeps the depth it was created at). */
 export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string): Record<string, string> {

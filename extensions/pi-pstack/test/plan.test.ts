@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -18,10 +18,12 @@ import {
   planFromBranch,
   planSection,
   planTitle,
+  planTodos,
   planTools,
   registerPlanMode,
   SWITCH_MODE,
   savePlan,
+  syncPlanTodoStatuses,
 } from '../src/plan.ts';
 
 type Handler = (event: unknown, ctx: unknown) => unknown;
@@ -146,6 +148,90 @@ test("CreatePlan writes Cursor's plan file: the chat id, the todos as front matt
   expect(savePlan('session-2', '# Tiny plan', undefined, [], dir)).not.toBe(path);
 });
 
+test('a project with no root todos still saves its phases', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plans-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = savePlan('session', '# Project', undefined, [], dir, { is_project: true, phases: [{ name: 'First', todos: [{ id: 'one', content: 'First task' }] }, { name: 'Empty' }] });
+  expect(readFileSync(file, 'utf8')).toBe(
+    '<!-- session -->\n---\nisProject: true\nphases:\n  - name: "First"\n    todos:\n      - id: "one"\n        content: "First task"\n        status: pending\n  - name: "Empty"\n    todos:\n---\n# Project',
+  );
+  expect(planTodos(file)).toEqual([]);
+});
+
+test('plan status synchronization preserves scalar quotes, comments, CRLF, and unrelated todos', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plans-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'Plan.plan.md');
+  const before = [
+    '<!-- session -->',
+    '---',
+    'todos:',
+    '  - id: first',
+    '    content: First',
+    '    status: "pending" # Keep the note',
+    '    dependencies: [prior]',
+    '  - id: second',
+    '    content: Second',
+    "    status: 'in_progress'",
+    '  - id: other',
+    '    content: Other',
+    '    status: cancelled',
+    'custom: keep',
+    '---',
+    '# Plan',
+    '',
+    'Body text.',
+  ].join('\r\n');
+  writeFileSync(file, before);
+  expect(planTodos(file)).toEqual([
+    { id: 'first', content: 'First', status: 'pending', dependencies: ['prior'] },
+    { id: 'second', content: 'Second', status: 'in_progress' },
+    { id: 'other', content: 'Other', status: 'cancelled' },
+  ]);
+  syncPlanTodoStatuses(file, [
+    { id: 'first', content: 'First', status: 'in_progress' },
+    { id: 'second', content: 'Second', status: 'completed' },
+  ]);
+  expect(readFileSync(file, 'utf8')).toBe(before.replace('"pending"', '"in_progress"').replace("'in_progress'", "'completed'"));
+  expect(planBody(file)).toBe('# Plan\n\nBody text.');
+});
+
+test.for([
+  { name: 'block LF', metadata: 'todos:\n  - id: work\n    content: Work # keep', expected: 'todos:\n  - status: completed\n    id: work\n    content: Work # keep', newline: '\n' },
+  { name: 'block CRLF', metadata: 'todos:\n  - id: work\n    content: Work # keep', expected: 'todos:\n  - status: completed\n    id: work\n    content: Work # keep', newline: '\r\n' },
+  { name: 'flow', metadata: 'todos: [{ id: work, content: Work }]', expected: 'todos: [{status: completed,  id: work, content: Work }]', newline: '\n' },
+  { name: 'flow with trailing comma', metadata: 'todos: [{ id: work, content: Work, }]', expected: 'todos: [{status: completed,  id: work, content: Work, }]', newline: '\n' },
+])('synchronizes an omitted optional status in $name metadata', ({ metadata, expected, newline }) => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plans-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'Plan.plan.md');
+  const before = `<!-- session -->\n---\n${metadata}\ncustom: keep\n---\n# Plan\n`.replaceAll('\n', newline);
+  writeFileSync(file, before);
+  expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', status: 'pending' }]);
+  syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: 'pending' }]);
+  expect(readFileSync(file, 'utf8')).toBe(before);
+
+  syncPlanTodoStatuses(file, [{ id: 'work', content: 'Work', status: 'completed' }]);
+
+  expect(readFileSync(file, 'utf8')).toBe(before.replace(metadata.replaceAll('\n', newline), expected.replaceAll('\n', newline)));
+  expect(planTodos(file)).toEqual([{ id: 'work', content: 'Work', status: 'completed' }]);
+});
+
+test.for([
+  { metadata: 'todos: [', error: 'Invalid plan metadata' },
+  { metadata: 'todos: wrong', error: 'must be a list' },
+  { metadata: 'todos: [{id: a, content: A, status: wrong}]', error: 'Invalid plan todo' },
+  { metadata: 'todos: [{id: a, content: A, dependencies: [12]}]', error: 'Invalid todo dependencies' },
+])('rejects edited plan metadata that cannot describe a todo list $metadata', ({ metadata, error }) => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plans-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'Plan.plan.md');
+  const before = `<!-- session -->\n---\n${metadata}\n---\n# Plan`;
+  writeFileSync(file, before);
+  expect(() => planTodos(file)).toThrow(error);
+  expect(readFileSync(file, 'utf8')).toBe(before);
+});
+
 test('/plan build needs a saved plan, and otherwise hands the plan to the next turn', async () => {
   const h = harness();
   await h.run('build');
@@ -187,6 +273,21 @@ test("after a run that saved a plan, the user picks build or propose changes, as
   expect([h.plan.enabled(), h.sent.at(-1)?.text]).toEqual([false, [`Build the plan saved at ${path}. Follow it.`, '', '# Review me', '', '- two'].join('\n')]);
   h.emit('agent_settled', { aborted: false });
   expect(h.asked).toHaveLength(2);
+});
+
+test('a plan-build handoff imports into the first session but not a later new session', () => {
+  const file = savePlan('worker-import', '# Worker plan', undefined, [{ id: 'build', content: 'Build', dependencies: ['design'] }]);
+  onTestFinished(() => rmSync(file, { force: true }));
+  const imports: unknown[] = [];
+  const h = harness(undefined, { buildPlan: file, setTodos: (todos) => imports.push(todos) });
+
+  h.emit('session_start');
+  h.entries.splice(0);
+  h.emit('session_start');
+
+  expect(imports).toEqual([[{ id: 'build', content: 'Build', status: 'pending', dependencies: ['design'] }]]);
+  expect(h.entries).toEqual([]);
+  expect(h.plan.enabled()).toBe(false);
 });
 
 test('the build-in-a-worker choice leaves plan mode and starts an isolated worker with the plan', async () => {
@@ -258,6 +359,19 @@ test('restores plan mode from the session and drops a stray plan shell when off'
   h.setActive([...h.active(), PLAN_BASH]);
   h.emit('session_start');
   expect(h.active()).not.toContain(PLAN_BASH);
+});
+
+test('leaving the planning branch restores the tools from before planning', async () => {
+  const h = harness();
+  const before = h.active();
+  await h.run('on');
+  expect(h.active()).not.toContain('bash');
+
+  h.entries.splice(0);
+  h.emit('session_tree');
+
+  expect(h.plan.enabled()).toBe(false);
+  expect(h.active()).toEqual(before);
 });
 
 test('reads the last plan entry and treats malformed data as off', () => {

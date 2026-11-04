@@ -8,18 +8,21 @@ export interface TodoItem {
   id: string;
   content: string;
   status: TodoStatus;
+  dependencies?: string[];
 }
 
 export interface TodoInput {
   id: string;
   content?: string;
   status?: TodoStatus;
+  dependencies?: string[];
 }
 
 interface TodoDetails {
   todos: TodoItem[];
 }
 
+const TODO_ENTRY = 'pstack/todos';
 const WIDGET_KEY = 'pstack-todos';
 const MARKS: Record<TodoStatus, string> = { pending: '[ ]', in_progress: '[>]', completed: '[x]', cancelled: '[-]' };
 const GLYPHS: Record<TodoStatus, string> = { pending: '○', in_progress: '▶', completed: '✓', cancelled: '✗' };
@@ -43,7 +46,8 @@ function complete(item: TodoInput, existing: TodoItem | undefined): TodoItem {
   const content = item.content ?? existing?.content;
   const status = item.status ?? existing?.status;
   if (content === undefined || status === undefined) throw new Error(`Todo "${item.id}" is new, so it needs both content and status.`);
-  return { id: item.id, content, status };
+  const dependencies = item.dependencies ?? existing?.dependencies;
+  return { id: item.id, content, status, ...(dependencies === undefined ? {} : { dependencies }) };
 }
 
 /** TodoWrite: merge updates by id and appends new ids; otherwise the call replaces the list. */
@@ -68,18 +72,25 @@ export function formatTodos(todos: readonly TodoItem[]): string {
   const done = todos.filter((item) => item.status === 'completed').length;
   const active = todos.filter((item) => item.status === 'in_progress').length;
   const header = `Todos (${done}/${todos.length} completed${active > 0 ? `, ${active} in progress` : ''}):`;
-  return [header, ...todos.map((item) => `${MARKS[item.status]} ${item.id}: ${item.content}`)].join('\n');
+  return [header, ...todos.map((item) => `${MARKS[item.status]} ${item.id}: ${item.content}${item.dependencies === undefined || item.dependencies.length === 0 ? '' : ` (depends on ${item.dependencies.join(', ')})`}`)].join('\n');
 }
 
 interface BranchEntry {
   type: string;
+  customType?: string;
+  data?: unknown;
   message?: { role?: string; toolName?: string; isError?: boolean; details?: unknown };
 }
 
-/** The list as of the active branch: the details of the last successful TodoWrite on it. A failed call stores `details: {}`. */
+/** The list as of the active branch, from a plan import or the last successful TodoWrite. */
 export function todosFromBranch(entries: readonly BranchEntry[]): TodoItem[] {
   for (let index = entries.length - 1; index >= 0; index -= 1) {
-    const message = entries[index]?.message;
+    const entry = entries[index];
+    if (entry?.type === 'custom' && entry.customType === TODO_ENTRY) {
+      const todos = (entry.data as Partial<TodoDetails> | undefined)?.todos;
+      if (Array.isArray(todos)) return todos;
+    }
+    const message = entry?.message;
     const todos = (message?.details as Partial<TodoDetails> | undefined)?.todos;
     if (entries[index]?.type === 'message' && message?.role === 'toolResult' && message.toolName === 'TodoWrite' && message.isError !== true && Array.isArray(todos)) return todos;
   }
@@ -116,7 +127,7 @@ const TODO_DESCRIPTION = [
   'Prefer creating the first todo as in_progress, and start on it with tool calls in the same batch as the write. Batch todo updates with your other tool calls.',
 ].join('\n');
 
-export function registerTodoWrite(pi: ExtensionAPI): { section: () => string | undefined } {
+export function registerTodoWrite(pi: ExtensionAPI, options: { onWrite?: (todos: readonly TodoItem[]) => void } = {}) {
   let todos: TodoItem[] = [];
   const show = (ctx: ExtensionContext) => {
     if (ctx.hasUI) ctx.ui.setWidget(WIDGET_KEY, widgetLines(todos));
@@ -139,9 +150,21 @@ export function registerTodoWrite(pi: ExtensionAPI): { section: () => string | u
     annotations: { readOnlyHint: true, openWorldHint: false },
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       todos = applyTodoWrite(todos, params.todos, params.merge);
+      try {
+        options.onWrite?.(todos);
+      } catch (error) {
+        ctx.ui.notify(`The todo list was updated, but its plan file could not be synchronized: ${error instanceof Error ? error.message : String(error)}`, 'warning');
+      }
       show(ctx);
       return { content: [{ type: 'text', text: formatTodos(todos) }], details: { todos } };
     },
   });
-  return { section: () => todoSection(todos) };
+  return {
+    section: () => todoSection(todos),
+    replace: (items: readonly TodoItem[], ctx: ExtensionContext) => {
+      todos = applyTodoWrite([], items, false);
+      pi.appendEntry(TODO_ENTRY, { todos });
+      show(ctx);
+    },
+  };
 }
