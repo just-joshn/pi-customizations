@@ -83,3 +83,8 @@ describe('Cursor AskQuestion calls (HOST-005)', () => {
     expect(fixture.calls.map(({ input }) => outcome(input.questions as ReturnType<typeof question>[]))).toEqual(fixture.calls.map(() => 'valid'));
   });
 });
+
+test('AskQuestion requires at least one question and two options per question, as Cursor does', () => {
+  const schema = JSON.parse(JSON.stringify(AskParams)) as { properties: { questions: { minItems: number; items: { properties: { options: { minItems: number } } } } } };
+  expect([schema.properties.questions.minItems, schema.properties.questions.items.properties.options.minItems]).toEqual([1, 2]);
+});

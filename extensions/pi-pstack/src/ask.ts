@@ -9,17 +9,22 @@ export const OTHER_ID = 'other';
 const SKIPPED = 'skipped (no one can answer questions in this session; decide yourself and say what you chose)';
 
 export const AskParams = Type.Object({
-  title: Type.Optional(Type.String({ description: 'Short heading shown above the questions' })),
+  title: Type.Optional(Type.String({ description: 'Optional title for the questions form' })),
   questions: Type.Array(
     Type.Object({
-      id: Type.String({ description: 'Stable identifier for the question' }),
-      prompt: Type.String({ description: 'The question shown to the user' }),
-      options: Type.Array(Type.Object({ id: Type.String(), label: Type.String(), description: Type.Optional(Type.String({ description: 'Detail shown after the label' })) }), {
-        description: 'Choices the user picks from',
-      }),
-      allow_multiple: Type.Optional(Type.Boolean({ description: 'Let the user pick several options' })),
+      id: Type.String({ description: 'Unique identifier for this question' }),
+      prompt: Type.String({ description: 'The question text to display to the user, without the options.' }),
+      options: Type.Array(
+        Type.Object({
+          id: Type.String({ description: 'Unique identifier for this option' }),
+          label: Type.String({ description: 'Display text for this option' }),
+          description: Type.Optional(Type.String({ description: 'Detail shown after the label' })),
+        }),
+        { minItems: 2, description: 'Array of answer options (minimum 2 required)' },
+      ),
+      allow_multiple: Type.Optional(Type.Boolean({ description: 'If true, the user can select several options. Defaults to false.' })),
     }),
-    { description: 'Questions asked one after another' },
+    { minItems: 1, description: 'Questions to present to the user, one after another (minimum 1 required)' },
   ),
 });
 export type Question = Static<typeof AskParams>['questions'][number];
@@ -102,8 +107,17 @@ export function registerAskQuestion(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'AskQuestion',
     label: 'Ask question',
-    description:
-      'Ask the user one or more structured multiple-choice questions and wait for the answers. Each answer comes back as option IDs, or as other with the text the user typed. Use it for a genuine product or preference choice, not for a fact you can check yourself.',
+    description: [
+      "Collect structured multiple-choice answers from the user. Use this tool only when you are blocked on a decision that is genuinely the user's to make: one you cannot resolve from the request, the code, or sensible defaults.",
+      '',
+      'Usage notes:',
+      '- Give each question at least 2 options.',
+      '- The user can always pick "Other" and type an answer, which comes back as other with the text.',
+      '- Set allow_multiple: true to let the user pick several options.',
+      '- If you recommend an option, put it first and end its label with "(Recommended)".',
+      '',
+      'Prefer this tool over listing options in your reply text as letters, numbers, or bullets.',
+    ].join('\n'),
     promptSnippet: 'Structured multiple-choice questions for the user',
     parameters: AskParams,
     exposure: 'model-only',

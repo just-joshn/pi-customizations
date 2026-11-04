@@ -148,6 +148,15 @@ describe('declared tool descriptions', () => {
     ]).toEqual([true, true, true, true]);
   });
 
+  test("AskQuestion carries Cursor's question rules", async () => {
+    const text = await described('AskQuestion');
+    expect([
+      text.includes("Use this tool only when you are blocked on a decision that is genuinely the user's to make"),
+      text.includes('put it first and end its label with "(Recommended)"'),
+      text.includes('Prefer this tool over listing options in your reply text'),
+    ]).toEqual([true, true, true]);
+  });
+
   test("TodoWrite carries Cursor's todo rules", async () => {
     const text = await described('TodoWrite');
     expect([
