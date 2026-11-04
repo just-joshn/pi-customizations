@@ -46,4 +46,4 @@ The different root license owners are not a missing-notice defect. The README di
 
 `sandbox-helper-provenance.txt` records the fetched version-tagged helper source and installed binary hashes. The tagged C source explains the observed namespace refusal. It is not a reproducible-build proof that the installed binary came from those exact source bytes.
 
-The workflow and host reconstruction milestones remain incomplete. Branch preparation and publication are recorded separately in `pr-preparation.md`. No version bump, deployment, or merge is part of that request.
+The workflow and host reconstruction milestones remain incomplete. Branch preparation and publication are recorded separately in `pr-preparation.md`. A later user request bumps only pi-pstack to `0.15.36-pi.13`. The captured inventories and test receipts predate that metadata-only change. No deployment or merge is part of either request.

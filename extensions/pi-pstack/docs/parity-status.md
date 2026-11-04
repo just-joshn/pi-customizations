@@ -45,7 +45,7 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
 
-## Unreleased reconstruction repairs
+## Reconstruction repairs in 0.15.36-pi.13
 
 The repository's `parity/pstack-reconstruction-2026-11-04/` holds the reference inventory, baseline and treatment receipts, and decision log. These repairs do not establish that every workflow has been observed on both hosts.
 

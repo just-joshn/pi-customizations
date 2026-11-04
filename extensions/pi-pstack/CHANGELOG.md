@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.15.36-pi.13] - 2026-11-04
 
 - Parse leading word intervals and preserve multiline prompts in `/loop`.
 - Run different loop prompts independently. Return loop IDs and require an explicit ID for ambiguous wake or stop operations.

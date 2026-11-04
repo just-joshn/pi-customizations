@@ -13,14 +13,17 @@ The branch is `fix/pstack-native-reconstruction`. A fetch confirmed that its sta
 5. Correct Benny's credential gate and the canvas browser instructions.
 6. Enable the supported Linux worktree-audit tests.
 7. Record the reconstruction evidence, current verification failure, and remaining gaps.
+8. Bump pi-pstack to `0.15.36-pi.13` after the user's version follow-up.
 
-The first six commits keep the runtime, instruction, and test changes separate from the audit archive. The final commit includes the package documentation and evidence. There is no package version bump. The lockfile also corrects its stale workspace version to the version already in `package.json`.
+The first six commits keep the runtime, instruction, and test changes separate from the audit archive. The seventh commit includes the package documentation and evidence. The original preparation did not bump the package version. The later version follow-up bumps pi-pstack from `0.15.36-pi.12` to `0.15.36-pi.13` and updates the lockfile, changelog, and parity status. This PR changes no other extension. The captured `-pr` inventories and test receipts retain the source identity from before that metadata-only follow-up.
 
 ## Throughput checkpoint
 
 The work already exists. This pass reviews the changed runtime and tests, runs the focused suites, repeats full verification, and publishes the ordered commits. No further parity implementation or host-security workaround belongs in this packaging pass. The user prohibited subagents, so all review and Git operations run locally in the coordinator.
 
 ## Fresh verification
+
+The version-only follow-up passes `test/resources.test.ts` and `test/e2e/package.e2e.test.ts` with 18 tests. Frozen-lockfile installation, pi-pstack typecheck, lint, and toolchain checks also pass. Full verification was not rerun for the metadata change. The five readonly-shell failures remain unresolved.
 
 Every focused test invocation below starts with `bun run --filter @justjoshn/pi-pstack test`. These checks ran on the complete worktree before the commit split. They are not isolated clean-checkout checks of each intermediate commit.
 
