@@ -67,7 +67,7 @@ describe('statechart CLI runs from the package (SCRIPT-001)', () => {
   });
 });
 
-describe.skipIf(process.platform !== 'darwin')('worktree-audit.sh reads Pi transcripts (WTA-001; the upstream script uses BSD stat and date)', () => {
+describe.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001)', () => {
   function auditRow(setup: (paths: { worktree: string; agentDir: string; home: string; repo: string }) => void, extraEnv: Record<string, string> = {}): string[] {
     const repo = join(scratch, 'repo');
     const worktree = join(scratch, 'wt');
@@ -87,7 +87,6 @@ describe.skipIf(process.platform !== 'darwin')('worktree-audit.sh reads Pi trans
     // The repo has no origin, so the MERGED base is named explicitly, as upstream 0.15.20 requires.
     const output = execFileSync('bash', [join(SCRIPTS, 'worktree-audit.sh'), '-b', 'main', repo], {
       encoding: 'utf8',
-      // The upstream script calls BSD `stat -f` and `date -r`, so macOS's /usr/bin and /bin tools go first.
       env: { ...process.env, HOME: home, PI_CODING_AGENT_DIR: agentDir, PATH: `${bin}:/usr/bin:/bin:${process.env['PATH'] ?? ''}`, ...extraEnv },
       stdio: ['ignore', 'pipe', 'ignore'],
     });
