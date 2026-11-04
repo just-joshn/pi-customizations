@@ -7,11 +7,12 @@ import { childIdentity } from './child-env.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
+import { createPathSkills } from './path-skills.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
-import { hostSection, subagentsSection } from './sections.ts';
+import { alwaysAppliedRules, hostSection, subagentsSection } from './sections.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
 import { registerAgentStatus } from './task/status.ts';
@@ -47,6 +48,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       loopAvailable: !isOneShot(ctx.mode),
       questionsAvailable: canAsk(ctx),
       activeTools,
+      rules: alwaysAppliedRules(SKILLS_DIR),
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
     pstack_models: modelsSection(readRule(rulePath()), rulePath()),
@@ -107,7 +109,8 @@ export default function piPstack(pi: ExtensionAPI): void {
       })),
   });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
-  registerTodoWrite(pi);
+  const todos = registerTodoWrite(pi);
+  const pathSkills = createPathSkills(pi);
   registerAskQuestion(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly) registerReadonlyShell(pi);
@@ -116,12 +119,16 @@ export default function piPstack(pi: ExtensionAPI): void {
     const modeText = mode.section();
     const loopText = loop.section();
     const planText = plan.section();
+    const todoText = todos.section();
+    const pathSkillText = pathSkills.section();
     Object.assign(
       event.systemPromptOptions.sections,
       hostSections(pi, ctx, agents),
       modeText === undefined ? {} : { pstack_mode: modeText },
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
+      todoText === undefined ? {} : { pstack_todos: todoText },
+      pathSkillText === undefined ? {} : { pstack_path_skills: pathSkillText },
     );
   });
 

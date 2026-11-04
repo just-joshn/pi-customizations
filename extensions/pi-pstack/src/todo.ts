@@ -91,7 +91,12 @@ function widgetLines(todos: readonly TodoItem[]): string[] | undefined {
   return [`Todos ${todos.filter((item) => item.status === 'completed').length}/${todos.length}`, ...todos.map((item) => `${GLYPHS[item.status]} ${item.content}`)];
 }
 
-export function registerTodoWrite(pi: ExtensionAPI): void {
+/** The list as of the active branch, for the system prompt. Cursor keeps todos in conversation state; Pi keeps them here. */
+export function todoSection(todos: readonly TodoItem[]): string | undefined {
+  return todos.length === 0 ? undefined : `Current todo list, owned by this session:\n${formatTodos(todos)}`;
+}
+
+export function registerTodoWrite(pi: ExtensionAPI): { section: () => string | undefined } {
   let todos: TodoItem[] = [];
   const show = (ctx: ExtensionContext) => {
     if (ctx.hasUI) ctx.ui.setWidget(WIDGET_KEY, widgetLines(todos));
@@ -118,4 +123,5 @@ export function registerTodoWrite(pi: ExtensionAPI): void {
       return { content: [{ type: 'text', text: formatTodos(todos) }], details: { todos } };
     },
   });
+  return { section: () => todoSection(todos) };
 }

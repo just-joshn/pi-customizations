@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
-import { makeSandbox, type PiEvent, type RpcSession, type Sandbox, script, startRpc } from './harness.ts';
+import { contentText, makeSandbox, type PiEvent, type RpcSession, type Sandbox, script, startRpc } from './harness.ts';
 
 let sandbox: Sandbox;
 let rpc: RpcSession;
@@ -56,4 +56,35 @@ test('TodoWrite state follows a fork back to the earlier branch and drives the w
 
   await prompt(script([{ tool: 'TodoWrite', args: { merge: true, todos: [{ id: 'c', content: 'Gamma', status: 'in_progress' }] } }]));
   expect(lastTodoResult()).toBe('Todos (0/3 completed, 1 in progress):\n[ ] a: Alpha\n[ ] b: Beta\n[>] c: Gamma');
+});
+
+const systemPrompt = () =>
+  rpc.events
+    .filter((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant')
+    .map((event) => contentText((event['message'] as { content: { type: string; text?: string }[] }).content))
+    .at(-1) ?? '';
+
+test('the todo list rides in every request, so a compacted context still sees it', async () => {
+  const mark = rpc.events.length;
+  rpc.send({ type: 'prompt', message: 'before\n@@sys' });
+  await rpc.waitFor(settled(mark));
+  expect(systemPrompt()).not.toContain('<pstack_todos>');
+  await prompt(
+    script([
+      {
+        tool: 'TodoWrite',
+        args: {
+          merge: false,
+          todos: [
+            { id: 'a', content: 'Alpha', status: 'pending' },
+            { id: 'b', content: 'Beta', status: 'in_progress' },
+          ],
+        },
+      },
+    ]),
+  );
+  const after = rpc.events.length;
+  rpc.send({ type: 'prompt', message: 'after\n@@sys' });
+  await rpc.waitFor(settled(after));
+  expect(systemPrompt()).toContain('<pstack_todos>\nCurrent todo list, owned by this session:\nTodos (0/2 completed, 1 in progress):\n[ ] a: Alpha\n[>] b: Beta\n</pstack_todos>');
 });
