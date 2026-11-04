@@ -49,7 +49,9 @@ Pi returns the child's final text with a transcript path and usage, and reports 
 
 The repository's `parity/pstack-reconstruction-2026-11-04/` holds the reference inventory, baseline and treatment receipts, and decision log. These repairs do not establish that every workflow has been observed on both hosts.
 
-The fresh PR-preparation run, `pr-make-verify.txt`, exits at pi-pstack's coverage suite with 680 passing tests and five failing positive readonly-shell checks. Lint, typecheck, mechanisms, toolchain, and test conventions pass before that stop. No later package result is inferred. `pr-preparation.md` records the focused checks, local review, and publication redactions.
+The pre-bump PR-preparation run, `pr-make-verify.txt`, exits at pi-pstack's coverage suite with 680 passing tests and five failing positive readonly-shell checks. Lint, typecheck, mechanisms, toolchain, and test conventions pass before that stop. No later package result is inferred. `pr-preparation.md` records the focused checks, local review, and publication redactions.
+
+The later [Linux CI run at `83cf4d9b`](https://github.com/just-joshn/pi-customizations/actions/runs/41885522222/job/126768816594) passes all 685 package tests and 367 statechart tests on Ubuntu 24.04. This includes successful restricted commands and the host Unix-socket regression. The workflow pins Ubuntu 24.04 after `ubuntu-latest` selected Ubuntu 26.04 and the helper refused nested namespace setup. The sandbox policy and assertions are unchanged. This result does not resolve startup on Ubuntu 26.04 or replace the failed local full-repository receipt.
 
 - Leading word intervals such as `/loop every 10 minutes check CI` set the cadence instead of becoming part of the submitted prompt. Interval extraction preserves internal newlines.
 - Different loop prompts run independently. Each `Loop` result includes an ID in text and details. With several loops running, `loop_id` selects a wake, stop, or replacement, and `/loop stop <id>` selects a command-line stop. Re-arming the same prompt replaces its schedule. Real Pi RPC regressions observe both prompts repeating and one continuing after the other stops.
