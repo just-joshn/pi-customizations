@@ -102,11 +102,13 @@ export default function piPstack(pi: ExtensionAPI): void {
   const task = registerTask(pi, { agents, depth: childIdentity.depth, planMode: plan.enabled });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
-    runFresh: async (prompt, name, meta) =>
-      void (await task.startBackground(`timer ${name}`, prompt, {
+    runFresh: async (prompt, name, meta) => {
+      await task.startBackground(`timer ${name}`, prompt, {
         ...(meta.model === undefined ? {} : { model: `${meta.model.provider}/${meta.model.id}${meta.model.thinking === undefined ? '' : `:${meta.model.thinking}`}` }),
         ...(meta.trusted === undefined ? {} : { trusted: meta.trusted }),
-      })),
+      });
+      return undefined;
+    },
   });
   const loop = registerLoop(pi, { hasPendingWork: task.hasBackgroundWork });
   const todos = registerTodoWrite(pi);

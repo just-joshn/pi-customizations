@@ -2,7 +2,25 @@ import { randomUUID } from 'node:crypto';
 
 import { routinesDir } from '../paths.ts';
 import { cronMatches, parseCron } from './cron.ts';
-import { acceptEvent, acquireSupervisorLock, alive, canonicalPath, clearError, expireDesired, finishFresh, isDesired, readLock, readRegistry, recordError, releaseSupervisorLock, startFresh, writeArm } from './durable-store.ts';
+import {
+  acceptEvent,
+  acquireSupervisorLock,
+  alive,
+  canonicalPath,
+  clearError,
+  expireDesired,
+  finishFresh,
+  isDesired,
+  readLock,
+  readRegistry,
+  readRoutinesPort,
+  recordError,
+  releaseSupervisorLock,
+  runsDetached,
+  startFresh,
+  writeArm,
+  writeRoutinesPort,
+} from './durable-store.ts';
 import type { DurableSubscription, EventAdmission, RunModel, StoredSubscription } from './durable-types.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges } from './github.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, type WebhookEvent, webhookEventBlock } from './webhook.ts';
@@ -18,7 +36,7 @@ export interface FreshMeta {
   /** The owner's project-trust decision when it created the timer. */
   trusted?: boolean;
 }
-export type RunFresh = (prompt: string, name: string, meta: FreshMeta) => Promise<void> | void;
+export type RunFresh = (prompt: string, name: string, meta: FreshMeta) => Promise<string | undefined> | string | undefined;
 export interface SupervisorOptions {
   workspaceCwd: string;
   runFresh: RunFresh;
@@ -35,10 +53,11 @@ export interface SupervisorOptions {
 type TimerConfig = Extract<DurableSubscription['config'], { kind: 'timer' }>;
 type Armed = { sub: StoredSubscription; timers: Set<ReturnType<typeof setTimeout>>; baseline?: Map<number, PrSnapshot>; polling?: boolean };
 
-function envPort(): number {
+function envPort(): number | undefined {
   const raw = process.env['PSTACK_ROUTINES_PORT'];
-  const port = raw === undefined || raw === '' ? DEFAULT_ROUTINES_PORT : Number(raw);
-  return Number.isInteger(port) && port >= 0 && port < 65536 ? port : DEFAULT_ROUTINES_PORT;
+  if (raw === undefined || raw === '') return undefined;
+  const port = Number(raw);
+  return Number.isInteger(port) && port >= 0 && port < 65536 ? port : undefined;
 }
 export function delayFireIndex(createdAt: number, delaySeconds: number, at: number): number {
   return Math.floor(Math.max(0, at - createdAt) / (Math.max(1, delaySeconds) * 1_000));
@@ -54,7 +73,8 @@ export function createSupervisor(options: SupervisorOptions) {
   const gh = options.gh ?? defaultGhRunner;
   const pollMs = options.pollIntervalMs ?? MINUTE_MS;
   const dir = options.routinesDir ?? routinesDir();
-  const server = new RoutineServer(options.routinesPort ?? envPort());
+  const explicitPort = options.routinesPort ?? envPort();
+  const server = new RoutineServer(explicitPort ?? readRoutinesPort(cwd) ?? DEFAULT_ROUTINES_PORT, explicitPort === undefined);
   const armed = new Map<string, Armed>();
   const isDaemon = options.isDaemon ?? true;
   let active = false;
@@ -85,6 +105,11 @@ export function createSupervisor(options: SupervisorOptions) {
     }
   };
   const error = (id: string, cause: unknown) => recordError(cwd, id, cause);
+  /** Persists the port the listener actually bound, so a restart reuses it and sender URLs keep working. */
+  const syncPort = () => {
+    const port = server.boundPort();
+    if (port !== undefined) writeRoutinesPort(cwd, port);
+  };
   const offlineFresh = () => {
     if (!active) return;
     const registry = readRegistry(cwd);
@@ -92,7 +117,7 @@ export function createSupervisor(options: SupervisorOptions) {
       if (event.claim !== undefined && alive(event.claim.pid)) return false;
       if (event.retryAt !== undefined && now() < event.retryAt) return false;
       const sub = registry.subscriptions.find((s) => s.id === event.subscriptionId);
-      if (sub === undefined || sub.lifecycle === 'cancelled' || sub.config.kind !== 'timer' || sub.config.strategy !== 'new_session') return false;
+      if (sub === undefined || sub.lifecycle === 'cancelled' || !runsDetached(sub)) return false;
       if (!isDaemon && (options.ownerSessionId === undefined || sub.ownerSessionId !== options.ownerSessionId)) return false;
       return true;
     });
@@ -106,14 +131,14 @@ export function createSupervisor(options: SupervisorOptions) {
           options.runFresh(pending.content, sub.name, {
             subscriptionId: sub.id,
             cwd,
-            ...(sub.config.kind === 'timer' && sub.config.model !== undefined ? { model: sub.config.model } : {}),
-            ...(sub.config.kind === 'timer' && sub.config.trusted !== undefined ? { trusted: sub.config.trusted } : {}),
+            ...(sub.config.kind !== 'github' && sub.config.model !== undefined ? { model: sub.config.model } : {}),
+            ...(sub.config.kind !== 'github' && sub.config.trusted !== undefined ? { trusted: sub.config.trusted } : {}),
           }),
       );
       if (claim !== undefined)
         void claim.result
           .then(
-            () => finishFresh(cwd, event.id, claim.token),
+            (outcome) => finishFresh(cwd, event.id, claim.token, undefined, typeof outcome === 'string' ? outcome : undefined),
             (cause: unknown) => finishFresh(cwd, event.id, claim.token, cause),
           )
           .catch((cause: unknown) => {
@@ -194,10 +219,11 @@ export function createSupervisor(options: SupervisorOptions) {
   };
   const arm = async (entry: Armed): Promise<string | undefined> => {
     if (entry.sub.ownerSessionId === undefined) throw new Error('Owner session ID unavailable. Recreate this subscription.');
-    at(entry, entry.sub.expiresAt, () => {
-      expireDesired(cwd, now());
-      void reconcile().catch((cause: unknown) => error(entry.sub.id, cause));
-    });
+    if (entry.sub.expiresAt !== 0)
+      at(entry, entry.sub.expiresAt, () => {
+        expireDesired(cwd, now());
+        void reconcile().catch((cause: unknown) => error(entry.sub.id, cause));
+      });
     const config = entry.sub.config;
     if (config.kind === 'timer') armTimer(entry, config);
     else if (config.kind === 'webhook') {
@@ -224,7 +250,7 @@ export function createSupervisor(options: SupervisorOptions) {
     if (reconciling !== undefined) return reconciling;
     reconciling = (async () => {
       const registry = readRegistry(cwd);
-      if (registry.subscriptions.some((sub) => sub.lifecycle === 'active' && sub.expiresAt <= now())) expireDesired(cwd, now());
+      if (registry.subscriptions.some((sub) => sub.lifecycle === 'active' && sub.expiresAt !== 0 && sub.expiresAt <= now())) expireDesired(cwd, now());
       const desired = registry.subscriptions.filter((sub) => isDesired(sub, now()));
       for (const [id, entry] of armed)
         if (!desired.some((sub) => sub.id === id && sub.revision === entry.sub.revision)) {
@@ -251,6 +277,7 @@ export function createSupervisor(options: SupervisorOptions) {
         }
       }
       offlineFresh();
+      syncPort();
     })().finally(() => {
       reconciling = undefined;
     });
@@ -272,6 +299,7 @@ export function createSupervisor(options: SupervisorOptions) {
       active = true;
       try {
         await reconcile();
+        syncPort();
         watch();
         return { started: true };
       } catch (cause) {

@@ -119,28 +119,61 @@ export class RoutineServer {
   private listening: Promise<number> | undefined;
   private readonly closing = new Set<Server>();
   readonly routes = new Map<string, RoutineRoute>();
-  private readonly port: number;
+  private port: number;
+  /** An explicit port is a configuration, so a collision is an error; the default may fall back so a second workspace still serves routines. */
+  private readonly fallbackOnBusy: boolean;
 
-  constructor(port: number) {
+  constructor(port: number, fallbackOnBusy = true) {
     this.port = port;
+    this.fallbackOnBusy = fallbackOnBusy;
   }
 
-  /** Starts the listener once and resolves to its port. */
+  /** Starts the listener once and resolves to its port. A busy preferred port falls back to an ephemeral one so a second workspace can serve its own routines. */
   start(): Promise<number> {
-    this.listening ??= new Promise<number>((resolve, reject) => {
-      const server = createServer((request, response) => this.handle(request, response));
-      server.once('error', (error: NodeJS.ErrnoException) => {
-        this.listening = undefined;
-        this.server = undefined;
-        reject(new Error(error.code === 'EADDRINUSE' ? `Port ${this.port} on ${HOST} is in use (another Pi process may own the routines listener). Set PSTACK_ROUTINES_PORT to a free port.` : `Routines listener failed: ${error.message}`));
-      });
-      server.listen(this.port, HOST, () => {
-        server.unref();
-        resolve((server.address() as AddressInfo).port);
-      });
-      this.server = server;
-    });
+    this.listening ??= (async () => {
+      try {
+        return await this.bind(this.port);
+      } catch (error) {
+        const code = (error as NodeJS.ErrnoException).code;
+        if (!this.fallbackOnBusy || this.port === 0 || code !== 'EADDRINUSE') {
+          this.listening = undefined;
+          throw this.failure(error as NodeJS.ErrnoException);
+        }
+        try {
+          return await this.bind(0);
+        } catch (retry) {
+          this.listening = undefined;
+          throw this.failure(retry as NodeJS.ErrnoException);
+        }
+      }
+    })();
     return this.listening;
+  }
+
+  private failure(error: NodeJS.ErrnoException): Error {
+    return new Error(error.code === 'EADDRINUSE' ? `Port ${this.port} on ${HOST} is in use and no ephemeral port could be bound. Set PSTACK_ROUTINES_PORT to a free port.` : `Routines listener failed: ${error.message}`);
+  }
+
+  private bind(port: number): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const server = createServer((request, response) => this.handle(request, response));
+      const fail = (error: NodeJS.ErrnoException) => {
+        server.removeListener('error', fail);
+        server.close();
+        this.server = undefined;
+        reject(error);
+      };
+      server.once('error', fail);
+      server.listen(port, HOST, () => {
+        server.removeListener('error', fail);
+        server.unref();
+        this.server = server;
+        const bound = (server.address() as AddressInfo).port;
+        // Reuse the bound port on a re-arm, so a fallback does not move the URL again.
+        this.port = bound;
+        resolve(bound);
+      });
+    });
   }
 
   async url(slug: string): Promise<string> {
@@ -149,6 +182,11 @@ export class RoutineServer {
 
   isListening(): boolean {
     return this.server?.listening === true;
+  }
+
+  /** The port the listener holds, once it has bound. */
+  boundPort(): number | undefined {
+    return this.server?.listening === true ? (this.server.address() as AddressInfo).port : undefined;
   }
 
   close(force = true): void {

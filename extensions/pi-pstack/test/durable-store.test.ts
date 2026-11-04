@@ -170,6 +170,49 @@ local('expired subscriptions keep accepted deliveries but reject later fires', (
   expect(received).toEqual(['accepted']);
 });
 
+local('a stored routine written before detached webhooks existed still loads as wake_self', ({ cwd }) => {
+  createDesired(cwd, timer({ name: 'Bot UI', config: { kind: 'webhook', slug: 'bot-ui', prompt: 'p' } }));
+  const path = durableRegistryPath(cwd);
+  const registry = JSON.parse(readFileSync(path, 'utf8')) as { subscriptions: { config: Record<string, unknown> }[] };
+  delete registry.subscriptions[0]?.config['strategy'];
+  writeFileSync(path, `${JSON.stringify(registry)}\n`);
+  expect(readRegistry(cwd).subscriptions[0]?.config).toEqual({ kind: 'webhook', slug: 'bot-ui', prompt: 'p' });
+  acceptEvent(cwd, 'sub-aaaa', 'one', 'event');
+  const delivered: string[] = [];
+  deliverOwner(
+    cwd,
+    'owner',
+    () => true,
+    (_sub, event) => delivered.push(event.id),
+  );
+  expect(delivered).toEqual(['one']);
+});
+
+local('a detached routine accepts events without an owner and refuses owner delivery', ({ cwd }) => {
+  createDesired(cwd, timer({ name: 'Bot UI', config: { kind: 'webhook', slug: 'bot-ui', prompt: 'p', strategy: 'new_session' } }));
+  acceptEvent(cwd, 'sub-aaaa', 'one', 'event');
+  const delivered: string[] = [];
+  deliverOwner(
+    cwd,
+    'owner',
+    () => true,
+    (_sub, event) => delivered.push(event.id),
+  );
+  expect(delivered).toEqual([]);
+  const claim = startFresh(
+    cwd,
+    'one',
+    undefined,
+    () => true,
+    () => 'ran',
+  );
+  expect(claim).toBeDefined();
+  finishFresh(cwd, 'one', claim?.token ?? '', undefined, 'detached run completed');
+  const stored = readRegistry(cwd).subscriptions[0];
+  expect(stored?.lastOutcome?.text).toBe('detached run completed');
+  expect(readRegistry(cwd).pending).toEqual([]);
+});
+
 local('slug collisions are rejected workspace-wide', ({ cwd }) => {
   createDesired(cwd, timer({ name: 'Bot UI', config: { kind: 'webhook', slug: 'bot-ui', prompt: 'p' } }));
   expect(() => createDesired(cwd, timer({ id: 'sub-other', name: 'bot-ui', config: { kind: 'webhook', slug: 'bot-ui', prompt: 'p' } }))).toThrow('already uses the slug bot-ui');

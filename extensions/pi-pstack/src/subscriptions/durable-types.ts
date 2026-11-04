@@ -16,8 +16,19 @@ export type Config =
       /** The owner's project-trust decision when it created the timer. */
       trusted?: boolean;
     }
-  | { kind: 'webhook'; prompt: string; slug: string };
+  | {
+      kind: 'webhook';
+      prompt: string;
+      slug: string;
+      /** Absent in records written before webhook routines could run detached, which means wake_self. */
+      strategy?: 'wake_self' | 'new_session';
+      /** The owner's model when it created a detached routine, reused by every fire. */
+      model?: RunModel;
+      /** The owner's project-trust decision when it created a detached routine. */
+      trusted?: boolean;
+    };
 
+/** `expiresAt` of 0 means the subscription does not expire, as Cursor Automations do not. */
 export type Subscription = { id: string; name: string; createdAt: number; expiresAt: number; config: Config };
 export type DurableSubscription = Subscription & {
   ownerSessionId?: string;
