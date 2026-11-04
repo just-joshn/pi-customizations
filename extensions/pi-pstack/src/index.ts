@@ -15,7 +15,7 @@ import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS
 import { registerPlanMode } from './plan.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
-import { alwaysAppliedRules, hostSection, subagentsSection } from './sections.ts';
+import { alwaysAppliedRules, hostSection, subagentsSection, todayText } from './sections.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
 import { registerAgentStatus } from './task/status.ts';
@@ -40,6 +40,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
   const activeTools = pi.getActiveTools();
   return {
     pstack_host: hostSection({
+      today: todayText(new Date()),
       packageRoot: PACKAGE_ROOT,
       skillsDir: SKILLS_DIR,
       skillNames: packageSkillNames(pi.getCommands()),

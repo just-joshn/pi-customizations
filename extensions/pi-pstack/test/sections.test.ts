@@ -1,12 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { SKILLS_DIR } from '../src/paths.ts';
-import { alwaysAppliedRules, type HostFacts, hostSection } from '../src/sections.ts';
+import { alwaysAppliedRules, type HostFacts, hostSection, todayText } from '../src/sections.ts';
 
 const ALL_TOOLS = ['read', 'bash', 'edit', 'write', 'Task', 'agent_status', 'stop_agent', 'TodoWrite', 'AskQuestion', 'Loop', 'subscribe_github_pr'];
 const READONLY_CHILD_TOOLS = ['read', 'grep', 'find', 'ls', 'bash', 'TodoWrite'];
 const DEPTH_TWO_TOOLS = ['read', 'bash', 'edit', 'write', 'agent_status', 'TodoWrite', 'AskQuestion'];
 
 const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): HostFacts => ({
+  today: 'Wednesday Nov 4, 2026',
   packageRoot: '/pkg',
   skillsDir: '/pkg/skills',
   skillNames: ['how'],
@@ -92,5 +93,12 @@ describe('background shells line', () => {
     expect(withShells).toContain('start a watcher with bash_background that exits, or prints a line its notify_on_output pattern matches, when the event fires');
     expect(withShells).toContain('bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes');
     expect([without.includes('bash_background'), without.includes('AwaitShell')]).toEqual([false, false]);
+  });
+});
+
+describe("today's date", () => {
+  test("states the local date the way Cursor's user info does", () => {
+    expect(todayText(new Date(2026, 10, 4, 23, 59))).toBe('Wednesday Nov 4, 2026');
+    expect(hostSection(facts(ALL_TOOLS)).split('\n')[0]).toBe("pstack runs here through the pi-pstack package at /pkg. Today's date: Wednesday Nov 4, 2026.");
   });
 });

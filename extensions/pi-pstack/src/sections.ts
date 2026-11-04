@@ -6,6 +6,8 @@ import type { AgentDefinition } from './task/agents.ts';
 import { type AvailableModel, type ModelSpec, modelLabel } from './task/models.ts';
 
 export interface HostFacts {
+  /** Today's date as Cursor states it in its user info, such as "Wednesday Nov 4, 2026". */
+  today: string;
   packageRoot: string;
   skillsDir: string;
   skillNames: readonly string[];
@@ -56,6 +58,14 @@ export function alwaysAppliedRules(skillsDir: string): string[] {
   return bodies;
 }
 
+const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** The local date in Cursor's user-info form: weekday, short month, day, year. */
+export function todayText(date: Date): string {
+  return `${WEEKDAYS[date.getDay()]} ${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+}
+
 const TASK_PARAMS = 'description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments';
 
 function todoLine(facts: HostFacts): string {
@@ -83,7 +93,7 @@ function agentToolsLine(tools: readonly string[]): string[] {
 export function hostSection(facts: HostFacts): string {
   const transcript = facts.sessionFile === undefined ? 'This chat is not persisted (--no-session), so it has no transcript file.' : `This chat's transcript is ${facts.sessionFile}.`;
   return [
-    `pstack runs here through the pi-pstack package at ${facts.packageRoot}.`,
+    `pstack runs here through the pi-pstack package at ${facts.packageRoot}. Today's date: ${facts.today}.`,
     `- <SKILLS> = ${facts.skillsDir}. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (${facts.skillNames.length}): ${facts.skillNames.join(', ')}.`,
     '- A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
     `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
