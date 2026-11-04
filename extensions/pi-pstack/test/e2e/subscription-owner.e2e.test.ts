@@ -203,8 +203,8 @@ test('an explicit offline fresh timer uses the detached runner and records its o
   await owner.waitFor((event) => event.type === 'agent_settled');
   expect(toolEnds(owner.events, 'subscribe_timer')[0]?.isError).toBe(false);
   await owner.close();
-  await expect.poll(() => ({ exists: existsSync(marker), error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ exists: true });
-  expect(readFileSync(marker, 'utf8')).toBe('DETACHED-FRESH-RESULT');
+  // The write tool can create the file before its content lands, so the poll waits for the content.
+  await expect.poll(() => ({ content: existsSync(marker) ? readFileSync(marker, 'utf8') : undefined, error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ content: 'DETACHED-FRESH-RESULT' });
   // A detached run records its own final message, which is the run output an automation reports status in.
   await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 10_000 }).toMatch(/^RESULTS:\n\[write\] /);
 });
