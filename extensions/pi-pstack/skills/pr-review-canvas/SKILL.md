@@ -157,7 +157,7 @@ Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines
    ```bash
    cd /tmp && python3 -m http.server 8432 --bind 127.0.0.1
    ```
-   Run this backgrounded, then navigate the in-app browser to `http://127.0.0.1:8432/pr-review-{number}.html`.
+   Run this backgrounded. Open `http://127.0.0.1:8432/pr-review-{number}.html` in the system browser with `xdg-open` on Linux or `open` on macOS. Pi has no in-app browser. For automated inspection, use the `control-ui` skill and a local browser harness. If no graphical browser is available, report that limit and give the URL.
 
    **Why a fixed port and `cd /tmp`:** Background shells have no TTY, so Python buffers its startup message ("Serving HTTP on...") indefinitely — using port 0 means you can never read which port was chosen. And `--directory /tmp` works but `cd /tmp` is more robust across Python versions. If port 8432 is taken, try 8433, 8434, etc.
 

@@ -16,8 +16,8 @@ Load the external Benny configuration supplied by the automation. If the config,
 - Never post a root message in the source channel.
 - Preflight the source parent before every source-thread post.
 - The coordinator is the only Slack poster.
-- Delegated analysis workers are read-only and return findings or media notes. In Pi, start each one with `Task` and `readonly: true`, which gives it no MCP servers and a shell with no network.
-- A fix-phase code worker may edit only when its environment provably excludes Slack credentials and every Slack write action. Otherwise the coordinator edits. A writable Pi subagent inherits the session's MCP servers and environment, so it qualifies only when the Pi process that owns the subscriptions loads no Slack MCP server with write tools and has no Slack token in its environment.
+- Delegated analysis workers are read-only and return findings or media notes. `Task` with `readonly: true` removes MCP tools and restricts shell operations, but still inherits environment credentials and can read credential files. Launch a child only after separate credential isolation is proven. Otherwise do the work in the coordinator.
+- A fix-phase code worker may edit only when its environment and readable files provably exclude Slack credentials and every Slack write action. Otherwise the coordinator edits. A writable Pi subagent also inherits the session's MCP servers. Absence of a Slack MCP server or an environment token alone is not proof of credential isolation.
 - Every child prompt must explicitly forbid every Slack MCP write tool (`mcp__<slack-server>__*` tools that post, edit, react, or upload), `chat.postMessage`, and all other Slack writes.
 - Never give a child a Slack token, posting instructions, source coordinates for posting, or permission to report externally.
 - If a child needs Slack write access to run, do not launch it.

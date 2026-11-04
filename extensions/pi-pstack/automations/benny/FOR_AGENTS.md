@@ -27,7 +27,7 @@ i want two pi automations that work together in one slack issue channel. each on
 
 - i want the source channel and root thread coordinates to stay immutable for the whole run.
 - i treat utility and debug bots as evidence, not delegation or fix ownership.
-- i allow subagents to help, but they cannot post to slack or receive slack credentials. analysis subagents run as `Task` with `readonly: true`, which gives them no mcp servers and no network.
+- i allow subagents to help, but they cannot post to slack or receive slack credentials. analysis subagents run as `Task` with `readonly: true`. readonly removes mcp tools and restricts shell operations, but does not isolate credentials. when separate credential isolation cannot be proven, keep the work in the coordinator.
 - i want this entire pack committed at `.pi/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not skills pi discovers.
 - i want pi-pstack installed in pi for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.
 - i want each subscription prompt to read its operational file directly from the target repository. i do not want pi-pstack package paths, copied excerpts, or slash-skill discovery.
