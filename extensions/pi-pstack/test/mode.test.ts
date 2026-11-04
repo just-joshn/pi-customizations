@@ -38,14 +38,14 @@ describe('modeFromBranch (MODE-003)', () => {
 });
 
 describe('modeSection (MODE-001, MODE-004)', () => {
-  test('carries the whole skill as Pi attaches it, without the frontmatter reminder (MODE-004)', () => {
+  test('attaches the whole skill once, on the request that enters the mode', () => {
     // Observed: in a Cursor Agents Window Custom Mode, the model finds no line starting with "New task?" in its
     // context (parity/pi-pstack-two/fixtures/0.15.21/user-captures/agents-window-custom-mode-no-reminder.jpg).
     const path = join(SKILLS_DIR, 'poteto-mode/SKILL.md');
-    const section = modeSection({ skill: 'poteto-mode', path });
+    const section = modeSection({ skill: 'poteto-mode', path }, true);
     expect(section).not.toContain('New task?');
     expect(section.split('\n').slice(0, 3)).toEqual([
-      'Mode poteto-mode is on for every turn until the user runs /mode off.',
+      `The user has entered poteto-mode custom mode. Follow the skill instructions in ${JSON.stringify(path)} until the user exits or switches modes. Do not drift back to default agent behavior.`,
       `<skill name="poteto-mode" location="${path}">`,
       `References are relative to ${join(SKILLS_DIR, 'poteto-mode')}.`,
     ]);
@@ -53,13 +53,24 @@ describe('modeSection (MODE-001, MODE-004)', () => {
     expect(section.endsWith('\n</skill>')).toBe(true);
   });
 
+  test('a later request carries a reminder that names the skill path, not the body', () => {
+    const path = join(SKILLS_DIR, 'poteto-mode/SKILL.md');
+    const section = modeSection({ skill: 'poteto-mode', path }, false);
+    expect(section).toBe(
+      `Reminder: you are still in poteto-mode mode. Follow that mode's skill on this turn. Do not drop it because the request looks small or you already have context. Do not drift back to default agent behavior. If you cannot state the mode's hard rules, read ${JSON.stringify(path)} before acting.`,
+    );
+    expect(section).not.toContain('<skill');
+    expect(section).not.toContain('## Playbooks');
+  });
+
   test('a skill without a reminder gets the same shape', () => {
     const path = join(SKILLS_DIR, 'tdd/SKILL.md');
-    expect(modeSection({ skill: 'tdd', path }).split('\n')[1]).toBe(`<skill name="tdd" location="${path}">`);
+    expect(modeSection({ skill: 'tdd', path }, true).split('\n')[1]).toBe(`<skill name="tdd" location="${path}">`);
   });
 
   test('says so when the skill file is gone', () => {
-    expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' })).toBe('Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
+    expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' }, true)).toBe('Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
+    expect(modeSection({ skill: 'gone', path: '/nowhere/SKILL.md' }, false)).toBe('Mode gone is on, but its skill file /nowhere/SKILL.md no longer exists. Tell the user to run /mode off or /mode <skill>.');
   });
 });
 

@@ -43,15 +43,19 @@ test('/mode keeps the skill on every turn until /mode off, with a status badge (
     expect(contentText((firstUser['message'] as { content: string }).content)).toBe('first task\n@@sys');
     const firstReply = rpc.events.find((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant');
     if (firstReply === undefined) throw new Error('no assistant reply');
-    expect(modeSectionOf(contentText((firstReply['message'] as { content: { type: string; text?: string }[] }).content))?.split('\n')[0]).toBe('Mode poteto-mode is on for every turn until the user runs /mode off.');
+    expect(modeSectionOf(contentText((firstReply['message'] as { content: { type: string; text?: string }[] }).content))?.split('\n')[0]).toBe(
+      `The user has entered poteto-mode custom mode. Follow the skill instructions in "${join(PACKAGE_ROOT, 'skills/poteto-mode/SKILL.md')}" until the user exits or switches modes. Do not drift back to default agent behavior.`,
+    );
     expect(statuses(rpc).some((text) => typeof text === 'string' && text.replace(/\x1b\[[0-9;]*m/g, '') === '♛ mode: poteto-mode')).toBe(true);
 
+    // Cursor attaches the body once and then sends a reminder that names the skill path, so later turns save the body.
     const second = modeSectionOf(await ask(rpc, 'second turn\n@@sys'));
-    expect(second?.startsWith('Mode poteto-mode is on for every turn until the user runs /mode off.\n<skill name="poteto-mode"')).toBe(true);
+    expect(second?.startsWith("Reminder: you are still in poteto-mode mode. Follow that mode's skill on this turn.")).toBe(true);
     expect(second).not.toContain('New task?');
-    expect(second).toContain('# Poteto mode\n\nBundled skills live at `../<name>/SKILL.md` from this file');
-    // The absolute path that 0.15.21's poteto-mode tells the parent to hand each poteto-agent (RES-010).
-    expect(second).toContain(`<skill name="poteto-mode" location="${join(PACKAGE_ROOT, 'skills/poteto-mode/SKILL.md')}">`);
+    expect(second).not.toContain('<skill');
+    expect(second).not.toContain('# Poteto mode');
+    // The absolute path the reminder names, so a model that lost the body reads the right file.
+    expect(second).toContain(`read ${JSON.stringify(join(PACKAGE_ROOT, 'skills/poteto-mode/SKILL.md'))} before acting.`);
 
     await command(rpc, '/mode off');
     expect(modeSectionOf(await ask(rpc, 'third turn\n@@sys'))).toBeUndefined();
@@ -106,7 +110,10 @@ test('a mode whose stored skill path went stale is found again by name (recheck 
   const second = startRpc(sandbox, ['--session-dir', sessions, '--session', sessionFile]);
   try {
     const section = modeSectionOf(await ask(second, 'after the move\n@@sys'));
-    expect(section?.split('\n').slice(0, 2)).toEqual(['Mode tdd is on for every turn until the user runs /mode off.', `<skill name="tdd" location="${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}">`]);
+    expect(section?.split('\n')[0]).toBe(
+      `The user has entered tdd custom mode. Follow the skill instructions in "${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}" until the user exits or switches modes. Do not drift back to default agent behavior.`,
+    );
+    expect(section?.split('\n')[1]).toBe(`<skill name="tdd" location="${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}">`);
   } finally {
     await second.close();
   }
@@ -145,7 +152,9 @@ test('the mode survives a restart of the same session (MODE-003)', async () => {
   let sessionFile = '';
   try {
     await command(first, '/mode tdd');
-    expect(modeSectionOf(await ask(first, 'check\n@@sys'))?.split('\n')[0]).toBe('Mode tdd is on for every turn until the user runs /mode off.');
+    expect(modeSectionOf(await ask(first, 'check\n@@sys'))?.split('\n')[0]).toBe(
+      `The user has entered tdd custom mode. Follow the skill instructions in "${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}" until the user exits or switches modes. Do not drift back to default agent behavior.`,
+    );
     first.send({ id: 'state', type: 'get_state' });
     sessionFile = String(((await first.waitFor((event) => event['id'] === 'state'))['data'] as { sessionFile: string }).sessionFile);
   } finally {
@@ -153,7 +162,11 @@ test('the mode survives a restart of the same session (MODE-003)', async () => {
   }
   const second = startRpc(sandbox, ['--session-dir', sessions, '--session', sessionFile]);
   try {
-    expect(modeSectionOf(await ask(second, 'after restart\n@@sys'))?.split('\n')[0]).toBe('Mode tdd is on for every turn until the user runs /mode off.');
+    // A fresh process has not sent the body in this conversation, so the mode re-attaches it rather than leaving the
+    // model with a reminder for a body it never saw.
+    expect(modeSectionOf(await ask(second, 'after restart\n@@sys'))?.split('\n')[0]).toBe(
+      `The user has entered tdd custom mode. Follow the skill instructions in "${join(PACKAGE_ROOT, 'skills/tdd/SKILL.md')}" until the user exits or switches modes. Do not drift back to default agent behavior.`,
+    );
   } finally {
     await second.close();
   }

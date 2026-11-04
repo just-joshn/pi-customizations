@@ -46,15 +46,26 @@ export function modeFromBranch(entries: readonly BranchEntry[]): ActiveMode | un
 }
 
 /**
- * The mode text for every request: the skill block in the same shape as Pi's own
- * `/skill:name` expansion (agent-session.js `_expandSkillCommand`), which Pi does not export as a function.
+ * The mode text for a request. Cursor attaches the skill once, on the turn that enters the mode, then sends a reminder
+ * that names the skill path each turn. Pi rebuilds its prompt per request, so the body rides the first request after
+ * entry and a reminder follows. A mode whose body was never sent re-sends it, so a restart cannot leave a mode
+ * unread.
  */
-export function modeSection(mode: ActiveMode): string {
+export function modeSection(mode: ActiveMode, includeBody: boolean): string {
   if (mode.path === undefined) return `Mode ${mode.skill} is on, but no loaded skill has that name. Tell the user to run /mode off or /mode <skill>.`;
   if (!existsSync(mode.path)) return `Mode ${mode.skill} is on, but its skill file ${mode.path} no longer exists. Tell the user to run /mode off or /mode <skill>.`;
+  if (!includeBody)
+    return `Reminder: you are still in ${mode.skill} mode. Follow that mode's skill on this turn. Do not drop it because the request looks small or you already have context. Do not drift back to default agent behavior. If you cannot state the mode's hard rules, read ${JSON.stringify(mode.path)} before acting.`;
   // The frontmatter, including `reminder`, stays out of the model's context in a mode (MODE-004).
   const body = stripFrontmatter(readFileSync(mode.path, 'utf8')).trim();
-  return [`Mode ${mode.skill} is on for every turn until the user runs /mode off.`, `<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body, '</skill>'].join('\n');
+  return [
+    `The user has entered ${mode.skill} custom mode. Follow the skill instructions in ${JSON.stringify(mode.path)} until the user exits or switches modes. Do not drift back to default agent behavior.`,
+    `<skill name="${mode.skill}" location="${mode.path}">`,
+    `References are relative to ${dirname(mode.path)}.`,
+    '',
+    body,
+    '</skill>',
+  ].join('\n');
 }
 
 // A mode's badge shows the skill's `icon` (default: lightning) and `color`. Icon names map to terminal glyphs and
@@ -99,6 +110,8 @@ function loadedSkills(pi: ExtensionAPI): Map<string, string> {
 
 export function registerMode(pi: ExtensionAPI): { section: () => string | undefined } {
   let active: ActiveMode | undefined;
+  // The mode whose body the conversation already carries; cleared on entry, exit, and session change.
+  let bodySent: string | undefined;
   const show = (ctx: ExtensionContext) => {
     if (!ctx.hasUI) return;
     const badge = active === undefined ? undefined : modeBadge(active);
@@ -108,6 +121,7 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
   const restore = (ctx: ExtensionContext) => {
     const stored = modeFromBranch(ctx.sessionManager.getBranch());
     active = stored === undefined ? undefined : (tryResolve(stored.skill) ?? { skill: stored.skill });
+    bodySent = undefined;
     show(ctx);
   };
   pi.on('session_start', (_event, ctx) => restore(ctx));
@@ -133,6 +147,7 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
     const command = parseModeArgs(args);
     if (command.kind === 'status') return ctx.ui.notify(active === undefined ? 'No mode is on.' : `Mode on: ${active.skill} (${active.path ?? 'no loaded skill has that name'}).`, 'info');
     active = command.kind === 'off' ? undefined : resolveSkill(command.skill);
+    bodySent = undefined;
     pi.appendEntry(MODE_ENTRY, active === undefined ? null : { skill: active.skill });
     show(ctx);
     ctx.ui.notify(active === undefined ? 'Mode off.' : `Mode on: ${active.skill}. /mode off exits.`, 'info');
@@ -152,5 +167,14 @@ export function registerMode(pi: ExtensionAPI): { section: () => string | undefi
     },
   });
 
-  return { section: () => (active === undefined ? undefined : modeSection(active)) };
+  return {
+    section: () => {
+      if (active === undefined) return undefined;
+      const includeBody = bodySent !== active.skill;
+      // Only a request that actually carried the body counts as sent, so a missing skill file cannot silence the body
+      // after the file comes back.
+      if (includeBody && active.path !== undefined && existsSync(active.path)) bodySent = active.skill;
+      return modeSection(active, includeBody);
+    },
+  };
 }
