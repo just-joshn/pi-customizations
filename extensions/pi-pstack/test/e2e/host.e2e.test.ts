@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -204,20 +204,26 @@ describe('tool listing', () => {
 });
 
 describe('image generation (HOST-006)', () => {
-  test('the path the host section names generates an image when an image model is configured', async () => {
+  test("GenerateImage saves the image to the artifacts folder and shows it when an image model is configured, like Cursor's GenerateImage", async () => {
     const images = makeSandbox({ extensions: [join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts'), join(PACKAGE_ROOT, 'test/fixtures/image-model.ts')] });
     try {
-      // The script follows the host section line: codemode's models.generateImages(), shown with image().
-      const code =
-        'const [painter] = await models.getAvailableOfType("image");\nconst result = await models.generateImages(painter, { input: [{ type: "text", text: "a fox" }] });\nfor (const block of result.output) if (block.type === "image") image(block);\nreturn painter.provider + "/" + painter.id + " " + result.stopReason;';
-      const run = await runJson(images, script([{ tool: 'codemode', args: { code } }]), ['--no-session', '--tools', '+codemode']);
-      const [end] = toolEnds(run.events, 'codemode');
-      expect(end?.isError).toBe(false);
-      expect(end?.text).toContain('testimg/painter stop');
-      expect(JSON.stringify(run.events.find((event) => event.type === 'tool_execution_end' && event['toolName'] === 'codemode'))).toContain('"type":"image"');
+      const call = { tool: 'GenerateImage', args: { description: 'a red fox sitting in fresh snow, watercolor style', filename: 'fox.png', aspect_ratio: '16:9' } };
+      const run = await runJson(images, script([call]), ['--no-session']);
+      const [end] = toolEnds(run.events, 'GenerateImage');
+      const path = /saved to (\S+\.png)\./.exec(end?.text ?? '')?.[1] ?? '';
+      expect([end?.isError, path.endsWith('/fox.png'), path.includes('/artifacts/'), existsSync(path)]).toEqual([false, true, true, true]);
+      expect(JSON.stringify(run.events.find((event) => event.type === 'tool_execution_end' && event['toolName'] === 'GenerateImage'))).toContain('"type":"image"');
+      const short = toolEnds((await runJson(images, script([{ tool: 'GenerateImage', args: { description: 'a fox' } }]), ['--no-session'])).events, 'GenerateImage')[0];
+      expect([short?.isError, short?.text]).toEqual([true, 'Describe the image in at least 6 words. Descriptions of 3 words or fewer are rejected.']);
     } finally {
       images.dispose();
     }
+  });
+
+  test('without an image model the session has no GenerateImage tool and the host section says to draw a diagram instead', async () => {
+    const [tools] = assistantTexts((await runJson(sandbox, 'list\n@@tools-list', ['--no-session'])).events);
+    expect(tools?.split(',').includes('GenerateImage')).toBe(false);
+    expect(section(await systemPrompt(['--no-session']), 'pstack_host')).toContain('no image model is configured, so this session has no GenerateImage tool');
   });
 });
 

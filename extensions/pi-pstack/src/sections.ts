@@ -96,7 +96,9 @@ export function hostSection(facts: HostFacts): string {
     facts.loopAvailable ? SUBSCRIPTIONS_LINE : NO_SUBSCRIPTIONS_LINE,
     ...agentToolsLine(facts.activeTools),
     facts.loopAvailable ? LOOP_LINE : NO_LOOP_LINE,
-    "- Image generation: codemode's models.generateImages() when codemode is on and an image model is configured. Otherwise say no image tool is available and use a mermaid diagram or a table.",
+    facts.activeTools.includes('GenerateImage')
+      ? '- Image generation: the GenerateImage tool, which saves each image to the artifacts folder below and shows it in its result.'
+      : '- Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.',
     '- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).',
     '- PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.',
     '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',

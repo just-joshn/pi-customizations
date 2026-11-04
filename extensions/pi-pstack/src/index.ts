@@ -4,6 +4,7 @@ import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
 import { registerAskQuestion } from './ask.ts';
 import { aliasAutocomplete } from './autocomplete.ts';
 import { childIdentity } from './child-env.ts';
+import { registerGenerateImage } from './generate-image.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
@@ -102,6 +103,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   const mode = registerMode(pi);
   const plan = registerPlanMode(pi);
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
+  registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
   const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled });
   registerAgentStatus(pi);
