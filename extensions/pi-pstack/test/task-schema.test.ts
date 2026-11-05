@@ -19,7 +19,7 @@ describe('Task preflight', () => {
   const ok = { description: 'probe', prompt: 'p' };
 
   test.for([{ cloud_base_branch: 'feature/x' }, { cloud_base_branch: 'feature/x', environment: 'local' as const }])('refuses cloud_base_branch without environment cloud: %j (TASK-010)', (extra) => {
-    expect(() => taskPreflight({ ...ok, ...extra }, 0)).toThrow('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
+    expect(() => taskPreflight({ ...ok, ...extra }, 0)).toThrow('cloud_base_branch needs environment "cloud": it names the pushed branch the cloud agent starts from.');
   });
 
   test('allows environment cloud with or without a base branch (TASK-010)', () => {

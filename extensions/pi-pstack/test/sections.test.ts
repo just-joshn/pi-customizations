@@ -25,6 +25,7 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
   questionsAvailable: true,
   activeTools,
   rules: [],
+  cloud: { driver: 'container', reason: 'container engine 29.8.2' },
   ...extra,
 });
 
@@ -35,7 +36,18 @@ describe('host section names only the tools this session has (C-M4)', () => {
     expect(host).toContain(
       "- agent_status reads a subagent's state without waking it. Task resume sends a follow-up to an agent that has finished, and fails while the agent still runs. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.",
     );
-    expect(host).toContain('- Isolated workers (Task environment "cloud")');
+    expect(host).toContain('- Cloud agents (Task environment "cloud") each get their own machine: a Linux container (container engine 29.8.2)');
+  });
+
+  test('without a container engine, cloud agents are described as detached worktree workers that share this host', () => {
+    const host = hostSection(facts(ALL_TOOLS, { cloud: { driver: 'worktree', reason: 'no container engine answers `docker version`' } }));
+    expect(host).toContain('- Cloud agents (Task environment "cloud") run as detached workers on this host, not on their own machine, because no container engine answers `docker version`: each in its own git worktree');
+    expect(host).toContain("They share this host's ports, credentials, simulators, and files");
+  });
+
+  test('a cloud driver error tells the model to run the work locally and say so', () => {
+    const host = hostSection(facts(ALL_TOOLS, { cloud: { error: 'PSTACK_CLOUD_DRIVER=container, but no container engine answers.' } }));
+    expect(host).toContain('- Cloud agents (Task environment "cloud") cannot start on this host: PSTACK_CLOUD_DRIVER=container, but no container engine answers. Run that work with environment "local" and say so.');
   });
 
   test.for([
@@ -43,7 +55,7 @@ describe('host section names only the tools this session has (C-M4)', () => {
     { label: 'a subagent of a subagent', tools: DEPTH_TWO_TOOLS },
   ])('$label hears nothing about Task, stop_agent, or isolated workers', ({ tools }) => {
     const host = hostSection(facts(tools, { loopAvailable: false, questionsAvailable: false }));
-    expect([host.includes('Task'), host.includes('stop_agent'), host.includes('<pstack_subagents>'), host.includes('Isolated workers')]).toEqual([false, false, false, false]);
+    expect([host.includes('Task'), host.includes('stop_agent'), host.includes('<pstack_subagents>'), host.includes('Cloud agents')]).toEqual([false, false, false, false]);
     expect(host.includes('agent_status')).toBe(tools.includes('agent_status'));
   });
 

@@ -8,6 +8,12 @@ export const ROOT_STORE_ENV = 'PI_PSTACK_ROOT_STORE';
 export const WORKSPACE_ENV = 'PI_PSTACK_WORKSPACE_STATE';
 export const ROOT_WORKSPACE_ENV = 'PI_PSTACK_ROOT_WORKSPACE';
 export const BUILD_PLAN_ENV = 'PI_PSTACK_BUILD_PLAN';
+/** A cloud agent's container machine, as JSON: its tools run there instead of on this host. */
+export const MACHINE_ENV = 'PI_PSTACK_MACHINE';
+/** The Project the parent chat belongs to; its subagents belong to it too. */
+export const PROJECT_ENV = 'PI_PSTACK_PROJECT';
+/** An automation run: a top-level agent in Cursor's terms, so it gets the Slack tools and token a subagent never does. */
+export const AUTOMATION_ENV = 'PI_PSTACK_AUTOMATION';
 
 export interface ChildIdentity {
   depth: number;
@@ -20,6 +26,10 @@ export interface ChildIdentity {
   /** The main chat's working directory, which authorizes every record stored in its shared workspace. */
   rootWorkspace: string | undefined;
   buildPlan: string | undefined;
+  /** Set in a cloud agent on a container machine; parsed and checked where its tools are registered. */
+  machine: string | undefined;
+  project: string | undefined;
+  automation: boolean;
 }
 
 function read(): ChildIdentity {
@@ -34,6 +44,9 @@ function read(): ChildIdentity {
     workspaceState: process.env[WORKSPACE_ENV] || undefined,
     rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
     buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
+    machine: process.env[MACHINE_ENV] || undefined,
+    project: process.env[PROJECT_ENV] || undefined,
+    automation: process.env[AUTOMATION_ENV] === '1',
   };
 }
 
@@ -46,13 +59,19 @@ delete process.env[ROOT_STORE_ENV];
 delete process.env[WORKSPACE_ENV];
 delete process.env[ROOT_WORKSPACE_ENV];
 delete process.env[BUILD_PLAN_ENV];
+delete process.env[MACHINE_ENV];
+delete process.env[PROJECT_ENV];
+delete process.env[AUTOMATION_ENV];
 
-/** Variables for a child of this process at `depth` (an agent keeps the depth it was created at). */
-export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string): Record<string, string> {
+/**
+ * Variables for a child of this process at `depth` (an agent keeps the depth it was created at). A detached cloud agent
+ * gets no parent pid, so it does not exit when this process does.
+ */
+export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string, detached = false): Record<string, string> {
   return {
     [DEPTH_ENV]: String(depth),
     [AGENT_ENV]: agentType,
-    [PARENT_ENV]: String(process.pid),
+    ...(detached ? {} : { [PARENT_ENV]: String(process.pid) }),
     [ROOT_STORE_ENV]: rootStore,
     [WORKSPACE_ENV]: workspaceState,
     [ROOT_WORKSPACE_ENV]: rootWorkspace,

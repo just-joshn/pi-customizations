@@ -68,7 +68,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 ### Boot recipe, for every live lane
 
-Each live lane runs in its own git worktree (`environment: "cloud"`) at the PR head on this machine. Assign each concurrent lane distinct ports, output directories, and writable cache paths. A worktree does not provide VM or credential isolation. If the lane needs stronger machine isolation, mark it blocked until that isolation is available. Drive through `control-ui` or `control-cli`, shipped with pi-pstack.
+Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli`, shipped with pi-pstack.
 
 - [ ] `git fetch origin <head-branch> && git checkout <head SHA>`.
 - [ ] <Start the backend and the surface. Wait for ready.>
@@ -120,7 +120,7 @@ Each live lane runs in its own git worktree (`environment: "cloud"`) at the PR h
 **Review gate.** The operator reviews before merge.
 
 - [ ] Copy lane <n> screenshots into `<media path>/<pr-id>-review-<slug>.png`.
-- [ ] Record a 30 to 60 second video of the change in a lane worktree. Save it as `<media path>/<pr-id>-review.mp4`.
+- [ ] Record a 30 to 60 second video of the change on a lane VM. Save it as `<media path>/<pr-id>-review.mp4`.
 - [ ] Post the screenshots and the video in chat. Stop at merge-ready. Wait for the operator's click.
 
 **Merge.**

@@ -15,6 +15,20 @@ export type Config =
       model?: RunModel;
       /** The owner's project-trust decision when it created the timer. */
       trusted?: boolean;
+      /** cloud: each new_session fire runs on its own cloud machine with a fresh clone, as a Cursor automation does. */
+      environment?: 'cloud';
+    }
+  | {
+      kind: 'slack';
+      /** The channel ID the trigger reads; a new top-level message there fires it. */
+      channel: string;
+      prompt: string;
+      /** An RE2 pattern a message must match; with one, thread replies fire it too, as in Cursor's Slack trigger. */
+      filter?: string;
+      strategy: 'wake_self' | 'new_session';
+      model?: RunModel;
+      trusted?: boolean;
+      environment?: 'cloud';
     }
   | {
       kind: 'webhook';
@@ -26,6 +40,7 @@ export type Config =
       model?: RunModel;
       /** The owner's project-trust decision when it created a detached routine. */
       trusted?: boolean;
+      environment?: 'cloud';
     };
 
 /** `expiresAt` of 0 means the subscription does not expire, as Cursor Automations do not. */

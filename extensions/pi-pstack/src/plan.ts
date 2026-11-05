@@ -39,8 +39,13 @@ export const SWITCH_MODE = 'SwitchMode';
 export const PLAN_TOOLS = ['read', 'grep', 'find', 'ls', 'edit', 'write', PLAN_BASH, PLAN_SAVE, SWITCH_MODE, 'AskQuestion', 'TodoWrite', 'agent_status', 'Task', 'stop_agent'] as const;
 const ALLOWED = new Set<string>(PLAN_TOOLS);
 
-/** Cursor's plan-mode guardrail: only markdown files are edited while planning. */
-const MARKDOWN = /\.(?:md|markdown|mdc)$/i;
+/**
+ * Cursor's plan-mode guardrail, enforced since CLI 2026.11.05 (`isPlanModeAllowedWriteTarget`): only files with these
+ * markdown extensions are written while planning, and any other write is rejected with Cursor's reason.
+ */
+const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.mkdn', '.mdx'];
+const isMarkdown = (path: string) => MARKDOWN_EXTENSIONS.some((extension) => path.trim().toLowerCase().endsWith(extension));
+export const PLAN_WRITE_REJECTED = 'Cannot edit non markdown files in plan mode';
 
 export type PlanCommand = { kind: 'off' } | { kind: 'build' } | { kind: 'on'; task: string };
 
@@ -96,8 +101,8 @@ export function planFromBranch(entries: readonly BranchEntry[], plansDirectory =
 export function planBlockReason(toolName: string, input: Record<string, unknown> = {}): string | undefined {
   if (toolName === 'write' || toolName === 'edit') {
     const path = input['path'];
-    if (typeof path === 'string' && MARKDOWN.test(path)) return undefined;
-    return `Plan mode is on: ${toolName} may change only markdown files while planning. Put the change in the plan. If the user asked you to build it now, switch to agent mode with ${SWITCH_MODE} first.`;
+    if (typeof path === 'string' && isMarkdown(path)) return undefined;
+    return PLAN_WRITE_REJECTED;
   }
   if (ALLOWED.has(toolName)) return undefined;
   if (toolName === 'bash') return `Plan mode is on: use ${PLAN_BASH}, the read-only sandboxed shell, instead of bash.`;
@@ -121,7 +126,7 @@ export function planSection(planFile: string | undefined): string {
     '11. When the plan explains architecture, data flows, or other relationships, consider a mermaid diagram. In mermaid, use no spaces in node IDs (camelCase, PascalCase, or underscores); quote edge labels and node labels that contain parentheses, brackets, commas, or colons, such as A["Process (main)"] and A -->|"O(1) lookup"| B; do not use end, subgraph, graph, or flowchart as node IDs; give each subgraph an ID and a bracketed label, such as subgraph auth [Authentication Flow]; keep angle brackets and HTML entities out of labels; set no colors or styles; and do not use click.',
     '12. Ask every question with the AskQuestion tool.',
     `Guardrails: edit only markdown files in plan mode. While the user is refining the plan, stay in plan mode and keep your edits in markdown. If the user explicitly asks you to build, implement, or write the code now, call ${SWITCH_MODE} with target_mode_id agent before you make any other edit.`,
-    `Your tools here: read, grep, find, ls, ${PLAN_BASH} (a shell in an OS sandbox that denies file writes and network access), edit and write for markdown files only, ${PLAN_SAVE}, ${SWITCH_MODE}, AskQuestion, TodoWrite, agent_status, Task (its subagents run readonly in this checkout), and stop_agent.`,
+    `Your tools here: read, grep, find, ls, ${PLAN_BASH} (a shell in an OS sandbox that denies file writes; network reads work, but change nothing anywhere), edit and write for markdown files only, ${PLAN_SAVE}, ${SWITCH_MODE}, AskQuestion, TodoWrite, agent_status, Task (its subagents run readonly in this checkout), and stop_agent.`,
     planFile === undefined
       ? 'The user leaves plan mode with /plan off.'
       : `The plan is saved at ${planFile}. To change it, edit that file; do not call ${PLAN_SAVE} again. The user builds it with /plan build, or leaves plan mode with /plan off.`,

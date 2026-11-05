@@ -112,10 +112,28 @@ describe('agent records (review r2: architecture 5)', () => {
     expect(() => readRecord(dir, id)).toThrow(`Agent record ${join(dir, `${id}.json`)} is unreadable; delete it and start a new agent.`);
   });
 
-  test("a cloud agent's worktree survives a write and read (TASK-010)", () => {
+  test("a cloud agent's container machine and run survive a write and read (TASK-010)", () => {
+    const machine = {
+      driver: 'container' as const,
+      path: '/s/m/repo',
+      cwd: '/s/m/repo/pkg',
+      branch: `pstack/${id}`,
+      base: 'origin/main',
+      commit: 'abc',
+      remote: '/s/remote.git',
+      container: `pstack-${id}`,
+      image: 'node:24-bookworm',
+      readonly: false,
+    };
+    const run = { pid: 42, events: '/s/e', errors: '/s/s', exit: '/s/x', startedAt: 't', ownerSessionId: 'o', toolCallId: 'c', title: 'go', description: 'd', background: true, delivered: false };
+    writeRecord(dir, { agentId: id, type: 'generalPurpose', readonly: false, cwd: '/w/app', createdAt: 't', machine, run });
+    expect(readRecord(dir, id)).toMatchObject({ machine, run });
+  });
+
+  test('a record written before machines existed reads its worktree as a worktree machine', () => {
     const worktree = { path: '/s/wt', cwd: '/s/wt/pkg', branch: `pstack/${id}`, base: 'main', commit: 'abc' };
-    writeRecord(dir, { agentId: id, type: 'generalPurpose', readonly: false, cwd: '/w/app', createdAt: 't', worktree });
-    expect(readRecord(dir, id)?.worktree).toEqual(worktree);
+    writeFileSync(join(dir, `${id}.json`), JSON.stringify({ agentId: id, type: 'generalPurpose', readonly: false, cwd: '/w/app', createdAt: 't', worktree }));
+    expect(readRecord(dir, id)?.machine).toEqual({ driver: 'worktree', ...worktree });
   });
 
   test.for([

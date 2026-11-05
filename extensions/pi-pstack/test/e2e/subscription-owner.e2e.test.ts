@@ -68,8 +68,8 @@ test('a detached webhook routine runs with no owner chat and records its outcome
   await owner.close();
   const response = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-automation-key': key }, body: '{"action":"go"}' });
   expect(response.status).toBe(200);
-  await expect.poll(() => ({ exists: existsSync(marker), error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ exists: true });
-  expect(readFileSync(marker, 'utf8')).toBe('DETACHED-ROUTINE-RESULT');
+  // Pi's write tool creates the file before it writes the content, so poll the content, not the file's existence.
+  await expect.poll(() => ({ content: existsSync(marker) ? readFileSync(marker, 'utf8') : undefined, error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ content: 'DETACHED-ROUTINE-RESULT' });
   await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 10_000 }).toMatch(/^RESULTS:\n\[write\] /);
 });
 
@@ -207,4 +207,17 @@ test('an explicit offline fresh timer uses the detached runner and records its o
   await expect.poll(() => ({ content: existsSync(marker) ? readFileSync(marker, 'utf8') : undefined, error: registry(sandbox).subscriptions[0]?.lastError?.text }), { timeout: 20_000 }).toMatchObject({ content: 'DETACHED-FRESH-RESULT' });
   // A detached run records its own final message, which is the run output an automation reports status in.
   await expect.poll(() => registry(sandbox).subscriptions[0]?.lastOutcome?.text, { timeout: 10_000 }).toMatch(/^RESULTS:\n\[write\] /);
+});
+
+test('creating a webhook routine waits for the user to confirm, and a refusal creates nothing (G4, G14)', async ({ onTestFinished }) => {
+  const sandbox = makeSandbox();
+  const owner = startRpc(sandbox, [], false);
+  onTestFinished(() => dispose(sandbox, [owner]));
+  owner.send({ type: 'prompt', message: script([{ tool: 'subscribe_webhook', args: { name: 'Refused Bot', prompt: 'act' } }]) });
+  await owner.waitFor((event) => event.type === 'agent_settled');
+  const asked = owner.events.find((event) => event.type === 'extension_ui_request' && event['method'] === 'confirm');
+  expect(asked?.['title']).toBe('Create webhook routine "Refused Bot"?');
+  const result = toolEnds(owner.events, 'subscribe_webhook')[0];
+  expect([result?.isError, result?.text]).toEqual([true, 'The user declined to create the webhook routine "Refused Bot". Nothing was created.']);
+  expect(existsSync(registryPath(sandbox)) ? registry(sandbox).subscriptions : []).toEqual([]);
 });

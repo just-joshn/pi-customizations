@@ -54,14 +54,14 @@ local('offline fresh once timers complete on acceptance and run once across supe
   onTestFinished(() => supervisor.stop());
   expect(await supervisor.start()).toEqual({ started: true });
   await vi.advanceTimersByTimeAsync(15_000);
-  expect(fires).toEqual(['write the marker']);
+  expect(fires).toEqual([expect.stringMatching(/^write the marker\n\nAutomation memory: /)]);
   expect(readRegistry(cwd)).toMatchObject({ subscriptions: [{ lifecycle: 'completed', lastOutcome: { text: 'detached run completed' } }], pending: [] });
   supervisor.stop();
   const restarted = createSupervisor(options);
   onTestFinished(() => restarted.stop());
   await restarted.start();
   await vi.advanceTimersByTimeAsync(30_000);
-  expect(fires).toEqual(['write the marker']);
+  expect(fires).toEqual([expect.stringMatching(/^write the marker\n\nAutomation memory: /)]);
 });
 
 local('owner-directed timers park while the owner is offline and never spawn a substitute', async ({ cwd, routines, onTestFinished }) => {

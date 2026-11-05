@@ -1,8 +1,9 @@
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { type AddressInfo, createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { promisify } from 'node:util';
 
 import { expect, onTestFinished, test } from 'vitest';
 import { linuxReadonlyCommand, seccompFilter } from '../src/linux-readonly-sandbox.ts';
@@ -15,9 +16,13 @@ function tempDir(): string {
   return dir;
 }
 
-const sandboxed = (command: string, cwd: string): string => {
+const run = promisify(execFile);
+
+// Asynchronous so the servers this test runs keep answering while the sandboxed command talks to them.
+const sandboxed = async (command: string, cwd: string, signal: AbortSignal): Promise<string> => {
   try {
-    return execFileSync('/bin/bash', ['-c', linuxReadonlyCommand(command, cwd)], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const { stdout, stderr } = await run('/bin/bash', ['-c', linuxReadonlyCommand(command, cwd)], { cwd, encoding: 'utf8', signal });
+    return `${stdout}${stderr}`;
   } catch (error) {
     const failed = error as { stdout?: string; stderr?: string };
     return `${failed.stdout ?? ''}${failed.stderr ?? ''}`;
@@ -28,7 +33,7 @@ test('an architecture without a filter is refused instead of running unfiltered'
   expect(() => seccompFilter('ia32')).toThrow('the read-only shell has no seccomp filter for ia32');
 });
 
-test.skipIf(!linux)('read-only commands run, and writes, the network, and Unix sockets are refused', async ({ signal }) => {
+test.skipIf(!linux)('read-only commands and network reads run, while writes and Unix sockets are refused (G12)', async ({ signal }) => {
   const dir = tempDir();
   execFileSync('git', ['init', '-q'], { cwd: dir });
   execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'RO-MARK', '--allow-empty'], { cwd: dir });
@@ -53,7 +58,7 @@ test.skipIf(!linux)('read-only commands run, and writes, the network, and Unix s
   });
   const { port } = tcp.address() as AddressInfo;
   const node = JSON.stringify(process.execPath);
-  const output = sandboxed(
+  const output = await sandboxed(
     [
       'git log --oneline -1',
       'touch made.txt 2>&1 || echo WRITE-REFUSED',
@@ -61,10 +66,11 @@ test.skipIf(!linux)('read-only commands run, and writes, the network, and Unix s
       `${node} -e 'require("node:net").createConnection(${port}, "127.0.0.1").on("error", () => console.log("NET-REFUSED")).on("connect", () => console.log("NET-OPEN"))'`,
     ].join('; '),
     dir,
+    signal,
   );
   expect(output).toContain('RO-MARK');
   expect(output).toContain('WRITE-REFUSED');
   expect(output).toContain('SOCKET-EPERM');
-  expect(output).toContain('NET-REFUSED');
-  expect([existsSync(join(dir, 'made.txt')), reached, tcpReached]).toEqual([false, false, false]);
+  expect(output).toContain('NET-OPEN');
+  expect([existsSync(join(dir, 'made.txt')), reached, tcpReached]).toEqual([false, false, true]);
 });

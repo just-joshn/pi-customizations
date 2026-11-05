@@ -275,11 +275,13 @@ describe('stop (C-H4)', () => {
   });
 });
 
-test('a video attachment is named for the model instead of decoded as text', async () => {
+test('a video that yields no frames is named with the reason instead of decoded as text', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'attach-video-'));
   const file = join(dir, 'clip.mp4');
   writeFileSync(file, Buffer.from([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]));
   const input = await withAttachments('watch', [file]);
   rmSync(dir, { recursive: true, force: true });
-  expect(input).toEqual({ text: `watch<file name="${file}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>\n`, images: [] });
+  expect(input.images).toEqual([]);
+  expect(input.text.startsWith(`watch<file name="${file}">[video attachment; its frames could not be extracted (`)).toBe(true);
+  expect(input.text.endsWith('). Open the path with a media tool.]</file>\n')).toBe(true);
 });

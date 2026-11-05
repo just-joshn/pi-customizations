@@ -190,9 +190,16 @@ const sleep = (ms: number, signal: AbortSignal | undefined) =>
     signal?.addEventListener('abort', finish, { once: true });
   });
 
+/** Runs a job somewhere other than this host: the child is the local process that carries its output, and `end` stops the job where it runs. */
+export interface JobSpawner {
+  spawn: (command: string, cwd: string) => { child: ChildProcess; end: () => void };
+}
+
 export interface ShellJobsOptions {
   terminalsDir: (ctx: ExtensionContext) => string;
   shellPath: () => string | undefined;
+  /** A cloud agent's machine, which runs every job instead of this host. */
+  spawner?: JobSpawner | undefined;
 }
 
 export interface StartRequest {
@@ -206,6 +213,7 @@ export interface StartRequest {
 /** Every background shell this runtime started, and the notifications they owe the agent. */
 export function createShellJobs(options: ShellJobsOptions, deliver: (notice: ShellNotice) => void) {
   const jobs = new Map<string, ShellJob>();
+  const ends = new Map<number, () => void>();
   let nextId: number | undefined;
 
   const allocateId = (dir: string): string => {
@@ -259,7 +267,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
   };
 
   const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
-    if (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory()) throw new Error(`Working directory ${request.cwd} does not exist.`);
+    if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
     const dir = options.terminalsDir(ctx);
     mkdirSync(dir, { recursive: true });
     const id = allocateId(dir);
@@ -275,21 +283,25 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         console.warn('Invalid shell output notification pattern', { shellId: id, error: error instanceof Error ? error.message : String(error) });
       }
     }
+    const remote = options.spawner?.spawn(request.command, request.cwd);
     const config = getShellConfig(options.shellPath());
-    const viaStdin = config.commandTransport === 'stdin';
-    const child = spawn(config.shell, viaStdin ? config.args : [...config.args, request.command], {
-      cwd: request.cwd,
-      env: sessionEnv(ctx),
-      detached: process.platform !== 'win32',
-      stdio: [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
+    const viaStdin = remote === undefined && config.commandTransport === 'stdin';
+    const child =
+      remote?.child ??
+      spawn(config.shell, viaStdin ? config.args : [...config.args, request.command], {
+        cwd: request.cwd,
+        env: sessionEnv(ctx),
+        detached: process.platform !== 'win32',
+        stdio: [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      });
     let spawnError: Error | undefined;
     child.once('error', (error) => {
       spawnError = error;
     });
     if (viaStdin) child.stdin?.end(request.command);
-    if (child.pid === undefined) throw new Error(`Could not start ${config.shell}${spawnError === undefined ? '' : `: ${spawnError.message}`}.`);
+    if (child.pid === undefined) throw new Error(`Could not start ${remote === undefined ? config.shell : 'the job on the cloud machine'}${spawnError === undefined ? '' : `: ${spawnError.message}`}.`);
+    if (remote !== undefined) ends.set(child.pid, remote.end);
     const startedAt = Date.now();
     const header = terminalHeader({ pid: child.pid, cwd: request.cwd, command: request.command, title: request.title, startedAt });
     const fd = openSync(path, 'w+');
@@ -410,7 +422,10 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     }
   };
 
-  const signalGroup = (job: ShellJob, signal: NodeJS.Signals) => signalGroupId(job.pid, signal);
+  const signalGroup = (job: ShellJob, signal: NodeJS.Signals) => {
+    if (signal === 'SIGTERM') ends.get(job.pid)?.();
+    signalGroupId(job.pid, signal);
+  };
 
   /** Session end: every running job is stopped and recorded as aborted, with no notification. */
   const shutdown = () => {
@@ -527,6 +542,8 @@ export interface BackgroundShellOptions {
   waitsForJobs: (ctx: ExtensionContext) => boolean;
   /** A subagent's jobs end with it. */
   endsWithTurn: boolean;
+  /** A cloud agent's machine, where its jobs run. */
+  spawner?: JobSpawner | undefined;
 }
 
 /** bash_background and AwaitShell, plus the notifications their jobs send. */
@@ -557,6 +574,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
         const value = (pi.getSettings() as { shellPath?: unknown }).shellPath;
         return typeof value === 'string' && value !== '' ? value.replace(/^~(?=$|\/)/, process.env['HOME'] ?? '~') : undefined;
       },
+      spawner: options.spawner,
     },
     deliver,
   );

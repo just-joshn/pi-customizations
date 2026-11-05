@@ -5,7 +5,7 @@ This page records what `pi-pstack` reproduces from Cursor `pstack` 0.15.36 and i
 ## Sources
 
 - Cursor `pstack` and `cursor-team-kit`: `github.com/cursor/plugins` at `6ea74587e384e1a8035c09ae33a46fe3f881eb9b`. The plugin manifest reports pstack 0.15.36. `package.json.pstackSource.revision` pins `ae5650fe`, this port's capture base; `git log ae5650fe..6ea74587 -- pstack cursor-team-kit` is empty, so both commits name the same plugin content.
-- Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`.
+- Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`. CLI `2026.11.05-86047df` was compared module by module (`parity/pstack-complete-2026-11-05/cli-diff.mjs`, `cli-module-diff.mjs`, `cli-strings-diff.mjs`). For pstack it changes one thing: plan mode now enforces its write rule (`isPlanModeAllowedWriteTarget`, six markdown extensions, `Cannot edit non markdown files in plan mode`), which pi-pstack matches. Its other changes are hosted surfaces (Projects, canvases, automations listing, team plans), workers, telemetry, and input niceties. The pstack it loads from `~/.cursor/plugins/local/pstack` is byte-identical to the reference.
 - Installed Cursor desktop 3.27.22 (distro `d5c0e77a0214208f36b56d42e8e787de88d02ea4`) under `/usr/share/cursor/resources/app`. Its local agent runtime defines the built-in subagents, the Task schema, and Task's resume and model rules. An earlier run recorded the desktop app as absent; that was wrong.
 - Native implementation: this package, which pins its upstream provenance in `package.json.pstackSource`.
 
@@ -45,6 +45,23 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 - A live Task asked for `environment: "cloud"` ran in the same working directory on the same machine, with `environment: SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED`. In this CLI, the cloud argument was inert too. Pi's local worktree is a stronger isolation than that observation, though still weaker than the documented cloud VM.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
+
+## Repairs in 0.15.36-pi.19
+
+A run on 2026-11-05 (UTC) closed the host gaps earlier runs had left open. `parity/pstack-complete-2026-11-05/` holds the notes, the decision trail, and the levers (`tree-map.mjs`, `word-changes.mjs`, `restore-cloud-text.mjs`, `restore-benny.mjs`, `mutate.mjs`, `tui-alt-enter.py`).
+
+- **Cloud agents get their own machine.** `environment: "cloud"` provisions a container (`.pi/environment.json` image or Dockerfile, install, start, terminals) holding a fresh clone of the pushed remote, bind-mounted at the same path with the Projects folder and the root store. The agent's Pi process stays on the host with the model credentials, and its tools (`bash`, `bash_background`, `read`, `write`, `edit`, `ls`, `find`, `grep`) run in the container, the split Pi's containerization guide documents and Cursor's cloud workers use. Its own subagents run on the same machine. Without a container engine the agent runs in a local worktree, and the host section says which.
+- **Cloud agents run detached.** The run is a `pi --mode json` process under a wrapper that records its exit code and stops the container. It survives the chat; a later session of the same chat follows it again or delivers the result it missed, once. `agent_status` shows the machine and last run, `stop_agent` stops the run and the container, and a resume boots the stopped container with its disk.
+- **`/in-cloud`.** The next submitted task (or the command's argument) runs as a background cloud agent.
+- **Upstream cloud wording is back** in swarm, orchestrate, multi-phase-plan, autopilot-full, shipping, session-pickup, poteto-mode, poteto-help, and guide pages 02 and 10.
+- **Readonly and plan-mode shells allow network reads.** Writes and Unix sockets stay blocked. Cursor's Ask-mode shell keeps the user's network policy, and its CLI runs it unsandboxed by default.
+- **Slack.** `subscribe_slack` fires on each new top-level message (or matching messages and replies with a filter) with `trigger.source_channel_id`, `trigger.ts`, and `trigger.thread_ts`, from a stored read position; top-level chats get `slack_read_channel`, `slack_read_thread`, `slack_send`, `slack_react`, and `slack_update`; subagents get neither the tools nor the token.
+- **Automations.** `sessionStrategy: "new_session"` subscriptions get `environment: "cloud"` (a cloud machine per fire, live or with the chat closed) and a `MEMORIES.md` named in every fire. `/automate` (the `automate` skill) drafts, gets approval, and creates; `/automations` lists, edits a prompt, or disables.
+- **Benny is upstream's pack again**, rebuilt by `restore-benny.mjs` with Pi names and paths, on `subscribe_slack`, the Slack tools, and `/automate`.
+- **Secrets and routine confirmation.** `request_secret` and `/secret` store a value typed into a masked field in a connector credential file, never in the chat. Creating a webhook routine waits for the user's confirmation.
+- **Projects.** `/project` starts or joins a Project; its tracker, store, and chats ride a `pstack_project` section for the chat and its subagents; the footer shows the Project and how many subscriptions the chat listens to.
+- **Video attachments** reach a subagent as up to eight timestamped frames (ffmpeg), so Task's `file_attachments` text is Cursor's again.
+- **Alt+Enter** on a `/skill` line enters that skill's mode, Cursor's way into a Custom Mode; any other Alt+Enter keeps Pi's meaning.
 
 ## Repairs in 0.15.36-pi.18
 
@@ -165,24 +182,19 @@ Each code change has a regression in the package suite. Text restorations are re
 
 ## Remaining host differences
 
-These are not closed by extension code.
+These hold after 0.15.36-pi.19.
 
-- **Background workers stop when the chat exits.** A Pi subagent is a child process of the chat, so quitting or shutting the session stops the agents it started and reports how many. Whether a Cursor background subagent outlives its parent is unobserved; the CLI changelog says cancelling the prompt stops its subagents, and only the cloud-agent product promises work after the laptop closes. A `new_session` subscription fire is Pi's one detached path, and it starts a fresh run rather than continuing a subagent.
-- **A mode's skill rides the system prompt.** Cursor attaches the skill to the user message that enters the mode and keeps it durable in the conversation; its notices travel in user-message fields. Pi carries the skill and the notices in system-prompt sections, which reach the model on every request and survive compaction, so the model sees the same text in a different place.
-- **A fork needs an idle source.** Cursor exposes `fork` only on its internal and cloud-agent protos, never on the CLI Task schema, and no doc states whether a fork may start while the source runs. A Pi fork runs in the source's directory or worktree, so a running source is refused; the orchestrate playbook says to wait for its completion notification.
-- **A subagent's background shells end with it.** Cursor runs a subagent inside the parent process, so a background shell it starts outlives the subagent's Task result and its notification reaches the parent (`subagent-bg-shell.jsonl`, status `aborted`). A Pi subagent is its own process, so its jobs stop when it finishes, and its launch result says so.
-- **Linux readonly shells need bubblewrap.** The policy blocks host Unix sockets as well as IP traffic and filesystem writes. bubblewrap must be able to create its user namespace (Ubuntu's `bwrap` AppArmor profile allows it); where it cannot, or on an architecture other than x86-64 or arm64, the command does not run. Readonly also does not isolate environment credentials or files readable through the ordinary read tools.
-- **Plan mode's restriction is stricter than the host's.** Cursor's plan mode keeps every tool and restricts by instruction: edit only markdown files, run only read-only commands. Pi enforces the same rules with a tool allowlist, markdown-only `edit` and `write`, and a sandboxed shell that also denies network, so `gh`, `curl`, and package queries can fail while planning. Allowing network in a read-only shell would also open a path for remote changes, so the sandbox keeps it closed.
-- **The plan review is a dialog, not a card.** Cursor renders the plan with a build menu. Pi shows the same three choices in a select dialog after the run that saved the plan, and "build in cloud" starts a background isolated worktree worker, Pi's counterpart to a cloud agent, rather than a remote VM.
-- **benny's default cadence still needs its owning session open.** `wake_self` timers and webhook routines park while the owner is offline. A timer or webhook routine created with `sessionStrategy: "new_session"` runs detached with no chat open, but a detached run is one-shot: it must do the work in that run, because a background `Task` ends with it. Cursor automations run in the cloud and can hand work to anything. So benny keeps `wake_self` by default and setup names the tradeoff before switching.
-- **A routines listener is local, one port per workspace.** Cursor hosts each routine URL. Pi binds a loopback port per workspace, so two workspaces serve routines at once only because the default port falls back to an ephemeral one that the workspace then reuses and reports. A sender outside the machine still needs its own forwarding path.
-- **Cloud execution is local.** Cursor documents cloud VMs for its cloud product, but the inspected CLI schema omits `environment` and a requested cloud Task ran on the same machine and directory. Pi's `environment: "cloud"` goes further with a git worktree and a separate local process. Neither runs with the laptop off or provides a remote VM.
-- **Webhook routines are local.** Cursor provides a hosted routine endpoint and an editor panel. Pi serves an authenticated listener on loopback and stores a sender key in a local file. A sender outside the machine needs its own forwarding path.
-- **Slack-triggered automations need an external sender.** The Benny workflows can sweep on a timer or receive a local webhook. The Cursor Automations product and its Slack trigger are not reproduced.
-- **Inline video is not rendered in the reply.** The ketchup-video workflow writes the video and names its path; Pi opens it in the system player instead.
-- **Video attachments have no Pi model input.** Cursor can attach video to a Task. Pi names the video path for the agent instead of decoding the file as text; the agent opens it with a media tool.
-- **Hosted guidance and pages are outside the package.** MCP providers, ticket trackers, browsers, simulators, and Tailscale remain the user's own dependencies, as they are for Cursor.
-- **Background usage cannot enter parent totals.** Pi exposes no API that adds a later notification's usage to the parent session. It stays in the notification details and the child transcript.
+- **A sleeping host pauses cloud agents.** A cloud agent survives its chat closing, but its Pi process runs on this host, so a laptop that sleeps pauses it. Cursor's hosted VMs keep working with the laptop closed. A container engine on another machine (`PSTACK_CLOUD_DOCKER_CONTEXT`) moves the machine, not the Pi process.
+- **Cloud agents see this host's MCP servers.** A Pi cloud agent's Pi process loads your installed extensions and MCP servers; Cursor's cloud subagents use the team's MCP configuration instead.
+- **A subagent's background shells end with it.** Cursor keeps a subagent's background shell running after the subagent's result and notifies the parent; a Pi subagent is its own process, so its jobs stop when it finishes, and its launch result says so.
+- **Slack triggers poll.** Cursor's Slack trigger is pushed by its Slack integration; pi-pstack reads the channel every 20 seconds from a stored position, so a message fires within that interval and none is lost to downtime.
+- **Webhook routines are local.** Pi serves routines on loopback with a sender key in a local file; Cursor hosts a public URL. A sender on another machine needs its own forwarding path.
+- **A mode's skill rides the system prompt.** Cursor keeps it durable in the conversation; Pi sends the same text in a system-prompt section on every request.
+- **A fork needs an idle source.** A running source is refused so two agents never write one checkout or machine.
+- **Plan mode and readonly enforce file writes.** Cursor restricts plan mode by instruction; Pi's shells deny writes in an OS sandbox. On macOS some TLS clients that rely on the keychain (`/usr/bin/curl`, LibreSSL builds) fail inside it; `gh`, `git`, Homebrew `curl`, and Node's `fetch` work.
+- **The plan review is a dialog.** Cursor renders a plan card; Pi asks the same three choices in a select dialog.
+- **Media stays out of the reply.** The Cursor CLI does not embed media either; Pi shows images through the read tool and opens video in the system player.
+- **Background usage stays out of parent totals.** Pi exposes no API to add a later notification's usage to the parent session.
 
 ## Session probes on 2026-11-04 (continuation)
 

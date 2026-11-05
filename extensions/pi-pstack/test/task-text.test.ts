@@ -16,6 +16,6 @@ test.for([
   expect(piDescription(name)).toBe(cursorTaskText(parameters[name] ?? '', changes));
 });
 
-test('file_attachments carries Cursor text, then says Pi models take no video', () => {
-  expect(piDescription('file_attachments')).toBe(`${parameters['file_attachments']} A video path is named for the agent but not sent as video, because Pi models have no video input.`);
+test('file_attachments carries Cursor text unchanged, since a video now reaches the subagent as frames (G8)', () => {
+  expect(piDescription('file_attachments')).toBe(parameters['file_attachments']);
 });

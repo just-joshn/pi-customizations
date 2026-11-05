@@ -31,7 +31,7 @@ afterEach(() => rmSync(root, { recursive: true, force: true }));
 describe('planWorktree', () => {
   test('without a base branch, branches from the parent HEAD commit', () => {
     const head = commitFile('a.txt', 'A', 'first');
-    expect(planWorktree(repo, worktrees, id)).toEqual({ path: join(worktrees, id), cwd: join(worktrees, id), branch: `pstack/${id}`, base: 'HEAD', commit: head });
+    expect(planWorktree(repo, worktrees, id)).toEqual({ driver: 'worktree', path: join(worktrees, id), cwd: join(worktrees, id), branch: `pstack/${id}`, base: 'HEAD', commit: head });
   });
 
   test('a parent inside a tracked subdirectory runs the child in the same subdirectory of the worktree', () => {

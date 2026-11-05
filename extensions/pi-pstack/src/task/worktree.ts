@@ -1,18 +1,9 @@
-// An environment "cloud" subagent is an isolated worker: a child process in its own git worktree on a new branch.
+// The worktree driver of an environment "cloud" agent: a git worktree on this host on a new branch, used when no
+// container engine is available. Records and transcripts stay keyed on the parent workspace, never on the worktree.
 import { execFile, execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
-/** Where a cloud subagent runs. Records and transcripts stay keyed on the parent workspace, never on this. */
-export interface Worktree {
-  /** The worktree root. */
-  path: string;
-  /** The child's working directory: the parent's place in the repository, mapped into the worktree. */
-  cwd: string;
-  branch: string;
-  /** The ref the branch starts from: origin/<cloud_base_branch>, cloud_base_branch, or HEAD. */
-  base: string;
-  commit: string;
-}
+import type { WorktreeMachine } from '../cloud/machine.ts';
 
 function git(dir: string, args: readonly string[]): string {
   return execFileSync('git', ['-C', dir, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -46,17 +37,17 @@ function resolveBase(cwd: string, baseBranch: string | undefined): { base: strin
 }
 
 /** Resolves where a cloud agent will run without changing anything, so a bad base fails before any side effect. */
-export function planWorktree(cwd: string, worktreesDir: string, agentId: string, baseBranch?: string): Worktree {
+export function planWorktree(cwd: string, worktreesDir: string, agentId: string, baseBranch?: string): WorktreeMachine {
   const prefix = tryGit(cwd, ['rev-parse', '--show-prefix'])?.replace(/\/$/, '');
   if (prefix === undefined) throw new Error(`environment "cloud" runs the subagent in its own git worktree, but ${cwd} is not inside a git repository. Omit environment to run the subagent here.`);
   const { base, commit } = resolveBase(cwd, baseBranch);
   const path = join(worktreesDir, agentId);
   const inBase = prefix !== '' && tryGit(cwd, ['cat-file', '-e', `${commit}:${prefix}`]) !== undefined;
-  return { path, cwd: inBase ? join(path, prefix) : path, branch: `pstack/${agentId}`, base, commit };
+  return { driver: 'worktree', path, cwd: inBase ? join(path, prefix) : path, branch: `pstack/${agentId}`, base, commit };
 }
 
 /** Creates the worktree and its branch. Nothing here removes them: the parent merges the branch, and worktree-cleanup prunes. */
-export function addWorktree(repoDir: string, worktree: Worktree, signal: AbortSignal | undefined): Promise<void> {
+export function addWorktree(repoDir: string, worktree: WorktreeMachine, signal: AbortSignal | undefined): Promise<void> {
   // A checkout can run hooks and filters for a long time, so it runs off the event loop and stops with the Task call.
   const args = ['-C', repoDir, 'worktree', 'add', '--quiet', '-b', worktree.branch, worktree.path, worktree.commit];
   return new Promise((resolve, reject) => {

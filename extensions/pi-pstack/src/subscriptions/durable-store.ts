@@ -107,7 +107,18 @@ function validSubscription(value: unknown): value is DurableSubscription {
           (t.scope !== 'author' || (typeof t.author === 'string' && /^(?:@me|[A-Za-z0-9](?:[A-Za-z0-9-]|\[bot\]|\/)*)$/.test(t.author))))
     );
   }
-  if (typeof c.prompt !== 'string') return false;
+  if (typeof c.prompt !== 'string' || (c.environment !== undefined && c.environment !== 'cloud')) return false;
+  if (c.kind === 'slack') {
+    const model = c.model;
+    return (
+      typeof c.channel === 'string' &&
+      /^[CGD][A-Z0-9]{2,}$/.test(c.channel) &&
+      (c.filter === undefined || typeof c.filter === 'string') &&
+      (c.strategy === 'wake_self' || c.strategy === 'new_session') &&
+      (model === undefined || (typeof model === 'object' && model !== null && typeof model.provider === 'string' && typeof model.id === 'string' && (model.thinking === undefined || typeof model.thinking === 'string'))) &&
+      (c.trusted === undefined || typeof c.trusted === 'boolean')
+    );
+  }
   if (c.kind === 'webhook') {
     const strategy = c.strategy;
     const model = c.model;
@@ -222,7 +233,7 @@ function transaction<T>(cwd: string, change: (registry: DurableRegistry) => T): 
 /** `expiresAt` 0 means the subscription does not expire: Cursor Automations run until they are disabled. */
 export const isDesired = (sub: StoredSubscription, now = Date.now()) => sub.lifecycle === 'active' && (sub.expiresAt === 0 || sub.expiresAt > now);
 /** Whether a fire runs in its own session instead of waking the owner chat. */
-export const runsDetached = (sub: Pick<StoredSubscription, 'config'>) => (sub.config.kind === 'timer' || sub.config.kind === 'webhook' ? sub.config.strategy === 'new_session' : false);
+export const runsDetached = (sub: Pick<StoredSubscription, 'config'>) => (sub.config.kind === 'github' ? false : sub.config.strategy === 'new_session');
 export function visibleSubscriptions(registry: DurableRegistry, now = Date.now()): StoredSubscription[] {
   return registry.subscriptions.filter((sub) => sub.lifecycle !== 'cancelled' && (isDesired(sub, now) || registry.pending.some((event) => event.subscriptionId === sub.id) || sub.lastOutcome !== undefined));
 }

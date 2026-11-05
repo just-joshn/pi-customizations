@@ -40,7 +40,8 @@ export function makeSandbox(settings: Record<string, unknown> = {}): Sandbox {
   mkdirSync(workDir);
   writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ packages: [PACKAGE_ROOT], extensions: [SCRIPTED_MODEL], quietStartup: true, ...settings }));
   // HOME moves too, so user-level resources such as ~/.agents/skills stay out of the run.
-  const env = { ...process.env, HOME: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' } as Record<string, string>;
+  // Cloud agents use the worktree driver unless a test asks for a container machine, so the suite needs no container engine.
+  const env = { ...process.env, HOME: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_CLOUD_DRIVER: 'worktree' } as Record<string, string>;
   // Variables that would point a run at the user's real state, or give the parent a subagent identity.
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_PSTACK_DEPTH', 'PI_PSTACK_AGENT', 'PI_PSTACK_PARENT_PID']) delete env[name];
   return { root, agentDir, workDir, env, dispose: () => rmSync(root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }) };
@@ -135,7 +136,11 @@ export interface RpcSession {
   close: () => Promise<void>;
 }
 
-export function startRpc(sandbox: Sandbox, args: string[] = []): RpcSession {
+/**
+ * An RPC session. `confirm` answers every confirm dialog (such as a webhook routine's creation) the way a user would;
+ * leave it undefined to answer them in the test.
+ */
+export function startRpc(sandbox: Sandbox, args: string[] = [], confirm: boolean | undefined = true): RpcSession {
   const child = spawn(...piInvocation(['--mode', 'rpc', '--offline', '--model', 'scripted/echo', ...args]), { cwd: sandbox.workDir, env: sandbox.env, stdio: ['pipe', 'pipe', 'pipe'] });
   const events: PiEvent[] = [];
   const waiters: { predicate: (event: PiEvent) => boolean; resolve: (event: PiEvent) => void }[] = [];
@@ -144,6 +149,7 @@ export function startRpc(sandbox: Sandbox, args: string[] = []): RpcSession {
     lineSplitter((line) => {
       const event = JSON.parse(line) as PiEvent;
       events.push(event);
+      if (confirm !== undefined && event.type === 'extension_ui_request' && event['method'] === 'confirm') child.stdin?.write(`${JSON.stringify({ type: 'extension_ui_response', id: event['id'], confirmed: confirm })}\n`);
       for (const waiter of waiters.filter((candidate) => candidate.predicate(event))) {
         waiters.splice(waiters.indexOf(waiter), 1);
         waiter.resolve(event);

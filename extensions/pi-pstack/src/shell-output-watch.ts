@@ -10,6 +10,13 @@ try {
 
 export class OutputWatchDependencyError extends Error {}
 
+/** An RE2 pattern for a filter (a Slack trigger's); re2js loads lazily, so a missing dependency fails only its users. */
+export function re2Test(pattern: string): (text: string) => boolean {
+  if (regexEngine === undefined) throw new OutputWatchDependencyError('RE2 patterns need the re2js dependency. Run bun install in the pi-pstack package directory, then reload Pi.');
+  const regex = regexEngine.compile(pattern);
+  return (text) => regex.matcher(text).find();
+}
+
 /** A pattern's first match in multiline RE2, the syntax Cursor's shell tools accept for patterns. */
 export function firstMatcher(pattern: string): (text: string) => string | undefined {
   if (regexEngine === undefined) throw new OutputWatchDependencyError('Shell output patterns need the re2js dependency. Run bun install in the pi-pstack package directory, then reload Pi.');

@@ -25,7 +25,7 @@ test('every shipped skill attaches its own body through /name in one real Pi ses
     240_000,
   );
   const users = messages(run.events, 'user').map((message) => contentText(message.content));
-  expect(shipped).toHaveLength(79);
+  expect(shipped).toHaveLength(80);
   expect(assistantTexts(run.events)).toEqual(shipped);
   const expected = shipped.map((name) => {
     const file = join(SKILLS, name, 'SKILL.md');

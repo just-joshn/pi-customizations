@@ -7,16 +7,23 @@ import { registerAskQuestion } from './ask.ts';
 import { aliasAutocomplete } from './autocomplete.ts';
 import { registerBackgroundShell } from './background-shell.ts';
 import { childIdentity } from './child-env.ts';
+import { registerInCloud } from './cloud/in-cloud.ts';
+import { cloudDriverStatus, parseMachine } from './cloud/machine.ts';
+import { machineJobSpawner, registerMachineTools } from './cloud/routed-tools.ts';
 import { registerGenerateImage } from './generate-image.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir, terminalsDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
+import { projectSection, registerProjects } from './project.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
+import { registerSecretRequest } from './secrets.ts';
 import { alwaysAppliedRules, hostSection, subagentsSection, todayText } from './sections.ts';
+import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
+import { memoryDir } from './subscriptions/memories.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
 import { registerAgentStatus } from './task/status.ts';
 import { availableModels, parentModel, registerTask } from './task/tool.ts';
@@ -36,8 +43,9 @@ function agentSection(agents: readonly AgentDefinition[]): Record<string, string
   return { pstack_subagent: reminder === '' ? SUBAGENT_REMINDER : `${SUBAGENT_REMINDER}\n\n${reminder}` };
 }
 
-function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
+async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Promise<Record<string, string>> {
   const activeTools = pi.getActiveTools();
+  const cloud = activeTools.includes('Task') ? await cloudDriverStatus() : { driver: 'worktree' as const, reason: 'no Task tool' };
   return {
     pstack_host: hostSection({
       today: todayText(new Date()),
@@ -58,6 +66,7 @@ function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly 
       questionsAvailable: canAsk(ctx),
       activeTools,
       rules: alwaysAppliedRules(SKILLS_DIR),
+      cloud,
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
     pstack_models: modelsSection(readRule(rulePath()), rulePath()),
@@ -99,7 +108,12 @@ function watchParent(pi: ExtensionAPI, parentPid: number): void {
 
 export default function piPstack(pi: ExtensionAPI): void {
   const agents = loadAgentDefinitions();
+  // A cloud agent on a container machine runs every tool there; its own Pi process stays on the host.
+  const machine = childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine);
+  if (machine !== undefined) registerMachineTools(pi, machine);
 
+  // Before the alias handler, so a task sent with /in-cloud reaches the cloud agent as the user typed it.
+  if (childIdentity.depth === 0) registerInCloud(pi, (description, prompt) => task.startBackground(description, prompt, { environment: 'cloud' }));
   pi.on('input', (event) => {
     const commands = pi.getCommands();
     return aliasInputResult(event, new Set(aliasTable(commands).keys()), loadedSkillBlock(commands), commandNames(commands), loadedTemplateBody(commands));
@@ -117,44 +131,54 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
   registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
-  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled });
+  const projects = registerProjects(pi);
+  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled, project: projects.slug });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
     runFresh: async (prompt, name, meta) => {
       await task.startBackground(`timer ${name}`, prompt, {
+        automation: true,
         ...(meta.model === undefined ? {} : { model: `${meta.model.provider}/${meta.model.id}${meta.model.thinking === undefined ? '' : `:${meta.model.thinking}`}` }),
         ...(meta.trusted === undefined ? {} : { trusted: meta.trusted }),
+        ...(meta.environment === undefined ? {} : { environment: meta.environment, shared: [memoryDir(name)] }),
       });
       return undefined;
     },
   });
-  // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox.
-  const shells = childIdentity.readonly
-    ? undefined
-    : registerBackgroundShell(pi, {
-        terminalsDir: (ctx) => terminalsDir(ctx.cwd),
-        waitsForJobs: (ctx) => childIdentity.depth === 0 && (ctx.mode === 'print' || ctx.mode === 'json'),
-        endsWithTurn: childIdentity.depth > 0,
-      });
+  // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox. On a container
+  // machine the readonly boundary is the machine's read-only clone, so jobs run there.
+  const shells =
+    childIdentity.readonly && machine === undefined
+      ? undefined
+      : registerBackgroundShell(pi, {
+          terminalsDir: (ctx) => terminalsDir(ctx.cwd),
+          waitsForJobs: (ctx) => childIdentity.depth === 0 && (ctx.mode === 'print' || ctx.mode === 'json'),
+          endsWithTurn: childIdentity.depth > 0,
+          spawner: machine === undefined ? undefined : machineJobSpawner(machine),
+        });
   const loop = registerLoop(pi, { hasPendingWork: () => task.hasBackgroundWork() || shells?.hasRunningJobs() === true });
   const todos = registerTodoWrite(pi, childIdentity.readonly ? {} : { onWrite: plan.syncTodos });
   registerAskQuestion(pi);
+  if (childIdentity.depth === 0) registerSecretRequest(pi, () => activateSlackTools(pi));
+  if (childIdentity.depth === 0 || childIdentity.automation) registerSlackTools(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
-  if (childIdentity.readonly) registerReadonlyShell(pi);
+  if (childIdentity.readonly && machine === undefined) registerReadonlyShell(pi);
 
-  pi.on('before_agent_start', (event, ctx) => {
+  pi.on('before_agent_start', async (event, ctx) => {
     const onlyTools = ownType?.onlyTools;
     if (onlyTools !== undefined) pi.setActiveTools(pi.getActiveTools().filter((name) => onlyTools.includes(name)));
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();
+    const projectText = projectSection(ctx.cwd, projects.slug());
     Object.assign(
       event.systemPromptOptions.sections,
-      hostSections(pi, ctx, agents),
+      await hostSections(pi, ctx, agents),
       mode.sections(),
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
       todoText === undefined ? {} : { pstack_todos: todoText },
+      projectText === undefined ? {} : { pstack_project: projectText },
     );
   });
 

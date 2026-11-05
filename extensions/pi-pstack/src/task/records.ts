@@ -2,9 +2,22 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, w
 import { join } from 'node:path';
 
 import { parseSessionEntries, SessionManager } from '@earendil-works/pi-coding-agent';
+import type { DetachedRun } from '../cloud/detached.ts';
+import type { Machine } from '../cloud/machine.ts';
 import { acquireLease, alive } from '../process-lock.ts';
 import type { ModelSpec } from './models.ts';
-import type { Worktree } from './worktree.ts';
+
+/** A cloud agent's latest detached run, and who hears about its end. */
+export interface RunRecord extends DetachedRun {
+  /** The session that started the run; its completion goes to that chat, even after a restart. */
+  ownerSessionId: string;
+  toolCallId: string;
+  title: string;
+  description: string;
+  background: boolean;
+  /** The owner has the result: the foreground call returned it, or a notification carried it. */
+  delivered: boolean;
+}
 
 /** What resume needs to restart an agent the way it first ran. */
 export interface AgentRecord {
@@ -12,21 +25,46 @@ export interface AgentRecord {
   type: string;
   model?: ModelSpec;
   readonly: boolean;
-  /** The directory the agent was launched from; a cloud agent runs in `worktree` instead. */
+  /** The directory the agent was launched from; a cloud agent runs on its `machine` instead. */
   cwd: string;
   /** The main chat's workspace that owns this record when it differs from `cwd` (a descendant of a cloud worker). */
   workspaceRoot?: string;
   createdAt: string;
   /** 1 for a subagent of the main chat, 2 for a subagent of a subagent; absent in records written before it existed. */
   depth?: number;
-  worktree?: Worktree;
+  /** Where a cloud agent runs. */
+  machine?: Machine;
+  run?: RunRecord;
   /** The agent whose transcript this one started as a copy of (Task `fork`). */
   forkedFrom?: string;
 }
 
-function isWorktree(value: unknown): value is Worktree {
-  const worktree = value as Partial<Worktree> | null;
-  return typeof worktree === 'object' && worktree !== null && (['path', 'cwd', 'branch', 'base', 'commit'] as const).every((key) => typeof worktree[key] === 'string');
+const CHECKOUT_FIELDS = ['path', 'cwd', 'branch', 'base', 'commit'] as const;
+
+function isMachine(value: unknown): value is Machine {
+  const machine = value as Partial<Record<string, unknown>> | null;
+  if (typeof machine !== 'object' || machine === null || !CHECKOUT_FIELDS.every((key) => typeof machine[key] === 'string')) return false;
+  if (machine['driver'] === 'worktree') return true;
+  return machine['driver'] === 'container' && typeof machine['container'] === 'string' && typeof machine['image'] === 'string' && typeof machine['remote'] === 'string' && typeof machine['readonly'] === 'boolean';
+}
+
+function isRun(value: unknown): value is RunRecord {
+  const run = value as Partial<Record<string, unknown>> | null;
+  return (
+    typeof run === 'object' &&
+    run !== null &&
+    Number.isInteger(run['pid']) &&
+    (['events', 'errors', 'exit', 'startedAt', 'ownerSessionId', 'toolCallId', 'title', 'description'] as const).every((key) => typeof run[key] === 'string') &&
+    typeof run['background'] === 'boolean' &&
+    typeof run['delivered'] === 'boolean'
+  );
+}
+
+/** Records written before machines existed name a git worktree; it reads as a worktree machine. */
+function upgrade(value: Record<string, unknown>): Record<string, unknown> {
+  const { worktree, ...rest } = value;
+  if (worktree === undefined || rest['machine'] !== undefined) return value;
+  return { ...rest, machine: { driver: 'worktree', ...(worktree as object) } };
 }
 
 function isModel(value: unknown): value is ModelSpec {
@@ -48,7 +86,8 @@ function isRecord(value: unknown, agentId: string): value is AgentRecord {
     typeof record.createdAt === 'string' &&
     (record.model === undefined || isModel(record.model)) &&
     (record.depth === undefined || Number.isInteger(record.depth)) &&
-    (record.worktree === undefined || isWorktree(record.worktree)) &&
+    (record.machine === undefined || isMachine(record.machine)) &&
+    (record.run === undefined || isRun(record.run)) &&
     (record.forkedFrom === undefined || typeof record.forkedFrom === 'string')
   );
 }
@@ -72,6 +111,7 @@ export function readRecord(dir: string, agentId: string): AgentRecord | undefine
     if (error instanceof SyntaxError) throw unreadable;
     throw error;
   }
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) value = upgrade(value as Record<string, unknown>);
   if (!isRecord(value, agentId)) throw unreadable;
   return value;
 }

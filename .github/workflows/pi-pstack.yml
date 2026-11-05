@@ -17,6 +17,9 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    # Both jobs take 6 to 9 minutes. With this limit, a hung test fails its job and leaves a log. Without it, the job
+    # waits out GitHub's 6-hour default and shows no log until someone cancels the run.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: extensions/pi-pstack
@@ -59,6 +62,7 @@ jobs:
   # retry-pi-pstack-macos-capacity.yml re-runs failed jobs once when that happens and Ubuntu already passed.
   verify-macos:
     runs-on: macos-15
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: extensions/pi-pstack

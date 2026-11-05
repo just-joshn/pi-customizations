@@ -45,7 +45,7 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown }[]
     model: { provider: 'test', id: 'model' },
     thinkingLevel: 'high',
     isProjectTrusted: () => true,
-    ui: { notify: (text: string) => notices.push(text) },
+    ui: { notify: (text: string) => notices.push(text), setStatus: () => undefined, confirm: async () => true },
     sessionManager: { getBranch: () => entries, getSessionFile: () => sessionFile, getSessionId: () => sessionId },
   });
   const emit = (name: string, mode = 'rpc') => {
@@ -159,7 +159,13 @@ describe('subscribe_timer', () => {
     const created = await fake.call('subscribe_timer', { name: 'audit', prompt: 'run the audit', delaySeconds: 5, once: true, sessionStrategy: 'new_session' });
     await vi.advanceTimersByTimeAsync(5_000);
     expect(readRegistry(fake.cwd).subscriptions[0]?.config).toMatchObject({ model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true });
-    expect(fake.fresh).toEqual([{ prompt: 'run the audit', name: 'audit', meta: { subscriptionId: created.details['id'], cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true } }]);
+    expect(fake.fresh).toEqual([
+      {
+        prompt: expect.stringMatching(/^run the audit\n\nAutomation memory: .*\/automations\/audit\/MEMORIES\.md holds notes/),
+        name: 'audit',
+        meta: { subscriptionId: created.details['id'], cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true },
+      },
+    ]);
     expect(fake.sent).toEqual([]);
   });
 
@@ -586,7 +592,9 @@ describe('workspace authority and owner delivery', () => {
     onTestFinished(() => supervisor?.stop());
     await fake.call('subscribe_timer', { name: 'task-backed', prompt: 'fresh', delaySeconds: 1, once: true, sessionStrategy: 'new_session' });
     await vi.advanceTimersByTimeAsync(1_250);
-    expect(fake.fresh).toEqual([{ name: 'task-backed', prompt: 'fresh', meta: { subscriptionId: expect.any(String), cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true } }]);
+    expect(fake.fresh).toEqual([
+      { name: 'task-backed', prompt: expect.stringMatching(/^fresh\n\nAutomation memory: /), meta: { subscriptionId: expect.any(String), cwd: fake.cwd, model: { provider: 'test', id: 'model', thinking: 'high' }, trusted: true } },
+    ]);
     expect(offline).toEqual([]);
     expect(wakes(fake)).toEqual([]);
   });

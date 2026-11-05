@@ -3,9 +3,10 @@ import { join } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { exitCodeOf } from '../cloud/detached.ts';
 import { subagentDir } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
-import { readRecord, recordIds, runningPid, transcriptFor } from './records.ts';
+import { type RunRecord, readRecord, recordIds, runningPid, transcriptFor } from './records.ts';
 import { validateAgentId } from './runner.ts';
 
 const LIST_LIMIT = 20;
@@ -23,6 +24,10 @@ export interface AgentStatus {
   readonly?: boolean;
   directory?: string;
   branch?: string;
+  /** Where a cloud agent runs: `container <name> (<image>)` or `worktree`. */
+  machine?: string;
+  /** The result of a cloud agent's last run, when it finished: how it ended and whether its owner chat has it. */
+  run?: string;
   forkedFrom?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -80,6 +85,13 @@ export function lastAssistantText(transcript: string): string | undefined {
   }
 }
 
+/** How a cloud agent's finished run ended, from the exit code its wrapper recorded. */
+function runSummary(run: RunRecord): string {
+  const code = exitCodeOf(run);
+  const ended = code === undefined ? 'ended without an exit code (stopped or killed)' : code === 0 ? 'finished' : `exited with code ${code}`;
+  return `${ended}; ${run.delivered ? 'its result was delivered to the chat that started it' : 'its result waits for the chat that started it'}`;
+}
+
 /** One agent's state from its record, run lock, and transcript. Reads files only; never starts anything. */
 export function agentStatus(dir: string, agentId: string): AgentStatus {
   const record = readRecord(dir, agentId);
@@ -98,9 +110,15 @@ export function agentStatus(dir: string, agentId: string): AgentStatus {
           type: record.type,
           model: modelName(record.model),
           readonly: record.readonly,
-          directory: record.worktree?.cwd ?? record.cwd,
+          directory: record.machine?.cwd ?? record.cwd,
           createdAt: record.createdAt,
-          ...(record.worktree === undefined ? {} : { branch: record.worktree.branch }),
+          ...(record.machine === undefined
+            ? {}
+            : {
+                branch: record.machine.branch,
+                machine: record.machine.driver === 'container' ? `cloud container ${record.machine.container} (${record.machine.image}), clone of ${record.machine.remote}` : `git worktree ${record.machine.path}`,
+              }),
+          ...(record.run === undefined || pid !== undefined ? {} : { run: runSummary(record.run) }),
           ...(record.forkedFrom === undefined ? {} : { forkedFrom: record.forkedFrom }),
         }),
     ...(existsSync(updated) ? { updatedAt: statSync(updated).mtime.toISOString() } : {}),
@@ -131,6 +149,8 @@ export function statusText(status: AgentStatus): string {
     ['model', status.model],
     ['directory', status.directory],
     ['branch', status.branch],
+    ['machine', status.machine],
+    ['last run', status.run],
     ['forked from', status.forkedFrom],
     ['created', status.createdAt],
     ['updated', status.updatedAt],
@@ -146,7 +166,7 @@ export const AgentStatusParams = Type.Object({
 });
 
 const DESCRIPTION =
-  'Read-only status of subagents in this workspace: running or idle, type, model, directory, worktree branch, created and updated times, and the last response. This is the way to check on a worker; it never starts, messages, or resumes anything. Task resume would message a running agent or restart an idle one instead.';
+  "Read-only status of subagents in this workspace: running or idle, type, model, directory, a cloud agent's machine and branch, created and updated times, and the last response. This is the way to check on a worker; it never starts, messages, or resumes anything. Task resume would message a running agent or restart an idle one instead.";
 
 export function registerAgentStatus(pi: ExtensionAPI): void {
   pi.registerTool({

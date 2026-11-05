@@ -8,6 +8,7 @@ import type { ImageContent, Usage as ProviderUsage } from '@earendil-works/pi-ai
 import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
+import { VIDEO, videoImages } from './video.ts';
 
 // TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one. The child replaces
 // bash with a sandboxed read-only shell (readonly-shell.ts).
@@ -34,16 +35,18 @@ export interface ChildArgsOptions {
   /** Tools the agent type adds to Pi's default loadout (explore's search tools). */
   addTools?: readonly string[];
   onlyTools?: readonly string[];
+  /** rpc for a child of this process; json for a detached cloud agent, whose one prompt arrives on stdin. */
+  mode?: 'rpc' | 'json';
 }
 
-/** Argv for one `pi --mode rpc` subagent process. Its prompts travel as RPC commands on stdin, never in argv. */
+/** Argv for one `pi --mode rpc` subagent process (or a detached `--mode json` run). Prompts never travel in argv. */
 export function childArgs(options: ChildArgsOptions): string[] {
   const extraTools = [...new Set([...(options.restoreTools ?? []), ...(options.addTools ?? [])])];
   const selectedTools = options.onlyTools?.filter((name) => options.readonly !== true || READONLY_TOOLS.includes(name)) ?? (options.readonly === true ? READONLY_TOOLS : undefined);
   const model = options.model === undefined ? [] : ['--model', `${options.model.provider}/${options.model.id}`, ...(options.model.thinking === undefined ? [] : ['--thinking', options.model.thinking])];
   return [
     '--mode',
-    'rpc',
+    options.mode ?? 'rpc',
     '--session-dir',
     options.sessionDir,
     '--session-id',
@@ -78,8 +81,6 @@ export interface ChildInput {
   images: ImageContent[];
 }
 
-const VIDEO = /\.(?:mp4|m4v|mov|webm|avi|mkv)$/i;
-
 /**
  * The first message Pi builds from piped input and `@file` arguments, which RPC mode does not accept: the trimmed
  * prompt, then each non-empty text file in a <file> block, and each image as an attachment with an empty <file> block.
@@ -90,9 +91,11 @@ export async function withAttachments(prompt: string, attachments: readonly stri
   for (const path of attachments) {
     const bytes = readFileSync(path);
     if (bytes.length === 0) continue;
-    // Pi model inputs have no video type. Name the file instead of feeding binary bytes to the text parser.
+    // Pi model inputs have no video type, so a video arrives as its frames with their timestamps.
     if (VIDEO.test(path)) {
-      text += `<file name="${path}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>\n`;
+      const video = await videoImages(path);
+      text += `${video.note}\n`;
+      images.push(...video.images);
       continue;
     }
     const mimeType = await detectSupportedImageMimeTypeFromFile(path);
@@ -131,6 +134,8 @@ export interface ChildHandle {
   /** stop_agent: aborts the run over RPC so the transcript records it, then kills the group if it outlives the grace period. */
   stop: () => void;
   pid: number | undefined;
+  /** A detached cloud agent only: stop following it without touching it, so its done never settles here. */
+  detach?: () => void;
 }
 
 export const zeroUsage = (): Usage => ({ input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0, totalFromProvider: true } });
@@ -153,7 +158,7 @@ export function addUsage(left: Usage, right: Usage): Usage {
   };
 }
 
-interface AssistantRecord {
+export interface AssistantRecord {
   text: string;
   stopReason?: string;
   errorMessage?: string;
@@ -163,14 +168,14 @@ interface AssistantRecord {
  * Usage a JSON-mode event adds to the child's session totals, counted the way Pi's own session stats count it:
  * assistant replies, tool results that carry nested usage (such as a grandchild subagent), and compactions.
  */
-function usageOf(event: Record<string, unknown>): Usage | undefined {
+export function usageOf(event: Record<string, unknown>): Usage | undefined {
   if (event['type'] === 'compaction_end') return (event['result'] as { usage?: Usage } | undefined)?.usage;
   const message = event['message'] as { role?: string; usage?: Usage } | undefined;
   if (event['type'] !== 'message_end' || (message?.role !== 'assistant' && message?.role !== 'toolResult')) return undefined;
   return message.usage;
 }
 
-function readAssistant(event: Record<string, unknown>): AssistantRecord | undefined {
+export function readAssistant(event: Record<string, unknown>): AssistantRecord | undefined {
   const message = event['message'] as { role?: string; content?: { type: string; text?: string }[]; stopReason?: string; errorMessage?: string } | undefined;
   if (event['type'] !== 'message_end' || message?.role !== 'assistant') return undefined;
   const text = (message.content ?? [])
@@ -184,7 +189,7 @@ function readAssistant(event: Record<string, unknown>): AssistantRecord | undefi
   };
 }
 
-function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
+export function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
   const decoder = new StringDecoder('utf8');
   let buffer = '';
   return (chunk) => {
@@ -198,7 +203,7 @@ function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
 }
 
 /** RPC mode reserves stdout for protocol records, but a child extension can still print there; such a line must not crash the parent. */
-function parseEvent(line: string): ({ type: string } & Record<string, unknown>) | undefined {
+export function parseEvent(line: string): ({ type: string } & Record<string, unknown>) | undefined {
   try {
     const value: unknown = JSON.parse(line);
     return typeof value === 'object' && value !== null && typeof (value as { type?: unknown }).type === 'string' ? (value as { type: string } & Record<string, unknown>) : undefined;
