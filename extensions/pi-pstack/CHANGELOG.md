@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.15.36-pi.18] - 2026-11-05
 
 Each item below comes from Cursor's own code, run from the installed desktop 3.27.22 runtime and the CLI 2026.10.22 bundle. `parity/pstack-source-audit-2026-11-05/` in the repository records the captured functions, probes, decisions, and mutation receipts.
 

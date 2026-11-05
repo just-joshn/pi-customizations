@@ -46,7 +46,7 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
 
-## Corrections after 0.15.36-pi.17
+## Repairs in 0.15.36-pi.18
 
 A source audit on 2026-11-05 (UTC) executed Cursor's own agent and Task code from the installed desktop 3.27.22 runtime and the CLI 2026.10.22 bundle. `parity/pstack-source-audit-2026-11-05/` holds the captured functions with their offsets and hashes, the probes that run them, the decision trail, and the mutation receipts. These changes replace three earlier claims: pi.17's "honor `background: true`", pi.10's `ci-watcher` `model: fast`, and pi.11's "a resume that names a `subagent_type` keeps the recorded type".
 
