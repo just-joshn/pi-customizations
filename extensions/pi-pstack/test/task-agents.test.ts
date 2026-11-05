@@ -59,10 +59,12 @@ describe('agent file parsing', () => {
   let dir = '';
   afterEach(() => rmSync(dir, { recursive: true, force: true }));
 
-  test('derives the name from the file and honors model and readonly', () => {
+  test('derives the name from the file and honors model, readonly, permissionMode, and background', () => {
     dir = mkdtempSync(join(tmpdir(), 'agents-'));
     writeFileSync(join(dir, 'auditor.md'), '---\ndescription: Audits.\nmodel: claude-opus-5-5-high\nreadonly: true\n---\nAudit it.\n');
-    const [, , auditor] = loadAgentDefinitions(dir);
+    writeFileSync(join(dir, 'watcher.md'), '---\ndescription: Watches.\npermissionMode: readonly\nbackground: true\n---\nWatch it.\n');
+    const [, , auditor, watcher] = loadAgentDefinitions(dir);
     expect(auditor).toEqual({ type: 'auditor', description: 'Audits.', model: 'claude-opus-5-5-high', readonly: true, background: false, prompt: 'Audit it.', file: join(dir, 'auditor.md') });
+    expect(watcher).toEqual({ type: 'watcher', description: 'Watches.', readonly: true, background: true, prompt: 'Watch it.', file: join(dir, 'watcher.md') });
   });
 });
