@@ -9,21 +9,40 @@ export const GENERATE_IMAGE = 'GenerateImage';
 const ASPECT_RATIOS = ['1:1', '4:3', '3:4', '16:9', '9:16'] as const;
 const EXTENSIONS: Record<string, string> = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/gif': '.gif', 'image/webp': '.webp' };
 
-// Cursor's GenerateImage rules: explicit requests only, no data charts, a concrete description, and no Markdown echo.
+// Cursor's GenerateImage description, as a live Cursor CLI session declared it.
 const DESCRIPTION = [
   'Generate an image file from a text description.',
   '',
-  'Use this tool only when the user explicitly asks for an image; do not generate images just to be helpful. Do not use it for data-heavy visuals such as charts, plots, or tables; make those with code or the visualize tool.',
+  'STRICT INVOCATION RULES (must follow):',
+  '- Only use this tool when the user explicitly asks for an image. Do not generate images "just to be helpful".',
+  '- Do not use this tool for data heavy visualizations such as charts, plots, tables.',
   '',
-  'Describe the image concretely first: the subjects, layout, style, colors, any text, and constraints, in at least 6 words. A description of 3 words or fewer is rejected. Set aspect_ratio when the user asks for one, and pass reference images in reference_image_paths.',
-  'The result shows the generated image and names the saved file, so do not repeat the image as Markdown in your reply.',
+  'General guidelines:',
+  '- Provide a concrete description first: subject(s), layout, style, colors, text (if any), and constraints. Use at least 6 words; descriptions of 3 words or fewer are rejected.',
+  '- If the user requests an aspect ratio, set `aspect_ratio` to one of "1:1", "4:3", "3:4", "16:9", or "9:16".',
+  '- If the user provides reference images, include them in `reference_image_paths`.',
+  '- Do not repeat generated images as Markdown in your response; the client displays tool-generated images automatically.',
+  '',
+  'Examples that should call this tool:',
+  '- user: "Generate an app icon for a note-taking app, minimal flat vector style." (explicitly requests an image asset)',
+  '- user: "Make a UI mockup of a settings screen with a dark mode toggle." (explicitly requests a UI mockup)',
+  '- user: "Generate an asset of a game character with a sword." (explicitly requests a visual asset)',
+  '',
+  'Examples that should not call this tool:',
+  '- user: "Create a plan to refactor this module." (planning request; respond in text or mermaid diagram)',
+  '- user: "Generate a chart of sales and revenue using data.csv." (data visualization; generate via code)',
 ].join('\n');
 
 const Params = Type.Object({
   description: Type.String({ description: 'A detailed description of the image, at least 6 words. Descriptions of 3 words or fewer are rejected.' }),
-  filename: Type.Optional(Type.String({ description: "Optional file name for the image, such as 'diagram.png', without a directory. Defaults to a timestamped name." })),
-  reference_image_paths: Type.Optional(Type.Array(Type.String(), { description: 'Optional paths of reference images to use as additional inputs.' })),
-  aspect_ratio: Type.Optional(Type.Enum(ASPECT_RATIOS, { type: 'string', description: 'Optional aspect ratio: "1:1", "4:3", "3:4", "16:9", or "9:16".' })),
+  filename: Type.Optional(
+    Type.String({
+      description:
+        "Optional filename for the generated image (e.g., 'diagram.png'). Do not include a directory path - the tool automatically handles where to save and how to display the image. If not provided, a timestamped filename will be generated.",
+    }),
+  ),
+  reference_image_paths: Type.Optional(Type.Array(Type.String(), { description: 'Optional array of file paths to reference images as additional inputs.' })),
+  aspect_ratio: Type.Optional(Type.Enum(ASPECT_RATIOS, { type: 'string', description: 'Optional aspect ratio for the generated image. Supported values are "1:1", "4:3", "3:4", "16:9", and "9:16".' })),
 });
 
 type ImageBlock = { type: 'image'; data: string; mimeType: string };

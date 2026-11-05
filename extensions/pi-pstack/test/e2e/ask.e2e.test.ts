@@ -53,8 +53,8 @@ test('asks each question through UI dialogs and returns option IDs (HOST-005)', 
   }
 });
 
-test('shows the title and option descriptions of a Cursor-shaped call and still returns IDs (HOST-005)', async () => {
-  // Shape observed in Cursor IDE AskQuestion calls: a top-level title and optional option descriptions.
+test('accepts the option descriptions models send in Cursor IDE calls and, as Cursor strips them, shows only labels (HOST-005)', async () => {
+  // Shape observed in Cursor IDE AskQuestion calls: a top-level title and option descriptions the schema does not declare.
   const confirm = {
     id: 'confirm',
     prompt: 'Write the rule with this table?',
@@ -74,9 +74,7 @@ test('shows the title and option descriptions of a Cursor-shaped call and still 
     });
     rpc.send({ type: 'prompt', message: script([{ tool: 'AskQuestion', args: { title: 'Confirm pstack rule', questions: [confirm] } }]) });
     const end = await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'AskQuestion');
-    expect(seen.map((event) => [event['title'], event['options']])).toEqual([
-      ['Confirm pstack rule: Write the rule with this table?', ['Accept as-is (Recommended) — Keep all roles on inherit-parent.', 'Change specific roles', 'Other: (type to answer)']],
-    ]);
+    expect(seen.map((event) => [event['title'], event['options']])).toEqual([['Confirm pstack rule: Write the rule with this table?', ['Accept as-is (Recommended)', 'Change specific roles', 'Other: (type to answer)']]]);
     expect((end['result'] as { details: unknown }).details).toEqual({ answers: { confirm: ['accept'] } });
   } finally {
     await rpc.close();

@@ -1,32 +1,82 @@
 {
   "Task": {
-    "cursorWords": 687,
-    "piWords": 673,
-    "keptOfCursor": 0.964,
-    "piFromCursor": 0.984
+    "description": {
+      "cursorWords": 687,
+      "piWords": 673,
+      "keptOfCursor": 0.964,
+      "piFromCursor": 0.984
+    },
+    "parameters": {
+      "description": 1,
+      "prompt": 1,
+      "model": 0.956,
+      "resume": 1,
+      "subagent_type": 0.813,
+      "file_attachments": 1,
+      "run_in_background": 1
+    },
+    "piOnlyParameters": [
+      "fork",
+      "fork_turns",
+      "readonly",
+      "environment",
+      "cloud_base_branch"
+    ]
   },
   "TodoWrite": {
-    "cursorWords": 559,
-    "piWords": 240,
-    "keptOfCursor": 0.159,
-    "piFromCursor": 0.371
+    "description": {
+      "cursorWords": 559,
+      "piWords": 559,
+      "keptOfCursor": 1,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "todos": 1,
+      "merge": 1
+    },
+    "piOnlyParameters": []
   },
   "SwitchMode": {
-    "cursorWords": 462,
-    "piWords": 3,
-    "keptOfCursor": 0,
-    "piFromCursor": 0
+    "description": {
+      "cursorWords": 462,
+      "piWords": 422,
+      "keptOfCursor": 0.913,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "target_mode_id": 1,
+      "explanation": 1
+    },
+    "piOnlyParameters": []
   },
   "GenerateImage": {
-    "cursorWords": 228,
-    "piWords": 113,
-    "keptOfCursor": 0.237,
-    "piFromCursor": 0.478
+    "description": {
+      "cursorWords": 228,
+      "piWords": 228,
+      "keptOfCursor": 1,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "description": 1,
+      "filename": 1,
+      "reference_image_paths": 1,
+      "aspect_ratio": 1
+    },
+    "piOnlyParameters": []
   },
   "AwaitShell": {
-    "cursorWords": 507,
-    "piWords": 484,
-    "keptOfCursor": 0.953,
-    "piFromCursor": 0.998
+    "description": {
+      "cursorWords": 507,
+      "piWords": 484,
+      "keptOfCursor": 0.953,
+      "piFromCursor": 0.998
+    },
+    "parameters": {
+      "shell_id": 1,
+      "block_until_ms": 1,
+      "pattern": 1,
+      "waiting_for_subagent": 1
+    },
+    "piOnlyParameters": []
   }
 }

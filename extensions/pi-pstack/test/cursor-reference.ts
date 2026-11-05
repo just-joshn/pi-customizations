@@ -35,6 +35,28 @@ const TASK_WORDING: readonly (readonly [string, string])[] = [
   ['Available types are listed in the initial user-info message.', 'Available types are listed in <pstack_subagents> in the system prompt.'],
 ];
 
+export const cursorToolText = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'test/fixtures/cursor-tool-text.json'), 'utf8')) as {
+  tools: Record<string, { description: string; parameters: Record<string, string>; required: string[] }>;
+};
+
+// What Pi leaves out of Cursor's tool descriptions: modes, renderers, and a user action Pi does not have.
+const TOOL_OMISSIONS: Record<string, readonly string[]> = {
+  SwitchMode: [
+    '### Debug Mode (cannot switch to this mode)\nSystematic troubleshooting mode for investigating bugs, failures, and unexpected behavior with runtime evidence.\n\n### Ask Mode (cannot switch to this mode)\nRead-only mode for exploring code and answering questions without making changes.\n\n',
+  ],
+  AwaitShell: [', because it renders nicely to the user', '\n- Never poll a task whose tool result says it was "manually backgrounded by the user".'],
+};
+
+/** Cursor's description of a tool, minus what Pi lacks. Each omission must apply, so a Cursor text that moves fails here. */
+export function cursorToolDescription(name: string): string {
+  let text = cursorToolText.tools[name]?.description ?? '';
+  for (const omission of TOOL_OMISSIONS[name] ?? []) {
+    if (!text.includes(omission)) throw new Error(`${name}: omission not found: ${omission.slice(0, 40)}`);
+    text = text.replace(omission, '');
+  }
+  return text;
+}
+
 /** Cursor's Task text in Pi's wording. Each change must apply, so a Cursor text that moves fails here. */
 export function cursorTaskText(text: string, expectedChanges: number): string {
   let changed = 0;

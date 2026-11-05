@@ -10,6 +10,16 @@ try {
 
 export class OutputWatchDependencyError extends Error {}
 
+/** A pattern's first match in multiline RE2, the syntax Cursor's shell tools accept for patterns. */
+export function firstMatcher(pattern: string): (text: string) => string | undefined {
+  if (regexEngine === undefined) throw new OutputWatchDependencyError('Shell output patterns need the re2js dependency. Run bun install in the pi-pstack package directory, then reload Pi.');
+  const regex = regexEngine.compile(pattern, regexEngine.MULTILINE);
+  return (text) => {
+    const matcher = regex.matcher(text);
+    return matcher.find() ? (matcher.group() ?? '') : undefined;
+  };
+}
+
 export interface OutputWatchRequest {
   pattern: string;
   reason: string;

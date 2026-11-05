@@ -4,6 +4,7 @@
 //   @@sys                        reply with the current system prompt
 //   @@tools-list                 reply with the declared tool names, comma separated
 //   @@tool-description <name>    reply with the declared description of that tool
+//   @@tool-schema <name>         reply with the declared parameter schema of that tool, as JSON
 //   @@count                      reply USERS=<number of user messages in the transcript>
 //   @@loop-until <n>             while fewer than n user messages exist, call Loop {wake_in:"1s"}; then reply DONE
 //   @@fail <message>             end the turn with an error stop reason
@@ -62,6 +63,10 @@ function directiveReply(directive: string, argument: string, messages: readonly 
     }
     case 'tool-description':
       return fauxAssistantMessage(getCurrentTools(messages).find((tool) => tool.name === argument.trim())?.description ?? 'NO SUCH TOOL');
+    case 'tool-schema': {
+      const tool = getCurrentTools(messages).find((candidate) => candidate.name === argument.trim());
+      return fauxAssistantMessage(tool === undefined ? 'NO SUCH TOOL' : JSON.stringify(tool.parameters));
+    }
     case 'count':
       return fauxAssistantMessage(`USERS=${messages.filter((message) => message.role === 'user').length}`);
     case 'tools-list':

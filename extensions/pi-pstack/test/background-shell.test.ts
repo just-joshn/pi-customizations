@@ -92,6 +92,12 @@ describe('background jobs', () => {
     expect(missed).toMatch(/^Task still running after \d+ms\.\.\. Pattern did NOT match\.\n/);
   });
 
+  shell('AwaitShell patterns are RE2, as Cursor compiles them: inline flags work and lookahead is refused', async ({ dir, jobs }) => {
+    const job = start(jobs, dir, 'echo ready-now; sleep 30');
+    await expect(jobs.awaitJob(job.id, 20_000, '(?i)^READY-\\w+', undefined)).resolves.toMatch(/^Task still running after \d+ms\.\.\. Pattern matched: ready-now\n/);
+    await expect(jobs.awaitJob(job.id, 10, 'ready(?=-now)', undefined)).rejects.toThrow('Invalid pattern /ready(?=-now)/');
+  });
+
   shell("AwaitShell on an unknown shell fails with Cursor's error", async ({ jobs }) => {
     await expect(jobs.awaitJob('999999999', 10, undefined, undefined)).rejects.toThrow('Error awaiting task: No shell found for id 999999999');
   });

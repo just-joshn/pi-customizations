@@ -1,0 +1,50 @@
+mutation ask-text: src/ask.ts
+-       '- Users will always be able to select "Other" to provide custom text input',
++       '- The user can always pick "Other" and type an answer.',
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/host.e2e.test.ts (21 tests | 1 failed | 19 skipped) 972ms
+   ❯ declared tool descriptions (3)
+     × AskQuestion carries Cursor's description 280ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 19 skipped (21)
+   Start at  22:10:38
+   Duration  1.46s (tests 70%, import 26%, transform 4%)
+
+
+$ vitest run "test/e2e/host.e2e.test.ts" -t AskQuestion
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/host.e2e.test.ts > declared tool descriptions > AskQuestion carries Cursor's description
+AssertionError: expected 'Collect structured multiple-choice an…' to be 'Collect structured multiple-choice an…' // Object.is equality
+
+- Expected
++ Received
+
+  Collect structured multiple-choice answers from the user. Use this tool only when you are blocked on a decision that is genuinely the user's to make: one you cannot resolve from the request, the code, or sensible defaults.
+
+  Usage notes:
+  - Each question should have at least 2 options for the user to choose from
+- - Users will always be able to select "Other" to provide custom text input
++ - The user can always pick "Other" and type an answer.
+  - Use allow_multiple: true to allow multiple answers to be selected for a question
+  - If you recommend a specific option, make that the first option in the list and add "(Recommended)" at the end of the label
+
+  Prefer this tool over listing options in your final response text (as letters, numbers, bullet points, etc).
+
+ ❯ test/e2e/host.e2e.test.ts:151:35
+    149|
+    150|   test.for(['AskQuestion', 'TodoWrite'])("%s carries Cursor's descript…
+    151|     expect(await described(tool)).toBe(cursorToolDescription(tool));
+       |                                   ^
+    152|   });
+    153| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

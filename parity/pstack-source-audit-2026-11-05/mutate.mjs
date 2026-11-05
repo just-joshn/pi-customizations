@@ -59,6 +59,42 @@ const mutations = {
     replace: 'A running agent receives the prompt as a steer.',
     tests: ['test/task-text.test.ts'],
   },
+  'todo-text': {
+    file: 'src/todo.ts',
+    find: "  'When in doubt, use this tool. Proactive task management demonstrates attentiveness and ensures complete requirements.',",
+    replace: '',
+    tests: ['test/e2e/tool-text.e2e.test.ts'],
+  },
+  'switch-text': {
+    file: 'src/plan.ts',
+    find: "  '- **User approval required**: Mode switches require user consent',",
+    replace: "  '- **User approval required**: The user must approve every switch.',",
+    tests: ['test/e2e/tool-text.e2e.test.ts'],
+  },
+  'await-re2': {
+    file: 'src/background-shell.ts',
+    find: '    return firstMatcher(pattern);',
+    replace: "    const regex = new RegExp(pattern, 'm');\n    return (text: string) => regex.exec(text)?.[0];",
+    tests: ['test/background-shell.test.ts', '-t', 'RE2'],
+  },
+  'await-subagent': {
+    file: 'src/background-shell.ts',
+    find: "      if (params.waiting_for_subagent === true) throw new Error('You should NOT wait for subagents to complete. End your turn instead; completions are queued, or do parallel work.');\n",
+    replace: '',
+    tests: ['test/e2e/background-shell.e2e.test.ts', '-t', 'refuses to wait for subagents'],
+  },
+  'ask-text': {
+    file: 'src/ask.ts',
+    find: '      \'- Users will always be able to select "Other" to provide custom text input\',',
+    replace: '      \'- The user can always pick "Other" and type an answer.\',',
+    tests: ['test/e2e/host.e2e.test.ts', '-t', 'AskQuestion'],
+  },
+  'ask-option-description': {
+    file: 'src/ask.ts',
+    find: "          label: Type.String({ description: 'Display text for this option' }),\n",
+    replace: "          label: Type.String({ description: 'Display text for this option' }),\n          description: Type.Optional(Type.String({ description: 'Detail shown after the label' })),\n",
+    tests: ['test/ask.test.ts', 'test/e2e/tool-text.e2e.test.ts'],
+  },
   'empty-prompt': {
     file: 'src/task/tool.ts',
     find: "  if (params.prompt.trim() === '') throw new Error('prompt is required');\n",

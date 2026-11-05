@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/tool-text.e2e.test.ts" test/background-shell.test.ts "test/e2e/background-shell.e2e.test.ts" test/todo.test.ts test/plan.test.ts test/generate-image.test.ts "test/e2e/plan.e2e.test.ts" "test/e2e/todo.e2e.test.ts"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  8 passed (8)
+      Tests  82 passed (82)
+   Start at  22:05:20
+   Duration  13.31s (tests 77%, import 20%, transform 2%)
+

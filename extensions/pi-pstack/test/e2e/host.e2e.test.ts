@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
-import { cursorAgents, cursorTaskText } from '../cursor-reference.ts';
+import { cursorAgents, cursorTaskText, cursorToolDescription } from '../cursor-reference.ts';
 import { assistantTexts, contentText, makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
@@ -147,23 +147,8 @@ describe('declared tool descriptions', () => {
     expect(await described('Task')).toBe(cursorTaskText(cursorAgents.task.description, 6));
   });
 
-  test("AskQuestion carries Cursor's question rules", async () => {
-    const text = await described('AskQuestion');
-    expect([
-      text.includes("Use this tool only when you are blocked on a decision that is genuinely the user's to make"),
-      text.includes('put it first and end its label with "(Recommended)"'),
-      text.includes('Prefer this tool over listing options in your reply text'),
-    ]).toEqual([true, true, true]);
-  });
-
-  test("TodoWrite carries Cursor's todo rules", async () => {
-    const text = await described('TodoWrite');
-    expect([
-      text.includes('do not tell the user you are updating todos'),
-      text.includes('keep only one task in_progress at a time'),
-      text.includes('Skip it for a single straightforward task'),
-      text.includes('Batch todo updates with your other tool calls.'),
-    ]).toEqual([true, true, true, true]);
+  test.for(['AskQuestion', 'TodoWrite'])("%s carries Cursor's description", async (tool) => {
+    expect(await described(tool)).toBe(cursorToolDescription(tool));
   });
 });
 
