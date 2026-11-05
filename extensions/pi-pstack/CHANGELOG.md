@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.36-pi.15] - 2026-11-04
+
+- Match watched shell output before a newline or process exit. Count every occurrence within a chunk and retain matches across chunk boundaries.
+- Match the captured observer's batching, minimum debounce, completion flush, and 100-occurrence limit notice.
+- Decode stdout and stderr independently so split UTF-8 characters reach the output file and monitor intact.
+- Pin `re2js` 1.2.2 for output-watch patterns. Invalid patterns warn without stopping the command. A missing dependency leaves unrelated tools available but rejects a valid requested watch before the command runs.
+- Record the pinned reference, original-component comparisons, and open requirements in `parity/pstack-full-parity-2026-11-04/`. Whole-plugin parity remains `NOT VERIFIED`.
+
 ## [0.15.36-pi.14] - 2026-11-04
 
 Each item below was checked against Cursor CLI 2026.10.22 with pstack and cursor-team-kit loaded, through live captures. `parity/pstack-native-parity-2026-11-04/` in the repository records the evidence and the decisions.
