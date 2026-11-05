@@ -5,11 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 import { loadSkills, parseFrontmatter } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
+import { slackEventText } from '../src/slack/trigger.ts';
 import { loadAgentDefinitions } from '../src/task/agents.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SKILL_COUNT = 79;
-const HIDDEN_COUNT = 61;
+const SKILL_COUNT = 80;
+const HIDDEN_COUNT = 62;
 const TEAM_KIT = [
   'check-compiler-errors',
   'control-cli',
@@ -82,7 +83,8 @@ function shippedFiles(predicate: (path: string) => boolean): string[] {
  * "cursor" is a text or loop cursor) except the spans listed in OUTSIDE_DATA, each on its own file with the reason.
  */
 const CURSOR_HOST_TERMS =
-  /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|Alt\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cloud agent|cloud VM|cursor-team-kit|Grok Bot/i;
+  // Cloud agents, cloud VMs, and Alt+Enter modes are Pi features now (Task environment cloud, /in-cloud, mode.ts).
+  /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cursor-team-kit|Grok Bot/i;
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
@@ -183,14 +185,13 @@ describe('shipped resources', () => {
     expect(skills.filter((skill) => skill.filePath.includes('/automations/'))).toEqual([]);
   });
 
-  test('Benny operational skills accept message_ts when thread_ts is empty (RES-015)', () => {
-    // Templates and setup document message_ts. Upstream skills only named trigger.ts, so a top-level Slack
-    // event with empty thread_ts could not freeze SOURCE_THREAD_TS from the documented payload.
+  test('Benny operational skills freeze the thread from trigger.thread_ts or trigger.ts, the keys subscribe_slack sends (RES-015)', () => {
     for (const rel of ['automations/benny/skills/triage-issue-reports/SKILL.md', 'automations/benny/skills/reproduce-and-fix-issues/SKILL.md']) {
-      const text = readFileSync(join(root, rel), 'utf8');
-      expect(text).toContain('trigger.message_ts');
-      expect(text).toMatch(/trigger\.thread_ts.*trigger\.message_ts.*trigger\.ts/s);
+      expect(readFileSync(join(root, rel), 'utf8')).toContain('Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.');
     }
+    const event = slackEventText('benny triage', 'triage it', 'C0SLACK', { ts: '1900000000.000100', user: 'U1', text: 'it drifts' });
+    const block = event.split('<slack_event>')[1]?.split('</slack_event>')[0] ?? '{}';
+    expect((JSON.parse(block) as { trigger: unknown }).trigger).toMatchObject({ source_channel_id: 'C0SLACK', ts: '1900000000.000100', thread_ts: '', user: 'U1', text: 'it drifts' });
   });
 
   test('ships both MIT license texts (RES-009)', () => {

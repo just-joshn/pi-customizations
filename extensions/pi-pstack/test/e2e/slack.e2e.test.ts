@@ -96,7 +96,10 @@ test('a Slack channel subscription fires once per new top-level report with its 
   expect(toolEnds(owner.events, 'slack_read_thread')[0]?.text).toContain(`${report} <U1>: the scroll drifts every 750ms`);
   expect(slack.calls.filter((call) => call.method === 'chat.postMessage').map((call) => call.body)).toEqual([{ channel: 'C0SLACK', text: 'triaged [benny:bug]', thread_ts: report }]);
   expect(slack.calls.some((call) => call.method === 'reactions.add' && call.body['name'] === 'eyes' && call.body['timestamp'] === report)).toBe(true);
-  await new Promise((resolve) => setTimeout(resolve, 1_500));
+  // Three more polls after the wake read the same channel, the thread reply included, and fire nothing.
+  const polls = () => slack.calls.filter((call) => call.method === 'conversations.history').length;
+  const seen = polls();
+  await expect.poll(polls, { timeout: 10_000 }).toBeGreaterThanOrEqual(seen + 3);
   expect(wakes(owner.events)).toHaveLength(1);
 });
 

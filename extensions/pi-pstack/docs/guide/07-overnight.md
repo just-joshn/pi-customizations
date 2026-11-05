@@ -1,6 +1,6 @@
 # Run work while you sleep
 
-This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree or isolated worker, and a decision log you audit in the morning.
+This is the payoff for everything before it. An agent you can trust to verify its own work is an agent you can leave alone with a hard task. What makes that safe isn't hope. It's a checkable finish condition, an isolated worktree or cloud agent, and a decision log you audit in the morning.
 
 ![She waves goodnight from the door while robots keep the factory running, one updating a DECISION LOG wall board under a BUILD LOOP ACTIVE sign.](./images/overnight.jpg)
 
@@ -93,12 +93,12 @@ The contract above drives one task to one finish condition. Some nights hold mor
 
 ## Run many projects in parallel
 
-A Project gives one coordinator agent a persistent home. pi-pstack names a project folder in the system prompt: `projects/<project-slug>/` holds `notes.md`, the Project tracker, and `store/`, the Project store, and every subagent sees the same paths. The coordinator doesn't write code. It directs subagents, which run as isolated workers by default, each in its own worktree and branch, so the work continues while you're away. Keep the coordinator's Pi session running, for example in tmux, and keep the machine awake, because the workers run on it. That's the shape the Orchestrate playbook expects. Start your prompts to the coordinator with `/poteto-mode`, and the subagents it spawns follow the playbooks.
+A Project gives one coordinator agent a persistent thread. Start one with `/project new <name>` in the coordinator's chat: its tracker (`notes.md`) and store reach the coordinator and every subagent it starts. The coordinator doesn't write code. It directs subagents, which run in the cloud by default, each on its own machine, so the work continues when the chat closes. Keep the machine that runs Pi awake, because the agents' Pi processes run there. That's the shape the Orchestrate playbook expects. Start your prompts to the coordinator with `/poteto-mode`, and the subagents it spawns follow the playbooks.
 
 A few habits help:
 
 - Give each body of work its own Project, such as a feature, a migration, a perf push, or a tech-debt cleanup. Several can run side by side.
-- List related chats in the Project's `notes.md`, finished ones included, with their session files. The tracker becomes context for every agent in it.
+- Add related chats to the Project with `/project add <slug>`, finished ones included. They become context for every agent in it.
 - Give each PR a verification swarm before it merges, and let Autopilot-stack or Autopilot-full carry the queue.
 - Ask the coordinator for a plan backed by data, and have it answer open questions with prototypes before it asks you.
 

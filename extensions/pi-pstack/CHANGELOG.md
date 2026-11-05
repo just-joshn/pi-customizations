@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.15.36-pi.19] - 2026-11-05
+
+Closes the host gaps earlier versions documented. `parity/pstack-complete-2026-11-05/` in the repository records the decisions, the levers that rebuilt the text, and the mutation receipts.
+
+- Run cloud agents (`environment: "cloud"`) on their own machine: a container from `.pi/environment.json` (or `PSTACK_CLOUD_IMAGE`, default `node:24-bookworm`) with a fresh clone of the pushed remote, the Projects folder, and the root store, and every tool routed into it while the Pi process and model credentials stay on the host. Their own subagents run on the same machine. Without a container engine they run in a local worktree, and the system prompt says so.
+- Run cloud agents detached: they keep running when the chat closes, the reopened chat receives a result it missed once, `agent_status` shows the machine and last run, `stop_agent` stops the container too, and a resume boots the stopped container with its disk.
+- Add `/in-cloud`, which sends the next task (or its argument) to a background cloud agent.
+- Restore pstack's cloud-agent wording in swarm, orchestrate, multi-phase-plan, autopilot-full, shipping, session-pickup, poteto-mode, poteto-help, and the guide.
+- Let readonly and plan-mode shells make network reads, with writes and Unix sockets still blocked.
+- Add `subscribe_slack` and the Slack tools (`slack_read_channel`, `slack_read_thread`, `slack_send`, `slack_react`, `slack_update`) for top-level chats; subagents get neither the tools nor `SLACK_BOT_TOKEN`.
+- Add automations: `environment: "cloud"` for `new_session` subscriptions, a `MEMORIES.md` per automation named in every fire, the `automate` skill (`/automate`), and `/automations` to list, edit, or disable.
+- Rebuild the Benny pack from upstream on the Slack trigger, the Slack tools, and `/automate`.
+- Add `request_secret` and `/secret`, which store a secret typed into a masked field in a connector credential file, and ask for confirmation before creating a webhook routine.
+- Add `/project`: a Project's tracker, store, and chats reach the chat and its subagents, and the footer shows the Project and how many subscriptions the chat listens to.
+- Send a video in `file_attachments` as timestamped frames; the parameter text is Cursor's again.
+- Enter a skill's mode with Alt+Enter on a `/skill` line.
+
 ## [0.15.36-pi.18] - 2026-11-05
 
 Each item below comes from Cursor's own code, run from the installed desktop 3.27.22 runtime and the CLI 2026.10.22 bundle. `parity/pstack-source-audit-2026-11-05/` in the repository records the captured functions, probes, decisions, and mutation receipts.

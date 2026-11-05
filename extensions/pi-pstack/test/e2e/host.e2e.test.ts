@@ -53,7 +53,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(`- Projects: a program's Project is ${join(workspace, 'projects')}/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store.`);
     expect(host).toMatch(new RegExp(`- Files a tool makes for the user, such as visualize charts, go in ${join(workspace, 'artifacts')}/[0-9a-f-]+\\.`));
     expect(host).toContain(`- Transcripts: this workspace's Pi session files are in ${join(sandbox.agentDir, 'sessions')}/--${sandbox.workDir.replace(/^\//, '').replaceAll('/', '-')}--.`);
-    expect(host).toContain('Installed skills (79): architect, arena, automate-me,');
+    expect(host).toContain('Installed skills (80): architect, arena, automate, automate-me,');
     expect(host).toContain("agent_status reads a subagent's state without waking it.");
     expect(host).toContain('- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).');
     expect(host).toContain('- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
@@ -71,7 +71,10 @@ describe('host map (HOST-001)', () => {
 
   test('tells a one-shot run it cannot subscribe, and a long-lived session how subscriptions wake it (HOST-010)', async () => {
     const [rpc, oneShot] = [section(await rpcSystemPrompt(), 'pstack_host'), section(await systemPrompt(['--no-session']), 'pstack_host')];
-    expect([rpc.includes('- Subscriptions (subscribe_github_pr, subscribe_timer, subscribe_webhook) wake this chat'), oneShot.includes('- Subscriptions: this run ends when it settles, so nothing can wake it')]).toEqual([true, true]);
+    expect([rpc.includes('- Subscriptions (subscribe_github_pr, subscribe_timer, subscribe_webhook, subscribe_slack) wake this chat'), oneShot.includes('- Subscriptions: this run ends when it settles, so nothing can wake it')]).toEqual([
+      true,
+      true,
+    ]);
   });
 
   test("names the main chat's own store as the root agent's store", async () => {

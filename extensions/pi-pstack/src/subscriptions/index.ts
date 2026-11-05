@@ -2,12 +2,12 @@ import { randomBytes } from 'node:crypto';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
-import { RE2JS } from 're2js';
 import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { canAsk, isOneShot } from '../modes.ts';
 import { routinesDir } from '../paths.ts';
 import { acquireLease, type Lease } from '../process-lock.ts';
+import { re2Test } from '../shell-output-watch.ts';
 import { NOT_CONNECTED, slackToken } from '../slack/client.ts';
 import { parseCron } from './cron.ts';
 import { cancelDesired, canonicalPath, createDesired, deliverOwner, finishFresh, isDesired, isSupervisorLive, ownerLockPath, readArm, readRegistry, runsDetached, startFresh, visibleSubscriptions } from './durable-store.ts';
@@ -646,7 +646,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
     async execute(_id, params, _signal, _onUpdate, ctx) {
       if (isOneShot(ctx.mode)) throw oneShotError('subscribe_slack');
       if (!SLACK_CHANNEL.test(params.channel)) throw new Error(`channel must be a Slack channel ID such as C0123456789, not "${params.channel}".`);
-      if (params.filter !== undefined) RE2JS.compile(params.filter);
+      if (params.filter !== undefined) re2Test(params.filter);
       if (slackToken() === undefined) throw new Error(NOT_CONNECTED);
       const config: SlackConfig = {
         kind: 'slack',

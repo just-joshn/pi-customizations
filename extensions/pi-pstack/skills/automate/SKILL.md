@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Automate
 
-Turn the user's description of a scheduled or event-driven job into one live automation. An automation is a pi-pstack subscription with `sessionStrategy: "new_session"`: every fire starts a fresh agent run with no chat open, and with `environment: "cloud"` that run is a cloud agent on its own machine with a fresh clone of the pushed repository, the way a Cursor automation starts a cloud agent. Its outcome is recorded in `list_subscriptions`, and it keeps notes across runs in its memory file.
+Turn the user's description of a scheduled or event-driven job into one live automation. An automation is a pi-pstack subscription with `sessionStrategy: "new_session"`: every fire starts a fresh agent run with no chat open, and with `environment: "cloud"` that run is a cloud agent on its own machine with a fresh clone of the pushed repository. Its outcome is recorded in `list_subscriptions`, and it keeps notes across runs in its memory file.
 
 This skill only creates. To inspect, edit, or disable an existing automation, the user runs `/automations`. Never create a second automation under a new name to change an old one.
 

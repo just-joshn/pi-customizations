@@ -6,7 +6,7 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 
 | Package | What it does |
 | --- | --- |
-| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | pstack 0.15.36 for Pi: the `/poteto-mode` workflows and principle skills, plus the host features they call: `/mode`, `/plan`, `/loop`, the `Task` subagent tool, `TodoWrite`, `AskQuestion`, `GenerateImage`, `SwitchMode`, the model rule, subscriptions, and `visualize`. |
+| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | pstack 0.15.36 for Pi: the `/poteto-mode` workflows and principle skills, plus the host features they call: `/mode`, `/plan`, `/loop`, the `Task` subagent tool with cloud agents on their own machines, `/in-cloud`, `TodoWrite`, `AskQuestion`, `GenerateImage`, `SwitchMode`, the model rule, subscriptions with Slack triggers and automations (`/automate`, `/automations`), Projects, `request_secret`, and `visualize`. |
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-xai-oauth`](extensions/pi-xai-oauth/README.md) | Lets a SuperGrok or X Premium subscription answer in Pi through the `grok-build` provider. |

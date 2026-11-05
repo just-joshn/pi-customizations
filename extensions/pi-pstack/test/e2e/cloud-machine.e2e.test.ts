@@ -4,7 +4,7 @@ import { createServer } from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 const IMAGE = process.env['PSTACK_TEST_CLOUD_IMAGE'] ?? 'node:22.22.2-bookworm';
@@ -75,14 +75,7 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     const port = await freePort();
     daemon = spawn('git', ['daemon', '--reuseaddr', '--export-all', '--enable=receive-pack', `--base-path=${sandbox.root}`, `--port=${port}`, '--listen=0.0.0.0', sandbox.root], { stdio: 'ignore' });
     const url = `git://${lanAddress()}:${port}/remote.git`;
-    for (let attempt = 0; attempt < 50; attempt += 1) {
-      try {
-        execFileSync('git', ['ls-remote', url], { stdio: 'ignore', timeout: 5_000 });
-        break;
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    }
+    await vi.waitFor(() => execFileSync('git', ['ls-remote', url], { stdio: 'ignore', timeout: 5_000 }), { timeout: 10_000, interval: 100 });
     execFileSync('git', ['clone', '-q', url, sandbox.workDir]);
     writeFileSync(join(sandbox.workDir, 'a.txt'), 'UNPUSHED');
     git(sandbox.workDir, 'commit', '-qam', 'local only');
@@ -197,9 +190,9 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     await second.waitFor((event) => event.type === 'agent_settled', 60_000);
     await second.close();
     const third = startRpc(sandbox, ['--session', sessionFile]);
-    third.send({ id: 'state2', type: 'get_state' });
-    await third.waitFor((event) => event.type === 'response' && event['id'] === 'state2');
-    await new Promise((resolve) => setTimeout(resolve, 1_500));
+    // A redelivery would arrive at session start, ahead of this prompt's turn.
+    third.send({ type: 'prompt', message: 'go\n@@say NOTHING-PENDING' });
+    await third.waitFor((event) => event.type === 'agent_settled', 60_000);
     expect(third.events.filter((event) => event.type === 'message_end' && JSON.stringify(event['message'] ?? {}).includes(`task_id: ${agentId}`))).toEqual([]);
     await third.close();
   });

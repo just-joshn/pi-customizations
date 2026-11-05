@@ -4,7 +4,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { RE2JS } from 're2js';
+import { re2Test } from '../shell-output-watch.ts';
 import { channelHistory, isReport, isTopLevel, type SlackMessage, threadReplies } from './client.ts';
 
 export const SLACK_POLL_ENV = 'PSTACK_SLACK_POLL_MS';
@@ -58,8 +58,8 @@ export function startCursor(nowMs: number): SlackCursor {
  * messages fire; with one, messages and thread replies whose text matches it.
  */
 export async function pollSlack(config: SlackTriggerConfig, cursor: SlackCursor): Promise<{ fires: SlackFire[]; cursor: SlackCursor }> {
-  const pattern = config.filter === undefined ? undefined : RE2JS.compile(config.filter);
-  const matches = (message: SlackMessage) => pattern === undefined || pattern.matcher(message.text ?? '').find();
+  const pattern = config.filter === undefined ? undefined : re2Test(config.filter);
+  const matches = (message: SlackMessage) => pattern === undefined || pattern(message.text ?? '');
   const fires: SlackFire[] = [];
   let { ts, replyTs } = cursor;
   for (const message of await channelHistory(config.channel, cursor.ts)) {
