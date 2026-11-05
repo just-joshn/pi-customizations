@@ -11,7 +11,7 @@ import type { ModelSpec } from './models.ts';
 
 // TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one. The child replaces
 // bash with a sandboxed read-only shell (readonly-shell.ts).
-const READONLY_TOOLS = 'read,grep,find,ls,bash,TodoWrite';
+const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash', 'TodoWrite'];
 const AGENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,126}[A-Za-z0-9]$/;
 export const KILL_GRACE_MS = 3_000;
 // Dialogs block a run until answered. A subagent has nobody to ask, so its owner dismisses them.
@@ -33,11 +33,13 @@ export interface ChildArgsOptions {
   trusted?: boolean;
   /** Tools the agent type adds to Pi's default loadout (explore's search tools). */
   addTools?: readonly string[];
+  onlyTools?: readonly string[];
 }
 
 /** Argv for one `pi --mode rpc` subagent process. Its prompts travel as RPC commands on stdin, never in argv. */
 export function childArgs(options: ChildArgsOptions): string[] {
   const extraTools = [...new Set([...(options.restoreTools ?? []), ...(options.addTools ?? [])])];
+  const selectedTools = options.onlyTools?.filter((name) => options.readonly !== true || READONLY_TOOLS.includes(name)) ?? (options.readonly === true ? READONLY_TOOLS : undefined);
   const model = options.model === undefined ? [] : ['--model', `${options.model.provider}/${options.model.id}`, ...(options.model.thinking === undefined ? [] : ['--thinking', options.model.thinking])];
   return [
     '--mode',
@@ -50,8 +52,8 @@ export function childArgs(options: ChildArgsOptions): string[] {
     PACKAGE_ROOT,
     ...(options.trusted === undefined ? [] : [options.trusted ? '--approve' : '--no-approve']),
     ...model,
-    ...(options.readonly === true ? ['--tools', READONLY_TOOLS, '--no-mcp'] : []),
-    ...(options.readonly !== true && extraTools.length > 0 ? ['--tools', extraTools.map((name) => `+${name}`).join(',')] : []),
+    ...(selectedTools === undefined ? [] : ['--tools', selectedTools.join(','), '--no-mcp']),
+    ...(selectedTools === undefined && extraTools.length > 0 ? ['--tools', extraTools.map((name) => `+${name}`).join(',')] : []),
   ];
 }
 

@@ -15,7 +15,7 @@ test('a poteto-mode session carries the mode, a referenced skill, a background p
     rpc.send({ id: 'mode', type: 'prompt', message: '/mode poteto-mode' });
     await rpc.waitFor((event) => event.type === 'response' && event['id'] === 'mode');
     const steps = [
-      { tool: 'Task', args: { description: 'delegate', prompt: 'child task\n@@say CHILD-DONE', subagent_type: 'poteto-agent' } },
+      { tool: 'Task', args: { description: 'delegate', prompt: 'child task\n@@say CHILD-DONE', subagent_type: 'poteto-agent', run_in_background: true } },
       { tool: 'TodoWrite', args: { todos: [{ id: '1', content: 'fix the drift', status: 'in_progress' }], merge: false } },
     ];
     rpc.send({ type: 'prompt', message: `fix the drift. /show-me-your-work keep a trail\n@@script ${JSON.stringify(steps)}` });

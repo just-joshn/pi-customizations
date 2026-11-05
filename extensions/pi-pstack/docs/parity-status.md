@@ -6,6 +6,7 @@ This page records what `pi-pstack` reproduces from Cursor `pstack` 0.15.36 and i
 
 - Cursor `pstack` and `cursor-team-kit`: `github.com/cursor/plugins` at `6ea74587e384e1a8035c09ae33a46fe3f881eb9b`. The plugin manifest reports pstack 0.15.36. `package.json.pstackSource.revision` pins `ae5650fe`, this port's capture base; `git log ae5650fe..6ea74587 -- pstack cursor-team-kit` is empty, so both commits name the same plugin content.
 - Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`.
+- Installed Cursor desktop 3.27.22 (distro `d5c0e77a0214208f36b56d42e8e787de88d02ea4`) under `/usr/share/cursor/resources/app`. Its local agent runtime defines the built-in subagents, the Task schema, and Task's resume and model rules. An earlier run recorded the desktop app as absent; that was wrong.
 - Native implementation: this package, which pins its upstream provenance in `package.json.pstackSource`.
 
 A path and byte comparison of the tracked trees shows every pstack skill, both pstack agents, all 18 team-kit skills, both team-kit agents, and both team-kit rules in this package. Sixteen team-kit skill files are byte-identical. `workflow-from-chats` describes Pi paths instead of Cursor paths, and `pr-review-canvas` opens a system browser instead of Cursor's in-app browser. The changed pstack files are host translations. One upstream paragraph has no counterpart: `poteto-help`'s Claude Code install path and its `docs/harness/claude-code.md` adapter, because this package targets Pi only. The two non-portable frontmatter keys Cursor ships (`icon`/`color` on `poteto-mode`, `paths` on `typescript-best-practices`) are kept under `metadata`, the Agent Skills extension point. The port reads `icon` and `color` for the mode badge. `paths` stays as metadata only, because Cursor loads a `paths` skill that sets `disable-model-invocation` only when it is invoked by name. team-kit's thermo-nuclear agent changes only where it names the plugin that ships its rubric.
@@ -19,7 +20,7 @@ A path and byte comparison of the tracked trees shows every pstack skill, both p
 | Plan mode | `/plan` and `SwitchMode`, Cursor's plan-mode instructions in `pstack_plan`, a reduced tool set with `bash_readonly` in an OS sandbox and markdown-only `edit` and `write`, `CreatePlan` writing Cursor's plan file under `plans/`, and a build prompt after a saved plan (`/plan build` too) |
 | Always-applied model rule | `pstack-models.md` read before every request and injected as `pstack_models` |
 | Task subagents | One `pi --mode rpc` process per agent, with resume, steer, fork, `fork_turns`, readonly, attachments, Cursor's result and completion texts, Cursor's subagent reminder, and local worktrees |
-| Agent types | Cursor's built-in `generalPurpose` and `explore`, then the four bundled agent Markdown files, loaded into the child system prompt |
+| Agent types | Cursor desktop's built-in `generalPurpose`, `explore`, and `shell`, then the four bundled agent Markdown files loaded the way Cursor loads plugin agents, each child reading Cursor's system reminder in `pstack_subagent` |
 | Project and agent stores | Workspace state folders named in the host system prompt |
 | Todo list | `TodoWrite` with branch reconstruction and a TUI widget |
 | Structured questions | `AskQuestion` over Pi select and input dialogs, with Cursor's schema minimums and usage rules |
@@ -44,6 +45,17 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 - A live Task asked for `environment: "cloud"` ran in the same working directory on the same machine, with `environment: SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED`. In this CLI, the cloud argument was inert too. Pi's local worktree is a stronger isolation than that observation, though still weaker than the documented cloud VM.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
+
+## Corrections after 0.15.36-pi.17
+
+A source audit on 2026-11-05 (UTC) executed Cursor's own agent and Task code from the installed desktop 3.27.22 runtime and the CLI 2026.10.22 bundle. `parity/pstack-source-audit-2026-11-05/` holds the captured functions with their offsets and hashes, the probes that run them, the decision trail, and the mutation receipts. These changes replace three earlier claims: pi.17's "honor `background: true`", pi.10's `ci-watcher` `model: fast`, and pi.11's "a resume that names a `subagent_type` keeps the recorded type".
+
+- **Plugin agents.** Cursor CLI and desktop load a plugin's agents with `model: "inherit"`, no tools, and no background flag, and take readonly only from `permissionMode`. `poteto-agent` and `ci-watcher` therefore run in the foreground on the parent model unless the call says otherwise. pi-pstack had honored `is_background`, `background`, `readonly: true`, and `model: fast`.
+- **System reminder.** A plugin agent's child reads Cursor's framing: `You are operating as the "<name>" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.`, its description, then its body. explore's reminder and description are Cursor's text, with Pi named as the product. All of it rides one `pstack_subagent` section after the shared subagent reminder.
+- **Shell subagent.** Desktop defines `shell`, which team-kit's thermo-nuclear agent names, with only the shell tool. Pi offers it with `bash` and `bash_background` only. Desktop shows it behind a feature flag, so a given Cursor account may not list it.
+- **Type names.** Task matches `subagent_type` the way desktop does: case, hyphens, underscores, and a trailing `agent`, `subagent`, `mode`, or `type` do not matter.
+- **Model aliases.** Desktop ignores a `fast` it cannot resolve and reads `inherit` in any case as an omitted model. An empty model fails with `Model must be a non-empty string when provided.` pi-pstack had mapped `fast` to the parent's `-fast` variant.
+- **Resume.** A resume that names a different `subagent_type` fails with desktop's message, and a resume ignores `model` without a note. An empty `prompt` fails with `prompt is required`.
 
 ## Repairs in 0.15.36-pi.17
 

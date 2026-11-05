@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { type AvailableModel, resolveSubagentModel } from '../src/task/models.ts';
+import { type AvailableModel, fastVariant, resolveSubagentModel } from '../src/task/models.ts';
 
 const FULL = ['low', 'medium', 'high', 'xhigh', 'max'];
 const available: AvailableModel[] = [
@@ -12,17 +12,31 @@ const available: AvailableModel[] = [
 const parent = { provider: 'claude-subscription', id: 'claude-haiku-4-5', thinking: 'low' as const };
 
 describe('resolveSubagentModel (TASK-007)', () => {
-  test.for([undefined, '', 'inherit', 'inherit-parent', 'auto', 'default'])('%s runs on the parent model and thinking level', (value) => {
+  test.for([undefined, 'inherit', ' INHERIT ', 'inherit-parent', 'auto', 'default', 'fast', 'Fast'])('%s runs on the fallback model and thinking level', (value) => {
     expect(resolveSubagentModel(value, available, parent)).toEqual({ provider: 'claude-subscription', id: 'claude-haiku-4-5', thinking: 'low' });
   });
 
-  test('fast runs on the parent -fast variant when listed, else the parent model', () => {
+  test('an empty model fails with Cursor desktop reason and the allowed list', () => {
+    expect(() => resolveSubagentModel('  ', available, parent)).toThrow('Invalid model selection "  ". Model must be a non-empty string when provided.\nAllowed model slugs:');
+  });
+
+  test('an unresolvable fast is ignored, as Cursor desktop ignores the alias, so the type default applies', () => {
     const fast = [...available, { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', reasoning: true, levels: ['low', 'high'] }];
-    expect([resolveSubagentModel('fast', fast, parent), resolveSubagentModel('fast', available, parent), resolveSubagentModel('fast', fast, undefined)]).toEqual([
+    const exploreDefault = fastVariant(fast, parent);
+    expect([exploreDefault, resolveSubagentModel('fast', fast, parent), resolveSubagentModel('fast', fast, exploreDefault, parent)]).toEqual([
       { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', thinking: 'low' },
       parent,
-      undefined,
+      { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', thinking: 'low' },
     ]);
+  });
+
+  test('a model whose id is fast runs as asked, since Cursor ignores fast only when it cannot resolve it', () => {
+    const local = [...available, { provider: 'router', id: 'fast', reasoning: false, levels: ['off'] }];
+    expect(resolveSubagentModel('fast', local, parent)).toEqual({ provider: 'router', id: 'fast' });
+  });
+
+  test('the explore default keeps the parent when no -fast variant is listed', () => {
+    expect([fastVariant(available, parent), fastVariant(available, undefined)]).toEqual([parent, undefined]);
   });
 
   test('inherit with no parent model leaves the choice to the child', () => {

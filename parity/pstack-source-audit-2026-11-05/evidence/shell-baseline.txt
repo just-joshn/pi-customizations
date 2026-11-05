@@ -1,0 +1,95 @@
+$ vitest run "test/e2e/shell-agent.e2e.test.ts"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/shell-agent.e2e.test.ts (4 tests | 4 failed) 1280ms
+   × shell exposes only native shell execution tools, even when an image model is available 411ms
+   × shell executes commands but rejects calls to file-editing tools 284ms
+   × shell instructions and canonical type survive a normalized invocation and a process restart 295ms
+   × readonly shell intersects both restrictions and cannot write files 289ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell exposes only native shell execution tools, even when an image model is available
+AssertionError: Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:23:39
+     21|   onTestFinished(sandbox.dispose);
+     22|   const result = await runShell(sandbox, '@@tools-list');
+     23|   expect(result.isError, result.text).toBe(false);
+       |                                       ^
+     24|   expect(response(result.text)?.split(',').toSorted()).toEqual(['bash'…
+     25| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell executes commands but rejects calls to file-editing tools
+AssertionError: Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:34:39
+     32|     { tool: 'write', args: { path: 'write-tool.txt', content: 'NOT-ALL…
+     33|   ]));
+     34|   expect(result.isError, result.text).toBe(false);
+       |                                       ^
+     35|   expect(response(result.text)).toBe('RESULTS:\n[bash] SHELL-RAN\n[wri…
+     36|   expect(readFileSync(join(sandbox.workDir, 'shell.txt'), 'utf8')).toB…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell instructions and canonical type survive a normalized invocation and a process restart
+AssertionError: Unknown subagent_type " SHELL_subagent-type ". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:44:37
+     42|   onTestFinished(sandbox.dispose);
+     43|   const first = await runShell(sandbox, '@@sys', { subagent_type: ' SH…
+     44|   expect(first.isError, first.text).toBe(false);
+       |                                     ^
+     45|   expect(first.text).toContain('You are a command execution specialist…
+     46|   const agentId = /Agent ID: ([0-9a-f-]{36})/.exec(first.text)?.[1];
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > readonly shell intersects both restrictions and cannot write files
+AssertionError: Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:58:47
+     56|   onTestFinished(sandbox.dispose);
+     57|   const restricted = await runShell(sandbox, '@@tools-list', { readonl…
+     58|   expect(restricted.isError, restricted.text).toBe(false);
+       |                                               ^
+     59|   expect(response(restricted.text)).toBe('bash');
+     60|   const denied = await runShell(sandbox, script([{ tool: 'bash', args:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  21:21:28
+   Duration  1.98s (tests 67%, import 31%, transform 2%)
+
+error: script "test" exited with code 1

@@ -1,0 +1,122 @@
+[
+  {
+    "id": "cli-agent-file-parser",
+    "source": "/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js",
+    "sourceSha256": "7b4bb3badb36cff7b6cee7996d61bd3c32866cf354214374b77f5a5d33a0b3f2",
+    "marker": "\"force-default-model\"",
+    "up": 0,
+    "start": 4024837,
+    "end": 4025613,
+    "functionName": "Hi",
+    "excerptSha256": "de9c42ef70c5a310e86462dd1f3deb13a9d71320be065f67a4409ae1de90a5ad",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/cli-agent-file-parser.js"
+  },
+  {
+    "id": "cli-plugin-agent-convert",
+    "source": "/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js",
+    "sourceSha256": "7b4bb3badb36cff7b6cee7996d61bd3c32866cf354214374b77f5a5d33a0b3f2",
+    "marker": "function Bu(t,e={stripModel:!0,stripTools:!0}){",
+    "up": 0,
+    "start": 3489238,
+    "end": 3489673,
+    "functionName": "Bu",
+    "excerptSha256": "928c3d69aa75a536ebc27d4694cf7e0f49b528b5fff241d71faf60ef74a1afc2",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/cli-plugin-agent-convert.js"
+  },
+  {
+    "id": "cli-plugin-agent-loader",
+    "source": "/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js",
+    "sourceSha256": "7b4bb3badb36cff7b6cee7996d61bd3c32866cf354214374b77f5a5d33a0b3f2",
+    "marker": "const n=(0,Bs.DuR)(r,{stripModel:!0,stripTools:!0});",
+    "up": 0,
+    "start": 4028603,
+    "end": 4029224,
+    "functionName": null,
+    "excerptSha256": "d7a5fa554903b9d9649e0377da1addb0a18e807f85cbed266bdf63f1882c4a3e",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/cli-plugin-agent-loader.js"
+  },
+  {
+    "id": "cli-plugin-agent-parser",
+    "source": "/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js",
+    "sourceSha256": "7b4bb3badb36cff7b6cee7996d61bd3c32866cf354214374b77f5a5d33a0b3f2",
+    "marker": "const o=n.data.permissionMode??n.data.permissionmode,a=(0,x.basename)(e);",
+    "up": 0,
+    "start": 3458554,
+    "end": 3459313,
+    "functionName": "Wc",
+    "excerptSha256": "8b070a9e51b301d44895a7b0f58fdc9b2bdffdc48aa2eafecd3612e48d122a0c",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/cli-plugin-agent-parser.js"
+  },
+  {
+    "id": "cli-plugin-agent-strip",
+    "source": "/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js",
+    "sourceSha256": "7b4bb3badb36cff7b6cee7996d61bd3c32866cf354214374b77f5a5d33a0b3f2",
+    "marker": "function hu(t,e={}){return{...t,model:e.stripModel?void 0:t.model",
+    "up": 0,
+    "start": 3475801,
+    "end": 3475902,
+    "functionName": "hu",
+    "excerptSha256": "a8f0d369fe132bddb60519a37c08fc77fe2b96b7518e7c641fec9a49d509ba29",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/cli-plugin-agent-strip.js"
+  },
+  {
+    "id": "desktop-task-conversation-state",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "Created new conversation state (restore failed)",
+    "up": 0,
+    "start": 3180424,
+    "end": 3181217,
+    "functionName": "cIe",
+    "excerptSha256": "bd8633773e61c9802ab067c79a94077631b1e33dd1bc7a8b39691a3ef6436cf1",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-conversation-state.js"
+  },
+  {
+    "id": "desktop-task-description",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "\"no-subagent-unless-asked\"===F&&(d=`IMPORTANT: Do NOT use this tool unless",
+    "up": 0,
+    "start": 3238040,
+    "end": 3239724,
+    "functionName": null,
+    "excerptSha256": "dc16fb8a3e49c6cc9958e401232566b62635c0140a6fa7d467062614e9577714",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-description.js"
+  },
+  {
+    "id": "desktop-task-description-text",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "Launch a new agent to handle complex, multi-step tasks",
+    "up": 0,
+    "start": 3227416,
+    "end": 3232967,
+    "functionName": null,
+    "excerptSha256": "b877f5aed7252b3768447e0548828e5b74706f2abff22c9d803e1755b36b620a",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-description-text.js"
+  },
+  {
+    "id": "desktop-task-run",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "Cannot resume a \"${v}\" subagent as",
+    "up": 0,
+    "start": 3181217,
+    "end": 3191265,
+    "functionName": "uIe",
+    "excerptSha256": "6cb04b71b83c1d19839c5b974ef4a5a9e6f90ad4dab8b923040559cea843897e",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-run.js"
+  },
+  {
+    "id": "desktop-task-schema",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "Optional placement: where the subagent runs.",
+    "up": 1,
+    "start": 3217095,
+    "end": 3226633,
+    "functionName": "tPe",
+    "excerptSha256": "83ec5e3e1dec425e8a91360c6c7612a12c1ff8dadaa3b7ade95917ccef99ab8a",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-schema.js"
+  }
+]

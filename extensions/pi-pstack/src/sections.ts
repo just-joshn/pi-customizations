@@ -133,9 +133,7 @@ export function hostSection(facts: HostFacts): string {
 }
 
 function agentLine(agent: AgentDefinition): string {
-  const notes = [agent.type === 'generalPurpose' ? 'default' : undefined, agent.background ? 'runs in the background unless run_in_background is false' : undefined, agent.readonly ? 'readonly' : undefined].filter(
-    (note) => note !== undefined,
-  );
+  const notes = [agent.type === 'generalPurpose' ? 'default' : undefined, agent.readonly ? 'readonly' : undefined].filter((note) => note !== undefined);
   return `- ${agent.type}${notes.length > 0 ? ` (${notes.join('; ')})` : ''}: ${agent.description}`;
 }
 
@@ -147,8 +145,7 @@ export function subagentsSection(agents: readonly AgentDefinition[], models: rea
     'Subagent types for Task:',
     ...agents.map(agentLine),
     'Model values for Task (and for role lines in the model rule):',
-    '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
-    "- fast: the parent model's -fast variant when one is listed, else the parent model.",
+    "- inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.",
     ...(parent === undefined ? [] : [`- This chat runs ${parent.provider}/${parent.id}${parent.thinking === undefined ? '' : `:${parent.thinking}`}. pstack's model families (claude-*, grok-*) go by the model id after its provider.`]),
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.',
     "- Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.",

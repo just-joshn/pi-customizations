@@ -1,0 +1,1167 @@
+mutation custom-framing: src/task/agents.ts
+-     reminder: `${framing}\n\n${prompt}`,
++     reminder: prompt,
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/task-agents.test.ts (24 tests | 6 failed) 32ms
+   ❯ subagent definitions match Cursor (21)
+     × plugin agent ci-watcher loads as Cursor loads plugin agents 5ms
+     × plugin agent comment-sicko loads as Cursor loads plugin agents 1ms
+     × plugin agent poteto-agent loads as Cursor loads plugin agents 1ms
+     × plugin agent thermo-nuclear-code-quality-review loads as Cursor loads plugin agents 1ms
+   ❯ agent file parsing follows Cursor plugin-agent rules (3)
+     × readonly comes only from permissionMode, and model, tools, and background frontmatter change nothing 2ms
+     × a missing name comes from the file name, and a missing description adds no line 1ms
+ ❯ test/e2e/task.e2e.test.ts (65 tests | 4 failed | 54 skipped) 7817ms
+   ❯ subagent types (17)
+     × comment-sicko reads the system reminder Cursor builds for a plugin agent 597ms
+     × poteto-agent reads the system reminder Cursor builds for a plugin agent 580ms
+     × ci-watcher reads the system reminder Cursor builds for a plugin agent 584ms
+     × thermo-nuclear-code-quality-review reads the system reminder Cursor builds for a plugin agent 587ms
+
+ Test Files  2 failed (2)
+      Tests  10 failed | 25 passed | 54 skipped (89)
+   Start at  21:45:02
+   Duration  8.36s (tests 89%, import 9%, transform 2%)
+
+
+$ vitest run test/task-agents.test.ts "test/e2e/task.e2e.test.ts" -t Cursor
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/task-agents.test.ts > subagent definitions match Cursor > plugin agent ci-watcher loads as Cursor loads plugin agents
+AssertionError: expected { …(3) } to deeply equal { …(3) }
+
+- Expected
++ Received
+
+@@ -1,12 +1,9 @@
+  {
+    "description": "Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.",
+    "readonly": false,
+-   "reminder": "You are operating as the \"ci-watcher\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
+-
+- # CI watcher
++   "reminder": "# CI watcher
+
+  CI monitoring specialist for PR-attached checks.
+
+  ## Trigger
+
+
+ ❯ test/task-agents.test.ts:25:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  test/task-agents.test.ts > subagent definitions match Cursor > plugin agent comment-sicko loads as Cursor loads plugin agents
+AssertionError: expected { …(3) } to deeply equal { …(3) }
+
+- Expected
++ Received
+
+@@ -1,12 +1,9 @@
+  {
+    "description": "A deranged comment-hater that savors deletion and condemns workaround code.",
+    "readonly": false,
+-   "reminder": "You are operating as the \"comment-sicko\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- A deranged comment-hater that savors deletion and condemns workaround code.
+-
+- # Comment Sicko
++   "reminder": "# Comment Sicko
+
+  My first output when spawned is exactly this.
+
+  Yes... Ha ha ha... Yes!
+
+
+ ❯ test/task-agents.test.ts:25:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  test/task-agents.test.ts > subagent definitions match Cursor > plugin agent poteto-agent loads as Cursor loads plugin agents
+AssertionError: expected { …(3) } to deeply equal { …(3) }
+
+- Expected
++ Received
+
+  {
+    "description": "Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.",
+    "readonly": false,
+-   "reminder": "You are operating as the \"poteto-agent\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
+-
+- # Poteto subagent
++   "reminder": "# Poteto subagent
+
+  You are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. With no path, before any other work, read `skills/poteto-mode/SKILL.md` in the pi-pstack package directory the system prompt names. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. If no such file exists, stop and tell your parent. Navigate to a leaf `principle-*` skill whenever you apply that principle.",
+  }
+
+ ❯ test/task-agents.test.ts:25:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  test/task-agents.test.ts > subagent definitions match Cursor > plugin agent thermo-nuclear-code-quality-review loads as Cursor loads plugin agents
+AssertionError: expected { …(3) } to deeply equal { …(3) }
+
+- Expected
++ Received
+
+@@ -1,12 +1,9 @@
+  {
+    "description": "Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.",
+    "readonly": false,
+-   "reminder": "You are operating as the \"thermo-nuclear-code-quality-review\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
+-
+- # Thermo-Nuclear Code Quality Review
++   "reminder": "# Thermo-Nuclear Code Quality Review
+
+  You are a **Task subagent**. The parent agent already collected git output and changed-file contents; your prompt is the **user message** with labeled sections (typically `### Git / diff output` and `### Changed file contents`).
+
+  ## Rubric
+
+
+ ❯ test/task-agents.test.ts:25:100
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  test/task-agents.test.ts > agent file parsing follows Cursor plugin-agent rules > readonly comes only from permissionMode, and model, tools, and background frontmatter change nothing
+AssertionError: expected { type: 'auditor', …(4) } to deeply equal { type: 'auditor', …(4) }
+
+- Expected
++ Received
+
+  {
+    "description": "Audits.",
+    "file": "/tmp/agents-nDudf0/auditor.md",
+    "readonly": false,
+-   "reminder": "You are operating as the \"auditor\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Audits.
+-
+- Audit it.",
++   "reminder": "Audit it.",
+    "type": "auditor",
+  }
+
+ ❯ test/task-agents.test.ts:82:42
+     80|     onTestFinished(() => rmSync(dir, { recursive: true, force: true })…
+     81|     const agents = loadAgentDefinitions(dir);
+     82|     expect(findAgent(agents, 'auditor')).toEqual({
+       |                                          ^
+     83|       type: 'auditor',
+     84|       description: 'Audits.',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  test/task-agents.test.ts > agent file parsing follows Cursor plugin-agent rules > a missing name comes from the file name, and a missing description adds no line
+AssertionError: expected { type: 'my-agent-x', …(4) } to match object { type: 'my-agent-x', …(2) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "description": "",
+-   "reminder": "You are operating as the \"my-agent-x\" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+-
+- Just do it.",
++   "reminder": "Just do it.",
+    "type": "my-agent-x",
+  }
+
+ ❯ test/task-agents.test.ts:95:64
+     93|     const dir = withAgents({ 'my agent_x.md': 'Just do it.\n' });
+     94|     onTestFinished(() => rmSync(dir, { recursive: true, force: true })…
+     95|     expect(findAgent(loadAgentDefinitions(dir), 'my-agent-x')).toMatch…
+       |                                                                ^
+     96|       type: 'my-agent-x',
+     97|       description: '',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > comment-sicko reads the system reminder Cursor builds for a plugin agent
+AssertionError: expected 'This is the output of the subagent:\n…' to contain '<pstack_subagent>\nYou are running as…'
+
+- Expected
++ Received
+
+@@ -1,10 +1,215 @@
++ This is the output of the subagent:
++
++ response:
++ <response>
++ You are a coding assistant running inside pi, a coding agent harness. Help users inspect files, run commands, and modify code.
++
++ <tools>
++ - read: Read file contents
++ - bash: Execute bash commands (ls, grep, find, etc.)
++ - edit: Make precise file edits with exact text replacement, including multiple disjoint edits in one call
++ - write: Create or overwrite files
++ - visualize: Draw a bar or line chart (Unicode in the result, SVG file in the artifacts folder)
++ - Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)
++ - stop_agent: Stop a running subagent by agent ID
++ - agent_status: Check subagents read-only (running or idle, last response) without restarting them
++ - subscribe_github_pr: Wake this session when a GitHub PR changes
++ - subscribe_timer: Schedule a prompt with cron or a delay
++ - subscribe_webhook: Create a webhook routine that wakes this session
++ - list_subscriptions: List subscriptions
++ - unsubscribe: End a subscription
++ - bash_background: Run a shell command in the background, with notifications when it finishes or prints a watched line
++ - AwaitShell: Poll or wait for a background shell job, or sleep
++ - TodoWrite: Create and update the todo list for this session
++
++ Additional tools may be available.
++ </tools>
++
++ <rules>
++ - Use bash for file operations like ls, rg, find
++ - Use read to examine files instead of cat or sed.
++ - You can inspect PI_* environment variables for current model and session details.
++ - Use edit for targeted changes. Batch changes to one file in a single call.
++ - Each edits[].oldText must exactly and uniquely match the original file. Keep matches short and non-overlapping; merge nearby changes without including large unchanged regions.
++ - Use write only for new files or complete rewrites.
++ - When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.
++ - Be concise in your responses
++ - Show file paths clearly when working with files
++ </rules>
++
++ <docs>
++ Pi documentation (read only when the user asks about the harness itself, its SDK, extensions, themes, skills, or TUI):
++ - Main documentation: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/README.md
++ - Additional docs: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/docs
++ - Examples: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/examples (extensions, custom tools, SDK)
++ - When reading pi docs or examples, resolve docs/... under Additional docs and examples/... under Examples, not the current working directory
++ - When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), packages (docs/packages.md), environment variables (docs/environment-variables.md), MCP servers (docs/mcp.md), codemode scripts and non-LLM models such as classifiers and image models (docs/codemode.md)
++ - Before implementing harness changes, read the relevant docs and examples in full, following related cross-references.
++ </docs>
++
++ <skills>
++ The following skills provide specialized instructions for specific tasks.
++ Use the read tool to load a skill's file when the task matches its description.
++ Resolve relative paths against the skill's directory (parent of SKILL.md). Use absolute paths in tool calls.
++
++ <available_skills>
++   <skill>
++     <name>check-compiler-errors</name>
++     <description>Run compile and type-check commands and report failures</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/check-compiler-errors/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-cli</name>
++     <description>Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-cli/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-ui</name>
++     <description>Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-ui/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>create-skill</name>
++     <description>Create or revise a Pi skill (a directory with SKILL.md plus optional scripts, references, and assets). Covers the requirements interview, placement, frontmatter, agent-facing writing, progressive disclosure, common patterns, a draft-test-iterate loop, and tuning the description so the skill triggers when it should. Use for /create-skill, &quot;write a skill&quot;, &quot;turn this workflow into a skill&quot;, or editing an existing SKILL.md.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/create-skill/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>deslop</name>
++     <description>Remove AI-generated code slop and clean up code style</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/deslop/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-ci</name>
++     <description>Find failing PR checks, inspect logs or external check links, and apply focused fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-merge-conflicts</name>
++     <description>Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-merge-conflicts/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>get-pr-comments</name>
++     <description>Fetch and summarize review comments from the active pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/get-pr-comments/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>loop-on-ci</name>
++     <description>Monitor PR checks and fix failures until green. Uses gh pr checks as the source of truth for PR-attached checks.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/loop-on-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>make-pr-easy-to-review</name>
++     <description>Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for &quot;make this easy to review&quot;, &quot;tidy this PR&quot;, &quot;clean up commits&quot;, or &quot;annotate the diff&quot;.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>new-branch-and-pr</name>
++     <description>Create a fresh branch, complete work, and open a pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>review-and-ship</name>
++     <description>Review the current branch for bugs, intent fit, and test coverage; run or write tests; commit focused work; open or update a PR.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/review-and-ship/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>run-smoke-tests</name>
++     <description>Run Playwright smoke tests, debug failures, and verify fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/run-smoke-tests/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>setup-pstack</name>
++     <description>Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, which pi-pstack adds to every request and which overrides the skill defaults. Use for /setup-pstack, &quot;configure pstack models&quot;, &quot;pstack budget&quot;, or changing pstack&apos;s model choices.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/setup-pstack/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>verify-this</name>
++     <description>Verify a claim with fresh local evidence: restate it falsifiably, capture baseline and treatment, compare artifacts, and return VERIFIED, NOT VERIFIED, or INCONCLUSIVE.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/verify-this/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>weekly-review</name>
++     <description>Produce a weekly synthesis of authored commits with highlights by bugfix, tech debt, and net-new work</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/weekly-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>what-did-i-get-done</name>
++     <description>Summarize authored commits over a user-specified time period into a concise update</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/what-did-i-get-done/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>workflow-from-chats</name>
++     <description>Extract durable working preferences from recent Pi chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/workflow-from-chats/SKILL.md</location>
++   </skill>
++ </available_skills>
++ </skills>
++
++ <cwd>
++ /tmp/pi-pstack-e2e-j5n9fJ/work
++ </cwd>
++
++ <pstack_host>
++ pstack runs here through the pi-pstack package at /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack. Today's date: Wednesday Nov 4, 2026.
++ - <SKILLS> = /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (79): architect, arena, automate-me, benchmark-checklist, blast-radius, bro, check-compiler-errors, control-cli, control-ui, correct, create-formal-verification-skill, create-skill, create-verification-skill, deslop, figure-it-out, fix-ci, fix-merge-conflicts, get-pr-comments, how, in-your-own-words, interrogate, ketchup, ketchup-video, loop-on-ci, maintain-formal-verification-skill, maintain-verification-skill, make-bot-ui, make-pr-easy-to-review, new-branch-and-pr, no-comments, no-inline-imports, poteto-help, poteto-mode, pr-review-canvas, principle-attack-the-premise, principle-boundary-discipline, principle-build-the-lever, principle-encode-lessons-in-structure, principle-exhaust-the-design-space, principle-experience-first, principle-explain-the-number, principle-fix-root-causes, principle-foundational-thinking, principle-guard-the-context-window, principle-laziness-protocol, principle-make-operations-idempotent, principle-migrate-callers-then-delete-legacy-apis, principle-minimize-reader-load, principle-model-the-domain, principle-never-block-on-the-human, principle-outcome-oriented-execution, principle-prove-it-works, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-subtract-before-you-add, principle-test-behavior-not-implementation, principle-type-system-discipline, recall, reflect, review-and-ship, run-smoke-tests, setup-pstack, sharpen, show-me-your-work, statechart, swarm, tdd, teach, technical-writing, thermo-nuclear-code-quality-review, typescript-best-practices, typescript-exhaustive-switch, unslop, verify-this, weekly-review, what-did-i-get-done, why, workflow-from-chats.
++ - A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.
++ - Skill folders: project `.pi/skills/`, personal `/tmp/pi-pstack-e2e-j5n9fJ/agent/skills/`.
++ - The model rule is /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/pstack-models.md. Its current content is in <pstack_models>.
++ - Subagents: call the Task tool as the skills describe (description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.
++ - Todo lists: the TodoWrite tool. This run has no AskQuestion tool, so decide yourself and say what you chose.
++ - Transcripts: this workspace's Pi session files are in /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/subagents. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). This chat's transcript is /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/subagents/2026-11-05T05-45-04-227Z_96dad809-6d54-4250-96c6-e86c2d0982a5.jsonl. Subagent transcripts for this workspace: /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/subagents/*_<agent id>.jsonl. A subagent is still running while /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/subagents/<agent id>.lock exists and names a live pid.
++ - In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.
++ - "The current agent's store" is /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/store/96dad809-6d54-4250-96c6-e86c2d0982a5. Create it when a playbook needs it. "The root agent's store" is /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/store/01a1aa3d-42d7-70d6-bc99-c0ee2249e9cc, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.
++ - Projects: a program's Project is /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/projects/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store. Every agent in this workspace sees the same folder.
++ - Files a tool makes for the user, such as visualize charts, go in /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/artifacts/96dad809-6d54-4250-96c6-e86c2d0982a5.
++ - Subscriptions: this run ends when it settles, so nothing can wake it and the subscribe tools refuse. Name in the final reply any PR, timer, or webhook the parent chat should subscribe to.
++ - agent_status reads a subagent's state without waking it. Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.
++ - /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.
++ - Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/terminals/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (`head -n 10 *.txt` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with `kill <pid>`. bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.
++ - Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.
++ - The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).
++ - PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.
++ - MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.
++ - Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.
++ - pi-pstack's README (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/README.md) and guide (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/docs/guide) describe installing and using it.
++ - Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.
++ - Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`). Follow them on every task:
++ # No inline imports
++   
++   Always place imports at the top of the module. Avoid inline imports in function bodies, type annotations, or interface fields unless there is a strict circular-dependency reason and it is documented.
++
++   typescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.
++ </pstack_host>
++
++ <pstack_subagents>
++ Subagent types for Task:
++ - generalPurpose (default): General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when searching for a keyword or file and not confident you'll find the match quickly.
++ - explore: Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.
++ - shell: Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.
++ - ci-watcher: Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
++ - comment-sicko: A deranged comment-hater that savors deletion and condemns workaround code.
++ - poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
++ - thermo-nuclear-code-quality-review: Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
++ Model values for Task (and for role lines in the model rule):
++ - inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.
++ - This chat runs scripted/echo:medium. pstack's model families (claude-*, grok-*) go by the model id after its provider.
++ - A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.
++ - Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.
++ Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain
++ Use inherit unless the user or a skill asks for another model. When the user names a model family without a version, use the newest listed version of that family.
++ If the user asks for a model that is not listed, do not substitute another model or guess: skip launching that subagent and tell the user which model was unavailable and which models are available.
++ When you tell the user which model a subagent used, name it the way the user named it, not by its model ID, unless the user used the ID.
++ </pstack_subagents>
++
++ <pstack_models>
++ No pstack model rule exists at /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/pstack-models.md. Every role uses its skill default until /setup-pstack writes one.
++ </pstack_models>
++
+  <pstack_subagent>
+  You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.
+-
+- You are operating as the "comment-sicko" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- A deranged comment-hater that savors deletion and condemns workaround code.
+
+  # Comment Sicko
+
+  My first output when spawned is exactly this.
+
+@@ -30,5 +235,9 @@
+
+  Every flag names code inside the scope and tells the truth. I invent nothing. I touch comments and identify refactor targets. I never write application code.
+
+  Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.
+  </pstack_subagent>
++ </response>
++
++ Agent ID: 96dad809-6d54-4250-96c6-e86c2d0982a5 (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-j5n9fJ/agent/pstack/workspaces/--tmp-pi-pstack-e2e-j5n9fJ-work--/subagents/2026-11-05T05-45-04-227Z_96dad809-6d54-4250-96c6-e86c2d0982a5.jsonl
+
+ ❯ test/e2e/task.e2e.test.ts:195:25
+    193|   test.for(['comment-sicko', 'poteto-agent', 'ci-watcher', 'thermo-nuc…
+    194|     const { result } = await runTask({ prompt: 'go\n@@sys', subagent_t…
+    195|     expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder…
+       |                         ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > poteto-agent reads the system reminder Cursor builds for a plugin agent
+AssertionError: expected 'This is the output of the subagent:\n…' to contain '<pstack_subagent>\nYou are running as…'
+
+- Expected
++ Received
+
++ This is the output of the subagent:
++
++ response:
++ <response>
++ You are a coding assistant running inside pi, a coding agent harness. Help users inspect files, run commands, and modify code.
++
++ <tools>
++ - read: Read file contents
++ - bash: Execute bash commands (ls, grep, find, etc.)
++ - edit: Make precise file edits with exact text replacement, including multiple disjoint edits in one call
++ - write: Create or overwrite files
++ - visualize: Draw a bar or line chart (Unicode in the result, SVG file in the artifacts folder)
++ - Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)
++ - stop_agent: Stop a running subagent by agent ID
++ - agent_status: Check subagents read-only (running or idle, last response) without restarting them
++ - subscribe_github_pr: Wake this session when a GitHub PR changes
++ - subscribe_timer: Schedule a prompt with cron or a delay
++ - subscribe_webhook: Create a webhook routine that wakes this session
++ - list_subscriptions: List subscriptions
++ - unsubscribe: End a subscription
++ - bash_background: Run a shell command in the background, with notifications when it finishes or prints a watched line
++ - AwaitShell: Poll or wait for a background shell job, or sleep
++ - TodoWrite: Create and update the todo list for this session
++
++ Additional tools may be available.
++ </tools>
++
++ <rules>
++ - Use bash for file operations like ls, rg, find
++ - Use read to examine files instead of cat or sed.
++ - You can inspect PI_* environment variables for current model and session details.
++ - Use edit for targeted changes. Batch changes to one file in a single call.
++ - Each edits[].oldText must exactly and uniquely match the original file. Keep matches short and non-overlapping; merge nearby changes without including large unchanged regions.
++ - Use write only for new files or complete rewrites.
++ - When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.
++ - Be concise in your responses
++ - Show file paths clearly when working with files
++ </rules>
++
++ <docs>
++ Pi documentation (read only when the user asks about the harness itself, its SDK, extensions, themes, skills, or TUI):
++ - Main documentation: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/README.md
++ - Additional docs: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/docs
++ - Examples: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/examples (extensions, custom tools, SDK)
++ - When reading pi docs or examples, resolve docs/... under Additional docs and examples/... under Examples, not the current working directory
++ - When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), packages (docs/packages.md), environment variables (docs/environment-variables.md), MCP servers (docs/mcp.md), codemode scripts and non-LLM models such as classifiers and image models (docs/codemode.md)
++ - Before implementing harness changes, read the relevant docs and examples in full, following related cross-references.
++ </docs>
++
++ <skills>
++ The following skills provide specialized instructions for specific tasks.
++ Use the read tool to load a skill's file when the task matches its description.
++ Resolve relative paths against the skill's directory (parent of SKILL.md). Use absolute paths in tool calls.
++
++ <available_skills>
++   <skill>
++     <name>check-compiler-errors</name>
++     <description>Run compile and type-check commands and report failures</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/check-compiler-errors/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-cli</name>
++     <description>Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-cli/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-ui</name>
++     <description>Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-ui/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>create-skill</name>
++     <description>Create or revise a Pi skill (a directory with SKILL.md plus optional scripts, references, and assets). Covers the requirements interview, placement, frontmatter, agent-facing writing, progressive disclosure, common patterns, a draft-test-iterate loop, and tuning the description so the skill triggers when it should. Use for /create-skill, &quot;write a skill&quot;, &quot;turn this workflow into a skill&quot;, or editing an existing SKILL.md.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/create-skill/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>deslop</name>
++     <description>Remove AI-generated code slop and clean up code style</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/deslop/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-ci</name>
++     <description>Find failing PR checks, inspect logs or external check links, and apply focused fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-merge-conflicts</name>
++     <description>Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-merge-conflicts/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>get-pr-comments</name>
++     <description>Fetch and summarize review comments from the active pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/get-pr-comments/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>loop-on-ci</name>
++     <description>Monitor PR checks and fix failures until green. Uses gh pr checks as the source of truth for PR-attached checks.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/loop-on-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>make-pr-easy-to-review</name>
++     <description>Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for &quot;make this easy to review&quot;, &quot;tidy this PR&quot;, &quot;clean up commits&quot;, or &quot;annotate the diff&quot;.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>new-branch-and-pr</name>
++     <description>Create a fresh branch, complete work, and open a pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>review-and-ship</name>
++     <description>Review the current branch for bugs, intent fit, and test coverage; run or write tests; commit focused work; open or update a PR.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/review-and-ship/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>run-smoke-tests</name>
++     <description>Run Playwright smoke tests, debug failures, and verify fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/run-smoke-tests/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>setup-pstack</name>
++     <description>Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, which pi-pstack adds to every request and which overrides the skill defaults. Use for /setup-pstack, &quot;configure pstack models&quot;, &quot;pstack budget&quot;, or changing pstack&apos;s model choices.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/setup-pstack/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>verify-this</name>
++     <description>Verify a claim with fresh local evidence: restate it falsifiably, capture baseline and treatment, compare artifacts, and return VERIFIED, NOT VERIFIED, or INCONCLUSIVE.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/verify-this/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>weekly-review</name>
++     <description>Produce a weekly synthesis of authored commits with highlights by bugfix, tech debt, and net-new work</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/weekly-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>what-did-i-get-done</name>
++     <description>Summarize authored commits over a user-specified time period into a concise update</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/what-did-i-get-done/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>workflow-from-chats</name>
++     <description>Extract durable working preferences from recent Pi chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/workflow-from-chats/SKILL.md</location>
++   </skill>
++ </available_skills>
++ </skills>
++
++ <cwd>
++ /tmp/pi-pstack-e2e-hUaH9M/work
++ </cwd>
++
++ <pstack_host>
++ pstack runs here through the pi-pstack package at /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack. Today's date: Wednesday Nov 4, 2026.
++ - <SKILLS> = /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (79): architect, arena, automate-me, benchmark-checklist, blast-radius, bro, check-compiler-errors, control-cli, control-ui, correct, create-formal-verification-skill, create-skill, create-verification-skill, deslop, figure-it-out, fix-ci, fix-merge-conflicts, get-pr-comments, how, in-your-own-words, interrogate, ketchup, ketchup-video, loop-on-ci, maintain-formal-verification-skill, maintain-verification-skill, make-bot-ui, make-pr-easy-to-review, new-branch-and-pr, no-comments, no-inline-imports, poteto-help, poteto-mode, pr-review-canvas, principle-attack-the-premise, principle-boundary-discipline, principle-build-the-lever, principle-encode-lessons-in-structure, principle-exhaust-the-design-space, principle-experience-first, principle-explain-the-number, principle-fix-root-causes, principle-foundational-thinking, principle-guard-the-context-window, principle-laziness-protocol, principle-make-operations-idempotent, principle-migrate-callers-then-delete-legacy-apis, principle-minimize-reader-load, principle-model-the-domain, principle-never-block-on-the-human, principle-outcome-oriented-execution, principle-prove-it-works, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-subtract-before-you-add, principle-test-behavior-not-implementation, principle-type-system-discipline, recall, reflect, review-and-ship, run-smoke-tests, setup-pstack, sharpen, show-me-your-work, statechart, swarm, tdd, teach, technical-writing, thermo-nuclear-code-quality-review, typescript-best-practices, typescript-exhaustive-switch, unslop, verify-this, weekly-review, what-did-i-get-done, why, workflow-from-chats.
++ - A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.
++ - Skill folders: project `.pi/skills/`, personal `/tmp/pi-pstack-e2e-hUaH9M/agent/skills/`.
++ - The model rule is /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/pstack-models.md. Its current content is in <pstack_models>.
++ - Subagents: call the Task tool as the skills describe (description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.
++ - Todo lists: the TodoWrite tool. This run has no AskQuestion tool, so decide yourself and say what you chose.
++ - Transcripts: this workspace's Pi session files are in /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/subagents. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). This chat's transcript is /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/subagents/2026-11-05T05-45-04-817Z_ad5c04fb-a006-4c0b-873a-6a54b8369310.jsonl. Subagent transcripts for this workspace: /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/subagents/*_<agent id>.jsonl. A subagent is still running while /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/subagents/<agent id>.lock exists and names a live pid.
++ - In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.
++ - "The current agent's store" is /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/store/ad5c04fb-a006-4c0b-873a-6a54b8369310. Create it when a playbook needs it. "The root agent's store" is /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/store/01a1aa3d-452a-70c5-9f35-507b33926054, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.
++ - Projects: a program's Project is /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/projects/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store. Every agent in this workspace sees the same folder.
++ - Files a tool makes for the user, such as visualize charts, go in /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/artifacts/ad5c04fb-a006-4c0b-873a-6a54b8369310.
++ - Subscriptions: this run ends when it settles, so nothing can wake it and the subscribe tools refuse. Name in the final reply any PR, timer, or webhook the parent chat should subscribe to.
++ - agent_status reads a subagent's state without waking it. Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.
++ - /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.
++ - Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/terminals/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (`head -n 10 *.txt` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with `kill <pid>`. bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.
++ - Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.
++ - The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).
++ - PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.
++ - MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.
++ - Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.
++ - pi-pstack's README (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/README.md) and guide (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/docs/guide) describe installing and using it.
++ - Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.
++ - Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`). Follow them on every task:
++ # No inline imports
++   
++   Always place imports at the top of the module. Avoid inline imports in function bodies, type annotations, or interface fields unless there is a strict circular-dependency reason and it is documented.
++
++   typescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.
++ </pstack_host>
++
++ <pstack_subagents>
++ Subagent types for Task:
++ - generalPurpose (default): General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when searching for a keyword or file and not confident you'll find the match quickly.
++ - explore: Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.
++ - shell: Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.
++ - ci-watcher: Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
++ - comment-sicko: A deranged comment-hater that savors deletion and condemns workaround code.
++ - poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
++ - thermo-nuclear-code-quality-review: Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
++ Model values for Task (and for role lines in the model rule):
++ - inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.
++ - This chat runs scripted/echo:medium. pstack's model families (claude-*, grok-*) go by the model id after its provider.
++ - A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.
++ - Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.
++ Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain
++ Use inherit unless the user or a skill asks for another model. When the user names a model family without a version, use the newest listed version of that family.
++ If the user asks for a model that is not listed, do not substitute another model or guess: skip launching that subagent and tell the user which model was unavailable and which models are available.
++ When you tell the user which model a subagent used, name it the way the user named it, not by its model ID, unless the user used the ID.
++ </pstack_subagents>
++
++ <pstack_models>
++ No pstack model rule exists at /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/pstack-models.md. Every role uses its skill default until /setup-pstack writes one.
++ </pstack_models>
++
+  <pstack_subagent>
+  You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.
+-
+- You are operating as the "poteto-agent" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
+
+  # Poteto subagent
+
+  You are operating as poteto-mode's full agent style. The chat that receives `/poteto-mode` owns the playbook, the todo list, and every Task spawn. You are one of its delegates. Read the `poteto-mode` skill's `SKILL.md` in full before doing any work, including its inline Principles index. Use the absolute path your parent gave you. With no path, before any other work, read `skills/poteto-mode/SKILL.md` in the pi-pstack package directory the system prompt names. Your skill catalog hides this skill, so a missing catalog entry does not mean pstack is absent. If no such file exists, stop and tell your parent. Navigate to a leaf `principle-*` skill whenever you apply that principle.
+  </pstack_subagent>
++ </response>
++
++ Agent ID: ad5c04fb-a006-4c0b-873a-6a54b8369310 (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-hUaH9M/agent/pstack/workspaces/--tmp-pi-pstack-e2e-hUaH9M-work--/subagents/2026-11-05T05-45-04-817Z_ad5c04fb-a006-4c0b-873a-6a54b8369310.jsonl
+
+ ❯ test/e2e/task.e2e.test.ts:195:25
+    193|   test.for(['comment-sicko', 'poteto-agent', 'ci-watcher', 'thermo-nuc…
+    194|     const { result } = await runTask({ prompt: 'go\n@@sys', subagent_t…
+    195|     expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder…
+       |                         ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > ci-watcher reads the system reminder Cursor builds for a plugin agent
+AssertionError: expected 'This is the output of the subagent:\n…' to contain '<pstack_subagent>\nYou are running as…'
+
+- Expected
++ Received
+
+@@ -1,10 +1,215 @@
++ This is the output of the subagent:
++
++ response:
++ <response>
++ You are a coding assistant running inside pi, a coding agent harness. Help users inspect files, run commands, and modify code.
++
++ <tools>
++ - read: Read file contents
++ - bash: Execute bash commands (ls, grep, find, etc.)
++ - edit: Make precise file edits with exact text replacement, including multiple disjoint edits in one call
++ - write: Create or overwrite files
++ - visualize: Draw a bar or line chart (Unicode in the result, SVG file in the artifacts folder)
++ - Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)
++ - stop_agent: Stop a running subagent by agent ID
++ - agent_status: Check subagents read-only (running or idle, last response) without restarting them
++ - subscribe_github_pr: Wake this session when a GitHub PR changes
++ - subscribe_timer: Schedule a prompt with cron or a delay
++ - subscribe_webhook: Create a webhook routine that wakes this session
++ - list_subscriptions: List subscriptions
++ - unsubscribe: End a subscription
++ - bash_background: Run a shell command in the background, with notifications when it finishes or prints a watched line
++ - AwaitShell: Poll or wait for a background shell job, or sleep
++ - TodoWrite: Create and update the todo list for this session
++
++ Additional tools may be available.
++ </tools>
++
++ <rules>
++ - Use bash for file operations like ls, rg, find
++ - Use read to examine files instead of cat or sed.
++ - You can inspect PI_* environment variables for current model and session details.
++ - Use edit for targeted changes. Batch changes to one file in a single call.
++ - Each edits[].oldText must exactly and uniquely match the original file. Keep matches short and non-overlapping; merge nearby changes without including large unchanged regions.
++ - Use write only for new files or complete rewrites.
++ - When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.
++ - Be concise in your responses
++ - Show file paths clearly when working with files
++ </rules>
++
++ <docs>
++ Pi documentation (read only when the user asks about the harness itself, its SDK, extensions, themes, skills, or TUI):
++ - Main documentation: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/README.md
++ - Additional docs: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/docs
++ - Examples: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/examples (extensions, custom tools, SDK)
++ - When reading pi docs or examples, resolve docs/... under Additional docs and examples/... under Examples, not the current working directory
++ - When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), packages (docs/packages.md), environment variables (docs/environment-variables.md), MCP servers (docs/mcp.md), codemode scripts and non-LLM models such as classifiers and image models (docs/codemode.md)
++ - Before implementing harness changes, read the relevant docs and examples in full, following related cross-references.
++ </docs>
++
++ <skills>
++ The following skills provide specialized instructions for specific tasks.
++ Use the read tool to load a skill's file when the task matches its description.
++ Resolve relative paths against the skill's directory (parent of SKILL.md). Use absolute paths in tool calls.
++
++ <available_skills>
++   <skill>
++     <name>check-compiler-errors</name>
++     <description>Run compile and type-check commands and report failures</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/check-compiler-errors/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-cli</name>
++     <description>Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-cli/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-ui</name>
++     <description>Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-ui/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>create-skill</name>
++     <description>Create or revise a Pi skill (a directory with SKILL.md plus optional scripts, references, and assets). Covers the requirements interview, placement, frontmatter, agent-facing writing, progressive disclosure, common patterns, a draft-test-iterate loop, and tuning the description so the skill triggers when it should. Use for /create-skill, &quot;write a skill&quot;, &quot;turn this workflow into a skill&quot;, or editing an existing SKILL.md.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/create-skill/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>deslop</name>
++     <description>Remove AI-generated code slop and clean up code style</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/deslop/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-ci</name>
++     <description>Find failing PR checks, inspect logs or external check links, and apply focused fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-merge-conflicts</name>
++     <description>Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-merge-conflicts/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>get-pr-comments</name>
++     <description>Fetch and summarize review comments from the active pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/get-pr-comments/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>loop-on-ci</name>
++     <description>Monitor PR checks and fix failures until green. Uses gh pr checks as the source of truth for PR-attached checks.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/loop-on-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>make-pr-easy-to-review</name>
++     <description>Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for &quot;make this easy to review&quot;, &quot;tidy this PR&quot;, &quot;clean up commits&quot;, or &quot;annotate the diff&quot;.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>new-branch-and-pr</name>
++     <description>Create a fresh branch, complete work, and open a pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>review-and-ship</name>
++     <description>Review the current branch for bugs, intent fit, and test coverage; run or write tests; commit focused work; open or update a PR.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/review-and-ship/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>run-smoke-tests</name>
++     <description>Run Playwright smoke tests, debug failures, and verify fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/run-smoke-tests/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>setup-pstack</name>
++     <description>Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, which pi-pstack adds to every request and which overrides the skill defaults. Use for /setup-pstack, &quot;configure pstack models&quot;, &quot;pstack budget&quot;, or changing pstack&apos;s model choices.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/setup-pstack/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>verify-this</name>
++     <description>Verify a claim with fresh local evidence: restate it falsifiably, capture baseline and treatment, compare artifacts, and return VERIFIED, NOT VERIFIED, or INCONCLUSIVE.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/verify-this/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>weekly-review</name>
++     <description>Produce a weekly synthesis of authored commits with highlights by bugfix, tech debt, and net-new work</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/weekly-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>what-did-i-get-done</name>
++     <description>Summarize authored commits over a user-specified time period into a concise update</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/what-did-i-get-done/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>workflow-from-chats</name>
++     <description>Extract durable working preferences from recent Pi chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/workflow-from-chats/SKILL.md</location>
++   </skill>
++ </available_skills>
++ </skills>
++
++ <cwd>
++ /tmp/pi-pstack-e2e-Hz03ft/work
++ </cwd>
++
++ <pstack_host>
++ pstack runs here through the pi-pstack package at /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack. Today's date: Wednesday Nov 4, 2026.
++ - <SKILLS> = /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (79): architect, arena, automate-me, benchmark-checklist, blast-radius, bro, check-compiler-errors, control-cli, control-ui, correct, create-formal-verification-skill, create-skill, create-verification-skill, deslop, figure-it-out, fix-ci, fix-merge-conflicts, get-pr-comments, how, in-your-own-words, interrogate, ketchup, ketchup-video, loop-on-ci, maintain-formal-verification-skill, maintain-verification-skill, make-bot-ui, make-pr-easy-to-review, new-branch-and-pr, no-comments, no-inline-imports, poteto-help, poteto-mode, pr-review-canvas, principle-attack-the-premise, principle-boundary-discipline, principle-build-the-lever, principle-encode-lessons-in-structure, principle-exhaust-the-design-space, principle-experience-first, principle-explain-the-number, principle-fix-root-causes, principle-foundational-thinking, principle-guard-the-context-window, principle-laziness-protocol, principle-make-operations-idempotent, principle-migrate-callers-then-delete-legacy-apis, principle-minimize-reader-load, principle-model-the-domain, principle-never-block-on-the-human, principle-outcome-oriented-execution, principle-prove-it-works, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-subtract-before-you-add, principle-test-behavior-not-implementation, principle-type-system-discipline, recall, reflect, review-and-ship, run-smoke-tests, setup-pstack, sharpen, show-me-your-work, statechart, swarm, tdd, teach, technical-writing, thermo-nuclear-code-quality-review, typescript-best-practices, typescript-exhaustive-switch, unslop, verify-this, weekly-review, what-did-i-get-done, why, workflow-from-chats.
++ - A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.
++ - Skill folders: project `.pi/skills/`, personal `/tmp/pi-pstack-e2e-Hz03ft/agent/skills/`.
++ - The model rule is /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/pstack-models.md. Its current content is in <pstack_models>.
++ - Subagents: call the Task tool as the skills describe (description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.
++ - Todo lists: the TodoWrite tool. This run has no AskQuestion tool, so decide yourself and say what you chose.
++ - Transcripts: this workspace's Pi session files are in /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/subagents. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). This chat's transcript is /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/subagents/2026-11-05T05-45-05-397Z_0f89fe2d-f1a6-403f-84d5-512cb5f4ab6b.jsonl. Subagent transcripts for this workspace: /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/subagents/*_<agent id>.jsonl. A subagent is still running while /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/subagents/<agent id>.lock exists and names a live pid.
++ - In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.
++ - "The current agent's store" is /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/store/0f89fe2d-f1a6-403f-84d5-512cb5f4ab6b. Create it when a playbook needs it. "The root agent's store" is /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/store/01a1aa3d-4770-7384-ac5a-263d4d2b998a, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.
++ - Projects: a program's Project is /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/projects/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store. Every agent in this workspace sees the same folder.
++ - Files a tool makes for the user, such as visualize charts, go in /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/artifacts/0f89fe2d-f1a6-403f-84d5-512cb5f4ab6b.
++ - Subscriptions: this run ends when it settles, so nothing can wake it and the subscribe tools refuse. Name in the final reply any PR, timer, or webhook the parent chat should subscribe to.
++ - agent_status reads a subagent's state without waking it. Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.
++ - /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.
++ - Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/terminals/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (`head -n 10 *.txt` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with `kill <pid>`. bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.
++ - Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.
++ - The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).
++ - PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.
++ - MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.
++ - Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.
++ - pi-pstack's README (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/README.md) and guide (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/docs/guide) describe installing and using it.
++ - Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.
++ - Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`). Follow them on every task:
++ # No inline imports
++   
++   Always place imports at the top of the module. Avoid inline imports in function bodies, type annotations, or interface fields unless there is a strict circular-dependency reason and it is documented.
++
++   typescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.
++ </pstack_host>
++
++ <pstack_subagents>
++ Subagent types for Task:
++ - generalPurpose (default): General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when searching for a keyword or file and not confident you'll find the match quickly.
++ - explore: Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.
++ - shell: Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.
++ - ci-watcher: Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
++ - comment-sicko: A deranged comment-hater that savors deletion and condemns workaround code.
++ - poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
++ - thermo-nuclear-code-quality-review: Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
++ Model values for Task (and for role lines in the model rule):
++ - inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.
++ - This chat runs scripted/echo:medium. pstack's model families (claude-*, grok-*) go by the model id after its provider.
++ - A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.
++ - Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.
++ Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain
++ Use inherit unless the user or a skill asks for another model. When the user names a model family without a version, use the newest listed version of that family.
++ If the user asks for a model that is not listed, do not substitute another model or guess: skip launching that subagent and tell the user which model was unavailable and which models are available.
++ When you tell the user which model a subagent used, name it the way the user named it, not by its model ID, unless the user used the ID.
++ </pstack_subagents>
++
++ <pstack_models>
++ No pstack model rule exists at /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/pstack-models.md. Every role uses its skill default until /setup-pstack writes one.
++ </pstack_models>
++
+  <pstack_subagent>
+  You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.
+-
+- You are operating as the "ci-watcher" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
+
+  # CI watcher
+
+  CI monitoring specialist for PR-attached checks.
+
+@@ -24,5 +229,9 @@
+
+  - CI status (passed/failed)
+  - PR and check metadata
+  - If failed: concise failure excerpt or external check link and likely next step
+  </pstack_subagent>
++ </response>
++
++ Agent ID: 0f89fe2d-f1a6-403f-84d5-512cb5f4ab6b (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-Hz03ft/agent/pstack/workspaces/--tmp-pi-pstack-e2e-Hz03ft-work--/subagents/2026-11-05T05-45-05-397Z_0f89fe2d-f1a6-403f-84d5-512cb5f4ab6b.jsonl
+
+ ❯ test/e2e/task.e2e.test.ts:195:25
+    193|   test.for(['comment-sicko', 'poteto-agent', 'ci-watcher', 'thermo-nuc…
+    194|     const { result } = await runTask({ prompt: 'go\n@@sys', subagent_t…
+    195|     expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder…
+       |                         ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > thermo-nuclear-code-quality-review reads the system reminder Cursor builds for a plugin agent
+AssertionError: expected 'This is the output of the subagent:\n…' to contain '<pstack_subagent>\nYou are running as…'
+
+- Expected
++ Received
+
+@@ -1,10 +1,215 @@
++ This is the output of the subagent:
++
++ response:
++ <response>
++ You are a coding assistant running inside pi, a coding agent harness. Help users inspect files, run commands, and modify code.
++
++ <tools>
++ - read: Read file contents
++ - bash: Execute bash commands (ls, grep, find, etc.)
++ - edit: Make precise file edits with exact text replacement, including multiple disjoint edits in one call
++ - write: Create or overwrite files
++ - visualize: Draw a bar or line chart (Unicode in the result, SVG file in the artifacts folder)
++ - Task: Launch subagents (foreground, background with completion notifications, resume by agent ID)
++ - stop_agent: Stop a running subagent by agent ID
++ - agent_status: Check subagents read-only (running or idle, last response) without restarting them
++ - subscribe_github_pr: Wake this session when a GitHub PR changes
++ - subscribe_timer: Schedule a prompt with cron or a delay
++ - subscribe_webhook: Create a webhook routine that wakes this session
++ - list_subscriptions: List subscriptions
++ - unsubscribe: End a subscription
++ - bash_background: Run a shell command in the background, with notifications when it finishes or prints a watched line
++ - AwaitShell: Poll or wait for a background shell job, or sleep
++ - TodoWrite: Create and update the todo list for this session
++
++ Additional tools may be available.
++ </tools>
++
++ <rules>
++ - Use bash for file operations like ls, rg, find
++ - Use read to examine files instead of cat or sed.
++ - You can inspect PI_* environment variables for current model and session details.
++ - Use edit for targeted changes. Batch changes to one file in a single call.
++ - Each edits[].oldText must exactly and uniquely match the original file. Keep matches short and non-overlapping; merge nearby changes without including large unchanged regions.
++ - Use write only for new files or complete rewrites.
++ - When a skill or playbook says to open a todolist or todo list, call TodoWrite before other work, with the steps it names as the first items.
++ - Be concise in your responses
++ - Show file paths clearly when working with files
++ </rules>
++
++ <docs>
++ Pi documentation (read only when the user asks about the harness itself, its SDK, extensions, themes, skills, or TUI):
++ - Main documentation: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/README.md
++ - Additional docs: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/docs
++ - Examples: /home/josh/.pi/agent/install/releases/1.5.0/node_modules/@earendil-works/pi-coding-agent/examples (extensions, custom tools, SDK)
++ - When reading pi docs or examples, resolve docs/... under Additional docs and examples/... under Examples, not the current working directory
++ - When asked about: extensions (docs/extensions.md, examples/extensions/), themes (docs/themes.md), skills (docs/skills.md), prompt templates (docs/prompt-templates.md), TUI components (docs/tui.md), keybindings (docs/keybindings.md), SDK integrations (docs/sdk.md), custom providers (docs/custom-provider.md), adding models (docs/models.md), packages (docs/packages.md), environment variables (docs/environment-variables.md), MCP servers (docs/mcp.md), codemode scripts and non-LLM models such as classifiers and image models (docs/codemode.md)
++ - Before implementing harness changes, read the relevant docs and examples in full, following related cross-references.
++ </docs>
++
++ <skills>
++ The following skills provide specialized instructions for specific tasks.
++ Use the read tool to load a skill's file when the task matches its description.
++ Resolve relative paths against the skill's directory (parent of SKILL.md). Use absolute paths in tool calls.
++
++ <available_skills>
++   <skill>
++     <name>check-compiler-errors</name>
++     <description>Run compile and type-check commands and report failures</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/check-compiler-errors/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-cli</name>
++     <description>Build or adapt a local harness to drive, inspect, and profile an interactive CLI or TUI without external services. Use for CLI UX checks, startup regressions, memory leaks, hangs, prompt flows, or terminal demos.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-cli/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>control-ui</name>
++     <description>Build or adapt a local browser/CDP harness to drive and inspect a web, IDE, or Electron UI. Use for local UI verification, screenshots, accessibility snapshots, perf profiles, visual diffs, or reproducing UI bugs.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/control-ui/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>create-skill</name>
++     <description>Create or revise a Pi skill (a directory with SKILL.md plus optional scripts, references, and assets). Covers the requirements interview, placement, frontmatter, agent-facing writing, progressive disclosure, common patterns, a draft-test-iterate loop, and tuning the description so the skill triggers when it should. Use for /create-skill, &quot;write a skill&quot;, &quot;turn this workflow into a skill&quot;, or editing an existing SKILL.md.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/create-skill/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>deslop</name>
++     <description>Remove AI-generated code slop and clean up code style</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/deslop/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-ci</name>
++     <description>Find failing PR checks, inspect logs or external check links, and apply focused fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>fix-merge-conflicts</name>
++     <description>Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/fix-merge-conflicts/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>get-pr-comments</name>
++     <description>Fetch and summarize review comments from the active pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/get-pr-comments/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>loop-on-ci</name>
++     <description>Monitor PR checks and fix failures until green. Uses gh pr checks as the source of truth for PR-attached checks.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/loop-on-ci/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>make-pr-easy-to-review</name>
++     <description>Prepare PRs for review by cleaning noisy history, improving PR descriptions, and adding reviewer guidance without changing code behavior. Use for &quot;make this easy to review&quot;, &quot;tidy this PR&quot;, &quot;clean up commits&quot;, or &quot;annotate the diff&quot;.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/make-pr-easy-to-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>new-branch-and-pr</name>
++     <description>Create a fresh branch, complete work, and open a pull request</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/new-branch-and-pr/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>review-and-ship</name>
++     <description>Review the current branch for bugs, intent fit, and test coverage; run or write tests; commit focused work; open or update a PR.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/review-and-ship/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>run-smoke-tests</name>
++     <description>Run Playwright smoke tests, debug failures, and verify fixes</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/run-smoke-tests/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>setup-pstack</name>
++     <description>Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, which pi-pstack adds to every request and which overrides the skill defaults. Use for /setup-pstack, &quot;configure pstack models&quot;, &quot;pstack budget&quot;, or changing pstack&apos;s model choices.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/setup-pstack/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>verify-this</name>
++     <description>Verify a claim with fresh local evidence: restate it falsifiably, capture baseline and treatment, compare artifacts, and return VERIFIED, NOT VERIFIED, or INCONCLUSIVE.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/verify-this/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>weekly-review</name>
++     <description>Produce a weekly synthesis of authored commits with highlights by bugfix, tech debt, and net-new work</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/weekly-review/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>what-did-i-get-done</name>
++     <description>Summarize authored commits over a user-specified time period into a concise update</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/what-did-i-get-done/SKILL.md</location>
++   </skill>
++   <skill>
++     <name>workflow-from-chats</name>
++     <description>Extract durable working preferences from recent Pi chats and convert them into skills, rules, or workflow docs. Use when asked to learn preferences, mine feedback, personalize workflows, or generate team/person-specific agent guidance.</description>
++     <location>/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills/workflow-from-chats/SKILL.md</location>
++   </skill>
++ </available_skills>
++ </skills>
++
++ <cwd>
++ /tmp/pi-pstack-e2e-vQ6oTL/work
++ </cwd>
++
++ <pstack_host>
++ pstack runs here through the pi-pstack package at /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack. Today's date: Wednesday Nov 4, 2026.
++ - <SKILLS> = /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/skills. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (79): architect, arena, automate-me, benchmark-checklist, blast-radius, bro, check-compiler-errors, control-cli, control-ui, correct, create-formal-verification-skill, create-skill, create-verification-skill, deslop, figure-it-out, fix-ci, fix-merge-conflicts, get-pr-comments, how, in-your-own-words, interrogate, ketchup, ketchup-video, loop-on-ci, maintain-formal-verification-skill, maintain-verification-skill, make-bot-ui, make-pr-easy-to-review, new-branch-and-pr, no-comments, no-inline-imports, poteto-help, poteto-mode, pr-review-canvas, principle-attack-the-premise, principle-boundary-discipline, principle-build-the-lever, principle-encode-lessons-in-structure, principle-exhaust-the-design-space, principle-experience-first, principle-explain-the-number, principle-fix-root-causes, principle-foundational-thinking, principle-guard-the-context-window, principle-laziness-protocol, principle-make-operations-idempotent, principle-migrate-callers-then-delete-legacy-apis, principle-minimize-reader-load, principle-model-the-domain, principle-never-block-on-the-human, principle-outcome-oriented-execution, principle-prove-it-works, principle-redesign-from-first-principles, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-subtract-before-you-add, principle-test-behavior-not-implementation, principle-type-system-discipline, recall, reflect, review-and-ship, run-smoke-tests, setup-pstack, sharpen, show-me-your-work, statechart, swarm, tdd, teach, technical-writing, thermo-nuclear-code-quality-review, typescript-best-practices, typescript-exhaustive-switch, unslop, verify-this, weekly-review, what-did-i-get-done, why, workflow-from-chats.
++ - A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.
++ - Skill folders: project `.pi/skills/`, personal `/tmp/pi-pstack-e2e-vQ6oTL/agent/skills/`.
++ - The model rule is /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/pstack-models.md. Its current content is in <pstack_models>.
++ - Subagents: call the Task tool as the skills describe (description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.
++ - Todo lists: the TodoWrite tool. This run has no AskQuestion tool, so decide yourself and say what you chose.
++ - Transcripts: this workspace's Pi session files are in /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/subagents. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). This chat's transcript is /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/subagents/2026-11-05T05-45-05-979Z_5ebb97f0-4b43-4d69-9d3b-44a424a471bd.jsonl. Subagent transcripts for this workspace: /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/subagents/*_<agent id>.jsonl. A subagent is still running while /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/subagents/<agent id>.lock exists and names a live pid.
++ - In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.
++ - "The current agent's store" is /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/store/5ebb97f0-4b43-4d69-9d3b-44a424a471bd. Create it when a playbook needs it. "The root agent's store" is /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/store/01a1aa3d-49b4-72a3-be35-4ae3d00f3cf0, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.
++ - Projects: a program's Project is /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/projects/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store. Every agent in this workspace sees the same folder.
++ - Files a tool makes for the user, such as visualize charts, go in /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/artifacts/5ebb97f0-4b43-4d69-9d3b-44a424a471bd.
++ - Subscriptions: this run ends when it settles, so nothing can wake it and the subscribe tools refuse. Name in the final reply any PR, timer, or webhook the parent chat should subscribe to.
++ - agent_status reads a subagent's state without waking it. Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.
++ - /loop: this run ends when it settles (a subagent, or a print or JSON run), so it has no Loop tool and cannot arm a loop. Keep working until the goal is met, and name in the final reply anything the parent chat should loop on.
++ - Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/terminals/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (`head -n 10 *.txt` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with `kill <pid>`. bash waits for its command to finish and never moves it to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.
++ - Image generation: no image model is configured, so this session has no GenerateImage tool. Say so and use a mermaid diagram or a table instead.
++ - The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).
++ - PR operations use the forge command the step gives, such as `gh pr create`. Bugbot comments on a GitHub PR are ordinary review threads; skip a step that starts, waits for, or configures Bugbot when the PR has no Bugbot check or comment.
++ - MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.
++ - Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.
++ - pi-pstack's README (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/README.md) and guide (/home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack/docs/guide) describe installing and using it.
++ - Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.
++ - Always-applied engineering rules (also `/no-inline-imports` and `/typescript-exhaustive-switch`). Follow them on every task:
++ # No inline imports
++   
++   Always place imports at the top of the module. Avoid inline imports in function bodies, type annotations, or interface fields unless there is a strict circular-dependency reason and it is documented.
++
++   typescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.
++ </pstack_host>
++
++ <pstack_subagents>
++ Subagent types for Task:
++ - generalPurpose (default): General-purpose agent for researching complex questions, searching for code, and executing multi-step tasks. Use when searching for a keyword or file and not confident you'll find the match quickly.
++ - explore: Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. "src/components/**/*.tsx"), search code for keywords (eg. "API endpoints"), or answer questions about the codebase (eg. "how do API endpoints work?"). When calling this agent, specify the desired thoroughness level: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for comprehensive analysis across multiple locations and naming conventions.
++ - shell: Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.
++ - ci-watcher: Watch PR CI for the current branch and report pass/fail with relevant failure links. Use when waiting for CI results or CI has failed. Use proactively to monitor branch CI.
++ - comment-sicko: A deranged comment-hater that savors deletion and condemns workaround code.
++ - poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.
++ - thermo-nuclear-code-quality-review: Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
++ Model values for Task (and for role lines in the model rule):
++ - inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.
++ - This chat runs scripted/echo:medium. pstack's model families (claude-*, grok-*) go by the model id after its provider.
++ - A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.
++ - Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.
++ Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain
++ Use inherit unless the user or a skill asks for another model. When the user names a model family without a version, use the newest listed version of that family.
++ If the user asks for a model that is not listed, do not substitute another model or guess: skip launching that subagent and tell the user which model was unavailable and which models are available.
++ When you tell the user which model a subagent used, name it the way the user named it, not by its model ID, unless the user used the ID.
++ </pstack_subagents>
++
++ <pstack_models>
++ No pstack model rule exists at /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/pstack-models.md. Every role uses its skill default until /setup-pstack writes one.
++ </pstack_models>
++
+  <pstack_subagent>
+  You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.
+-
+- You are operating as the "thermo-nuclear-code-quality-review" custom subagent. DO NOT create unnecessary markdown files unless explicitly requested by the user.
+- Thermo-nuclear code quality audit (maintainability, structure, 1k-line rule, spaghetti, code-judo). Invoked via Task after a parent gathers diff and file contents. Loads the rubric from the `thermo-nuclear-code-quality-review` skill shipped with pi-pstack.
+
+  # Thermo-Nuclear Code Quality Review
+
+  You are a **Task subagent**. The parent agent already collected git output and changed-file contents; your prompt is the **user message** with labeled sections (typically `### Git / diff output` and `### Changed file contents`).
+
+@@ -21,5 +226,9 @@
+
+  ## Parent orchestration
+
+  Typical flow: in **one** message, run two `Task` calls in parallel — `subagent_type: "shell"` and `subagent_type: "explore"` — to collect `git diff <base>...HEAD` output and full contents of changed files (default base `main`). Then invoke this agent with `subagent_type: "thermo-nuclear-code-quality-review"` and a user prompt containing `### Git / diff output` and `### Changed file contents`.
+  </pstack_subagent>
++ </response>
++
++ Agent ID: 5ebb97f0-4b43-4d69-9d3b-44a424a471bd (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-vQ6oTL/agent/pstack/workspaces/--tmp-pi-pstack-e2e-vQ6oTL-work--/subagents/2026-11-05T05-45-05-979Z_5ebb97f0-4b43-4d69-9d3b-44a424a471bd.jsonl
+
+ ❯ test/e2e/task.e2e.test.ts:195:25
+    193|   test.for(['comment-sicko', 'poteto-agent', 'ci-watcher', 'thermo-nuc…
+    194|     const { result } = await runTask({ prompt: 'go\n@@sys', subagent_t…
+    195|     expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder…
+       |                         ^
+    196|   });
+    197|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+error: script "test" exited with code 1

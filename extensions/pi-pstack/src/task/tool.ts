@@ -8,10 +8,10 @@ import { type Static, Type } from 'typebox';
 import { BUILD_PLAN_ENV, childIdentity, childVariables } from '../child-env.ts';
 import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
-import { type AgentDefinition, findAgent } from './agents.ts';
+import { type AgentDefinition, findAgent, normalizedType } from './agents.ts';
 import { renderTaskCard, renderTaskNotification } from './card.ts';
 import { backgroundText, bounded, foregroundText, notificationTitle, steerText, worktreeLine, worktreePreface } from './format.ts';
-import { type AvailableModel, type ModelSpec, resolveSubagentModel } from './models.ts';
+import { type AvailableModel, fastVariant, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { createProgress } from './progress.ts';
 import { type AgentRecord, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
@@ -70,6 +70,7 @@ export const TaskParams = Type.Object({
 type TaskInput = Static<typeof TaskParams>;
 
 export function taskPreflight(params: TaskInput, depth: number): undefined {
+  if (params.prompt.trim() === '') throw new Error('prompt is required');
   if (params.fork !== undefined) {
     if (params.resume !== undefined) throw new Error('fork and resume cannot be combined: resume continues an agent, fork starts a new agent from a copy of one.');
     if (params.environment !== undefined || params.cloud_base_branch !== undefined) throw new Error('fork runs where the source agent ran, so it takes no environment or cloud_base_branch.');
@@ -148,7 +149,9 @@ const trustFor = (executionCwd: string, ctx: ExtensionContext): boolean => ctx.i
 
 function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], depth: number, planMode: boolean): Launch {
   const agent = findAgent(agents, params.subagent_type);
-  const model = resolveSubagentModel(params.model ?? agent.model, availableModels(ctx), parentModel(ctx));
+  const available = availableModels(ctx);
+  const parent = parentModel(ctx);
+  const model = resolveSubagentModel(params.model, available, agent.defaultsToFastModel === true ? fastVariant(available, parent) : parent, parent);
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const readonly = effectiveReadonly(agent.readonly, params.readonly);
   const agentId = randomUUID();
@@ -194,13 +197,12 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   const { worktree } = record;
   if (worktree !== undefined && !existsSync(worktree.cwd)) throw new Error(`Agent ${agentId} ran in the git worktree ${worktree.path}, which no longer exists. Start a new agent instead.`);
   const agent = recordedAgent(agents, agentId, record.type);
+  if (params.subagent_type !== undefined && normalizedType(params.subagent_type) !== normalizedType(record.type))
+    throw new Error(
+      `Cannot resume a "${record.type}" subagent as "${params.subagent_type}". A resumed subagent keeps its type: omit \`subagent_type\` to resume this child, or start a new "${params.subagent_type}" subagent without \`resume\`.`,
+    );
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
-  const notes = [
-    ...(worktree === undefined ? [] : [worktreeLine(worktree)]),
-    ...(params.model === undefined ? [] : [`Note: model "${params.model}" was ignored; a resumed agent keeps its earlier model.`]),
-    ...(params.subagent_type === undefined ? [] : [`Note: subagent_type "${params.subagent_type}" was ignored; a resumed agent keeps its earlier type, ${agent.type}.`]),
-    ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`]),
-  ];
+  const notes = [...(worktree === undefined ? [] : [worktreeLine(worktree)]), ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`])];
   const readonly = effectiveReadonly(effectiveReadonly(record.readonly, agent.readonly), params.readonly);
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
@@ -284,6 +286,7 @@ function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | unde
     restoreTools,
     trusted: plan.trusted,
     ...(plan.agent.tools === undefined ? {} : { addTools: plan.agent.tools }),
+    ...(plan.agent.onlyTools === undefined ? {} : { onlyTools: plan.agent.onlyTools }),
     ...(plan.model === undefined ? {} : { model: plan.model }),
   });
   return startChild({ command: piCommand(), args, prompt: input.text, images: input.images, cwd: plan.executionCwd, env, ...(signal === undefined ? {} : { signal }), ...(onEvent === undefined ? {} : { onEvent }) });
@@ -456,10 +459,7 @@ async function steerRunning(params: TaskInput, running: { handle: ChildHandle; r
   await running.handle.steer(input.text, input.images).catch((error: Error) => {
     throw new Error(`Agent ${agentId} finished before the message reached it (${error.message}). Resume it once its result arrives.`);
   });
-  const notes = [
-    ...(params.model === undefined ? [] : [`Note: model "${params.model}" was ignored; a resumed agent keeps its earlier model.`]),
-    ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`]),
-  ];
+  const notes = params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`];
   return { content: [{ type: 'text' as const, text: steerText(agentId, notes) }], details: { agentId, status: 'steered', pid: running.handle.pid ?? null, description: params.description } };
 }
 
@@ -554,7 +554,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       const input = attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
       const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
       if (plan.kind === 'fresh' && plan.worktree !== undefined) await createWorktree(plan, lock, signal);
-      const background = params.run_in_background ?? plan.agent.background;
+      const background = params.run_in_background === true;
       let pid: number | undefined;
       const progress = background ? undefined : createProgress(onUpdate, () => details(plan, false, 'running', pid));
       const handle = start(plan, input, background ? undefined : signal, lock, progress?.onEvent);

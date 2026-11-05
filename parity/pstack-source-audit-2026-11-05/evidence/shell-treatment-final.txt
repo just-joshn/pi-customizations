@@ -1,0 +1,10 @@
+$ vitest run "test/e2e/shell-agent.e2e.test.ts" test/task-agents.test.ts test/task-runner.test.ts
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+
+ Test Files  3 passed (3)
+      Tests  61 passed (61)
+   Start at  21:24:29
+   Duration  4.11s (tests 84%, import 15%, transform 2%)
+
