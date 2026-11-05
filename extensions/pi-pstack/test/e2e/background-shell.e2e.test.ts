@@ -1,5 +1,6 @@
 // bash_background and AwaitShell through the real Pi CLI, against the texts Cursor CLI 2026.10.22 returns and sends.
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { assistantTexts, makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
@@ -16,6 +17,10 @@ const shellNotices = (events: PiEvent[]) =>
     .map((event) => event['entry'] as { type: string; customType?: string; content: string })
     .filter((entry) => entry.type === 'custom_message' && entry.customType === 'pstack/shell')
     .map((entry) => entry.content);
+
+const { factoryCases } = JSON.parse(readFileSync(new URL('../fixtures/cursor-shell-monitor.json', import.meta.url), 'utf8')) as {
+  factoryCases: { id: string; name: string; pattern: string; warning: boolean }[];
+};
 
 const launchFields = (text: string | undefined) => ({
   shellId: /^Shell ID: (\d+)$/m.exec(text ?? '')?.[1] ?? '',
@@ -65,6 +70,39 @@ describe('print and JSON runs', () => {
     expect(shellNotices(run.events)).toEqual([]);
   });
 
+  test('a watched pattern counts every occurrence in output without line breaks', async () => {
+    const run = await runJson(sandbox, script([{ tool: 'bash_background', args: { command: 'printf "HIT HIT HIT"', notify_on_output: { pattern: 'HIT', reason: 'matches' } } }]), ['--no-session']);
+    expect(run.exitCode).toBe(0);
+    const notices = shellNotices(run.events);
+    expect(notices).toHaveLength(3);
+    expect(notices[0]).toContain('This is occurrence number 1. Matched text: HIT.');
+    expect(notices[1]).toContain('Shell output matched /HIT/ 2 more times since the previous notification.');
+    expect(notices[2]).toContain('kind: shell\nstatus: success');
+  });
+
+  test('output monitoring stops at the reference limit and tells the session to read the file', async () => {
+    const run = await runJson(sandbox, script([{ tool: 'bash_background', args: { command: `printf '%s' '${'HIT '.repeat(150)}'`, notify_on_output: { pattern: 'HIT', reason: 'matches' } } }]), ['--no-session']);
+    expect(run.exitCode).toBe(0);
+    const notices = shellNotices(run.events);
+    expect(notices).toHaveLength(4);
+    expect(notices[1]).toContain('Shell output matched /HIT/ 99 more times since the previous notification.');
+    expect(notices[2]).toContain('title: Notification limit reached (100)');
+    expect(notices[2]).toContain('No further notifications will be sent for this pattern.');
+    expect(notices[2]).toContain('output_path: ');
+  });
+
+  test.for(factoryCases)('$id the $name watch preserves command execution', async ({ pattern, warning }) => {
+    const run = await runJson(sandbox, script([{ tool: 'bash_background', args: { command: 'printf WATCH-SKIP', notify_on_output: { pattern, reason: 'invalid watch' } } }]), ['--no-session']);
+    const [launch] = toolEnds(run.events, 'bash_background');
+    expect(launch?.isError).toBe(false);
+    const { path } = launchFields(launch?.text);
+    expect(readFileSync(path, 'utf8')).toContain('WATCH-SKIP');
+    expect(shellNotices(run.events)).toHaveLength(1);
+    expect(shellNotices(run.events)[0]).toContain('has finished.');
+    if (warning) expect(run.stderr).toContain('Invalid shell output notification pattern');
+    else expect(run.stderr).not.toContain('Invalid shell output notification pattern');
+  });
+
   test('AwaitShell sleeps without a shell id and reports a running job by id', async () => {
     const run = await runJson(
       sandbox,
@@ -98,6 +136,28 @@ describe('interactive sessions', () => {
       expect(turns.filter((text) => text.includes('ECHO: <system_notification>'))).toHaveLength(2);
       const progress = rpc.events.find((event) => event.type === 'message_end' && JSON.stringify(event['message']).includes(`task_id: ${shellId}:task_progress:1`));
       expect(JSON.stringify(progress?.['message'])).toContain('detail: Shell output has pattern /^TICK-2/. This is occurrence number 1. Matched text: TICK-2. The title message is being displayed to the user.\\noutput_path: ');
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('a watched match wakes the session before the producer writes a newline or exits', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    const gate = join(sandbox.workDir, 'release');
+    const producer = `const fs = require('node:fs'); const watcher = fs.watch(${JSON.stringify(sandbox.workDir)}, (_, name) => { if (name === 'release') { watcher.close(); } }); fs.writeSync(1, 'READY');`;
+    try {
+      rpc.send({
+        type: 'prompt',
+        message: script([
+          { tool: 'bash_background', args: { command: `${JSON.stringify(process.execPath)} -e ${JSON.stringify(producer)}`, description: 'streaming match', notify_on_output: { pattern: 'READY', reason: 'producer ready' } } },
+        ]),
+      });
+      await rpc.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'bash_background');
+      const progress = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { customType?: string }).customType === 'pstack/shell', 5_000);
+      expect(JSON.stringify(progress['message'])).toContain('Matched text: READY.');
+      expect(JSON.stringify(progress['message'])).toContain('has notified.');
+      writeFileSync(gate, 'release');
+      await rpc.waitFor((event) => event.type === 'message_end' && JSON.stringify(event['message']).includes('title: streaming match'));
     } finally {
       await rpc.close();
     }

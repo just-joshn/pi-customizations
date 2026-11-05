@@ -78,6 +78,15 @@ test('a missing YAML dependency rejects metadata operations without blocking oth
   }
 });
 
+test('missing regex dependencies refuse a watched command before it runs', async () => {
+  const copy = join(sandbox.root, 'pi-pstack');
+  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  pi('install', copy);
+  const run = await runJson(sandbox, script([{ tool: 'bash_background', args: { command: 'touch must-not-run.txt', notify_on_output: { pattern: 'READY', reason: 'ready' } } }]), ['--no-session']);
+  expect(toolEnds(run.events, 'bash_background')).toEqual([expect.objectContaining({ isError: true, text: 'Shell output monitoring needs the re2js dependency. Run bun install in the pi-pstack package directory, then reload Pi.' })]);
+  expect(existsSync(join(sandbox.workDir, 'must-not-run.txt'))).toBe(false);
+});
+
 test('installs from a fresh copy without node_modules, then removes cleanly (PKG-001)', async () => {
   const copy = join(sandbox.root, 'pi-pstack');
   cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
