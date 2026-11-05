@@ -8,7 +8,7 @@ const json = { mode: 'json' } as ExtensionContext;
 
 test('a one-shot run holds its exit for a running background subagent, unless the run was aborted (TASK-003; review r2: architecture)', async () => {
   const registry = createSubagentRegistry({ sendMessage: () => undefined } as unknown as ExtensionAPI);
-  registry.track('11111111-2222-4333-8444-555555555555', { done: new Promise<ChildOutcome>(() => undefined), kill: () => undefined, stop: () => undefined, steer: async () => undefined, pid: 1 }, () => undefined, false, notice);
+  registry.track('11111111-2222-4333-8444-555555555555', { done: new Promise<ChildOutcome>(() => undefined), kill: () => undefined, stop: () => undefined, pid: 1 }, () => undefined, notice);
   let completedSettled = false;
   void registry.beforeSettle(json, 'completed', []).then(() => {
     completedSettled = true;
@@ -25,11 +25,9 @@ test('a settle-time Task notice appends after entries another extension proposed
       done: Promise.resolve({ finalText: 'done', usage: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } }, stderr: '' }),
       kill: () => undefined,
       stop: () => undefined,
-      steer: async () => undefined,
       pid: 1,
     },
     () => undefined,
-    false,
     notice,
   );
   const earlier = { type: 'custom_message' as const, customType: 'earlier', content: 'keep me', display: true };

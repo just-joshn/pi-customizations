@@ -35,6 +35,30 @@ const mutations = {
     replace: '  if (false)',
     tests: ['test/e2e/task.e2e.test.ts', '-t', 'names another subagent_type'],
   },
+  'running-text': {
+    file: 'src/task/tool.ts',
+    find: "const SUBAGENT_RUNNING = 'Sub-agent is currently running. You may send the follow-up message when it has completed.';",
+    replace: "const SUBAGENT_RUNNING = 'Agent is busy. Try again later.';",
+    tests: ['test/e2e/task.e2e.test.ts', '-t', 'running agent|one writer|another Pi process'],
+  },
+  'lock-mapping': {
+    file: 'src/task/tool.ts',
+    find: '    if (!fresh && error instanceof AgentRunningError) throw new Error(SUBAGENT_RUNNING);\n',
+    replace: '',
+    tests: ['test/e2e/task.e2e.test.ts', '-t', 'another Pi process'],
+  },
+  'task-description': {
+    file: 'src/task/tool.ts',
+    find: '  "- The subagent\'s outputs should generally be trusted",',
+    replace: '  "- Trust the agent output in general.",',
+    tests: ['test/e2e/host.e2e.test.ts', '-t', 'delegation rules'],
+  },
+  'resume-param': {
+    file: 'src/task/tool.ts',
+    find: 'Requests to a currently running asynchronous agent fail; wait for completion before resuming.',
+    replace: 'A running agent receives the prompt as a steer.',
+    tests: ['test/task-text.test.ts'],
+  },
   'empty-prompt': {
     file: 'src/task/tool.ts',
     find: "  if (params.prompt.trim() === '') throw new Error('prompt is required');\n",

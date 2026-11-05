@@ -1,0 +1,53 @@
+mutation task-description: src/task/tool.ts
+-   "- The subagent's outputs should generally be trusted",
++   "- Trust the agent output in general.",
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/host.e2e.test.ts (21 tests | 1 failed | 20 skipped) 415ms
+   ❯ declared tool descriptions (3)
+     × Task carries Cursor's delegation rules in Pi wording 414ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 20 skipped (21)
+   Start at  21:59:56
+   Duration  895ms (tests 50%, import 44%, transform 5%)
+
+
+$ vitest run "test/e2e/host.e2e.test.ts" -t "delegation rules"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/host.e2e.test.ts > declared tool descriptions > Task carries Cursor's delegation rules in Pi wording
+AssertionError: expected 'Launch a new agent to handle complex,…' to be 'Launch a new agent to handle complex,…' // Object.is equality
+
+- Expected
++ Received
+
+@@ -24,11 +24,11 @@
+  - Always include a short description (3-5 words) summarizing what the agent will do
+  - Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses.
+  - When the agent is done, it will return a single message back to you. Specify exactly what information the agent should return back in its final response to you.
+  - Agents can be resumed using the `resume` parameter by passing the agent ID from a previous invocation. This sends a follow-up message after the agent has completed, preserving existing context. If the agent is still running, the request fails; wait for completion before resuming. When NOT resuming, each invocation starts fresh and you should provide a detailed task description with all necessary context.
+  - When using the Task tool, the subagent invocation does not have access to the user's message or prior assistant steps. Therefore, you should provide a highly detailed task description with all necessary context for the agent to perform its task autonomously.
+- - The subagent's outputs should generally be trusted
++ - Trust the agent output in general.
+  - Clearly tell the subagent which tasks you want it to perform, since it is not aware of the user's intent or your prior assistant steps (tool calls, thinking, or messages).
+  - If the subagent description mentions that it should be used proactively, then you should try your best to use it without the user having to ask for it first. Use your judgement.
+  - If the user specifies that they want you to run subagents "in parallel", you MUST send a single message with multiple Task tool use content blocks. For example, if you need to launch both a code-reviewer subagent and a test-runner subagent in parallel, send a single message with both tool calls.
+  - Avoid delegating the full query to the Task tool and returning the result. In these cases, you should address the query using the other tools available to you.
+
+
+ ❯ test/e2e/host.e2e.test.ts:147:37
+    145|
+    146|   test("Task carries Cursor's delegation rules in Pi wording", async (…
+    147|     expect(await described('Task')).toBe(cursorTaskText(cursorAgents.t…
+       |                                     ^
+    148|   });
+    149|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

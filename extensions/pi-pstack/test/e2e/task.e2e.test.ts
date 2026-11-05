@@ -419,7 +419,7 @@ describe('usage accounting', () => {
 describe('resume over RPC', () => {
   const settledAfter = (rpc: ReturnType<typeof startRpc>, mark: number) => (event: PiEvent) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark;
 
-  test('continues the same transcript, steers a running agent, and refuses unknown agents (TASK-005, C-H4)', async () => {
+  test("continues the same transcript, refuses a running agent with Cursor's error, and refuses unknown agents (TASK-005)", async () => {
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       const prompt = async (message: string) => {
@@ -434,20 +434,15 @@ describe('resume over RPC', () => {
       expect(/<response>\n(.*)\n<\/response>/.exec(resumed?.text ?? '')?.[1]).toBe('USERS=2');
       expect(resumed?.text.includes('scripted/plain')).toBe(false);
 
-      const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep 4000 SLOW', run_in_background: true })]));
-      const [steered] = await prompt(script([task({ prompt: 'change course\n@@say STEERED', resume: idOf(slow?.text), model: 'scripted/plain' })]));
-      expect([steered?.isError, steered?.text.split('\n')]).toEqual([
-        false,
-        [
-          `Sent to agent ${idOf(slow?.text)} while it runs: it reads the message after its current step. Its final response still arrives as its launch said, as a completion notification for a background agent or as the waiting Task result for a foreground one, so do not wait or poll for it.`,
-        ],
-      ]);
+      const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })]));
+      const [refused] = await prompt(script([task({ prompt: 'change course\n@@say CHANGED', resume: idOf(slow?.text) })]));
+      expect([refused?.isError, refused?.text]).toEqual([true, 'Sub-agent is currently running. You may send the follow-up message when it has completed.']);
       const [unknown] = await prompt(script([task({ prompt: 'x', resume: '00000000-0000-4000-8000-000000000000' })]));
       expect(unknown?.text).toBe('Unknown agent ID 00000000-0000-4000-8000-000000000000. Resume needs an agent ID returned by an earlier Task call in this workspace.');
       const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
       const text = contentText((notice['message'] as { content: string }).content);
-      expect([text.includes(`task_id: ${idOf(slow?.text)}\n`), text.includes('\ndetail: STEERED\n')]).toEqual([true, true]);
-      expect(transcriptOf(idOf(slow?.text)).filter((entry) => entry.message?.role === 'user').length).toBe(2);
+      expect([text.includes(`task_id: ${idOf(slow?.text)}\n`), text.includes('\ndetail: SLOW\n')]).toEqual([true, true]);
+      expect(transcriptOf(idOf(slow?.text)).filter((entry) => entry.message?.role === 'user').length).toBe(1);
     } finally {
       await rpc.close();
     }
@@ -472,25 +467,16 @@ describe('resume across processes and workspaces', () => {
     expect(toolEnds(second.events, 'Task')[0]?.text).toBe(`Unknown agent ID ${agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
   });
 
-  test('two calls in one message that resume the same agent get one writer: the second steers the first (review: security 3, architecture 2; C-H4)', async () => {
+  test('two calls in one message that resume the same agent get one writer: the second fails as Cursor fails a follow-up to a running agent (review: security 3)', async () => {
     const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const second = await runJson(sandbox, script([[task({ prompt: 'a\n@@sleep 1500 A', resume: agentId }), task({ prompt: 'b\n@@say B', resume: agentId })]]), ['--no-session']);
     const ends = toolEnds(second.events, 'Task');
-    expect(ends.map((end) => end.text.split('\n')[0]?.slice(0, 32)).toSorted()).toEqual([`Sent to agent ${agentId.slice(0, 18)}`, 'This is the output of the subagent:'.slice(0, 32)]);
-    expect(ends.map((end) => /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1]).filter((text) => text !== undefined)).toEqual(['B']);
-    expect(readdirSync(subagentDir()).filter((name) => name.endsWith(`_${agentId}.jsonl`))).toHaveLength(1);
-  });
-
-  test('a readonly call cannot steer a running agent that has write access (C-H4)', async () => {
-    const rpc = startRpc(sandbox, ['--no-session']);
-    try {
-      const [slow] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })])), 'Task');
-      const [refused] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'x', resume: idOf(slow?.text), readonly: true })])), 'Task');
-      expect([refused?.isError, refused?.text]).toEqual([true, `Agent ${idOf(slow?.text)} is running with write access, so a readonly call cannot message it. Wait for its completion notification, or stop it with stop_agent.`]);
-    } finally {
-      await rpc.close();
-    }
+    expect(ends.map((end) => [end.isError, /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1] ?? end.text]).toSorted()).toEqual([
+      [false, 'A'],
+      [true, 'Sub-agent is currently running. You may send the follow-up message when it has completed.'],
+    ]);
+    expect(transcriptOf(agentId).filter((entry) => entry.message?.role === 'user').length).toBe(2);
   });
 
   test('a resume runs in the foreground unless the call asks for the background', async () => {
@@ -674,7 +660,7 @@ describe('stop_agent (C-H4)', () => {
       // Pi writes the transcript once the child takes its prompt; before that a resume finds no context to continue.
       await vi.waitFor(() => expect(readdirSync(subagentDir()).some((name) => name.endsWith(`_${agentId}.jsonl`))).toBe(true), { timeout: 15_000, interval: 50 });
       const resumed = await runJson(sandbox, script([task({ prompt: 'x', resume: agentId })]), ['--no-session']);
-      expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe(`Agent ${agentId} is still running (pid ${pid}; lock ${join(subagentDir(), `${agentId}.lock`)}). Wait for its completion before resuming it.`);
+      expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe('Sub-agent is currently running. You may send the follow-up message when it has completed.');
       const other = await runJson(sandbox, script([stop(agentId)]), ['--no-session']);
       expect([toolEnds(other.events, 'stop_agent')[0]?.text, alive(pid)]).toEqual([
         `Stopped agent ${agentId}: another Pi process ran it (pid ${pid}), so it got SIGTERM and has exited. That process reports the stop as the agent's result.`,

@@ -26,6 +26,7 @@ const specs = [
   { id: 'cli-plugin-agent-strip', file: CLI, marker: 'function hu(t,e={}){return{...t,model:e.stripModel?void 0:t.model' },
   { id: 'desktop-task-description', file: DESKTOP, marker: '"no-subagent-unless-asked"===F&&(d=`IMPORTANT: Do NOT use this tool unless' },
   { id: 'desktop-task-description-text', file: DESKTOP, marker: 'Launch a new agent to handle complex, multi-step tasks' },
+  { id: 'desktop-task-description-catalog', file: DESKTOP, marker: 'Available subagent_types and descriptions are listed in' },
 ];
 const wanted = process.argv.length > 2 ? specs.filter((spec) => process.argv.slice(2).includes(spec.id)) : specs;
 const hash = (text) => createHash('sha256').update(text).digest('hex');

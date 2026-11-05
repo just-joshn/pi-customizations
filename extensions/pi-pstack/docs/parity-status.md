@@ -19,7 +19,7 @@ A path and byte comparison of the tracked trees shows every pstack skill, both p
 | Custom Mode | `/mode <skill>`, a branch-persisted entry, the skill in a `pstack_mode_skill` prompt section on every request while the mode is on, and Cursor's entered, reminder, and exit or switch notices in `pstack_mode` |
 | Plan mode | `/plan` and `SwitchMode`, Cursor's plan-mode instructions in `pstack_plan`, a reduced tool set with `bash_readonly` in an OS sandbox and markdown-only `edit` and `write`, `CreatePlan` writing Cursor's plan file under `plans/`, and a build prompt after a saved plan (`/plan build` too) |
 | Always-applied model rule | `pstack-models.md` read before every request and injected as `pstack_models` |
-| Task subagents | One `pi --mode rpc` process per agent, with resume, steer, fork, `fork_turns`, readonly, attachments, Cursor's result and completion texts, Cursor's subagent reminder, and local worktrees |
+| Task subagents | One `pi --mode rpc` process per agent, with resume of a finished agent, fork, `fork_turns`, readonly, attachments, Cursor's description, parameter, result, and completion texts, Cursor's subagent reminder, and local worktrees |
 | Agent types | Cursor desktop's built-in `generalPurpose`, `explore`, and `shell`, then the four bundled agent Markdown files loaded the way Cursor loads plugin agents, each child reading Cursor's system reminder in `pstack_subagent` |
 | Project and agent stores | Workspace state folders named in the host system prompt |
 | Todo list | `TodoWrite` with branch reconstruction and a TUI widget |
@@ -56,6 +56,8 @@ A source audit on 2026-11-05 (UTC) executed Cursor's own agent and Task code fro
 - **Type names.** Task matches `subagent_type` the way desktop does: case, hyphens, underscores, and a trailing `agent`, `subagent`, `mode`, or `type` do not matter.
 - **Model aliases.** Desktop ignores a `fast` it cannot resolve and reads `inherit` in any case as an omitted model. An empty model fails with `Model must be a non-empty string when provided.` pi-pstack had mapped `fast` to the parent's `-fast` variant.
 - **Resume.** A resume that names a different `subagent_type` fails with desktop's message, and a resume ignores `model` without a note. An empty `prompt` fails with `prompt is required`.
+- **A running agent takes no follow-up.** Desktop's agent host and a live CLI session both fail a resume of a running agent with `Sub-agent is currently running. You may send the follow-up message when it has completed.` pi-pstack had steered the prompt into the running turn and had edited poteto-mode's text to promise that steer. Task now fails the same way, in this and in another Pi process, the steering machinery is gone, and poteto-mode's sentences are pstack's again. Desktop can interrupt a running agent behind a feature flag that the live session did not show; Pi does not offer it.
+- **Task text.** Task's description and its parameter descriptions are the text a live Cursor CLI session showed, which desktop's description builder reproduces exactly with that session's flags. Pi names its own tools (`read`, `find`, `grep`) and points at `pstack_subagents` for the type and model catalogs.
 
 ## Repairs in 0.15.36-pi.17
 

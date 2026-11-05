@@ -1,0 +1,92 @@
+mutation running-text: src/task/tool.ts
+- const SUBAGENT_RUNNING = 'Sub-agent is currently running. You may send the follow-up message when it has completed.';
++ const SUBAGENT_RUNNING = 'Agent is busy. Try again later.';
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/task.e2e.test.ts (64 tests | 3 failed | 61 skipped) 4483ms
+   ❯ resume over RPC (1)
+     × continues the same transcript, refuses a running agent with Cursor's error, and refuses unknown agents (TASK-005) 994ms
+   ❯ resume across processes and workspaces (4)
+     × two calls in one message that resume the same agent get one writer: the second fails as Cursor fails a follow-up to a running agent (review: security 3) 2615ms
+   ❯ stop_agent (C-H4) (2)
+     × stops an agent another Pi process runs, which Task resume there refuses to message, and leaves an idle agent alone 873ms
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 61 skipped (64)
+   Start at  21:59:49
+   Duration  4.99s (tests 91%, import 7%, transform 1%)
+
+
+$ vitest run "test/e2e/task.e2e.test.ts" -t "running agent|one writer|another Pi process"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > resume over RPC > continues the same transcript, refuses a running agent with Cursor's error, and refuses unknown agents (TASK-005)
+AssertionError: expected [ true, …(1) ] to deeply equal [ true, …(1) ]
+
+- Expected
++ Received
+
+  [
+    true,
+-   "Sub-agent is currently running. You may send the follow-up message when it has completed.",
++   "Agent is busy. Try again later.",
+  ]
+
+ ❯ test/e2e/task.e2e.test.ts:439:49
+    437|       const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep …
+    438|       const [refused] = await prompt(script([task({ prompt: 'change co…
+    439|       expect([refused?.isError, refused?.text]).toEqual([true, 'Sub-ag…
+       |                                                 ^
+    440|       const [unknown] = await prompt(script([task({ prompt: 'x', resum…
+    441|       expect(unknown?.text).toBe('Unknown agent ID 00000000-0000-4000-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > resume across processes and workspaces > two calls in one message that resume the same agent get one writer: the second fails as Cursor fails a follow-up to a running agent (review: security 3)
+AssertionError: expected [ [ false, 'A' ], [ true, …(1) ] ] to deeply equal [ [ false, 'A' ], [ true, …(1) ] ]
+
+- Expected
++ Received
+
+@@ -3,8 +3,8 @@
+      false,
+      "A",
+    ],
+    [
+      true,
+-     "Sub-agent is currently running. You may send the follow-up message when it has completed.",
++     "Agent is busy. Try again later.",
+    ],
+  ]
+
+ ❯ test/e2e/task.e2e.test.ts:475:123
+    473|     const second = await runJson(sandbox, script([[task({ prompt: 'a\n…
+    474|     const ends = toolEnds(second.events, 'Task');
+    475|     expect(ends.map((end) => [end.isError, /<response>\n(.*)\n<\/respo…
+       |                                                                                                                           ^
+    476|       [false, 'A'],
+    477|       [true, 'Sub-agent is currently running. You may send the follow-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > stop_agent (C-H4) > stops an agent another Pi process runs, which Task resume there refuses to message, and leaves an idle agent alone
+AssertionError: expected 'Agent is busy. Try again later.' to be 'Sub-agent is currently running. You m…' // Object.is equality
+
+Expected: "Sub-agent is currently running. You may send the follow-up message when it has completed."
+Received: "Agent is busy. Try again later."
+
+ ❯ test/e2e/task.e2e.test.ts:663:57
+    661|       await vi.waitFor(() => expect(readdirSync(subagentDir()).some((n…
+    662|       const resumed = await runJson(sandbox, script([task({ prompt: 'x…
+    663|       expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe('Sub-agen…
+       |                                                         ^
+    664|       const other = await runJson(sandbox, script([stop(agentId)]), ['…
+    665|       expect([toolEnds(other.events, 'stop_agent')[0]?.text, alive(pid…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+error: script "test" exited with code 1

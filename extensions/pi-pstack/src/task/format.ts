@@ -45,13 +45,6 @@ export function backgroundText(agentId: string, transcript: string | undefined, 
   ].join('\n');
 }
 
-export function steerText(agentId: string, notes: readonly string[] = []): string {
-  return [
-    `Sent to agent ${agentId} while it runs: it reads the message after its current step. Its final response still arrives as its launch said, as a completion notification for a background agent or as the waiting Task result for a foreground one, so do not wait or poll for it.`,
-    ...notes,
-  ].join('\n');
-}
-
 export function worktreeLine(worktree: Worktree): string {
   return `Worktree: ${worktree.path} on branch ${worktree.branch}, from ${worktree.base} at ${worktree.commit}. Merge ${worktree.branch} to take the subagent's commits.`;
 }

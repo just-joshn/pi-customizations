@@ -10,6 +10,8 @@ Each item below comes from Cursor's own code, run from the installed desktop 3.2
 - Match `subagent_type` regardless of case, hyphens, underscores, or a trailing `agent`, `subagent`, `mode`, or `type`.
 - Ignore a `model: "fast"` that names no listed model, read `inherit` in any case as an omitted model, and reject an empty model.
 - Fail a resume that names a different `subagent_type` with Cursor's message, stop noting an ignored `model` on resume, and reject an empty `prompt`.
+- Fail a follow-up to a running agent with Cursor's `Sub-agent is currently running. You may send the follow-up message when it has completed.`, in this or another Pi process, instead of steering it into the running turn. poteto-mode's steer and hold sentences are pstack's text again.
+- Use the Task description and parameter text a live Cursor session showed, with Pi's tool names and the `pstack_subagents` catalogs.
 
 ## [0.15.36-pi.17] - 2026-11-05
 

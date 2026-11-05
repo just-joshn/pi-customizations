@@ -29,11 +29,11 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
 });
 
 describe('host section names only the tools this session has (C-M4)', () => {
-  test('a session with Task names every Task parameter, steering, fork turns, and stop_agent', () => {
+  test('a session with Task names every Task parameter, resume, fork turns, and stop_agent', () => {
     const host = hostSection(facts(ALL_TOOLS));
     expect(host).toContain('- Subagents: call the Task tool as the skills describe (description, prompt, subagent_type, model, readonly, run_in_background, resume, fork, fork_turns, environment, cloud_base_branch, file_attachments).');
     expect(host).toContain(
-      "- agent_status reads a subagent's state without waking it. Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.",
+      "- agent_status reads a subagent's state without waking it. Task resume sends a follow-up to an agent that has finished, and fails while the agent still runs. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory. stop_agent stops a running agent.",
     );
     expect(host).toContain('- Isolated workers (Task environment "cloud")');
   });

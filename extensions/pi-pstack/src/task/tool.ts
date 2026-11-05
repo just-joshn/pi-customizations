@@ -10,32 +10,32 @@ import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../p
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent, normalizedType } from './agents.ts';
 import { renderTaskCard, renderTaskNotification } from './card.ts';
-import { backgroundText, bounded, foregroundText, notificationTitle, steerText, worktreeLine, worktreePreface } from './format.ts';
+import { backgroundText, bounded, foregroundText, notificationTitle, worktreeLine, worktreePreface } from './format.ts';
 import { type AvailableModel, fastVariant, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { createProgress } from './progress.ts';
-import { type AgentRecord, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
+import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
 import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
 import { addWorktree, planWorktree, type Worktree } from './worktree.ts';
 
+// Cursor's Task schema text, with the catalogs in the pstack_subagents section instead of a user-info message.
 export const TaskParams = Type.Object({
   description: Type.String({
     description:
-      "A short, user-friendly title for the subagent, shown in the UI as the subagent's name. Make it concrete and distinct from recent titles. When you resume an agent for a separate task, give it an updated title; keep the title when it continues the same work.",
+      "A short, user-friendly title for the subagent. This appears in the UI as the subagent's name. Make it concrete and distinct, consider recent titles to avoid reuse. For resumed subagents which you are prompting to work on a separate task, give an updated description based on the latest work the subagent is performing. (Do not rename if the subagent is continuing work on the same high-level task.)",
   }),
-  prompt: Type.String({ description: 'The task for the agent to perform.' }),
-  subagent_type: Type.Optional(Type.String({ description: 'Subagent type from the pstack_subagents section. Defaults to generalPurpose.' })),
+  prompt: Type.String({ description: 'The task for the agent to perform' }),
+  subagent_type: Type.Optional(Type.String({ description: 'Subagent type to use for this task. Available types are listed in <pstack_subagents> in the system prompt.' })),
   model: Type.Optional(
     Type.String({
       description:
-        'Optional model for this agent, from the pstack_subagents section: inherit (default), a Pi model such as claude-opus-5-5:xhigh or provider/model:high, or claude-opus-5-5[effort=high]. An invalid value fails with the allowed list; pick a listed value or omit it, and never retry a rejected value unchanged. Omitted, the agent runs on the parent model. Use inherit unless the user or a skill asks for another listed model. Ignored with resume, which keeps the earlier model; with fork, defaults to the source agent model.',
+        'Optional model slug for this agent. If provided, it must resolve to one of the available model slugs. The available model slugs are listed in <pstack_subagents> in the system prompt. An invalid slug fails the call with the allowed list — pick a listed slug or omit this parameter; never retry an invalid slug unchanged. If omitted, the subagent uses the same model as the parent agent. Do not pass if resume field is set (prior model will be used). Use "inherit" unless the user explicitly requested another listed model.',
     }),
   ),
   resume: Type.Optional(
     Type.String({
-      description:
-        'Agent ID from an earlier Task call in this workspace. Sends this prompt as a follow-up with the agent context preserved. While the agent is still running in this chat, the prompt is steered into its current run and Task returns at once; while another Pi process runs it, Task fails.',
+      description: 'Optional agent ID to resume from. If provided, sends a follow-up message to the agent after it has completed. Requests to a currently running asynchronous agent fail; wait for completion before resuming.',
     }),
   ),
   fork: Type.Optional(
@@ -46,13 +46,18 @@ export const TaskParams = Type.Object({
   ),
   fork_turns: Type.Optional(Type.Integer({ minimum: 1, description: 'With fork: copy only the first N user turns of the source agent, so the fork starts from that point in its conversation. Defaults to the whole transcript.' })),
   run_in_background: Type.Optional(
-    Type.Boolean({ description: 'Return at once with the agent ID; the final response arrives as a notification after your turn ends. When false, block until the agent finishes. Defaults to the subagent type setting, else false.' }),
+    Type.Boolean({
+      description: 'Run the agent in the background (returns output_file path to check later). If this is false, you will be blocked until the agent completes. When true, the background subagent will send a notification when it completes.',
+    }),
   ),
   readonly: Type.Optional(
     Type.Boolean({ description: 'Limit the agent to read, grep, find, ls, and a read-only shell that can neither write files nor reach the network, with no edits and no MCP tools. A readonly subagent type stays readonly.' }),
   ),
   file_attachments: Type.Optional(
-    Type.Array(Type.String(), { description: 'Paths of files or images to attach to the agent first message. A video path is named for the agent but not sent as video, because Pi models have no video input.' }),
+    Type.Array(Type.String(), {
+      description:
+        "Optional array of file paths to images or videos to attach to the subagent. Files are read and attached to the subagent's context. Use to forward relevant media to any subagent (e.g. pass a user-attached image's saved file path so the subagent sees the actual image rather than a prose description). A video path is named for the agent but not sent as video, because Pi models have no video input.",
+    }),
   ),
   environment: Type.Optional(
     Type.Enum(['local', 'cloud'] as const, {
@@ -186,7 +191,7 @@ function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type
 
 function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], isRunning: (agentId: string) => boolean, depth: number, planMode: boolean): Launch {
   const agentId = validateAgentId(params.resume ?? '');
-  if (isRunning(agentId)) throw new Error(`Agent ${agentId} is still running. Wait for its completion notification before resuming it.`);
+  if (isRunning(agentId)) throw new Error(SUBAGENT_RUNNING);
   const dir = subagentDir(ctx.cwd);
   const record = readRecord(dir, agentId);
   if (record === undefined) throw new Error(`Unknown agent ID ${agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
@@ -427,7 +432,14 @@ function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOpti
   const fresh = params.resume === undefined;
   const planMode = options.planMode?.() === true;
   const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth, planMode) : planResume(params, ctx, options.agents, isRunning, options.depth, planMode);
-  const lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
+  let lock: RunLock;
+  try {
+    lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
+  } catch (error) {
+    // Another Pi process runs the agent; Cursor answers a follow-up to a running agent the same way.
+    if (!fresh && error instanceof AgentRunningError) throw new Error(SUBAGENT_RUNNING);
+    throw error;
+  }
   try {
     return { plan: fresh ? initialPlan : planResume(params, ctx, options.agents, isRunning, options.depth, planMode), lock };
   } catch (error) {
@@ -447,37 +459,52 @@ async function createWorktree(plan: Launch, lock: RunLock, signal: AbortSignal |
   }
 }
 
-/**
- * Task resume on an agent this process runs: the prompt joins its current run as a steer, and its result still arrives
- * the way its launch said. A readonly call, or any call in plan mode, cannot steer an agent that has write access.
- */
-async function steerRunning(params: TaskInput, running: { handle: ChildHandle; readonly: boolean }, ctx: ExtensionContext, planMode: boolean) {
-  const agentId = params.resume ?? '';
-  if ((params.readonly === true || planMode) && !running.readonly)
-    throw new Error(`Agent ${agentId} is running with write access, so a readonly call cannot message it${planMode ? ' (plan mode makes every Task call readonly)' : ''}. Wait for its completion notification, or stop it with stop_agent.`);
-  const input = await withAttachments(params.prompt, resolveAttachments(params.file_attachments ?? [], ctx.cwd));
-  await running.handle.steer(input.text, input.images).catch((error: Error) => {
-    throw new Error(`Agent ${agentId} finished before the message reached it (${error.message}). Resume it once its result arrives.`);
-  });
-  const notes = params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`];
-  return { content: [{ type: 'text' as const, text: steerText(agentId, notes) }], details: { agentId, status: 'steered', pid: running.handle.pid ?? null, description: params.description } };
-}
-
+// Cursor's Task description, as a live Cursor CLI session showed it, with Pi's tool names and the catalogs in the
+// pstack_subagents section instead of a user-info message.
 const TASK_DESCRIPTION = [
-  'Launch a new agent to handle a complex, multi-step task on its own. Each agent is a separate Pi process with its own context, and each subagent_type has its own instructions and tools. Pick the type with subagent_type; the types, and the model values the model parameter takes, are listed in the pstack_subagents section of the system prompt.',
+  'Launch a new agent to handle complex, multi-step tasks autonomously.',
   '',
-  'Do not use Task for a narrow or specific question. To find where one class is defined, read a known file, or search two or three files, use read, grep, or find directly. When separate areas can be explored in parallel, launch several agents at once. Do not hand the whole request to one agent and relay its answer.',
+  'The Task tool launches specialized subagents (subprocesses) that autonomously handle complex tasks. Each subagent_type has specific capabilities and tools available to it.',
+  '',
+  'When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.',
+  '',
+  'If the query is a narrow or specific question, you should NOT use the Task and instead address the query directly using the other tools available to you.',
+  '',
+  'Examples:',
+  '- user: "Where is the ClientError class defined?" assistant: [Uses grep directly - this is a needle query for a specific class]',
+  '- user: "Run this query using my database API" assistant: [Calls the MCP directly - this is not a broad exploration task]',
+  '- user: "What is the codebase structure?" assistant: [Uses the Task tool with subagent_type="explore"]',
+  '',
+  'If it is possible to explore different areas of the codebase in parallel, you should launch multiple agents concurrently.',
+  '',
+  'When NOT to use the Task tool:',
+  '- Simple, single or few-step tasks that can be performed by a single agent (using parallel or sequential tool calls) -- just call the tools directly instead.',
+  '- For example:',
+  '  - If you want to read a specific file path, use the read or find tool instead of the Task tool, to find the match more quickly',
+  '  - If you are searching for code within a specific file or set of 2-3 files, use the read tool instead of the Task tool, to find the match more quickly',
+  '  - If you are searching for a specific class definition like "class Foo", use the find tool instead, to find the match more quickly',
   '',
   'Usage notes:',
-  '- Give every call a short (3-5 word) description.',
-  '- To run agents in parallel, put several Task calls in one message. Do this whenever the work splits, and always when the user asks for agents in parallel.',
-  '- The agent returns one final message. Say exactly what it should report back.',
-  "- The agent cannot see the user's messages or your earlier steps, so the prompt must carry every detail and all the context it needs.",
-  '- Trust the agent output in general.',
-  '- When a subagent type says to use it proactively, use it without being asked.',
-  '- resume continues an earlier agent with its context preserved. Without resume, each call starts fresh.',
-  '- A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it, sleep, or check on its progress. Work on something else or end your turn, and do not mention this to the user.',
+  '- Always include a short description (3-5 words) summarizing what the agent will do',
+  '- Launch multiple agents concurrently whenever possible, to maximize performance; to do that, use a single message with multiple tool uses.',
+  '- When the agent is done, it will return a single message back to you. Specify exactly what information the agent should return back in its final response to you.',
+  '- Agents can be resumed using the `resume` parameter by passing the agent ID from a previous invocation. This sends a follow-up message after the agent has completed, preserving existing context. If the agent is still running, the request fails; wait for completion before resuming. When NOT resuming, each invocation starts fresh and you should provide a detailed task description with all necessary context.',
+  "- When using the Task tool, the subagent invocation does not have access to the user's message or prior assistant steps. Therefore, you should provide a highly detailed task description with all necessary context for the agent to perform its task autonomously.",
+  "- The subagent's outputs should generally be trusted",
+  "- Clearly tell the subagent which tasks you want it to perform, since it is not aware of the user's intent or your prior assistant steps (tool calls, thinking, or messages).",
+  '- If the subagent description mentions that it should be used proactively, then you should try your best to use it without the user having to ask for it first. Use your judgement.',
+  '- If the user specifies that they want you to run subagents "in parallel", you MUST send a single message with multiple Task tool use content blocks. For example, if you need to launch both a code-reviewer subagent and a test-runner subagent in parallel, send a single message with both tool calls.',
+  '- Avoid delegating the full query to the Task tool and returning the result. In these cases, you should address the query using the other tools available to you.',
+  '',
+  'Available subagent_types and descriptions are listed in <pstack_subagents> in the system prompt.',
+  '',
+  'Available model slugs for subagents are listed in <pstack_subagents> in the system prompt.',
+  '',
+  "When an agent runs in the background, you will be automatically notified when it completes after you end your own turn - do NOT AwaitShell, poll, or proactively check on its progress. Continue with other work or end your turn instead. Don't mention this to the user.",
 ].join('\n');
+
+/** Cursor's error for a follow-up to a subagent that is still running. */
+const SUBAGENT_RUNNING = 'Sub-agent is currently running. You may send the follow-up message when it has completed.';
 
 // Interactive Pi redraws the chat between a replaced session's shutdown and the next session's start, which erases a
 // warning sent at shutdown. The next runtime shows it instead, so it rides on globalThis across the reload.
@@ -548,8 +575,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     renderResult: (result, renderOptions) => renderTaskCard(result, renderOptions),
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       taskPreflight(params, options.depth);
-      const running = params.resume === undefined ? undefined : registry.get(validateAgentId(params.resume));
-      if (running !== undefined) return steerRunning(params, running, ctx, options.planMode?.() === true);
+      if (params.resume !== undefined && registry.isRunning(validateAgentId(params.resume))) throw new Error(SUBAGENT_RUNNING);
       const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
       const input = attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
       const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
@@ -560,10 +586,10 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       const handle = start(plan, input, background ? undefined : signal, lock, progress?.onEvent);
       pid = handle.pid;
       if (background) {
-        registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, params.prompt, plan.description, ctx, toolCallId));
+        registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, params.prompt, plan.description, ctx, toolCallId));
         return { content: [{ type: 'text', text: backgroundText(plan.agentId, transcriptOf(plan), plan.notes) }], details: details(plan, true, 'running', handle.pid) };
       }
-      registry.track(plan.agentId, handle, lock.release, runsReadonly(plan));
+      registry.track(plan.agentId, handle, lock.release);
       // The first card update carries the pid and agent ID even when the child is silent for a long time.
       onUpdate?.({ content: [{ type: 'text', text: `Subagent ${plan.agent.type} is running (${plan.agentId}).` }], details: details(plan, false, 'running', handle.pid) });
       try {
@@ -592,7 +618,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
     await createWorktree(plan, lock, undefined);
     const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock);
-    registry.track(plan.agentId, handle, lock.release, runsReadonly(plan), backgroundNotice(plan, prompt, description, ctx, `pstack-${plan.agentId}`));
+    registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, prompt, description, ctx, `pstack-${plan.agentId}`));
     return plan.agentId;
   }
 

@@ -84,6 +84,18 @@
     "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-description.js"
   },
   {
+    "id": "desktop-task-description-catalog",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
+    "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
+    "marker": "Available subagent_types and descriptions are listed in",
+    "up": 0,
+    "start": 3226904,
+    "end": 3235556,
+    "functionName": "oPe",
+    "excerptSha256": "e8b6d7b0e5d4a27f4c3a6b0a1a85a4d1c8bcbf57943379de2f4c08dca2fa0931",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/desktop-task-description-catalog.js"
+  },
+  {
     "id": "desktop-task-description-text",
     "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
     "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",

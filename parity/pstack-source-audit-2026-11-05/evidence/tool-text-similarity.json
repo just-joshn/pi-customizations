@@ -1,0 +1,32 @@
+{
+  "Task": {
+    "cursorWords": 687,
+    "piWords": 673,
+    "keptOfCursor": 0.964,
+    "piFromCursor": 0.984
+  },
+  "TodoWrite": {
+    "cursorWords": 559,
+    "piWords": 240,
+    "keptOfCursor": 0.159,
+    "piFromCursor": 0.371
+  },
+  "SwitchMode": {
+    "cursorWords": 462,
+    "piWords": 3,
+    "keptOfCursor": 0,
+    "piFromCursor": 0
+  },
+  "GenerateImage": {
+    "cursorWords": 228,
+    "piWords": 113,
+    "keptOfCursor": 0.237,
+    "piFromCursor": 0.478
+  },
+  "AwaitShell": {
+    "cursorWords": 507,
+    "piWords": 484,
+    "keptOfCursor": 0.953,
+    "piFromCursor": 0.998
+  }
+}

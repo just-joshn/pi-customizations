@@ -81,7 +81,7 @@ function agentToolsLine(tools: readonly string[]): string[] {
     ...(tools.includes('agent_status') ? ["agent_status reads a subagent's state without waking it."] : []),
     ...(tools.includes('Task')
       ? [
-          "Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory.",
+          "Task resume sends a follow-up to an agent that has finished, and fails while the agent still runs. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory.",
         ]
       : []),
     ...(tools.includes('stop_agent') ? ['stop_agent stops a running agent.'] : []),

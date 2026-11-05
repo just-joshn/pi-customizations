@@ -27,9 +27,10 @@ The full reference review is unfinished. Capturing file hashes does not mean rea
 
 1. Shell subagent and type lookup. Done: red baseline, green treatment, mutation caught.
 2. Plugin-agent loading, system reminders, model aliases, resume type checks, empty prompts. Done: fixture from Cursor's executed code, unit and real-Pi tests, five mutations caught, full package suite green after a README wording fix.
-3. Resume of a running agent. Open. Desktop and the live CLI capture fail it with `Sub-agent is currently running. You may send the follow-up message when it has completed.`; Pi steers. The Pi skill text was also edited to promise that steer, so the fix spans code, host text, and skills.
-4. Task description and parameter text. Open. Pi paraphrases desktop's template.
-5. visualize. Open. The skill text is server-supplied; only the renderer and file rules are local.
+3. Resume of a running agent. Done. Desktop's agent host (`throwIfFollowupTargetsBusyRun`) and the live CLI schema refuse it with `Sub-agent is currently running. You may send the follow-up message when it has completed.` Pi now refuses it the same way in one process and across processes, the steering machinery is deleted, and poteto-mode's steer and hold sentences are pstack's text again. Mutations `running-text` and `lock-mapping` are caught.
+4. Task description and parameter text. Done. `probe-task.mjs` runs desktop's description builder with the live session's flags and asserts byte equality with that session, then Pi applies six named wording changes. Mutations `task-description` and `resume-param` are caught. Full package suite: 788 passed, 1 skipped.
+5. Other tool text. Open. `compare-tool-text.mjs` against the live session: Task keeps 96 percent of Cursor's words and AwaitShell 95 percent, but TodoWrite keeps 16 percent and GenerateImage 24 percent. SwitchMode is not offered in a JSON run, so it needs an RPC measurement.
+6. visualize. Open. The skill text is server-supplied; only the renderer and file rules are local.
 
 ## Evidence layout
 

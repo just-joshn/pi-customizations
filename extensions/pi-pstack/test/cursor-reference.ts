@@ -19,7 +19,34 @@ export const cursorAgents = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'test/fix
   subagentReminder: string;
   builtIns: Pick<CursorAgent, 'type' | 'description' | 'reminder'>[];
   agents: CursorAgent[];
+  task: { description: string; parameters: Record<string, string> };
 };
+
+// The only wording Pi changes in Cursor's Task text: Pi's tool names, and the catalogs in the pstack_subagents
+// section instead of Cursor's user-info message.
+const TASK_WORDING: readonly (readonly [string, string])[] = [
+  ['[Uses Grep directly', '[Uses grep directly'],
+  ['use the Read or Glob tool instead', 'use the read or find tool instead'],
+  ['use the Read tool instead', 'use the read tool instead'],
+  ['use the Glob tool instead', 'use the find tool instead'],
+  ['are listed in <available_subagent_types> in the initial user-info message at the start of this conversation.', 'are listed in <pstack_subagents> in the system prompt.'],
+  ['are listed in <available_subagent_models> in the initial user-info message at the start of this conversation.', 'are listed in <pstack_subagents> in the system prompt.'],
+  ['are listed in <available_subagent_models> in the initial user-info message.', 'are listed in <pstack_subagents> in the system prompt.'],
+  ['Available types are listed in the initial user-info message.', 'Available types are listed in <pstack_subagents> in the system prompt.'],
+];
+
+/** Cursor's Task text in Pi's wording. Each change must apply, so a Cursor text that moves fails here. */
+export function cursorTaskText(text: string, expectedChanges: number): string {
+  let changed = 0;
+  let result = text;
+  for (const [from, to] of TASK_WORDING)
+    if (result.includes(from)) {
+      result = result.replaceAll(from, to);
+      changed += 1;
+    }
+  if (changed !== expectedChanges) throw new Error(`expected ${expectedChanges} wording changes, applied ${changed}`);
+  return result;
+}
 
 /** The only wording Pi changes in Cursor's subagent reminders: Pi has no Cursor Canvas, and the product is Pi. */
 export const forPi = (text: string): string =>

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { cursorAgents, cursorTaskText } from '../cursor-reference.ts';
 import { assistantTexts, contentText, makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
@@ -142,14 +143,8 @@ describe('declared tool descriptions', () => {
     return text ?? '';
   };
 
-  test("Task carries Cursor's delegation rules", async () => {
-    const text = await described('Task');
-    expect([
-      text.includes('Do not use Task for a narrow or specific question.'),
-      text.includes('put several Task calls in one message'),
-      text.includes("The agent cannot see the user's messages or your earlier steps"),
-      text.includes('A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it'),
-    ]).toEqual([true, true, true, true]);
+  test("Task carries Cursor's delegation rules in Pi wording", async () => {
+    expect(await described('Task')).toBe(cursorTaskText(cursorAgents.task.description, 6));
   });
 
   test("AskQuestion carries Cursor's question rules", async () => {
