@@ -2,14 +2,14 @@
 
 ## what i want to automate
 
-i want two pi automations that work together in one slack issue channel. each one is a pi-pstack subscription in a long-running pi session rooted in the target repository.
+i want two pi-pstack automations that work together in one slack issue channel. each runs with no chat open, on its own cloud machine.
 
 ### automation 1: triage issue reports
 
-- trigger: when someone posts a new top-level report in my configured source slack channel, i want this automation to start on that report and keep its original thread coordinates. by default a `subscribe_timer` sweep on a cron schedule finds the report; a `subscribe_webhook` routine fed by my slack app or relay is the push alternative.
+- trigger: when someone posts a new top-level report in my configured source slack channel, i want this automation to start on that report and keep its original thread coordinates.
 - behavior: i want it to read the thread and attachments, classify the report as a bug or performance issue, feature request, question or feedback, or reroute, and trace the likely owning layer before routing.
 - tracker: i want it to search my configured tracker for duplicates, update a confident duplicate, and create a ticket only for a clear net-new bug.
-- tools: i want slack thread read and reply access through my slack mcp server, my configured tracker integration, and my optional routing map.
+- tools: i want slack thread read and reply access, my configured tracker integration, and my optional routing map.
 - outcome: i want exactly one reply in the source thread with a short verdict and `[benny:bug]`, `[benny:performance]`, or `[benny:other]`. a bug or performance marker may include the tracker url.
 - boundary: i never want this automation to post a root message in the source channel.
 
@@ -19,7 +19,7 @@ i want two pi automations that work together in one slack issue channel. each on
 - gates: i want it to stop when someone clearly owns the fix. if an existing pull request or merged commit may fix the report, i want verification instead of a competing change.
 - behavior: i want it to use my configured control adapter and feature map, reproduce the exact symptom twice through the real ui, and capture screenshots, video, and a read-only state cross-check.
 - fix: i want it to verify existing pull requests without authoring over them. after a confirmed repro, it may attempt one bounded root-cause fix, use tdd when the test is cheap, smoke the blast radius, and open a draft pull request only when before-and-after proof passes.
-- tools: i want slack thread read and reply access through my slack mcp server, repository and history access, draft pull request creation with `gh`, my configured tracker, and my control adapter.
+- tools: i want slack thread read and reply access, repository and history access, draft pull request creation, my configured tracker, and my control adapter.
 - outcome: i want evidence and a verified result in the source or optional operations threads, plus an optional draft pull request. updates should be concise.
 - boundary: i never want this automation to post a root message in the source channel.
 
@@ -27,13 +27,11 @@ i want two pi automations that work together in one slack issue channel. each on
 
 - i want the source channel and root thread coordinates to stay immutable for the whole run.
 - i treat utility and debug bots as evidence, not delegation or fix ownership.
-- i allow subagents to help, but they cannot post to slack or receive slack credentials. analysis subagents run as `Task` with `readonly: true`. readonly removes mcp tools and restricts shell operations, but does not isolate credentials. when separate credential isolation cannot be proven, keep the work in the coordinator.
-- i want this entire pack committed at `.pi/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not skills pi discovers.
-- i want pi-pstack installed in pi for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.
-- i want each subscription prompt to read its operational file directly from the target repository. i do not want pi-pstack package paths, copied excerpts, or slash-skill discovery.
-- i want the pack and every referenced secret-free configuration file committed on the branch the owning session has checked out before either subscription is enabled, so no subscription runs instructions i have not reviewed.
-- i keep user-owned configuration, feature maps, routing maps, memory, and secrets outside `.pi/automations/benny/` so pack refreshes cannot overwrite them.
-- i want durable memory as files in one directory setup names, such as `~/.pi/agent/pstack/automations/benny/memories/`: a claim ledger so no report runs twice, and short operating notes.
+- i allow subagents to help, but they cannot post to slack or receive slack credentials.
+- i want this entire pack committed at `.pi/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not registered skills.
+- i want pi-pstack enabled through the target repository's committed `.pi/settings.json` only for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.
+- i want each live automation prompt to read its committed operational file directly. i do not want package paths, copied excerpts, or slash-skill discovery.
+- i keep user-owned configuration, feature maps, routing maps, and secrets outside `.pi/automations/benny/` so pack refreshes cannot overwrite them.
 - i want both automations to fail closed when channel coordinates, tracker access, the control adapter, or the feature map are missing or uncertain.
 - i want draft pull requests only. do not merge or deploy.
 
@@ -47,9 +45,7 @@ i want two pi automations that work together in one slack issue channel. each on
 - triage identity: `<slack identity>`
 - control skill: `<configured skill or adapter>`
 - feature map: `<committed same-repo path outside the copied pack, or behavior to paraphrase>`
-- trigger mode: `<timer with cron schedules, or webhook with my relay>`
-- memory directory: `<path>`
-- models: `<triage, reproduce, code, media review, as pi model specs>`
+- models: `<triage, reproduce, code, media review>`
 - status emoji strings: `<seen, reproducing, reproduced, blocked, fixing, failed, pull request opened>`
 - budgets: `<polling, verdict wait, follow-up, repro, rejection, fix>`
 - optional bot token capability: `<none, file download, or editable operations status>`
@@ -63,21 +59,29 @@ the human enters setup by pointing pi at this file. do not look for or invoke a 
 1. ask which repository will run the automations.
 2. treat the directory containing this `FOR_AGENTS.md` as the source pack.
 3. merge the entire source pack into `<target-repository>/.pi/automations/benny/`.
-4. preserve every destination-only file. never delete unrelated files or overwrite user-owned configuration, feature maps, routing maps, or memory.
+4. preserve every destination-only file. never delete unrelated files or overwrite user-owned configuration, feature maps, or routing maps.
 5. when an existing destination file at a source-managed path differs, review the diff and merge without discarding local edits. if ownership is ambiguous, stop and ask before replacing it.
 6. verify that the copied `FOR_AGENTS.md` and `skills/setup-benny/SKILL.md` exist in the target repository.
 7. read and follow `.pi/automations/benny/skills/setup-benny/SKILL.md` directly from the target repository.
 
-i want pi-pstack installed in pi, either for me (`pi install <path-to-pi-pstack>`) or for the target repository (`pi install -l <path-to-pi-pstack>`, which writes `.pi/settings.json`). preserve every unrelated setting and package when that file already exists.
+i want you to merge this entry into the target repository's `.pi/settings.json` (what `pi install -l npm:@justjoshn/pi-pstack` writes):
 
-i want this setup session to run in the target repository, so a fresh subagent it starts runs there too, and i want verification from that subagent. confirm that pi-pstack's `how`, `why`, `tdd`, `unslop`, and the principle skills used by benny are installed there. do not count a skill this session loaded by hand.
+```json
+{
+	"packages": ["npm:@justjoshn/pi-pstack"]
+}
+```
 
-if pi-pstack or any shared dependency does not resolve, stop and explain what failed. do not move `.pi/automations/benny/skills/` into `.pi/skills/` or expect its files to appear in the slash-skill list.
+preserve every unrelated setting and package. preserve comments and valid jsonc syntax when the existing file uses jsonc.
 
-tell me that creating a subscription auto-starts `pstack-routines-supervisor`, that Benny's owner-session wakes park while this chat is offline until the same session is restored, and that a timer or webhook routine runs with no chat open only when it is created with `sessionStrategy: "new_session"`, in which case the run must do the work itself instead of handing it to a background `Task`. routines do not expire unless `expiresInHours` names a limit. for reboot survival, ask whether to run `packaging/install-supervisor-unit.sh --workspace <target-repository>` and run it when i say yes. do not create or update a subscription until i explicitly ask.
+i want verification from a fresh agent rooted in the target repository. confirm that pstack's `how`, `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.
 
-for first-time creation, create the triage subscription first, check it with `list_subscriptions`, and confirm one harmless fire before creating the repro subscription.
+if project-scoped packages are unavailable or any shared dependency does not resolve, stop and explain what failed. do not add `.pi/automations/benny/skills/` to a skill path or expect its files to appear in the slash-skill list.
 
-fill each prompt template from the finished configuration. the triage prompt must read and follow `<target-repository>/.pi/automations/benny/skills/triage-issue-reports/SKILL.md`. the repro prompt must read and follow `<target-repository>/.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`.
+tell me that `.pi/settings.json`, `.pi/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. do not create or update an automation until i explicitly ask.
 
-for existing subscriptions, check them with `list_subscriptions`. a subscription keeps its prompt when you subscribe again with the same name, so changing one means `unsubscribe`, then subscribing again. do not create duplicates under new names.
+for first-time creation, use `/automate`, the automate skill pi-pstack ships, once for triage and once for repro and fix, each with `sessionStrategy: "new_session"` and `environment: "cloud"`. complete the draft review, approval, readiness check, and `/automations` handoff for the first automation before starting the second.
+
+paraphrase this intent and the finished configuration into each draft. the triage prompt must read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md`. the repro prompt must read and follow `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`. use these repo-relative paths only after the automate skill confirms they are committed in the repository where the automation will run.
+
+for existing automations, do not use `/automate` to inspect or update them; use `/automations`. validate the configuration, then use the concise field checklist in the copied setup file so i can edit each automation with `/automations edit <name>`. do not create duplicates.

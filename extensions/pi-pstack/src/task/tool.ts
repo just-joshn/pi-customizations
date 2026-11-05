@@ -292,11 +292,15 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
 function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
   const readonly = runsReadonly(plan);
   const detached = mode === 'json';
+  // A subagent never receives Slack credentials (only a top-level agent posts to Slack), and a subagent of an agent on
+  // a container machine runs on that same machine rather than on this host.
+  const { SLACK_BOT_TOKEN: _bot, SLACK_TOKEN: _token, ...inherited } = process.env;
+  const machine = plan.machine?.driver === 'container' ? JSON.stringify(plan.machine) : childIdentity.machine;
   const env = {
-    ...process.env,
+    ...inherited,
     ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached),
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
-    ...(plan.machine?.driver === 'container' ? { [MACHINE_ENV]: JSON.stringify(plan.machine) } : {}),
+    ...(machine === undefined ? {} : { [MACHINE_ENV]: machine }),
   };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);

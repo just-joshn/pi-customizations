@@ -203,4 +203,18 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(third.events.filter((event) => event.type === 'message_end' && JSON.stringify(event['message'] ?? {}).includes(`task_id: ${agentId}`))).toEqual([]);
     await third.close();
   });
+
+  test("a cloud agent's own subagent runs on the same machine and never receives the Slack token (G1, G3)", async () => {
+    await pushedRepo();
+    sandbox.env['SLACK_BOT_TOKEN'] = 'xoxb-parent-only';
+    const nested = `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'hostname; echo "token=${SLACK_BOT_TOKEN:-none}"' } }])}`;
+    const steps = [{ tool: 'Task', args: { description: 'nested', prompt: nested } }];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'parent', prompt: `go\n@@script ${JSON.stringify(steps)}`, environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const agentId = (result?.details as { agentId?: string } | undefined)?.agentId ?? '';
+    containers.push(`pstack-${agentId}`);
+    expect(result?.isError, result?.text).toBe(false);
+    expect(result?.text).toContain(`[bash] pstack-${agentId.slice(0, 8)}`);
+    expect(result?.text).toContain('token=none');
+  });
 });
