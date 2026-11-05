@@ -4,15 +4,17 @@ import { describe, expect, test } from 'vitest';
 import { aliasInputResult, aliasTable, aliasTransform, packageSkillNames, skillReferences } from '../src/aliases.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
-const names = new Set(['how', 'why', 'poteto-mode', 'principle-prove-it-works']);
+const names = new Set(['how', 'why', 'poteto-mode', 'principle-prove-it-works', 'my_skill']);
 const block = (name: string) => `<${name}>`;
 
 describe('aliasTransform', () => {
   test.for([
     { input: '/how', expected: '/skill:how' },
+    { input: '/how   ', expected: '/skill:how' },
     { input: '/how does the cache work?', expected: '/skill:how does the cache work?' },
+    { input: '/my_skill check this', expected: '/skill:my_skill check this' },
     { input: '/poteto-mode fix the "drift" bug\nrepro first, then $1 and $@', expected: '/skill:poteto-mode fix the "drift" bug\nrepro first, then $1 and $@' },
-    { input: '/how\nwhat owns retries?', expected: '/skill:how \nwhat owns retries?' },
+    { input: '/how\nwhat owns retries?', expected: '/skill:how what owns retries?' },
     { input: '/principle-prove-it-works', expected: '/skill:principle-prove-it-works' },
   ])('rewrites $input to a native skill command (CMD-001)', ({ input, expected }) => {
     expect(aliasTransform(input, names, block)).toBe(expected);
@@ -35,7 +37,11 @@ describe('aliasTransform', () => {
     expect(aliasTransform(input, names, block)).toBe(expected);
   });
 
-  test('leaves a message that starts with a prompt template to Pi, which expands the template only at the start (SKILL-REF-004)', () => {
+  test('expands a leading prompt template and attaches referenced skills when both appear (SKILL-REF-004)', () => {
+    const fallback = ['$', '{4:-fallback}'].join('');
+    const templates = new Map([['mytpl', `MY-TEMPLATE $1 $2 ${fallback} $@`]]);
+    expect(aliasTransform('/mytpl "first arg" /why /how', names, block, new Set(['mytpl']), (name) => templates.get(name))).toBe('/skill:why <how>\n\nMY-TEMPLATE first arg /why fallback first arg /why /how');
+    expect(aliasTransform('/mytpl plain args', names, block, new Set(['mytpl']), (name) => templates.get(name))).toBeUndefined();
     expect(aliasTransform('/mytpl hello /why', names, block, new Set(['mytpl']))).toBeUndefined();
   });
 

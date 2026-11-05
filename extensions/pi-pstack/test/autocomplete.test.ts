@@ -14,6 +14,7 @@ const aliases = new Map([
   ['poteto-mode', "poteto's agent style"],
   ['poteto-help', 'Guides users through pstack'],
   ['how', 'Explains how code works'],
+  ['my_skill', 'Custom skill with underscore'],
 ]);
 const signal = new AbortController().signal;
 
@@ -23,6 +24,10 @@ describe('alias autocomplete (CMD-003)', () => {
     expect(await provider.getSuggestions(['/pot'], 0, 4, { signal })).toEqual({
       prefix: '/pot',
       items: [{ value: 'poteto-mode', label: 'poteto-mode', description: "poteto's agent style" }, { value: 'poteto-help', label: 'poteto-help', description: 'Guides users through pstack' }, ...builtin],
+    });
+    expect(await provider.getSuggestions(['/my_'], 0, 4, { signal })).toEqual({
+      prefix: '/my_',
+      items: [{ value: 'my_skill', label: 'my_skill', description: 'Custom skill with underscore' }, ...builtin],
     });
   });
 

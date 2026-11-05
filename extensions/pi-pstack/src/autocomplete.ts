@@ -1,6 +1,6 @@
 import type { AutocompleteItem, AutocompleteProvider, AutocompleteSuggestions } from '@earendil-works/pi-tui';
 
-const COMMAND_TOKEN = /^\/([a-z0-9-]*)$/;
+const COMMAND_TOKEN = /^\/([a-zA-Z0-9_-]*)$/;
 
 /** Adds the `/name` skill aliases to Pi's `/` menu; everything else is Pi's. */
 export function aliasAutocomplete(current: AutocompleteProvider, aliases: ReadonlyMap<string, string>): AutocompleteProvider {
