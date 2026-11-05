@@ -536,7 +536,24 @@ export function subscriptionWakeText(message: { content: string | { type: string
 export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOptions): ReturnType<typeof createSubscriptions> {
   const subs = createSubscriptions(pi, options);
   pi.registerMessageRenderer?.(WAKE_TYPE, (message, renderOptions) => new Text(subscriptionWakeText(message, renderOptions.expanded), 0, 0));
-  pi.on('session_start', (_event, ctx) => subs.restore(ctx));
+  /** Cursor's Listening pill: how many subscriptions this chat owns, in the footer; /automations lists them. */
+  const listening = (ctx: ExtensionContext) => {
+    if (!ctx.hasUI) return;
+    const id = ctx.sessionManager.getSessionId();
+    const count = visibleSubscriptions(readRegistry(canonicalPath(ctx.cwd))).filter((sub) => sub.ownerSessionId === id).length;
+    ctx.ui.setStatus('pstack-listening', count === 0 ? undefined : `listening: ${count}`);
+  };
+  const withListening = async <T>(ctx: ExtensionContext, work: Promise<T>): Promise<T> => {
+    try {
+      return await work;
+    } finally {
+      listening(ctx);
+    }
+  };
+  pi.on('session_start', (_event, ctx) => {
+    subs.restore(ctx);
+    listening(ctx);
+  });
   pi.on('session_tree', (_event, ctx) => subs.restore(ctx));
   pi.on('session_shutdown', () => subs.shutdown());
 
@@ -557,7 +574,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
             : { scope: 'author' as const, author: params.author ?? '', repo: params.repo ?? '' };
       if (isOneShot(ctx.mode)) throw oneShotError('subscribe_github_pr');
       validateTarget(target);
-      return text(await subs.create(ctx, 'subscribe_github_pr', params.name ?? targetText(target), { kind: 'github', target }, params.expiresInHours));
+      return text(await withListening(ctx, subs.create(ctx, 'subscribe_github_pr', params.name ?? targetText(target), { kind: 'github', target }, params.expiresInHours)));
     },
   });
 
@@ -583,7 +600,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
         trusted: ctx.isProjectTrusted(),
         ...cloudFire(params),
       };
-      return text(await subs.create(ctx, 'subscribe_timer', params.name, config, params.expiresInHours));
+      return text(await withListening(ctx, subs.create(ctx, 'subscribe_timer', params.name, config, params.expiresInHours)));
     },
   });
 
@@ -614,7 +631,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
         trusted: ctx.isProjectTrusted(),
         ...cloudFire(params),
       };
-      return text(await subs.create(ctx, 'subscribe_webhook', params.name, config, params.expiresInHours));
+      return text(await withListening(ctx, subs.create(ctx, 'subscribe_webhook', params.name, config, params.expiresInHours)));
     },
   });
 
@@ -641,7 +658,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
         trusted: ctx.isProjectTrusted(),
         ...cloudFire(params),
       };
-      return text(await subs.create(ctx, 'subscribe_slack', params.name, config, params.expiresInHours));
+      return text(await withListening(ctx, subs.create(ctx, 'subscribe_slack', params.name, config, params.expiresInHours)));
     },
   });
 
@@ -664,8 +681,8 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
     promptSnippet: 'End a subscription',
     parameters: UnsubscribeParams,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
-    async execute(_id, params) {
-      return text(await subs.unsubscribe(params.subscription));
+    async execute(_id, params, _signal, _onUpdate, ctx) {
+      return text(await withListening(ctx, subs.unsubscribe(params.subscription)));
     },
   });
 

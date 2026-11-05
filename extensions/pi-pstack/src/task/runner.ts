@@ -8,6 +8,7 @@ import type { ImageContent, Usage as ProviderUsage } from '@earendil-works/pi-ai
 import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
+import { VIDEO, videoImages } from './video.ts';
 
 // TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one. The child replaces
 // bash with a sandboxed read-only shell (readonly-shell.ts).
@@ -80,8 +81,6 @@ export interface ChildInput {
   images: ImageContent[];
 }
 
-const VIDEO = /\.(?:mp4|m4v|mov|webm|avi|mkv)$/i;
-
 /**
  * The first message Pi builds from piped input and `@file` arguments, which RPC mode does not accept: the trimmed
  * prompt, then each non-empty text file in a <file> block, and each image as an attachment with an empty <file> block.
@@ -92,9 +91,11 @@ export async function withAttachments(prompt: string, attachments: readonly stri
   for (const path of attachments) {
     const bytes = readFileSync(path);
     if (bytes.length === 0) continue;
-    // Pi model inputs have no video type. Name the file instead of feeding binary bytes to the text parser.
+    // Pi model inputs have no video type, so a video arrives as its frames with their timestamps.
     if (VIDEO.test(path)) {
-      text += `<file name="${path}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>\n`;
+      const video = await videoImages(path);
+      text += `${video.note}\n`;
+      images.push(...video.images);
       continue;
     }
     const mimeType = await detectSupportedImageMimeTypeFromFile(path);

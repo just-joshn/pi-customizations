@@ -16,6 +16,7 @@ import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
 import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir, terminalsDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
+import { projectSection, registerProjects } from './project.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
 import { registerSecretRequest } from './secrets.ts';
@@ -130,7 +131,8 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerVisualize(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()) });
   registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
-  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled });
+  const projects = registerProjects(pi);
+  const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled, project: projects.slug });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
     runFresh: async (prompt, name, meta) => {
@@ -169,6 +171,7 @@ export default function piPstack(pi: ExtensionAPI): void {
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();
+    const projectText = projectSection(ctx.cwd, projects.slug());
     Object.assign(
       event.systemPromptOptions.sections,
       await hostSections(pi, ctx, agents),
@@ -176,6 +179,7 @@ export default function piPstack(pi: ExtensionAPI): void {
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
       todoText === undefined ? {} : { pstack_todos: todoText },
+      projectText === undefined ? {} : { pstack_project: projectText },
     );
   });
 

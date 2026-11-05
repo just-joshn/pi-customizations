@@ -207,7 +207,7 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
   test("a cloud agent's own subagent runs on the same machine and never receives the Slack token (G1, G3)", async () => {
     await pushedRepo();
     sandbox.env['SLACK_BOT_TOKEN'] = 'xoxb-parent-only';
-    const nested = `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'hostname; echo "token=${SLACK_BOT_TOKEN:-none}"' } }])}`;
+    const nested = `go\n@@script ${JSON.stringify([{ tool: 'bash', args: { command: 'hostname; printenv SLACK_BOT_TOKEN || echo token=none' } }])}`;
     const steps = [{ tool: 'Task', args: { description: 'nested', prompt: nested } }];
     const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'parent', prompt: `go\n@@script ${JSON.stringify(steps)}`, environment: 'cloud' } }]), ['--no-session'], 180_000);
     const [result] = toolEnds(run.events, 'Task');

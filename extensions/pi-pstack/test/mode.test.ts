@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { describe, expect, onTestFinished, test } from 'vitest';
-import { afterRequest, enterMode, exitMode, modeBadge, modeFromBranch, modeNotice, modeSkill, parseModeArgs, registerMode } from '../src/mode.ts';
+import { afterRequest, editorModeArgs, enterMode, exitMode, modeBadge, modeFromBranch, modeNotice, modeSkill, parseModeArgs, registerMode } from '../src/mode.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
 describe('parseModeArgs (MODE-001, MODE-002)', () => {
@@ -178,4 +178,18 @@ test('/mode notices name Mode, not Custom Mode', async () => {
   expect(notices.at(-1)).toBe('Mode on: tdd. /mode off exits.');
   await run('off');
   expect(notices.at(-1)).toBe('Mode off.');
+});
+
+describe('Alt+Enter on a /skill line enters its mode (G11)', () => {
+  const skills = ['how', 'poteto-mode', 'poteto-help', 'why'];
+  test.for([
+    { line: '/how find the parser', args: 'how find the parser' },
+    { line: '/skill:why', args: 'why' },
+    { line: '/poteto-m fix the drift', args: 'poteto-mode fix the drift' },
+  ])('$line becomes /mode $args', ({ line, args }) => {
+    expect(editorModeArgs(line, skills)).toBe(args);
+  });
+  test.for(['/poteto', 'plain text', '/nosuch go', ''])('%j names no single skill, so Pi keeps its own Alt+Enter', (line) => {
+    expect(editorModeArgs(line, skills)).toBeUndefined();
+  });
 });

@@ -5,7 +5,7 @@ import { isAbsolute, join, relative } from 'node:path';
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV } from '../child-env.ts';
+import { BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PROJECT_ENV } from '../child-env.ts';
 import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
 import { bootMachine, type CloudDriver, describeMachine, type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
@@ -19,6 +19,7 @@ import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, ty
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
 import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
+import { extractFrames, VIDEO, videoNote } from './video.ts';
 import { addWorktree, planWorktree } from './worktree.ts';
 
 // Cursor's Task schema text, with the catalogs in the pstack_subagents section instead of a user-info message.
@@ -61,7 +62,7 @@ export const TaskParams = Type.Object({
   file_attachments: Type.Optional(
     Type.Array(Type.String(), {
       description:
-        "Optional array of file paths to images or videos to attach to the subagent. Files are read and attached to the subagent's context. Use to forward relevant media to any subagent (e.g. pass a user-attached image's saved file path so the subagent sees the actual image rather than a prose description). A video path is named for the agent but not sent as video, because Pi models have no video input.",
+        "Optional array of file paths to images or videos to attach to the subagent. Files are read and attached to the subagent's context. Use to forward relevant media to any subagent (e.g. pass a user-attached image's saved file path so the subagent sees the actual image rather than a prose description).",
     }),
   ),
   environment: Type.Optional(
@@ -119,6 +120,8 @@ export interface Launch {
   provision?: { home: string; baseBranch: string | undefined };
   /** More host folders this launch shares with its machine, such as an automation's memory folder. */
   extraShared?: string[];
+  /** The Project of the chat that launches it, which the agent joins. */
+  project?: string | undefined;
   rootStore: string;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
@@ -301,6 +304,7 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
     ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached),
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
     ...(machine === undefined ? {} : { [MACHINE_ENV]: machine }),
+    ...(plan.project === undefined ? {} : { [PROJECT_ENV]: plan.project }),
   };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
@@ -331,11 +335,11 @@ function nextRunDir(plan: Launch): string {
 }
 
 /** A cloud agent runs detached: its prompt goes on stdin and each attachment as an `@path` argument Pi reads itself. */
-function launchDetached(plan: Launch, input: ChildInput): DetachedRun {
+function launchDetached(plan: Launch, input: ChildInput, files: readonly string[]): DetachedRun {
   const { env, args } = launchSpec(plan, 'json');
   return spawnDetached({
     command: piCommand(),
-    args: [...args, '--', ...detachedInput('', plan.attachments).files.map((path) => `@${path}`)],
+    args: [...args, '--', ...files.map((path) => `@${path}`)],
     prompt: input.text,
     cwd: plan.executionCwd,
     env,
@@ -398,13 +402,21 @@ function stopAfter(plan: Launch): (() => Promise<void>) | undefined {
  * transcript and changes no record, so a new agent's ID never becomes resumable; a fork's copied transcript is removed with it.
  * A cloud agent runs detached and its record keeps the run, so a later session can follow it or deliver its result.
  */
-function start(plan: Launch, rawInput: ChildInput, signal: AbortSignal | undefined, lock: RunLock, owner: RunOwner, onEvent?: (event: { type: string } & Record<string, unknown>) => void): ChildHandle {
+function start(
+  plan: Launch,
+  rawInput: ChildInput,
+  signal: AbortSignal | undefined,
+  lock: RunLock,
+  owner: RunOwner,
+  onEvent?: (event: { type: string } & Record<string, unknown>) => void,
+  files: readonly string[] = plan.attachments,
+): ChildHandle {
   let handle: ChildHandle | undefined;
   try {
     const input = plan.kind === 'fresh' && plan.machine !== undefined ? { ...rawInput, text: machinePreface(plan.machine, rawInput.text) } : rawInput;
     let run: RunRecord | undefined;
     if (plan.machine !== undefined) {
-      const detached = launchDetached(plan, input);
+      const detached = launchDetached(plan, input, files);
       run = { ...detached, ...owner, delivered: false };
       handle = followDetached(detached, onEvent, stopAfter(plan));
       if (signal !== undefined) {
@@ -564,14 +576,25 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
   }
 }
 
-/** Cloud agents send their prompt on stdin and attachments as `@path`; a video is named, since `@path` reads text or images only. */
-function detachedInput(prompt: string, attachments: readonly string[]): { input: ChildInput; files: string[] } {
-  const videos = attachments.filter((path) => VIDEO.test(path));
-  const text = [prompt.trim(), ...videos.map((path) => `<file name="${path}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>`)].join('\n');
-  return { input: { text, images: [] }, files: attachments.filter((path) => !VIDEO.test(path)) };
+/** Cloud agents send their prompt on stdin and attachments as `@path`; a video becomes its frames, each an `@path` image. */
+async function detachedInput(prompt: string, attachments: readonly string[]): Promise<{ input: ChildInput; files: string[] }> {
+  const notes: string[] = [];
+  const files: string[] = [];
+  for (const path of attachments) {
+    if (!VIDEO.test(path)) {
+      files.push(path);
+      continue;
+    }
+    try {
+      const frames = await extractFrames(path);
+      notes.push(videoNote(path, frames));
+      files.push(...frames.frames.map((frame) => frame.path));
+    } catch (error) {
+      notes.push(videoNote(path, error instanceof Error ? error : new Error(String(error))));
+    }
+  }
+  return { input: { text: [prompt.trim(), ...notes].join('\n'), images: [] }, files };
 }
-
-const VIDEO = /\.(?:mp4|m4v|mov|webm|avi|mkv)$/i;
 
 // Cursor's Task description, as a live Cursor CLI session showed it, with Pi's tool names and the catalogs in the
 // pstack_subagents section instead of a user-info message.
@@ -638,6 +661,8 @@ export interface TaskToolOptions {
   canSpawn: boolean;
   /** Whether plan mode is on: its Task launches run readonly and here, and record nothing of that. */
   planMode?: () => boolean;
+  /** The chat's Project, which every agent it starts joins. */
+  project?: () => string | undefined;
 }
 
 export interface StartBackgroundOptions {
@@ -734,6 +759,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
       const driver = await driverFor(params, options.planMode?.() === true);
       const { plan, lock } = prepare(params, ctx, options, registry.isRunning, driver);
+      plan.project = options.project?.();
       if (plan.machine !== undefined || plan.provision !== undefined) {
         onUpdate?.({
           content: [{ type: 'text', text: plan.provision === undefined ? 'Preparing the cloud agent.' : 'Preparing the cloud machine: cloning the pushed remote and starting its container.' }],
@@ -742,12 +768,13 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
         await createMachine(plan, lock, signal);
       }
       const detached = plan.machine !== undefined;
-      const input = detached ? detachedInput(params.prompt, attachments).input : attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
+      const cloudInput = detached ? await detachedInput(params.prompt, attachments) : undefined;
+      const input = cloudInput?.input ?? (attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments));
       const background = params.run_in_background === true;
       const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(params.prompt), description: plan.description.replace(/\s+/g, ' ').trim(), background };
       let pid: number | undefined;
       const progress = background ? undefined : createProgress(onUpdate, () => details(plan, false, 'running', pid));
-      const handle = start(plan, input, background ? undefined : signal, lock, owner, progress?.onEvent);
+      const handle = start(plan, input, background ? undefined : signal, lock, owner, progress?.onEvent, cloudInput?.files);
       pid = handle.pid;
       const delivered = () => (handle.pid === undefined ? undefined : markDelivered(plan.workspace, plan.agentId, handle.pid));
       if (background) {
@@ -782,6 +809,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
     if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
     if (startOptions?.shared !== undefined) plan.extraShared = startOptions.shared;
+    plan.project = options.project?.();
     if (plan.machine !== undefined || plan.provision !== undefined) await createMachine(plan, lock, undefined);
     const toolCallId = `pstack-${plan.agentId}`;
     const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(prompt), description: description.replace(/\s+/g, ' ').trim(), background: true };

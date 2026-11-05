@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 
-import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ThemeColor } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, ThemeColor } from '@earendil-works/pi-coding-agent';
 import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { matchesKey } from '@earendil-works/pi-tui';
 import { skillBlock } from './skill-block.ts';
 
 export const MODE_ENTRY = 'pstack/mode';
@@ -150,6 +151,19 @@ export interface ModeSections {
   pstack_mode_skill?: string;
 }
 
+/**
+ * The skill an editor line names for Cursor's Alt+Enter: `/name rest` or `/skill:name rest`, where name is a loaded skill
+ * or the one loaded skill it starts (the slash menu's pick). Undefined when the line names no skill.
+ */
+export function editorModeArgs(line: string, skills: readonly string[]): string | undefined {
+  const match = /^\/(?:skill:)?([A-Za-z0-9_-]+)(?:\s+([\s\S]*))?$/.exec(line.trim());
+  if (match === null) return undefined;
+  const [, typed = '', task = ''] = match;
+  const candidates = skills.includes(typed) ? [typed] : skills.filter((name) => name.startsWith(typed));
+  if (candidates.length !== 1) return undefined;
+  return `${candidates[0]}${task.trim() === '' ? '' : ` ${task.trim()}`}`;
+}
+
 export function registerMode(pi: ExtensionAPI): { sections: () => ModeSections } {
   let state: ModeState = {};
   const show = (ctx: ExtensionContext) => {
@@ -164,6 +178,23 @@ export function registerMode(pi: ExtensionAPI): { sections: () => ModeSections }
   };
   pi.on('session_start', (_event, ctx) => restore(ctx));
   pi.on('session_tree', (_event, ctx) => restore(ctx));
+  // Cursor's way into a Custom Mode: pick a skill from the / menu and press Alt+Enter instead of Enter. Any other
+  // Alt+Enter keeps Pi's meaning (queue a follow-up).
+  pi.on('session_start', (_event, ctx) => {
+    if (ctx.mode !== 'tui') return;
+    ctx.ui.onTerminalInput((data) => {
+      if (!matchesKey(data, 'alt+enter')) return undefined;
+      const args = editorModeArgs(ctx.ui.getEditorText(), [...loadedSkills(pi).keys()]);
+      if (args === undefined) return undefined;
+      ctx.ui.setEditorText('');
+      try {
+        handle(args, ctx);
+      } catch (error) {
+        ctx.ui.notify((error as Error).message, 'error');
+      }
+      return { consume: true };
+    });
+  });
 
   const resolveSkill = (name: string): ActiveMode => {
     const skills = loadedSkills(pi);
@@ -181,7 +212,7 @@ export function registerMode(pi: ExtensionAPI): { sections: () => ModeSections }
     }
   }
 
-  const handle = (args: string, ctx: ExtensionCommandContext) => {
+  const handle = (args: string, ctx: ExtensionContext) => {
     const command = parseModeArgs(args);
     const { active } = state;
     if (command.kind === 'status') return ctx.ui.notify(active === undefined ? 'No mode is on.' : `Mode on: ${active.skill} (${active.path ?? 'no loaded skill has that name'}).`, 'info');
