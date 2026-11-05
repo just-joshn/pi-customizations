@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.15.36-pi.17] - 2026-11-05
+
+Each item below is checked against the Cursor CLI 2026.10.22 bundle. `parity/pstack-parity-2026-11-05/` in the repository records the evidence, the decisions, and the 133-row behavior inventory.
+
+- Expand a leading prompt template before attaching referenced skills when a message uses both, match skill names containing underscores in aliases and autocomplete, and trim trailing whitespace after a leading `/skill`.
+- Accept Cursor's `reasoning`, `reasoning_effort`, `effort=none`, and `speed=fast|default` bracketed model parameters in `Task`, and honor `permissionMode: readonly` and `background: true` in agent frontmatter.
+- Re-open the existing plan review dialog on a bare `/plan` when a plan file is already saved, as Cursor's `onShowExistingPlan` does.
+- Detect zombie processes and pre-epoch supervisor locks on macOS as well as Linux.
+
 ## [0.15.36-pi.16] - 2026-11-04
 
 Each item below is checked against the Cursor CLI 2026.10.22 bundle, Cursor's built-in skills, or Cursor's docs. `parity/pstack-parity-2026-11-05/` in the repository records the evidence, the decisions, and the behavior inventory.
