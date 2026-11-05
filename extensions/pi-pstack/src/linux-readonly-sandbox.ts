@@ -54,7 +54,7 @@ export function seccompFilter(arch: string): Buffer {
 
 const quote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`;
 
-/** bubblewrap's arguments before the command: nothing is writable and nothing outside is reachable. */
+/** bubblewrap's arguments before the command: nothing is writable, and only the network is shared with the host. */
 export function bwrapArgs(cwd: string): string[] {
   return ['--new-session', '--die-with-parent', '--unshare-all', '--share-net', '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--cap-drop', 'ALL', '--chdir', cwd, '--seccomp', '3'];
 }
