@@ -57,3 +57,30 @@ Data shape. A cloud agent's record gains `machine`, a discriminated union on `dr
 - `worktree`: the earlier local worktree, used only when no container engine answers (or `PSTACK_CLOUD_DRIVER=worktree`); the host section and the Task result say so.
 
 Lifecycle. The worker is a detached `pi --mode json -p` process with `--session-dir <subagents> --session-id <id>`, stdout to `machines/<id>/runs/<n>.jsonl`. It survives the chat. The parent tracks it through a handle with the RPC child's interface (done, stop, kill, pid) built on the pid and the events file; shutdown stops tracking without killing. A session that starts later delivers completions it missed. Resume starts a new detached run on the same transcript and machine. stop_agent signals the worker group and stops the container.
+
+## State at the end of this run
+
+Closed with a Pi-native mechanism, a real-Pi test, and (where marked) a mutation or live check:
+
+| Gap | Mechanism | Evidence |
+| --- | --- | --- |
+| G1 cloud subagents | container machine (fresh clone of the pushed remote, tools routed in, Pi process and credentials on host), detached runs that survive the chat and report back once, `/in-cloud`, upstream wording restored | `test/e2e/cloud-machine.e2e.test.ts` (5), `in-cloud.e2e.test.ts`, `task.e2e.test.ts` (worktree driver, 64), 6/6 mutations caught, live deepseek-flash run (`live-cloud.sh`) |
+| G2 Projects | `/project`, `pstack_project` section inherited by subagents, Projects folder and root store mounted on cloud machines, footer `listening: n` | `project.e2e.test.ts`, cloud-machine e2e writes notes.md from the container |
+| G3 automations and benny | `subscribe_slack`, Slack tools, `new_session` + `environment: "cloud"`, `MEMORIES.md`, `automate` skill, `/automations`, automation runs keep Slack tools, benny rebuilt from upstream | `slack.e2e.test.ts` (fake Slack API), `automation.e2e.test.ts` (3), `restore-benny.mjs` |
+| G4 SendToUser | `request_secret`, `/secret`, masked TUI field | `secrets.e2e.test.ts`, `secrets.test.ts` |
+| G5 Slack channel subscriptions | `subscribe_slack` | `slack.e2e.test.ts` |
+| G8 video attachments | ffmpeg frames with timestamps | `video.e2e.test.ts` |
+| G11 Alt+Enter custom mode | `onTerminalInput` in `mode.ts` | `tui-alt-enter.py` in a real pty, mutation exit 1 |
+| G12 readonly network | sandbox-runtime proxy admits every host; bwrap shares the net namespace | `task.e2e.test.ts` TASK-019 |
+| G14 routine confirm | `ctx.ui.confirm` before a new webhook routine | `subscription-owner.e2e.test.ts` |
+
+Still open (not closed by this run):
+
+- G13b: a subagent's background shells stop with the subagent; Cursor keeps them running and notifies the parent. Needs jobs that write their own output file and a parent that adopts them.
+- A sleeping host pauses cloud agents (the Pi process runs on the host); Cursor's hosted VMs do not pause.
+- Cloud agents see the host's MCP servers; Cursor's use the team configuration.
+- macOS readonly sandbox: `/usr/bin/curl` and LibreSSL clients fail TLS (gh, git, Homebrew curl, node fetch work).
+- Slack triggers poll every 20 s; webhook routines listen on loopback.
+- A fork and its source can both run on one machine if the source is resumed while the fork runs (worktree forks had the same edge); the first run's wrapper then stops the shared container.
+- On Linux, files a container writes into the bind-mounted clone are root-owned on the host.
+- Desktop-only surfaces stay out of scope by the operator's order (`/visualize`, the plan card, inline media in replies); the Cursor CLI has none of them.

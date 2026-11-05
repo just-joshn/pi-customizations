@@ -12,6 +12,8 @@ export const BUILD_PLAN_ENV = 'PI_PSTACK_BUILD_PLAN';
 export const MACHINE_ENV = 'PI_PSTACK_MACHINE';
 /** The Project the parent chat belongs to; its subagents belong to it too. */
 export const PROJECT_ENV = 'PI_PSTACK_PROJECT';
+/** An automation run: a top-level agent in Cursor's terms, so it gets the Slack tools and token a subagent never does. */
+export const AUTOMATION_ENV = 'PI_PSTACK_AUTOMATION';
 
 export interface ChildIdentity {
   depth: number;
@@ -27,6 +29,7 @@ export interface ChildIdentity {
   /** Set in a cloud agent on a container machine; parsed and checked where its tools are registered. */
   machine: string | undefined;
   project: string | undefined;
+  automation: boolean;
 }
 
 function read(): ChildIdentity {
@@ -43,6 +46,7 @@ function read(): ChildIdentity {
     buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
     machine: process.env[MACHINE_ENV] || undefined,
     project: process.env[PROJECT_ENV] || undefined,
+    automation: process.env[AUTOMATION_ENV] === '1',
   };
 }
 
@@ -57,6 +61,7 @@ delete process.env[ROOT_WORKSPACE_ENV];
 delete process.env[BUILD_PLAN_ENV];
 delete process.env[MACHINE_ENV];
 delete process.env[PROJECT_ENV];
+delete process.env[AUTOMATION_ENV];
 
 /**
  * Variables for a child of this process at `depth` (an agent keeps the depth it was created at). A detached cloud agent

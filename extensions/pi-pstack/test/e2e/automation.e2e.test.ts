@@ -40,3 +40,23 @@ test('environment cloud needs a fire that starts its own run (G3)', async ({ onT
   const result = toolEnds(owner.events, 'subscribe_timer')[0];
   expect([result?.isError, result?.text]).toEqual([true, 'environment "cloud" needs sessionStrategy "new_session": a wake_self fire runs in the owning chat.']);
 });
+
+test('an automation run is a top-level agent: it gets the Slack tools that subagents never get (G3)', async ({ onTestFinished }) => {
+  const sandbox = makeSandbox();
+  sandbox.env['SLACK_BOT_TOKEN'] = 'xoxb-automation';
+  const owner = startRpc(sandbox);
+  onTestFinished(async () => {
+    await owner.close();
+    sandbox.dispose();
+  });
+  owner.send({ type: 'prompt', message: script([{ tool: 'subscribe_timer', args: { name: 'slack check', prompt: 'go\n@@tools-list', delaySeconds: 1, once: true, sessionStrategy: 'new_session' } }]) });
+  await owner.waitFor((event) => event.type === 'agent_settled');
+  const notice = await owner.waitFor((event) => event.type === 'message_end' && JSON.stringify(event['message'] ?? {}).includes('kind: subagent'), 60_000);
+  expect(JSON.stringify(notice['message'])).toContain('slack_send');
+  const mark = owner.events.length;
+  owner.send({ type: 'prompt', message: script([{ tool: 'Task', args: { description: 'child', prompt: 'go\n@@tools-list' } }]) });
+  const child = await owner.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'Task' && owner.events.indexOf(event) >= mark, 60_000);
+  const childText = JSON.stringify(child['result']);
+  expect(childText).toContain('bash');
+  expect(childText).not.toContain('slack_send');
+});

@@ -5,7 +5,7 @@ import { isAbsolute, join, relative } from 'node:path';
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PROJECT_ENV } from '../child-env.ts';
+import { AUTOMATION_ENV, BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PROJECT_ENV } from '../child-env.ts';
 import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
 import { bootMachine, type CloudDriver, describeMachine, type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
@@ -122,6 +122,8 @@ export interface Launch {
   extraShared?: string[];
   /** The Project of the chat that launches it, which the agent joins. */
   project?: string | undefined;
+  /** An automation fire's run, which acts as a top-level agent: it keeps the Slack token and tools. */
+  automation?: boolean;
   rootStore: string;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
@@ -297,7 +299,8 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
   const detached = mode === 'json';
   // A subagent never receives Slack credentials (only a top-level agent posts to Slack), and a subagent of an agent on
   // a container machine runs on that same machine rather than on this host.
-  const { SLACK_BOT_TOKEN: _bot, SLACK_TOKEN: _token, ...inherited } = process.env;
+  const { SLACK_BOT_TOKEN: _bot, SLACK_TOKEN: _token, ...stripped } = process.env;
+  const inherited = plan.automation === true ? process.env : stripped;
   const machine = plan.machine?.driver === 'container' ? JSON.stringify(plan.machine) : childIdentity.machine;
   const env = {
     ...inherited,
@@ -305,6 +308,7 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
     ...(machine === undefined ? {} : { [MACHINE_ENV]: machine }),
     ...(plan.project === undefined ? {} : { [PROJECT_ENV]: plan.project }),
+    ...(plan.automation === true ? { [AUTOMATION_ENV]: '1' } : {}),
   };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
@@ -676,6 +680,8 @@ export interface StartBackgroundOptions {
   buildPlan?: string;
   /** Host folders a cloud machine shares besides the Projects folder and the root store. */
   shared?: string[];
+  /** An automation fire: the run gets the Slack tools and token, as a top-level automation agent does. */
+  automation?: boolean;
 }
 
 export interface TaskHandle {
@@ -810,6 +816,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
     if (startOptions?.shared !== undefined) plan.extraShared = startOptions.shared;
     plan.project = options.project?.();
+    if (startOptions?.automation === true) plan.automation = true;
     if (plan.machine !== undefined || plan.provision !== undefined) await createMachine(plan, lock, undefined);
     const toolCallId = `pstack-${plan.agentId}`;
     const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(prompt), description: description.replace(/\s+/g, ' ').trim(), background: true };

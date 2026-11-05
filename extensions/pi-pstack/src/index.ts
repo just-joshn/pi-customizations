@@ -137,6 +137,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerSubscriptions(pi, {
     runFresh: async (prompt, name, meta) => {
       await task.startBackground(`timer ${name}`, prompt, {
+        automation: true,
         ...(meta.model === undefined ? {} : { model: `${meta.model.provider}/${meta.model.id}${meta.model.thinking === undefined ? '' : `:${meta.model.thinking}`}` }),
         ...(meta.trusted === undefined ? {} : { trusted: meta.trusted }),
         ...(meta.environment === undefined ? {} : { environment: meta.environment, shared: [memoryDir(name)] }),
@@ -158,10 +159,8 @@ export default function piPstack(pi: ExtensionAPI): void {
   const loop = registerLoop(pi, { hasPendingWork: () => task.hasBackgroundWork() || shells?.hasRunningJobs() === true });
   const todos = registerTodoWrite(pi, childIdentity.readonly ? {} : { onWrite: plan.syncTodos });
   registerAskQuestion(pi);
-  if (childIdentity.depth === 0) {
-    registerSecretRequest(pi, () => activateSlackTools(pi));
-    registerSlackTools(pi);
-  }
+  if (childIdentity.depth === 0) registerSecretRequest(pi, () => activateSlackTools(pi));
+  if (childIdentity.depth === 0 || childIdentity.automation) registerSlackTools(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly && machine === undefined) registerReadonlyShell(pi);
 
