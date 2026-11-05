@@ -132,17 +132,15 @@ export function hostSection(facts: HostFacts): string {
   ].join('\n');
 }
 
-function agentLine(agent: AgentDefinition): string {
-  const notes = [agent.type === 'generalPurpose' ? 'default' : undefined, agent.readonly ? 'readonly' : undefined].filter((note) => note !== undefined);
-  return `- ${agent.type}${notes.length > 0 ? ` (${notes.join('; ')})` : ''}: ${agent.description}`;
-}
+// Cursor's inline catalog line.
+const agentLine = (agent: AgentDefinition): string => (agent.description === '' ? `- ${agent.type}` : `- ${agent.type}: ${agent.description}`);
 
 /** The subagent types and model values Task accepts; Task's description points here. */
 export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[], parent: ModelSpec | undefined): string {
   const shown = models.slice(0, MODEL_LIST_LIMIT).map(modelLabel);
   const more = models.length > MODEL_LIST_LIMIT ? `, and ${models.length - MODEL_LIST_LIMIT} more (pi --list-models)` : '';
   return [
-    'Subagent types for Task:',
+    'Available subagent_types and a quick description of what they do:',
     ...agents.map(agentLine),
     'Model values for Task (and for role lines in the model rule):',
     "- inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.",

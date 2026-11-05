@@ -124,7 +124,7 @@ describe('host map (HOST-001)', () => {
 describe('subagent catalog (HOST-002)', () => {
   test('lists the subagent types and the models Task accepts', async () => {
     const catalog = section(await systemPrompt(['--no-session']), 'pstack_subagents');
-    expect(catalog).toContain('- generalPurpose (default): ');
+    expect(catalog).toContain(`Available subagent_types and a quick description of what they do:\n- generalPurpose: ${cursorAgents.builtIns[0]?.description}\n- explore: `);
     expect(catalog).toContain('- poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run.');
     expect(catalog).toContain('- shell: Command execution specialist for running bash commands.');
     expect(catalog).not.toContain('runs in the background unless');
