@@ -60,6 +60,8 @@ pi-pstack ships pstack's and team-kit's text as Pi package skills and agent file
 
 ## 5. Verification
 
+Receipts under `.audit/pstack-parity-2026-11-05/` are local and git-ignored, as in earlier runs. `rebuild.sh` regenerates the comparison artifacts, and the package tests regenerate the behavior checks.
+
 | Check | Result | Receipt |
 | --- | --- | --- |
 | Failing tests before each fix | The test for each code fix failed on the old code. The plan fix has a checker receipt instead of a test. | `.audit/pstack-parity-2026-11-05/*-baseline.txt`, `plan-fallback-check.txt` |
