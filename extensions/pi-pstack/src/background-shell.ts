@@ -5,12 +5,14 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readSync, statSync, writeSync } from 'node:fs';
 import { constants } from 'node:os';
 import { join, resolve } from 'node:path';
+import { StringDecoder } from 'node:string_decoder';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getShellConfig, truncateTail } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isOneShot } from './modes.ts';
+import { OutputWatchDependencyError, type OutputWatchRequest, ShellOutputWatch } from './shell-output-watch.ts';
 
 export const SHELL_NOTICE_TYPE = 'pstack/shell';
 const BACKGROUND_TOOL = 'bash_background';
@@ -18,7 +20,6 @@ const AWAIT_TOOL = 'AwaitShell';
 
 const FIELD_WIDTH = 9;
 const HEADER_REFRESH_MS = 5_000;
-const MIN_DEBOUNCE_MS = 5_000;
 const DEFAULT_AWAIT_MS = 30_000;
 const MAX_AWAIT_MS = 7_140_000;
 const KILL_GRACE_MS = 2_000;
@@ -26,20 +27,6 @@ const FOLLOW_UP = 'Briefly inform the user about the task result and perform any
 
 type JobStatus = 'running' | 'succeeded' | 'failed' | 'aborted';
 type NoticeStatus = 'success' | 'error' | 'aborted';
-
-interface OutputWatch {
-  readonly regex: RegExp;
-  readonly source: string;
-  readonly reason: string;
-  readonly debounceMs: number;
-  occurrences: number;
-  /** Matches since the last notification, sent when the debounce window closes. */
-  unreported: number;
-  latest: string;
-  notices: number;
-  window: ReturnType<typeof setTimeout> | undefined;
-  partial: string;
-}
 
 interface ShellJob {
   readonly id: string;
@@ -55,7 +42,7 @@ interface ShellJob {
   readonly statusOffset: number;
   readonly runningOffset: number;
   readonly child: ChildProcess;
-  readonly watch: OutputWatch | undefined;
+  readonly watch: ShellOutputWatch | undefined;
   readonly listeners: Set<() => void>;
   readonly done: Promise<void>;
   /** Where the next output byte goes; the header is rewritten in place, so the file is never opened for append. */
@@ -145,9 +132,6 @@ export function noticeText(notice: ShellNotice): string {
   ].join('\n');
 }
 
-const firstMatchDetail = (watch: OutputWatch) => `Shell output has pattern /${watch.source}/. This is occurrence number ${watch.occurrences}. Matched text: ${watch.latest}. The title message is being displayed to the user.`;
-const laterMatchesDetail = (watch: OutputWatch) => `Shell output matched /${watch.source}/ ${watch.unreported} more times since the previous notification. The title message is being displayed to the user. Latest match: ${watch.latest}.`;
-
 function exitStatus(code: number | null, signal: NodeJS.Signals | null): { status: JobStatus; exitCode: number } {
   if (signal !== null) return { status: 'aborted', exitCode: 128 + (constants.signals[signal] ?? 0) };
   const exitCode = code ?? 1;
@@ -215,7 +199,7 @@ export interface StartRequest {
   cwd: string;
   title: string;
   toolCallId: string;
-  watch?: { pattern: string; reason: string; debounceMs?: number };
+  watch?: OutputWatchRequest;
 }
 
 /** Every background shell this runtime started, and the notifications they owe the agent. */
@@ -245,50 +229,6 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     for (const listener of [...job.listeners]) listener();
   };
 
-  const sendProgress = (job: ShellJob, watch: OutputWatch, detail: string) => {
-    watch.notices += 1;
-    deliver({ kind: 'progress', status: 'success', taskId: `${job.id}:task_progress:${watch.notices}`, shellId: job.id, title: watch.reason, toolCallId: job.toolCallId, detail, outputPath: job.path });
-  };
-  /** Trailing-edge debounce: the first match notifies at once, later ones in the window are counted and sent when it closes. */
-  const openWindow = (job: ShellJob, watch: OutputWatch) => {
-    watch.window = setTimeout(() => {
-      watch.window = undefined;
-      if (watch.unreported === 0) return;
-      sendProgress(job, watch, laterMatchesDetail(watch));
-      watch.unreported = 0;
-      openWindow(job, watch);
-    }, watch.debounceMs);
-    watch.window.unref();
-  };
-  const matchLine = (job: ShellJob, watch: OutputWatch, line: string) => {
-    const match = watch.regex.exec(line);
-    if (match === null) return;
-    watch.occurrences += 1;
-    watch.latest = match[0];
-    if (watch.window !== undefined) {
-      watch.unreported += 1;
-      return;
-    }
-    sendProgress(job, watch, firstMatchDetail(watch));
-    openWindow(job, watch);
-  };
-  const scan = (job: ShellJob, chunk: string, final: boolean) => {
-    const watch = job.watch;
-    if (watch === undefined) return;
-    const lines = (watch.partial + chunk).split('\n');
-    watch.partial = final ? '' : (lines.pop() ?? '');
-    for (const line of lines) if (line !== '' || final) matchLine(job, watch, line.replace(/\r$/, ''));
-  };
-  const flushWatch = (job: ShellJob) => {
-    const watch = job.watch;
-    if (watch === undefined) return;
-    scan(job, '', true);
-    if (watch.window !== undefined) clearTimeout(watch.window);
-    watch.window = undefined;
-    if (watch.unreported > 0) sendProgress(job, watch, laterMatchesDetail(watch));
-    watch.unreported = 0;
-  };
-
   const finish = (job: ShellJob, status: JobStatus, exitCode: number, announce: boolean) => {
     if (job.status !== 'running') return;
     const endedAt = Date.now();
@@ -299,8 +239,8 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     job.bodyEnd = job.size;
     append(job, terminalFooter(exitCode, endedAt - job.startedAt, endedAt));
     closeSync(job.fd);
+    job.watch?.finish(announce);
     if (announce) {
-      flushWatch(job);
       if (!job.observed) {
         const noticeStatus: NoticeStatus = status === 'succeeded' ? 'success' : status === 'failed' ? 'error' : 'aborted';
         deliver({
@@ -313,17 +253,27 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
           ...(noticeStatus === 'error' ? { detail: `exit_code=${exitCode}` } : {}),
         });
       }
-    } else if (job.watch?.window !== undefined) clearTimeout(job.watch.window);
+    }
     notify(job);
   };
 
   const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
     if (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory()) throw new Error(`Working directory ${request.cwd} does not exist.`);
-    const watchRegex = request.watch === undefined ? undefined : compile(request.watch.pattern);
     const dir = options.terminalsDir(ctx);
     mkdirSync(dir, { recursive: true });
     const id = allocateId(dir);
     const path = join(dir, `${id}.txt`);
+    let watch: ShellOutputWatch | undefined;
+    if (request.watch !== undefined && request.watch.pattern.trim() !== '') {
+      try {
+        watch = new ShellOutputWatch(request.watch, (notice) => {
+          deliver({ kind: 'progress', status: 'success', taskId: `${id}:task_progress:${notice.sequence}`, shellId: id, title: notice.title, toolCallId: request.toolCallId, detail: notice.detail, outputPath: path });
+        });
+      } catch (error) {
+        if (error instanceof OutputWatchDependencyError) throw error;
+        console.warn('Invalid shell output notification pattern', { shellId: id, error: error instanceof Error ? error.message : String(error) });
+      }
+    }
     const config = getShellConfig(options.shellPath());
     const viaStdin = config.commandTransport === 'stdin';
     const child = spawn(config.shell, viaStdin ? config.args : [...config.args, request.command], {
@@ -357,21 +307,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
       statusOffset: header.statusOffset,
       runningOffset: header.runningOffset,
       child,
-      watch:
-        request.watch === undefined || watchRegex === undefined
-          ? undefined
-          : {
-              regex: watchRegex,
-              source: request.watch.pattern,
-              reason: request.watch.reason,
-              debounceMs: Math.max(MIN_DEBOUNCE_MS, request.watch.debounceMs ?? MIN_DEBOUNCE_MS),
-              occurrences: 0,
-              unreported: 0,
-              latest: '',
-              notices: 0,
-              window: undefined,
-              partial: '',
-            },
+      watch,
       listeners: new Set(),
       done: new Promise<void>((resolveDone) => {
         release = resolveDone;
@@ -388,14 +324,24 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     append(job, header.text);
     job.refresh = setInterval(() => refreshRunning(job), HEADER_REFRESH_MS);
     job.refresh.unref();
-    const onData = (chunk: Buffer) => {
-      if (job.status !== 'running') return;
-      append(job, chunk);
-      scan(job, chunk.toString('utf8'), false);
-      notify(job);
-    };
-    child.stdout?.on('data', onData);
-    child.stderr?.on('data', onData);
+    for (const stream of [child.stdout, child.stderr]) {
+      if (stream === null) continue;
+      const decoder = new StringDecoder('utf8');
+      stream.on('data', (chunk: Buffer) => {
+        if (job.status !== 'running') return;
+        const text = decoder.write(chunk);
+        append(job, text);
+        job.watch?.observe(text);
+        notify(job);
+      });
+      stream.on('end', () => {
+        if (job.status !== 'running') return;
+        const text = decoder.end();
+        append(job, text);
+        job.watch?.observe(text);
+        notify(job);
+      });
+    }
     child.on('error', (error) => {
       if (job.status === 'running') append(job, `${error.message}\n`);
       finish(job, 'failed', 127, true);

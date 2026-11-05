@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -105,6 +105,19 @@ describe('background jobs', () => {
       ['finished', job.id, 'probe job', undefined],
     ]);
     expect(notices[0]?.outputPath).toBe(job.path);
+  });
+
+  shell('stdout and stderr retain UTF-8 characters split between chunks', async ({ dir, jobs, notices }) => {
+    const producer = `const fs = require('node:fs'); const watcher = fs.watch('.', (_, name) => { if (name !== 'release') return; fs.writeSync(1, Buffer.from([0x82, 0xac])); fs.writeSync(2, Buffer.from([0x82, 0xac])); watcher.close(); }); fs.writeSync(1, Buffer.from([79, 85, 84, 58, 0xe2])); fs.writeSync(2, Buffer.from([69, 82, 82, 58, 0xe2]));`;
+    const job = start(jobs, dir, `${JSON.stringify(process.execPath)} -e ${JSON.stringify(producer)}`, { watch: { pattern: '€', reason: 'unicode' } });
+    await expect.poll(() => jobs.output(job)).toMatch(/^(OUT:ERR:|ERR:OUT:)$/);
+    writeFileSync(join(dir, 'release'), 'release');
+    await job.done;
+    expect(jobs.output(job)).toMatch(/^(OUT:ERR:|ERR:OUT:)€€$/);
+    expect(notices.filter((notice) => notice.kind === 'progress').map((notice) => notice.detail)).toEqual([
+      'Shell output has pattern /€/. This is occurrence number 1. Matched text: €. The title message is being displayed to the user.',
+      'Shell output has pattern /€/. This is occurrence number 2. Latest match: €. The title message is being displayed to the user.',
+    ]);
   });
 
   shell('session shutdown stops a running job and records it aborted without notifying', async ({ dir, jobs, notices }) => {
