@@ -24,7 +24,7 @@ Open a todolist with one entry per phase before launching anything.
 
 ## Phase B: Fan out
 
-Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Both environments run on the user's computer. `cloud` gives each worker a separate git worktree, not a VM or a credential boundary. Use `environment: "local"` only when the worker needs the existing checkout or its uncommitted state. For concurrent runtime lanes, each brief must assign distinct ports, output directories, and writable cache paths. If the task requires stronger machine isolation, report that requirement as unavailable rather than claiming a worktree provides it.
+Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user's computer.
 
 When a worker must start from a non-default pushed branch, pass `cloud_base_branch`.
 

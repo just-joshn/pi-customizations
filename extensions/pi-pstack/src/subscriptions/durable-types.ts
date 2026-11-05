@@ -17,6 +17,17 @@ export type Config =
       trusted?: boolean;
     }
   | {
+      kind: 'slack';
+      /** The channel ID the trigger reads; a new top-level message there fires it. */
+      channel: string;
+      prompt: string;
+      /** An RE2 pattern a message must match; with one, thread replies fire it too, as in Cursor's Slack trigger. */
+      filter?: string;
+      strategy: 'wake_self' | 'new_session';
+      model?: RunModel;
+      trusted?: boolean;
+    }
+  | {
       kind: 'webhook';
       prompt: string;
       slug: string;

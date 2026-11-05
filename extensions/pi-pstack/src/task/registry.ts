@@ -9,6 +9,14 @@ interface Running {
   settled: Promise<void>;
   handle: ChildHandle;
   background: boolean;
+  /** A detached cloud agent: it outlives this runtime, so shutdown stops following it instead of killing it. */
+  detached: boolean;
+}
+
+export interface TrackOptions {
+  detached?: boolean;
+  /** Runs after the notice is delivered (or right away without one), so a cloud agent's record can say the owner has it. */
+  onDelivered?: () => void;
 }
 
 export interface BackgroundNotice {
@@ -35,15 +43,16 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   };
 
   /** Registers synchronously, before any await in the caller, so a sibling call in the same message sees it. */
-  const track = (agentId: string, handle: ChildHandle, release: () => void, notice?: BackgroundNotice) => {
+  const track = (agentId: string, handle: ChildHandle, release: () => void, notice?: BackgroundNotice, options: TrackOptions = {}) => {
     const settled = handle.done.then((outcome) => {
       running.delete(agentId);
       release();
       // Shutdown killed this child; the retired runtime's pi must not be touched.
-      if (retired || notice === undefined) return;
-      deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, description: notice.description, toolCallId: notice.toolCallId }, notice.mode);
+      if (retired) return;
+      if (notice !== undefined) deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, description: notice.description, toolCallId: notice.toolCallId }, notice.mode);
+      options.onDelivered?.();
     });
-    running.set(agentId, { settled, handle, background: notice !== undefined });
+    running.set(agentId, { settled, handle, background: notice !== undefined, detached: options.detached === true });
   };
 
   const backgroundRunning = () => [...running.values()].filter((entry) => entry.background);
@@ -60,13 +69,18 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
     };
   };
 
-  const shutdown = (): number => {
+  /** Kills this runtime's children and stops following detached cloud agents, which keep running. */
+  const shutdown = (): { stopped: number; detached: number } => {
     retired = true;
-    const background = backgroundRunning().length;
-    for (const entry of running.values()) entry.handle.kill();
+    const stopped = backgroundRunning().filter((entry) => !entry.detached).length;
+    const detached = [...running.values()].filter((entry) => entry.detached).length;
+    for (const entry of running.values()) {
+      if (entry.detached) entry.handle.detach?.();
+      else entry.handle.kill();
+    }
     running.clear();
     pending.splice(0);
-    return background;
+    return { stopped, detached };
   };
 
   return {

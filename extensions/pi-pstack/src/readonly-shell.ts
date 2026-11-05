@@ -4,15 +4,20 @@ import type { SandboxRuntimeConfig } from '@anthropic-ai/sandbox-runtime';
 import { type BashSpawnContext, createBashTool, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { linuxReadonlyCommand } from './linux-readonly-sandbox.ts';
 
-// Cursor's readonly subagent: "no file edits, no state-changing shell commands". The OS sandbox enforces it:
-// nothing may be written and no host may be reached, so a pipe, substitution, or pager cannot get around it.
-// Linux uses bubblewrap directly (linux-readonly-sandbox.ts); macOS uses sandbox-runtime's Seatbelt policy below.
+// Cursor's readonly subagent: "no file edits, no state-changing shell commands". The OS sandbox enforces the file
+// half: nothing may be written, so a pipe, substitution, or pager cannot get around it. Network stays open, as it is in
+// Cursor's Ask-mode shell (workspace_readonly with the user's network policy; no sandbox at all by default), so
+// `gh pr view` and `curl` work, and "no state-changing commands" over the network is an instruction, as in Cursor.
+// Linux uses bubblewrap directly (linux-readonly-sandbox.ts); macOS uses sandbox-runtime's Seatbelt policy below, whose
+// proxy admits every host through the ask callback.
 // denyWrite names the paths the sandbox makes writable for itself (/tmp/claude is a dependency default), and
 // denyRead drops the dependency's writable home defaults (~/.npm/_logs, ~/.claude/debug). Seatbelt is
 // last-match-wins with deny emitted after allow.
 // Unix sockets must stay blocked too: a host service can mutate files on a command's behalf.
 const READ_ONLY_POLICY: SandboxRuntimeConfig = {
-  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: false },
+  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: false, allowMachLookup: ['com.apple.trustd', 'com.apple.ocspd'] },
+  // trustd verifies TLS certificates for macOS and Go clients (curl, gh, git); without it every HTTPS read fails.
+  enableWeakerNetworkIsolation: true,
   filesystem: {
     denyRead: ['~/.npm/_logs', '~/.claude/debug'],
     allowWrite: [],
@@ -20,7 +25,8 @@ const READ_ONLY_POLICY: SandboxRuntimeConfig = {
   },
 };
 
-const NOTE = ' This shell is read-only: each command runs in an OS sandbox that denies filesystem writes and network access. Pi and trusted extensions are not sandboxed by it. Use it for commands such as git log, git blame, or rg.';
+const NOTE =
+  ' This shell is read-only: each command runs in an OS sandbox that denies filesystem writes and Unix sockets. Network requests work, but run no command that changes state anywhere (no pushes, merges, posts, or deploys). Pi and trusted extensions are not sandboxed by it. Use it for commands such as git log, git blame, rg, or gh pr view.';
 
 // Startup hooks and exported shell functions run in the outer shell before the sandbox wrapper does, so none of
 // them may reach it.
@@ -44,7 +50,7 @@ function sandboxReady(): Promise<Sandbox> {
       if (socketWarning !== undefined) throw new Error(socketWarning);
       // initialize is a no-op if another consumer started the manager. Linux socket isolation also
       // reads the shared config, so both it and the per-command override must carry this policy.
-      await SandboxManager.initialize(READ_ONLY_POLICY);
+      await SandboxManager.initialize(READ_ONLY_POLICY, async () => true);
       SandboxManager.updateConfig(READ_ONLY_POLICY);
       return SandboxManager;
     } catch (error) {
@@ -78,7 +84,8 @@ export function createReadonlyBashTool(name = 'bash'): ToolDefinition<BashParame
       const command = process.platform === 'linux' ? linuxCommand(params.command, ctx.cwd) : await wrapped(params.command, signal);
       const bash = createBashTool(ctx.cwd, {
         ...(existsSync('/bin/bash') ? { shellPath: '/bin/bash' } : {}),
-        spawnHook: (spawn: BashSpawnContext) => ({ ...spawn, command, env: strippedEnv(spawn.env) }),
+        // Node's fetch ignores the proxy variables unless told to use them, and the proxy is the only way out.
+        spawnHook: (spawn: BashSpawnContext) => ({ ...spawn, command, env: { ...strippedEnv(spawn.env), NODE_USE_ENV_PROXY: '1' } }),
       });
       return bash.execute(toolCallId, params, signal, onUpdate);
     },

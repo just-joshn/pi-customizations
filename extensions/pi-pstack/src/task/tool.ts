@@ -1,23 +1,25 @@
 import { randomUUID } from 'node:crypto';
-import { existsSync, rmSync } from 'node:fs';
+import { existsSync, readdirSync, rmSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
 
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { BUILD_PLAN_ENV, childIdentity, childVariables } from '../child-env.ts';
-import { rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
+import { BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV } from '../child-env.ts';
+import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
+import { bootMachine, type CloudDriver, describeMachine, type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
+import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent, normalizedType } from './agents.ts';
 import { renderTaskCard, renderTaskNotification } from './card.ts';
-import { backgroundText, bounded, foregroundText, notificationTitle, worktreeLine, worktreePreface } from './format.ts';
+import { backgroundText, bounded, foregroundText, notificationTitle } from './format.ts';
 import { type AvailableModel, fastVariant, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { createProgress } from './progress.ts';
-import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, readonlyLaunchRestores, readRecord, transcriptFor, writeRecord } from './records.ts';
+import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, type RunRecord, readonlyLaunchRestores, readRecord, recordIds, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
 import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
-import { addWorktree, planWorktree, type Worktree } from './worktree.ts';
+import { addWorktree, planWorktree } from './worktree.ts';
 
 // Cursor's Task schema text, with the catalogs in the pstack_subagents section instead of a user-info message.
 export const TaskParams = Type.Object({
@@ -41,7 +43,7 @@ export const TaskParams = Type.Object({
   fork: Type.Optional(
     Type.String({
       description:
-        'Agent ID from an earlier Task call in this workspace. Starts a new agent (new ID) whose context begins as a copy of that agent transcript and that runs in the same directory (its git worktree when it had one), so it sees that checkout and its uncommitted changes. The prompt is the new task. subagent_type, model, and readonly default to the source agent; readonly can be added, never lifted. Fails while the source is running. Cannot be combined with resume, environment, or cloud_base_branch.',
+        'Agent ID from an earlier Task call in this workspace. Starts a new agent (new ID) whose context begins as a copy of that agent transcript and that runs in the same place (its cloud machine when it had one), so it sees that checkout and its uncommitted changes. The prompt is the new task. subagent_type, model, and readonly default to the source agent; readonly can be added, never lifted. Fails while the source is running. Cannot be combined with resume, environment, or cloud_base_branch.',
     }),
   ),
   fork_turns: Type.Optional(Type.Integer({ minimum: 1, description: 'With fork: copy only the first N user turns of the source agent, so the fork starts from that point in its conversation. Defaults to the whole transcript.' })),
@@ -51,7 +53,10 @@ export const TaskParams = Type.Object({
     }),
   ),
   readonly: Type.Optional(
-    Type.Boolean({ description: 'Limit the agent to read, grep, find, ls, and a read-only shell that can neither write files nor reach the network, with no edits and no MCP tools. A readonly subagent type stays readonly.' }),
+    Type.Boolean({
+      description:
+        'Limit the agent to read, grep, find, ls, and a read-only shell that cannot write files (network reads work, state-changing commands are not allowed), with no edits and no MCP tools. A readonly subagent type stays readonly.',
+    }),
   ),
   file_attachments: Type.Optional(
     Type.Array(Type.String(), {
@@ -63,12 +68,12 @@ export const TaskParams = Type.Object({
     Type.Enum(['local', 'cloud'] as const, {
       type: 'string',
       description:
-        'local (default) runs the agent in this working directory. cloud runs it on this machine in its own git worktree on a new branch pstack/<agent id>, created from cloud_base_branch or the current HEAD commit, so uncommitted changes do not reach it. The result names the worktree and branch; merge the branch to take its commits. Ignored with resume; not allowed with fork.',
+        'local (default) runs the agent in this working directory. cloud runs it as a cloud agent on its own machine (a container with its own filesystem, processes, and ports) with a fresh clone of the pushed remote on a new branch pstack/<agent id>, from cloud_base_branch, else the current branch when it is pushed, else the default branch. Local uncommitted or unpushed changes, transcripts, simulators, and credentials do not reach it. It keeps running when this chat closes, and its result arrives here when the chat is back. The agent pushes its branch; take its commits from there. Ignored with resume; not allowed with fork.',
     }),
   ),
   cloud_base_branch: Type.Optional(
     Type.String({
-      description: 'With environment cloud, the branch the worktree starts from: origin/<branch> when that remote-tracking ref exists, else a local branch or any other ref. Defaults to the current HEAD commit. Needs environment cloud.',
+      description: 'With environment cloud, the pushed branch the cloud agent starts from. Defaults to the current branch when the remote has it, else the default branch. Needs environment cloud.',
     }),
   ),
 });
@@ -81,7 +86,7 @@ export function taskPreflight(params: TaskInput, depth: number): undefined {
     if (params.environment !== undefined || params.cloud_base_branch !== undefined) throw new Error('fork runs where the source agent ran, so it takes no environment or cloud_base_branch.');
   }
   if (params.fork_turns !== undefined && params.fork === undefined) throw new Error('fork_turns needs fork: it says how many user turns of the source agent to copy.');
-  if (params.cloud_base_branch !== undefined && params.environment !== 'cloud') throw new Error('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
+  if (params.cloud_base_branch !== undefined && params.environment !== 'cloud') throw new Error('cloud_base_branch needs environment "cloud": it names the pushed branch the cloud agent starts from.');
   if (depth >= 2) throw new Error('A subagent launched by another subagent cannot launch further subagents.');
   return undefined;
 }
@@ -104,12 +109,14 @@ export interface Launch {
   planMode: boolean;
   /** The workspace that owns records, transcripts, and run locks; its state folder holds them. */
   workspace: string;
-  /** Where the child process runs: the recorded worktree or directory, separate from where its record lives. */
+  /** Where the child process runs: the recorded machine or directory, separate from where its record lives. */
   executionCwd: string;
   /** The main chat's working directory, which authorizes every record in the shared workspace. */
   rootWorkspace: string;
-  /** Set for a cloud agent, which runs here instead of in the workspace. */
-  worktree: Worktree | undefined;
+  /** Where a cloud agent runs; a fresh container machine is filled in once it is provisioned. */
+  machine: Machine | undefined;
+  /** A fresh cloud agent whose container machine still has to be provisioned. */
+  provision?: { home: string; baseBranch: string | undefined };
   rootStore: string;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
@@ -146,13 +153,13 @@ const isUnder = (parent: string, child: string): boolean => {
  */
 export function recordBelongsToWorkspace(record: Pick<AgentRecord, 'cwd' | 'workspaceRoot'>, cwd: string): boolean {
   if (record.workspaceRoot !== undefined) return record.workspaceRoot === cwd;
-  return record.cwd === cwd || isUnder(worktreesDir(cwd), record.cwd);
+  return record.cwd === cwd || isUnder(worktreesDir(cwd), record.cwd) || isUnder(machinesDir(cwd), record.cwd);
 }
 
-/** A launch trusts this checkout and the worktrees derived from it, never an unrelated recorded directory. */
-const trustFor = (executionCwd: string, ctx: ExtensionContext): boolean => ctx.isProjectTrusted() && (executionCwd === ctx.cwd || isUnder(worktreesDir(ctx.cwd), executionCwd));
+/** A launch trusts this checkout and the cloud checkouts derived from it, never an unrelated recorded directory. */
+const trustFor = (executionCwd: string, ctx: ExtensionContext): boolean => ctx.isProjectTrusted() && (executionCwd === ctx.cwd || isUnder(worktreesDir(ctx.cwd), executionCwd) || isUnder(machinesDir(ctx.cwd), executionCwd));
 
-function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], depth: number, planMode: boolean): Launch {
+function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], depth: number, planMode: boolean, driver: CloudDriver | undefined): Launch {
   const agent = findAgent(agents, params.subagent_type);
   const available = availableModels(ctx);
   const parent = parentModel(ctx);
@@ -160,9 +167,10 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const readonly = effectiveReadonly(agent.readonly, params.readonly);
   const agentId = randomUUID();
-  const cloud = params.environment === 'cloud';
-  const worktree = cloud && !planMode ? planWorktree(ctx.cwd, worktreesDir(ctx.cwd), agentId, params.cloud_base_branch) : undefined;
-  const notes = worktree === undefined ? (cloud ? ['Note: environment "cloud" was ignored; plan mode runs subagents here, readonly.'] : []) : [worktreeLine(worktree)];
+  const cloud = params.environment === 'cloud' && !planMode;
+  const machine = cloud && driver === 'worktree' ? planWorktree(ctx.cwd, worktreesDir(ctx.cwd), agentId, params.cloud_base_branch) : undefined;
+  const provision = cloud && driver === 'container' ? { home: join(machinesDir(ctx.cwd), agentId), baseBranch: params.cloud_base_branch } : undefined;
+  const notes = params.environment === 'cloud' && planMode ? ['Note: environment "cloud" was ignored; plan mode runs subagents here, readonly.'] : machine === undefined ? [] : [describeMachine(machine)];
   return {
     kind: 'fresh',
     agentId,
@@ -171,9 +179,10 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
     readonly,
     planMode,
     workspace: ctx.cwd,
-    executionCwd: worktree?.cwd ?? ctx.cwd,
+    executionCwd: machine?.cwd ?? ctx.cwd,
     rootWorkspace: rootWorkspaceOf(ctx),
-    worktree,
+    machine,
+    ...(provision === undefined ? {} : { provision }),
     rootStore: rootStoreOf(ctx),
     depth: depth + 1,
     trusted: ctx.isProjectTrusted(),
@@ -199,15 +208,16 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   if (!recordBelongsToWorkspace(record, ctx.cwd)) throw new Error(`Agent ${agentId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
   // Without its transcript, --session-id would start an empty session under the old ID.
   if (transcriptFor(dir, agentId) === undefined) throw new Error(`Agent ${agentId} has no transcript to resume, so its earlier context is gone. Start a new agent instead.`);
-  const { worktree } = record;
-  if (worktree !== undefined && !existsSync(worktree.cwd)) throw new Error(`Agent ${agentId} ran in the git worktree ${worktree.path}, which no longer exists. Start a new agent instead.`);
+  const { machine } = record;
+  if (machine !== undefined && !existsSync(machine.cwd))
+    throw new Error(`Agent ${agentId} ran in ${machine.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${machine.path}, which no longer exists. Start a new agent instead.`);
   const agent = recordedAgent(agents, agentId, record.type);
   if (params.subagent_type !== undefined && normalizedType(params.subagent_type) !== normalizedType(record.type))
     throw new Error(
       `Cannot resume a "${record.type}" subagent as "${params.subagent_type}". A resumed subagent keeps its type: omit \`subagent_type\` to resume this child, or start a new "${params.subagent_type}" subagent without \`resume\`.`,
     );
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
-  const notes = [...(worktree === undefined ? [] : [worktreeLine(worktree)]), ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`])];
+  const notes = [...(machine === undefined ? [] : [describeMachine(machine)]), ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`])];
   const readonly = effectiveReadonly(effectiveReadonly(record.readonly, agent.readonly), params.readonly);
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
@@ -220,12 +230,12 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
     readonly,
     planMode,
     workspace: ctx.cwd,
-    executionCwd: worktree?.cwd ?? record.cwd,
+    executionCwd: machine?.cwd ?? record.cwd,
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
-    worktree,
+    machine,
     rootStore: rootStoreOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
-    trusted: trustFor(worktree?.cwd ?? record.cwd, ctx),
+    trusted: trustFor(machine?.cwd ?? record.cwd, ctx),
     attachments,
     notes,
     description: params.description,
@@ -245,15 +255,16 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   if (record === undefined) throw new Error(`Unknown agent ID ${sourceId}. Fork needs an agent ID returned by an earlier Task call in this workspace.`);
   if (!recordBelongsToWorkspace(record, ctx.cwd)) throw new Error(`Agent ${sourceId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
   if (transcriptFor(dir, sourceId) === undefined) throw new Error(`Agent ${sourceId} has no transcript to fork, so its context is gone. Start a new agent instead.`);
-  const { worktree } = record;
-  if (worktree !== undefined && !existsSync(worktree.cwd)) throw new Error(`Agent ${sourceId} ran in the git worktree ${worktree.path}, which no longer exists. Start a new agent instead.`);
+  const { machine } = record;
+  if (machine !== undefined && !existsSync(machine.cwd))
+    throw new Error(`Agent ${sourceId} ran in ${machine.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${machine.path}, which no longer exists. Start a new agent instead.`);
   const sourceType = agents.find((candidate) => candidate.type === record.type);
   const agent = params.subagent_type === undefined ? recordedAgent(agents, sourceId, record.type) : findAgent(agents, params.subagent_type);
   const model = params.model === undefined ? record.model : resolveSubagentModel(params.model, availableModels(ctx), parentModel(ctx));
   const readonly = effectiveReadonly(record.readonly || sourceType?.readonly === true || agent.readonly, params.readonly);
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const turns = params.fork_turns === undefined ? '' : `, keeping its first ${params.fork_turns} user turn${params.fork_turns === 1 ? '' : 's'}`;
-  const notes = [`Forked from agent ${sourceId}${turns}.`, ...(worktree === undefined ? [] : [worktreeLine(worktree)])];
+  const notes = [`Forked from agent ${sourceId}${turns}.`, ...(machine === undefined ? [] : [describeMachine(machine)])];
   return {
     kind: 'fork',
     agentId,
@@ -263,28 +274,32 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
     readonly,
     planMode,
     workspace: ctx.cwd,
-    executionCwd: worktree?.cwd ?? record.cwd,
+    executionCwd: machine?.cwd ?? record.cwd,
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
-    worktree,
+    machine,
     rootStore: rootStoreOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
-    trusted: trustFor(worktree?.cwd ?? record.cwd, ctx),
+    trusted: trustFor(machine?.cwd ?? record.cwd, ctx),
     attachments,
     notes,
     description: params.description,
   };
 }
 
-function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | undefined, onEvent?: (event: { type: string } & Record<string, unknown>) => void) {
+/** Environment and argv for the agent's Pi process, shared by an RPC child and a detached cloud run. */
+function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
   const readonly = runsReadonly(plan);
+  const detached = mode === 'json';
   const env = {
     ...process.env,
-    ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace),
+    ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached),
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
+    ...(plan.machine?.driver === 'container' ? { [MACHINE_ENV]: JSON.stringify(plan.machine) } : {}),
   };
   const transcript = plan.kind === 'fresh' || readonly ? undefined : transcriptFor(subagentDir(plan.workspace), plan.agentId);
   const restoreTools = transcript === undefined ? [] : readonlyLaunchRestores(transcript);
   const args = childArgs({
+    mode,
     sessionDir: subagentDir(plan.workspace),
     agentId: plan.agentId,
     readonly,
@@ -294,12 +309,46 @@ function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | unde
     ...(plan.agent.onlyTools === undefined ? {} : { onlyTools: plan.agent.onlyTools }),
     ...(plan.model === undefined ? {} : { model: plan.model }),
   });
+  return { env, args };
+}
+
+function launchChild(plan: Launch, input: ChildInput, signal: AbortSignal | undefined, onEvent?: (event: { type: string } & Record<string, unknown>) => void) {
+  const { env, args } = launchSpec(plan, 'rpc');
   return startChild({ command: piCommand(), args, prompt: input.text, images: input.images, cwd: plan.executionCwd, env, ...(signal === undefined ? {} : { signal }), ...(onEvent === undefined ? {} : { onEvent }) });
 }
 
-function recordFresh(plan: Launch): void {
-  // A fork with no worktree runs in the source's directory, so later resumes must return there too.
-  const cwd = plan.kind === 'fork' && plan.worktree === undefined ? plan.executionCwd : plan.workspace;
+/** The next run folder of a cloud agent: `<machines>/<agent id>/runs/<n>`. */
+function nextRunDir(plan: Launch): string {
+  const runs = join(machinesDir(plan.workspace), plan.agentId, 'runs');
+  const taken = existsSync(runs) ? readdirSync(runs).filter((name) => /^\d+$/.test(name)).length : 0;
+  return join(runs, String(taken + 1));
+}
+
+/** A cloud agent runs detached: its prompt goes on stdin and each attachment as an `@path` argument Pi reads itself. */
+function launchDetached(plan: Launch, input: ChildInput): DetachedRun {
+  const { env, args } = launchSpec(plan, 'json');
+  return spawnDetached({
+    command: piCommand(),
+    args: [...args, '--', ...detachedInput('', plan.attachments).files.map((path) => `@${path}`)],
+    prompt: input.text,
+    cwd: plan.executionCwd,
+    env,
+    runDir: nextRunDir(plan),
+    container: plan.machine?.driver === 'container' ? plan.machine.container : undefined,
+  });
+}
+
+export interface RunOwner {
+  ownerSessionId: string;
+  toolCallId: string;
+  title: string;
+  description: string;
+  background: boolean;
+}
+
+function recordFresh(plan: Launch, run: RunRecord | undefined): void {
+  // A fork with no machine runs in the source's directory, so later resumes must return there too.
+  const cwd = plan.kind === 'fork' && plan.machine === undefined ? plan.executionCwd : plan.workspace;
   const record: AgentRecord = {
     agentId: plan.agentId,
     type: plan.agent.type,
@@ -309,33 +358,59 @@ function recordFresh(plan: Launch): void {
     createdAt: new Date().toISOString(),
     depth: plan.depth,
     ...(plan.model === undefined ? {} : { model: plan.model }),
-    ...(plan.worktree === undefined ? {} : { worktree: plan.worktree }),
+    ...(plan.machine === undefined ? {} : { machine: plan.machine }),
+    ...(run === undefined ? {} : { run }),
     ...(plan.forkedFrom === undefined ? {} : { forkedFrom: plan.forkedFrom }),
   };
   writeRecord(subagentDir(plan.workspace), record);
 }
 
 /** A resume keeps a raised readonly floor; plan mode's restriction is never written, since it holds for one launch. */
-function recordResume(plan: Launch): void {
+function recordResume(plan: Launch, run: RunRecord | undefined): void {
   const dir = subagentDir(plan.workspace);
   const record = readRecord(dir, plan.agentId);
   if (record === undefined) throw new Error(`Unknown agent ID ${plan.agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
-  writeRecord(dir, { ...record, readonly: plan.readonly });
+  writeRecord(dir, { ...record, readonly: plan.readonly, ...(run === undefined ? {} : { run }) });
+}
+
+/** Marks a cloud agent's run as delivered to its owner, unless a newer run has replaced it since. */
+function markDelivered(workspace: string, agentId: string, pid: number): void {
+  const dir = subagentDir(workspace);
+  const record = readRecord(dir, agentId);
+  if (record?.run === undefined || record.run.pid !== pid || record.run.delivered) return;
+  writeRecord(dir, { ...record, run: { ...record.run, delivered: true } });
+}
+
+/** Stopping a cloud agent also stops its container machine; the machine's disk stays for a resume. */
+function stopAfter(plan: Launch): (() => Promise<void>) | undefined {
+  const { machine } = plan;
+  return machine === undefined ? undefined : () => stopMachine(machine).catch(() => undefined);
 }
 
 /**
- * Starts the child, then points the run lock at it and records the agent. A child that never started (no pid) has no
+ * Starts the agent, then points the run lock at it and records the agent. A child that never started (no pid) has no
  * transcript and changes no record, so a new agent's ID never becomes resumable; a fork's copied transcript is removed with it.
+ * A cloud agent runs detached and its record keeps the run, so a later session can follow it or deliver its result.
  */
-function start(plan: Launch, rawInput: ChildInput, signal: AbortSignal | undefined, lock: RunLock, onEvent?: (event: { type: string } & Record<string, unknown>) => void): ChildHandle {
+function start(plan: Launch, rawInput: ChildInput, signal: AbortSignal | undefined, lock: RunLock, owner: RunOwner, onEvent?: (event: { type: string } & Record<string, unknown>) => void): ChildHandle {
   let handle: ChildHandle | undefined;
   try {
-    const input = plan.kind === 'fresh' && plan.worktree !== undefined ? { ...rawInput, text: worktreePreface(plan.worktree, rawInput.text) } : rawInput;
-    handle = launchChild(plan, input, signal, onEvent);
+    const input = plan.kind === 'fresh' && plan.machine !== undefined ? { ...rawInput, text: machinePreface(plan.machine, rawInput.text) } : rawInput;
+    let run: RunRecord | undefined;
+    if (plan.machine !== undefined) {
+      const detached = launchDetached(plan, input);
+      run = { ...detached, ...owner, delivered: false };
+      handle = followDetached(detached, onEvent, stopAfter(plan));
+      if (signal !== undefined) {
+        const abort = handle.kill;
+        if (signal.aborted) abort();
+        else signal.addEventListener('abort', abort, { once: true });
+      }
+    } else handle = launchChild(plan, input, signal, onEvent);
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
-      if (plan.kind === 'resume') recordResume(plan);
-      else recordFresh(plan);
+      if (plan.kind === 'resume') recordResume(plan, run);
+      else recordFresh(plan, run);
     } else removeForkTranscript(plan);
     return handle;
   } catch (error) {
@@ -368,7 +443,7 @@ function details(plan: Launch, background: boolean, status: string, pid?: number
     status,
     transcript: transcriptOf(plan),
     pid: pid ?? null,
-    worktree: plan.worktree ?? null,
+    machine: plan.machine ?? null,
     description: plan.description,
   };
 }
@@ -427,11 +502,11 @@ export function prepareFork(params: TaskInput, ctx: ExtensionContext, options: T
 }
 
 /** Plans the launch and takes the agent's run lock; a resume is planned again under the lock, since the agent may have started in between. */
-function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOptions, isRunning: (agentId: string) => boolean): { plan: Launch; lock: RunLock } {
+function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOptions, isRunning: (agentId: string) => boolean, driver: CloudDriver | undefined): { plan: Launch; lock: RunLock } {
   if (params.fork !== undefined) return prepareFork(params, ctx, options, isRunning);
   const fresh = params.resume === undefined;
   const planMode = options.planMode?.() === true;
-  const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth, planMode) : planResume(params, ctx, options.agents, isRunning, options.depth, planMode);
+  const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth, planMode, driver) : planResume(params, ctx, options.agents, isRunning, options.depth, planMode);
   let lock: RunLock;
   try {
     lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
@@ -448,16 +523,41 @@ function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOpti
   }
 }
 
-/** Only a fresh cloud agent awaits here, so a resume or fork keeps taking its lock and starting in one synchronous step. */
-async function createWorktree(plan: Launch, lock: RunLock, signal: AbortSignal | undefined): Promise<void> {
-  if (plan.kind !== 'fresh' || plan.worktree === undefined) return;
+/** The cloud driver a fresh cloud launch needs, decided before planning because probing the engine is asynchronous. */
+async function driverFor(params: TaskInput, planMode: boolean): Promise<CloudDriver | undefined> {
+  if (params.environment !== 'cloud' || params.resume !== undefined || params.fork !== undefined || planMode) return undefined;
+  return (await selectDriver()).driver;
+}
+
+/**
+ * Creates a fresh cloud agent's machine: its worktree, or its clone and container. A resume or fork boots the machine it
+ * ran on. Only these launches await before starting, under the run lock.
+ */
+async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | undefined): Promise<void> {
   try {
-    await addWorktree(plan.workspace, plan.worktree, signal);
+    if (plan.kind === 'fresh' && plan.machine?.driver === 'worktree') await addWorktree(plan.workspace, plan.machine, signal);
+    else if (plan.kind === 'fresh' && plan.provision !== undefined) {
+      plan.machine = await provisionMachine(
+        { driver: 'container', agentId: plan.agentId, cwd: plan.workspace, home: plan.provision.home, baseBranch: plan.provision.baseBranch, readonly: runsReadonly(plan), shared: [projectsDir(plan.workspace), plan.rootStore] },
+        signal,
+      );
+      plan.executionCwd = plan.machine.cwd;
+      plan.notes = [...plan.notes, describeMachine(plan.machine)];
+    } else if (plan.machine !== undefined) await bootMachine(plan.machine);
   } catch (error) {
     lock.release();
     throw error;
   }
 }
+
+/** Cloud agents send their prompt on stdin and attachments as `@path`; a video is named, since `@path` reads text or images only. */
+function detachedInput(prompt: string, attachments: readonly string[]): { input: ChildInput; files: string[] } {
+  const videos = attachments.filter((path) => VIDEO.test(path));
+  const text = [prompt.trim(), ...videos.map((path) => `<file name="${path}">[video attachment; this host cannot send video to the model, open the path with a media tool]</file>`)].join('\n');
+  return { input: { text, images: [] }, files: attachments.filter((path) => !VIDEO.test(path)) };
+}
+
+const VIDEO = /\.(?:mp4|m4v|mov|webm|avi|mkv)$/i;
 
 // Cursor's Task description, as a live Cursor CLI session showed it, with Pi's tool names and the catalogs in the
 // pstack_subagents section instead of a user-info message.
@@ -529,7 +629,7 @@ export interface TaskToolOptions {
 export interface StartBackgroundOptions {
   /** A Pi model spec, used by subscription timers so a live and a detached fire run the same model. */
   model?: string;
-  /** cloud runs the agent in its own git worktree, as plan mode's "build in cloud" does. */
+  /** cloud runs the agent on its own cloud machine, as plan mode's "build in cloud" does. */
   environment?: 'cloud';
   /** The owner's project-trust decision, used when this subscription fire starts away from its chat. */
   trusted?: boolean;
@@ -549,11 +649,15 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
   let sessionCtx: ExtensionContext | undefined;
   pi.on('agent_before_settle', (event, ctx) => registry.beforeSettle(ctx, event.outcome, event.entries));
   pi.on('session_shutdown', (event, ctx) => {
-    const stopped = registry.shutdown();
-    if (stopped === 0) return;
-    const message = `Stopped ${stopped} background subagent${stopped === 1 ? '' : 's'} (session ${event.reason}). Resume one with its agent ID.`;
+    const { stopped, detached } = registry.shutdown();
+    const lines = [
+      ...(stopped === 0 ? [] : [`Stopped ${stopped} background subagent${stopped === 1 ? '' : 's'} (session ${event.reason}). Resume one with its agent ID.`]),
+      ...(detached === 0 ? [] : [`${detached} cloud agent${detached === 1 ? ' keeps' : 's keep'} running; ${detached === 1 ? 'its result arrives' : 'their results arrive'} when this chat is open again.`]),
+    ];
+    if (lines.length === 0) return;
+    const message = lines.join(' ');
     if (event.reason === 'quit') {
-      if (ctx.hasUI) ctx.ui.notify(message, 'warning');
+      if (ctx.hasUI) ctx.ui.notify(message, stopped === 0 ? 'info' : 'warning');
     } else carrier[STOPPED_NOTICE] = message;
   });
   pi.on('session_start', (_event, ctx) => {
@@ -562,7 +666,42 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     const message = carrier[STOPPED_NOTICE];
     delete carrier[STOPPED_NOTICE];
     if (message !== undefined && ctx.hasUI) ctx.ui.notify(message, 'warning');
+    reattach(ctx);
   });
+
+  /**
+   * Picks up this session's cloud agents after a restart or a session switch: a running one is followed again, and one
+   * that finished while the chat was away delivers its result now, as a Cursor cloud agent's result reaches its parent.
+   */
+  function reattach(ctx: ExtensionContext): void {
+    const dir = subagentDir(ctx.cwd);
+    const sessionId = ctx.sessionManager.getSessionId();
+    for (const agentId of recordIds(dir)) {
+      let record: AgentRecord | undefined;
+      try {
+        record = readRecord(dir, agentId);
+      } catch {
+        continue;
+      }
+      const run = record?.run;
+      if (record === undefined || run === undefined || run.delivered || run.ownerSessionId !== sessionId || registry.isRunning(agentId)) continue;
+      const transcript = () => transcriptFor(dir, agentId) ?? join(dir, `*_${agentId}.jsonl`);
+      const notice: BackgroundNotice = {
+        title: run.title,
+        description: run.description,
+        toolCallId: run.toolCallId,
+        mode: ctx.mode,
+        detailFor: (outcome) =>
+          outcome.failure === undefined
+            ? { status: 'success', detail: bounded(outcome.finalText, transcript()), usage: outcome.usage }
+            : { status: 'error', detail: outcome.finalText === '' ? outcome.failure : `${outcome.failure}\n${bounded(outcome.finalText, transcript())}`, usage: outcome.usage },
+      };
+      const { machine } = record;
+      const handle = followDetached(run, undefined, machine === undefined ? undefined : () => stopMachine(machine).catch(() => undefined));
+      if (!runActive(run) && machine !== undefined) void stopMachine(machine).catch(() => undefined);
+      registry.track(agentId, handle, () => undefined, notice, { detached: true, onDelivered: () => markDelivered(ctx.cwd, agentId, run.pid) });
+    }
+  }
 
   pi.registerTool({
     name: 'Task',
@@ -577,19 +716,29 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       taskPreflight(params, options.depth);
       if (params.resume !== undefined && registry.isRunning(validateAgentId(params.resume))) throw new Error(SUBAGENT_RUNNING);
       const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
-      const input = attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
-      const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
-      if (plan.kind === 'fresh' && plan.worktree !== undefined) await createWorktree(plan, lock, signal);
+      const driver = await driverFor(params, options.planMode?.() === true);
+      const { plan, lock } = prepare(params, ctx, options, registry.isRunning, driver);
+      if (plan.machine !== undefined || plan.provision !== undefined) {
+        onUpdate?.({
+          content: [{ type: 'text', text: plan.provision === undefined ? 'Preparing the cloud agent.' : 'Preparing the cloud machine: cloning the pushed remote and starting its container.' }],
+          details: details(plan, params.run_in_background === true, 'preparing'),
+        });
+        await createMachine(plan, lock, signal);
+      }
+      const detached = plan.machine !== undefined;
+      const input = detached ? detachedInput(params.prompt, attachments).input : attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments);
       const background = params.run_in_background === true;
+      const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(params.prompt), description: plan.description.replace(/\s+/g, ' ').trim(), background };
       let pid: number | undefined;
       const progress = background ? undefined : createProgress(onUpdate, () => details(plan, false, 'running', pid));
-      const handle = start(plan, input, background ? undefined : signal, lock, progress?.onEvent);
+      const handle = start(plan, input, background ? undefined : signal, lock, owner, progress?.onEvent);
       pid = handle.pid;
+      const delivered = () => (handle.pid === undefined ? undefined : markDelivered(plan.workspace, plan.agentId, handle.pid));
       if (background) {
-        registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, params.prompt, plan.description, ctx, toolCallId));
+        registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, params.prompt, plan.description, ctx, toolCallId), { detached, onDelivered: delivered });
         return { content: [{ type: 'text', text: backgroundText(plan.agentId, transcriptOf(plan), plan.notes) }], details: details(plan, true, 'running', handle.pid) };
       }
-      registry.track(plan.agentId, handle, lock.release);
+      registry.track(plan.agentId, handle, lock.release, undefined, { detached, onDelivered: delivered });
       // The first card update carries the pid and agent ID even when the child is silent for a long time.
       onUpdate?.({ content: [{ type: 'text', text: `Subagent ${plan.agent.type} is running (${plan.agentId}).` }], details: details(plan, false, 'running', handle.pid) });
       try {
@@ -613,12 +762,18 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       ...(startOptions?.environment === undefined ? {} : { environment: startOptions.environment }),
     };
     taskPreflight(params, options.depth);
-    const { plan, lock } = prepare(params, ctx, options, registry.isRunning);
+    const { plan, lock } = prepare(params, ctx, options, registry.isRunning, await driverFor(params, options.planMode?.() === true));
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
     if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
-    await createWorktree(plan, lock, undefined);
-    const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock);
-    registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, prompt, description, ctx, `pstack-${plan.agentId}`));
+    if (plan.machine !== undefined || plan.provision !== undefined) await createMachine(plan, lock, undefined);
+    const toolCallId = `pstack-${plan.agentId}`;
+    const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(prompt), description: description.replace(/\s+/g, ' ').trim(), background: true };
+    const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock, owner);
+    const detached = plan.machine !== undefined;
+    registry.track(plan.agentId, handle, lock.release, backgroundNotice(plan, prompt, description, ctx, toolCallId), {
+      detached,
+      onDelivered: () => (handle.pid === undefined ? undefined : markDelivered(plan.workspace, plan.agentId, handle.pid)),
+    });
     return plan.agentId;
   }
 

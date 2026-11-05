@@ -102,11 +102,11 @@ A long chat accumulates context from the last task. When you change subjects, sa
 
 "new task" tells `/poteto-mode` to re-match rather than continue the prior playbook. "don't change any code yet" pins this one to Investigation. Without those two phrases, a mode mid-Feature tends to treat your question as the next feature step.
 
-## Give parallel work its own worktree
+## Give parallel work its own machine
 
-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is an isolated worker: a subagent started with `environment: "cloud"`. Each one runs in its own git worktree on branch `pstack/<agent id>`, cut from your last commit, so it can install dependencies, run your app, and record video of the result without touching your checkout. It still shares this machine, so give each worker its own port. Ask the parent chat to hand work to isolated workers, and merge the branch each result names. The `agent_status` tool shows which workers are still running.
+If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a [cloud subagent](../../README.md#cloud-agents). Each one gets its own machine and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.
 
-When you want the work in this chat instead, ask for a worktree up front:
+When the work has to stay local, ask for a worktree up front:
 
 ```text
 /poteto-mode new task. branch off <base> in a fresh worktree, then port the parser change there.

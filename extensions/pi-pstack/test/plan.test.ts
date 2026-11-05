@@ -94,7 +94,7 @@ test('registers the sandboxed shell and CreatePlan inactive, and SwitchMode acti
     [PLAN_SAVE, false],
     [SWITCH_MODE, undefined],
   ]);
-  expect(tools[0]?.description).toContain('denies filesystem writes and network access');
+  expect(tools[0]?.description).toContain('denies filesystem writes and Unix sockets. Network requests work');
 });
 
 test('a bare /plan enters plan mode, as Cursor does, and /plan off restores the exact earlier set', async () => {

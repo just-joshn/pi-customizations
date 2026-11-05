@@ -19,7 +19,7 @@ function registeredBash(): ToolDefinition {
 test('describes the subprocess boundary without claiming whole-process isolation', () => {
   const bash = registeredBash();
   expect(bash.name).toBe('bash');
-  expect(bash.description).toContain('denies filesystem writes and network access');
+  expect(bash.description).toContain('denies filesystem writes and Unix sockets. Network requests work, but run no command that changes state anywhere');
   expect(bash.description).toContain('Pi and trusted extensions are not sandboxed');
 });
 

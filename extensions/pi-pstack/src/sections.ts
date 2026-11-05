@@ -30,6 +30,18 @@ export interface HostFacts {
   activeTools: readonly string[];
   /** The bodies of the always-applied engineering rules, read from the shipped skills so the rule text is verbatim. */
   rules: readonly string[];
+  /** Where new cloud agents run: a container machine, a local worktree, or an error that stops them. */
+  cloud: { driver: 'container' | 'worktree'; reason: string } | { error: string };
+}
+
+/** What a cloud agent is on this host, so the model treats it as the machine it really is. */
+export function cloudLine(cloud: HostFacts['cloud']): string {
+  const shared =
+    'Each starts on branch pstack/<agent id> from cloud_base_branch, else the current branch when it is pushed, else the default branch. It keeps running when this chat closes; its result arrives here once the chat is open again. agent_status shows its machine and run; stop_agent stops it. A repository describes its cloud machine (image or build.dockerfile, install, start, terminals) in .pi/environment.json.';
+  if ('error' in cloud) return `- Cloud agents (Task environment "cloud") cannot start on this host: ${cloud.error} Run that work with environment "local" and say so.`;
+  if (cloud.driver === 'container')
+    return `- Cloud agents (Task environment "cloud") each get their own machine: a Linux container (${cloud.reason}) with its own filesystem, processes, ports, and network, holding a fresh clone of the pushed remote. Local uncommitted or unpushed work, transcripts, simulators, and credentials other than a GitHub token for pushing are not there, so brief them with everything they need and push first what they must start from. They push their branch; fetch it to take their work. ${shared}`;
+  return `- Cloud agents (Task environment "cloud") run as detached workers on this host, not on their own machine, because ${cloud.reason}: each in its own git worktree, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach it. They share this host's ports, credentials, simulators, and files, so give concurrent workers distinct ports, output directories, and writable cache paths. Merge the branch to take a worker's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them. ${shared.replace(' from cloud_base_branch, else the current branch when it is pushed, else the default branch', '')}`;
 }
 
 const LOOP_LINE =
@@ -123,11 +135,7 @@ export function hostSection(facts: HostFacts): string {
     '- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.',
     "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
     `- pi-pstack's README (${join(facts.packageRoot, 'README.md')}) and guide (${join(facts.packageRoot, 'docs/guide')}) describe installing and using it.`,
-    ...(facts.activeTools.includes('Task')
-      ? [
-          "- Isolated workers (Task environment \"cloud\") run on this machine in their own git worktree on branch pstack/<agent id>, created from cloud_base_branch or this checkout's HEAD commit, so uncommitted changes do not reach them. They share this workspace's Projects, stores, and subagent records. The Task result names the worktree and branch; merge that branch to take the subagent's work. Pi never deletes these worktrees or branches; the worktree-cleanup playbook prunes them.",
-        ]
-      : []),
+    ...(facts.activeTools.includes('Task') ? [cloudLine(facts.cloud)] : []),
     `- Always-applied engineering rules (also \`/no-inline-imports\` and \`/typescript-exhaustive-switch\`). Follow them on every task:\n${facts.rules.map((rule) => rule.replace(/\n/g, '\n  ')).join('\n\n  ')}`,
   ].join('\n');
 }

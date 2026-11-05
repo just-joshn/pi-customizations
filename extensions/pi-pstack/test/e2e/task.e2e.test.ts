@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer as createHttpServer } from 'node:http';
 import { createServer } from 'node:net';
 import { join } from 'node:path';
 
@@ -123,7 +124,7 @@ describe('cloud worktrees (TASK-010)', () => {
     const path = worktreeOf(agentId);
     expect(result.isError, result.text).toBe(false);
     expect(response(result.text)).toBe(`RESULTS:\n[bash] ${path}\npstack/${agentId}\nCOMMITTED\n`);
-    expect(result.details).toMatchObject({ worktree: { path, cwd: path, branch: `pstack/${agentId}`, base: 'HEAD', commit: head } });
+    expect(result.details).toMatchObject({ machine: { driver: 'worktree', path, cwd: path, branch: `pstack/${agentId}`, base: 'HEAD', commit: head } });
     expect(result.text).toContain(`\nWorktree: ${path} on branch pstack/${agentId}, from HEAD at ${head}. Merge pstack/${agentId} to take the subagent's commits.`);
     expect([git('log', '-1', '--format=%s', `pstack/${agentId}`), git('rev-parse', `pstack/${agentId}~1`), git('branch', '--show-current')]).toEqual(['CHILD-COMMIT', head, 'main']);
     const user = transcriptOf(agentId).find((entry) => entry.message?.role === 'user');
@@ -139,7 +140,7 @@ describe('cloud worktrees (TASK-010)', () => {
     git('checkout', '-q', 'main');
     const { result } = await runTask({ prompt: bash('cat a.txt'), environment: 'cloud', cloud_base_branch: 'feature' });
     expect(response(result.text)).toBe('RESULTS:\n[bash] FEATURE');
-    expect(result.details).toMatchObject({ worktree: { base: 'feature', commit: feature } });
+    expect(result.details).toMatchObject({ machine: { driver: 'worktree', base: 'feature', commit: feature } });
   });
 
   test('a working directory outside git fails before any child starts', async () => {
@@ -150,7 +151,7 @@ describe('cloud worktrees (TASK-010)', () => {
 
   test('cloud_base_branch without environment cloud fails', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say X', cloud_base_branch: 'main' });
-    expect(result.text).toBe('cloud_base_branch needs environment "cloud": it names the branch the subagent\'s worktree starts from.');
+    expect(result.text).toBe('cloud_base_branch needs environment "cloud": it names the pushed branch the cloud agent starts from.');
   });
 
   test('resume runs the agent in its recorded worktree, from the parent workspace', async () => {
@@ -159,7 +160,7 @@ describe('cloud worktrees (TASK-010)', () => {
     const agentId = idOf(first.result.text);
     const resumed = await runTask({ prompt: bash('pwd; git branch --show-current'), resume: agentId });
     expect(response(resumed.result.text)).toBe(`RESULTS:\n[bash] ${worktreeOf(agentId)}\npstack/${agentId}\n`);
-    expect(resumed.result.details).toMatchObject({ worktree: { path: worktreeOf(agentId), branch: `pstack/${agentId}` } });
+    expect(resumed.result.details).toMatchObject({ machine: { driver: 'worktree', path: worktreeOf(agentId), branch: `pstack/${agentId}` } });
   });
 
   test('the root resumes and forks a descendant its cloud worker started inside the worktree', async () => {
@@ -199,7 +200,11 @@ describe('subagent types', () => {
     expect(tools?.toSorted()).toEqual(['TodoWrite', 'bash', 'find', 'grep', 'ls', 'read']);
   });
 
-  test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a readonly child runs git log but cannot write files or reach the network (TASK-019)', async () => {
+  test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a readonly child runs git log and network reads but cannot write files (TASK-019, G12)', async () => {
+    const http = createHttpServer((_request, response) => response.end('NET-OK'));
+    await new Promise<void>((resolve) => http.listen(0, '127.0.0.1', resolve));
+    onTestFinished(() => new Promise<void>((resolve) => http.close(() => resolve())));
+    const port = (http.address() as { port: number }).port;
     execFileSync('git', ['init', '-q'], { cwd: sandbox.workDir });
     writeFileSync(join(sandbox.workDir, 'kept.txt'), 'KEPT\n');
     execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'RO-COMMIT-MARK', '--allow-empty'], { cwd: sandbox.workDir });
@@ -210,13 +215,14 @@ describe('subagent types', () => {
       { tool: 'bash', args: { command: 'touch made.txt' } },
       { tool: 'bash', args: { command: `echo x > ${outside}` } },
       { tool: 'bash', args: { command: 'rm kept.txt' } },
-      { tool: 'bash', args: { command: 'curl -sS -m 5 -o /dev/null https://example.com' } },
+      { tool: 'bash', args: { command: `curl -sS -m 5 --noproxy '' http://127.0.0.1:${port}/` } },
     ];
     const { result } = await runTask({ prompt: `go\n@@script ${JSON.stringify(steps)}`, readonly: true });
     const lines = /<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1] ?? '';
     expect(lines).toContain('RO-COMMIT-MARK');
     expect(lines).toContain('KEPT');
-    expect(lines.match(/\[bash error\]/g)?.length).toBe(4);
+    expect(lines).toContain('NET-OK');
+    expect(lines.match(/\[bash error\]/g)?.length).toBe(3);
     expect([existsSync(join(sandbox.workDir, 'made.txt')), existsSync(outside), existsSync(join(sandbox.workDir, 'kept.txt'))]).toEqual([false, false, true]);
   });
 
@@ -690,7 +696,7 @@ describe('plan mode launches (C-H3, C-M1)', () => {
       await rpcPrompt(rpc, '/plan on');
       const [result] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@tools-list', environment: 'cloud' })])), 'Task');
       expect(result?.isError, result?.text).toBe(false);
-      expect([tools(result?.text).includes('write'), result?.details]).toEqual([false, expect.objectContaining({ readonly: true, worktree: null })]);
+      expect([tools(result?.text).includes('write'), result?.details]).toEqual([false, expect.objectContaining({ readonly: true, machine: null })]);
       expect(result?.text).toContain('Note: environment "cloud" was ignored; plan mode runs subagents here, readonly.');
       expect([git('branch', '--list', 'pstack/*'), existsSync(join(sandbox.agentDir, 'pstack/workspaces', slug(sandbox.workDir), 'worktrees'))]).toEqual(['', false]);
     } finally {

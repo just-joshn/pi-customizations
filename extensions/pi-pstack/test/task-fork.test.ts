@@ -4,11 +4,11 @@ import { join } from 'node:path';
 
 import { type ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { WorktreeMachine } from '../src/cloud/machine.ts';
 import { subagentDir } from '../src/paths.ts';
 import { type AgentDefinition, GENERAL_PURPOSE } from '../src/task/agents.ts';
 import { type AgentRecord, acquireRunLock, forkTranscript, transcriptFor, writeRecord } from '../src/task/records.ts';
 import { planFork, prepareFork, taskPreflight } from '../src/task/tool.ts';
-import type { Worktree } from '../src/task/worktree.ts';
 
 const source = '11111111-2222-4333-8444-555555555555';
 const forkId = '99999999-2222-4333-8444-555555555555';
@@ -79,7 +79,7 @@ describe('planFork', () => {
   test('a new agent ID that starts from the source record: type, model, readonly, directory, depth', () => {
     writeSource();
     const plan = planFork(params(), ctx(), agents, notRunning, 0, forkId);
-    expect(plan).toMatchObject({ kind: 'fork', agentId: forkId, forkedFrom: source, model: { provider: 'p', id: 'm', thinking: 'high' }, readonly: false, workspace, worktree: undefined, depth: 1 });
+    expect(plan).toMatchObject({ kind: 'fork', agentId: forkId, forkedFrom: source, model: { provider: 'p', id: 'm', thinking: 'high' }, readonly: false, workspace, machine: undefined, depth: 1 });
     expect(plan.agent.type).toBe('generalPurpose');
     expect(plan.notes).toEqual([`Forked from agent ${source}.`]);
   });
@@ -87,10 +87,10 @@ describe('planFork', () => {
   test("runs in the source's worktree and records the same branch", () => {
     const tree = join(root, 'worktrees', source);
     mkdirSync(tree, { recursive: true });
-    const worktree: Worktree = { path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
-    writeSource({ worktree }, tree);
+    const worktree: WorktreeMachine = { driver: 'worktree', path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
+    writeSource({ machine: worktree }, tree);
     const plan = planFork(params(), ctx(), agents, notRunning, 0, forkId);
-    expect(plan.worktree).toEqual(worktree);
+    expect(plan.machine).toEqual(worktree);
     expect(plan.workspace).toBe(workspace);
   });
 
@@ -193,17 +193,17 @@ describe('prepareFork: plan mode', () => {
   test('forks in plan mode, marking the launch for plan mode while the record keeps the source readonly (C-H3, C-M1)', () => {
     writeSource();
     const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true, planMode: () => true }, notRunning);
-    expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, undefined]);
+    expect([plan.planMode, plan.readonly, plan.machine]).toEqual([true, false, undefined]);
     lock.release();
   });
 
   test("a plan-mode fork of an isolated worker runs readonly in that worker's worktree", () => {
     const tree = join(root, 'worktrees', source);
     mkdirSync(tree, { recursive: true });
-    const worktree: Worktree = { path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
-    writeSource({ worktree }, tree);
+    const worktree: WorktreeMachine = { driver: 'worktree', path: tree, cwd: tree, branch: `pstack/${source}`, base: 'HEAD', commit: 'abc' };
+    writeSource({ machine: worktree }, tree);
     const { plan, lock } = prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true, planMode: () => true }, notRunning);
-    expect([plan.planMode, plan.readonly, plan.worktree]).toEqual([true, false, worktree]);
+    expect([plan.planMode, plan.readonly, plan.machine]).toEqual([true, false, worktree]);
     lock.release();
   });
 });

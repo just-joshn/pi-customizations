@@ -1,6 +1,7 @@
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
-import { backgroundText, bounded, foregroundText, notificationText, notificationTitle, worktreeLine, worktreePreface } from '../src/task/format.ts';
+import { describeMachine, machinePreface } from '../src/cloud/machine.ts';
+import { backgroundText, bounded, foregroundText, notificationText, notificationTitle } from '../src/task/format.ts';
 import { cursorAgents } from './cursor-reference.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
@@ -65,16 +66,31 @@ describe('Task texts (TASK-002, TASK-003, SEC-001)', () => {
   });
 });
 
-describe('cloud worktree texts (TASK-010)', () => {
-  const worktree = { path: '/w/wt', cwd: '/w/wt/pkg', branch: `pstack/${id}`, base: 'main', commit: 'abc123' };
+describe('cloud machine texts (TASK-010)', () => {
+  const worktree = { driver: 'worktree' as const, path: '/w/wt', cwd: '/w/wt/pkg', branch: `pstack/${id}`, base: 'main', commit: 'abc123' };
+  const container = { ...worktree, driver: 'container' as const, path: '/w/m/repo', cwd: '/w/m/repo', base: 'origin/main', remote: 'git@github.com:o/r.git', container: `pstack-${id}`, image: 'node:24-bookworm', readonly: false };
 
   test('the result line names the worktree and the branch to merge', () => {
-    expect(worktreeLine(worktree)).toBe(`Worktree: /w/wt on branch pstack/${id}, from main at abc123. Merge pstack/${id} to take the subagent's commits.`);
+    expect(describeMachine(worktree)).toBe(`Worktree: /w/wt on branch pstack/${id}, from main at abc123. Merge pstack/${id} to take the subagent's commits.`);
   });
 
-  test("the child's prompt opens with where it runs and that it must commit", () => {
-    expect(worktreePreface(worktree, 'do it')).toBe(
+  test("the worktree child's prompt opens with where it runs and that it must commit", () => {
+    expect(machinePreface(worktree, 'do it')).toBe(
       `You are running in an isolated git worktree at /w/wt (working directory /w/wt/pkg) on branch pstack/${id}, created from main at abc123. Uncommitted changes in the parent's checkout are not here. Commit your changes to pstack/${id} before you finish, because the parent agent merges from that branch.\n\ndo it`,
     );
+  });
+
+  test('a container machine names its container, image, remote, and the branch the agent pushes', () => {
+    expect(describeMachine(container)).toBe(
+      `Cloud machine: container pstack-${id} (node:24-bookworm) with a fresh clone of git@github.com:o/r.git at /w/m/repo, on branch pstack/${id} from origin/main at abc123. The agent pushes pstack/${id}; fetch it from the remote to take its commits.`,
+    );
+  });
+
+  test("a container agent's prompt says it has its own machine and must push early", () => {
+    const text = machinePreface(container, 'do it');
+    expect(text).toContain('You are running as a cloud agent on your own machine');
+    expect(text).toContain('no uncommitted or unpushed changes, local transcripts, simulators, or local credentials');
+    expect(text).toContain(`commit and push pstack/${id} early and often`);
+    expect(text.endsWith('\n\ndo it')).toBe(true);
   });
 });

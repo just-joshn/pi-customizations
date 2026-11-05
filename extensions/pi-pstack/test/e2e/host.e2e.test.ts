@@ -57,7 +57,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain("agent_status reads a subagent's state without waking it.");
     expect(host).toContain('- The user keeps a skill on every turn with `/mode <skill>` (exit `/mode off`) and plans without edits with `/plan` (exit `/plan off`).');
     expect(host).toContain('- MCP tools are named mcp__<server>__<tool>; `pi mcp list` shows the servers.');
-    expect(host).toContain('- Isolated workers (Task environment "cloud") run on this machine in their own git worktree on branch pstack/<agent id>');
+    expect(host).toContain('- Cloud agents (Task environment "cloud") run as detached workers on this host, not on their own machine, because PSTACK_CLOUD_DRIVER=worktree: each in its own git worktree');
   });
 
   test('names no Cursor host feature (HOST-008)', async () => {

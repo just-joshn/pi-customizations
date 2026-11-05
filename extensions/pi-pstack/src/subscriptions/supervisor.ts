@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 
-import { routinesDir } from '../paths.ts';
+import { durableRuntimeDir, routinesDir } from '../paths.ts';
 import { alive } from '../process-lock.ts';
+import { cursorFile, DEFAULT_SLACK_POLL_MS, pollSlack, readCursor, SLACK_POLL_ENV, slackEventText, startCursor, writeCursor } from '../slack/trigger.ts';
 import { cronMatches, parseCron } from './cron.ts';
 import {
   acceptEvent,
@@ -44,6 +45,7 @@ export interface SupervisorOptions {
   routinesPort?: number;
   routinesDir?: string;
   pollIntervalMs?: number;
+  slackPollMs?: number;
   gh?: GhRunner;
   reconcileIntervalMs?: number;
   onAccepted?: () => void;
@@ -72,6 +74,7 @@ export function createSupervisor(options: SupervisorOptions) {
   const now = options.now ?? Date.now;
   const gh = options.gh ?? defaultGhRunner;
   const pollMs = options.pollIntervalMs ?? MINUTE_MS;
+  const slackPollMs = options.slackPollMs ?? (Number(process.env[SLACK_POLL_ENV]) > 0 ? Number(process.env[SLACK_POLL_ENV]) : DEFAULT_SLACK_POLL_MS);
   const dir = options.routinesDir ?? routinesDir();
   const explicitPort = options.routinesPort ?? envPort();
   const server = new RoutineServer(explicitPort ?? readRoutinesPort(cwd) ?? DEFAULT_ROUTINES_PORT, explicitPort === undefined);
@@ -217,6 +220,32 @@ export function createSupervisor(options: SupervisorOptions) {
       entry.polling = false;
     }
   };
+  /** Fires each Slack message posted since the stored read position, then advances it; a full queue keeps the position. */
+  const pollSlackEntry = async (entry: Armed, config: Extract<DurableSubscription['config'], { kind: 'slack' }>) => {
+    if (entry.polling || !owns(entry)) return;
+    entry.polling = true;
+    try {
+      const file = cursorFile(durableRuntimeDir(cwd), entry.sub.id);
+      const cursor = readCursor(file) ?? startCursor(Math.max(entry.sub.createdAt, 0));
+      const result = await pollSlack(config, cursor);
+      if (!owns(entry)) return;
+      let position = cursor;
+      for (const fire of result.fires) {
+        const admission = acceptEvent(cwd, entry.sub.id, fire.eventId, slackEventText(entry.sub.name, config.prompt, config.channel, fire.message), now());
+        if (admission === 'full') {
+          error(entry.sub.id, new Error(ADMISSION_FULL));
+          writeCursor(file, position);
+          return;
+        }
+        if (admission === 'accepted') accepted();
+        position = { ts: fire.message.thread_ts === undefined || fire.message.thread_ts === fire.message.ts ? fire.message.ts : position.ts, replyTs: fire.message.ts };
+      }
+      writeCursor(file, result.cursor);
+      clearError(cwd, entry.sub.id);
+    } finally {
+      entry.polling = false;
+    }
+  };
   const arm = async (entry: Armed): Promise<string | undefined> => {
     if (entry.sub.ownerSessionId === undefined) throw new Error('Owner session ID unavailable. Recreate this subscription.');
     if (entry.sub.expiresAt !== 0)
@@ -229,6 +258,19 @@ export function createSupervisor(options: SupervisorOptions) {
     else if (config.kind === 'webhook') {
       server.routes.set(config.slug, { slug: config.slug, credentialFile: ensureCredentials(dir, config.slug), onEvent: onWebhook(entry, config.prompt) });
       return await server.url(config.slug);
+    } else if (config.kind === 'slack') {
+      const loop = () => {
+        void pollSlackEntry(entry, config).then(
+          () => {
+            if (owns(entry)) at(entry, now() + slackPollMs, loop);
+          },
+          (cause: unknown) => {
+            error(entry.sub.id, cause);
+            if (owns(entry)) at(entry, now() + slackPollMs, loop);
+          },
+        );
+      };
+      loop();
     } else {
       const loop = () => {
         void poll(entry, config.target).then(
