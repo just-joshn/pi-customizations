@@ -119,10 +119,13 @@ function createLoopController(pi: ExtensionAPI, options: LoopOptions) {
     if (lastCtx !== undefined && !lastCtx.isIdle()) loop = { ...loop, due: true };
     else run();
   };
-  const settled = (ctx: ExtensionContext, aborted: boolean) => {
+  /**
+   * A run settled. An aborted run is no stop: Cursor's loop is a background shell that a turn interrupt leaves
+   * running, so the user or the agent stops a loop explicitly.
+   */
+  const settled = (ctx: ExtensionContext) => {
     lastCtx = ctx;
     if (loop === undefined) return;
-    if (aborted) return stop(ctx, 'the run was aborted.');
     if (loop.due === true) return run();
     if (loop.timer !== undefined) return;
     if (loop.intervalMs !== undefined) {
@@ -276,8 +279,8 @@ export function registerLoop(pi: ExtensionAPI, options: LoopOptions): { section:
   pi.on('session_start', (_event, ctx) => {
     if (isOneShot(ctx.mode)) pi.setActiveTools(pi.getActiveTools().filter((name) => name !== 'Loop'));
   });
-  pi.on('agent_settled', (event, ctx) => {
-    for (const [, controller] of registry.entries()) controller.settled(ctx, event.aborted);
+  pi.on('agent_settled', (_event, ctx) => {
+    for (const [, controller] of registry.entries()) controller.settled(ctx);
   });
   pi.on('session_shutdown', () => {
     for (const [, controller] of registry.entries()) controller.clear();
