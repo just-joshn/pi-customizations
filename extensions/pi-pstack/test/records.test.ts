@@ -7,6 +7,7 @@ import { basename, join } from 'node:path';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { storeDir, subagentDir, workspaceSlug, workspaceStateDir, worktreesDir } from '../src/paths.ts';
+import { zombie } from '../src/process-lock.ts';
 import { acquireRunLock, readonlyLaunchRestores, readRecord, runningPid, writeRecord } from '../src/task/records.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
@@ -46,16 +47,11 @@ describe('run lock: one writer per agent ID (review: security 3, architecture 2)
     expect([other.phase, resumed.phase]).toEqual(['blocked', 'acquired']);
   });
 
-  test.skipIf(process.platform !== 'linux')('a Linux zombie is not a live writer and does not prevent recovery', async ({ signal }) => {
+  test.skipIf(process.platform !== 'linux' && process.platform !== 'darwin')('a zombie is not a live writer and does not prevent recovery', async ({ signal }) => {
     const parent = lockProcess('zombie', signal);
     const [message] = (await once(parent, 'message', { signal })) as [{ pid: number }];
     const pid = message.pid;
-    await expect
-      .poll(() => {
-        const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
-        return stat.slice(stat.lastIndexOf(')') + 2, stat.lastIndexOf(')') + 3);
-      })
-      .toBe('Z');
+    await expect.poll(() => zombie(pid)).toBe(true);
     writeFileSync(join(dir, `${id}.lock`), String(pid));
     expect(runningPid(dir, id)).toBeUndefined();
     const lock = acquireRunLock(dir, id);
