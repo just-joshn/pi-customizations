@@ -1,0 +1,312 @@
+{
+  "evidenceKeys": {
+    "cli": "Cursor CLI 2026.10.22-27dcf5f bundle under ~/.local/share/cursor-agent/versions/2026.10.22-27dcf5f (hashes in .audit/pstack-parity-2026-11-05/evidence/cursor-cli-file-hashes.txt)",
+    "docs": "Cursor docs fetched as Markdown into .audit/pstack-parity-2026-11-05/cursor-docs/ (SHA256SUMS, RETRIEVED_AT)",
+    "builtin": "Cursor built-in skills synced by the CLI into ~/.cursor/skills-cursor/",
+    "earlier": "A capture recorded by an earlier run of this program (path given); not re-observed in this run",
+    "pi-e2e": "Real Pi 1.5.0 CLI or RPC with the deterministic scripted test model (extensions/pi-pstack/test/e2e)",
+    "pi-unit": "pi-pstack unit test (extensions/pi-pstack/test)"
+  },
+  "mechanisms": [
+    {
+      "id": "HOST-SKILL-LOAD",
+      "feature": "Plugin skill discovery and catalog",
+      "cursor": "Plugin skills/ are discovered recursively; model-invocable skills are listed to the agent; disable-model-invocation hides a skill from automatic use; user-invocable:false and metadata.surfaces filter the slash menu (5622.index.js parseSkillMarkdown).",
+      "pi": "Pi package skills from package.json pi.skills; Pi's Agent Skills loader honors disable-model-invocation. pstack sets no user-invocable or surfaces fields.",
+      "evidence": ["cli: 5622.index.js parseSkillMarkdown", "docs: docs_skills.md", "pi-unit: test/resources.test.ts loads all 79 skills with Pi loadSkills", "pi-e2e: test/e2e/skills-catalog.e2e.test.ts attaches every skill body"],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-SKILL-REF",
+      "feature": "/name attaches a skill to one message",
+      "cursor": "Every /name at the start or after whitespace that names a skill attaches it to the submitted message, each once (findSkillReferences, regex (?:^|\\s)/([a-zA-Z0-9_-]+)); interactive and headless submit paths both use it.",
+      "pi": "input handler: the first referenced skill rides Pi's /skill:name expansion; each further skill is a skill block ahead of the message; the message text is kept.",
+      "evidence": [
+        "cli: evidence/cursor-skill-references.json",
+        "cli: evidence/cursor-submit-uses-skill-references.txt",
+        "pi-unit: test/aliases.test.ts SKILL-REF-001..003",
+        "pi-e2e: test/e2e/aliases.e2e.test.ts SKILL-REF-001/002",
+        "pi-e2e: test/e2e/aliases.e2e.test.ts SKILL-REF-004",
+        "pi-e2e: test/e2e/workflow.e2e.test.ts WORKFLOW-001"
+      ],
+      "status": "verified-with-host-difference",
+      "changedThisRun": "Before this run only a leading /name attached a skill.",
+      "difference": "A message that starts with a user's own prompt template keeps only the template: Pi expands templates after input handlers and exports no expander, so skills named later in that message are not attached. pstack ships no prompt templates."
+    },
+    {
+      "id": "HOST-CUSTOM-MODE",
+      "feature": "Skill as a sticky Custom Mode",
+      "cursor": "Option+Enter (IDE) or sticky invocation (CLI) enters a mode: entered notice plus the attached skill on the first turn, a reminder on later turns, an exit notice once after leaving; badge from icon and color (custom-modes module).",
+      "pi": "/mode <skill> [task], /mode off, /mode. Same notice texts; the skill block rides the system prompt on every request; badge in the footer.",
+      "evidence": [
+        "cli: evidence/cursor-skill-references.json customModeNotices",
+        "docs: docs_skills.md Using a skill as a Custom Mode",
+        "pi-e2e: test/e2e/mode.e2e.test.ts",
+        "pi-e2e: test/e2e/workflow.e2e.test.ts WORKFLOW-001 (mode reminder after a background poteto-agent run)"
+      ],
+      "status": "verified-with-host-difference",
+      "difference": "The trigger is /mode instead of Option+Enter, and the skill sits in a system-prompt section instead of the entering user message. The model sees the same text."
+    },
+    {
+      "id": "HOST-RULES-ALWAYS",
+      "feature": "cursor-team-kit always-applied rules",
+      "cursor": "rules/no-inline-imports.mdc and rules/typescript-exhaustive-switch.mdc with alwaysApply: true apply to every chat.",
+      "pi": "Both rule bodies are injected verbatim into pstack_host on every request and are also /no-inline-imports and /typescript-exhaustive-switch skills.",
+      "evidence": ["pi-unit: test/sections.test.ts RULE-001 exact text"],
+      "status": "verified",
+      "changedThisRun": "pi-pstack had prepended headings that the reference rule bodies do not have."
+    },
+    {
+      "id": "HOST-MODEL-RULE",
+      "feature": "Always-applied pstack model rule",
+      "cursor": "setup-pstack writes ~/.cursor/rules/pstack-models.mdc (alwaysApply). The CLI loads .cursor/rules from the workspace and every ancestor directory, so the home rule applies to workspaces under $HOME.",
+      "pi": "setup-pstack writes <agent dir>/pstack/pstack-models.md; pi-pstack reads it before every request into pstack_models.",
+      "evidence": ["cli: index.js LocalCursorRulesService.loadRulesFromDirAndAncestors", "pi-unit: test/rule.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi applies the rule in every workspace, and from the next request; the Cursor rule applies through the ancestor walk."
+    },
+    {
+      "id": "HOST-AGENT-DEFS",
+      "feature": "Subagent types: built-ins and plugin agents",
+      "cursor": "Agent files parse name, description, model (default inherit), readonly, is_background/background, tools, force-default-model. Built-in explore uses a faster model by default. The CLI enum also has shell, browser-use, computer-use and others; an earlier capture of CLI 2026.10.01 listed generalPurpose, explore, cursor-guide, ci-investigator, bugbot, security-review, best-of-n-runner plus plugin agents.",
+      "pi": "generalPurpose and explore built-ins plus the four shipped agent files (name, description, model, readonly, is_background). explore defaults to the fast variant of the parent model.",
+      "evidence": ["cli: index.js local-subagents parser", "docs: docs_subagents.md", "earlier: parity/pi-pstack-two/fixtures/cursor/cursor-subagent-types-and-models.json", "pi-unit: test/task-agents.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Cursor-internal types that pstack never names (cursor-guide, ci-investigator, bugbot, security-review, best-of-n-runner, browser) are not offered. team-kit's thermo-nuclear agent mentions subagent_type shell, which the observed CLI also does not list; a Task with shell fails in both.",
+      "changedThisRun": "explore ran on the parent model."
+    },
+    {
+      "id": "HOST-TASK",
+      "feature": "Task foreground and background runs",
+      "cursor": "Foreground returns the final text; background returns at once and enqueues a completion (title = first prompt line, 80 chars) that wakes the parent after its turn. Background runs are detached from the turn's abort signal.",
+      "pi": "One pi --mode rpc child per agent; background children are not tied to the turn signal; completion arrives as a pstack/task notification after the turn.",
+      "evidence": [
+        "cli: 5622.index.js cli-subagent-host-adapter (registerBackgroundRun, title x(), withDetached)",
+        "pi-e2e: test/e2e/task.e2e.test.ts",
+        "pi-e2e: test/e2e/workflow.e2e.test.ts WORKFLOW-001 (background poteto-agent completion)"
+      ],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-TASK-RESUME",
+      "feature": "Task resume",
+      "cursor": "CLI: resume of a finished agent continues it; resume while it runs fails with 'Sub-agent is currently running...'; lineage must match. pstack text describes steering a running agent, which the CLI does not do.",
+      "pi": "Resume continues a finished agent; resume of a running agent steers the prompt into its run (pstack's described behavior); lineage is checked by workspace records.",
+      "evidence": ["cli: 5622.index.js createOrResumeSession, index.js Or constant", "pi-e2e: test/e2e/task.e2e.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Follows pstack's described steer instead of the CLI's refusal."
+    },
+    {
+      "id": "HOST-TASK-FORK",
+      "feature": "Task fork and fork_turns",
+      "cursor": "The CLI rejects forkAgentId ('not supported in agent-cli subagents'); CreateAgentArgs fork_from and fork_turns exist for cloud agents.",
+      "pi": "fork and fork_turns start a new agent from a copy of an idle agent's transcript in its directory.",
+      "evidence": ["cli: 5622.index.js createOrResumeSession; index.js CreateAgentArgs", "pi-unit: test/task-fork.test.ts", "pi-e2e: test/e2e/task.e2e.test.ts (fork of a worktree descendant)"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi offers locally what Cursor offers only for cloud agents; a fork needs an idle source."
+    },
+    {
+      "id": "HOST-TASK-READONLY",
+      "feature": "readonly subagents",
+      "cursor": "readonly sends the child prompt in ASK mode and restricts its resources (5622.index.js executeSubagentOnce); docs: no file edits, no state-changing shell commands; strips MCP.",
+      "pi": "readonly children get read, grep, find, ls and an OS-sandboxed read-only shell, no edits, no MCP.",
+      "evidence": ["cli: 5622.index.js r.readonly ? ASK", "pi-unit: test/readonly-shell*.test.ts", "pi-e2e: test/e2e/task.e2e.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi enforces with a sandbox that also blocks network; environment credentials are still inherited."
+    },
+    {
+      "id": "HOST-TASK-CLOUD",
+      "feature": "Cloud subagents (environment: cloud, cloud_base_branch)",
+      "cursor": "A cloud subagent runs on its own VM and branch, keeps running with the laptop closed, uses team MCP configuration (docs_subagents.md Cloud subagents).",
+      "pi": "environment cloud creates a git worktree on branch pstack/<agent id> and a separate local Pi process.",
+      "evidence": ["docs: docs_subagents.md lines 267-285", "pi-e2e: test/e2e/task.e2e.test.ts TASK-010 cloud worktrees", "pi-unit: test/task-worktree.test.ts"],
+      "status": "gap:runtime-limitation",
+      "difference": "No remote VM, no laptop-off execution, no team MCP configuration. Pi has no hosted agent runtime."
+    },
+    {
+      "id": "HOST-TASK-MODEL",
+      "feature": "Subagent model selection",
+      "cursor": "inherit by default; listed slugs such as claude-opus-5-5-xhigh or grok-4.7-xhigh-fast; bracket parameters [effort=,fast=,context=]; an invalid slug fails with the allowed list.",
+      "pi": "Pi model specs provider/id:level or id[effort=,fast=]; legacy Cursor slugs map to a Pi model and level; inherit, auto, inherit-parent, fast aliases; invalid values fail with the allowed list.",
+      "evidence": ["cli: --help parameterized models", "docs: docs_subagents.md Model parameters", "pi-unit: test/task-model.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Model availability is the Pi model registry's, not the Cursor account's; the default grok-4.7 code model resolves only where a grok-4.7 Pi model exists."
+    },
+    {
+      "id": "HOST-TASK-ATTACH",
+      "feature": "file_attachments",
+      "cursor": "Images and videos are read and attached to the subagent's context.",
+      "pi": "Images are attached; a video path is named for the agent because Pi models have no video input.",
+      "evidence": ["earlier: parity/pi-pstack-0.15.35/evidence/cursor-cli-2026.10.22-tool-schemas.txt", "pi-unit: test/task-runner.test.ts", "pi-e2e: test/e2e/task.e2e.test.ts"],
+      "status": "gap:runtime-limitation",
+      "difference": "No video input in Pi models."
+    },
+    {
+      "id": "HOST-AGENT-CONTROL",
+      "feature": "Agent status and stop",
+      "cursor": "GetAgentStatusArgs and StopAgentArgs exist in the CLI protos; pstack's orchestrate and autopilot playbooks probe and stop agents.",
+      "pi": "agent_status and stop_agent tools.",
+      "evidence": ["cli: index.js protobuf names", "pi-unit: test/task-status.test.ts"],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-ASKQUESTION",
+      "feature": "AskQuestion",
+      "cursor": "Interactive: a question dialog. Headless print: rejected with 'Questions skipped by the user, continue with the information you already have'. Subagent: 'Subagent cannot ask questions'.",
+      "pi": "Pi select and input dialogs with a typed Other answer; without a person, the same reject reasons.",
+      "evidence": ["cli: 8008.index.js headless.ts askQuestionRejectReason; 5622.index.js subagent runner", "pi-e2e: test/e2e/ask.e2e.test.ts ASK-SKIP-001"],
+      "status": "verified",
+      "changedThisRun": "The no-person result used pi-pstack's own per-question wording."
+    },
+    {
+      "id": "HOST-TODO",
+      "feature": "TodoWrite",
+      "cursor": "Todo list with merge semantics; the list stays visible to the agent.",
+      "pi": "TodoWrite with branch reconstruction, a TUI widget, and the list in every request's system prompt.",
+      "evidence": ["earlier: parity/pi-pstack-0.15.35/evidence/cursor-cli-2026.10.22-tool-schemas.txt", "pi-e2e: test/e2e/todo.e2e.test.ts"],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-PLAN-MODE",
+      "feature": "Plan mode, SwitchMode, CreatePlan",
+      "cursor": "Plan mode restricts by instruction; CreatePlan writes ~/.cursor/plans/<name>-<id8>.plan.md with todos, isProject, phases; build from the plan card. Headless print auto-approves SwitchMode and returns CreatePlan success without a file.",
+      "pi": "/plan and SwitchMode with a reduced tool set and sandboxed read-only shell; CreatePlan writes the same file shape under <agent dir>/pstack/plans; a select dialog offers build choices.",
+      "evidence": ["cli: 5622.index.js plan-utils.ts, interaction-responses.ts", "docs: docs_agent_plan-mode.md", "pi-e2e: test/e2e/plan.e2e.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi enforces the restriction (network also blocked); print and JSON runs do not offer SwitchMode; the plan card is a dialog; build in cloud is a local worktree worker."
+    },
+    {
+      "id": "HOST-LOOP",
+      "feature": "/loop",
+      "cursor": "Built-in loop skill: fixed interval or agent-paced; runs the prompt once at arming; local mechanism is a background shell that echoes a sentinel; stops only when asked; cloud uses cursor-subscriptions timers.",
+      "pi": "/loop command and Loop tool with the same parse rules; an aborted tick no longer stops the loop.",
+      "evidence": ["builtin: ~/.cursor/skills-cursor/loop/SKILL.md", "cli: 8008.index.js abortAllWork only in headless.ts", "pi-e2e: test/loop.test.ts LOOP-ABORT-001"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi schedules natively instead of through a sentinel shell; cloud cron timers are local supervisor timers.",
+      "changedThisRun": "An aborted tick stopped the loop."
+    },
+    {
+      "id": "HOST-SHELL-BG",
+      "feature": "Background shells, notify_on_output, AwaitShell",
+      "cursor": "Shell moves to the background (block_until_ms 0 or after the wait), writes terminals/<id>.txt with header and footer, notifies on completion and on RE2 output matches.",
+      "pi": "bash_background and AwaitShell with the captured texts and the original RE2 monitor rules.",
+      "evidence": ["cli: index.js LocalBackgroundShellExecutor", "earlier: parity/pstack-full-parity-2026-11-04/specification.md SHELL-WATCH-*", "pi-e2e: test/e2e/background-shell.e2e.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "No approval gate or Cursor sandbox policy; a subagent's jobs end with the subagent process."
+    },
+    {
+      "id": "HOST-SUBSCRIPTIONS",
+      "feature": "PR, CI, and timer subscriptions",
+      "cursor": "Cloud agents get cursor-subscriptions tools: subscribe_timer (delaySeconds or cron), subscribe_github_ci, subscribe_origin_ci, unsubscribe, list_subscriptions; Projects can also listen to Slack channels.",
+      "pi": "subscribe_timer, subscribe_github_pr (covers checks), subscribe_webhook, list_subscriptions, unsubscribe, run by a local detached supervisor.",
+      "evidence": ["builtin: ~/.cursor/skills-cursor/loop/SKILL.md", "docs: docs_agent_projects.md Subscriptions", "pi-e2e: test/e2e/subscription-owner.e2e.test.ts"],
+      "status": "gap:runtime-limitation",
+      "difference": "Local supervision instead of hosted; no Origin CI or Slack channel subscriptions; the machine must stay on."
+    },
+    {
+      "id": "HOST-AUTOMATIONS",
+      "feature": "Cursor Automations (Benny) and Grok Bot routines (make-bot-ui)",
+      "cursor": "Hosted automations with Slack, schedule, and GitHub triggers created through /automate; webhook routines at api2.cursor.sh with update_state and SendToUser secret requests.",
+      "pi": "Benny runs as subscriptions (cron sweep or local webhook) in a Pi session; make-bot-ui uses a loopback routine URL with a key in a local credential file.",
+      "evidence": ["docs: docs_cloud-agent_automations.md", "pi-e2e: test/e2e/subscription-owner.e2e.test.ts"],
+      "status": "gap:runtime-limitation",
+      "difference": "No hosted trigger service, no Slack event trigger, no public routine URL, no SendToUser secret prompt. Live Slack runs were not exercised (missing access)."
+    },
+    {
+      "id": "HOST-PROJECTS",
+      "feature": "Projects and agent stores",
+      "cursor": "Projects run a cloud coordinator with synced shared context; the system prompt names the agent store and Project paths.",
+      "pi": "Workspace folders for stores, projects (notes.md tracker and store), artifacts, and terminals named in pstack_host.",
+      "evidence": ["docs: docs_agent_projects.md", "pi-unit: test/sections.test.ts"],
+      "status": "gap:runtime-limitation",
+      "difference": "Local folders shared by local agents only; no cloud coordinator or cross-machine sync."
+    },
+    {
+      "id": "HOST-TRANSCRIPTS",
+      "feature": "Chat transcripts",
+      "cursor": "~/.cursor/projects/<slug>/agent-transcripts/ JSONL, named in the system prompt.",
+      "pi": "Pi session files and pi-pstack subagent transcripts, named in pstack_host; skill text describes Pi's entry format; worktree-audit.sh scans them.",
+      "evidence": ["pi-unit: test/scripts.test.ts WTA-001", "pi-unit: test/records.test.ts"],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-IMAGE",
+      "feature": "GenerateImage",
+      "cursor": "Image generation; the interactive CLI shows a generate-image decision where the user can edit or approve the description.",
+      "pi": "GenerateImage on Pi image models when one is available, saving to the artifacts folder.",
+      "evidence": ["cli: 8008.index.js generate-image-decision", "pi-unit: test/generate-image.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "No approval step (Pi runs tools without approvals); offered only with an image model."
+    },
+    {
+      "id": "HOST-BROWSER-CANVAS",
+      "feature": "In-app browser and Canvas",
+      "cursor": "pr-review-canvas opens the page in Cursor's in-app browser; Canvas renders React artifacts beside the chat.",
+      "pi": "The system browser, or control-ui for automated inspection.",
+      "evidence": ["builtin: ~/.cursor/skills-cursor/canvas/SKILL.md"],
+      "status": "gap:runtime-limitation",
+      "difference": "Pi has no embedded browser or canvas surface."
+    },
+    {
+      "id": "HOST-VISUALIZE",
+      "feature": "/visualize charts",
+      "cursor": "ketchup names a chart or diagram from /visualize. Neither the CLI bundle nor the fetched docs define it.",
+      "pi": "visualize tool: bar or line chart as Unicode plus an SVG file.",
+      "evidence": ["pi-unit: test/visualize.test.ts"],
+      "status": "unverified:reference-contract-unknown"
+    },
+    {
+      "id": "HOST-INLINE-MEDIA",
+      "feature": "Inline screenshots and video in replies",
+      "cursor": "Chat embeds screenshots and videos (ketchup, ketchup-video).",
+      "pi": "The read tool shows images in capable terminals; video opens in the system player with frames read into the reply.",
+      "evidence": ["pi-e2e: test/e2e/skills-catalog.e2e.test.ts carries the adapted text"],
+      "status": "gap:runtime-limitation",
+      "difference": "Pi chat renders no inline image or video."
+    },
+    {
+      "id": "HOST-DATE",
+      "feature": "Today's date in context",
+      "cursor": "User info states Today's date.",
+      "pi": "pstack_host states it in the same form.",
+      "evidence": ["pi-unit: test/sections.test.ts"],
+      "status": "verified"
+    },
+    {
+      "id": "HOST-CREATE-SKILL",
+      "feature": "Built-in /create-skill",
+      "cursor": "~/.cursor/skills-cursor/create-skill/SKILL.md",
+      "pi": "skills/create-skill adapted to Pi skill locations.",
+      "evidence": ["pi-e2e: test/e2e/skills-catalog.e2e.test.ts"],
+      "status": "verified-with-host-difference",
+      "difference": "Pi skill locations and frontmatter instead of Cursor's."
+    },
+    {
+      "id": "HOST-FORGE",
+      "feature": "gh, Origin, Bugbot, agentic security review",
+      "cursor": "Playbooks use gh by default and origin pr when command -v origin succeeds; Bugbot and security review comments are GitHub review threads.",
+      "pi": "Same skill text and scripts (watch-pr parses Bugbot and security review threads).",
+      "evidence": ["pi-unit: test/scripts.test.ts runs the watch-pr and check-plan suites (61 tests)"],
+      "status": "verified-with-host-difference",
+      "difference": "Origin is not installed on this host, so the Origin branch is unexercised (missing access)."
+    },
+    {
+      "id": "HOST-MCP",
+      "feature": "MCP discovery for why and reflect",
+      "cursor": "Available-tools map or the mcps/ directory.",
+      "pi": "mcp__<server>__<tool> tools or pi mcp list.",
+      "evidence": ["pi-e2e: test/e2e/skills-catalog.e2e.test.ts carries the adapted text"],
+      "status": "verified-with-host-difference",
+      "difference": "No authenticated MCP exchange was exercised (missing access)."
+    },
+    {
+      "id": "HOST-APPROVALS",
+      "feature": "Run modes, approvals, sandbox policy",
+      "cursor": "Run modes gate shell, web, MCP, and image generation with approvals and a sandbox.",
+      "pi": "Pi runs tools without approval prompts; pi-pstack sandboxes only readonly agents and plan mode.",
+      "evidence": ["docs: docs_agent_security_run-modes.md"],
+      "status": "out-of-scope:host-policy",
+      "difference": "pstack text does not depend on approvals; Pi's permission model is the host's."
+    }
+  ]
+}
