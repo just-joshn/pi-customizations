@@ -54,9 +54,7 @@ describe('foreground', () => {
   test('returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say PONG-FG', run_in_background: false });
     expect(result.isError).toBe(false);
-    expect(result.text).toMatch(
-      /^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(can be used with the `resume` parameter to send a follow-up after it completes\)\nTranscript: /,
-    );
+    expect(result.text).toMatch(/^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(can be used with the `resume` parameter to send a follow-up after it completes\)$/);
     expect(result.usage?.totalTokens).toBeGreaterThan(100);
     const entries = transcriptOf(idOf(result.text));
     expect(entries[0]?.type).toBe('session');
@@ -321,7 +319,7 @@ describe('background and parallel', () => {
   test('returns at once and delivers a <task> notification after the turn (TASK-003)', async () => {
     const run = await runJson(sandbox, script([task({ prompt: 'go\n@@sleep 1500 PONG-BG', run_in_background: true })]), ['--no-session']);
     const [launch] = toolEnds(run.events, 'Task');
-    expect(launch?.text.startsWith("Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion")).toBe(true);
+    expect(launch?.text.startsWith('Subagent is running in the background. If needed, you can monitor its output by tailing the transcript at: ')).toBe(true);
     const agentId = idOf(launch?.text);
     const notice = run.events
       .filter((event) => event.type === 'entry_appended')
@@ -599,7 +597,8 @@ describe('resume edge cases', () => {
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const resumeFromChild = JSON.stringify([{ tool: 'Task', args: { description: 'r', prompt: 'again\n@@tools-list', resume: agentId } }]);
     const { result } = await runTask({ prompt: `go\n@@script ${resumeFromChild}` });
-    const nested = /<response>\n([^\n]*)\n<\/response>/.exec(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1] ?? '')?.[1]?.split(',') ?? [];
+    // The child's reply already holds the nested Task's <response> block, so it is not wrapped again (Cursor's rule).
+    const nested = /<response>\n([^\n]*)\n<\/response>/.exec(result.text)?.[1]?.split(',') ?? [];
     expect([nested.includes('TodoWrite'), nested.includes('Task')]).toEqual([true, false]);
   });
 
@@ -614,7 +613,8 @@ describe('resume edge cases', () => {
 
   test('an agent keeps its depth on resume, so the root cannot lift a grandchild (review r2: architecture)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@task-chain 1' });
-    const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
+    // The grandchild's Agent ID line comes first: it is inside the child's reply, ahead of the child's own line.
+    const grandchild = idOf(result.text);
     const resumed = await runTask({ prompt: 'again\n@@tools-list', resume: grandchild });
     const tools = /<response>\n(.*)\n<\/response>/.exec(resumed.result.text)?.[1]?.split(',') ?? [];
     expect([tools.includes('TodoWrite'), tools.includes('Task')]).toEqual([true, false]);
@@ -722,7 +722,7 @@ describe('isolated workers share the root workspace (C-M2)', () => {
     execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'first', '--allow-empty'], { cwd: sandbox.workDir });
     const { result } = await runTask({ prompt: 'go\n@@task-chain 1', environment: 'cloud' });
     const worker = (result.details as { agentId: string }).agentId;
-    const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
+    const grandchild = idOf(result.text);
     expect(worker).not.toBe(grandchild);
     expect(
       readdirSync(subagentDir())

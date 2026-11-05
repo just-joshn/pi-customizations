@@ -95,6 +95,18 @@ const mutations = {
     replace: "          label: Type.String({ description: 'Display text for this option' }),\n          description: Type.Optional(Type.String({ description: 'Detail shown after the label' })),\n",
     tests: ['test/ask.test.ts', 'test/e2e/tool-text.e2e.test.ts'],
   },
+  'result-preformatted': {
+    file: 'src/task/format.ts',
+    find: "response.includes('<response>') && response.includes('</response>')",
+    replace: 'false',
+    tests: ['test/task-format.test.ts'],
+  },
+  'result-transcript': {
+    file: 'src/task/format.ts',
+    find: '    transcript === undefined\n',
+    replace: '    true\n',
+    tests: ['test/task-format.test.ts'],
+  },
   'empty-prompt': {
     file: 'src/task/tool.ts',
     find: "  if (params.prompt.trim() === '') throw new Error('prompt is required');\n",

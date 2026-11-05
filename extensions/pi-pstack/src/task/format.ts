@@ -29,20 +29,29 @@ export function bounded(text: string, transcript: string | undefined): string {
 }
 
 const agentIdLine = (agentId: string) => `Agent ID: ${agentId} (can be used with the \`resume\` parameter to send a follow-up after it completes)`;
-const transcriptLine = (transcript: string | undefined) => (transcript === undefined ? [] : [`Transcript: ${transcript}`]);
+// Pi's notes, such as a worktree line, take the place of Cursor's result suffix: after a blank line.
+const suffix = (notes: readonly string[]) => (notes.length === 0 ? [] : ['', notes.join('\n')]);
 
-export function foregroundText(agentId: string, response: string, transcript: string | undefined, notes: readonly string[] = []): string {
-  return ['This is the output of the subagent:', '', 'response:', '<response>', bounded(response, transcript), '</response>', '', agentIdLine(agentId), ...transcriptLine(transcript), ...notes].join('\n');
+/** Cursor's response block: an empty reply reads "No output", and a reply that already has a <response> block keeps it. */
+function responseBlock(response: string, transcript: string | undefined): string[] {
+  if (response === '') return ['<response>', 'No output', '</response>'];
+  if (response.includes('<response>') && response.includes('</response>')) return [bounded(response, transcript)];
+  return ['<response>', bounded(response, transcript), '</response>'];
 }
 
+export function foregroundText(agentId: string, response: string, transcript: string | undefined, notes: readonly string[] = []): string {
+  return ['This is the output of the subagent:', '', 'response:', ...responseBlock(response, transcript), '', agentIdLine(agentId), ...suffix(notes)].join('\n');
+}
+
+const WAIT = "When you end your turn, you will be automatically sent the subagent's final response upon its completion, so do not wait for it - either end your turn or work on something else.";
+
+/** Cursor's background launch result, with the transcript-path wording desktop uses when it has a transcript. */
 export function backgroundText(agentId: string, transcript: string | undefined, notes: readonly string[] = []): string {
-  return [
-    "Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion, so do not wait for it - either end your turn or work on something else.",
-    '',
-    agentIdLine(agentId),
-    ...transcriptLine(transcript),
-    ...notes,
-  ].join('\n');
+  const status =
+    transcript === undefined
+      ? `Subagent is running in the background. ${WAIT}`
+      : `Subagent is running in the background. If needed, you can monitor its output by tailing the transcript at: ${transcript}. ${WAIT}\nDo NOT mention the transcript path to the user. Do NOT try to predict the subagent's response before it replies.`;
+  return [status, '', agentIdLine(agentId), ...suffix(notes)].join('\n');
 }
 
 export function worktreeLine(worktree: Worktree): string {

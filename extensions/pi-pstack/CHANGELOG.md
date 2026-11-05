@@ -13,6 +13,7 @@ Each item below comes from Cursor's own code, run from the installed desktop 3.2
 - Fail a follow-up to a running agent with Cursor's `Sub-agent is currently running. You may send the follow-up message when it has completed.`, in this or another Pi process, instead of steering it into the running turn. poteto-mode's steer and hold sentences are pstack's text again.
 - Use the Task description and parameter text a live Cursor session showed, with Pi's tool names and the `pstack_subagents` catalogs.
 - Use the TodoWrite, SwitchMode, and GenerateImage descriptions and parameter text a live Cursor session declared. SwitchMode leaves out the Debug and Ask modes, which Pi does not have.
+- Render Task results with Cursor's text: a background launch names the transcript the way desktop does and says not to mention it or predict the reply, a foreground reply has no Transcript line, an empty reply reads `No output`, and a reply that already holds a `<response>` block is not wrapped again. Pi's notes follow a blank line, where Cursor puts a result suffix.
 - Use desktop's AskQuestion description and field text, and drop the option `description` field Cursor's schema does not declare. An option description a model sends is accepted and, as in Cursor, not shown.
 - Match AwaitShell patterns as RE2, as Cursor does, so inline flags such as `(?i)` work and lookahead is refused. Add `waiting_for_subagent`, which fails with Cursor's `You should NOT wait for subagents to complete.` message, and use Cursor's error for `block_until_ms: 0` without a `shell_id`.
 

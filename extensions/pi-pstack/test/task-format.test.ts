@@ -1,17 +1,17 @@
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test } from 'vitest';
 import { backgroundText, bounded, foregroundText, notificationText, notificationTitle, worktreeLine, worktreePreface } from '../src/task/format.ts';
+import { cursorAgents } from './cursor-reference.ts';
 
 const id = '11111111-2222-4333-8444-555555555555';
 
 describe('Task texts (TASK-002, TASK-003, SEC-001)', () => {
-  test('foreground output is the Cursor result text, plus the transcript path', () => {
-    expect(foregroundText(id, 'DONE', '/s/x.jsonl', ['Note: n'])).toBe(
-      `This is the output of the subagent:\n\nresponse:\n<response>\nDONE\n</response>\n\nAgent ID: ${id} (can be used with the \`resume\` parameter to send a follow-up after it completes)\nTranscript: /s/x.jsonl\nNote: n`,
-    );
+  test.for(cursorAgents.taskResults.cases.map((entry) => [entry.name, entry] as const))('%s is the text Cursor desktop renders', ([, entry]) => {
+    const text = entry.background ? backgroundText(entry.agentId, entry.transcript) : foregroundText(entry.agentId, entry.response ?? '', '/s/x.jsonl', entry.suffix === undefined ? [] : [entry.suffix]);
+    expect(text).toBe(entry.text);
   });
 
-  test('background launch is the Cursor result text', () => {
+  test('a background launch without a transcript path uses the shorter Cursor text', () => {
     expect(backgroundText(id, undefined)).toBe(
       `Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion, so do not wait for it - either end your turn or work on something else.\n\nAgent ID: ${id} (can be used with the \`resume\` parameter to send a follow-up after it completes)`,
     );

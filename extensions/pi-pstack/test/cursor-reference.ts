@@ -20,6 +20,7 @@ export const cursorAgents = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'test/fix
   builtIns: Pick<CursorAgent, 'type' | 'description' | 'reminder'>[];
   agents: CursorAgent[];
   task: { description: string; parameters: Record<string, string> };
+  taskResults: { cases: { name: string; agentId: string; background: boolean; response?: string; transcript?: string; suffix?: string; text: string }[] };
 };
 
 // The only wording Pi changes in Cursor's Task text: Pi's tool names, and the catalogs in the pstack_subagents

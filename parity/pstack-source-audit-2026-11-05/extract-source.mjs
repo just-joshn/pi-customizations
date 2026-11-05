@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url);
 const { parse } = require(join(repo, 'node_modules/.bun/@babel+parser@7.29.9/node_modules/@babel/parser/lib/index.js'));
 const DESKTOP = '/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js';
 const CLI = '/home/josh/.local/share/cursor-agent/versions/2026.10.22-27dcf5f/index.js';
+const DAEMON = '/usr/share/cursor/resources/app/extensions/cursor-agent-host/dist/agent-host-daemon/dist/bin/daemon.cjs';
 // Cursor's code stays out of the public repository: raw captures go to the ignored .audit tree.
 const RAW = '.audit/pstack-source-audit-2026-11-05/source';
 
@@ -27,6 +28,9 @@ const specs = [
   { id: 'desktop-task-description', file: DESKTOP, marker: '"no-subagent-unless-asked"===F&&(d=`IMPORTANT: Do NOT use this tool unless' },
   { id: 'desktop-task-description-text', file: DESKTOP, marker: 'Launch a new agent to handle complex, multi-step tasks' },
   { id: 'desktop-task-description-catalog', file: DESKTOP, marker: 'Available subagent_types and descriptions are listed in' },
+  { id: 'daemon-task-result-render', file: DAEMON, marker: 'return`This is the output of the subagent:' },
+  { id: 'daemon-task-result-text', file: DAEMON, marker: 'function getTaskSuccessResultText(' },
+  { id: 'daemon-task-background-text', file: DAEMON, marker: 'function formatSubagentBackgroundMessage(' },
 ];
 const wanted = process.argv.length > 2 ? specs.filter((spec) => process.argv.slice(2).includes(spec.id)) : specs;
 const hash = (text) => createHash('sha256').update(text).digest('hex');

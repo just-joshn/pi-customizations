@@ -1,0 +1,46 @@
+mutation result-preformatted: src/task/format.ts
+- response.includes('<response>') && response.includes('</response>')
++ false
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/task-format.test.ts (15 tests | 1 failed) 29ms
+   ❯ Task texts (TASK-002, TASK-003, SEC-001) (13)
+     × foreground preformatted is the text Cursor desktop renders 4ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 passed (15)
+   Start at  05:34:28
+   Duration  504ms (import 83%, transform 10%, tests 7%)
+
+
+$ vitest run test/task-format.test.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/task-format.test.ts > Task texts (TASK-002, TASK-003, SEC-001) > foreground preformatted is the text Cursor desktop renders
+AssertionError: expected 'This is the output of the subagent:\n…' to be 'This is the output of the subagent:\n…' // Object.is equality
+
+- Expected
++ Received
+
+  This is the output of the subagent:
+
+  response:
+  <response>
+- ALREADY
++ <response>
++ ALREADY
++ </response>
+  </response>
+
+  Agent ID: 11111111-2222-4333-8444-555555555555 (can be used with the `resume` parameter to send a follow-up after it completes)
+
+ ❯ test/task-format.test.ts:11:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

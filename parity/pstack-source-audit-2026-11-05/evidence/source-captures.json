@@ -60,6 +60,42 @@
     "file": ".audit/pstack-source-audit-2026-11-05/source/cli-plugin-agent-strip.js"
   },
   {
+    "id": "daemon-task-background-text",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-agent-host/dist/agent-host-daemon/dist/bin/daemon.cjs",
+    "sourceSha256": "494c1b1ee7e3ee575276cc595ad9a47194fbff828c326609e458be6b193cb47a",
+    "marker": "function formatSubagentBackgroundMessage(",
+    "up": 0,
+    "start": 12013463,
+    "end": 12014948,
+    "functionName": "formatSubagentBackgroundMessage",
+    "excerptSha256": "fabc1d04633a3c7d86b49e4cb1379d9f733cc490962631515ecb76c3adbc48e2",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/daemon-task-background-text.js"
+  },
+  {
+    "id": "daemon-task-result-render",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-agent-host/dist/agent-host-daemon/dist/bin/daemon.cjs",
+    "sourceSha256": "494c1b1ee7e3ee575276cc595ad9a47194fbff828c326609e458be6b193cb47a",
+    "marker": "return`This is the output of the subagent:",
+    "up": 0,
+    "start": 12021682,
+    "end": 12023530,
+    "functionName": "renderTaskResultToString",
+    "excerptSha256": "d8cd5a3267214471b4eb03626d0577ef7b044dbc11163b7d537491864116a509",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/daemon-task-result-render.js"
+  },
+  {
+    "id": "daemon-task-result-text",
+    "source": "/usr/share/cursor/resources/app/extensions/cursor-agent-host/dist/agent-host-daemon/dist/bin/daemon.cjs",
+    "sourceSha256": "494c1b1ee7e3ee575276cc595ad9a47194fbff828c326609e458be6b193cb47a",
+    "marker": "function getTaskSuccessResultText(",
+    "up": 0,
+    "start": 12021098,
+    "end": 12021682,
+    "functionName": "getTaskSuccessResultText",
+    "excerptSha256": "f2fc4990d5d0beee60db4d96a735f43c00e3c1d318cdffadcc75b9e437ce57d6",
+    "file": ".audit/pstack-source-audit-2026-11-05/source/daemon-task-result-text.js"
+  },
+  {
     "id": "desktop-task-conversation-state",
     "source": "/usr/share/cursor/resources/app/extensions/cursor-local-agent-runtime/dist/main.js",
     "sourceSha256": "1c362d573e67da661724ceb2161d221ae51a52c8a58f4b7bd77ca0fe7894d59d",
