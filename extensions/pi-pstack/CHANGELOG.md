@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.36-pi.16] - 2026-11-04
+
+Each item below is checked against the Cursor CLI 2026.10.22 bundle, Cursor's built-in skills, or Cursor's docs. `parity/pstack-parity-2026-11-05/` in the repository records the evidence, the decisions, and the behavior inventory.
+
+- Attach every skill a message names, as Cursor's `findSkillReferences` does: a `/name` after the start of the message attaches its skill too, and several skills ride one message, each once, in order. Before, only a leading `/name` attached a skill.
+- Return Cursor's reject reason from `AskQuestion` when nobody can answer: `Questions skipped by the user, continue with the information you already have`, or `Subagent cannot ask questions` in a subagent.
+- Inject the two always-applied team-kit rules with their exact bodies. The port had added a heading to each.
+- Keep a `/loop` running when one of its runs is interrupted. Cursor's loop is a background shell that a turn interrupt leaves running, so only `/loop stop` or the `Loop` tool's `stop` ends it.
+- Run the built-in `explore` subagent on the parent model's `-fast` variant when Pi lists one, as Cursor's explore uses a faster model by default.
+
 ## [0.15.36-pi.15] - 2026-11-04
 
 - Match watched shell output before a newline or process exit. Count every occurrence within a chunk and retain matches across chunk boundaries.
