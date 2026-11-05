@@ -24,6 +24,7 @@ import {
 } from './durable-store.ts';
 import type { DurableSubscription, EventAdmission, RunModel, StoredSubscription } from './durable-types.ts';
 import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges } from './github.ts';
+import { withMemory } from './memories.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, type WebhookEvent, webhookEventBlock } from './webhook.ts';
 
 const MAX_STEP_MS = 24 * 24 * 3_600_000;
@@ -36,6 +37,8 @@ export interface FreshMeta {
   model?: RunModel;
   /** The owner's project-trust decision when it created the timer. */
   trusted?: boolean;
+  /** Runs the fire as a cloud agent on its own machine. */
+  environment?: 'cloud';
 }
 export type RunFresh = (prompt: string, name: string, meta: FreshMeta) => Promise<string | undefined> | string | undefined;
 export interface SupervisorOptions {
@@ -136,6 +139,7 @@ export function createSupervisor(options: SupervisorOptions) {
             cwd,
             ...(sub.config.kind !== 'github' && sub.config.model !== undefined ? { model: sub.config.model } : {}),
             ...(sub.config.kind !== 'github' && sub.config.trusted !== undefined ? { trusted: sub.config.trusted } : {}),
+            ...(sub.config.kind !== 'github' && sub.config.environment === 'cloud' ? { environment: 'cloud' as const } : {}),
           }),
       );
       if (claim !== undefined)
@@ -157,7 +161,7 @@ export function createSupervisor(options: SupervisorOptions) {
     if (!owns(entry)) return;
     try {
       const prompt = config.strategy === 'wake_self' ? `[timer] ${entry.sub.name}\n\n${config.prompt}` : config.prompt;
-      const admission = acceptEvent(cwd, entry.sub.id, timerClaimKey(entry.sub, config, now()), prompt, now());
+      const admission = acceptEvent(cwd, entry.sub.id, timerClaimKey(entry.sub, config, now()), withMemory(entry.sub, prompt), now());
       if (admission === 'accepted') accepted();
       else if (admission === 'full') error(entry.sub.id, new Error(ADMISSION_FULL));
     } catch (cause) {
@@ -189,7 +193,7 @@ export function createSupervisor(options: SupervisorOptions) {
     async (event: WebhookEvent): Promise<EventAdmission> => {
       if (!owns(entry)) return 'inactive';
       const content = [`[routine] ${entry.sub.name}`, prompt, webhookEventBlock(event)].join('\n\n');
-      const result: EventAdmission = acceptEvent(cwd, entry.sub.id, event.eventId, content, now());
+      const result: EventAdmission = acceptEvent(cwd, entry.sub.id, event.eventId, withMemory(entry.sub, content), now());
       if (result === 'accepted') accepted();
       else if (result === 'full') error(entry.sub.id, new Error(ADMISSION_FULL));
       return result;
@@ -231,7 +235,7 @@ export function createSupervisor(options: SupervisorOptions) {
       if (!owns(entry)) return;
       let position = cursor;
       for (const fire of result.fires) {
-        const admission = acceptEvent(cwd, entry.sub.id, fire.eventId, slackEventText(entry.sub.name, config.prompt, config.channel, fire.message), now());
+        const admission = acceptEvent(cwd, entry.sub.id, fire.eventId, withMemory(entry.sub, slackEventText(entry.sub.name, config.prompt, config.channel, fire.message)), now());
         if (admission === 'full') {
           error(entry.sub.id, new Error(ADMISSION_FULL));
           writeCursor(file, position);

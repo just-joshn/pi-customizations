@@ -22,6 +22,7 @@ import { registerSecretRequest } from './secrets.ts';
 import { alwaysAppliedRules, hostSection, subagentsSection, todayText } from './sections.ts';
 import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
+import { memoryDir } from './subscriptions/memories.ts';
 import { type AgentDefinition, loadAgentDefinitions } from './task/agents.ts';
 import { registerAgentStatus } from './task/status.ts';
 import { availableModels, parentModel, registerTask } from './task/tool.ts';
@@ -136,6 +137,7 @@ export default function piPstack(pi: ExtensionAPI): void {
       await task.startBackground(`timer ${name}`, prompt, {
         ...(meta.model === undefined ? {} : { model: `${meta.model.provider}/${meta.model.id}${meta.model.thinking === undefined ? '' : `:${meta.model.thinking}`}` }),
         ...(meta.trusted === undefined ? {} : { trusted: meta.trusted }),
+        ...(meta.environment === undefined ? {} : { environment: meta.environment, shared: [memoryDir(name)] }),
       });
       return undefined;
     },

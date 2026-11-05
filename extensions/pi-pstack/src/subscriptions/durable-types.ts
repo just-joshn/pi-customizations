@@ -15,6 +15,8 @@ export type Config =
       model?: RunModel;
       /** The owner's project-trust decision when it created the timer. */
       trusted?: boolean;
+      /** cloud: each new_session fire runs on its own cloud machine with a fresh clone, as a Cursor automation does. */
+      environment?: 'cloud';
     }
   | {
       kind: 'slack';
@@ -26,6 +28,7 @@ export type Config =
       strategy: 'wake_self' | 'new_session';
       model?: RunModel;
       trusted?: boolean;
+      environment?: 'cloud';
     }
   | {
       kind: 'webhook';
@@ -37,6 +40,7 @@ export type Config =
       model?: RunModel;
       /** The owner's project-trust decision when it created a detached routine. */
       trusted?: boolean;
+      environment?: 'cloud';
     };
 
 /** `expiresAt` of 0 means the subscription does not expire, as Cursor Automations do not. */

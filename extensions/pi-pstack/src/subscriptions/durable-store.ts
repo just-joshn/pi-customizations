@@ -107,7 +107,7 @@ function validSubscription(value: unknown): value is DurableSubscription {
           (t.scope !== 'author' || (typeof t.author === 'string' && /^(?:@me|[A-Za-z0-9](?:[A-Za-z0-9-]|\[bot\]|\/)*)$/.test(t.author))))
     );
   }
-  if (typeof c.prompt !== 'string') return false;
+  if (typeof c.prompt !== 'string' || (c.environment !== undefined && c.environment !== 'cloud')) return false;
   if (c.kind === 'slack') {
     const model = c.model;
     return (

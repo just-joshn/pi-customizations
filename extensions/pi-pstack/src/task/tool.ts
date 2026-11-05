@@ -117,6 +117,8 @@ export interface Launch {
   machine: Machine | undefined;
   /** A fresh cloud agent whose container machine still has to be provisioned. */
   provision?: { home: string; baseBranch: string | undefined };
+  /** More host folders this launch shares with its machine, such as an automation's memory folder. */
+  extraShared?: string[];
   rootStore: string;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
@@ -538,7 +540,15 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
     if (plan.kind === 'fresh' && plan.machine?.driver === 'worktree') await addWorktree(plan.workspace, plan.machine, signal);
     else if (plan.kind === 'fresh' && plan.provision !== undefined) {
       plan.machine = await provisionMachine(
-        { driver: 'container', agentId: plan.agentId, cwd: plan.workspace, home: plan.provision.home, baseBranch: plan.provision.baseBranch, readonly: runsReadonly(plan), shared: [projectsDir(plan.workspace), plan.rootStore] },
+        {
+          driver: 'container',
+          agentId: plan.agentId,
+          cwd: plan.workspace,
+          home: plan.provision.home,
+          baseBranch: plan.provision.baseBranch,
+          readonly: runsReadonly(plan),
+          shared: [projectsDir(plan.workspace), plan.rootStore, ...(plan.extraShared ?? [])],
+        },
         signal,
       );
       plan.executionCwd = plan.machine.cwd;
@@ -635,6 +645,8 @@ export interface StartBackgroundOptions {
   trusted?: boolean;
   /** Imports the reviewed plan's todos into the worker before its first model request. */
   buildPlan?: string;
+  /** Host folders a cloud machine shares besides the Projects folder and the root store. */
+  shared?: string[];
 }
 
 export interface TaskHandle {
@@ -765,6 +777,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     const { plan, lock } = prepare(params, ctx, options, registry.isRunning, await driverFor(params, options.planMode?.() === true));
     if (startOptions?.trusted !== undefined) plan.trusted = startOptions.trusted;
     if (startOptions?.buildPlan !== undefined) plan.buildPlan = startOptions.buildPlan;
+    if (startOptions?.shared !== undefined) plan.extraShared = startOptions.shared;
     if (plan.machine !== undefined || plan.provision !== undefined) await createMachine(plan, lock, undefined);
     const toolCallId = `pstack-${plan.agentId}`;
     const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(prompt), description: description.replace(/\s+/g, ' ').trim(), background: true };

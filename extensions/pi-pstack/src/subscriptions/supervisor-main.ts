@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 import { fileURLToPath } from 'node:url';
 
-import { PACKAGE_ROOT } from '../paths.ts';
+import { MACHINE_ENV } from '../child-env.ts';
+import { type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
+import { machinesDir, PACKAGE_ROOT, projectsDir, worktreesDir } from '../paths.ts';
+import { addWorktree, planWorktree } from '../task/worktree.ts';
+import { memoryDir } from './memories.ts';
 import { createSupervisor, type FreshMeta } from './supervisor.ts';
 
 function usage(): never {
@@ -49,8 +54,33 @@ export function assistantText(event: unknown): string | undefined {
 
 const STDERR_LIMIT = 2_000;
 
+/**
+ * A cloud fire's machine, as a cloud agent gets one: a container with a fresh clone of the pushed repository (sharing
+ * the Projects folder and this automation's memory), or a git worktree when no container engine answers.
+ */
+async function cloudMachine(name: string, meta: FreshMeta): Promise<Machine> {
+  const agentId = randomUUID();
+  const { driver } = await selectDriver();
+  if (driver === 'container') return provisionMachine({ driver, agentId, cwd: meta.cwd, home: join(machinesDir(meta.cwd), agentId), baseBranch: undefined, readonly: false, shared: [projectsDir(meta.cwd), memoryDir(name)] });
+  const worktree = planWorktree(meta.cwd, worktreesDir(meta.cwd), agentId);
+  await addWorktree(meta.cwd, worktree, undefined);
+  return worktree;
+}
+
+/** Runs one fire with no chat: in the workspace, or on its own cloud machine; resolves with the run's final message. */
+async function runFresh(prompt: string, name: string, meta: FreshMeta): Promise<string | undefined> {
+  if (meta.environment !== 'cloud') return runPi(prompt, name, meta, meta.cwd, process.env);
+  const machine = await cloudMachine(name, meta);
+  const env = machine.driver === 'container' ? { ...process.env, [MACHINE_ENV]: JSON.stringify(machine) } : process.env;
+  try {
+    return await runPi(machinePreface(machine, prompt), name, meta, machine.cwd, env);
+  } finally {
+    await stopMachine(machine).catch(() => undefined);
+  }
+}
+
 /** Spawns a headless Pi print run; resolves with its final assistant message once the child exits 0. */
-function runFresh(prompt: string, name: string, meta: FreshMeta): Promise<string | undefined> {
+function runPi(prompt: string, name: string, meta: FreshMeta, cwd: string, env: NodeJS.ProcessEnv): Promise<string | undefined> {
   return new Promise((resolvePromise, reject) => {
     const raw: unknown = JSON.parse(process.env['PI_PSTACK_PI_COMMAND'] ?? '["pi"]');
     if (!Array.isArray(raw) || raw.length === 0 || !raw.every((part) => typeof part === 'string' && part !== '')) {
@@ -63,8 +93,8 @@ function runFresh(prompt: string, name: string, meta: FreshMeta): Promise<string
       return;
     }
     const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, ...freshArgs(meta), prompt], {
-      cwd: meta.cwd,
-      env: process.env,
+      cwd,
+      env,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let outcome: string | undefined;
