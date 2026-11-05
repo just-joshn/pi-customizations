@@ -101,13 +101,13 @@ test('a dismissed question is reported, not guessed (HOST-005)', async () => {
   }
 });
 
-test('without a UI the questions resolve as skipped, as Cursor print mode reports (HOST-005)', async () => {
-  // Observed: cursor-agent -p called AskQuestion and its final reply said the user skipped the question
-  // (parity/pi-pstack-two/evidence/cursor-delegate-v21-resume-run1.json).
+test('without a UI the questions resolve as skipped, with Cursor print mode reject reason (HOST-005, ASK-SKIP-001)', async () => {
+  // Cursor CLI 2026.10.22 src/headless.ts rejects every AskQuestion with this reason, and a recorded cursor-agent -p
+  // reply said the user skipped the question (parity/pi-pstack-two/evidence/cursor-delegate-v21-resume-run1.json).
   const run = await runJson(sandbox, script([{ tool: 'AskQuestion', args: { questions: [budget] } }]), ['--no-session']);
   const [end] = toolEnds(run.events, 'AskQuestion');
   expect(end?.isError).toBe(false);
-  expect(end?.text).toBe('budget: skipped (no one can answer questions in this session; decide yourself and say what you chose)');
+  expect(end?.text).toBe('Questions skipped by the user, continue with the information you already have');
   expect(end?.details).toEqual({ answers: {}, skipped: ['budget'] });
 });
 
