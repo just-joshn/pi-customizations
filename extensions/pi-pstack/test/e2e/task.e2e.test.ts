@@ -246,7 +246,7 @@ describe('subagent types', () => {
     expect(result.text).toContain('[bash error]');
   });
 
-  test.skipIf(process.platform !== 'linux')('readonly children still inherit environment credentials', async () => {
+  test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('readonly children still inherit environment credentials', async () => {
     sandbox.env = {
       HOME: sandbox.root,
       PATH: process.env['PATH'] ?? '',
@@ -255,9 +255,9 @@ describe('subagent types', () => {
       PI_SKIP_VERSION_CHECK: '1',
       BENNY_SLACK_BOT_TOKEN: 'FAKE-BENNY-CREDENTIAL',
     };
-    const { result } = await runTask({ prompt: script([{ tool: 'read', args: { path: '/proc/self/environ' } }]), readonly: true });
+    const { result } = await runTask({ prompt: script([{ tool: 'bash', args: { command: 'printenv BENNY_SLACK_BOT_TOKEN' } }]), readonly: true });
     expect(result.isError).toBe(false);
-    expect(result.text).toContain('BENNY_SLACK_BOT_TOKEN=FAKE-BENNY-CREDENTIAL');
+    expect(result.text).toContain('FAKE-BENNY-CREDENTIAL');
   });
 
   test('a writable child keeps the ordinary shell (TASK-019)', async () => {

@@ -68,11 +68,15 @@ test("a user's own prompt template of the same name wins over the alias (CMD-002
   expect(assistantTexts(run.events)).toEqual(['ECHO: MY-TEMPLATE hello']);
 });
 
-test('a prompt template at the start keeps its expansion when the message also names a skill (SKILL-REF-004)', async () => {
+test('a prompt template at the start expands its template and attaches any skill the message names (SKILL-REF-004)', async () => {
   mkdirSync(join(sandbox.agentDir, 'prompts'));
   writeFileSync(join(sandbox.agentDir, 'prompts/mytpl.md'), '---\ndescription: my template\n---\nMY-TEMPLATE $@\n');
   const run = await runJson(sandbox, '/mytpl hello /why', ['--no-session']);
-  expect(assistantTexts(run.events)).toEqual(['ECHO: MY-TEMPLATE hello /why']);
+  const [user = ''] = messages(run.events, 'user').map((message) => contentText(message.content));
+  expect(user.startsWith(`<skill name="why" location="${join(PACKAGE_ROOT, 'skills/why/SKILL.md')}">`)).toBe(true);
+  expect(user).toContain('# Why');
+  expect(user.endsWith('</skill>\n\nMY-TEMPLATE hello /why')).toBe(true);
+  expect(assistantTexts(run.events)).toEqual([`ECHO: ${user}`]);
 });
 
 test('aliases work when the package is installed through a symlink (recheck 1)', async () => {

@@ -497,6 +497,9 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
     const saved = state.planFile === undefined ? '' : ` Saved plan: ${state.planFile}.`;
     ctx.ui.notify(state.enabled ? `Plan mode on: read-only tools only. /plan off exits.${saved}` : 'Plan mode off: tools restored.', 'info');
     if (command.kind === 'on' && command.task !== '') pi.sendUserMessage(command.task, { expandPromptTemplates: true, ...(ctx.isIdle() ? {} : { deliverAs: 'followUp' as const }) });
+    else if (args.trim() === '' && state.enabled && state.planFile !== undefined && existsSync(state.planFile) && canAsk(ctx) && ctx.isIdle()) {
+      reviewPlan(ctx, state.planFile).catch((error: Error) => ctx.ui.notify(`Could not start the plan build: ${error.message}`, 'error'));
+    }
     return undefined;
   };
 

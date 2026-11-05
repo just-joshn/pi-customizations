@@ -273,6 +273,11 @@ test("after a run that saved a plan, the user picks build or propose changes, as
   expect([h.plan.enabled(), h.sent.at(-1)?.text]).toEqual([false, [`Build the plan saved at ${path}. Follow it.`, '', '# Review me', '', '- two'].join('\n')]);
   h.emit('agent_settled', { aborted: false });
   expect(h.asked).toHaveLength(2);
+
+  h.answers.push(PROPOSE_CHANGES);
+  await h.run('');
+  await vi.waitFor(() => expect(h.asked).toHaveLength(3));
+  expect([h.plan.enabled(), h.asked.at(-1)?.title]).toEqual([true, `Plan saved at ${path}. Build it?`]);
 });
 
 test('a plan-build handoff imports into the first session but not a later new session', () => {

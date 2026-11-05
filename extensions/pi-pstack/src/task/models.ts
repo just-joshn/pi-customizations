@@ -104,9 +104,10 @@ function parseModelParameters(text: string): ModelParameters | undefined {
     .filter((part) => part !== '')) {
     const [key, value, ...rest] = pair.split('=').map((part) => part.trim());
     if (value === undefined || value === '' || rest.length > 0) return undefined;
-    const effort = asEffort(value);
-    if (key === 'effort' && effort !== undefined) parsed = { ...parsed, effort };
+    const effort = asEffort(value === 'none' ? 'off' : value);
+    if ((key === 'effort' || key === 'reasoning' || key === 'reasoning_effort') && effort !== undefined) parsed = { ...parsed, effort };
     else if (key === 'fast' && (value === 'true' || value === 'false')) parsed = { ...parsed, fast: value === 'true' };
+    else if (key === 'speed' && (value === 'fast' || value === 'default')) parsed = { ...parsed, fast: value === 'fast' };
     else if (key !== 'context') return undefined;
   }
   return parsed;

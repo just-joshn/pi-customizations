@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -388,10 +389,14 @@ export function isSupervisorLive(cwd: string): boolean {
 }
 
 function supervisorProcess(pid: number, cwd: string): boolean {
-  if (process.platform !== 'linux') return false;
   try {
     // The bin is a bash shim that execs bun or node on supervisor-main.ts, so either name can be the live argv.
-    const cmdline = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ');
+    const cmdline =
+      process.platform === 'linux'
+        ? readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ')
+        : process.platform === 'darwin'
+          ? execFileSync('ps', ['-o', 'command=', '-p', String(pid)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+          : '';
     return cmdline.includes(cwd) && (cmdline.includes('supervisor-main.ts') || cmdline.includes('pstack-routines-supervisor'));
   } catch {
     return false;

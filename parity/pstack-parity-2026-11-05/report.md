@@ -4,7 +4,7 @@
 
 The goal is behavioral parity between pi-pstack and Cursor's pstack plugin, including what pstack gets from cursor-team-kit and from the Cursor host.
 
-`NOT VERIFIED`. This run closes six divergences and proves the result through Pi's real entry points. Seven host mechanisms have no Pi runtime (cloud VMs, hosted automations and their Slack trigger, hosted subscriptions, Projects, the in-app browser and canvas, inline media, and video input to models). One reference contract is unknown (`/visualize`). Those rows stay open in the inventory, so whole-plugin parity is not established.
+`NOT VERIFIED`. This run closes ten divergences and proves the result through Pi's real entry points. Seven host mechanisms have no Pi runtime (cloud VMs, hosted automations and their Slack trigger, hosted subscriptions, Projects, the in-app browser and canvas, inline media, and video input to models). One reference contract is unknown (`/visualize`). Those rows stay open in the inventory, so whole-plugin parity is not established.
 
 The run used no subagents and started no Cursor or Pi model session. Cursor behavior comes from the CLI bundle, its protobuf schemas, Cursor's built-in skills, and Cursor's docs. Pi behavior comes from the Pi CLI and RPC with the deterministic scripted test model.
 
@@ -24,7 +24,7 @@ Cursor desktop is not installed, so desktop and hosted behavior comes only from 
 
 ## 2. Behavioral specification
 
-`inventory.md` and `inventory.json` hold 132 rows with stable IDs. They cover 76 skills, 4 agents, 2 rules, 12 Benny automation files, 6 scripts, and 32 host mechanisms. Skill, agent, rule, and automation rows name their source file and sha256. Every row names its Pi equivalent, its divergence when there is one, its evidence, and its status. `rebuild.sh` regenerates them from a `cursor/plugins` checkout.
+`inventory.md` and `inventory.json` hold 133 rows with stable IDs and all 17 specification fields. They cover 76 skills, 4 agents, 2 rules, 12 Benny automation files, 7 scripts, and 32 host mechanisms. Skill, agent, rule, and automation rows name their source file and sha256. Every row names its Pi equivalent, its divergence when there is one, its evidence, and its status. `rebuild.sh` regenerates them from a `cursor/plugins` checkout.
 
 Supporting artifacts:
 
@@ -50,13 +50,15 @@ pi-pstack ships pstack's and team-kit's text as Pi package skills and agent file
 
 | Change | Paths |
 | --- | --- |
-| Attach every skill a message names, each once, in order. Leave a message that starts with a prompt template to Pi. | `extensions/pi-pstack/src/aliases.ts`, `src/index.ts`, new `src/skill-block.ts`, `src/mode.ts` |
+| Attach every skill a message names, each once, in order, and expand a leading prompt template when skills are also referenced. | `extensions/pi-pstack/src/aliases.ts`, `src/autocomplete.ts`, `src/index.ts`, new `src/skill-block.ts`, `src/mode.ts` |
+| Accept Cursor's `reasoning`, `reasoning_effort`, `effort=none`, and `speed=fast\|default` model parameters, and honor `permissionMode: readonly` and `background: true` in agent frontmatter. | `src/task/models.ts`, `src/task/agents.ts` |
+| Re-open the existing plan review dialog on a bare `/plan` when a plan is saved, and detect zombies and pre-epoch supervisor locks on macOS as well as Linux. | `src/plan.ts`, `src/process-lock.ts`, `src/subscriptions/durable-store.ts` |
 | Return Cursor's AskQuestion reject reasons when nobody can answer. | `src/ask.ts` |
 | Inject the team-kit rule bodies exactly. | `skills/no-inline-imports/SKILL.md`, `skills/typescript-exhaustive-switch/SKILL.md` |
 | Keep a loop running after an interrupted run. | `src/loop.ts` |
 | Run `explore` on the parent's `-fast` variant. | `src/task/agents.ts` |
 | Remove the multi-phase plan fallback that `check-plan.mjs` rejects. | `skills/poteto-mode/playbooks/multi-phase-plan.md` |
-| Tests, README, parity status, changelog, version `0.15.36-pi.16`. | `test/`, `README.md`, `docs/parity-status.md`, `CHANGELOG.md`, `package.json`, `bun.lock` |
+| Tests, README, parity status, changelog, version `0.15.36-pi.17`. | `test/`, `README.md`, `docs/parity-status.md`, `CHANGELOG.md`, `package.json`, `bun.lock` |
 
 ## 5. Verification
 
@@ -91,7 +93,6 @@ All three passes were done by the same assistant with deterministic checks, beca
 | In-app browser and Canvas | Runtime limitation | Built-in canvas skill |
 | Inline screenshots and video in replies; video input to subagents | Runtime limitation | Pi chat and Pi models |
 | `/visualize` | Unverified, reference contract unknown | Not in the CLI bundle or the fetched docs |
-| Skills named after a leading prompt template | Runtime limitation | Pi does not export its template expander |
 | Approval gates (run modes, GenerateImage decision) | Out of scope, host policy | pstack text does not depend on them |
 
 Smaller host differences that do not change pstack's instructions are listed per row in `inventory.md`.

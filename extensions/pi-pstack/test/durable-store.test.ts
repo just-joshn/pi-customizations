@@ -534,9 +534,8 @@ local('an accepted fresh event still runs after the subscription expires', async
   vi.useRealTimers();
 });
 
-// Taking over a pre-epoch lock reads the holder's command line from /proc, which only Linux has. Elsewhere the code
-// refuses to signal a pid it cannot verify, so only Linux can reach this branch.
-local.skipIf(process.platform !== 'linux')('a legacy lock is taken over only from a live process identified as this supervisor', async ({ cwd, onTestFinished }) => {
+// Taking over a pre-epoch lock reads the holder's command line from /proc on Linux or ps on macOS.
+local.skipIf(process.platform !== 'linux' && process.platform !== 'darwin')('a legacy lock is taken over only from a live process identified as this supervisor', async ({ cwd, onTestFinished }) => {
   const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)', 'supervisor-main.ts', '--workspace', cwd], { stdio: 'ignore' });
   onTestFinished(() => {
     child.kill('SIGKILL');

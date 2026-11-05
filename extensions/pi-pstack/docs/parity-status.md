@@ -45,6 +45,15 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
 
+## Repairs in 0.15.36-pi.17
+
+A follow-up pass on 2026-11-05 (UTC) audited the Cursor CLI 2026.10.22 bundle and the parity inventory in `parity/pstack-parity-2026-11-05/`.
+
+- **Prompt templates and skill references in one message.** When a message starts with a prompt template and also names a skill, `aliases.ts` expands the prompt template from `SlashCommandInfo.sourceInfo.path` first and then attaches every referenced skill, matching Cursor CLI's combined `findCommandReferences` and `findSkillReferences` submit path. Skill names containing underscores also match in aliases and autocomplete.
+- **Model parameters and agent frontmatter.** `Task` model resolution accepts Cursor's `reasoning`, `reasoning_effort`, `effort=none`, and `speed=fast|default` bracketed parameters, and agent frontmatter honors `permissionMode: readonly` and `background: true`.
+- **Re-opening a saved plan on bare `/plan`.** Cursor's `/plan` command calls `onShowExistingPlan` when invoked with no prompt and a plan already exists in the session; `plan.ts` now opens the build-choice dialog on bare `/plan` when a saved plan exists.
+- **macOS zombie and supervisor lock checks.** `process-lock.ts` and `durable-store.ts` now inspect process state and command lines with `ps` on macOS as well as `/proc` on Linux.
+
 ## Repairs in 0.15.36-pi.16
 
 A run on 2026-11-05 (UTC) compared pi-pstack with the Cursor CLI 2026.10.22 bundle, Cursor's built-in skills, and Cursor's docs, without starting any Cursor or Pi model session. The repository's `parity/pstack-parity-2026-11-05/` holds the decision trail, the behavior inventory (`inventory.md`, `inventory.json`), and the scripts that rebuild them.

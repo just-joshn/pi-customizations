@@ -1,13 +1,21 @@
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-function zombie(pid: number): boolean {
-  if (process.platform !== 'linux') return false;
+export function zombie(pid: number): boolean {
   try {
-    const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
-    const close = stat.lastIndexOf(')');
-    return close !== -1 && stat.slice(close + 2, close + 3) === 'Z';
+    if (process.platform === 'linux') {
+      const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+      const close = stat.lastIndexOf(')');
+      return close !== -1 && stat.slice(close + 2, close + 3) === 'Z';
+    }
+    if (process.platform === 'darwin') {
+      return execFileSync('ps', ['-o', 'state=', '-p', String(pid)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+        .trim()
+        .startsWith('Z');
+    }
+    return false;
   } catch {
     return false;
   }

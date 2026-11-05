@@ -65,12 +65,13 @@ function parseAgentFile(file: string): AgentDefinition {
   const name = frontmatter['name'];
   const description = frontmatter['description'];
   const model = frontmatter['model'];
+  const permissionMode = frontmatter['permissionMode'] ?? frontmatter['permissionmode'];
   return {
     type: typeof name === 'string' && name.trim() !== '' ? name.trim() : basename(file, '.md'),
     description: typeof description === 'string' ? description.trim() : '',
     ...(typeof model === 'string' && model.trim() !== '' ? { model: model.trim() } : {}),
-    readonly: frontmatter['readonly'] === true,
-    background: frontmatter['is_background'] === true,
+    readonly: frontmatter['readonly'] === true || (typeof permissionMode === 'string' && permissionMode.trim().toLowerCase() === 'readonly'),
+    background: frontmatter['is_background'] === true || frontmatter['background'] === true,
     prompt: body.trim(),
     file,
   };

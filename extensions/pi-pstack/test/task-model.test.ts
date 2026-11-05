@@ -80,8 +80,12 @@ describe('resolveSubagentModel (TASK-007)', () => {
     { value: 'claude-opus-5-5[effort=high]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'high' } },
     { value: 'claude-opus-5-5[]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5' } },
     { value: 'claude-opus-5-5[effort=high,context=300k]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'high' } },
+    { value: 'claude-opus-5-5[reasoning=max,fast=false,context=272k]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'max' } },
+    { value: 'claude-opus-5-5[reasoning_effort=medium,context=300k]', expected: { provider: 'claude-subscription', id: 'claude-opus-5-5', thinking: 'medium' } },
+    { value: 'deepseek/deepseek-flash[effort=none]', expected: { provider: 'deepseek', id: 'deepseek-flash', thinking: 'off' } },
     { value: 'grok-4.7[fast=false]', expected: { provider: 'grok-build', id: 'grok-4.7' } },
     { value: 'grok-4.7[fast=true, effort=low]', expected: { provider: 'grok-build', id: 'grok-4.7', thinking: 'low' } },
+    { value: 'grok-4.7[speed=fast, effort=low]', expected: { provider: 'grok-build', id: 'grok-4.7', thinking: 'low' } },
     { value: 'deepseek/deepseek-flash[effort=max]', expected: { provider: 'deepseek', id: 'deepseek-flash', thinking: 'max' } },
   ])('maps the Cursor model parameters in $value', ({ value, expected }) => {
     expect(resolveSubagentModel(value, available, parent)).toEqual(expected);

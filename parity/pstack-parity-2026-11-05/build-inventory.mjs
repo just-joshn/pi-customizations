@@ -42,6 +42,14 @@ function adaptation(prefix) {
 
 const behaviors = [];
 const SKILL_E2E = 'pi-e2e: test/e2e/skills-catalog.e2e.test.ts (body attaches through /name in real Pi)';
+const knownMechanisms = new Set(dispositions.mechanisms.map((m) => m.id));
+for (const id of Object.keys(hostRefs)) {
+  if (!knownMechanisms.has(id)) {
+    console.error(`Unknown mechanism ID in host-references.json: ${id}`);
+    process.exit(1);
+  }
+}
+
 for (const plugin of ['pstack', 'cursor-team-kit']) {
   const skillsDir = join(plugins, plugin, 'skills');
   for (const name of readdirSync(skillsDir).sort()) {
@@ -51,6 +59,7 @@ for (const plugin of ['pstack', 'cursor-team-kit']) {
     const piFile = join(pi, 'skills', name, 'SKILL.md');
     const adapt = adaptation(`${plugin}/skills/${name}/`);
     const hidden = fm['disable-model-invocation'] === true;
+    const mechanisms = mechanismsFor(`${plugin}/skills/${name}/`);
     behaviors.push({
       id: `SKILL-${plugin === 'pstack' ? 'PSTACK' : 'TEAMKIT'}-${name}`,
       kind: 'skill',
@@ -60,13 +69,18 @@ for (const plugin of ['pstack', 'cursor-team-kit']) {
       preconditions: plugin === 'pstack' ? 'pstack installed' : 'cursor-team-kit installed (pi-pstack vendors it)',
       source: { path: `${plugin}/skills/${name}/SKILL.md`, sha256: sha(file), revision: 'bb68f2365eceafa0cb2d253112f675acf5f144cc' },
       frontmatterKeys: Object.keys(fm).sort(),
-      hostMechanisms: mechanismsFor(`${plugin}/skills/${name}/`),
+      hostMechanisms: mechanisms,
+      dependencyCallChain: mechanisms,
       inputs: "The user's message; files and tools the instructions name",
+      stateTransitions: 'Skill reference resolved -> <skill> block prepended -> model executes workflow steps',
       execution: 'Instruction-driven: the model follows the attached text. Host mechanisms below carry the runtime behavior.',
       outputs: 'The skill body attached to one message (or to every turn in a mode)',
       errors: 'An unreadable skill file is not attached',
+      executionModes: 'Interactive TUI, RPC, print, and JSON modes',
       cursorMechanism: 'Plugin skill catalog, selectedSkills, findSkillReferences',
       piEquivalent: existsSync(piFile) ? `extensions/pi-pstack/skills/${name}/SKILL.md through Pi's skill loader and the /name input transform` : 'absent',
+      existingPiBehavior: existsSync(piFile) ? 'Loaded as a Pi skill and attached by /name' : 'absent',
+      divergence: adapt.changed.length === 0 ? 'none (byte-identical)' : 'host-translated paths, tool names, and model spec syntax',
       piState: adapt,
       verification: [SKILL_E2E, 'parity: tree-diff.mjs and classify-adaptations.mjs over the reference'],
       status: existsSync(piFile) ? (adapt.changed.length === 0 ? 'verified' : 'verified-with-host-translation') : 'gap:absent',
@@ -82,16 +96,27 @@ for (const [plugin, dir] of [
     const file = join(plugins, plugin, dir, name);
     const fm = frontmatter(file);
     const adapt = adaptation(`${plugin}/${dir}/${name}`);
+    const mechanisms = mechanismsFor(`${plugin}/${dir}/${name}`);
     behaviors.push({
       id: `AGENT-${String(fm.name ?? name.replace(/\.md$/, ''))}`,
       kind: 'agent',
       feature: `subagent_type ${fm.name}`,
       purpose: fm.description,
       trigger: `Task with subagent_type "${fm.name}"`,
+      preconditions: 'Task tool active (depth < 2, non-explore parent)',
       frontmatter: fm,
-      source: { path: `${plugin}/${dir}/${name}`, sha256: sha(file) },
-      cursorMechanism: "Plugin agents: name, description, model, readonly, is_background; body is the agent's instructions",
+      source: { path: `${plugin}/${dir}/${name}`, sha256: sha(file), revision: 'bb68f2365eceafa0cb2d253112f675acf5f144cc' },
+      hostMechanisms: mechanisms,
+      dependencyCallChain: ['HOST-AGENT-DEFS', 'HOST-TASK', ...mechanisms],
+      inputs: 'Task prompt, description, optional model, readonly, run_in_background, environment, file_attachments',
+      stateTransitions: 'Task call -> child pi --mode rpc spawned with pstack_subagent and pstack_agent sections -> foreground result or background completion notice',
+      outputs: 'Subagent final response, Agent ID, transcript path, and optional worktree branch',
+      errors: 'Unknown subagent_type or invalid model fails before spawn with allowed list',
+      executionModes: 'Foreground or background child RPC session',
+      cursorMechanism: "Plugin agents: name, description, model, readonly/permissionMode, is_background/background; body is the agent's instructions",
       piEquivalent: `extensions/pi-pstack/agents/${name}: listed in pstack_subagents, body in the child's pstack_agent section`,
+      existingPiBehavior: 'Loaded by loadAgentDefinitions and injected into child system prompt',
+      divergence: adapt.changed.length === 0 ? 'none (byte-identical)' : 'host-translated skill package path',
       piState: adapt,
       verification: ['pi-unit: test/task-agents.test.ts', 'pi-e2e: test/e2e/task.e2e.test.ts', 'pi-e2e: test/e2e/host.e2e.test.ts'],
       status: adapt.changed.length === 0 ? 'verified' : 'verified-with-host-translation',
@@ -100,15 +125,26 @@ for (const [plugin, dir] of [
 }
 
 for (const name of readdirSync(join(plugins, 'cursor-team-kit/rules')).sort()) {
+  const id = name.replace(/\.mdc$/, '');
   behaviors.push({
-    id: `RULE-${name.replace(/\.mdc$/, '')}`,
+    id: `RULE-${id}`,
     kind: 'rule',
     feature: `always-applied rule ${name}`,
     purpose: frontmatter(join(plugins, 'cursor-team-kit/rules', name)).description,
-    trigger: 'Every request (alwaysApply: true)',
-    source: { path: `cursor-team-kit/rules/${name}`, sha256: sha(join(plugins, 'cursor-team-kit/rules', name)) },
+    trigger: 'Every request (alwaysApply: true), or /' + id,
+    preconditions: 'pi-pstack extension loaded',
+    source: { path: `cursor-team-kit/rules/${name}`, sha256: sha(join(plugins, 'cursor-team-kit/rules', name)), revision: 'bb68f2365eceafa0cb2d253112f675acf5f144cc' },
+    hostMechanisms: ['HOST-RULES-ALWAYS'],
+    dependencyCallChain: ['HOST-RULES-ALWAYS'],
+    inputs: `skills/${id}/SKILL.md body`,
+    stateTransitions: 'before_agent_start reads rule body -> injects into pstack_host system prompt section',
+    outputs: 'Exact rule body present in pstack_host on every request',
+    errors: 'Missing skill file is skipped cleanly',
+    executionModes: 'All Pi modes (interactive, RPC, print, JSON, subagents)',
     cursorMechanism: 'Plugin rules with alwaysApply',
-    piEquivalent: 'Rule body injected verbatim into pstack_host on every request',
+    piEquivalent: 'Rule body injected verbatim into pstack_host on every request and exposed as a skill',
+    existingPiBehavior: 'Injected verbatim into pstack_host',
+    divergence: 'none',
     verification: ['pi-unit: test/sections.test.ts RULE-001'],
     status: 'verified',
   });
@@ -126,6 +162,7 @@ walk(join(plugins, 'pstack/automations'));
 for (const path of automationFiles.sort()) {
   const rel = relative(join(plugins, 'pstack'), path);
   const row = statusOf.get(`pstack/${rel}`);
+  const mechanisms = mechanismsFor(`pstack/${rel}`);
   behaviors.push({
     id: `BENNY-${rel
       .replace(/^automations\/benny\//, '')
@@ -133,46 +170,126 @@ for (const path of automationFiles.sort()) {
       .replace(/-md$|-yaml$/, '')}`,
     kind: 'automation',
     feature: rel,
+    purpose: 'Benny Slack issue triage and reproduction automation pack resource',
     trigger: 'Setup through FOR_AGENTS.md, then hosted automation triggers (Slack report, schedule)',
-    source: { path: `pstack/${rel}`, sha256: sha(path) },
+    preconditions: 'Target repository checkout, Slack MCP server, tracker integration, control adapter',
+    source: { path: `pstack/${rel}`, sha256: sha(path), revision: 'bb68f2365eceafa0cb2d253112f675acf5f144cc' },
+    hostMechanisms: mechanisms,
+    dependencyCallChain: ['HOST-AUTOMATIONS', 'HOST-SUBSCRIPTIONS', ...mechanisms],
+    inputs: 'Slack report coordinates, configuration YAML, feature map, routing map, ledger',
+    stateTransitions: 'Pack copied to .pi/automations/benny -> subscriptions armed -> timer sweep or webhook routine claims report in ledger.tsv -> Task run',
+    outputs: 'Thread-only Slack verdict or repro/draft PR update',
+    errors: 'Fails closed without posting when coordinates, triage marker, control adapter, or credential isolation are missing',
+    executionModes: 'Long-running interactive/RPC owner session or new_session detached fires',
     cursorMechanism: 'Cursor Automations created with /automate; Slack trigger; operational SKILL.md files read directly',
     piEquivalent: 'The same files under .pi/automations/benny, run by subscribe_timer sweeps or subscribe_webhook routines',
-    piState: { status: row?.status ?? 'absent' },
+    existingPiBehavior: 'Adapted to Pi subscriptions, ledger.tsv, and explicit credential-isolation checks',
+    divergence: 'Hosted Slack trigger and Cursor Automations editor are replaced by local timer sweeps or webhook routines',
+    piState: { status: row?.status ?? 'absent', changed: row?.status === 'changed' ? [`pstack/${rel}`] : [] },
     verification: ['parity: classify-adaptations.mjs hunks', 'pi-e2e: test/e2e/subscription-owner.e2e.test.ts (subscription runtime only)'],
     status: 'gap:runtime-limitation (hosted Slack trigger and automation service; live Slack not exercised)',
   });
 }
 
 const scripts = [
-  ['SCRIPT-watch-pr', 'pstack/skills/poteto-mode/scripts/watch-pr', "pi-unit: test/scripts.test.ts (the scripts' own bun suite, 61 tests, and --help)"],
+  [
+    'SCRIPT-watch-pr',
+    'pstack/skills/poteto-mode/scripts/watch-pr',
+    'Poll GitHub PR checks, reviews, and mergeability for babysit and shipping',
+    'bun watch-pr <pr>',
+    "pi-unit: test/scripts.test.ts (the scripts' own bun suite, 61 tests, and --help)",
+  ],
   [
     'SCRIPT-check-plan',
     'pstack/skills/poteto-mode/scripts/check-plan.mjs',
+    'Validate multi-phase plan structure, prose rules, and verification boxes',
+    'node check-plan.mjs <plan.md>',
     "pi-unit: test/scripts.test.ts; the multi-phase-plan skeleton passes its program gate, and the port's former read fallback failed it (.audit/pstack-parity-2026-11-05/plan-fallback-check.txt)",
   ],
-  ['SCRIPT-worktree-audit', 'pstack/skills/poteto-mode/scripts/worktree-audit.sh', 'pi-unit: test/scripts.test.ts WTA-001 (Pi transcript paths)'],
-  ['SCRIPT-bootstrap', 'pstack/skills/poteto-mode/scripts/bootstrap.ts', 'pi-unit: test/scripts.test.ts (dependency install before the suite)'],
-  ['SCRIPT-log-sh', 'pstack/skills/show-me-your-work/scripts/log.sh', "pi-unit: test/scripts.test.ts; this run's decisions.tsv"],
+  [
+    'SCRIPT-worktree-audit',
+    'pstack/skills/poteto-mode/scripts/worktree-audit.sh',
+    'Audit git worktrees by size, merge state, dirty state, PR status, and recent chat transcripts',
+    'bash worktree-audit.sh [-b <ref>] [repo]',
+    'pi-unit: test/scripts.test.ts WTA-001 (Pi transcript paths)',
+  ],
+  [
+    'SCRIPT-bootstrap',
+    'pstack/skills/poteto-mode/scripts/bootstrap.ts',
+    'Install commander dependency for watch-pr from frozen lockfile on first run',
+    'Imported by watch-pr/cli.ts',
+    'pi-unit: test/scripts.test.ts (dependency install before the suite)',
+  ],
+  [
+    'SCRIPT-log-sh',
+    'pstack/skills/show-me-your-work/scripts/log.sh',
+    'Append a sanitized TSV decision row to a show-me-your-work log',
+    'bash log.sh <logfile> <phase> <decision> <why> <evidence> <result>',
+    "pi-unit: test/scripts.test.ts; this run's decisions.tsv",
+  ],
   [
     'SCRIPT-statechart',
     'pstack/skills/statechart/scripts',
+    'Compile TLA+ specifications and TLC state graphs into statechart Mermaid diagrams and reports',
+    'skills/statechart/scripts/statechart <SPEC.tla>',
     'statechart node suite from the package: 367 of 367 with TLA2TOOLS set (.audit/pstack-parity-2026-11-05/statechart-tests-with-tlc.txt), and a TLC run whose chart.mmd and report.md equal the Counter corpus',
   ],
+  [
+    'SCRIPT-pr-review-canvas-renderer',
+    'cursor-team-kit/skills/pr-review-canvas/renderer.js',
+    'Render categorized PR diffs with move and whitespace detection in the PR review HTML page',
+    'Loaded by pr-review-canvas template.html in browser',
+    'pi-unit: test/resources.test.ts (byte-identical to cursor-team-kit)',
+  ],
 ];
-for (const [id, path, evidence] of scripts) {
+for (const [id, path, purpose, trigger, evidence] of scripts) {
+  const adapt = adaptation(path);
   behaviors.push({
     id,
     kind: 'script',
     feature: path,
-    source: { path },
-    piState: adaptation(path),
+    purpose,
+    trigger,
+    preconditions: 'Node, Bun, bash, git, and (for statechart TLC runs) Java',
+    source: { path, revision: 'bb68f2365eceafa0cb2d253112f675acf5f144cc' },
+    hostMechanisms: mechanismsFor(path),
+    dependencyCallChain: mechanismsFor(path),
+    inputs: 'CLI arguments, environment variables, and target files or git repository',
+    stateTransitions: 'Script invoked -> parses args -> reads repo/files/transcripts -> writes stdout/artifacts -> exits with status code',
+    outputs: 'Formatted stdout report, exit code, or generated artifacts',
+    errors: 'Non-zero exit code (1 or 2) with diagnostic message on stderr',
+    executionModes: 'Direct CLI execution from bash or bash_background',
+    cursorMechanism: 'Bundled skill script run via Shell tool',
+    piEquivalent: `Bundled script under extensions/pi-pstack/${path.replace(/^(?:pstack|cursor-team-kit)\//, '')}`,
+    existingPiBehavior: 'Bundled and executable from the package',
+    divergence: adapt.changed.length === 0 ? 'none (byte-identical)' : 'worktree-audit.sh scans Pi session and subagent transcript folders',
+    piState: adapt,
     verification: [evidence],
     status: 'verified',
   });
 }
 
 for (const mechanism of dispositions.mechanisms) {
-  behaviors.push({ kind: 'host-mechanism', referencedBy: hostRefs[mechanism.id] ?? [], ...mechanism });
+  behaviors.push({
+    kind: 'host-mechanism',
+    purpose: mechanism.feature,
+    trigger: 'Skill instructions, user slash command, or model tool call',
+    preconditions: 'pi-pstack extension loaded in Pi 1.5.0',
+    source: { repository: 'cursor-agent 2026.10.22-27dcf5f + cursor/plugins bb68f2365eceafa0cb2d253112f675acf5f144cc' },
+    dependencyCallChain: [mechanism.id],
+    inputs: mechanism.cursor,
+    stateTransitions: `${mechanism.cursor} -> ${mechanism.pi}`,
+    outputs: mechanism.pi,
+    errors: mechanism.difference ?? 'none',
+    executionModes: 'Interactive, RPC, print, JSON, and subagent modes as applicable',
+    cursorMechanism: mechanism.cursor,
+    piEquivalent: mechanism.pi,
+    existingPiBehavior: mechanism.pi,
+    divergence: mechanism.difference ?? 'none',
+    verification: mechanism.evidence,
+    referencedBy: hostRefs[mechanism.id] ?? [],
+    ...mechanism,
+  });
 }
 
 const missing = [];

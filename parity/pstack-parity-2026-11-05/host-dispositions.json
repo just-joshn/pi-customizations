@@ -19,19 +19,17 @@
     {
       "id": "HOST-SKILL-REF",
       "feature": "/name attaches a skill to one message",
-      "cursor": "Every /name at the start or after whitespace that names a skill attaches it to the submitted message, each once (findSkillReferences, regex (?:^|\\s)/([a-zA-Z0-9_-]+)); interactive and headless submit paths both use it.",
-      "pi": "input handler: the first referenced skill rides Pi's /skill:name expansion; each further skill is a skill block ahead of the message; the message text is kept.",
+      "cursor": "Every /name at the start or after whitespace that names a skill attaches it to the submitted message, each once (findSkillReferences, regex (?:^|\\s)/([a-zA-Z0-9_-]+)); interactive and headless submit paths both use it, alongside command expansion.",
+      "pi": "input handler: expands a leading prompt template when skills are also referenced, then the first referenced skill rides Pi's /skill:name expansion and each further skill is a skill block ahead of the message.",
       "evidence": [
         "cli: evidence/cursor-skill-references.json",
         "cli: evidence/cursor-submit-uses-skill-references.txt",
-        "pi-unit: test/aliases.test.ts SKILL-REF-001..003",
-        "pi-e2e: test/e2e/aliases.e2e.test.ts SKILL-REF-001/002",
-        "pi-e2e: test/e2e/aliases.e2e.test.ts SKILL-REF-004",
+        "pi-unit: test/aliases.test.ts SKILL-REF-001..004",
+        "pi-e2e: test/e2e/aliases.e2e.test.ts SKILL-REF-001/002/004",
         "pi-e2e: test/e2e/workflow.e2e.test.ts WORKFLOW-001"
       ],
-      "status": "verified-with-host-difference",
-      "changedThisRun": "Before this run only a leading /name attached a skill.",
-      "difference": "A message that starts with a user's own prompt template keeps only the template: Pi expands templates after input handlers and exports no expander, so skills named later in that message are not attached. pstack ships no prompt templates."
+      "status": "verified",
+      "changedThisRun": "Before this run only a leading /name attached a skill, and a leading prompt template dropped later skill references."
     },
     {
       "id": "HOST-CUSTOM-MODE",
@@ -169,11 +167,12 @@
     {
       "id": "HOST-PLAN-MODE",
       "feature": "Plan mode, SwitchMode, CreatePlan",
-      "cursor": "Plan mode restricts by instruction; CreatePlan writes ~/.cursor/plans/<name>-<id8>.plan.md with todos, isProject, phases; build from the plan card. Headless print auto-approves SwitchMode and returns CreatePlan success without a file.",
-      "pi": "/plan and SwitchMode with a reduced tool set and sandboxed read-only shell; CreatePlan writes the same file shape under <agent dir>/pstack/plans; a select dialog offers build choices.",
-      "evidence": ["cli: 5622.index.js plan-utils.ts, interaction-responses.ts", "docs: docs_agent_plan-mode.md", "pi-e2e: test/e2e/plan.e2e.test.ts"],
+      "cursor": "Plan mode restricts by instruction; CreatePlan writes ~/.cursor/plans/<name>-<id8>.plan.md with todos, isProject, phases; build from the plan card, and bare /plan re-opens the existing plan review card (onShowExistingPlan). Headless print auto-approves SwitchMode and returns CreatePlan success without a file.",
+      "pi": "/plan and SwitchMode with a reduced tool set and sandboxed read-only shell; CreatePlan writes the same file shape under <agent dir>/pstack/plans; a select dialog offers build choices after CreatePlan and on bare /plan when a plan is saved.",
+      "evidence": ["cli: 5622.index.js plan-utils.ts, interaction-responses.ts; 8008.index.js use-slash-commands.ts", "docs: docs_agent_plan-mode.md", "pi-unit: test/plan.test.ts", "pi-e2e: test/e2e/plan.e2e.test.ts"],
       "status": "verified-with-host-difference",
-      "difference": "Pi enforces the restriction (network also blocked); print and JSON runs do not offer SwitchMode; the plan card is a dialog; build in cloud is a local worktree worker."
+      "difference": "Pi enforces the restriction (network also blocked); print and JSON runs do not offer SwitchMode; the plan card is a dialog; build in cloud is a local worktree worker.",
+      "changedThisRun": "Bare /plan now opens the review dialog when a plan file is already saved."
     },
     {
       "id": "HOST-LOOP",
