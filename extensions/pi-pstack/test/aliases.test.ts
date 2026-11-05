@@ -1,10 +1,11 @@
 import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
-import { aliasInputResult, aliasTable, aliasTransform, packageSkillNames } from '../src/aliases.ts';
+import { aliasInputResult, aliasTable, aliasTransform, packageSkillNames, skillReferences } from '../src/aliases.ts';
 import { SKILLS_DIR } from '../src/paths.ts';
 
-const names = new Set(['how', 'poteto-mode', 'principle-prove-it-works']);
+const names = new Set(['how', 'why', 'poteto-mode', 'principle-prove-it-works']);
+const block = (name: string) => `<${name}>`;
 
 describe('aliasTransform', () => {
   test.for([
@@ -14,24 +15,56 @@ describe('aliasTransform', () => {
     { input: '/how\nwhat owns retries?', expected: '/skill:how \nwhat owns retries?' },
     { input: '/principle-prove-it-works', expected: '/skill:principle-prove-it-works' },
   ])('rewrites $input to a native skill command (CMD-001)', ({ input, expected }) => {
-    expect(aliasTransform(input, names)).toBe(expected);
+    expect(aliasTransform(input, names, block)).toBe(expected);
   });
 
   test.for([
-    { input: '/skill:how what', why: 'already native' },
+    { input: 'please /how this', expected: '/skill:how please /how this' },
+    { input: ' /how leading space', expected: '/skill:how  /how leading space' },
+    { input: 'design it.\n/how first', expected: '/skill:how design it.\n/how first' },
+    { input: '/how? the cache', expected: '/skill:how /how? the cache' },
+  ])('attaches a skill referenced after the start of $input, keeping the whole message (SKILL-REF-001)', ({ input, expected }) => {
+    expect(aliasTransform(input, names, block)).toBe(expected);
+  });
+
+  test.for([
+    { input: '/how retries /why', expected: '/skill:how <why>\n\nretries /why' },
+    { input: 'compare /why and /how, then /why again', expected: '/skill:why <how>\n\ncompare /why and /how, then /why again' },
+    { input: '/poteto-mode fix it. /how /why /how', expected: '/skill:poteto-mode <how>\n\n<why>\n\nfix it. /how /why /how' },
+  ])('attaches every referenced skill once, in order of first reference, for $input (SKILL-REF-002)', ({ input, expected }) => {
+    expect(aliasTransform(input, names, block)).toBe(expected);
+  });
+
+  test('leaves a message that starts with a prompt template to Pi, which expands the template only at the start (SKILL-REF-004)', () => {
+    expect(aliasTransform('/mytpl hello /why', names, block, new Set(['mytpl']))).toBeUndefined();
+  });
+
+  test('skips a referenced skill whose file can no longer be read and keeps its text (SKILL-REF-003)', () => {
+    const readable = (name: string) => (name === 'why' ? undefined : `<${name}>`);
+    expect(aliasTransform('/how then /why', names, readable)).toBe('/skill:how then /why');
+  });
+
+  test.for([
+    { input: '/skill:how what /why', why: 'already a native skill command' },
     { input: '/model', why: 'a Pi built-in' },
     { input: '/howdy partner', why: 'a longer word that only starts with a skill name' },
     { input: '/unknown thing', why: 'not a shipped skill' },
-    { input: 'please /how this', why: 'not at the start' },
-    { input: ' /how leading space', why: 'Pi commands start at column zero' },
+    { input: 'see src/how/x and a/why', why: 'a slash inside a word' },
+    { input: 'the /How page', why: 'a name in another case' },
     { input: '', why: 'empty input' },
   ])('leaves $why input alone (CMD-002)', ({ input }) => {
-    expect(aliasInputResult({ text: input }, names)).toEqual({ action: 'continue' });
+    expect(aliasInputResult({ text: input }, names, block)).toEqual({ action: 'continue' });
   });
 
   test('the input handler transforms an alias and keeps attached images (CMD-001)', () => {
     const images = [{ type: 'image' as const, data: 'AAAA', mimeType: 'image/png' }];
-    expect(aliasInputResult({ text: '/how this screen?', images }, names)).toEqual({ action: 'transform', text: '/skill:how this screen?', images });
+    expect(aliasInputResult({ text: '/how this screen?', images }, names, block)).toEqual({ action: 'transform', text: '/skill:how this screen?', images });
+  });
+});
+
+describe('skillReferences', () => {
+  test('finds each skill named after the start or whitespace, once, in order (SKILL-REF-002)', () => {
+    expect(skillReferences('/why x\t/how, y /why z /nope', names)).toEqual(['why', 'how']);
   });
 });
 

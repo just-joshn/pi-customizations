@@ -2,7 +2,7 @@ import { basename } from 'node:path';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { getAgentDir } from '@earendil-works/pi-coding-agent';
-import { aliasInputResult, aliasTable, packageSkillNames } from './aliases.ts';
+import { aliasInputResult, aliasTable, commandNames, loadedSkillBlock, packageSkillNames } from './aliases.ts';
 import { registerAskQuestion } from './ask.ts';
 import { aliasAutocomplete } from './autocomplete.ts';
 import { registerBackgroundShell } from './background-shell.ts';
@@ -100,7 +100,10 @@ function watchParent(pi: ExtensionAPI, parentPid: number): void {
 export default function piPstack(pi: ExtensionAPI): void {
   const agents = loadAgentDefinitions();
 
-  pi.on('input', (event) => aliasInputResult(event, new Set(aliasTable(pi.getCommands()).keys())));
+  pi.on('input', (event) => {
+    const commands = pi.getCommands();
+    return aliasInputResult(event, new Set(aliasTable(commands).keys()), loadedSkillBlock(commands), commandNames(commands));
+  });
   pi.on('session_start', (_event, ctx) => {
     if (ctx.mode === 'tui') ctx.ui.addAutocompleteProvider((current) => aliasAutocomplete(current, aliasTable(pi.getCommands())));
   });

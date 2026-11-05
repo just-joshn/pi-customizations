@@ -23,6 +23,24 @@ test('/how attaches the skill body, path, and raw arguments to one message (CMD-
   expect(assistantTexts(run.events)).toEqual(['ALIAS-OK']);
 });
 
+test('a /name later in the message attaches that skill and keeps the whole message, as Cursor findSkillReferences does (SKILL-REF-001)', async () => {
+  const run = await runJson(sandbox, 'design the metrics. /architect this first.\n@@say MID-OK', ['--no-session']);
+  const [user] = messages(run.events, 'user').map((message) => contentText(message.content));
+  expect(user?.startsWith(`<skill name="architect" location="${join(PACKAGE_ROOT, 'skills/architect/SKILL.md')}">`)).toBe(true);
+  expect(user?.endsWith('</skill>\n\ndesign the metrics. /architect this first.\n@@say MID-OK')).toBe(true);
+  expect(assistantTexts(run.events)).toEqual(['MID-OK']);
+});
+
+test('every referenced skill attaches once, in order of first reference (SKILL-REF-002)', async () => {
+  const run = await runJson(sandbox, '/how retries work /why /how\n@@say BOTH-OK', ['--no-session']);
+  const [user = ''] = messages(run.events, 'user').map((message) => contentText(message.content));
+  const opened = [...user.matchAll(/<skill name="([a-z-]+)"/g)].map((match) => match[1]);
+  expect(opened).toEqual(['how', 'why']);
+  expect(user).toContain('# Why');
+  expect(user.endsWith('</skill>\n\nretries work /why /how\n@@say BOTH-OK')).toBe(true);
+  expect(assistantTexts(run.events)).toEqual(['BOTH-OK']);
+});
+
 test('the skill does not ride along on the next message (CMD-001)', async () => {
   const run = await runJson(sandbox, ['/ketchup @@say FIRST', 'next turn\n@@say SECOND'], ['--no-session']);
   const users = messages(run.events, 'user').map((message) => contentText(message.content));
@@ -48,6 +66,13 @@ test("a user's own prompt template of the same name wins over the alias (CMD-002
   writeFileSync(join(sandbox.agentDir, 'prompts/how.md'), '---\ndescription: my how\n---\nMY-TEMPLATE $@\n');
   const run = await runJson(sandbox, '/how hello', ['--no-session']);
   expect(assistantTexts(run.events)).toEqual(['ECHO: MY-TEMPLATE hello']);
+});
+
+test('a prompt template at the start keeps its expansion when the message also names a skill (SKILL-REF-004)', async () => {
+  mkdirSync(join(sandbox.agentDir, 'prompts'));
+  writeFileSync(join(sandbox.agentDir, 'prompts/mytpl.md'), '---\ndescription: my template\n---\nMY-TEMPLATE $@\n');
+  const run = await runJson(sandbox, '/mytpl hello /why', ['--no-session']);
+  expect(assistantTexts(run.events)).toEqual(['ECHO: MY-TEMPLATE hello /why']);
 });
 
 test('aliases work when the package is installed through a symlink (recheck 1)', async () => {
