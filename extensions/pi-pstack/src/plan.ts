@@ -39,8 +39,13 @@ export const SWITCH_MODE = 'SwitchMode';
 export const PLAN_TOOLS = ['read', 'grep', 'find', 'ls', 'edit', 'write', PLAN_BASH, PLAN_SAVE, SWITCH_MODE, 'AskQuestion', 'TodoWrite', 'agent_status', 'Task', 'stop_agent'] as const;
 const ALLOWED = new Set<string>(PLAN_TOOLS);
 
-/** Cursor's plan-mode guardrail: only markdown files are edited while planning. */
-const MARKDOWN = /\.(?:md|markdown|mdc)$/i;
+/**
+ * Cursor's plan-mode guardrail, enforced since CLI 2026.11.05 (`isPlanModeAllowedWriteTarget`): only files with these
+ * markdown extensions are written while planning, and any other write is rejected with Cursor's reason.
+ */
+const MARKDOWN_EXTENSIONS = ['.md', '.markdown', '.mdown', '.mkd', '.mkdn', '.mdx'];
+const isMarkdown = (path: string) => MARKDOWN_EXTENSIONS.some((extension) => path.trim().toLowerCase().endsWith(extension));
+export const PLAN_WRITE_REJECTED = 'Cannot edit non markdown files in plan mode';
 
 export type PlanCommand = { kind: 'off' } | { kind: 'build' } | { kind: 'on'; task: string };
 
@@ -96,8 +101,8 @@ export function planFromBranch(entries: readonly BranchEntry[], plansDirectory =
 export function planBlockReason(toolName: string, input: Record<string, unknown> = {}): string | undefined {
   if (toolName === 'write' || toolName === 'edit') {
     const path = input['path'];
-    if (typeof path === 'string' && MARKDOWN.test(path)) return undefined;
-    return `Plan mode is on: ${toolName} may change only markdown files while planning. Put the change in the plan. If the user asked you to build it now, switch to agent mode with ${SWITCH_MODE} first.`;
+    if (typeof path === 'string' && isMarkdown(path)) return undefined;
+    return PLAN_WRITE_REJECTED;
   }
   if (ALLOWED.has(toolName)) return undefined;
   if (toolName === 'bash') return `Plan mode is on: use ${PLAN_BASH}, the read-only sandboxed shell, instead of bash.`;

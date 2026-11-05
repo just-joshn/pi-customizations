@@ -338,8 +338,11 @@ test('lets plan mode edit only markdown files, blocks other writers and unknown 
 
   await h.run('on');
   expect(call('write', { path: 'src/a.ts' }).result).toEqual({ block: true, reason: planBlockReason('write', { path: 'src/a.ts' }) });
-  expect(planBlockReason('edit', { path: 'a.ts' })).toContain(SWITCH_MODE);
+  expect(planBlockReason('edit', { path: 'a.ts' })).toBe('Cannot edit non markdown files in plan mode');
   expect([call('edit', { path: 'docs/plan.md' }).result, call('write', { path: '/home/u/.pi/agent/pstack/plans/X-01234567.plan.md' }).result]).toEqual([undefined, undefined]);
+  // Cursor CLI 2026.11.05's list: .md .markdown .mdown .mkd .mkdn .mdx in any case, and not .mdc.
+  expect(['A.MDX', 'b.mdown', 'c.mkd', 'd.mkdn', 'e.Markdown'].map((path) => planBlockReason('write', { path }))).toEqual([undefined, undefined, undefined, undefined, undefined]);
+  expect(planBlockReason('write', { path: 'rules/x.mdc' })).toBe('Cannot edit non markdown files in plan mode');
   expect((call('bash').result as { reason: string }).reason).toContain(PLAN_BASH);
   expect((call('mcp').result as { block: boolean }).block).toBe(true);
   expect(call('read').result).toBeUndefined();

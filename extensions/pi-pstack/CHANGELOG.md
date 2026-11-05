@@ -16,6 +16,7 @@ Closes the host gaps earlier versions documented. `parity/pstack-complete-2026-1
 - Add `/project`: a Project's tracker, store, and chats reach the chat and its subagents, and the footer shows the Project and how many subscriptions the chat listens to.
 - Send a video in `file_attachments` as timestamped frames; the parameter text is Cursor's again.
 - Enter a skill's mode with Alt+Enter on a `/skill` line.
+- Match Cursor CLI 2026.11.05, which began enforcing plan mode's write rule: writes go only to `.md`, `.markdown`, `.mdown`, `.mkd`, `.mkdn`, and `.mdx` files (no longer `.mdc`), and any other write fails with Cursor's `Cannot edit non markdown files in plan mode`.
 
 ## [0.15.36-pi.18] - 2026-11-05
 

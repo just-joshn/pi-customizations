@@ -5,7 +5,7 @@ This page records what `pi-pstack` reproduces from Cursor `pstack` 0.15.36 and i
 ## Sources
 
 - Cursor `pstack` and `cursor-team-kit`: `github.com/cursor/plugins` at `6ea74587e384e1a8035c09ae33a46fe3f881eb9b`. The plugin manifest reports pstack 0.15.36. `package.json.pstackSource.revision` pins `ae5650fe`, this port's capture base; `git log ae5650fe..6ea74587 -- pstack cursor-team-kit` is empty, so both commits name the same plugin content.
-- Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`.
+- Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`. CLI `2026.11.05-86047df` was compared module by module (`parity/pstack-complete-2026-11-05/cli-diff.mjs`, `cli-module-diff.mjs`, `cli-strings-diff.mjs`). For pstack it changes one thing: plan mode now enforces its write rule (`isPlanModeAllowedWriteTarget`, six markdown extensions, `Cannot edit non markdown files in plan mode`), which pi-pstack matches. Its other changes are hosted surfaces (Projects, canvases, automations listing, team plans), workers, telemetry, and input niceties. The pstack it loads from `~/.cursor/plugins/local/pstack` is byte-identical to the reference.
 - Installed Cursor desktop 3.27.22 (distro `d5c0e77a0214208f36b56d42e8e787de88d02ea4`) under `/usr/share/cursor/resources/app`. Its local agent runtime defines the built-in subagents, the Task schema, and Task's resume and model rules. An earlier run recorded the desktop app as absent; that was wrong.
 - Native implementation: this package, which pins its upstream provenance in `package.json.pstackSource`.
 
