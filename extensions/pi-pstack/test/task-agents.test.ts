@@ -4,6 +4,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { findAgent, loadAgentDefinitions } from '../src/task/agents.ts';
+import { resolveSubagentModel } from '../src/task/models.ts';
 
 describe('subagent definitions', () => {
   test('ships the built-in generalPurpose and explore types plus pstack and team-kit agents (TASK-006)', () => {
@@ -14,6 +15,18 @@ describe('subagent definitions', () => {
   test('explore never launches subagents and asks the caller for a thoroughness level', () => {
     const explore = findAgent(loadAgentDefinitions(), 'explore');
     expect([explore.spawns, explore.readonly, explore.description.includes('"quick"'), explore.description.includes('"very thorough"')]).toEqual([false, false, true, true]);
+  });
+
+  test('explore runs on the fast variant of the parent model unless the call names a model (EXPLORE-MODEL-001)', () => {
+    // Cursor docs/subagents.md: the built-in Explore subagent "uses a faster model by default".
+    const explore = findAgent(loadAgentDefinitions(), 'explore');
+    const parent = { provider: 'p', id: 'm', thinking: 'high' as const };
+    const available = [
+      { provider: 'p', id: 'm', reasoning: true, levels: ['low', 'high'] },
+      { provider: 'p', id: 'm-fast', reasoning: true, levels: ['low', 'high'] },
+    ];
+    expect(resolveSubagentModel(explore.model, available, parent)).toEqual({ provider: 'p', id: 'm-fast', thinking: 'high' });
+    expect(resolveSubagentModel(explore.model, available.slice(0, 1), parent)).toEqual(parent);
   });
 
   test('reads agent frontmatter: name, description, is_background, and the prompt body (TASK-006, TASK-009)', () => {

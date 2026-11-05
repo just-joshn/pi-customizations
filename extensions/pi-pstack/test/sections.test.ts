@@ -47,11 +47,13 @@ describe('host section names only the tools this session has (C-M4)', () => {
     expect(host.includes('agent_status')).toBe(tools.includes('agent_status'));
   });
 
-  test('the always-applied rules carry the shipped rule text verbatim, not a paraphrase', () => {
+  test('the always-applied rules carry the shipped rule text verbatim, not a paraphrase (RULE-001)', () => {
+    // The bodies of cursor-team-kit 1.2.0 rules/no-inline-imports.mdc and rules/typescript-exhaustive-switch.mdc.
     const rules = alwaysAppliedRules(SKILLS_DIR);
-    expect(rules).toHaveLength(2);
-    expect(rules[0]).toContain('interface fields');
-    expect(rules[0]).toContain('strict circular-dependency reason');
+    expect(rules).toEqual([
+      '# No inline imports\n\nAlways place imports at the top of the module. Avoid inline imports in function bodies, type annotations, or interface fields unless there is a strict circular-dependency reason and it is documented.',
+      'typescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.',
+    ]);
     const host = hostSection(facts(ALL_TOOLS, { rules }));
     expect([host.includes('interface fields'), host.includes('strict circular-dependency reason')]).toEqual([true, true]);
   });

@@ -366,14 +366,18 @@ describe('/loop through Pi (HOST-004)', () => {
     }
   });
 
-  test('aborting a loop run stops the loop (review: architecture)', async () => {
+  test('aborting one loop run leaves the loop running until it is stopped (LOOP-ABORT-001)', async () => {
+    // Cursor's local /loop is a background shell that echoes a sentinel (built-in loop skill). Its interactive CLI
+    // interrupts a turn without aborting background work: abortAllWork runs only in src/headless.ts.
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       rpc.send({ type: 'prompt', message: '/loop 1s slow\n@@sleep 3000 SLOW' });
-      await rpc.waitFor((event) => event.type === 'agent_start');
+      const first = await rpc.waitFor((event) => event.type === 'agent_start');
       rpc.send({ type: 'abort' });
+      await rpc.waitFor((event) => event.type === 'agent_start' && event !== first, 15_000);
+      rpc.send({ type: 'prompt', message: '/loop stop' });
       const stopped = await rpc.waitFor((event) => event.type === 'extension_ui_request' && event['method'] === 'notify' && String(event['message']).startsWith('Loop stopped'), 15_000);
-      expect(stopped['message']).toBe('Loop stopped: the run was aborted.');
+      expect(stopped['message']).toBe('Loop stopped: stopped by /loop stop.');
     } finally {
       await rpc.close();
     }

@@ -14,7 +14,7 @@ A path and byte comparison of the tracked trees shows every pstack skill, both p
 
 | Cursor dependency | Pi mechanism |
 | --- | --- |
-| Skill invocation and the slash menu | `pi.getCommands()` plus `/name` to `/skill:name` input rewriting, with TUI completions |
+| Skill invocation and the slash menu | `pi.getCommands()` plus an input transform that attaches every `/name` a message names, the first through Pi's `/skill:name` expansion and the rest as skill blocks, with TUI completions |
 | Custom Mode | `/mode <skill>`, a branch-persisted entry, the skill in a `pstack_mode_skill` prompt section on every request while the mode is on, and Cursor's entered, reminder, and exit or switch notices in `pstack_mode` |
 | Plan mode | `/plan` and `SwitchMode`, Cursor's plan-mode instructions in `pstack_plan`, a reduced tool set with `bash_readonly` in an OS sandbox and markdown-only `edit` and `write`, `CreatePlan` writing Cursor's plan file under `plans/`, and a build prompt after a saved plan (`/plan build` too) |
 | Always-applied model rule | `pstack-models.md` read before every request and injected as `pstack_models` |
@@ -44,6 +44,16 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 - A live Task asked for `environment: "cloud"` ran in the same working directory on the same machine, with `environment: SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED`. In this CLI, the cloud argument was inert too. Pi's local worktree is a stronger isolation than that observation, though still weaker than the documented cloud VM.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
+
+## Repairs in 0.15.36-pi.16
+
+A run on 2026-11-05 (UTC) compared pi-pstack with the Cursor CLI 2026.10.22 bundle, Cursor's built-in skills, and Cursor's docs, without starting any Cursor or Pi model session. The repository's `parity/pstack-parity-2026-11-05/` holds the decision trail, the behavior inventory (`inventory.md`, `inventory.json`), and the scripts that rebuild them.
+
+- **Skill references anywhere in a message.** The CLI's `findSkillReferences` scans the whole submitted message with `(?:^|\s)/([a-zA-Z0-9_-]+)` and attaches every skill it names, each once, on both the interactive and headless submit paths. pi-pstack attached only a leading `/name`, so the README's `design this instrumentation ... /architect this first.` lost the skill. Every referenced skill now attaches, in order of first reference.
+- **AskQuestion without a person.** The CLI's headless path rejects with `Questions skipped by the user, continue with the information you already have`, and its subagent runner with `Subagent cannot ask questions`. pi-pstack now returns those reasons.
+- **Rule text.** The two always-applied team-kit rule bodies are injected exactly. The port had added a heading above each.
+- **Interrupted loop runs.** Cursor's local `/loop` is a background shell that echoes a sentinel. The interactive CLI never aborts background work when the user interrupts a turn (`abortAllWork` runs only in `src/headless.ts`), so the loop keeps ticking. pi-pstack had stopped every loop on Escape. A loop now keeps running until `/loop stop` or the `Loop` tool's `stop`.
+- **Explore model.** Cursor's docs state that the built-in explore subagent uses a faster model by default. pi-pstack's `explore` now defaults to the parent model's `-fast` variant when Pi lists one, the same rule as `ci-watcher`'s `model: fast`.
 
 ## Repairs in 0.15.36-pi.14
 

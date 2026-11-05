@@ -7,7 +7,9 @@ export const DONE_LABEL = '✓ Done selecting';
 // Every question ends with a typed-answer option.
 export const OTHER_LABEL = 'Other: (type to answer)';
 export const OTHER_ID = 'other';
-const SKIPPED = 'skipped (no one can answer questions in this session; decide yourself and say what you chose)';
+// Cursor CLI's reject reasons: src/headless.ts for a run with nobody to answer, the local subagent runner for a subagent.
+const SKIPPED = 'Questions skipped by the user, continue with the information you already have';
+const SUBAGENT_SKIPPED = 'Subagent cannot ask questions';
 
 export const AskParams = Type.Object({
   title: Type.Optional(Type.String({ description: 'Optional title for the questions form' })),
@@ -130,7 +132,7 @@ export function registerAskQuestion(pi: ExtensionAPI): void {
       validateQuestions(params.questions);
       // Print and JSON runs and subagents have no one to answer, so the questions come back skipped.
       if (!canAsk(ctx)) {
-        const text = params.questions.map((question) => `${question.id}: ${SKIPPED}`).join('\n');
+        const text = childIdentity.depth > 0 ? SUBAGENT_SKIPPED : SKIPPED;
         return { content: [{ type: 'text', text }], details: { answers: {}, skipped: params.questions.map((question) => question.id) } };
       }
       const answers: Record<string, string[]> = {};

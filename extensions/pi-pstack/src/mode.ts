@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { dirname } from 'node:path';
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext, ThemeColor } from '@earendil-works/pi-coding-agent';
-import { parseFrontmatter, stripFrontmatter } from '@earendil-works/pi-coding-agent';
+import { parseFrontmatter } from '@earendil-works/pi-coding-agent';
+import { skillBlock } from './skill-block.ts';
 
 export const MODE_ENTRY = 'pstack/mode';
 const STATUS_KEY = 'pstack-mode';
@@ -100,10 +100,8 @@ export function modeNotice(state: ModeState): string | undefined {
  * through compaction and restarts, and Pi re-sends a section only when it changes.
  */
 export function modeSkill(mode: ActiveMode): string | undefined {
-  if (mode.path === undefined || !existsSync(mode.path)) return undefined;
   // The frontmatter stays out of the model's context in a mode (MODE-004).
-  const body = stripFrontmatter(readFileSync(mode.path, 'utf8')).trim();
-  return [`<skill name="${mode.skill}" location="${mode.path}">`, `References are relative to ${dirname(mode.path)}.`, '', body, '</skill>'].join('\n');
+  return mode.path === undefined ? undefined : skillBlock(mode.skill, mode.path);
 }
 
 // A mode's badge shows the skill's `icon` (default: lightning) and `color`. Icon names map to terminal glyphs and

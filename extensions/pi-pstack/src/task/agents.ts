@@ -29,10 +29,11 @@ export const GENERAL_PURPOSE: AgentDefinition = {
 
 /**
  * Cursor's built-in codebase explorer: a file-search specialist that the caller tells how thorough to be, and that has
- * no Task tool of its own.
+ * no Task tool of its own. Cursor documents that it uses a faster model by default; here that is the parent's -fast variant.
  */
 export const EXPLORE: AgentDefinition = {
   type: 'explore',
+  model: 'fast',
   description:
     'Fast agent specialized for exploring codebases. Use it to find files by pattern (such as "src/components/**/*.tsx"), search code for keywords (such as "API endpoints"), or answer questions about the codebase (such as "how do API endpoints work?"). When you call it, name the thoroughness you want: "quick" for basic searches, "medium" for moderate exploration, or "very thorough" for a comprehensive search across many locations and naming conventions.',
   readonly: false,
