@@ -1,0 +1,38 @@
+mutation resume-param: src/task/tool.ts
+- Requests to a currently running asynchronous agent fail; wait for completion before resuming.
++ A running agent receives the prompt as a steer.
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/task-text.test.ts (7 tests | 1 failed) 6ms
+   × Task parameter resume carries the text a live Cursor session showed 4ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  21:59:57
+   Duration  571ms (import 74%, transform 24%, tests 1%)
+
+
+$ vitest run test/task-text.test.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/task-text.test.ts > Task parameter resume carries the text a live Cursor session showed
+AssertionError: expected 'Optional agent ID to resume from. If …' to be 'Optional agent ID to resume from. If …' // Object.is equality
+
+Expected: "Optional agent ID to resume from. If provided, sends a follow-up message to the agent after it has completed. Requests to a currently running asynchronous agent fail; wait for completion before resuming."
+Received: "Optional agent ID to resume from. If provided, sends a follow-up message to the agent after it has completed. A running agent receives the prompt as a steer."
+
+ ❯ test/task-text.test.ts:16:31
+     14|   { name: 'run_in_background', changes: 0 },
+     15| ])('Task parameter $name carries the text a live Cursor session showed…
+     16|   expect(piDescription(name)).toBe(cursorTaskText(parameters[name] ?? …
+       |                               ^
+     17| });
+     18|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

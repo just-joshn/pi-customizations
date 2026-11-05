@@ -1,0 +1,38 @@
+$ vitest run "test/e2e/shell-agent.e2e.test.ts" test/task-agents.test.ts test/task-runner.test.ts
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/shell-agent.e2e.test.ts (4 tests | 1 failed) 3557ms
+   × shell instructions and canonical type survive a normalized invocation and a process restart 1118ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell instructions and canonical type survive a normalized invocation and a process restart
+AssertionError: expected { …(11) } to match object { …(2) }
+(13 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "agentId": "62940550-7d58-4997-8f3e-b1367cabe3bb",
+-   "type": "shell",
+  }
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:51:27
+     49|   expect(resumed.isError, resumed.text).toBe(false);
+     50|   expect(response(resumed.text)?.split(',').toSorted()).toEqual(['bash…
+     51|   expect(resumed.details).toMatchObject({ agentId, type: 'shell' });
+       |                           ^
+     52| });
+     53|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  1 failed | 60 passed (61)
+   Start at  21:23:47
+   Duration  4.11s (tests 83%, import 15%, transform 2%)
+
+error: script "test" exited with code 1

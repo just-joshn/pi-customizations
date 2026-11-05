@@ -6,6 +6,7 @@ import type { Static } from 'typebox';
 import { Value } from 'typebox/value';
 import { describe, expect, test } from 'vitest';
 import { AskParams, DONE_LABEL, validateQuestions } from '../src/ask.ts';
+import { cursorToolText } from './cursor-reference.ts';
 
 const question = (options: { id: string; label: string }[], allow_multiple?: boolean) => ({ id: 'q', prompt: 'Pick', options, ...(allow_multiple === undefined ? {} : { allow_multiple }) });
 const outcome = (questions: ReturnType<typeof question>[]) => {
@@ -66,16 +67,10 @@ describe('Cursor AskQuestion calls (HOST-005)', () => {
   const questionSchema = AskParams.properties.questions.items;
   const optionSchema = questionSchema.properties.options.items;
 
-  test('every field Cursor sends is declared by the port schema', () => {
-    const undeclared = fixture.calls.flatMap(({ input }) => [
-      ...Object.keys(input).filter((key) => !(key in AskParams.properties)),
-      ...input.questions.flatMap((question) => [
-        ...Object.keys(question).filter((key) => !(key in questionSchema.properties)),
-        ...question.options.flatMap((option) => Object.keys(option).filter((key) => !(key in optionSchema.properties))),
-      ]),
-    ]);
+  test('the port declares the fields Cursor desktop declares, so an option description models send is not one of them', () => {
+    const declared = [...Object.keys(AskParams.properties), ...Object.keys(questionSchema.properties).map((key) => `questions.${key}`), ...Object.keys(optionSchema.properties).map((key) => `questions.options.${key}`)];
+    expect(declared.toSorted()).toEqual(Object.keys(cursorToolText.tools['AskQuestion']?.parameters ?? {}).toSorted());
     expect(fixture.calls.length).toBe(24);
-    expect(undeclared).toEqual([]);
   });
 
   test('every Cursor call is valid input for the port', () => {

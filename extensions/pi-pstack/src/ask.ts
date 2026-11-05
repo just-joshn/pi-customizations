@@ -21,37 +21,32 @@ export const AskParams = Type.Object({
         Type.Object({
           id: Type.String({ description: 'Unique identifier for this option' }),
           label: Type.String({ description: 'Display text for this option' }),
-          description: Type.Optional(Type.String({ description: 'Detail shown after the label' })),
         }),
         { minItems: 2, description: 'Array of answer options (minimum 2 required)' },
       ),
-      allow_multiple: Type.Optional(Type.Boolean({ description: 'If true, the user can select several options. Defaults to false.' })),
+      allow_multiple: Type.Optional(Type.Boolean({ description: 'If true, user can select multiple options. Defaults to false.' })),
     }),
-    { minItems: 1, description: 'Questions to present to the user, one after another (minimum 1 required)' },
+    { minItems: 1, description: 'Array of questions to present to the user (minimum 1 required)' },
   ),
 });
 export type Question = Static<typeof AskParams>['questions'][number];
-type Option = Question['options'][number];
-
-/** What the user sees for an option: its label, then its description when it has one. */
-const shown = (option: Option): string => (option.description === undefined || option.description === '' ? option.label : `${option.label} — ${option.description}`);
 
 function duplicate(values: readonly string[]): string | undefined {
   return values.find((value, index) => values.indexOf(value) !== index);
 }
 
-/** Answers map back to options by their shown text, so that text and ids must be unique, and the sentinels are reserved. */
+/** Answers map back to options by their labels, so labels and ids must be unique, and the sentinels are reserved. */
 export function validateQuestions(questions: readonly Question[]): void {
   const repeatedId = duplicate(questions.map((question) => question.id));
   if (repeatedId !== undefined) throw new Error(`Question id "${repeatedId}" appears more than once.`);
   for (const question of questions) {
     if (question.options.length === 0) throw new Error(`Question "${question.id}" has no options.`);
-    const label = duplicate(question.options.map(shown));
+    const label = duplicate(question.options.map((option) => option.label));
     if (label !== undefined) throw new Error(`Question "${question.id}" has two options labelled "${label}".`);
     const id = duplicate(question.options.map((option) => option.id));
     if (id !== undefined) throw new Error(`Question "${question.id}" has two options with id "${id}".`);
-    if (question.allow_multiple === true && question.options.some((option) => shown(option) === DONE_LABEL)) throw new Error(`Option label "${DONE_LABEL}" is reserved for ending a multi-select question.`);
-    if (question.options.some((option) => shown(option) === OTHER_LABEL || option.id === OTHER_ID)) throw new Error(`Option label "${OTHER_LABEL}" and id "${OTHER_ID}" are reserved for the typed answer.`);
+    if (question.allow_multiple === true && question.options.some((option) => option.label === DONE_LABEL)) throw new Error(`Option label "${DONE_LABEL}" is reserved for ending a multi-select question.`);
+    if (question.options.some((option) => option.label === OTHER_LABEL || option.id === OTHER_ID)) throw new Error(`Option label "${OTHER_LABEL}" and id "${OTHER_ID}" are reserved for the typed answer.`);
   }
 }
 
@@ -67,10 +62,10 @@ async function typedAnswer(prompt: string, ctx: ExtensionContext): Promise<strin
 }
 
 async function askOne(question: Question, ctx: ExtensionContext, title: string | undefined): Promise<Answer | undefined> {
-  const labelToId = new Map(question.options.map((option) => [shown(option), option.id]));
+  const labelToId = new Map(question.options.map((option) => [option.label, option.id]));
   const prompt = title === undefined || title === '' ? question.prompt : `${title}: ${question.prompt}`;
   if (question.allow_multiple !== true) {
-    const label = await ctx.ui.select(prompt, [...question.options.map(shown), OTHER_LABEL]);
+    const label = await ctx.ui.select(prompt, [...question.options.map((option) => option.label), OTHER_LABEL]);
     if (label === OTHER_LABEL) {
       const other = await typedAnswer(prompt, ctx);
       return other === undefined ? undefined : { ids: [OTHER_ID], other };
@@ -82,7 +77,7 @@ async function askOne(question: Question, ctx: ExtensionContext, title: string |
   let other: string | undefined;
   const result = (): Answer => (other === undefined ? { ids: picked } : { ids: [...picked, OTHER_ID], other });
   for (;;) {
-    const remaining = [...question.options.filter((option) => !picked.includes(option.id)).map(shown), ...(other === undefined ? [OTHER_LABEL] : [])];
+    const remaining = [...question.options.filter((option) => !picked.includes(option.id)).map((option) => option.label), ...(other === undefined ? [OTHER_LABEL] : [])];
     const heading =
       picked.length === 0 && other === undefined
         ? `${prompt} (pick one at a time, then ${DONE_LABEL})`
@@ -110,16 +105,17 @@ export function registerAskQuestion(pi: ExtensionAPI): void {
   pi.registerTool({
     name: 'AskQuestion',
     label: 'Ask question',
+    // Cursor desktop 3.27.22's AskQuestion description.
     description: [
       "Collect structured multiple-choice answers from the user. Use this tool only when you are blocked on a decision that is genuinely the user's to make: one you cannot resolve from the request, the code, or sensible defaults.",
       '',
       'Usage notes:',
-      '- Give each question at least 2 options.',
-      '- The user can always pick "Other" and type an answer, which comes back as other with the text.',
-      '- Set allow_multiple: true to let the user pick several options.',
-      '- If you recommend an option, put it first and end its label with "(Recommended)".',
+      '- Each question should have at least 2 options for the user to choose from',
+      '- Users will always be able to select "Other" to provide custom text input',
+      '- Use allow_multiple: true to allow multiple answers to be selected for a question',
+      '- If you recommend a specific option, make that the first option in the list and add "(Recommended)" at the end of the label',
       '',
-      'Prefer this tool over listing options in your reply text as letters, numbers, or bullets.',
+      'Prefer this tool over listing options in your final response text (as letters, numbers, bullet points, etc).',
     ].join('\n'),
     promptSnippet: 'Structured multiple-choice questions for the user',
     parameters: AskParams,

@@ -1,0 +1,82 @@
+{
+  "Task": {
+    "description": {
+      "cursorWords": 687,
+      "piWords": 673,
+      "keptOfCursor": 0.964,
+      "piFromCursor": 0.984
+    },
+    "parameters": {
+      "description": 1,
+      "prompt": 1,
+      "model": 0.956,
+      "resume": 1,
+      "subagent_type": 0.813,
+      "file_attachments": 1,
+      "run_in_background": 1
+    },
+    "piOnlyParameters": [
+      "fork",
+      "fork_turns",
+      "readonly",
+      "environment",
+      "cloud_base_branch"
+    ]
+  },
+  "TodoWrite": {
+    "description": {
+      "cursorWords": 559,
+      "piWords": 559,
+      "keptOfCursor": 1,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "todos": 1,
+      "merge": 1
+    },
+    "piOnlyParameters": []
+  },
+  "SwitchMode": {
+    "description": {
+      "cursorWords": 462,
+      "piWords": 422,
+      "keptOfCursor": 0.913,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "target_mode_id": 1,
+      "explanation": 1
+    },
+    "piOnlyParameters": []
+  },
+  "GenerateImage": {
+    "description": {
+      "cursorWords": 228,
+      "piWords": 228,
+      "keptOfCursor": 1,
+      "piFromCursor": 1
+    },
+    "parameters": {
+      "description": 1,
+      "filename": 1,
+      "reference_image_paths": 1,
+      "aspect_ratio": 1
+    },
+    "piOnlyParameters": []
+  },
+  "AwaitShell": {
+    "description": {
+      "cursorWords": 507,
+      "piWords": 484,
+      "keptOfCursor": 0.953,
+      "piFromCursor": 0.998
+    },
+    "parameters": {
+      "shell_id": 1,
+      "block_until_ms": 1,
+      "pattern": 1,
+      "waiting_for_subagent": 1
+    },
+    "piOnlyParameters": []
+  }
+}

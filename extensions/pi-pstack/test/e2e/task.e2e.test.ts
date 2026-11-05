@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { cursorReminder } from '../cursor-reference.ts';
 import { assistantTexts, contentText, makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 const AGENT_ID = /Agent ID: ([0-9a-f-]{36})/;
@@ -53,9 +54,7 @@ describe('foreground', () => {
   test('returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say PONG-FG', run_in_background: false });
     expect(result.isError).toBe(false);
-    expect(result.text).toMatch(
-      /^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(can be used with the `resume` parameter to send a follow-up after it completes\)\nTranscript: /,
-    );
+    expect(result.text).toMatch(/^This is the output of the subagent:\n\nresponse:\n<response>\nPONG-FG\n<\/response>\n\nAgent ID: [0-9a-f-]{36} \(can be used with the `resume` parameter to send a follow-up after it completes\)$/);
     expect(result.usage?.totalTokens).toBeGreaterThan(100);
     const entries = transcriptOf(idOf(result.text));
     expect(entries[0]?.type).toBe('session');
@@ -189,9 +188,9 @@ describe('cloud worktrees (TASK-010)', () => {
 });
 
 describe('subagent types', () => {
-  test('comment-sicko runs with its agent body in the system prompt (TASK-006)', async () => {
-    const { result } = await runTask({ prompt: 'go\n@@sys', subagent_type: 'comment-sicko' });
-    expect(result.text).toContain('<pstack_agent>\n# Comment Sicko\n\nMy first output when spawned is exactly this.');
+  test.for(['comment-sicko', 'poteto-agent', 'ci-watcher', 'thermo-nuclear-code-quality-review'])('%s reads the system reminder Cursor builds for a plugin agent', async (type) => {
+    const { result } = await runTask({ prompt: 'go\n@@sys', subagent_type: type });
+    expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder(type)}\n</pstack_subagent>`);
   });
 
   test('readonly limits the child to read, grep, find, ls, a read-only shell, and its todo list (TASK-008, TASK-019)', async () => {
@@ -302,12 +301,12 @@ describe('subagent types', () => {
     const tools = /<response>\n(.*)\n<\/response>/.exec((await runTask({ prompt: 'go\n@@tools-list', subagent_type: 'explore' })).result.text)?.[1]?.split(',') ?? [];
     expect([tools.includes('read'), tools.includes('grep'), tools.includes('bash'), tools.includes('Task'), tools.includes('stop_agent')]).toEqual([true, true, true, false, false]);
     const { result } = await runTask({ prompt: 'go\n@@sys', subagent_type: 'explore' });
-    expect(result.text).toContain('<pstack_agent>\nYou are a file search specialist.');
+    expect(result.text).toContain(`<pstack_subagent>\n${cursorReminder('explore')}\n</pstack_subagent>`);
   });
 
   test('an unknown type fails with the valid list (TASK-006)', async () => {
-    const { result } = await runTask({ prompt: 'go\n@@say X', subagent_type: 'shell' });
-    expect(result.text).toBe('Unknown subagent_type "shell". Available subagent types: generalPurpose, explore, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
+    const { result } = await runTask({ prompt: 'go\n@@say X', subagent_type: 'not-installed' });
+    expect(result.text).toBe('Unknown subagent_type "not-installed". Available subagent types: generalPurpose, explore, shell, ci-watcher, comment-sicko, poteto-agent, thermo-nuclear-code-quality-review.');
   });
 
   test('a subagent of a subagent cannot launch more (TASK-011)', async () => {
@@ -320,7 +319,7 @@ describe('background and parallel', () => {
   test('returns at once and delivers a <task> notification after the turn (TASK-003)', async () => {
     const run = await runJson(sandbox, script([task({ prompt: 'go\n@@sleep 1500 PONG-BG', run_in_background: true })]), ['--no-session']);
     const [launch] = toolEnds(run.events, 'Task');
-    expect(launch?.text.startsWith("Subagent is running in the background. When you end your turn, you will be automatically sent the subagent's final response upon its completion")).toBe(true);
+    expect(launch?.text.startsWith('Subagent is running in the background. If needed, you can monitor its output by tailing the transcript at: ')).toBe(true);
     const agentId = idOf(launch?.text);
     const notice = run.events
       .filter((event) => event.type === 'entry_appended')
@@ -369,10 +368,9 @@ describe('background and parallel', () => {
     expect(notice?.content?.split('\n').filter((line) => line.startsWith('status:') || line.startsWith('detail:'))).toEqual(['status: error', 'detail: boom']);
   });
 
-  test('poteto-agent runs in the background by default (TASK-009)', async () => {
+  test('a plugin agent runs in the foreground unless the call asks for the background, as Cursor drops is_background for plugin agents', async () => {
     const { result } = await runTask({ prompt: 'go\n@@say POTETO', subagent_type: 'poteto-agent' });
-    expect(result.text.startsWith('Subagent is running in the background.')).toBe(true);
-    expect(result.details).toMatchObject({ subagentType: 'poteto-agent', background: true });
+    expect([/<response>\n(.*)\n<\/response>/.exec(result.text)?.[1], result.details]).toEqual(['POTETO', expect.objectContaining({ subagentType: 'poteto-agent', background: false })]);
   });
 
   test('two Task calls in one message run at the same time (TASK-004)', async () => {
@@ -419,7 +417,7 @@ describe('usage accounting', () => {
 describe('resume over RPC', () => {
   const settledAfter = (rpc: ReturnType<typeof startRpc>, mark: number) => (event: PiEvent) => event.type === 'agent_settled' && rpc.events.indexOf(event) >= mark;
 
-  test('continues the same transcript, steers a running agent, and refuses unknown agents (TASK-005, C-H4)', async () => {
+  test("continues the same transcript, refuses a running agent with Cursor's error, and refuses unknown agents (TASK-005)", async () => {
     const rpc = startRpc(sandbox, ['--no-session']);
     try {
       const prompt = async (message: string) => {
@@ -432,23 +430,17 @@ describe('resume over RPC', () => {
       const agentId = idOf(first?.text);
       const [resumed] = await prompt(script([task({ prompt: 'again\n@@count', resume: agentId, model: 'scripted/plain' })]));
       expect(/<response>\n(.*)\n<\/response>/.exec(resumed?.text ?? '')?.[1]).toBe('USERS=2');
-      expect(resumed?.text.endsWith('Note: model "scripted/plain" was ignored; a resumed agent keeps its earlier model.')).toBe(true);
+      expect(resumed?.text.includes('scripted/plain')).toBe(false);
 
-      const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep 4000 SLOW', run_in_background: true })]));
-      const [steered] = await prompt(script([task({ prompt: 'change course\n@@say STEERED', resume: idOf(slow?.text), model: 'scripted/plain' })]));
-      expect([steered?.isError, steered?.text.split('\n')]).toEqual([
-        false,
-        [
-          `Sent to agent ${idOf(slow?.text)} while it runs: it reads the message after its current step. Its final response still arrives as its launch said, as a completion notification for a background agent or as the waiting Task result for a foreground one, so do not wait or poll for it.`,
-          'Note: model "scripted/plain" was ignored; a resumed agent keeps its earlier model.',
-        ],
-      ]);
+      const [slow] = await prompt(script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })]));
+      const [refused] = await prompt(script([task({ prompt: 'change course\n@@say CHANGED', resume: idOf(slow?.text) })]));
+      expect([refused?.isError, refused?.text]).toEqual([true, 'Sub-agent is currently running. You may send the follow-up message when it has completed.']);
       const [unknown] = await prompt(script([task({ prompt: 'x', resume: '00000000-0000-4000-8000-000000000000' })]));
       expect(unknown?.text).toBe('Unknown agent ID 00000000-0000-4000-8000-000000000000. Resume needs an agent ID returned by an earlier Task call in this workspace.');
       const notice = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'custom');
       const text = contentText((notice['message'] as { content: string }).content);
-      expect([text.includes(`task_id: ${idOf(slow?.text)}\n`), text.includes('\ndetail: STEERED\n')]).toEqual([true, true]);
-      expect(transcriptOf(idOf(slow?.text)).filter((entry) => entry.message?.role === 'user').length).toBe(2);
+      expect([text.includes(`task_id: ${idOf(slow?.text)}\n`), text.includes('\ndetail: SLOW\n')]).toEqual([true, true]);
+      expect(transcriptOf(idOf(slow?.text)).filter((entry) => entry.message?.role === 'user').length).toBe(1);
     } finally {
       await rpc.close();
     }
@@ -473,42 +465,43 @@ describe('resume across processes and workspaces', () => {
     expect(toolEnds(second.events, 'Task')[0]?.text).toBe(`Unknown agent ID ${agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
   });
 
-  test('two calls in one message that resume the same agent get one writer: the second steers the first (review: security 3, architecture 2; C-H4)', async () => {
+  test('two calls in one message that resume the same agent get one writer: the second fails as Cursor fails a follow-up to a running agent (review: security 3)', async () => {
     const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const second = await runJson(sandbox, script([[task({ prompt: 'a\n@@sleep 1500 A', resume: agentId }), task({ prompt: 'b\n@@say B', resume: agentId })]]), ['--no-session']);
     const ends = toolEnds(second.events, 'Task');
-    expect(ends.map((end) => end.text.split('\n')[0]?.slice(0, 32)).toSorted()).toEqual([`Sent to agent ${agentId.slice(0, 18)}`, 'This is the output of the subagent:'.slice(0, 32)]);
-    expect(ends.map((end) => /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1]).filter((text) => text !== undefined)).toEqual(['B']);
-    expect(readdirSync(subagentDir()).filter((name) => name.endsWith(`_${agentId}.jsonl`))).toHaveLength(1);
+    expect(ends.map((end) => [end.isError, /<response>\n(.*)\n<\/response>/.exec(end.text)?.[1] ?? end.text]).toSorted()).toEqual([
+      [false, 'A'],
+      [true, 'Sub-agent is currently running. You may send the follow-up message when it has completed.'],
+    ]);
+    expect(transcriptOf(agentId).filter((entry) => entry.message?.role === 'user').length).toBe(2);
   });
 
-  test('a readonly call cannot steer a running agent that has write access (C-H4)', async () => {
-    const rpc = startRpc(sandbox, ['--no-session']);
-    try {
-      const [slow] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'go\n@@sleep 3000 SLOW', run_in_background: true })])), 'Task');
-      const [refused] = toolEnds(await rpcPrompt(rpc, script([task({ prompt: 'x', resume: idOf(slow?.text), readonly: true })])), 'Task');
-      expect([refused?.isError, refused?.text]).toEqual([true, `Agent ${idOf(slow?.text)} is running with write access, so a readonly call cannot message it. Wait for its completion notification, or stop it with stop_agent.`]);
-    } finally {
-      await rpc.close();
-    }
-  });
-
-  test('resume follows the subagent type background setting (C-M7)', async () => {
-    const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE', subagent_type: 'poteto-agent' })]), ['--no-session']);
+  test('a resume runs in the foreground unless the call asks for the background', async () => {
+    const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE', subagent_type: 'poteto-agent', run_in_background: true })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const second = await runJson(sandbox, script([task({ prompt: 'again\n@@say TWO', resume: agentId })]), ['--no-session']);
     const [resumed] = toolEnds(second.events, 'Task');
-    expect([resumed?.text.startsWith('Subagent is running in the background.'), resumed?.details]).toEqual([true, expect.objectContaining({ background: true, subagentType: 'poteto-agent' })]);
+    expect([/<response>\n(.*)\n<\/response>/.exec(resumed?.text ?? '')?.[1], resumed?.details]).toEqual(['TWO', expect.objectContaining({ background: false, subagentType: 'poteto-agent' })]);
   });
 });
 
 describe('resume edge cases', () => {
-  test('a resume that names another subagent_type keeps the recorded type and says so', async () => {
+  test('a resume that names another subagent_type fails as Cursor desktop does, and the same type in another spelling resumes', async () => {
     const first = await runJson(sandbox, script([task({ prompt: 'go\n@@say ONE' })]), ['--no-session']);
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
-    const second = await runJson(sandbox, script([task({ prompt: 'again\n@@say TWO', resume: agentId, subagent_type: 'poteto-agent' })]), ['--no-session']);
-    expect(toolEnds(second.events, 'Task')[0]?.text).toContain('Note: subagent_type "poteto-agent" was ignored; a resumed agent keeps its earlier type, generalPurpose.');
+    const other = await runJson(sandbox, script([task({ prompt: 'again\n@@say TWO', resume: agentId, subagent_type: 'poteto-agent' })]), ['--no-session']);
+    expect(toolEnds(other.events, 'Task')[0]).toMatchObject({
+      isError: true,
+      text: 'Cannot resume a "generalPurpose" subagent as "poteto-agent". A resumed subagent keeps its type: omit `subagent_type` to resume this child, or start a new "poteto-agent" subagent without `resume`.',
+    });
+    const same = await runJson(sandbox, script([task({ prompt: 'again\n@@say THREE', resume: agentId, subagent_type: 'general_purpose_agent' })]), ['--no-session']);
+    expect(/<response>\n(.*)\n<\/response>/.exec(toolEnds(same.events, 'Task')[0]?.text ?? '')?.[1]).toBe('THREE');
+  });
+
+  test('an empty prompt fails before any child starts', async () => {
+    const { result } = await runTask({ prompt: '  \n ' });
+    expect([result.isError, result.text]).toEqual([true, 'prompt is required']);
   });
 
   const record = (agentId: string, type: string) => {
@@ -604,7 +597,8 @@ describe('resume edge cases', () => {
     const agentId = idOf(toolEnds(first.events, 'Task')[0]?.text);
     const resumeFromChild = JSON.stringify([{ tool: 'Task', args: { description: 'r', prompt: 'again\n@@tools-list', resume: agentId } }]);
     const { result } = await runTask({ prompt: `go\n@@script ${resumeFromChild}` });
-    const nested = /<response>\n([^\n]*)\n<\/response>/.exec(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1] ?? '')?.[1]?.split(',') ?? [];
+    // The child's reply already holds the nested Task's <response> block, so it is not wrapped again (Cursor's rule).
+    const nested = /<response>\n([^\n]*)\n<\/response>/.exec(result.text)?.[1]?.split(',') ?? [];
     expect([nested.includes('TodoWrite'), nested.includes('Task')]).toEqual([true, false]);
   });
 
@@ -619,7 +613,8 @@ describe('resume edge cases', () => {
 
   test('an agent keeps its depth on resume, so the root cannot lift a grandchild (review r2: architecture)', async () => {
     const { result } = await runTask({ prompt: 'go\n@@task-chain 1' });
-    const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
+    // The grandchild's Agent ID line comes first: it is inside the child's reply, ahead of the child's own line.
+    const grandchild = idOf(result.text);
     const resumed = await runTask({ prompt: 'again\n@@tools-list', resume: grandchild });
     const tools = /<response>\n(.*)\n<\/response>/.exec(resumed.result.text)?.[1]?.split(',') ?? [];
     expect([tools.includes('TodoWrite'), tools.includes('Task')]).toEqual([true, false]);
@@ -665,7 +660,7 @@ describe('stop_agent (C-H4)', () => {
       // Pi writes the transcript once the child takes its prompt; before that a resume finds no context to continue.
       await vi.waitFor(() => expect(readdirSync(subagentDir()).some((name) => name.endsWith(`_${agentId}.jsonl`))).toBe(true), { timeout: 15_000, interval: 50 });
       const resumed = await runJson(sandbox, script([task({ prompt: 'x', resume: agentId })]), ['--no-session']);
-      expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe(`Agent ${agentId} is still running (pid ${pid}; lock ${join(subagentDir(), `${agentId}.lock`)}). Wait for its completion before resuming it.`);
+      expect(toolEnds(resumed.events, 'Task')[0]?.text).toBe('Sub-agent is currently running. You may send the follow-up message when it has completed.');
       const other = await runJson(sandbox, script([stop(agentId)]), ['--no-session']);
       expect([toolEnds(other.events, 'stop_agent')[0]?.text, alive(pid)]).toEqual([
         `Stopped agent ${agentId}: another Pi process ran it (pid ${pid}), so it got SIGTERM and has exited. That process reports the stop as the agent's result.`,
@@ -727,7 +722,7 @@ describe('isolated workers share the root workspace (C-M2)', () => {
     execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'first', '--allow-empty'], { cwd: sandbox.workDir });
     const { result } = await runTask({ prompt: 'go\n@@task-chain 1', environment: 'cloud' });
     const worker = (result.details as { agentId: string }).agentId;
-    const grandchild = idOf(/<response>\n([\s\S]*)\n<\/response>/.exec(result.text)?.[1]);
+    const grandchild = idOf(result.text);
     expect(worker).not.toBe(grandchild);
     expect(
       readdirSync(subagentDir())

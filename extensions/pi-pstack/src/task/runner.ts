@@ -11,7 +11,7 @@ import type { ModelSpec } from './models.ts';
 
 // TodoWrite only changes the child's own todo list, so a readonly reviewer can still keep one. The child replaces
 // bash with a sandboxed read-only shell (readonly-shell.ts).
-const READONLY_TOOLS = 'read,grep,find,ls,bash,TodoWrite';
+const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash', 'TodoWrite'];
 const AGENT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,126}[A-Za-z0-9]$/;
 export const KILL_GRACE_MS = 3_000;
 // Dialogs block a run until answered. A subagent has nobody to ask, so its owner dismisses them.
@@ -33,11 +33,13 @@ export interface ChildArgsOptions {
   trusted?: boolean;
   /** Tools the agent type adds to Pi's default loadout (explore's search tools). */
   addTools?: readonly string[];
+  onlyTools?: readonly string[];
 }
 
 /** Argv for one `pi --mode rpc` subagent process. Its prompts travel as RPC commands on stdin, never in argv. */
 export function childArgs(options: ChildArgsOptions): string[] {
   const extraTools = [...new Set([...(options.restoreTools ?? []), ...(options.addTools ?? [])])];
+  const selectedTools = options.onlyTools?.filter((name) => options.readonly !== true || READONLY_TOOLS.includes(name)) ?? (options.readonly === true ? READONLY_TOOLS : undefined);
   const model = options.model === undefined ? [] : ['--model', `${options.model.provider}/${options.model.id}`, ...(options.model.thinking === undefined ? [] : ['--thinking', options.model.thinking])];
   return [
     '--mode',
@@ -50,8 +52,8 @@ export function childArgs(options: ChildArgsOptions): string[] {
     PACKAGE_ROOT,
     ...(options.trusted === undefined ? [] : [options.trusted ? '--approve' : '--no-approve']),
     ...model,
-    ...(options.readonly === true ? ['--tools', READONLY_TOOLS, '--no-mcp'] : []),
-    ...(options.readonly !== true && extraTools.length > 0 ? ['--tools', extraTools.map((name) => `+${name}`).join(',')] : []),
+    ...(selectedTools === undefined ? [] : ['--tools', selectedTools.join(','), '--no-mcp']),
+    ...(selectedTools === undefined && extraTools.length > 0 ? ['--tools', extraTools.map((name) => `+${name}`).join(',')] : []),
   ];
 }
 
@@ -128,8 +130,6 @@ export interface ChildHandle {
   kill: () => void;
   /** stop_agent: aborts the run over RPC so the transcript records it, then kills the group if it outlives the grace period. */
   stop: () => void;
-  /** Queues a message into the running turn (a new turn if the run just ended); rejects once the child is closing. */
-  steer: (text: string, images: readonly ImageContent[]) => Promise<void>;
   pid: number | undefined;
 }
 
@@ -184,42 +184,6 @@ function readAssistant(event: Record<string, unknown>): AssistantRecord | undefi
   };
 }
 
-function readUser(event: Record<string, unknown>): { text: string; images: ImageContent[] } | undefined {
-  if (event['type'] !== 'message_end') return undefined;
-  const message = event['message'] as { role?: string; content?: unknown } | undefined;
-  if (message?.role !== 'user') return undefined;
-  if (typeof message.content === 'string') return { text: message.content, images: [] };
-  if (!Array.isArray(message.content)) return undefined;
-  const text: string[] = [];
-  const images: ImageContent[] = [];
-  for (const part of message.content as { type?: string; text?: string; data?: string; mimeType?: string }[]) {
-    if (part.type === 'text') text.push(part.text ?? '');
-    if (part.type === 'image' && typeof part.data === 'string' && typeof part.mimeType === 'string') images.push({ type: 'image', data: part.data, mimeType: part.mimeType });
-  }
-  return { text: text.join(''), images };
-}
-
-const sameImages = (left: readonly ImageContent[], right: readonly ImageContent[]): boolean => left.length === right.length && left.every((image, index) => image.data === right[index]?.data && image.mimeType === right[index]?.mimeType);
-/** A steering input this runner accepted, kept until Pi stores it as a user message. */
-export interface AcceptedSteer {
-  text: string;
-  images: readonly ImageContent[];
-}
-
-/**
- * Rebuilds messages from a queue drain. Only steering entries were sent by this runner, so only they may reclaim a
- * recorded image. Each recorded steer is used once, which keeps two identical texts with different images in order.
- */
-export function recoverDrained(drained: readonly { queue: 'steering' | 'followUp'; text: string }[], accepted: readonly AcceptedSteer[]): AcceptedSteer[] {
-  const unused = [...accepted];
-  return drained.map(({ queue, text }) => {
-    if (queue === 'followUp') return { text, images: [] };
-    const exact = unused.findIndex((entry) => entry.text === text);
-    const [entry] = unused.splice(exact === -1 ? 0 : exact, 1);
-    return { text, images: entry?.images ?? [] };
-  });
-}
-
 function lineReader(onLine: (line: string) => void): (chunk: Buffer) => void {
   const decoder = new StringDecoder('utf8');
   let buffer = '';
@@ -267,8 +231,6 @@ interface ChildState {
   stopped: boolean;
   /** Why Pi refused the first prompt. */
   refused?: string;
-  /** The recovery after a steer stranded at settlement could not continue the run. */
-  recoveryFailed?: string;
 }
 
 function outcomeOf(last: AssistantRecord | undefined, state: ChildState, code: number | null): ChildOutcome {
@@ -276,7 +238,6 @@ function outcomeOf(last: AssistantRecord | undefined, state: ChildState, code: n
   if (state.aborted) return { ...base, failure: 'Subagent was aborted' };
   if (state.stopped) return { ...base, failure: 'Subagent was stopped with stop_agent' };
   if (state.refused !== undefined) return { ...base, failure: state.refused };
-  if (state.recoveryFailed !== undefined) return { ...base, failure: state.recoveryFailed };
   if (last?.stopReason === 'error' || last?.stopReason === 'aborted') return { ...base, failure: last.errorMessage ?? `subagent stopped: ${last.stopReason}` };
   if (code !== 0) return { ...base, failure: `pi exited with code ${code}: ${state.stderr.trim().split('\n').at(-1) ?? ''}`.trim() };
   return base;
@@ -286,13 +247,13 @@ interface RpcResponse {
   id?: string;
   success: boolean;
   error?: string;
-  data?: { disposition?: string; steering?: string[]; followUp?: string[] };
+  data?: { disposition?: string };
 }
 
 /**
  * Runs one `pi --mode rpc` child in its own process group, so abort and shutdown can stop it and everything it started.
- * The child stays open while its run is active or a command awaits its response, so a steer always lands in a run;
- * once the run settles with nothing outstanding, closing stdin makes Pi save the session and exit.
+ * The child stays open while its run is active or a command awaits its response; once the run settles with nothing
+ * outstanding, closing stdin makes Pi save the session and exit.
  * Pi's `RpcClient` cannot start or end this child (no detached spawn, stdin close, `extension_ui_response`, or exit
  * code); docs/native-gaps.md records each missing mechanism.
  */
@@ -304,8 +265,6 @@ export function startChild(options: ChildOptions): ChildHandle {
   let last: AssistantRecord | undefined;
   let open = true;
   let idle = true;
-  let steering: AcceptedSteer[] = [];
-  let recoveryRounds = 0;
   let nextId = 0;
   let grace: ReturnType<typeof setTimeout> | undefined;
   const waiting = new Map<string, (response: RpcResponse) => void>();
@@ -323,32 +282,13 @@ export function startChild(options: ChildOptions): ChildHandle {
     waiting.set(id, onResponse);
     write({ ...record, id });
   };
-  const prompt = (text: string, images: readonly ImageContent[], onResponse: (response: RpcResponse) => void, streamingBehavior?: 'steer') =>
-    request({ type: 'prompt', message: text, ...(images.length === 0 ? {} : { images }), ...(streamingBehavior === undefined ? {} : { streamingBehavior }) }, (response) => {
+  const prompt = (text: string, images: readonly ImageContent[], onResponse: (response: RpcResponse) => void) =>
+    request({ type: 'prompt', message: text, ...(images.length === 0 ? {} : { images }) }, (response) => {
       if (response.data?.disposition === 'started') idle = false;
       onResponse(response);
     });
-  // A steer can reach Pi just as its run ends and stay queued with no run to take it. Draining that queue is the
-  // only native way to continue it, and the drain returns text only, so each drained message gets its recorded
-  // attachments back and keeps its own message boundary.
   const closeWhenSettled = () => {
-    if (!open || !idle || waiting.size > 0) return;
-    if (state.stopped || steering.length === 0) return close();
-    if (recoveryRounds >= 3) {
-      state.recoveryFailed = `A steering message stayed queued after ${recoveryRounds} resume attempts: ${steering.map((entry) => entry.text).join(' | ')}`;
-      steering = [];
-      return close();
-    }
-    recoveryRounds += 1;
-    const accepted = steering;
-    steering = [];
-    request({ type: 'clear_queue' }, (response) => {
-      const drained = [...(response.data?.steering ?? []).map((text) => ({ queue: 'steering' as const, text })), ...(response.data?.followUp ?? []).map((text) => ({ queue: 'followUp' as const, text }))];
-      if (drained.length === 0) return closeWhenSettled();
-      const recovered = recoverDrained(drained, accepted);
-      steering = recovered;
-      for (const [index, entry] of recovered.entries()) prompt(entry.text, entry.images, () => undefined, index === 0 ? undefined : 'steer');
-    });
+    if (open && idle && waiting.size === 0) close();
   };
 
   const kill = () => {
@@ -363,26 +303,6 @@ export function startChild(options: ChildOptions): ChildHandle {
     grace = setTimeout(() => killGroup(child.pid), KILL_GRACE_MS);
     grace.unref();
   };
-  const steer = (text: string, images: readonly ImageContent[]) =>
-    new Promise<void>((resolve, reject) => {
-      if (!open || state.stopped || state.aborted) return reject(new Error('The subagent has finished its run.'));
-      const entry = { text, images };
-      steering.push(entry);
-      prompt(
-        text,
-        images,
-        (response) => {
-          if (!response.success) {
-            steering = steering.filter((candidate) => candidate !== entry);
-            return reject(new Error(response.error ?? 'Pi refused the message.'));
-          }
-          if (response.data?.disposition === 'handled') steering = steering.filter((candidate) => candidate !== entry);
-          resolve();
-        },
-        'steer',
-      );
-    });
-
   const onRecord = (record: { type: string } & Record<string, unknown>) => {
     if (record.type === 'response') {
       const response = record as unknown as RpcResponse;
@@ -397,23 +317,6 @@ export function startChild(options: ChildOptions): ChildHandle {
       return;
     }
     options.onEvent?.(record);
-    const user = readUser(record);
-    if (user !== undefined) {
-      const matchers = [
-        (entry: { text: string; images: readonly ImageContent[] }) => entry.text === user.text && sameImages(entry.images, user.images),
-        (entry: { text: string }) => entry.text === user.text,
-        (entry: { images: readonly ImageContent[] }) => entry.images.length > 0 && sameImages(entry.images, user.images),
-      ];
-      let index = -1;
-      for (const matches of matchers) {
-        index = steering.findIndex(matches);
-        if (index !== -1) break;
-      }
-      if (index !== -1) {
-        steering.splice(index, 1);
-        recoveryRounds = 0;
-      }
-    }
     if (record.type === 'agent_start') idle = false;
     const usage = usageOf(record);
     if (usage !== undefined) state.usage = addUsage(state.usage, usage);
@@ -458,5 +361,5 @@ export function startChild(options: ChildOptions): ChildHandle {
       waiting.clear();
     });
   });
-  return { done, kill, stop, steer, pid: child.pid };
+  return { done, kill, stop, pid: child.pid };
 }

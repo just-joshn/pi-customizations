@@ -29,11 +29,11 @@ const ORPHAN_EXIT_MS = 5_000;
 // What Cursor tells every subagent in a system reminder, minus its sentence about Cursor Canvas files.
 const SUBAGENT_REMINDER = 'You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions.';
 
-/** In a subagent, Cursor's subagent reminder, and the agent definition body as the agent's own instructions. */
+/** In a subagent, Cursor's system reminder: the shared subagent reminder, then the agent type's own reminder. */
 function agentSection(agents: readonly AgentDefinition[]): Record<string, string> {
   if (childIdentity.depth === 0) return {};
-  const prompt = agents.find((agent) => agent.type === childIdentity.agentType)?.prompt ?? '';
-  return { pstack_subagent: SUBAGENT_REMINDER, ...(prompt === '' ? {} : { pstack_agent: prompt }) };
+  const reminder = agents.find((agent) => agent.type === childIdentity.agentType)?.reminder ?? '';
+  return { pstack_subagent: reminder === '' ? SUBAGENT_REMINDER : `${SUBAGENT_REMINDER}\n\n${reminder}` };
 }
 
 function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Record<string, string> {
@@ -143,6 +143,8 @@ export default function piPstack(pi: ExtensionAPI): void {
   if (childIdentity.readonly) registerReadonlyShell(pi);
 
   pi.on('before_agent_start', (event, ctx) => {
+    const onlyTools = ownType?.onlyTools;
+    if (onlyTools !== undefined) pi.setActiveTools(pi.getActiveTools().filter((name) => onlyTools.includes(name)));
     const loopText = loop.section();
     const planText = plan.section();
     const todoText = todos.section();

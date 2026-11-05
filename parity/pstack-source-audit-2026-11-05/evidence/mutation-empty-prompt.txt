@@ -1,0 +1,55 @@
+mutation empty-prompt: src/task/tool.ts
+-   if (params.prompt.trim() === '') throw new Error('prompt is required');
+
++ 
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/task.e2e.test.ts (65 tests | 1 failed | 64 skipped) 681ms
+   ❯ resume edge cases (11)
+     × an empty prompt fails before any child starts 680ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 64 skipped (65)
+   Start at  21:45:12
+   Duration  1.19s (tests 61%, import 33%, transform 6%)
+
+
+$ vitest run "test/e2e/task.e2e.test.ts" -t "empty prompt"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > resume edge cases > an empty prompt fails before any child starts
+AssertionError: expected [ false, …(1) ] to deeply equal [ true, 'prompt is required' ]
+
+- Expected
++ Received
+
+  [
+-   true,
+-   "prompt is required",
++   false,
++   "This is the output of the subagent:
++
++ response:
++ <response>
++
++ </response>
++
++ Agent ID: 3cf5c11b-0eb6-499f-b86a-f5bec28993a8 (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-AKFR86/agent/pstack/workspaces/--tmp-pi-pstack-e2e-AKFR86-work--/subagents/*_3cf5c11b-0eb6-499f-b86a-f5bec28993a8.jsonl",
+  ]
+
+ ❯ test/e2e/task.e2e.test.ts:520:43
+    518|   test('an empty prompt fails before any child starts', async () => {
+    519|     const { result } = await runTask({ prompt: '  \n ' });
+    520|     expect([result.isError, result.text]).toEqual([true, 'prompt is re…
+       |                                           ^
+    521|   });
+    522|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

@@ -15,8 +15,9 @@ export interface ModelSpec {
   thinking?: Effort;
 }
 
-const INHERIT = new Set(['', 'inherit', 'inherit-parent', 'auto', 'default']);
-const FAST = new Set(['fast']);
+// Cursor reads `inherit` as an omitted model. auto, default, and inherit-parent name Cursor's own default model or a
+// pstack rule value, so they run on the parent here.
+const OMITTED = new Set(['inherit', 'inherit-parent', 'auto', 'default']);
 const EFFORTS = new Set<string>(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max']);
 const DASH_SLUG = /^(.+?)(?:-thinking)?(?:-(none|minimal|low|medium|high|xhigh|max))?(-fast)?$/;
 
@@ -123,24 +124,31 @@ function resolveBracketed(value: string, find: Find): ModelSpec | undefined {
   return model === undefined ? undefined : withThinking(model, parameters.effort);
 }
 
+/** The parent model's -fast variant when Pi lists one, keeping the parent's thinking level where it applies; else the parent. */
+export function fastVariant(available: readonly AvailableModel[], parent: ModelSpec | undefined): ModelSpec | undefined {
+  if (parent === undefined) return undefined;
+  const candidate = available.find((model) => model.provider === parent.provider && model.id === `${parent.id}-fast`);
+  if (candidate === undefined) return parent;
+  return { provider: candidate.provider, id: candidate.id, ...(parent.thinking === undefined || !candidate.levels.includes(parent.thinking) ? {} : { thinking: parent.thinking }) };
+}
+
 /**
- * Resolves Task's `model`: aliases run on the parent, a listed model runs as asked, and anything else fails with the
- * allowed list. Legacy slugs `<id>-<effort>[-fast]` still map to a Pi model plus thinking level.
+ * Resolves Task's `model`. An omitted value, an alias, or an ignored `fast` runs on `fallback`, the parent model or the
+ * type's default. A listed model runs as asked, and anything else fails with the allowed list. Legacy slugs
+ * `<id>-<effort>[-fast]` still map to a Pi model plus thinking level.
  */
-export function resolveSubagentModel(value: string | undefined, available: readonly AvailableModel[], parent: ModelSpec | undefined): ModelSpec | undefined {
-  const requested = (value ?? '').trim();
-  if (INHERIT.has(requested)) return parent;
-  if (FAST.has(requested)) {
-    if (parent === undefined) return undefined;
-    const candidate = available.find((model) => model.provider === parent.provider && model.id === `${parent.id}-fast`);
-    if (candidate === undefined) return parent;
-    return { provider: candidate.provider, id: candidate.id, ...(parent.thinking === undefined || !candidate.levels.includes(parent.thinking) ? {} : { thinking: parent.thinking }) };
-  }
+export function resolveSubagentModel(value: string | undefined, available: readonly AvailableModel[], fallback: ModelSpec | undefined, parent: ModelSpec | undefined = fallback): ModelSpec | undefined {
+  if (value === undefined) return fallback;
+  const requested = value.trim();
+  if (requested === '') throw invalid(value, available, 'Model must be a non-empty string when provided.');
+  if (OMITTED.has(requested.toLowerCase())) return fallback;
   try {
     const find: Find = (reference) => findModel(reference, available, parent?.provider);
     const resolved = resolveBracketed(requested, find) ?? resolvePiSpec(requested, find) ?? resolveDashSlug(requested, find);
-    if (resolved === undefined) throw invalid(requested, available);
-    return resolved;
+    if (resolved !== undefined) return resolved;
+    // Cursor ignores a `fast` alias it cannot resolve, as if the call named no model.
+    if (requested.toLowerCase() === 'fast') return fallback;
+    throw invalid(requested, available);
   } catch (error) {
     if (error instanceof UnsupportedLevel) throw invalid(requested, available, error.message);
     throw error;

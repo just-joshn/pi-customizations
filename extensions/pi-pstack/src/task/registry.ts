@@ -8,8 +8,6 @@ export const NOTIFICATION_TYPE = 'pstack/task';
 interface Running {
   settled: Promise<void>;
   handle: ChildHandle;
-  /** How the child runs now, which can be stricter than its record (plan mode). */
-  readonly: boolean;
   background: boolean;
 }
 
@@ -37,7 +35,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   };
 
   /** Registers synchronously, before any await in the caller, so a sibling call in the same message sees it. */
-  const track = (agentId: string, handle: ChildHandle, release: () => void, readonly: boolean, notice?: BackgroundNotice) => {
+  const track = (agentId: string, handle: ChildHandle, release: () => void, notice?: BackgroundNotice) => {
     const settled = handle.done.then((outcome) => {
       running.delete(agentId);
       release();
@@ -45,7 +43,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
       if (retired || notice === undefined) return;
       deliver({ ...notice.detailFor(outcome), agentId, title: notice.title, description: notice.description, toolCallId: notice.toolCallId }, notice.mode);
     });
-    running.set(agentId, { settled, handle, readonly, background: notice !== undefined });
+    running.set(agentId, { settled, handle, background: notice !== undefined });
   };
 
   const backgroundRunning = () => [...running.values()].filter((entry) => entry.background);
@@ -73,7 +71,7 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
 
   return {
     isRunning: (agentId: string) => running.has(agentId),
-    get: (agentId: string): Pick<Running, 'handle' | 'readonly'> | undefined => running.get(agentId),
+    get: (agentId: string): Pick<Running, 'handle'> | undefined => running.get(agentId),
     hasBackgroundWork: () => backgroundRunning().length > 0,
     track,
     beforeSettle,

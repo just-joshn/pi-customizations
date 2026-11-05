@@ -12,7 +12,7 @@ import type { Worktree } from '../src/task/worktree.ts';
 
 const source = '11111111-2222-4333-8444-555555555555';
 const forkId = '99999999-2222-4333-8444-555555555555';
-const reviewer: AgentDefinition = { type: 'reviewer', description: 'r', readonly: true, background: false, prompt: '' };
+const reviewer: AgentDefinition = { type: 'reviewer', description: 'r', readonly: true, reminder: '' };
 const agents = [GENERAL_PURPOSE, reviewer];
 const notRunning = () => false;
 

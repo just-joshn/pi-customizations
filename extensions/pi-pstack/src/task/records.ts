@@ -177,8 +177,11 @@ function writeAtomically(path: string, text: string): void {
   renameSync(temporary, path);
 }
 
+/** The agent's run lock names a live writer. */
+export class AgentRunningError extends Error {}
+
 const stillRunning = (agentId: string, holder: number | undefined, path: string) =>
-  new Error(`Agent ${agentId} is still running (pid ${holder !== undefined && isPid(holder) ? holder : 'unknown'}; lock ${path}). Wait for its completion before resuming it.`);
+  new AgentRunningError(`Agent ${agentId} is still running (pid ${holder !== undefined && isPid(holder) ? holder : 'unknown'}; lock ${path}). Wait for its completion before resuming it.`);
 
 export interface RunLock {
   /** Names the process that writes the transcript, so the lock stays held exactly as long as that process lives. */

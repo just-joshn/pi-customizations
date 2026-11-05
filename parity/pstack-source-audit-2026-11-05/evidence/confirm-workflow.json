@@ -1,0 +1,11 @@
+{
+  "pi": "installed pi on PATH",
+  "agentId": "1e91e6e0-c431-4b88-a490-e173ca905bcf",
+  "checks": {
+    "background launch uses the transcript wording and the plain Agent ID line": true,
+    "a follow-up to the running agent fails with the Cursor text": true,
+    "a spelled-out shell type resolves and has only the shell tools": true,
+    "comment-sicko reads the Cursor system reminder": true,
+    "the completion notification carries the background reply": true
+  }
+}

@@ -81,7 +81,7 @@ function agentToolsLine(tools: readonly string[]): string[] {
     ...(tools.includes('agent_status') ? ["agent_status reads a subagent's state without waking it."] : []),
     ...(tools.includes('Task')
       ? [
-          "Task resume on an agent running in this chat steers the prompt into its current run and returns at once; on an idle agent it restarts the agent with the prompt as a follow-up. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory.",
+          "Task resume sends a follow-up to an agent that has finished, and fails while the agent still runs. Task fork starts a new agent from a copy of an idle agent's transcript (fork_turns keeps only its first N user turns), in that agent's directory.",
         ]
       : []),
     ...(tools.includes('stop_agent') ? ['stop_agent stops a running agent.'] : []),
@@ -132,23 +132,18 @@ export function hostSection(facts: HostFacts): string {
   ].join('\n');
 }
 
-function agentLine(agent: AgentDefinition): string {
-  const notes = [agent.type === 'generalPurpose' ? 'default' : undefined, agent.background ? 'runs in the background unless run_in_background is false' : undefined, agent.readonly ? 'readonly' : undefined].filter(
-    (note) => note !== undefined,
-  );
-  return `- ${agent.type}${notes.length > 0 ? ` (${notes.join('; ')})` : ''}: ${agent.description}`;
-}
+// Cursor's inline catalog line.
+const agentLine = (agent: AgentDefinition): string => (agent.description === '' ? `- ${agent.type}` : `- ${agent.type}: ${agent.description}`);
 
 /** The subagent types and model values Task accepts; Task's description points here. */
 export function subagentsSection(agents: readonly AgentDefinition[], models: readonly AvailableModel[], parent: ModelSpec | undefined): string {
   const shown = models.slice(0, MODEL_LIST_LIMIT).map(modelLabel);
   const more = models.length > MODEL_LIST_LIMIT ? `, and ${models.length - MODEL_LIST_LIMIT} more (pi --list-models)` : '';
   return [
-    'Subagent types for Task:',
+    'Available subagent_types and a quick description of what they do:',
     ...agents.map(agentLine),
     'Model values for Task (and for role lines in the model rule):',
-    '- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.',
-    "- fast: the parent model's -fast variant when one is listed, else the parent model.",
+    "- inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.",
     ...(parent === undefined ? [] : [`- This chat runs ${parent.provider}/${parent.id}${parent.thinking === undefined ? '' : `:${parent.thinking}`}. pstack's model families (claude-*, grok-*) go by the model id after its provider.`]),
     '- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.',
     "- Model parameters: <model>[effort=<level>,fast=true|false]. effort is the thinking level, fast=true picks the model's -fast id when one is listed, and [] or fast=false keeps the standard model.",

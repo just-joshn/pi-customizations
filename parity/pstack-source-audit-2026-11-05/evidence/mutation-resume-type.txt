@@ -1,0 +1,50 @@
+mutation resume-type: src/task/tool.ts
+-   if (params.subagent_type !== undefined && normalizedType(params.subagent_type) !== normalizedType(record.type))
++   if (false)
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/task.e2e.test.ts (65 tests | 1 failed | 64 skipped) 1251ms
+   ❯ resume edge cases (11)
+     × a resume that names another subagent_type fails as Cursor desktop does, and the same type in another spelling resumes 1250ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 64 skipped (65)
+   Start at  21:45:10
+   Duration  1.76s (tests 74%, import 21%, transform 4%)
+
+
+$ vitest run "test/e2e/task.e2e.test.ts" -t "names another subagent_type"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > resume edge cases > a resume that names another subagent_type fails as Cursor desktop does, and the same type in another spelling resumes
+AssertionError: expected { toolName: 'Task', …(4) } to match object { isError: true, …(1) }
+(20 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "isError": true,
+-   "text": "Cannot resume a \"generalPurpose\" subagent as \"poteto-agent\". A resumed subagent keeps its type: omit `subagent_type` to resume this child, or start a new \"poteto-agent\" subagent without `resume`.",
++   "isError": false,
++   "text": "This is the output of the subagent:
++
++ response:
++ <response>
++ TWO
++ </response>
++
++ Agent ID: 70e6de60-b313-4c0d-b098-316e35fd85a6 (can be used with the `resume` parameter to send a follow-up after it completes)
++ Transcript: /tmp/pi-pstack-e2e-5QQlOq/agent/pstack/workspaces/--tmp-pi-pstack-e2e-5QQlOq-work--/subagents/2026-11-05T05-45-11-959Z_70e6de60-b313-4c0d-b098-316e35fd85a6.jsonl",
+  }
+
+ ❯ test/e2e/task.e2e.test.ts:510:47
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

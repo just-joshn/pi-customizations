@@ -1,0 +1,62 @@
+mutation plugin-background: src/task/tool.ts
+- const background = params.run_in_background === true;
++ const background = params.run_in_background ?? ['poteto-agent', 'ci-watcher'].includes(plan.agent.type);
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/task.e2e.test.ts (65 tests | 1 failed | 64 skipped) 700ms
+   ❯ background and parallel (6)
+     × a plugin agent runs in the foreground unless the call asks for the background, as Cursor drops is_background for plugin agents 699ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 64 skipped (65)
+   Start at  21:45:00
+   Duration  1.20s (tests 62%, import 32%, transform 6%)
+
+
+$ vitest run "test/e2e/task.e2e.test.ts" -t "plugin agent runs in the foreground"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > background and parallel > a plugin agent runs in the foreground unless the call asks for the background, as Cursor drops is_background for plugin agents
+AssertionError: expected [ undefined, { …(11) } ] to deeply equal [ 'POTETO', ObjectContaining{…} ]
+
+- Expected
++ Received
+
+  [
+-   "POTETO",
++   undefined,
+    {
+-     "background": false,
++     "agentId": "f01b13b8-c0ba-4125-8d02-0aa78a4bdc91",
++     "background": true,
++     "description": "probe",
++     "forkedFrom": null,
++     "model": {
++       "id": "echo",
++       "provider": "scripted",
++       "thinking": "medium",
++     },
++     "pid": 20127,
++     "readonly": false,
++     "status": "running",
+      "subagentType": "poteto-agent",
++     "transcript": "/tmp/pi-pstack-e2e-5uLVJx/agent/pstack/workspaces/--tmp-pi-pstack-e2e-5uLVJx-work--/subagents/*_f01b13b8-c0ba-4125-8d02-0aa78a4bdc91.jsonl",
++     "worktree": null,
+    },
+  ]
+
+ ❯ test/e2e/task.e2e.test.ts:375:87
+    373|   test('a plugin agent runs in the foreground unless the call asks for…
+    374|     const { result } = await runTask({ prompt: 'go\n@@say POTETO', sub…
+    375|     expect([/<response>\n(.*)\n<\/response>/.exec(result.text)?.[1], r…
+       |                                                                                       ^
+    376|   });
+    377|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.15.36-pi.18] - 2026-11-05
+
+Each item below comes from Cursor's own code, run from the installed desktop 3.27.22 runtime and the CLI 2026.10.22 bundle. `parity/pstack-source-audit-2026-11-05/` in the repository records the captured functions, probes, decisions, and mutation receipts.
+
+- Load the bundled agents the way Cursor loads plugin agents: on the parent model, in the foreground unless the call sets `run_in_background`, and readonly only through `permissionMode: readonly`. `model`, `tools`, `is_background`, `background`, and `readonly: true` in agent frontmatter no longer change anything.
+- Give each subagent Cursor's system reminder: the shared subagent reminder, then a plugin agent's custom-subagent framing and description before its body, or a built-in type's own text. explore's description and reminder are Cursor's.
+- Add the built-in `shell` subagent, limited to `bash` and `bash_background`, which team-kit's thermo-nuclear agent names.
+- Match `subagent_type` regardless of case, hyphens, underscores, or a trailing `agent`, `subagent`, `mode`, or `type`.
+- Ignore a `model: "fast"` that names no listed model, read `inherit` in any case as an omitted model, and reject an empty model.
+- Fail a resume that names a different `subagent_type` with Cursor's message, stop noting an ignored `model` on resume, and reject an empty `prompt`.
+- Fail a follow-up to a running agent with Cursor's `Sub-agent is currently running. You may send the follow-up message when it has completed.`, in this or another Pi process, instead of steering it into the running turn. poteto-mode's steer and hold sentences are pstack's text again.
+- Use the Task description and parameter text a live Cursor session showed, with Pi's tool names and the `pstack_subagents` catalogs.
+- Use the TodoWrite, SwitchMode, and GenerateImage descriptions and parameter text a live Cursor session declared. SwitchMode leaves out the Debug and Ask modes, which Pi does not have.
+- List subagent types under Cursor's catalog heading, `Available subagent_types and a quick description of what they do:`, one `- type: description` line each, without the `(default)` note.
+- Render Task results with Cursor's text: a background launch names the transcript the way desktop does and says not to mention it or predict the reply, a foreground reply has no Transcript line, an empty reply reads `No output`, and a reply that already holds a `<response>` block is not wrapped again. Pi's notes follow a blank line, where Cursor puts a result suffix.
+- Use desktop's AskQuestion description and field text, and drop the option `description` field Cursor's schema does not declare. An option description a model sends is accepted and, as in Cursor, not shown.
+- Match AwaitShell patterns as RE2, as Cursor does, so inline flags such as `(?i)` work and lookahead is refused. Add `waiting_for_subagent`, which fails with Cursor's `You should NOT wait for subagents to complete.` message, and use Cursor's error for `block_until_ms: 0` without a `shell_id`.
+
 ## [0.15.36-pi.17] - 2026-11-05
 
 Each item below is checked against the Cursor CLI 2026.10.22 bundle. `parity/pstack-parity-2026-11-05/` in the repository records the evidence, the decisions, and the 133-row behavior inventory.

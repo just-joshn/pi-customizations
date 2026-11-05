@@ -1,0 +1,77 @@
+mutation: replace exact shell restriction with additive tools
+source_sha256_before: 8c7f81188c91bdc7011da92875c690e93f03194f5deb7a7b5effdcaf1b7fb237
+source_sha256_after: 8c7f81188c91bdc7011da92875c690e93f03194f5deb7a7b5effdcaf1b7fb237
+exit_code: 1
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/shell-agent.e2e.test.ts (4 tests | 2 failed | 2 skipped) 1205ms
+   × shell exposes only native shell execution tools, even when an image model is available 649ms
+   × shell executes commands but rejects calls to file-editing tools 556ms
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 2 skipped (4)
+   Start at  21:26:19
+   Duration  1.66s (tests 75%, import 22%, transform 2%)
+
+
+$ vitest run "test/e2e/shell-agent.e2e.test.ts" --testNamePattern "shell exposes|shell executes"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell exposes only native shell execution tools, even when an image model is available
+AssertionError: expected [ Array(15) ] to deeply equal [ 'bash', 'bash_background' ]
+
+- Expected
++ Received
+
+  [
++   "AwaitShell",
++   "GenerateImage",
++   "TodoWrite",
++   "agent_status",
+    "bash",
+    "bash_background",
++   "edit",
++   "list_subscriptions",
++   "read",
++   "subscribe_github_pr",
++   "subscribe_timer",
++   "subscribe_webhook",
++   "unsubscribe",
++   "visualize",
++   "write",
+  ]
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:24:56
+     22|   const result = await runShell(sandbox, '@@tools-list');
+     23|   expect(result.isError, result.text).toBe(false);
+     24|   expect(response(result.text)?.split(',').toSorted()).toEqual(['bash'…
+       |                                                        ^
+     25| });
+     26|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/e2e/shell-agent.e2e.test.ts > shell executes commands but rejects calls to file-editing tools
+AssertionError: expected 'RESULTS:\n[bash] SHELL-RAN\n[write] S…' to be 'RESULTS:\n[bash] SHELL-RAN\n[write er…' // Object.is equality
+
+- Expected
++ Received
+
+  RESULTS:
+  [bash] SHELL-RAN
+- [write error] Tool write not found
++ [write] Successfully wrote to write-tool.txt
+
+ ❯ test/e2e/shell-agent.e2e.test.ts:35:33
+     33|   ]));
+     34|   expect(result.isError, result.text).toBe(false);
+     35|   expect(response(result.text)).toBe('RESULTS:\n[bash] SHELL-RAN\n[wri…
+       |                                 ^
+     36|   expect(readFileSync(join(sandbox.workDir, 'shell.txt'), 'utf8')).toB…
+     37|   expect(existsSync(join(sandbox.workDir, 'write-tool.txt'))).toBe(fal…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+error: script "test" exited with code 1

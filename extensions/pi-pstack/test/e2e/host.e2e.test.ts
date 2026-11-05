@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { cursorAgents, cursorTaskText, cursorToolDescription } from '../cursor-reference.ts';
 import { assistantTexts, contentText, makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 let sandbox: Sandbox;
@@ -123,10 +124,13 @@ describe('host map (HOST-001)', () => {
 describe('subagent catalog (HOST-002)', () => {
   test('lists the subagent types and the models Task accepts', async () => {
     const catalog = section(await systemPrompt(['--no-session']), 'pstack_subagents');
-    expect(catalog).toContain('- generalPurpose (default): ');
-    expect(catalog).toContain('- poteto-agent (runs in the background unless run_in_background is false): Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run.');
+    expect(catalog).toContain(`Available subagent_types and a quick description of what they do:\n- generalPurpose: ${cursorAgents.builtIns[0]?.description}\n- explore: `);
+    expect(catalog).toContain('- poteto-agent: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run.');
+    expect(catalog).toContain('- shell: Command execution specialist for running bash commands.');
+    expect(catalog).not.toContain('runs in the background unless');
     expect(catalog).toContain('- comment-sicko: A deranged comment-hater that savors deletion and condemns workaround code.');
-    expect(catalog).toContain('- inherit (default): the parent model and thinking level. auto and inherit-parent mean the same.');
+    expect(catalog).toContain("- inherit (default): the parent model and thinking level, except that explore runs on the parent model's -fast variant when one is listed. auto and inherit-parent mean the same.");
+    expect(catalog).not.toContain('- fast:');
     expect(catalog).toMatch(/^- This chat runs scripted\/echo(:\w+)?\. pstack's model families \(claude-\*, grok-\*\) go by the model id after its provider\.$/m);
     expect(catalog).toContain('Available models: scripted/echo (thinking: off, minimal, low, medium, high), scripted/plain');
     expect(catalog).toContain('- A Pi model <provider>/<model-id> or <model-id>, optionally with :<level> from the thinking levels the model lists below. A level the model does not list is rejected.');
@@ -139,33 +143,12 @@ describe('declared tool descriptions', () => {
     return text ?? '';
   };
 
-  test("Task carries Cursor's delegation rules", async () => {
-    const text = await described('Task');
-    expect([
-      text.includes('Do not use Task for a narrow or specific question.'),
-      text.includes('put several Task calls in one message'),
-      text.includes("The agent cannot see the user's messages or your earlier steps"),
-      text.includes('A background agent notifies you automatically when it finishes, after you end your turn. Do not poll it'),
-    ]).toEqual([true, true, true, true]);
+  test("Task carries Cursor's delegation rules in Pi wording", async () => {
+    expect(await described('Task')).toBe(cursorTaskText(cursorAgents.task.description, 6));
   });
 
-  test("AskQuestion carries Cursor's question rules", async () => {
-    const text = await described('AskQuestion');
-    expect([
-      text.includes("Use this tool only when you are blocked on a decision that is genuinely the user's to make"),
-      text.includes('put it first and end its label with "(Recommended)"'),
-      text.includes('Prefer this tool over listing options in your reply text'),
-    ]).toEqual([true, true, true]);
-  });
-
-  test("TodoWrite carries Cursor's todo rules", async () => {
-    const text = await described('TodoWrite');
-    expect([
-      text.includes('do not tell the user you are updating todos'),
-      text.includes('keep only one task in_progress at a time'),
-      text.includes('Skip it for a single straightforward task'),
-      text.includes('Batch todo updates with your other tool calls.'),
-    ]).toEqual([true, true, true, true]);
+  test.for(['AskQuestion', 'TodoWrite'])("%s carries Cursor's description", async (tool) => {
+    expect(await described(tool)).toBe(cursorToolDescription(tool));
   });
 });
 

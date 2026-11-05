@@ -1,0 +1,53 @@
+mutation fast-alias: src/task/models.ts
+-     if (requested.toLowerCase() === 'fast') return fallback;
++     if (requested.toLowerCase() === 'fast') return fastVariant(available, parent);
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/task-model.test.ts (49 tests | 1 failed) 13ms
+   ❯ resolveSubagentModel (TASK-007) (49)
+     × an unresolvable fast is ignored, as Cursor desktop ignores the alias, so the type default applies 5ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 48 passed (49)
+   Start at  21:45:10
+   Duration  123ms (transform 55%, tests 23%, import 18%, worker 4%)
+
+
+$ vitest run test/task-model.test.ts
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/task-model.test.ts > resolveSubagentModel (TASK-007) > an unresolvable fast is ignored, as Cursor desktop ignores the alias, so the type default applies
+AssertionError: expected [ { …(3) }, { …(3) }, { …(3) } ] to deeply equal [ { …(3) }, { …(3) }, { …(3) } ]
+
+- Expected
++ Received
+
+@@ -3,11 +3,11 @@
+      "id": "claude-haiku-4-5-fast",
+      "provider": "claude-subscription",
+      "thinking": "low",
+    },
+    {
+-     "id": "claude-haiku-4-5",
++     "id": "claude-haiku-4-5-fast",
+      "provider": "claude-subscription",
+      "thinking": "low",
+    },
+    {
+      "id": "claude-haiku-4-5-fast",
+
+ ❯ test/task-model.test.ts:26:134
+     24|     const fast = [...available, { provider: 'claude-subscription', id:…
+     25|     const exploreDefault = fastVariant(fast, parent);
+     26|     expect([exploreDefault, resolveSubagentModel('fast', fast, parent)…
+       |                                                                                                                                      ^
+     27|       { provider: 'claude-subscription', id: 'claude-haiku-4-5-fast', …
+     28|       parent,
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

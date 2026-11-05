@@ -8,11 +8,8 @@ const assistant = (text, extra = {}) => emit({ type: 'message_end', message: { r
 const respond = (command, data) => emit({ id: command.id, type: 'response', command: command.type, success: true, ...(data === undefined ? {} : { data }) });
 
 let running = false;
-// Set while a run waits for a steer or a dialog answer.
+// Set while a run waits for a dialog answer.
 let finish;
-// Stranded mode: the first run ends while a steer is still queued, as a settlement race does.
-let stranded = false;
-let queued = [];
 
 function settle(aborted = false) {
   running = false;
@@ -26,19 +23,17 @@ function run(message, images) {
   if (mode === 'split-utf8') {
     const record = Buffer.from(`${JSON.stringify({ type: 'message_end', message: { role: 'assistant', content: [{ type: 'text', text: '你好 🥔 café\u2028fin' }], usage, stopReason: 'stop' } })}\n`);
     const split = record.indexOf(Buffer.from('🥔')) + 1;
-    finish = () => {
+    process.stdout.write(record.subarray(0, split));
+    // A separate write later, so the parent reads the record in two chunks split inside a character.
+    setTimeout(() => {
       process.stdout.write(record.subarray(split));
-    };
-    process.stdout.write(Buffer.concat([Buffer.from(`${JSON.stringify({ type: 'fake_split_ready' })}\n`), record.subarray(0, split)]));
+      settle();
+    }, 50);
     return;
   } else if (mode === 'noise') {
     process.stdout.write('an extension printed this to stdout\n');
     assistant('after noise');
-  } else if (mode === 'stranded' && !stranded) {
-    stranded = true;
-    setTimeout(() => settle(), 50);
-    return;
-  } else if (mode === 'echo' || mode === 'stranded') {
+  } else if (mode === 'echo') {
     assistant('thinking out loud');
     const shown = images.length === 0 ? '' : `|IMAGES:${images.map((image) => image.mimeType).join(',')}`;
     assistant(`GOT:${message}${shown}|ARGS:${process.argv.slice(2).join(' ')}`);
@@ -57,10 +52,6 @@ function run(message, images) {
     emit({ type: 'fake_pids', pids: [process.pid, sleeper.pid] });
     return;
   } else if (mode === 'wait' || mode === 'deaf') {
-    finish = (text) => {
-      assistant(text);
-      settle();
-    };
     return;
   } else if (mode === 'dialog') {
     emit({ type: 'extension_ui_request', id: 'note-1', method: 'notify', message: 'fire and forget' });
@@ -80,11 +71,7 @@ function handle(command) {
       respond(command, { disposition: 'started' });
       run(command.message, command.images ?? []);
     } else {
-      if (mode === 'split-utf8') finish?.();
       respond(command, { disposition: 'queued' });
-      if (mode === 'split-utf8') settle();
-      if (mode === 'wait' || mode === 'deaf') finish?.(`STEERED:${command.message}|${command.streamingBehavior}`);
-      if (mode === 'stranded') queued.push(command.message);
     }
   } else if (command.type === 'extension_ui_response') {
     if (mode === 'dialog') finish?.(`ANSWER:${JSON.stringify(command)}`);
@@ -96,8 +83,7 @@ function handle(command) {
     }
     respond(command);
   } else if (command.type === 'clear_queue') {
-    respond(command, { steering: queued, followUp: [] });
-    queued = [];
+    respond(command, { steering: [], followUp: [] });
   }
 }
 

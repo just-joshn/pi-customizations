@@ -118,6 +118,21 @@ describe('print and JSON runs', () => {
       [true, 'Error awaiting task: No shell found for id nope'],
     ]);
   });
+
+  test("AwaitShell refuses to wait for subagents and to check no shell, with Cursor desktop's errors", async () => {
+    const run = await runJson(
+      sandbox,
+      script([
+        { tool: 'AwaitShell', args: { block_until_ms: 3_000, waiting_for_subagent: true } },
+        { tool: 'AwaitShell', args: { block_until_ms: 0 } },
+      ]),
+      ['--no-session'],
+    );
+    expect(toolEnds(run.events, 'AwaitShell').map((end) => [end.isError, end.text])).toEqual([
+      [true, 'You should NOT wait for subagents to complete. End your turn instead; completions are queued, or do parallel work.'],
+      [true, 'Invalid arguments:\nshell_id: Required when block_until_ms is 0. Without shell_id there is nothing to check: pass the shell_id to check, or a nonzero block_until_ms to sleep.'],
+    ]);
+  });
 });
 
 describe('interactive sessions', () => {

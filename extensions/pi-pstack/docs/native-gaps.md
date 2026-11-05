@@ -31,8 +31,8 @@ as search hints from the 1.4.0 audit, not as 1.5.0 line references. This is a co
   (`outcomeOf`, `:226-234`). `RpcClient` appends stderr without a bound and mirrors it into the parent's stderr
   (`rpc-client.js:49-52`), and exposes neither an exit promise nor a code. Pi 1.5.0 does reject pending requests on process exit and startup errors, but that does not expose a successful exit outcome.
 
-`RpcClient` does cover the rest of what the runner sends: `prompt(message, images, "steer")`, `abort`, `clearQueue`,
-`followUp`, and the event stream. The runner speaks the JSONL protocol from `docs/rpc.md` directly and keeps its own
+`RpcClient` does cover the rest of what the runner sends: `prompt(message, images)`, `abort`, `clearQueue`, and the
+event stream. The runner speaks the JSONL protocol from `docs/rpc.md` directly and keeps its own
 response correlation so it can also do the five things above.
 
 **When this goes away.** `RpcClientOptions` grows a spawn override (detached process group, command array), a method

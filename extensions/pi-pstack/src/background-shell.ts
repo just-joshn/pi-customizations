@@ -12,7 +12,7 @@ import { getShellConfig, truncateTail } from '@earendil-works/pi-coding-agent';
 import { Text } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isOneShot } from './modes.ts';
-import { OutputWatchDependencyError, type OutputWatchRequest, ShellOutputWatch } from './shell-output-watch.ts';
+import { firstMatcher, OutputWatchDependencyError, type OutputWatchRequest, ShellOutputWatch } from './shell-output-watch.ts';
 
 export const SHELL_NOTICE_TYPE = 'pstack/shell';
 const BACKGROUND_TOOL = 'bash_background';
@@ -138,10 +138,11 @@ function exitStatus(code: number | null, signal: NodeJS.Signals | null): { statu
   return { status: exitCode === 0 ? 'succeeded' : 'failed', exitCode };
 }
 
-function compile(pattern: string): RegExp {
+function compile(pattern: string): (text: string) => string | undefined {
   try {
-    return new RegExp(pattern, 'm');
+    return firstMatcher(pattern);
   } catch (error) {
+    if (error instanceof OutputWatchDependencyError) throw error;
     throw new Error(`Invalid pattern /${pattern}/: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
@@ -399,7 +400,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         job.observed = true;
         return [`Task completed in ${(job.endedAt ?? Date.now()) - job.startedAt}ms with exit code: ${job.exitCode}.`, `output_file_path: ${job.path}`, `output_length: ${fileSize(job)}`].join('\n');
       }
-      const matched = regex?.exec(output(job))?.[0];
+      const matched = regex?.(output(job));
       const remaining = deadline - Date.now();
       if (matched !== undefined || remaining <= 0 || signal?.aborted === true) {
         const suffix = regex === undefined ? '' : matched === undefined ? ' Pattern did NOT match.' : ` Pattern matched: ${matched}`;
@@ -469,9 +470,10 @@ const AwaitParams = Type.Object({
   pattern: Type.Optional(
     Type.String({
       description:
-        'Block until the regex matches the stdout/stderr output (or the command completes). Matches anywhere in the shell output, not just new output. Does not match the output file header or footer. JavaScript regex syntax, compiled in multiline mode so ^ and $ match at line boundaries.',
+        'Block until the regex matches stdout/stderr stream (or task completes). Matches anywhere in the shell output, not just new output. Will not match terminal file headers or footers, e.g. exit_code. Accepts RE2 regex syntax (no lookahead, lookbehind or backreferences), compiled in multiline mode so ^ and $ match at line boundaries.',
     }),
   ),
+  waiting_for_subagent: Type.Optional(Type.Boolean({ description: 'Set this to true if you are waiting for subagent(s) to complete. Remember you should NOT be doing this and instead end your turn or do parallel work.' })),
 });
 
 const BACKGROUND_DESCRIPTION = [
@@ -627,10 +629,11 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     parameters: AwaitParams,
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     async execute(_toolCallId, params, signal): Promise<{ content: { type: 'text'; text: string }[]; details: AwaitDetails }> {
+      if (params.waiting_for_subagent === true) throw new Error('You should NOT wait for subagents to complete. End your turn instead; completions are queued, or do parallel work.');
       const waitMs = clampWait(params.block_until_ms, DEFAULT_AWAIT_MS);
       const shellId = params.shell_id?.trim();
       if (shellId === undefined || shellId === '') {
-        if (waitMs === 0) throw new Error('block_until_ms 0 needs shell_id: it checks one shell without waiting.');
+        if (waitMs === 0) throw new Error('Invalid arguments:\nshell_id: Required when block_until_ms is 0. Without shell_id there is nothing to check: pass the shell_id to check, or a nonzero block_until_ms to sleep.');
         const started = Date.now();
         await sleep(waitMs, signal);
         return { content: [{ type: 'text', text: `Slept for ${seconds(Date.now() - started >= waitMs ? waitMs : Date.now() - started)}.` }], details: { sleptMs: Date.now() - started } };

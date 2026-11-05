@@ -1,0 +1,78 @@
+{
+  "method": "Execute pinned source excerpts with protobuf constructors replaced by plain record constructors. No Cursor process, remote service, model, or agent is used.",
+  "shell": {
+    "availableWhenDisabled": false,
+    "availableWhenEnabled": true,
+    "tools": [
+      "SHELL"
+    ],
+    "preserveTaskTool": false,
+    "description": "Command execution specialist for running bash commands. Use this for git operations, command execution, and other terminal tasks.",
+    "reminder": "You are running as a subagent under a parent agent. Do not spawn additional subagents unless requested by the user or by your instructions. Do not create Cursor Canvas files unless requested by the user or by your instructions.\n\nYou are a command execution specialist. Your role is to execute shell commands efficiently and safely.\n\nGuidelines:\n- Execute commands precisely as instructed\n- For git operations, follow git safety protocols\n- Report command output clearly and concisely\n- If a command fails, explain the error and suggest solutions\n- Use command chaining (&&) for dependent operations\n- Quote paths with spaces properly\n- For clear communication, avoid using emojis\n\nComplete the requested operations efficiently.",
+    "acceptedAliases": [
+      "shell",
+      "SHELL",
+      "shell_agent",
+      " shell-subagent-type ",
+      "shellmode"
+    ],
+    "unknownType": "not found"
+  },
+  "commands": [
+    {
+      "input": "/review \"two words\" tail",
+      "commands": [
+        {
+          "name": "review",
+          "content": "Review \"two, then words\". All \"two words\" tail.",
+          "fullPath": "/commands/review.md"
+        }
+      ]
+    },
+    {
+      "input": "please /review a b\nthen /plain extra",
+      "commands": [
+        {
+          "name": "review",
+          "content": "Review a, then b. All a b.",
+          "fullPath": "/commands/review.md"
+        },
+        {
+          "name": "plain",
+          "content": "Plain command.\n\nextra",
+          "fullPath": "/commands/plain.md"
+        }
+      ]
+    },
+    {
+      "input": "/plain one /review two",
+      "commands": [
+        {
+          "name": "plain",
+          "content": "Plain command.\n\none /review two",
+          "fullPath": "/commands/plain.md"
+        }
+      ]
+    },
+    {
+      "input": "/plain a\n/plain b",
+      "commands": [
+        {
+          "name": "plain",
+          "content": "Plain command.\n\na",
+          "fullPath": "/commands/plain.md"
+        }
+      ]
+    },
+    {
+      "input": "/plain",
+      "commands": [
+        {
+          "name": "plain",
+          "content": "Plain command.",
+          "fullPath": "/commands/plain.md"
+        }
+      ]
+    }
+  ]
+}

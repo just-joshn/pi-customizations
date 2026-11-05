@@ -1,0 +1,44 @@
+$ vitest run test/task-text.test.ts test/sections.test.ts test/registry.test.ts test/task-runner.test.ts test/task-agents.test.ts "test/e2e/task.e2e.test.ts" "test/e2e/shell-agent.e2e.test.ts" "test/e2e/host.e2e.test.ts" "test/e2e/workflow.e2e.test.ts"
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/e2e/host.e2e.test.ts (21 tests | 1 failed) 9955ms
+   ❯ declared tool descriptions (3)
+     × Task carries Cursor's delegation rules 305ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/e2e/host.e2e.test.ts > declared tool descriptions > Task carries Cursor's delegation rules
+AssertionError: expected [ false, false, false, false ] to deeply equal [ true, true, true, true ]
+
+- Expected
++ Received
+
+  [
+-   true,
+-   true,
+-   true,
+-   true,
++   false,
++   false,
++   false,
++   false,
+  ]
+
+ ❯ test/e2e/host.e2e.test.ts:152:8
+    150|       text.includes("The agent cannot see the user's messages or your …
+    151|       text.includes('A background agent notifies you automatically whe…
+    152|     ]).toEqual([true, true, true, true]);
+       |        ^
+    153|   });
+    154|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 8 passed (9)
+      Tests  1 failed | 171 passed (172)
+   Start at  21:57:32
+   Duration  61.83s (tests 90%, import 9%, transform 1%)
+
+error: script "test" exited with code 1

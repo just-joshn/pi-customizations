@@ -1,0 +1,41 @@
+mutation await-re2: src/background-shell.ts
+-     return firstMatcher(pattern);
++     const regex = new RegExp(pattern, 'm');
+    return (text: string) => regex.exec(text)?.[0];
+exit_code: 1
+restored: true
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/background-shell.test.ts (11 tests | 1 failed | 10 skipped) 11ms
+   ❯ background jobs (9)
+     × AwaitShell patterns are RE2, as Cursor compiles them: inline flags work and lookahead is refused 10ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 skipped (11)
+   Start at  22:07:02
+   Duration  507ms (import 85%, transform 12%, tests 2%)
+
+
+$ vitest run test/background-shell.test.ts -t "RE2"
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/background-shell.test.ts > background jobs > AwaitShell patterns are RE2, as Cursor compiles them: inline flags work and lookahead is refused
+AssertionError: promise rejected "Error: Invalid pattern /(?i)^READY-\w+/: …" instead of resolving
+ ❯ test/background-shell.test.ts:97:78
+     95|   shell('AwaitShell patterns are RE2, as Cursor compiles them: inline …
+     96|     const job = start(jobs, dir, 'echo ready-now; sleep 30');
+     97|     await expect(jobs.awaitJob(job.id, 20_000, '(?i)^READY-\\w+', unde…
+       |                                                                              ^
+     98|     await expect(jobs.awaitJob(job.id, 10, 'ready(?=-now)', undefined)…
+     99|   });
+
+Caused by: Error: Invalid pattern /(?i)^READY-\w+/: Invalid regular expression: /(?i)^READY-\w+/m: Invalid group
+ ❯ compile src/background-shell.ts:147:11
+ ❯ Object.awaitJob src/background-shell.ts:397:73
+ ❯ test/background-shell.test.ts:97:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+error: script "test" exited with code 1

@@ -1,0 +1,42 @@
+$ vitest run
+
+ RUN  v5.0.2 /home/josh/Documents/GitHub/pi-customizations/extensions/pi-pstack
+
+ ❯ test/resources.test.ts (16 tests | 1 failed) 380ms
+   ❯ shipped resources (16)
+     × shipped text names Pi, not Cursor host features (RES-012) 155ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/resources.test.ts > shipped resources > shipped text names Pi, not Cursor host features (RES-012)
+AssertionError: expected { offending: [ …(2) ], stale: [] } to deeply equal { offending: [], stale: [] }
+
+- Expected
++ Received
+
+  {
+-   "offending": [],
++   "offending": [
++     "README.md:48: | Subagent types | The built-in `generalPurpose` (default), `explore` (a file-search specialist the caller tells how tho",
++     "README.md:49: | Models | A Pi model spec such as `claude-opus-5-5:xhigh` or `xai/grok-4.7:high`, model parameters such as `claude-opus",
++   ],
+    "stale": [],
+  }
+
+ ❯ test/resources.test.ts:226:90
+    224|           .some((line) => entry.span.test(line)),
+    225|     );
+    226|     expect({ offending, stale: stale.map((entry) => `${entry.file}: ${…
+       |                                                                                          ^
+    227|   });
+    228|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 52 passed | 1 skipped (54)
+      Tests  1 failed | 785 passed | 1 skipped (787)
+   Start at  21:46:15
+   Duration  74.16s (tests 83%, import 16%, transform 1%)
+
+error: script "test" exited with code 1

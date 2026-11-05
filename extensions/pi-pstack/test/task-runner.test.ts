@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../src/paths.ts';
-import { addUsage, childArgs, recoverDrained, resolveAttachments, startChild, validateAgentId, withAttachments, zeroUsage } from '../src/task/runner.ts';
+import { addUsage, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments, zeroUsage } from '../src/task/runner.ts';
 
 const FAKE_PI = join(PACKAGE_ROOT, 'test/fixtures/fake-pi.mjs');
 const base = { sessionDir: '/state/subagents', agentId: '11111111-2222-4333-8444-555555555555' };
@@ -30,7 +30,7 @@ describe('usage cost provenance', () => {
 });
 
 describe('childArgs (SEC-001, TASK-008)', () => {
-  test('always runs one RPC session per agent ID with this package loaded, so its owner can steer and stop it (C-H4)', () => {
+  test('always runs one RPC session per agent ID with this package loaded, so its owner can stop it (C-H4)', () => {
     expect(childArgs(base)).toEqual(['--mode', 'rpc', '--session-dir', '/state/subagents', '--session-id', base.agentId, '-e', PACKAGE_ROOT]);
   });
 
@@ -143,29 +143,6 @@ const alive = (pid: number) => {
   }
 };
 
-test('a drained follow-up never takes a steering image, and identical steers keep their own attachments', () => {
-  const first = { type: 'image' as const, mimeType: 'image/png', data: 'Zmlyc3Q=' };
-  const second = { type: 'image' as const, mimeType: 'image/png', data: 'c2Vjb25k' };
-  const recovered = recoverDrained(
-    [
-      { queue: 'followUp', text: 'server note' },
-      { queue: 'steering', text: 'retry' },
-      { queue: 'steering', text: 'retry' },
-      { queue: 'steering', text: 'rewritten by an input handler' },
-    ],
-    [
-      { text: 'retry', images: [first] },
-      { text: 'retry', images: [second] },
-    ],
-  );
-  expect(recovered).toEqual([
-    { text: 'server note', images: [] },
-    { text: 'retry', images: [first] },
-    { text: 'retry', images: [second] },
-    { text: 'rewritten by an input handler', images: [] },
-  ]);
-});
-
 describe('startChild', () => {
   test('sends the prompt as an RPC prompt and returns the final assistant text with summed usage', async () => {
     const outcome = await run('echo', 'line one\n"quoted" $HOME').done;
@@ -204,12 +181,7 @@ describe('startChild', () => {
   });
 
   test('preserves non-ASCII text when RPC chunks split a UTF-8 character', async ({ signal }) => {
-    let steered: Promise<void> | undefined;
-    const handle = run('split-utf8', 'hello', signal, (event) => {
-      if (event.type === 'fake_split_ready') steered = handle.steer('finish the record', []);
-    });
-    const outcome = await handle.done;
-    await steered;
+    const outcome = await run('split-utf8', 'hello', signal).done;
     expect([outcome.finalText, outcome.failure]).toEqual(['你好 🥔 café\u2028fin', undefined]);
   });
 
@@ -273,7 +245,7 @@ describe('startChild', () => {
   });
 });
 
-describe('steer and stop (C-H4)', () => {
+describe('stop (C-H4)', () => {
   const started = (mode: string) => {
     let begun: () => void = () => undefined;
     const running = new Promise<void>((resolve) => {
@@ -284,28 +256,6 @@ describe('steer and stop (C-H4)', () => {
     });
     return { handle, running };
   };
-
-  test('steer delivers a message into the running turn, and the agent finishes with it', async () => {
-    const { handle, running } = started('wait');
-    await running;
-    await handle.steer('change course', []);
-    const outcome = await handle.done;
-    expect([outcome.finalText, outcome.failure]).toEqual(['STEERED:change course|steer', undefined]);
-  });
-
-  test('a steer stranded at settlement is resumed with its image, in its own message', async () => {
-    const { handle, running } = started('stranded');
-    await running;
-    await handle.steer('change course', [{ type: 'image', mimeType: 'image/png', data: 'aGVsbG8=' }]);
-    const outcome = await handle.done;
-    expect([outcome.finalText, outcome.failure]).toEqual(['GOT:change course|IMAGES:image/png|ARGS:--x y', undefined]);
-  });
-
-  test('steer refuses once the agent has finished', async () => {
-    const handle = run('echo');
-    await handle.done;
-    await expect(handle.steer('too late', [])).rejects.toThrow('has finished');
-  });
 
   test('stop aborts the run over RPC and the child exits', async () => {
     const { handle, running } = started('wait');
