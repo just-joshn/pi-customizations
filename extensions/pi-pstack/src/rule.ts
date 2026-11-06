@@ -1,5 +1,6 @@
 import { existsSync, linkSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { homedir } from 'node:os';
+import { dirname, isAbsolute, join, relative } from 'node:path';
 
 import { stripFrontmatter } from '@earendil-works/pi-coding-agent';
 
@@ -8,6 +9,19 @@ const LEGACY_RULE_NAME = 'pstack-models.mdc';
 
 export function readRule(path: string): string | undefined {
   return existsSync(path) ? readFileSync(path, 'utf8') : undefined;
+}
+
+/**
+ * What a session holds of the model rule. Cursor's rule is `~/.cursor/rules/pstack-models.mdc`, loaded when a session
+ * starts from the workspace and each directory above it, so it reaches only workspaces under the home directory, and a
+ * rule written mid-session applies to new sessions.
+ */
+export type SessionRule = { inScope: true; text: string | undefined } | { inScope: false };
+
+export function sessionRule(cwd: string, path: string, home: string = homedir()): SessionRule {
+  const below = relative(home, cwd);
+  const inScope = below === '' || (!below.startsWith('..') && !isAbsolute(below));
+  return inScope ? { inScope, text: readRule(path) } : { inScope };
 }
 
 /**

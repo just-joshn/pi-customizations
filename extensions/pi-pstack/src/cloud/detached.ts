@@ -130,9 +130,9 @@ export function detachedOutcome(run: DetachedRun, reading: Pick<Reading, 'last' 
   if (ended.stopped) return { ...base, failure: 'Subagent was stopped with stop_agent' };
   const code = exitCodeOf(run);
   if (reading.last?.stopReason === 'error' || reading.last?.stopReason === 'aborted') return { ...base, failure: reading.last.errorMessage ?? `subagent stopped: ${reading.last.stopReason}` };
-  if (code === undefined) return { ...base, failure: 'The cloud agent process ended without recording an exit code: it was killed, or its host shut down.' };
+  if (code === undefined) return { ...base, failure: 'The agent process ended without recording an exit code: it was killed, or its host shut down.' };
   if (code !== 0) return { ...base, failure: `pi exited with code ${code}: ${stderr.trim().split('\n').at(-1) ?? ''}`.trim() };
-  if (!reading.settled) return { ...base, failure: 'The cloud agent exited before its run settled.' };
+  if (!reading.settled) return { ...base, failure: 'The agent exited before its run settled.' };
   return base;
 }
 

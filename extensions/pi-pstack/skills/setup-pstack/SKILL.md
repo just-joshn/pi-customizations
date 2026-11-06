@@ -1,11 +1,11 @@
 ---
 name: setup-pstack
-description: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, which pi-pstack adds to every request and which overrides the skill defaults. Use for /setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
+description: Configure which models pstack uses per role and at what reasoning budget. Detects your available models and writes the model rule, an always-applied rule that overrides the skill defaults. Use for /setup-pstack, "configure pstack models", "pstack budget", or changing pstack's model choices.
 ---
 
 # Setup pstack
 
-Write the model rule that sets pstack's model per role, at the path the system prompt names (`~/.pi/agent/pstack/pstack-models.md` by default). pi-pstack adds it to every request.
+Write the model rule, an always-applied rule that sets pstack's model per role, at the path the system prompt names (`~/.pi/agent/pstack/pstack-models.md` by default).
 
 ## Steps
 
@@ -63,7 +63,7 @@ interrogate reviewers: claude-opus-5-5:xhigh, grok-4.7[effort=xhigh,fast=true]
 
 ### 6. Confirm
 
-Tell the user the rule was written and that it applies from the next request. Re-running this skill updates it.
+Tell the user the rule was written and that it applies to new sessions. Re-running this skill updates it.
 
 ### 7. Offer a verification skill (optional)
 

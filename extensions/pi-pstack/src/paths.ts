@@ -13,7 +13,7 @@ export function stateDir(): string {
   return join(getAgentDir(), 'pstack');
 }
 
-/** The model rule: pstack's per-role model choices, added to every request's system prompt. */
+/** The model rule: pstack's per-role model choices, read when a session starts in a workspace under the home directory. */
 export function rulePath(): string {
   return join(stateDir(), 'pstack-models.md');
 }

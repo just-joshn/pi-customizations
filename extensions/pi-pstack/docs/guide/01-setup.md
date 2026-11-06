@@ -41,7 +41,7 @@ If you're new to pstack, say yes. An agent that can check its own work keeps goi
 
 Then setup offers once to generate a formal verification skill with [`/create-formal-verification-skill`](../../skills/create-formal-verification-skill/SKILL.md), unless the project already has one. Tests check the cases someone thought to write. A formal verification skill checks one key property of your code, such as "a job never runs twice at once", in every case within a stated scope. Say yes when your code has concurrency, retries, a state machine, or a parser, where a bug is costly and tests rarely reach the case that breaks. Otherwise say no, and run it later if that changes. [Verify and ship](./06-verify-and-ship.md#prove-a-property-with-a-formal-verification-skill) covers it.
 
-After setup, keep going in the same chat. pi-pstack reads the model rule on every request, so it applies from your next message.
+After setup, start a new chat. The model rule applies to new sessions.
 
 ## Keep the cost in check
 

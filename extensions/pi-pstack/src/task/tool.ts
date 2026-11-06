@@ -5,9 +5,10 @@ import { isAbsolute, join, relative } from 'node:path';
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { type Static, Type } from 'typebox';
-import { AUTOMATION_ENV, BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PROJECT_ENV } from '../child-env.ts';
+import { AUTOMATION_ENV, BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PARENT_ENV, PROJECT_ENV, type RootChat } from '../child-env.ts';
 import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
 import { bootMachine, type CloudDriver, describeMachine, type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
+import { inboxDir, postItem } from '../inbox.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
 import { type AgentDefinition, findAgent, normalizedType } from './agents.ts';
@@ -17,7 +18,7 @@ import { type AvailableModel, fastVariant, type ModelSpec, resolveSubagentModel 
 import { createProgress } from './progress.ts';
 import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, type RunRecord, readonlyLaunchRestores, readRecord, recordIds, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
-import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, startChild, validateAgentId, withAttachments } from './runner.ts';
+import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, signalGroup, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
 import { extractFrames, VIDEO, videoNote } from './video.ts';
 import { addWorktree, planWorktree } from './worktree.ts';
@@ -125,6 +126,8 @@ export interface Launch {
   /** An automation fire's run, which acts as a top-level agent: it keeps the Slack token and tools. */
   automation?: boolean;
   rootStore: string;
+  /** The main chat, which owns the background work this agent starts. */
+  root: RootChat;
   /** 1 for a subagent of the main chat; an agent keeps its depth when resumed. */
   depth: number;
   trusted: boolean;
@@ -147,6 +150,7 @@ export function parentModel(ctx: ExtensionContext): ModelSpec | undefined {
 
 const rootStoreOf = (ctx: ExtensionContext) => rootStoreDir(ctx.cwd, ctx.sessionManager.getSessionId(), childIdentity.rootStore);
 const rootWorkspaceOf = (ctx: ExtensionContext) => childIdentity.rootWorkspace ?? ctx.cwd;
+const rootChatOf = (ctx: ExtensionContext): RootChat => childIdentity.root ?? { sessionId: ctx.sessionManager.getSessionId(), pid: process.pid };
 
 const isUnder = (parent: string, child: string): boolean => {
   const path = relative(parent, child);
@@ -191,6 +195,7 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
     machine,
     ...(provision === undefined ? {} : { provision }),
     rootStore: rootStoreOf(ctx),
+    root: rootChatOf(ctx),
     depth: depth + 1,
     trusted: ctx.isProjectTrusted(),
     attachments,
@@ -241,6 +246,7 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
     machine,
     rootStore: rootStoreOf(ctx),
+    root: rootChatOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
     trusted: trustFor(machine?.cwd ?? record.cwd, ctx),
     attachments,
@@ -285,6 +291,7 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
     machine,
     rootStore: rootStoreOf(ctx),
+    root: rootChatOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
     trusted: trustFor(machine?.cwd ?? record.cwd, ctx),
     attachments,
@@ -293,8 +300,11 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   };
 }
 
-/** Environment and argv for the agent's Pi process, shared by an RPC child and a detached cloud run. */
-function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
+/**
+ * Environment and argv for the agent's Pi process, shared by an RPC child and a detached run. A detached cloud agent
+ * watches no parent, so it outlives the chat; an adopted run watches the main chat, which owns it, and ends with it.
+ */
+function launchSpec(plan: Launch, mode: 'rpc' | 'json', adopted = false) {
   const readonly = runsReadonly(plan);
   const detached = mode === 'json';
   // A subagent never receives Slack credentials (only a top-level agent posts to Slack), and a subagent of an agent on
@@ -304,7 +314,8 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json') {
   const machine = plan.machine?.driver === 'container' ? JSON.stringify(plan.machine) : childIdentity.machine;
   const env = {
     ...inherited,
-    ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached),
+    ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached && !adopted ? undefined : plan.root, detached),
+    ...(adopted ? { [PARENT_ENV]: String(plan.root.pid) } : {}),
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
     ...(machine === undefined ? {} : { [MACHINE_ENV]: machine }),
     ...(plan.project === undefined ? {} : { [PROJECT_ENV]: plan.project }),
@@ -338,9 +349,9 @@ function nextRunDir(plan: Launch): string {
   return join(runs, String(taken + 1));
 }
 
-/** A cloud agent runs detached: its prompt goes on stdin and each attachment as an `@path` argument Pi reads itself. */
-function launchDetached(plan: Launch, input: ChildInput, files: readonly string[]): DetachedRun {
-  const { env, args } = launchSpec(plan, 'json');
+/** A detached run's prompt goes on stdin and each attachment as an `@path` argument Pi reads itself. */
+function launchDetached(plan: Launch, input: ChildInput, files: readonly string[], adopted = false): DetachedRun {
+  const { env, args } = launchSpec(plan, 'json', adopted);
   return spawnDetached({
     command: piCommand(),
     args: [...args, '--', ...files.map((path) => `@${path}`)],
@@ -439,6 +450,25 @@ function start(
     handle?.kill();
     lock.release();
     if (handle?.pid === undefined) removeForkTranscript(plan);
+    throw error;
+  }
+}
+
+/** Starts the background subagent detached, so it survives its launcher `from`, and asks the main chat to adopt it. */
+function startAdopted(plan: Launch, input: ChildInput, files: readonly string[], lock: RunLock, owner: RunOwner, from: string): number {
+  let started: DetachedRun | undefined;
+  try {
+    started = launchDetached(plan, input, files, true);
+    lock.holdFor(started.pid);
+    const run: RunRecord = { ...started, ...owner, delivered: false };
+    if (plan.kind === 'resume') recordResume(plan, run);
+    else recordFresh(plan, run);
+    postItem(inboxDir(workspaceStateDir(plan.workspace), plan.root.sessionId), { type: 'adopt', from, agentId: plan.agentId });
+    return started.pid;
+  } catch (error) {
+    if (started !== undefined) signalGroup(started.pid, 'SIGTERM');
+    lock.release();
+    if (started === undefined) removeForkTranscript(plan);
     throw error;
   }
 }
@@ -688,6 +718,10 @@ export interface TaskHandle {
   hasBackgroundWork: () => boolean;
   /** Starts a fresh background generalPurpose subagent, as a Task call would; its result arrives as a Task notification. */
   startBackground: (description: string, prompt: string, options?: StartBackgroundOptions) => Promise<string>;
+  /** The main chat follows a background subagent a descendant started; its result arrives here as a Task notification. */
+  adopt: (agentId: string) => void;
+  /** Resolves once a subagent this chat follows has ended and its own notification is out; undefined if it follows none by that ID. */
+  settledOf: (agentId: string) => Promise<void> | undefined;
 }
 
 export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHandle {
@@ -716,38 +750,61 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     reattach(ctx);
   });
 
+  /** The notice a detached run's result becomes, built from what its record kept about the Task call that started it. */
+  function runNotice(ctx: ExtensionContext, dir: string, agentId: string, run: RunRecord): BackgroundNotice {
+    const transcript = () => transcriptFor(dir, agentId) ?? join(dir, `*_${agentId}.jsonl`);
+    return {
+      title: run.title,
+      description: run.description,
+      toolCallId: run.toolCallId,
+      mode: ctx.mode,
+      detailFor: (outcome) =>
+        outcome.failure === undefined
+          ? { status: 'success', detail: bounded(outcome.finalText, transcript()), usage: outcome.usage }
+          : { status: 'error', detail: outcome.finalText === '' ? outcome.failure : `${outcome.failure}\n${bounded(outcome.finalText, transcript())}`, usage: outcome.usage },
+    };
+  }
+
+  function ownedRun(ctx: ExtensionContext, dir: string, agentId: string): { record: AgentRecord; run: RunRecord } | undefined {
+    let record: AgentRecord | undefined;
+    try {
+      record = readRecord(dir, agentId);
+    } catch {
+      return undefined;
+    }
+    const run = record?.run;
+    if (record === undefined || run === undefined || run.delivered || run.ownerSessionId !== ctx.sessionManager.getSessionId() || registry.isRunning(agentId)) return undefined;
+    return { record, run };
+  }
+
   /**
    * Picks up this session's cloud agents after a restart or a session switch: a running one is followed again, and one
    * that finished while the chat was away delivers its result now, as a Cursor cloud agent's result reaches its parent.
+   * An adopted local run is not picked up: it belonged to the Pi process that adopted it and ended with that process.
    */
   function reattach(ctx: ExtensionContext): void {
     const dir = subagentDir(ctx.cwd);
-    const sessionId = ctx.sessionManager.getSessionId();
     for (const agentId of recordIds(dir)) {
-      let record: AgentRecord | undefined;
-      try {
-        record = readRecord(dir, agentId);
-      } catch {
-        continue;
-      }
-      const run = record?.run;
-      if (record === undefined || run === undefined || run.delivered || run.ownerSessionId !== sessionId || registry.isRunning(agentId)) continue;
-      const transcript = () => transcriptFor(dir, agentId) ?? join(dir, `*_${agentId}.jsonl`);
-      const notice: BackgroundNotice = {
-        title: run.title,
-        description: run.description,
-        toolCallId: run.toolCallId,
-        mode: ctx.mode,
-        detailFor: (outcome) =>
-          outcome.failure === undefined
-            ? { status: 'success', detail: bounded(outcome.finalText, transcript()), usage: outcome.usage }
-            : { status: 'error', detail: outcome.finalText === '' ? outcome.failure : `${outcome.failure}\n${bounded(outcome.finalText, transcript())}`, usage: outcome.usage },
-      };
+      const owned = ownedRun(ctx, dir, agentId);
+      if (owned === undefined) continue;
+      const { record, run } = owned;
       const { machine } = record;
-      const handle = followDetached(run, undefined, machine === undefined ? undefined : () => stopMachine(machine).catch(() => undefined));
-      if (!runActive(run) && machine !== undefined) void stopMachine(machine).catch(() => undefined);
-      registry.track(agentId, handle, () => undefined, notice, { detached: true, onDelivered: () => markDelivered(ctx.cwd, agentId, run.pid) });
+      if (machine === undefined) continue;
+      const handle = followDetached(run, undefined, () => stopMachine(machine).catch(() => undefined));
+      if (!runActive(run)) void stopMachine(machine).catch(() => undefined);
+      registry.track(agentId, handle, () => undefined, runNotice(ctx, dir, agentId, run), { detached: true, onDelivered: () => markDelivered(ctx.cwd, agentId, run.pid) });
     }
+  }
+
+  /** A descendant's background subagent: this chat follows it as its own, and stops it when this session ends. */
+  function adopt(agentId: string): void {
+    const ctx = sessionCtx;
+    if (ctx === undefined) return;
+    const dir = subagentDir(ctx.cwd);
+    const owned = ownedRun(ctx, dir, agentId);
+    if (owned === undefined) return;
+    const { run } = owned;
+    registry.track(agentId, followDetached(run), () => undefined, runNotice(ctx, dir, agentId, run), { onDelivered: () => markDelivered(ctx.cwd, agentId, run.pid) });
   }
 
   pi.registerTool({
@@ -774,10 +831,23 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
         await createMachine(plan, lock, signal);
       }
       const detached = plan.machine !== undefined;
-      const cloudInput = detached ? await detachedInput(params.prompt, attachments) : undefined;
-      const input = cloudInput?.input ?? (attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments));
       const background = params.run_in_background === true;
-      const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(params.prompt), description: plan.description.replace(/\s+/g, ' ').trim(), background };
+      // In Cursor a subagent's background subagent belongs to the main chat and outlives the subagent. A main chat or a
+      // cloud agent (the top of its own tree) keeps its background subagents itself.
+      const adopted = background && !detached && childIdentity.root !== undefined;
+      const cloudInput = detached || adopted ? await detachedInput(params.prompt, attachments) : undefined;
+      const input = cloudInput?.input ?? (attachments.length === 0 ? { text: params.prompt.trim(), images: [] } : await withAttachments(params.prompt, attachments));
+      const owner: RunOwner = {
+        ownerSessionId: adopted ? plan.root.sessionId : ctx.sessionManager.getSessionId(),
+        toolCallId,
+        title: notificationTitle(params.prompt),
+        description: plan.description.replace(/\s+/g, ' ').trim(),
+        background,
+      };
+      if (adopted) {
+        const adoptedPid = startAdopted(plan, input, cloudInput?.files ?? [], lock, owner, ctx.sessionManager.getSessionId());
+        return { content: [{ type: 'text', text: backgroundText(plan.agentId, transcriptOf(plan), plan.notes) }], details: details(plan, true, 'running', adoptedPid) };
+      }
       let pid: number | undefined;
       const progress = background ? undefined : createProgress(onUpdate, () => details(plan, false, 'running', pid));
       const handle = start(plan, input, background ? undefined : signal, lock, owner, progress?.onEvent, cloudInput?.files);
@@ -829,5 +899,5 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     return plan.agentId;
   }
 
-  return { hasBackgroundWork: registry.hasBackgroundWork, startBackground };
+  return { hasBackgroundWork: registry.hasBackgroundWork, startBackground, adopt, settledOf: registry.settledOf };
 }

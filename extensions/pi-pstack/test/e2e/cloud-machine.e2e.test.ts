@@ -1,5 +1,5 @@
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
@@ -163,6 +163,8 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     if (machine === undefined) throw new Error('the Task result names no machine');
     expect(readFileSync(join(machine.path, 'a.txt'), 'utf8')).toBe('EDITED');
     expect(git(machine.path, 'rev-parse', 'HEAD')).toBe(pushed);
+    // What the agent writes on the machine stays the user's to edit and delete on the host.
+    expect([statSync(projectNotes).uid, statSync(join(machine.path, 'a.txt')).uid]).toEqual([process.getuid?.(), process.getuid?.()]);
   });
 
   test('a background cloud agent keeps running after its chat closes, and the reopened chat gets its result (G1, G13)', async () => {

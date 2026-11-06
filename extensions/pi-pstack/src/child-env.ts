@@ -14,6 +14,17 @@ export const MACHINE_ENV = 'PI_PSTACK_MACHINE';
 export const PROJECT_ENV = 'PI_PSTACK_PROJECT';
 /** An automation run: a top-level agent in Cursor's terms, so it gets the Slack tools and token a subagent never does. */
 export const AUTOMATION_ENV = 'PI_PSTACK_AUTOMATION';
+/**
+ * The main chat that owns the tree's background work: its session ID names its inbox, and its pid bounds adopted runs.
+ * A cloud agent gets none: like Cursor's cloud agents, a top-level conversation on its own machine, it owns its subtree.
+ */
+export const ROOT_SESSION_ENV = 'PI_PSTACK_ROOT_SESSION';
+export const ROOT_PID_ENV = 'PI_PSTACK_ROOT_PID';
+
+export interface RootChat {
+  sessionId: string;
+  pid: number;
+}
 
 export interface ChildIdentity {
   depth: number;
@@ -30,11 +41,15 @@ export interface ChildIdentity {
   machine: string | undefined;
   project: string | undefined;
   automation: boolean;
+  /** Undefined at the top of a tree: the main chat, or a cloud agent. */
+  root: RootChat | undefined;
 }
 
 function read(): ChildIdentity {
   const depth = Number(process.env[DEPTH_ENV] ?? '0');
   const parentPid = Number(process.env[PARENT_ENV] ?? '');
+  const rootSession = process.env[ROOT_SESSION_ENV];
+  const rootPid = Number(process.env[ROOT_PID_ENV] ?? '');
   return {
     depth: Number.isInteger(depth) && depth > 0 ? depth : 0,
     agentType: process.env[AGENT_ENV],
@@ -47,6 +62,7 @@ function read(): ChildIdentity {
     machine: process.env[MACHINE_ENV] || undefined,
     project: process.env[PROJECT_ENV] || undefined,
     automation: process.env[AUTOMATION_ENV] === '1',
+    root: depth > 0 && rootSession !== undefined && rootSession !== '' && Number.isInteger(rootPid) && rootPid > 1 ? { sessionId: rootSession, pid: rootPid } : undefined,
   };
 }
 
@@ -62,16 +78,19 @@ delete process.env[BUILD_PLAN_ENV];
 delete process.env[MACHINE_ENV];
 delete process.env[PROJECT_ENV];
 delete process.env[AUTOMATION_ENV];
+delete process.env[ROOT_SESSION_ENV];
+delete process.env[ROOT_PID_ENV];
 
 /**
  * Variables for a child of this process at `depth` (an agent keeps the depth it was created at). A detached cloud agent
  * gets no parent pid, so it does not exit when this process does.
  */
-export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string, detached = false): Record<string, string> {
+export function childVariables(agentType: string, depth: number, readonly: boolean, rootStore: string, workspaceState: string, rootWorkspace: string, root: RootChat | undefined, detached = false): Record<string, string> {
   return {
     [DEPTH_ENV]: String(depth),
     [AGENT_ENV]: agentType,
     ...(detached ? {} : { [PARENT_ENV]: String(process.pid) }),
+    ...(root === undefined ? {} : { [ROOT_SESSION_ENV]: root.sessionId, [ROOT_PID_ENV]: String(root.pid) }),
     [ROOT_STORE_ENV]: rootStore,
     [WORKSPACE_ENV]: workspaceState,
     [ROOT_WORKSPACE_ENV]: rootWorkspace,

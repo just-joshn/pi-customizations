@@ -6,6 +6,7 @@ This page records what `pi-pstack` reproduces from Cursor `pstack` 0.15.36 and i
 
 - Cursor `pstack` and `cursor-team-kit`: `github.com/cursor/plugins` at `6ea74587e384e1a8035c09ae33a46fe3f881eb9b`. The plugin manifest reports pstack 0.15.36. `package.json.pstackSource.revision` pins `ae5650fe`, this port's capture base; `git log ae5650fe..6ea74587 -- pstack cursor-team-kit` is empty, so both commits name the same plugin content.
 - Installed Cursor CLI at the time of the reference capture: `2026.10.22-27dcf5f`. CLI `2026.11.05-86047df` was compared module by module (`parity/pstack-complete-2026-11-05/cli-diff.mjs`, `cli-module-diff.mjs`, `cli-strings-diff.mjs`). For pstack it changes one thing: plan mode now enforces its write rule (`isPlanModeAllowedWriteTarget`, six markdown extensions, `Cannot edit non markdown files in plan mode`), which pi-pstack matches. Its other changes are hosted surfaces (Projects, canvases, automations listing, team plans), workers, telemetry, and input niceties. The pstack it loads from `~/.cursor/plugins/local/pstack` is byte-identical to the reference.
+- Cursor CLI `2026.11.05-86047df` with pstack installed for the CLI under `~/.cursor/plugins/local/pstack` (byte-identical to `bb68f236`'s `pstack/`, and upstream `2776ddd2` changes nothing under `pstack/` or `cursor-team-kit/`), observed live on Ubuntu 26.04 for 0.15.36-pi.20. Its model-facing Task, TodoWrite, SwitchMode, GenerateImage, and AwaitShell text is byte-identical to 2026.10.22's.
 - Installed Cursor desktop 3.27.22 (distro `d5c0e77a0214208f36b56d42e8e787de88d02ea4`) under `/usr/share/cursor/resources/app`. Its local agent runtime defines the built-in subagents, the Task schema, and Task's resume and model rules. An earlier run recorded the desktop app as absent; that was wrong.
 - Native implementation: this package, which pins its upstream provenance in `package.json.pstackSource`.
 
@@ -18,7 +19,7 @@ A path and byte comparison of the tracked trees shows every pstack skill, both p
 | Skill invocation and the slash menu | `pi.getCommands()` plus an input transform that attaches every `/name` a message names, the first through Pi's `/skill:name` expansion and the rest as skill blocks, with TUI completions |
 | Custom Mode | `/mode <skill>`, a branch-persisted entry, the skill in a `pstack_mode_skill` prompt section on every request while the mode is on, and Cursor's entered, reminder, and exit or switch notices in `pstack_mode` |
 | Plan mode | `/plan` and `SwitchMode`, Cursor's plan-mode instructions in `pstack_plan`, a reduced tool set with `bash_readonly` in an OS sandbox and markdown-only `edit` and `write`, `CreatePlan` writing Cursor's plan file under `plans/`, and a build prompt after a saved plan (`/plan build` too) |
-| Always-applied model rule | `pstack-models.md` read before every request and injected as `pstack_models` |
+| Always-applied model rule | `pstack-models.md` read when a session starts in a workspace under the home directory, as Cursor loads `~/.cursor/rules/pstack-models.mdc`, and injected as `pstack_models` |
 | Task subagents | One `pi --mode rpc` process per agent, with resume of a finished agent, fork, `fork_turns`, readonly, attachments, Cursor's description, parameter, result, and completion texts, Cursor's subagent reminder, and local worktrees |
 | Agent types | Cursor desktop's built-in `generalPurpose`, `explore`, and `shell`, then the four bundled agent Markdown files loaded the way Cursor loads plugin agents, each child reading Cursor's system reminder in `pstack_subagent` |
 | Project and agent stores | Workspace state folders named in the host system prompt |
@@ -27,7 +28,7 @@ A path and byte comparison of the tracked trees shows every pstack skill, both p
 | Image generation (`GenerateImage`) | `GenerateImage` on `ctx.modelRegistry.generateImages()`, offered when an image model is available |
 | `/loop` | `Loop` tool and `/loop` command. A fixed interval is wall-clock from each fire, like Cursor's sleep loop, and accepts the interval first or last (`5m`, `10 minutes`, `every 10 minutes`). An interval-less loop is agent-paced through `Loop` `wake_in`. A wake that comes due mid-run fires once when the run settles, as Cursor's monitored shell output notifies after the turn. |
 | Path-scoped skills | None needed. pstack's only `paths` skill also sets `disable-model-invocation`, and Cursor loads such a skill only by name, which Pi does natively |
-| Always-applied rules | The two shipped rule bodies are read into `pstack_host` verbatim on every request, not paraphrased |
+| Always-applied rules | None applied: Cursor CLI 2026.11.05 never puts a plugin's rules in the model's context, so team-kit's two rule files ship unwired in `rules/` |
 | Todo list state | `TodoWrite` writes branch entries, and the current list rides in the `pstack_todos` prompt section on every request, so a compacted context still sees it |
 | Automations | Durable timer, GitHub, and webhook subscriptions with a detached supervisor |
 | `/visualize` | `visualize` tool that returns a Unicode chart and writes an SVG |
@@ -45,6 +46,16 @@ A live Cursor CLI session with both plugins loaded produced these contracts.
 - A live Task asked for `environment: "cloud"` ran in the same working directory on the same machine, with `environment: SUBAGENT_EXECUTION_ENVIRONMENT_UNSPECIFIED`. In this CLI, the cloud argument was inert too. Pi's local worktree is a stronger isolation than that observation, though still weaker than the documented cloud VM.
 
 Pi returns the child's final text with a transcript path and usage, and reports background completion as a `pstack/task` notification. The payload shape differs because the hosts are different; the observable workflow, a subagent result arriving after the parent turn, is preserved.
+
+## Repairs in 0.15.36-pi.20
+
+A Linux run on 2026-11-06 (UTC) observed Cursor CLI 2026.11.05-86047df with pstack installed under `~/.cursor/plugins/local/pstack` (byte-identical to the pinned checkout) and compared it with this package. `parity/pstack-linux-2026-11-05/` holds the notes, the behavior ledger (`ledger.md`), the decision trail, the probe script, the create-skill lever, and the mutation lever. The live probes run Cursor CLI, and for the background-ownership scenarios also Pi with deepseek-flash; in both, the model is the product under observation. No other agent did any of this run's work.
+
+- **Background work belongs to the main chat.** Cursor builds every subagent's executor with the top-level chat as its wakeup owner (`wakeupOwnerConversationId: cr.parentAgentId`). Live probes showed a subagent never hears about its own background shell, the main chat gets each job's notice after the subagent's result, a job still running when the subagent ends is reported `aborted`, and a subagent's background subagent keeps running and reports to the main chat. pi-pstack now does the same through a mailbox folder the main chat reads (`src/inbox.ts`): children forward their notices, report jobs they stop at exit, and start background subagents as detached runs the main chat adopts and stops when its own session ends. Earlier notes said Cursor keeps a subagent's shell running; the probe shows it aborts it. A cloud agent is the top of its own tree, since a Cursor cloud agent is its own conversation on its own machine; that part is inferred from Cursor's design, because hosted runs were not observable here.
+- **Plugin rules are not applied.** With cursor-team-kit loaded through `--plugin-dir` and again installed under `~/.cursor/plugins/local`, neither always-applied rule reached the model. pi-pstack no longer injects them, ships the two rule files unwired, and drops the two rule skills Cursor does not have. pstack's own text never names these rules.
+- **The model rule follows Cursor's rule loading.** Cursor reads `.cursor/rules` from the workspace and each directory above it when a session starts, so `~/.cursor/rules/pstack-models.mdc` reaches only workspaces under the home directory, and a rule written mid-session reaches new sessions. A live probe found a marker rule from a workspace under the home directory and not from `/tmp`. pi-pstack reads its rule the same way, and the setup text says "new sessions" again.
+- **Linux container machines run as the host user.** With Docker on Linux, a root container wrote root-owned files into the bind-mounted clone and the shared Project folder, which the user could not edit or delete, and the container tests failed their cleanup on this host. The machine now runs as the host user with a writable home (`hostUserArgs`); image-level setup still builds as root from `build.dockerfile`. All five container tests pass on Ubuntu 26.04 with Docker 29.1.3.
+- **create-skill is Cursor's built-in.** The port had added a draft-test-iterate phase, a trigger loop, and an agent-reader section to Cursor's create-skill. `translate-create-skill.mjs` now rebuilds it from the built-in with eight host substitutions.
 
 ## Repairs in 0.15.36-pi.19
 
@@ -182,15 +193,16 @@ Each code change has a regression in the package suite. Text restorations are re
 
 ## Remaining host differences
 
-These hold after 0.15.36-pi.19.
+These hold after 0.15.36-pi.20.
 
 - **A sleeping host pauses cloud agents.** A cloud agent survives its chat closing, but its Pi process runs on this host, so a laptop that sleeps pauses it. Cursor's hosted VMs keep working with the laptop closed. A container engine on another machine (`PSTACK_CLOUD_DOCKER_CONTEXT`) moves the machine, not the Pi process.
 - **Cloud agents see this host's MCP servers.** A Pi cloud agent's Pi process loads your installed extensions and MCP servers; Cursor's cloud subagents use the team's MCP configuration instead.
-- **A subagent's background shells end with it.** Cursor keeps a subagent's background shell running after the subagent's result and notifies the parent; a Pi subagent is its own process, so its jobs stop when it finishes, and its launch result says so.
+- **A background run outlives a crashed main chat briefly.** A subagent's background subagent watches the main chat's process and exits within a second of it; Cursor's runs live in the CLI process and end with it. Items a stopped child reports while the main chat is gone are dropped when that session next starts.
+- **Cursor's Shell differs from Pi's `bash`.** Cursor's Shell waits up to `block_until_ms` (30 s by default) and then moves the command to the background, and it keeps the working directory and environment between calls. Pi's `bash` waits for the command to end and starts fresh each call; `bash_background` gives the waiting-then-background behavior when chosen. Overriding Pi's `bash` would change it for every Pi tool consumer, so this stays open.
 - **Slack triggers poll.** Cursor's Slack trigger is pushed by its Slack integration; pi-pstack reads the channel every 20 seconds from a stored position, so a message fires within that interval and none is lost to downtime.
 - **Webhook routines are local.** Pi serves routines on loopback with a sender key in a local file; Cursor hosts a public URL. A sender on another machine needs its own forwarding path.
 - **A mode's skill rides the system prompt.** Cursor keeps it durable in the conversation; Pi sends the same text in a system-prompt section on every request.
-- **A fork needs an idle source.** A running source is refused so two agents never write one checkout or machine.
+- **A fork needs an idle source.** A running source is refused so two agents never write one checkout or machine. Cursor's `fork_from` and `fork_turns` belong to desktop's hosted CreateAgent call, so whether Cursor forks a running agent is decided on its servers and was not observable here.
 - **Plan mode and readonly enforce file writes.** Cursor restricts plan mode by instruction; Pi's shells deny writes in an OS sandbox. On macOS some TLS clients that rely on the keychain (`/usr/bin/curl`, LibreSSL builds) fail inside it; `gh`, `git`, Homebrew `curl`, and Node's `fetch` work.
 - **The plan review is a dialog.** Cursor renders a plan card; Pi asks the same three choices in a select dialog.
 - **Media stays out of the reply.** The Cursor CLI does not embed media either; Pi shows images through the read tool and opens video in the system player.

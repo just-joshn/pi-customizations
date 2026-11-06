@@ -12,7 +12,8 @@
 //   @@task-chain <n>             call Task with prompt "@@task-chain <n-1>"; at 0 reply LEAF
 //   @@script <json array>        step i (i = assistant messages since that user message) is
 //                                {"tool":name,"args":{}} | [{"tool":...},...] | {"text":...}
-//                                after the last step, reply "RESULTS:" plus every tool result text since the user message
+//                                after the last step, reply "RESULTS:" plus every tool result text since the user message;
+//                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background result
 // Anything else is echoed as "ECHO: <text>".
 import type { AssistantMessage, Message, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
 import { fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall, getCurrentSystemPrompt, getCurrentTools } from '@earendil-works/pi-ai';
@@ -33,9 +34,19 @@ function lastUserIndex(messages: readonly Message[]): number {
   return -1;
 }
 
-function toolCalls(step: Step | Step[]): ToolCall[] {
+function lastShellId(after: readonly Message[]): string | undefined {
+  for (const message of [...after].reverse()) {
+    if (message.role !== 'toolResult' || message.toolName !== 'bash_background') continue;
+    const id = /^Shell ID: (\d+)$/m.exec(textOf(message.content))?.[1];
+    if (id !== undefined) return id;
+  }
+  return undefined;
+}
+
+function toolCalls(step: Step | Step[], after: readonly Message[]): ToolCall[] {
   const steps = Array.isArray(step) ? step : [step];
-  return steps.flatMap((item) => ('tool' in item ? [fauxToolCall(item.tool, item.args)] : []));
+  const resolve = (args: ToolCall['arguments']) => Object.fromEntries(Object.entries(args).map(([key, value]) => [key, value === '@@shell-id' ? (lastShellId(after) ?? value) : value]));
+  return steps.flatMap((item) => ('tool' in item ? [fauxToolCall(item.tool, resolve(item.args))] : []));
 }
 
 function scriptReply(script: string, after: readonly Message[]): AssistantMessage {
@@ -47,7 +58,7 @@ function scriptReply(script: string, after: readonly Message[]): AssistantMessag
     return fauxAssistantMessage(`RESULTS:\n${results.map((result) => `[${result.toolName}${result.isError ? ' error' : ''}] ${textOf(result.content)}`).join('\n')}`);
   }
   if (!Array.isArray(step) && 'text' in step) return fauxAssistantMessage(step.text);
-  return fauxAssistantMessage(toolCalls(step), { stopReason: 'toolUse' });
+  return fauxAssistantMessage(toolCalls(step, after), { stopReason: 'toolUse' });
 }
 
 function directiveReply(directive: string, argument: string, messages: readonly Message[], after: readonly Message[]): AssistantMessage | Promise<AssistantMessage> | undefined {
