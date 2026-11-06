@@ -1,0 +1,287 @@
+started_utc: 2026-11-06T17:21:19Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; printf "source_sha: "; git rev-parse HEAD; printf "branch: "; git branch --show-current; printf "\nkernel:\n"; uname -a; printf "\nos_release:\n"; cat /etc/os-release; printf "\nlibc:\n"; ldd --version; printf "\narchitecture:\n"; uname -m; node -p "process.arch"; printf "\nversions_before_install:\n"; node --version; npm --version; for executable in bun pi bwrap socat rg; do if command -v "$executable"; then "$executable" --version; else printf "%s: absent\n" "$executable"; fi; done; printf "\nroot_manifest:\n"; cat package.json; printf "\npackage_manifest:\n"; cat extensions/pi-pstack/package.json; printf "\nci_workflow:\n"; cat .github/workflows/pi-pstack.yml; printf "\nmanifest_hashes:\n"; sha256sum package.json extensions/pi-pstack/package.json .github/workflows/pi-pstack.yml bun.lock; printf "\nworkspace_source_changes:\n"; git diff --stat -- . ":(exclude)parity/pstack-release-2026-11-06/linux-native"
+
+source_sha: 544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90
+branch: pstack/12b98223-eb08-484c-86ac-9ab7d04cf9fc
+
+kernel:
+Linux pstack-12b98223 7.2.12-orbstack-00394-gbecdd6130068 #1 SMP PREEMPT Thu Oct 22 22:17:17 UTC 2026 aarch64 GNU/Linux
+
+os_release:
+PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
+NAME="Debian GNU/Linux"
+VERSION_ID="12"
+VERSION="12 (bookworm)"
+VERSION_CODENAME=bookworm
+ID=debian
+HOME_URL="https://www.debian.org/"
+SUPPORT_URL="https://www.debian.org/support"
+BUG_REPORT_URL="https://bugs.debian.org/"
+
+libc:
+ldd (Debian GLIBC 2.36-9+deb12u14) 2.36
+Copyright (C) 2022 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+Written by Roland McGrath and Ulrich Drepper.
+
+architecture:
+aarch64
+arm64
+
+versions_before_install:
+v24.22.2
+11.19.1
+bun: absent
+pi: absent
+bwrap: absent
+socat: absent
+rg: absent
+
+root_manifest:
+{
+  "name": "pi-customizations",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "extensions/*"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/pi-anthropic-oauth/src/index.ts",
+      "./extensions/pi-antigravity-oauth/src/index.ts",
+      "./extensions/pi-maintainer/src/index.ts",
+      "./extensions/pi-pstack/src/index.ts",
+      "./extensions/pi-rea/src/index.ts",
+      "./extensions/pi-xai-oauth/src/index.ts"
+    ],
+    "skills": [
+      "./extensions/pi-pstack/skills",
+      "./extensions/pi-rea/skills"
+    ],
+    "prompts": [
+      "./extensions/pi-rea/prompts"
+    ]
+  },
+  "description": "Workspace root for the pi-customizations Pi extensions.",
+  "license": "MIT",
+  "scripts": {
+    "test": "bun run --sequential --filter '*' test",
+    "check:tests": "node extensions/scripts/check-vitest-conventions.selftest.mjs && node extensions/scripts/check-vitest-conventions.mjs",
+    "check:toolchain": "node scripts/check-bun-toolchain.selftest.mjs && node scripts/check-bun-toolchain.mjs && node scripts/check-workspace-deps.selftest.mjs && node scripts/check-workspace-deps.mjs",
+    "test:coverage": "bun run --sequential --filter @justjoshn/pi-pstack test:coverage",
+    "check:types-policy": "node scripts/check-typescript-policy.selftest.mjs && node scripts/check-typescript-policy.mjs",
+    "typecheck": "bun run check:types-policy && tsc --noEmit -p tsconfig.json && bun run --sequential --filter '*' typecheck",
+    "check": "biome check .",
+    "check:write": "node scripts/format-write.selftest.mjs && node scripts/format-write.mjs",
+    "ci": "biome ci . --error-on-warnings --max-diagnostics=none"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "typescript": "^7.0.2",
+    "@biomejs/biome": "2.5.14"
+  }
+}
+
+package_manifest:
+{
+  "name": "@justjoshn/pi-pstack",
+  "version": "0.15.36-pi.20",
+  "description": "pstack 0.15.36 for Pi with its soft-dependency team-kit skills vendored in: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, SwitchMode, image generation, and visualize",
+  "type": "module",
+  "license": "MIT",
+  "pstackSource": {
+    "repository": "https://github.com/cursor/plugins",
+    "revision": "ae5650febf4320793844c12c4adaa937f417f8da",
+    "path": "pstack",
+    "version": "0.15.36",
+    "lastChange": "c742dd61706fbacc1b95f1a20b7b988cf096ce6c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-joshn/pi-customizations.git",
+    "directory": "extensions/pi-pstack"
+  },
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-pstack#readme",
+  "bugs": {
+    "url": "https://github.com/just-joshn/pi-customizations/issues"
+  },
+  "keywords": [
+    "pi-package",
+    "pstack"
+  ],
+  "bin": {
+    "pstack-routines-supervisor": "./bin/pstack-routines-supervisor"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "latest"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "files": [
+    "src",
+    "skills",
+    "rules",
+    "agents",
+    "automations",
+    "bin",
+    "docs",
+    "assets",
+    "licenses",
+    "packaging",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:statechart": "node --disable-warning=ExperimentalWarning --test skills/statechart/scripts/test/*.test.ts",
+    "live:e2e": "node scripts/live-e2e.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sandbox-runtime": "0.0.79",
+    "re2js": "1.2.2",
+    "yaml": "2.9.0"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-agent-core": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-ai": "1.5.0",
+    "@earendil-works/pi-agent-core": "1.5.0",
+    "@earendil-works/pi-coding-agent": "1.5.0",
+    "@earendil-works/pi-tui": "1.5.0",
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "fast-check": "4.5.3",
+    "typebox": "1.3.27",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
+
+ci_workflow:
+name: pi-pstack
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/pi-pstack/**'
+      - '.github/workflows/pi-pstack.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'extensions/pi-pstack/**'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    # Both jobs take 6 to 9 minutes. With this limit, a hung test fails its job and leaves a log. Without it, the job
+    # waits out GitHub's 6-hour default and shows no log until someone cancels the run.
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: extensions/pi-pstack
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 26.13.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.2
+      # The readonly shell's OS sandbox on Linux, per @anthropic-ai/sandbox-runtime's Linux requirements
+      # and its own GitHub Actions integration workflow.
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap socat ripgrep
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo chmod u+s "$(which bwrap)"
+          bwrap --ro-bind / / --unshare-net true
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run typecheck
+      - run: bun run test
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          java-version: '25.0.5+8'
+      - run: |
+          curl --fail --location --retry 3 https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar -o "$RUNNER_TEMP/tla2tools.jar"
+          echo '936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88' " $RUNNER_TEMP/tla2tools.jar" | sha256sum --check
+          echo "TLA2TOOLS=$RUNNER_TEMP/tla2tools.jar" >> "$GITHUB_ENV"
+          echo "JAVA=$JAVA_HOME/bin/java" >> "$GITHUB_ENV"
+      - run: bun run test:statechart
+
+  # The release workflow runs on macOS and publishes from it, so the same suite runs here on every pull request.
+  # A /var to /private/var temp-root difference and a /proc-only lock takeover both escaped the Ubuntu leg and failed
+  # the release instead.
+  #
+  # Hosted macOS ARM capacity can cancel this job before any step runs ("not acquired by Runner").
+  # retry-pi-pstack-macos-capacity.yml re-runs failed jobs once when that happens and Ubuntu already passed.
+  verify-macos:
+    runs-on: macos-15
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: extensions/pi-pstack
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 26.13.0
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.4.2
+      - run: brew install ripgrep
+      - run: bun install --frozen-lockfile
+        working-directory: .
+      - run: bun run typecheck
+      - run: bun run test
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3
+        with:
+          distribution: temurin
+          # The macOS index publishes this build as 25.0.5+8.0.LTS, not 25.0.5+8.
+          java-version: '25.0.5+8.0.LTS'
+      - run: |
+          curl --fail --location --retry 3 https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar -o "$RUNNER_TEMP/tla2tools.jar"
+          echo '936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88' " $RUNNER_TEMP/tla2tools.jar" | shasum -a 256 --check
+          echo "TLA2TOOLS=$RUNNER_TEMP/tla2tools.jar" >> "$GITHUB_ENV"
+          echo "JAVA=$JAVA_HOME/bin/java" >> "$GITHUB_ENV"
+      - run: bun run test:statechart
+
+manifest_hashes:
+e48c4947f5a617c91d39eb597ab7213666942f9ca341709ff6419395e10d9b95  package.json
+7cf6f9252fe504edfdebffa8e0b64905596ae739a1ae34bf891c2fba7c318ba7  extensions/pi-pstack/package.json
+38a089f4624bf23065f9684d7d06e41fb48e25f9f38a78c1f15ae54a6c70a271  .github/workflows/pi-pstack.yml
+9f8dc488a7b592b419f5d6dc24490b6b71378ed5e8f3e7cfb410e20ca4ad2385  bun.lock
+
+workspace_source_changes:
+
+exit_code: 0
+finished_utc: 2026-11-06T17:21:19Z
