@@ -21,7 +21,7 @@ import { projectSection, registerProjects } from './project.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
 import { registerSecretRequest } from './secrets.ts';
-import { alwaysAppliedRules, hostSection, subagentsSection, todayText } from './sections.ts';
+import { hostSection, subagentsSection, todayText } from './sections.ts';
 import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
 import { memoryDir } from './subscriptions/memories.ts';
@@ -66,7 +66,6 @@ async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: rea
       loopAvailable: !isOneShot(ctx.mode),
       questionsAvailable: canAsk(ctx),
       activeTools,
-      rules: alwaysAppliedRules(SKILLS_DIR),
       cloud,
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),

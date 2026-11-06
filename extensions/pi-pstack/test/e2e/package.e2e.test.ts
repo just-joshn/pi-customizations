@@ -41,8 +41,18 @@ test('publishes bundled tools without locally installed script dependencies', as
   const packed = JSON.parse(stdout) as { files: { path: string }[] }[];
   const paths = packed.flatMap((entry) => entry.files.map((file) => file.path));
   expect(paths.filter((path) => path.includes('node_modules/'))).toEqual([]);
-  expect(paths).toEqual(expect.arrayContaining(['src/index.ts', 'bin/pstack-routines-supervisor', 'skills/statechart/scripts/statechart', 'skills/poteto-mode/scripts/watch-pr/watch-pr']));
-  expect(paths.filter((path) => path.startsWith('skills/') && path.endsWith('/SKILL.md'))).toHaveLength(80);
+  expect(paths).toEqual(
+    expect.arrayContaining([
+      'src/index.ts',
+      'src/inbox.ts',
+      'bin/pstack-routines-supervisor',
+      'skills/statechart/scripts/statechart',
+      'skills/poteto-mode/scripts/watch-pr/watch-pr',
+      'rules/no-inline-imports.mdc',
+      'rules/typescript-exhaustive-switch.mdc',
+    ]),
+  );
+  expect(paths.filter((path) => path.startsWith('skills/') && path.endsWith('/SKILL.md'))).toHaveLength(78);
 });
 
 test('a missing YAML dependency rejects metadata operations without blocking other tools', async () => {
@@ -103,7 +113,7 @@ test('installs from a fresh copy without node_modules, then removes cleanly (PKG
     'skill:how',
     'skill:poteto-mode',
   ]);
-  expect(installed.commands.filter((name) => name.startsWith('skill:'))).toHaveLength(80);
+  expect(installed.commands.filter((name) => name.startsWith('skill:'))).toHaveLength(78);
   expect(
     installed.tools
       .split(',')

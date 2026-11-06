@@ -1,7 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { stripFrontmatter } from '@earendil-works/pi-coding-agent';
 import type { AgentDefinition } from './task/agents.ts';
 import { type AvailableModel, type ModelSpec, modelLabel } from './task/models.ts';
 
@@ -28,8 +26,6 @@ export interface HostFacts {
   questionsAvailable: boolean;
   /** The session's active tools, so the section names only the ones it can call (no Task at depth 2 or in a readonly agent). */
   activeTools: readonly string[];
-  /** The bodies of the always-applied engineering rules, read from the shipped skills so the rule text is verbatim. */
-  rules: readonly string[];
   /** Where new cloud agents run: a container machine, a local worktree, or an error that stops them. */
   cloud: { driver: 'container' | 'worktree'; reason: string } | { error: string };
 }
@@ -56,19 +52,6 @@ const SUBSCRIPTIONS_LINE =
 const NO_SUBSCRIPTIONS_LINE = '- Subscriptions: this run ends when it settles, so nothing can wake it and the subscribe tools refuse. Name in the final reply any PR, timer, or webhook the parent chat should subscribe to.';
 
 const MODEL_LIST_LIMIT = 60;
-const ALWAYS_APPLIED = ['no-inline-imports', 'typescript-exhaustive-switch'];
-
-/** The rule bodies a Cursor plugin would register as always-applied `.mdc` rules, read from the vendored skills. */
-export function alwaysAppliedRules(skillsDir: string): string[] {
-  const bodies: string[] = [];
-  for (const name of ALWAYS_APPLIED) {
-    const file = join(skillsDir, name, 'SKILL.md');
-    if (!existsSync(file)) continue;
-    const body = stripFrontmatter(readFileSync(file, 'utf8')).trim();
-    if (body !== '') bodies.push(body);
-  }
-  return bodies;
-}
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -136,7 +119,6 @@ export function hostSection(facts: HostFacts): string {
     "- Media in a reply: Pi's chat renders no image or video inside a reply. To show a screenshot or a frame, read the image file with the read tool, which displays it inline in terminals that support images, and name its path. For a watchable catch-up video, open the local file with the system player (`open` on macOS, `xdg-open` on Linux), read one frame from each slide, and name the video path. Pi chat still does not play the video inline.",
     `- pi-pstack's README (${join(facts.packageRoot, 'README.md')}) and guide (${join(facts.packageRoot, 'docs/guide')}) describe installing and using it.`,
     ...(facts.activeTools.includes('Task') ? [cloudLine(facts.cloud)] : []),
-    `- Always-applied engineering rules (also \`/no-inline-imports\` and \`/typescript-exhaustive-switch\`). Follow them on every task:\n${facts.rules.map((rule) => rule.replace(/\n/g, '\n  ')).join('\n\n  ')}`,
   ].join('\n');
 }
 

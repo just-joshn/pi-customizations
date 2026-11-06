@@ -9,8 +9,8 @@ import { slackEventText } from '../src/slack/trigger.ts';
 import { loadAgentDefinitions } from '../src/task/agents.ts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SKILL_COUNT = 80;
-const HIDDEN_COUNT = 62;
+const SKILL_COUNT = 78;
+const HIDDEN_COUNT = 60;
 const TEAM_KIT = [
   'check-compiler-errors',
   'control-cli',
@@ -30,8 +30,6 @@ const TEAM_KIT = [
   'weekly-review',
   'what-did-i-get-done',
   'workflow-from-chats',
-  'no-inline-imports',
-  'typescript-exhaustive-switch',
 ];
 const INVOCABLE = [
   'check-compiler-errors',
@@ -271,4 +269,12 @@ describe('shipped resources', () => {
     expect(text).toContain('run two `Task` calls in parallel — `subagent_type: "shell"` and `subagent_type: "explore"`');
     expect(loadAgentDefinitions().some((agent) => agent.type === 'explore')).toBe(true);
   });
+});
+
+test("ships cursor-team-kit's rule files unchanged and unwired, as Cursor ships plugin rules it never applies (RULES-PLUGIN)", () => {
+  expect(readdirSync(join(root, 'rules')).toSorted()).toEqual(['no-inline-imports.mdc', 'typescript-exhaustive-switch.mdc']);
+  expect(readFileSync(join(root, 'rules/typescript-exhaustive-switch.mdc'), 'utf8')).toBe(
+    '---\ndescription: Use exhaustive switch handling for TypeScript unions and enums\nalwaysApply: true\n---\n\ntypescript-exhaustive-switch: In switch statements over discriminated unions or enums, use a `never` check in the default case so newly added variants cause compile-time failures until handled.\n',
+  );
+  expect(existsSync(join(root, 'skills/no-inline-imports')) || existsSync(join(root, 'skills/typescript-exhaustive-switch'))).toBe(false);
 });
