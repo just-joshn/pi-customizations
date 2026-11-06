@@ -11,10 +11,11 @@ import { registerInCloud } from './cloud/in-cloud.ts';
 import { cloudDriverStatus, parseMachine } from './cloud/machine.ts';
 import { machineJobSpawner, registerMachineTools } from './cloud/routed-tools.ts';
 import { registerGenerateImage } from './generate-image.ts';
+import { inboxDir, postItem, registerRootInbox } from './inbox.ts';
 import { registerLoop } from './loop.ts';
 import { registerMode } from './mode.ts';
 import { canAsk, isOneShot } from './modes.ts';
-import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir, terminalsDir } from './paths.ts';
+import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS_DIR, storeDir, subagentDir, terminalsDir, workspaceStateDir } from './paths.ts';
 import { registerPlanMode } from './plan.ts';
 import { projectSection, registerProjects } from './project.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
@@ -132,6 +133,15 @@ export default function piPstack(pi: ExtensionAPI): void {
   registerGenerateImage(pi, { artifactsDir: (ctx) => artifactsDir(ctx.cwd, ctx.sessionManager.getSessionId()), mayOffer: () => !childIdentity.readonly && !plan.enabled() });
   const ownType = agents.find((agent) => agent.type === childIdentity.agentType);
   const projects = registerProjects(pi);
+  // The top of a tree owns its background work: the main chat, or a cloud agent, which gets no root identity. Registered
+  // before the Task and shell settle handlers, so a one-shot run drains its inbox before deciding to exit.
+  const { root } = childIdentity;
+  if (root === undefined)
+    registerRootInbox(pi, {
+      shell: (notice) => shells?.announce(notice),
+      adopt: (agentId) => task.adopt(agentId),
+      settledOf: (agentId) => task.settledOf(agentId),
+    });
   const task = registerTask(pi, { agents, depth: childIdentity.depth, canSpawn: childIdentity.depth < 2 && ownType?.spawns !== false, planMode: plan.enabled, project: projects.slug });
   registerAgentStatus(pi);
   registerSubscriptions(pi, {
@@ -145,6 +155,12 @@ export default function piPstack(pi: ExtensionAPI): void {
       return undefined;
     },
   });
+  // A subagent's background jobs belong to the top of its tree, so their notices go to that inbox, tagged with this agent's ID.
+  let forwardFrom: { dir: string; agentId: string } | undefined;
+  if (root !== undefined)
+    pi.on('session_start', (_event, ctx) => {
+      forwardFrom = { dir: inboxDir(workspaceStateDir(ctx.cwd), root.sessionId), agentId: ctx.sessionManager.getSessionId() };
+    });
   // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox. On a container
   // machine the readonly boundary is the machine's read-only clone, so jobs run there.
   const shells =
@@ -153,7 +169,12 @@ export default function piPstack(pi: ExtensionAPI): void {
       : registerBackgroundShell(pi, {
           terminalsDir: (ctx) => terminalsDir(ctx.cwd),
           waitsForJobs: (ctx) => childIdentity.depth === 0 && (ctx.mode === 'print' || ctx.mode === 'json'),
-          endsWithTurn: childIdentity.depth > 0,
+          forward:
+            root !== undefined
+              ? (notice) => {
+                  if (forwardFrom !== undefined) postItem(forwardFrom.dir, { type: 'shell', from: forwardFrom.agentId, notice });
+                }
+              : undefined,
           spawner: machine === undefined ? undefined : machineJobSpawner(machine),
         });
   const loop = registerLoop(pi, { hasPendingWork: () => task.hasBackgroundWork() || shells?.hasRunningJobs() === true });

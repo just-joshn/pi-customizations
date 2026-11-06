@@ -43,7 +43,7 @@ export function makeSandbox(settings: Record<string, unknown> = {}): Sandbox {
   // Cloud agents use the worktree driver unless a test asks for a container machine, so the suite needs no container engine.
   const env = { ...process.env, HOME: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_CLOUD_DRIVER: 'worktree' } as Record<string, string>;
   // Variables that would point a run at the user's real state, or give the parent a subagent identity.
-  for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_PSTACK_DEPTH', 'PI_PSTACK_AGENT', 'PI_PSTACK_PARENT_PID']) delete env[name];
+  for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_PSTACK_DEPTH', 'PI_PSTACK_AGENT', 'PI_PSTACK_PARENT_PID', 'PI_PSTACK_ROOT_SESSION', 'PI_PSTACK_ROOT_PID']) delete env[name];
   return {
     root,
     agentDir,

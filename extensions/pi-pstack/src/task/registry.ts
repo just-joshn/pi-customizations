@@ -86,6 +86,8 @@ export function createSubagentRegistry(pi: ExtensionAPI) {
   return {
     isRunning: (agentId: string) => running.has(agentId),
     get: (agentId: string): Pick<Running, 'handle'> | undefined => running.get(agentId),
+    /** Resolves after the agent's own notification, if this runtime follows it. */
+    settledOf: (agentId: string): Promise<void> | undefined => running.get(agentId)?.settled,
     hasBackgroundWork: () => backgroundRunning().length > 0,
     track,
     beforeSettle,

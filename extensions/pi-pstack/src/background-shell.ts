@@ -427,14 +427,14 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     signalGroupId(job.pid, signal);
   };
 
-  /** Session end: every running job is stopped and recorded as aborted, with no notification. */
-  const shutdown = () => {
+  /** Session end: every running job is stopped and recorded as aborted, announced only when `announce` is set. */
+  const shutdown = (announce = false) => {
     for (const job of jobs.values()) {
       if (job.status !== 'running') continue;
       signalGroup(job, 'SIGTERM');
       const kill = setTimeout(() => signalGroup(job, 'SIGKILL'), KILL_GRACE_MS);
       kill.unref();
-      finish(job, 'aborted', 128 + constants.signals.SIGTERM, false);
+      finish(job, 'aborted', 128 + constants.signals.SIGTERM, announce);
     }
   };
   return {
@@ -520,8 +520,6 @@ interface AwaitDetails {
   sleptMs?: number;
 }
 
-const SUBAGENT_NOTE = 'This subagent stops its background jobs when it finishes, so await any job whose result you need before you finish.';
-
 const clampWait = (value: number | undefined, fallback: number) => Math.min(MAX_AWAIT_MS, Math.max(0, Math.round(value ?? fallback)));
 
 function seconds(ms: number): string {
@@ -540,19 +538,22 @@ export interface BackgroundShellOptions {
   terminalsDir: (ctx: ExtensionContext) => string;
   /** One-shot runs that may wait at settle for their jobs, as Cursor's print mode does: print and JSON runs, not subagents. */
   waitsForJobs: (ctx: ExtensionContext) => boolean;
-  /** A subagent's jobs end with it. */
-  endsWithTurn: boolean;
+  /**
+   * A subagent's: its jobs belong to the main chat, so every notice goes there instead of waking this agent, and the
+   * jobs still running when it ends are stopped and reported as aborted.
+   */
+  forward?: ((notice: ShellNotice) => void) | undefined;
   /** A cloud agent's machine, where its jobs run. */
   spawner?: JobSpawner | undefined;
 }
 
-/** bash_background and AwaitShell, plus the notifications their jobs send. */
-export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShellOptions): { hasRunningJobs: () => boolean } {
+/** bash_background and AwaitShell, plus the notifications their jobs send. `announce` delivers a descendant's notice here. */
+export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShellOptions): { hasRunningJobs: () => boolean; announce: (notice: ShellNotice) => void } {
   const pending: ShellNotice[] = [];
   const arrivals = new Set<() => void>();
   let mode: ExtensionContext['mode'] | undefined;
   let retired = false;
-  const deliver = (notice: ShellNotice) => {
+  const announce = (notice: ShellNotice) => {
     if (retired) return;
     if (mode !== undefined && isOneShot(mode)) {
       pending.push(notice);
@@ -567,6 +568,8 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       };
       arrivals.add(arrived);
     });
+  // Forwarding writes to the main chat's inbox, not to this runtime, so it still runs while this session shuts down.
+  const deliver = (notice: ShellNotice) => (options.forward === undefined ? announce(notice) : options.forward(notice));
   const jobs: ShellJobs = createShellJobs(
     {
       terminalsDir: options.terminalsDir,
@@ -600,7 +603,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     retired = true;
     pending.splice(0);
     for (const arrived of [...arrivals]) arrived();
-    jobs.shutdown();
+    jobs.shutdown(options.forward !== undefined);
   });
 
   pi.registerTool({
@@ -623,8 +626,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       });
       const blockMs = clampWait(params.block_until_ms, 0);
       const details = { shellId: job.id, pid: job.pid, outputPath: job.path };
-      const note = options.endsWithTurn ? `\n${SUBAGENT_NOTE}` : '';
-      if (blockMs === 0) return { content: [{ type: 'text', text: `${launchText(job)}${note}` }], details };
+      if (blockMs === 0) return { content: [{ type: 'text', text: launchText(job) }], details };
       const deadline = Date.now() + blockMs;
       while (job.status === 'running' && Date.now() < deadline && signal?.aborted !== true) await jobs.change(job, deadline - Date.now(), signal);
       if (signal?.aborted === true && job.status === 'running') {
@@ -635,7 +637,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
         job.observed = true;
         return { content: [{ type: 'text', text: finishedText(job.exitCode ?? 1, (job.endedAt ?? Date.now()) - job.startedAt, jobs.output(job), job.path) }], details: { ...details, exitCode: job.exitCode } };
       }
-      return { content: [{ type: 'text', text: `${movedText(job, blockMs, jobs.output(job))}${note}` }], details };
+      return { content: [{ type: 'text', text: movedText(job, blockMs, jobs.output(job)) }], details };
     },
   });
 
@@ -661,5 +663,5 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     },
   });
 
-  return { hasRunningJobs: () => jobs.running().length > 0 };
+  return { hasRunningJobs: () => jobs.running().length > 0, announce };
 }
