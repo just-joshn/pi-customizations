@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.36-pi.20] - 2026-11-06
+
+Matches the Cursor CLI 2026.11.05 contracts a Linux run observed with pstack installed. `parity/pstack-linux-2026-11-05/` in the repository holds the probes, the ledger, the decisions, and the mutation lever.
+
+- Give the main chat every subagent's background work, as Cursor does. A subagent no longer hears about its own background shells; each finished job notifies the main chat after the subagent's result, and jobs still running when the subagent ends are stopped and reported as `aborted`. A subagent's background subagent keeps running after the subagent ends and reports to the main chat, which stops it when its own session ends. A cloud agent is the top of its own tree, as a Cursor cloud agent is its own conversation: its jobs and background subagents report to it. The subagent launch text no longer says its jobs stop with it.
+- Stop adding cursor-team-kit's two always-applied rules to every request, since Cursor CLI never puts a plugin's rules in the model's context. The rule files ship unchanged in `rules/`; the `no-inline-imports` and `typescript-exhaustive-switch` skills, which Cursor does not have, are gone.
+- Read the model rule when a session starts, and only for a workspace under the home directory, as Cursor loads `~/.cursor/rules`: a rule written mid-session applies to new sessions. `/setup-pstack`, `/poteto-help`, and the guide say so again.
+- Rebuild `create-skill` from Cursor's built-in create-skill with only host facts translated, dropping the phases the port had added.
+- Run a cloud agent's container machine as the host user on Linux, so the clone and the shared Project and store folders it writes stay yours to edit and delete; a root container left them root-owned.
+
 ## [0.15.36-pi.19] - 2026-11-05
 
 Closes the host gaps earlier versions documented. `parity/pstack-complete-2026-11-05/` in the repository records the decisions, the levers that rebuilt the text, and the mutation receipts.
