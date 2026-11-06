@@ -12,6 +12,7 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
   skillNames: ['how'],
   agentDir: '/agent',
   rulePath: '/agent/pstack/pstack-models.md',
+  ruleInContext: true,
   sessionDir: '/agent/sessions/w',
   sessionFile: undefined,
   subagentDir: '/state/subagents',

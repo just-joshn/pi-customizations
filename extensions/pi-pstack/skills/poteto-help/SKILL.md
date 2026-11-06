@@ -36,7 +36,7 @@ When the model rule is missing and it matters, ask whether the user wants to pic
 ## Get set up
 
 1. Install with `pi install <path to pi-pstack>`, as the [README](../../README.md) shows.
-2. Run [`/setup-pstack`](../setup-pstack/SKILL.md). It asks for a reasoning budget, maps a model to each role, and writes the model rule. The rule applies from the next request. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
+2. Run [`/setup-pstack`](../setup-pstack/SKILL.md). It asks for a reasoning budget, maps a model to each role, and writes the model rule. The rule applies to new chats. Then it offers once each to generate a verification skill and a formal verification skill for the project, unless the project already has one.
 3. Start a real task with `/poteto-mode`, a goal, and a check that can pass or fail.
 
 Installing adds pi-pstack's tools and system-prompt sections. Pi advertises `/setup-pstack` and bundled skills whose frontmatter does not set `disable-model-invocation: true`. The model may read those skills when the user's request matches. Most pstack workflow skills stay hidden from automatic selection and load through an explicit command or another skill's instructions. The [README](../../README.md) and [guide page 1](../../docs/guide/01-setup.md) have the details. Offer to word their first prompt with them, per [`references/prompting.md`](references/prompting.md).
@@ -138,7 +138,7 @@ Principles are one-rule skills that `/poteto-mode` reads and cites in its replie
 |---|---|
 | The mode stopped applying after a few turns | It was started with Enter. Start it with `/mode poteto-mode`, or start each task with `/poteto-mode`. |
 | A question got treated as the next step of the last task | Say "new task", or say the turn doesn't need the mode. |
-| A new model choice had no effect | The rule from `/setup-pstack` applies from the next request. Send one. |
+| A new model choice had no effect | The rule from `/setup-pstack` applies to new chats. Start one. |
 | Runs cost more than expected | See the cost paragraph under Get set up. |
 | A skill didn't load on its own | Check its `disable-model-invocation` frontmatter. Hidden skills load when the user types their command or another skill tells the model to read them. `/poteto-mode` does not run every skill. |
 | Parallel agents overwrote each other | Give each agent its own worktree, or run them as cloud agents, which each get their own machine. |

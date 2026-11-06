@@ -19,7 +19,7 @@ import { artifactsDir, PACKAGE_ROOT, projectsDir, rootStoreDir, rulePath, SKILLS
 import { registerPlanMode } from './plan.ts';
 import { projectSection, registerProjects } from './project.ts';
 import { registerReadonlyShell } from './readonly-shell.ts';
-import { migrateLegacyRule, modelsSection, readRule } from './rule.ts';
+import { migrateLegacyRule, modelsSection, type SessionRule, sessionRule } from './rule.ts';
 import { registerSecretRequest } from './secrets.ts';
 import { hostSection, subagentsSection, todayText } from './sections.ts';
 import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
@@ -44,7 +44,7 @@ function agentSection(agents: readonly AgentDefinition[]): Record<string, string
   return { pstack_subagent: reminder === '' ? SUBAGENT_REMINDER : `${SUBAGENT_REMINDER}\n\n${reminder}` };
 }
 
-async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[]): Promise<Record<string, string>> {
+async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: readonly AgentDefinition[], rule: SessionRule): Promise<Record<string, string>> {
   const activeTools = pi.getActiveTools();
   const cloud = activeTools.includes('Task') ? await cloudDriverStatus() : { driver: 'worktree' as const, reason: 'no Task tool' };
   return {
@@ -55,6 +55,7 @@ async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: rea
       skillNames: packageSkillNames(pi.getCommands()),
       agentDir: getAgentDir(),
       rulePath: rulePath(),
+      ruleInContext: rule.inScope,
       sessionDir: ctx.sessionManager.getSessionDir(),
       sessionFile: ctx.sessionManager.getSessionFile(),
       subagentDir: subagentDir(ctx.cwd),
@@ -69,7 +70,7 @@ async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: rea
       cloud,
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
-    pstack_models: modelsSection(readRule(rulePath()), rulePath()),
+    ...(rule.inScope ? { pstack_models: modelsSection(rule.text, rulePath()) } : {}),
     ...agentSection(agents),
   };
 }
@@ -184,6 +185,8 @@ export default function piPstack(pi: ExtensionAPI): void {
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
   if (childIdentity.readonly && machine === undefined) registerReadonlyShell(pi);
 
+  // Read when the session starts, as Cursor loads its always-applied rules: a rule written later applies to new sessions.
+  let rule: SessionRule = { inScope: false };
   pi.on('before_agent_start', async (event, ctx) => {
     const onlyTools = ownType?.onlyTools;
     if (onlyTools !== undefined) pi.setActiveTools(pi.getActiveTools().filter((name) => onlyTools.includes(name)));
@@ -193,7 +196,7 @@ export default function piPstack(pi: ExtensionAPI): void {
     const projectText = projectSection(ctx.cwd, projects.slug());
     Object.assign(
       event.systemPromptOptions.sections,
-      await hostSections(pi, ctx, agents),
+      await hostSections(pi, ctx, agents, rule),
       mode.sections(),
       loopText === undefined ? {} : { pstack_loop: loopText },
       planText === undefined ? {} : { pstack_plan: planText },
@@ -202,5 +205,8 @@ export default function piPstack(pi: ExtensionAPI): void {
     );
   });
 
-  pi.on('session_start', () => migrateLegacyRule(rulePath()));
+  pi.on('session_start', (_event, ctx) => {
+    migrateLegacyRule(rulePath());
+    rule = sessionRule(ctx.cwd, rulePath());
+  });
 }

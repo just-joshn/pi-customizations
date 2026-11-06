@@ -46,7 +46,7 @@ describe('host map (HOST-001)', () => {
     expect(host).toContain(`<SKILLS> = ${skills}`);
     expect(host).toContain('"the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md');
     expect(host).toContain('a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md');
-    expect(host).toContain(`- The model rule is ${join(sandbox.agentDir, 'pstack/pstack-models.md')}. Its current content is in <pstack_models>.`);
+    expect(host).toContain(`- The model rule is ${join(sandbox.agentDir, 'pstack/pstack-models.md')}. The content this session started with is in <pstack_models>.`);
     expect(host).toContain(`- Skill folders: project \`.pi/skills/\`, personal \`${join(sandbox.agentDir, 'skills')}/\`.`);
     expect(host).toContain(`Subagent transcripts for this workspace: ${join(workspace, 'subagents')}/*_<agent id>.jsonl. A subagent is still running while ${join(workspace, 'subagents')}/<agent id>.lock exists and names a live pid.`);
     expect(host).toMatch(new RegExp(`"The current agent's store" is ${join(workspace, 'store')}/[0-9a-f-]+\\. Create it when a playbook needs it\\.`));
@@ -178,6 +178,47 @@ describe('model rule (RULE-001)', () => {
     const prompts = assistantTexts(run.events);
     expect(prompts).toHaveLength(2);
     for (const prompt of prompts) expect(section(prompt, 'pstack_models')).toBe(`Path: ${join(sandbox.agentDir, 'pstack/pstack-models.md')}\n# budget: small (medium)\nswarm workers: scripted/plain`);
+  });
+});
+
+describe('model rule timing and scope (RULE-TIMING, RULE-SCOPE)', () => {
+  const rulePath = () => join(sandbox.agentDir, 'pstack/pstack-models.md');
+  const writeRule = (text: string) => {
+    mkdirSync(join(sandbox.agentDir, 'pstack'), { recursive: true });
+    writeFileSync(rulePath(), text);
+  };
+  // A run is over at agent_settled, the point after which Pi does not continue on its own.
+  const reply = async (rpc: ReturnType<typeof startRpc>, count: number) => {
+    await rpc.waitFor(() => rpc.events.filter((event) => event.type === 'agent_settled').length >= count, 60_000);
+    return assistantTexts(rpc.events)[count - 1] ?? '';
+  };
+
+  test('a rule written mid-session reaches the next session, not the running one', async () => {
+    const rpc = startRpc(sandbox);
+    try {
+      rpc.send({ type: 'prompt', message: 'first\n@@sys' });
+      const before = await reply(rpc, 1);
+      writeRule('# budget: small (medium)\nswarm workers: scripted/plain\n');
+      rpc.send({ type: 'prompt', message: 'second\n@@sys' });
+      const during = await reply(rpc, 2);
+      rpc.send({ type: 'new_session' });
+      await rpc.waitFor((event) => event.type === 'response' && event['command'] === 'new_session');
+      rpc.send({ type: 'prompt', message: 'third\n@@sys' });
+      const after = await reply(rpc, 3);
+      const none = `No pstack model rule exists at ${rulePath()}. Every role uses its skill default until /setup-pstack writes one.`;
+      expect([section(before, 'pstack_models'), section(during, 'pstack_models'), section(after, 'pstack_models')]).toEqual([none, none, `Path: ${rulePath()}\n# budget: small (medium)\nswarm workers: scripted/plain`]);
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test("a workspace outside the home directory gets no rule in context, as Cursor's ~/.cursor/rules reaches only workspaces under home", async () => {
+    writeRule('# budget: small (medium)\n');
+    const home = join(sandbox.root, 'elsewhere-home');
+    mkdirSync(home);
+    sandbox.env['HOME'] = home;
+    const prompt = await systemPrompt(['--no-session']);
+    expect([prompt.includes('<pstack_models>'), section(prompt, 'pstack_host').includes(`- The model rule is ${rulePath()}.\n`)]).toEqual([false, true]);
   });
 });
 

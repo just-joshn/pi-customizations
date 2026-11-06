@@ -11,6 +11,8 @@ export interface HostFacts {
   skillNames: readonly string[];
   agentDir: string;
   rulePath: string;
+  /** Whether this session holds the rule's content: it starts under the home directory, where Cursor's rule reaches. */
+  ruleInContext: boolean;
   sessionDir: string;
   sessionFile: string | undefined;
   subagentDir: string;
@@ -92,7 +94,7 @@ export function hostSection(facts: HostFacts): string {
     `- <SKILLS> = ${facts.skillsDir}. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (${facts.skillNames.length}): ${facts.skillNames.join(', ')}.`,
     '- A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
     `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
-    `- The model rule is ${facts.rulePath}. Its current content is in <pstack_models>.`,
+    facts.ruleInContext ? `- The model rule is ${facts.rulePath}. The content this session started with is in <pstack_models>.` : `- The model rule is ${facts.rulePath}.`,
     ...(facts.activeTools.includes('Task')
       ? [`- Subagents: call the Task tool as the skills describe (${TASK_PARAMS}). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.`]
       : []),
