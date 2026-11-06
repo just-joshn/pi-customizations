@@ -1,0 +1,22 @@
+started_utc: 2026-11-06T17:22:11Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; INSTALL_HOME=$(mktemp -d /tmp/pstack-bun-home.XXXXXX); printf "isolated_install_home=%s\n" "$INSTALL_HOME"; env -i HOME="$INSTALL_HOME" PATH="$PATH" LANG=C.UTF-8 CI=1 bun install --frozen-lockfile; printf "\nInstalled versions:\n"; node --version; npm --version; bun --version; ./extensions/pi-pstack/node_modules/.bin/pi --version; node -p "JSON.parse(require(\"node:fs\").readFileSync(\"extensions/pi-pstack/package.json\",\"utf8\")).version"; git diff --exit-code -- bun.lock package.json extensions/pi-pstack/package.json
+
+isolated_install_home=/tmp/pstack-bun-home.K5eHgu
+bun install v1.4.2 (744846f84)
+
++ @biomejs/biome@2.5.14
++ @types/node@22.20.4
++ typescript@7.0.2
+
+201 packages installed [4.89s]
+
+Installed versions:
+v26.13.0
+11.20.0
+1.4.2
+1.5.0
+0.15.36-pi.20
+
+exit_code: 0
+finished_utc: 2026-11-06T17:22:17Z

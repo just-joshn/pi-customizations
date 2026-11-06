@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "sourceSha": "544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90",
+  "sourcePackageTree": "162e2bd157a28c4ffd156111d6390f3c635ca538",
+  "tarballSha256": "ce80efe79cf33fd1b4d0ee00d83f491f8b46e8d54057f0445a8c096647d25fdf",
+  "matchedFiles": 665,
+  "missingAtBaseline": [],
+  "contentMismatches": [],
+  "packedSkillFiles": 78,
+  "bundledNodeModules": 0
+}

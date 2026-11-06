@@ -1,0 +1,29 @@
+started_utc: 2026-11-06T17:27:29Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+command: /usr/sbin/runuser -u nobody -- env -i HOME='/tmp/pstack-unpriv-home.tbcR5c' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/local/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 /bin/bash -c 'id; node --version; bun --version; jq --version; bun run test test/records.test.ts test/scripts.test.ts --reporter=default --reporter=json --outputFile=/tmp/pstack-unpriv-home.tbcR5c/narrow-tests.json'
+
+uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
+v26.13.0
+1.4.2
+jq-1.6
+$ vitest run test/records.test.ts test/scripts.test.ts "--reporter=default" "--reporter=json" "--outputFile=/tmp/pstack-unpriv-home.tbcR5c/narrow-tests.json"
+
+ RUN  v5.0.2 /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+
+ ✓ test/records.test.ts (24 tests) 1675ms
+   ✓ run lock: one writer per agent ID (review: security 3, architecture 2) (8)
+     ✓ two processes recovering one stale lock cannot both become writers 918ms
+     ✓ a zombie is not a live writer and does not prevent recovery 701ms
+ ✓ test/scripts.test.ts (15 tests) 1836ms
+   ✓ bundled scripts run from the package (SCRIPT-001) (5)
+     ✓ the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies 477ms
+
+ Test Files  2 passed (2)
+      Tests  39 passed (39)
+   Start at  17:27:29
+   Duration  2.30s (tests 81%, import 17%, transform 2%)
+
+JSON report written to /tmp/pstack-unpriv-home.tbcR5c/narrow-tests.json
+
+exit_code: 0
+finished_utc: 2026-11-06T17:27:32Z

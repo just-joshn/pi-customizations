@@ -1,0 +1,19 @@
+started_utc: 2026-11-06T17:22:11Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: printf "\nSandbox prerequisites:\n"; bwrap --version; ls -l "$(command -v bwrap)"; printf "\nUser namespace policy:\n"; for path in /proc/sys/kernel/unprivileged_userns_clone /proc/sys/kernel/apparmor_restrict_unprivileged_userns /proc/sys/user/max_user_namespaces; do if test -r "$path"; then printf "%s=" "$path"; cat "$path"; fi; done; printf "\nCI bubblewrap probe:\n"; bwrap --ro-bind / / --unshare-net true; status=$?; printf "ci_probe_exit=%s\n" "$status"; if test "$status" -ne 0; then echo "BLOCKED: container cannot start bubblewrap namespaces. No sandbox relaxation or bypass applied."; fi; exit "$status"
+
+
+Sandbox prerequisites:
+bubblewrap 0.8.0
+-rwxr-xr-x 1 root root 67816 Aug 14  2024 /usr/bin/bwrap
+
+User namespace policy:
+/proc/sys/user/max_user_namespaces=32137
+
+CI bubblewrap probe:
+bwrap: Creating new namespace failed: Operation not permitted
+ci_probe_exit=1
+BLOCKED: container cannot start bubblewrap namespaces. No sandbox relaxation or bypass applied.
+
+exit_code: 1
+finished_utc: 2026-11-06T17:22:11Z

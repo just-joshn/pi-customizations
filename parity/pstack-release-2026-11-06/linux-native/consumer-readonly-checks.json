@@ -1,0 +1,9 @@
+{
+  "status": "BLOCKED",
+  "positiveRead": "BLOCKED",
+  "positiveLocalNetworkRead": "BLOCKED",
+  "writeAttemptRefused": true,
+  "localHttpServerReached": false,
+  "noUnsandboxedFallbackObserved": true,
+  "response": "This is the output of the subagent:\n\nresponse:\n<response>\nRESULTS:\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n</response>\n\nAgent ID: 6e612754-058a-49ff-b4e8-a08a38db3515 (can be used with the `resume` parameter to send a follow-up after it completes)"
+}

@@ -1,0 +1,8 @@
+started_utc: 2026-11-06T17:22:52Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+command: env -i HOME='/tmp/pstack-tests-home.IhMw3N' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/local/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 bun run typecheck
+
+$ tsc --noEmit -p tsconfig.json
+
+exit_code: 0
+finished_utc: 2026-11-06T17:22:53Z

@@ -1,0 +1,13 @@
+{
+  "agentId": "7cec8175-cd0d-4cb9-a14a-08dd8c61b55e",
+  "type": "poteto-agent",
+  "readonly": false,
+  "cwd": "/tmp/pstack-linux-consumer.s8ADTA/work",
+  "createdAt": "2026-11-06T17:26:02.360Z",
+  "depth": 1,
+  "model": {
+    "provider": "scripted",
+    "id": "echo",
+    "thinking": "medium"
+  }
+}

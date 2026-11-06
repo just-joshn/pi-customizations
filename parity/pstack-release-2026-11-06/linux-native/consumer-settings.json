@@ -1,0 +1,9 @@
+{
+  "packages": [
+    "../../../work/node_modules/@justjoshn/pi-pstack"
+  ],
+  "extensions": [
+    "/tmp/pstack-linux-consumer.s8ADTA/work/test/scripted-model.ts"
+  ],
+  "quietStartup": true
+}

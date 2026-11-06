@@ -1,0 +1,23 @@
+started_utc: 2026-11-06T17:21:35Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; TOOLCHAIN=$(mktemp -d /tmp/pstack-linux-toolchain.XXXXXX); printf "%s\n" "$TOOLCHAIN" > /tmp/pstack-linux-toolchain-location; echo "toolchain_root=$TOOLCHAIN"; curl --fail --location --retry 3 https://nodejs.org/dist/v26.13.0/SHASUMS256.txt -o "$TOOLCHAIN/SHASUMS256.txt"; curl --fail --location --retry 3 https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-arm64.tar.xz -o "$TOOLCHAIN/node.tar.xz"; grep " node-v26.13.0-linux-arm64.tar.xz$" "$TOOLCHAIN/SHASUMS256.txt" | sed "s@node-v26.13.0-linux-arm64.tar.xz@$TOOLCHAIN/node.tar.xz@" | sha256sum --check; tar -xJf "$TOOLCHAIN/node.tar.xz" -C "$TOOLCHAIN"; curl --fail --location --retry 3 https://github.com/oven-sh/bun/releases/download/bun-v1.4.2/bun-linux-aarch64.zip -o "$TOOLCHAIN/bun.zip"; unzip -q "$TOOLCHAIN/bun.zip" -d "$TOOLCHAIN"; sha256sum "$TOOLCHAIN/bun.zip"; mkdir -p "$TOOLCHAIN/bin"; ln -s "$TOOLCHAIN/bun-linux-aarch64/bun" "$TOOLCHAIN/bin/bun"; PATH="$TOOLCHAIN/node-v26.13.0-linux-arm64/bin:$TOOLCHAIN/bin:$PATH"; export PATH; node --version; npm --version; bun --version
+
+toolchain_root=/tmp/pstack-linux-toolchain.KfUCVQ
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100  3171  100  3171    0     0  47902      0 --:--:-- --:--:-- --:--:-- 48045
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0 38 31.5M   38 12.2M    0     0  19.9M      0  0:00:01 --:--:--  0:00:01 19.9M100 31.5M  100 31.5M    0     0  25.3M      0  0:00:01  0:00:01 --:--:-- 25.3M
+/tmp/pstack-linux-toolchain.KfUCVQ/node.tar.xz: OK
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+ 34 34.9M   34 11.8M    0     0  14.4M      0  0:00:02 --:--:--  0:00:02 14.4M100 34.9M  100 34.9M    0     0  22.2M      0  0:00:01  0:00:01 --:--:-- 30.9M
+54328bbc2d9c8e0c9f892c544d66c57a83b84139e34909e5ee81758f1ac8fda7  /tmp/pstack-linux-toolchain.KfUCVQ/bun.zip
+v26.13.0
+11.20.0
+1.4.2
+
+exit_code: 0
+finished_utc: 2026-11-06T17:21:40Z

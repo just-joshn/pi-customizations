@@ -1,0 +1,382 @@
+{
+  "sourceSha": "544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90",
+  "runs": {
+    "readonly-tests": {
+      "counts": {
+        "numTotalTests": 5,
+        "numPassedTests": 3,
+        "numFailedTests": 2,
+        "numPendingTests": 0,
+        "numTodoTests": 0
+      },
+      "fileStatuses": {
+        "failed": 2
+      },
+      "failures": [
+        {
+          "file": "test/linux-readonly-sandbox.test.ts",
+          "name": "read-only commands and network reads run, while writes and Unix sockets are refused (G12)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'RO-MARK'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/linux-readonly-sandbox.test.ts:71:18\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell.test.ts",
+          "name": "a process that used the shell exits on its own once its session shuts down",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'SANDBOXED'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell.test.ts:30:25\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3876:64"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        }
+      ],
+      "skips": []
+    },
+    "full-package-tests": {
+      "counts": {
+        "numTotalTests": 843,
+        "numPassedTests": 824,
+        "numFailedTests": 12,
+        "numPendingTests": 7,
+        "numTodoTests": 0
+      },
+      "fileStatuses": {
+        "passed": 60,
+        "failed": 7
+      },
+      "failures": [
+        {
+          "file": "test/linux-readonly-sandbox.test.ts",
+          "name": "read-only commands and network reads run, while writes and Unix sockets are refused (G12)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'RO-MARK'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/linux-readonly-sandbox.test.ts:71:18\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "a shared pre-initialized sandbox policy does not weaken the shell (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'ERROR: no verified OS sandbox is avai\u2026' to match /Operation not permitted|Read-only fil\u2026/\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:48:16\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "the dependency default write paths stay denied (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n    at linuxCommand (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:99:11)\n    at Object.execute (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:84:54)\n    at run (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:41:29)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:59:22\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n    at linuxCommand (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:99:11)\n    at Object.execute (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:84:54)\n    at run (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:41:29)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:76:22\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "an already-aborted call never spawns the command (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: expected [Function] to throw error matching /aborted/i but got 'no verified OS sandbox is available: \u2026'\n    at Assertion.__VITEST_REJECTS__ (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/index.DGdajAO2.js:2464:33)\n    at Assertion.propertyGetter (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:85:87\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell.test.ts",
+          "name": "a process that used the shell exits on its own once its session shuts down",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'SANDBOXED'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell.test.ts:30:25\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3876:64"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/records.test.ts",
+          "name": "run lock: one writer per agent ID (review: security 3, architecture 2) release never throws, because a leftover lock is taken over once its holder is gone (review r2: security)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: ENOENT: no such file or directory, open '/tmp/locks-3wUaLR/11111111-2222-4333-8444-555555555555.lock'\n    at readFileSync (node:fs:624:20)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/records.test.ts:96:12\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)"
+          ],
+          "classification": "ISSUES",
+          "cause": "root bypasses chmod(0500) directory permissions"
+        },
+        {
+          "file": "test/scripts.test.ts",
+          "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a settings sessionDir that starts with ~ is expanded (recheck)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected [ '-', 'safe' ] to deeply equal [ '2026-11-06', 'verify-recent-chat' ]\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/scripts.test.ts:138:29\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3876:64"
+          ],
+          "classification": "ISSUES",
+          "cause": "declared jq prerequisite absent on first run"
+        },
+        {
+          "file": "test/scripts.test.ts",
+          "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a project .pi/settings.json sessionDir wins over the global one and resolves from the working directory (recheck)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected [ '-', 'safe' ] to deeply equal [ '2026-11-06', 'verify-recent-chat' ]\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/scripts.test.ts:160:29\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3876:64"
+          ],
+          "classification": "ISSUES",
+          "cause": "declared jq prerequisite absent on first run"
+        },
+        {
+          "file": "test/e2e/package.e2e.test.ts",
+          "name": "installs from a fresh copy without node_modules, then removes cleanly (PKG-001)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'This is the output of the subagent:\\n\u2026' to contain 'Read-only file system'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/package.e2e.test.ts:128:57\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/e2e/task.e2e.test.ts",
+          "name": "subagent types a readonly child runs git log and network reads but cannot write files (TASK-019, G12)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'RESULTS:\\n[bash error] no verified OS\u2026' to contain 'RO-COMMIT-MARK'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/task.e2e.test.ts:222:19\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/e2e/task.e2e.test.ts",
+          "name": "subagent types readonly children still inherit environment credentials",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'This is the output of the subagent:\\n\u2026' to contain 'FAKE-BENNY-CREDENTIAL'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/task.e2e.test.ts:265:25\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        }
+      ],
+      "skips": [
+        {
+          "file": "test/readonly-shell-dependency.test.ts",
+          "name": "missing Unix socket isolation prevents the readonly command from running",
+          "status": "skipped",
+          "reason": "macOS sandbox-runtime-specific test is intentionally skipped on Linux"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) runs the agent on its own container with a fresh clone of the pushed remote, and the agent pushes its branch (G1)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a resume boots the stopped machine and continues the same agent there (G1)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) the agent's file tools act on the machine: only the clone and the workspace's shared Project folders reach the host (G1, G2)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a background cloud agent keeps running after its chat closes, and the reopened chat gets its result (G1, G13)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a cloud agent's own subagent runs on the same machine and never receives the Slack token (G1, G3)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/video.e2e.test.ts",
+          "name": "a video attachment reaches the subagent as timestamped frames (G8, needs ffmpeg)",
+          "status": "skipped",
+          "reason": "ffmpeg is not installed; optional video test skips itself"
+        }
+      ]
+    },
+    "unprivileged-narrow-tests": {
+      "counts": {
+        "numTotalTests": 39,
+        "numPassedTests": 39,
+        "numFailedTests": 0,
+        "numPendingTests": 0,
+        "numTodoTests": 0
+      },
+      "fileStatuses": {
+        "passed": 2
+      },
+      "failures": [],
+      "skips": []
+    },
+    "unprivileged-full-tests": {
+      "counts": {
+        "numTotalTests": 843,
+        "numPassedTests": 827,
+        "numFailedTests": 9,
+        "numPendingTests": 7,
+        "numTodoTests": 0
+      },
+      "fileStatuses": {
+        "passed": 62,
+        "failed": 5
+      },
+      "failures": [
+        {
+          "file": "test/linux-readonly-sandbox.test.ts",
+          "name": "read-only commands and network reads run, while writes and Unix sockets are refused (G12)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'RO-MARK'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/linux-readonly-sandbox.test.ts:71:18\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "a shared pre-initialized sandbox policy does not weaken the shell (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'ERROR: no verified OS sandbox is avai\u2026' to match /Operation not permitted|Read-only fil\u2026/\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:48:16\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "the dependency default write paths stay denied (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n    at linuxCommand (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:99:11)\n    at Object.execute (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:84:54)\n    at run (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:41:29)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:59:22\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n    at linuxCommand (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:99:11)\n    at Object.execute (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/src/readonly-shell.ts:84:54)\n    at run (/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:41:29)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:76:22\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell-security.test.ts",
+          "name": "an already-aborted call never spawns the command (TASK-019)",
+          "status": "failed",
+          "failureMessages": [
+            "Error: expected [Function] to throw error matching /aborted/i but got 'no verified OS sandbox is available: \u2026'\n    at Assertion.__VITEST_REJECTS__ (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/index.DGdajAO2.js:2464:33)\n    at Assertion.propertyGetter (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/chai@6.2.2/node_modules/chai/index.js:1570:27)\n    at Reflect.get (<anonymous>)\n    at Object.proxyGetter [as get] (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/chai@6.2.2/node_modules/chai/index.js:1659:22)\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell-security.test.ts:85:87\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/readonly-shell.test.ts",
+          "name": "a process that used the shell exits on its own once its session shuts down",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected '' to contain 'SANDBOXED'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/readonly-shell.test.ts:30:25\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:1628:35\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:26\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3319:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3314:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3299:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3257:10)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:3876:64"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/e2e/package.e2e.test.ts",
+          "name": "installs from a fresh copy without node_modules, then removes cleanly (PKG-001)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'This is the output of the subagent:\\n\u2026' to contain 'Read-only file system'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/package.e2e.test.ts:128:57\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/e2e/task.e2e.test.ts",
+          "name": "subagent types a readonly child runs git log and network reads but cannot write files (TASK-019, G12)",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'RESULTS:\\n[bash error] no verified OS\u2026' to contain 'RO-COMMIT-MARK'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/task.e2e.test.ts:222:19\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        },
+        {
+          "file": "test/e2e/task.e2e.test.ts",
+          "name": "subagent types readonly children still inherit environment credentials",
+          "status": "failed",
+          "failureMessages": [
+            "AssertionError: expected 'This is the output of the subagent:\\n\u2026' to contain 'FAKE-BENNY-CREDENTIAL'\n    at /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/e2e/task.e2e.test.ts:265:25\n    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/node_modules/.bun/vitest@5.0.2+c9afd5878c8d7808/node_modules/vitest/dist/chunks/run.C5UmxDPh.js:2783:20"
+          ],
+          "classification": "BLOCKED",
+          "cause": "bubblewrap namespace creation refused by this container"
+        }
+      ],
+      "skips": [
+        {
+          "file": "test/readonly-shell-dependency.test.ts",
+          "name": "missing Unix socket isolation prevents the readonly command from running",
+          "status": "skipped",
+          "reason": "macOS sandbox-runtime-specific test is intentionally skipped on Linux"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) runs the agent on its own container with a fresh clone of the pushed remote, and the agent pushes its branch (G1)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a resume boots the stopped machine and continues the same agent there (G1)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) the agent's file tools act on the machine: only the clone and the workspace's shared Project folders reach the host (G1, G2)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a background cloud agent keeps running after its chat closes, and the reopened chat gets its result (G1, G13)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/cloud-machine.e2e.test.ts",
+          "name": "cloud agents on a container machine (needs a Docker engine with node:22.22.2-bookworm and a LAN address) a cloud agent's own subagent runs on the same machine and never receives the Slack token (G1, G3)",
+          "status": "skipped",
+          "reason": "Docker executable/engine and required image are not available in this runner"
+        },
+        {
+          "file": "test/e2e/video.e2e.test.ts",
+          "name": "a video attachment reaches the subagent as timestamped frames (G8, needs ffmpeg)",
+          "status": "skipped",
+          "reason": "ffmpeg is not installed; optional video test skips itself"
+        }
+      ]
+    }
+  }
+}

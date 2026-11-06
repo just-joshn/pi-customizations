@@ -1,0 +1,2 @@
+unprivileged_narrow_exit=0
+unprivileged_full_exit=1

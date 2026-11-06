@@ -1,0 +1,618 @@
+started_utc: 2026-11-06T17:22:54Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+command: env -i HOME='/tmp/pstack-tests-home.IhMw3N' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/local/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 bun run test --reporter=default --reporter=json --outputFile='/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/full-package-tests.json'
+
+$ vitest run "--reporter=default" "--reporter=json" "--outputFile=/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/full-package-tests.json"
+
+ RUN  v5.0.2 /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+
+ ✓ test/plan.test.ts (27 tests) 293ms
+ ✓ test/resources.test.ts (17 tests) 940ms
+ ✓ test/supervisor-reconcile.test.ts (15 tests) 1008ms
+ ↓ test/e2e/cloud-machine.e2e.test.ts (5 tests | 5 skipped)
+ ✓ test/subscriptions.test.ts (50 tests) 2619ms
+   ✓ subscribe_timer (8)
+     ✓ a once delay wakes this session once with the prompt, then ends 550ms
+     ✓ a cron timer fires on matching local minutes only 756ms
+   ✓ subscribe_webhook (16)
+     ✓ two processes keep one sender key 345ms
+ ✓ test/task-fork.test.ts (22 tests) 31ms
+ ✓ test/task-model.test.ts (49 tests) 7ms
+ ✓ test/task-runner.test.ts (38 tests) 3752ms
+   ✓ stop (C-H4) (2)
+     ✓ stop kills a child that ignores the abort after the grace period 3037ms
+ ✓ test/durable-store.test.ts (29 tests) 6191ms
+   ✓ cross-process creates preserve different names and deduplicate one shared name 1973ms
+   ✓ dead registry writers and owner consumers release exclusive ownership 1141ms
+   ✓ producer death before the acceptance commit preserves the correct delivery boundary 677ms
+   ✓ producer death after the acceptance commit preserves the correct delivery boundary 661ms
+   ✓ a crash after send but before acknowledgement permits an at-least-once replay 761ms
+   ✓ cross-process cancellation wins over either acceptance ordering 842ms
+ ❯ test/records.test.ts (24 tests | 1 failed) 2388ms
+   ❯ run lock: one writer per agent ID (review: security 3, architecture 2) (8)
+     ✓ two processes recovering one stale lock cannot both become writers 1600ms
+     ✓ a zombie is not a live writer and does not prevent recovery 706ms
+     ✓ a second acquire while the holder lives is refused, naming the lock file 1ms
+     ✓ the lock follows the child that writes the transcript (recheck) 26ms
+     ✓ a lock with no readable pid counts as held, naming the file to remove (fail closed) 2ms
+     ✓ release leaves a lock that another live holder took over 2ms
+     × release never throws, because a leftover lock is taken over once its holder is gone (review r2: security) 10ms
+     ✓ a lock left by a dead process is taken over 26ms
+   ✓ agent records (review r2: architecture 5) (10)
+     ✓ a corrupt or partial record "{not json" fails with a clear error 1ms
+     ✓ a corrupt or partial record "{\"agentId\":\"x\"}" fails with a clear error 1ms
+     ✓ a corrupt or partial record "[]" fails with a clear error 0ms
+     ✓ a cloud agent's container machine and run survive a write and read (TASK-010) 2ms
+     ✓ a record written before machines existed reads its worktree as a worktree machine 1ms
+     ✓ a record with no createdAt is unreadable (C-L3) 3ms
+     ✓ a record with a model that is a string is unreadable (C-L3) 1ms
+     ✓ a record with a model without an id is unreadable (C-L3) 1ms
+     ✓ a record with a thinking level that is not a string is unreadable (C-L3) 0ms
+     ✓ a record whose worktree lacks a field is unreadable (TASK-010) 0ms
+   ✓ per-workspace state (review: parity 4) (4)
+     ✓ names a workspace the way Pi names a session folder 0ms
+     ✓ the workspace folder name stays the default session folder Pi gives that directory 2ms
+     ✓ a subagent uses its main chat's workspace state, wherever it runs (C-M2) 0ms
+     ✓ keeps subagents and the agent store under the workspace 0ms
+   ✓ tool loadout after a plan-mode launch (C-M1) (2)
+     ✓ gives back the tools a readonly launch took from the last writable loadout 1ms
+     ✓ gives back nothing when the loadout is writable or was never writable 1ms
+ ✓ test/mode.test.ts (48 tests) 27ms
+ ❯ test/scripts.test.ts (15 tests | 2 failed) 1884ms
+   ✓ bundled scripts run from the package (SCRIPT-001) (5)
+     ✓ the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies 1061ms
+     ✓ watch-pr starts and prints usage 27ms
+     ✓ orch is gone (pstack 0.15.36 runs orchestrate with agent tools) 5ms
+     ✓ check-plan reports a plan that lacks the required sections 28ms
+     ✓ log.sh writes the header once and neutralizes formula and tab characters 46ms
+   ✓ statechart CLI runs from the package (SCRIPT-001) (2)
+     ✓ ships the TypeScript entry and ketchup-video skill 0ms
+     ✓ missing SPEC prints usage and exits 2 125ms
+   ❯ worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) (8)
+     ✓ a Pi session that worked in the worktree makes it a recent chat 83ms
+     ✓ a pi-pstack subagent transcript from the main checkout counts too (review: parity 4) 69ms
+     ✓ a custom session directory from PI_CODING_AGENT_SESSION_DIR is searched (review: parity 4) 80ms
+     × a settings sessionDir that starts with ~ is expanded (recheck) 77ms
+     ✓ PI_CODING_AGENT_SESSION_DIR is tilde-expanded like Pi does (recheck) 85ms
+     × a project .pi/settings.json sessionDir wins over the global one and resolves from the working directory (recheck) 64ms
+     ✓ PI_CODING_AGENT_DIR is tilde-expanded like Pi does (review r2: security) 68ms
+     ✓ a Cursor transcript no longer counts 66ms
+ ✓ test/background-shell.test.ts (11 tests) 247ms
+ ✓ test/e2e/plan.e2e.test.ts (11 tests) 10784ms
+   ✓ plan mode saves a Cursor-shaped plan, asks whether to build it, and builds it on yes 2778ms
+   ✓ CreatePlan retains todo dependencies and project phases in its saved file 489ms
+   ✓ building a plan imports its unfinished todos from the edited file 461ms
+   ✓ plan-imported todos survive a Pi restart and subsequent updates synchronize the saved plan 867ms
+   ✓ a worktree plan builder retains its todos and honors readonly false when resumed 1904ms
+   ✓ a worktree plan builder retains its todos and honors readonly true when resumed 1841ms
+   ✓ TodoWrite preserves reviewed plan text with a preexisting status true 479ms
+   ✓ TodoWrite preserves reviewed plan text with a preexisting status false 402ms
+   ✓ navigating out of the planning branch restores tools with an earlier recorded loadout true 374ms
+   ✓ navigating out of the planning branch restores tools with an earlier recorded loadout false 575ms
+   ✓ SwitchMode enters plan mode with the user approving, and /plan build starts the saved plan 609ms
+ ✓ test/visualize.test.ts (12 tests) 36ms
+ ✓ test/task-status.test.ts (13 tests) 73ms
+ ✓ test/sections.test.ts (12 tests) 4ms
+ ✓ test/e2e/mode.e2e.test.ts (6 tests) 4099ms
+   ✓ /mode keeps the skill in context on every turn until /mode off, with Cursor's notices and a status badge (MODE-001, MODE-002, MODE-005) 722ms
+   ✓ the /mode task goes through normal skill expansion (MODE-001) 416ms
+   ✓ /mode rejects an unknown skill and lists the choices (MODE-002) 406ms
+   ✓ a mode whose stored skill path went stale is found again by name (recheck 4) 709ms
+   ✓ a stored mode whose skill no longer loads never inlines the stored path (review r2: security 3) 1008ms
+   ✓ the mode survives a restart of the same session and keeps its skill in context (MODE-003) 837ms
+ ✓ test/e2e/ask.e2e.test.ts (5 tests) 2417ms
+   ✓ asks each question through UI dialogs and returns option IDs (HOST-005) 427ms
+   ✓ accepts the option descriptions models send in Cursor IDE calls and, as Cursor strips them, shows only labels (HOST-005) 460ms
+   ✓ a dismissed question is reported, not guessed (HOST-005) 545ms
+   ✓ without a UI the questions resolve as skipped, with Cursor print mode reject reason (HOST-005, ASK-SKIP-001) 537ms
+   ✓ every question offers a typed Other answer, as the Cursor question dialog does (HOST-005) 447ms
+ ✓ test/e2e/host.e2e.test.ts (23 tests) 16777ms
+   ✓ host map (HOST-001) (10)
+     ✓ names the skills, rule, transcript, store, project, and subagent locations in Pi terms 2723ms
+     ✓ names no Cursor host feature (HOST-008) 543ms
+     ✓ tells a one-shot run it cannot subscribe, and a long-lived session how subscriptions wake it (HOST-010) 892ms
+     ✓ names the main chat's own store as the root agent's store 467ms
+     ✓ names AskQuestion only where a user can answer (HOST-005; review r2: parity 4) 1083ms
+     ✓ tells a long-lived session how to arm /loop (HOST-004) 560ms
+     ✓ tells a one-shot run, such as a subagent, that it cannot arm /loop (HOST-004, recheck 2) 473ms
+     ✓ frames an attached skill as the workflow to follow 541ms
+     ✓ names the persisted transcript of this chat 491ms
+     ✓ says when the chat is not persisted 515ms
+   ✓ subagent catalog (HOST-002) (1)
+     ✓ lists the subagent types and the models Task accepts 462ms
+   ✓ declared tool descriptions (3)
+     ✓ Task carries Cursor's delegation rules in Pi wording 397ms
+     ✓ AskQuestion carries Cursor's description 346ms
+     ✓ TodoWrite carries Cursor's description 410ms
+   ✓ capability-aware sections (C-M4) (1)
+     ✓ a readonly subagent gets no subagent catalog and no Task or stop_agent lines; its parent gets both 1433ms
+   ✓ model rule (RULE-001) (2)
+     ✓ reports the default when no rule exists 415ms
+     ✓ applies the rule on every request when it exists 462ms
+   ✓ model rule timing and scope (RULE-TIMING, RULE-SCOPE) (2)
+     ✓ a rule written mid-session reaches the next session, not the running one 910ms
+     ✓ a workspace outside the home directory gets no rule in context, as Cursor's ~/.cursor/rules reaches only workspaces under home 649ms
+   ✓ tool listing (1)
+     ✓ lists the pstack tools a one-shot run can use, and the todolist guideline (HOST-001, TODO-001, recheck 2) 507ms
+   ✓ image generation (HOST-006) (2)
+     ✓ GenerateImage saves the image to the artifacts folder and shows it when an image model is configured, like Cursor's GenerateImage 1059ms
+     ✓ without an image model the session has no GenerateImage tool and the host section says to draw a diagram instead 988ms
+   ✓ reading a TypeScript file does not attach typescript-best-practices, which Cursor loads only when invoked by name 451ms
+ ✓ test/e2e/aliases.e2e.test.ts (11 tests) 4961ms
+   ✓ /how attaches the skill body, path, and raw arguments to one message (CMD-001) 403ms
+   ✓ a /name later in the message attaches that skill and keeps the whole message, as Cursor findSkillReferences does (SKILL-REF-001) 408ms
+   ✓ every referenced skill attaches once, in order of first reference (SKILL-REF-002) 555ms
+   ✓ the skill does not ride along on the next message (CMD-001) 509ms
+   ✓ aliases work in print mode, where extension commands cannot start a run (CMD-001) 457ms
+   ✓ a user's own prompt template of the same name wins over the alias (CMD-002) 390ms
+   ✓ a prompt template at the start expands its template and attaches any skill the message names (SKILL-REF-004) 463ms
+   ✓ aliases work when the package is installed through a symlink (recheck 1) 709ms
+   ✓ a skill of the user's own gets a /name alias too, as in Cursor (review r2: parity 1) 399ms
+   ✓ aliases work when skill commands are hidden from the / menu 383ms
+ ✓ test/task-agents.test.ts (24 tests) 34ms
+ ✓ test/e2e/background-shell.e2e.test.ts (15 tests) 14433ms
+   ✓ print and JSON runs (11)
+     ✓ a background command returns at once, and the run waits for it and takes a turn on its completion notice 1469ms
+     ✓ a command that outlasts block_until_ms moves to the background with the output so far 2531ms
+     ✓ a command that finishes inside block_until_ms returns its output and sends no notification 452ms
+     ✓ a watched pattern counts every occurrence in output without line breaks 521ms
+     ✓ output monitoring stops at the reference limit and tells the session to read the file 503ms
+     ✓ SHELL-WATCH-019 the empty watch preserves command execution 425ms
+     ✓ SHELL-WATCH-020 the whitespace watch preserves command execution 371ms
+     ✓ SHELL-WATCH-021 the malformed watch preserves command execution 424ms
+     ✓ SHELL-WATCH-022 the oversized watch preserves command execution 577ms
+     ✓ AwaitShell sleeps without a shell id and reports a running job by id 2457ms
+     ✓ AwaitShell refuses to wait for subagents and to check no shell, with Cursor desktop's errors 561ms
+   ✓ interactive sessions (3)
+     ✓ a watched line and the completion each wake the agent with a notification turn 2575ms
+     ✓ a watched match wakes the session before the producer writes a newline or exits 505ms
+     ✓ closing the session stops a running job 340ms
+   ✓ a readonly subagent and plan mode get no background shell (TASK-019) 720ms
+ ✓ test/task-worktree.test.ts (12 tests) 370ms
+ ✓ test/task-format.test.ts (17 tests) 18ms
+ ✓ test/e2e/slack.e2e.test.ts (2 tests) 2728ms
+   ✓ a Slack channel subscription fires once per new top-level report with its coordinates, and the agent replies in that thread (G3, G5) 2266ms
+   ✓ subscribe_slack refuses to start without a Slack token, naming how to connect (G5) 460ms
+ ✓ test/aliases.test.ts (27 tests) 13ms
+ ✓ test/todo.test.ts (10 tests) 7ms
+ ❯ test/e2e/package.e2e.test.ts (4 tests | 1 failed) 7757ms
+   ✓ publishes bundled tools without locally installed script dependencies 1130ms
+   ✓ a missing YAML dependency rejects metadata operations without blocking other tools 2090ms
+   ✓ missing regex dependencies refuse a watched command before it runs 1933ms
+   × installs from a fresh copy without node_modules, then removes cleanly (PKG-001) 2602ms
+ ✓ test/e2e/subscription-owner.e2e.test.ts (8 tests) 17955ms
+   ✓ a detached timer wakes its idle owning Pi session 2033ms
+   ✓ a detached webhook routine runs with no owner chat and records its outcome 1596ms
+   ✓ two workspaces each serve their routines, falling back off a busy default port 1775ms
+   ✓ offline wake backlog waits for the exact saved owner rather than a workspace peer 3417ms
+   ✓ a busy owner receives its native follow-up after the current tool finishes 2740ms
+   ✓ a live fresh timer keeps the Task completion notification path 2230ms
+   ✓ an explicit offline fresh timer uses the detached runner and records its outcome 3103ms
+   ✓ creating a webhook routine waits for the user to confirm, and a refusal creates nothing (G4, G14) 1055ms
+ ❯ test/readonly-shell-security.test.ts (4 tests | 4 failed) 19ms
+   × a shared pre-initialized sandbox policy does not weaken the shell (TASK-019) 14ms
+   × the dependency default write paths stay denied (TASK-019) 2ms
+   × an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019) 1ms
+   × an already-aborted call never spawns the command (TASK-019) 2ms
+ ✓ test/ask.test.ts (9 tests) 7ms
+ ✓ test/rule.test.ts (8 tests) 1462ms
+   ✓ legacy rule migration (RULE-003) (4)
+     ✓ two processes migrate once without throwing 1452ms
+ ✓ test/task-progress.test.ts (6 tests) 4ms
+ ❯ test/linux-readonly-sandbox.test.ts (2 tests | 1 failed) 27ms
+   ✓ an architecture without a filter is refused instead of running unfiltered 1ms
+   × read-only commands and network reads run, while writes and Unix sockets are refused (G12) 25ms
+ ✓ test/ensure-supervisor.test.ts (8 tests) 2244ms
+   ✓ ensure-supervisor (8)
+     ✓ the real supervisor bin stays alive past 1s until SIGTERM (SUP-BIN-001) 2165ms
+ ✓ test/native-tool-validation.test.ts (12 tests) 14ms
+ ✓ test/task-card.test.ts (7 tests) 4ms
+ ✓ test/e2e/lifecycle.e2e.test.ts (5 tests) 3407ms
+   ✓ a new session shows the stopped-subagent warning after the next session starts 729ms
+   ✓ a reload shows the stopped-subagent warning after the next session starts 864ms
+   ✓ /reload keeps aliases and tools, and stops the old runtime children (PKG-002) 574ms
+   ✓ a new session resets mode and todos and stops the old children (PKG-002) 615ms
+   ✓ a bare /plan enters plan mode and the next turn cannot write a file that is not markdown 624ms
+ ✓ test/task-schema.test.ts (8 tests) 18ms
+ ✓ test/e2e/todo.e2e.test.ts (2 tests) 1265ms
+   ✓ TodoWrite state follows a fork back to the earlier branch and drives the widget (TODO-001, TODO-002) 496ms
+   ✓ the todo list rides in every request, so a compacted context still sees it 769ms
+ ✓ test/subscriptions-cron.test.ts (15 tests) 15ms
+ ✓ test/loop.test.ts (56 tests) 22982ms
+   ✓ /loop through Pi (HOST-004) (15)
+     ✓ a fixed interval repeats the prompt verbatim, with loop state in the system prompt, until /loop stop 3848ms
+     ✓ a leading word interval 10 minutes runs only the literal prompt through Pi 471ms
+     ✓ a leading word interval every 10 minutes runs only the literal prompt through Pi 445ms
+     ✓ an agent-paced loop tells the model to pick the next wake 589ms
+     ✓ without an interval the agent picks each wake, and the loop ends when it picks none 1540ms
+     ✓ a loop prompt that names a skill attaches the skill on every iteration 1509ms
+     ✓ the agent can arm a loop itself, as pstack playbooks tell it to (review: parity 1) 1449ms
+     ✓ independent fixed loops both repeat through Pi and one can be stopped by id 3474ms
+     ✓ a new wake_in replaces a wake that is already scheduled (review r2: parity 2) 1616ms
+     ✓ the agent ends a loop with Loop {stop: true} (HOST-004) 400ms
+     ✓ an agent-paced loop waits for background subagents instead of ending (review: parity 1) 2564ms
+     ✓ aborting one loop run leaves the loop running until it is stopped (LOOP-ABORT-001) 3479ms
+     ✓ one-shot runs, including subagents, do not offer the Loop tool (recheck 2) 549ms
+     ✓ naming Loop in --tools does not bring it back in a one-shot run (recheck 2) 540ms
+     ✓ print and JSON runs refuse /loop because the process exits 471ms
+ ✓ test/autocomplete.test.ts (3 tests) 6ms
+ ✓ test/shell-output-watch.test.ts (19 tests) 23ms
+ ✓ test/e2e/tool-text.e2e.test.ts (1 test) 628ms
+   ✓ TodoWrite, SwitchMode, GenerateImage, AwaitShell, and AskQuestion declare Cursor text 624ms
+ ❯ test/readonly-shell.test.ts (3 tests | 1 failed) 892ms
+   ✓ describes the subprocess boundary without claiming whole-process isolation 5ms
+   × a process that used the shell exits on its own once its session shuts down 816ms
+   ✓ unsupported hosts fail closed without running a command 70ms
+ ✓ test/e2e/workflow.e2e.test.ts (1 test) 1192ms
+   ✓ a poteto-mode session carries the mode, a referenced skill, a background poteto-agent, and its completion (WORKFLOW-001) 1190ms
+ ✓ test/webhook.test.ts (1 test) 118ms
+ ✓ test/registry.test.ts (2 tests) 2ms
+ ✓ test/e2e/project.e2e.test.ts (2 tests) 2206ms
+   ✓ a chat that starts a Project gets its tracker, store, and chats in context, and so do its subagents (G2) 1170ms
+   ✓ the footer counts the subscriptions this chat listens to (G2) 1034ms
+ ↓ test/e2e/video.e2e.test.ts (1 test | 1 skipped)
+ ✓ test/inbox.test.ts (3 tests) 5ms
+ ✓ test/e2e/secrets.e2e.test.ts (2 tests) 1004ms
+   ✓ request_secret stores what the user types in the connector file and never returns it to the model (G4) 556ms
+   ✓ request_secret fails where nobody can type a secret (G4) 447ms
+ ↓ test/readonly-shell-dependency.test.ts (1 test | 1 skipped)
+ ✓ test/linux-readonly-sandbox-missing.test.ts (1 test) 2ms
+ ✓ test/e2e/in-cloud.e2e.test.ts (1 test) 1126ms
+   ✓ /in-cloud sends the next submitted task to a cloud agent instead of this chat, and its result comes back (G1) 1124ms
+ ✓ test/e2e/skills-catalog.e2e.test.ts (1 test) 835ms
+   ✓ every shipped skill attaches its own body through /name in one real Pi session (RESOURCE-001) 834ms
+ ✓ test/task-text.test.ts (7 tests) 2ms
+ ✓ test/cloud-host-user.test.ts (3 tests) 3ms
+ ✓ test/generate-image.test.ts (5 tests) 3ms
+ ✓ test/task-notice.test.ts (2 tests) 2ms
+ ✓ test/secrets.test.ts (2 tests) 4ms
+ ✓ test/e2e/automation.e2e.test.ts (3 tests) 5640ms
+   ✓ a cloud automation fire runs on its own checkout with a memory file, never in the workspace (G3) 2443ms
+   ✓ environment cloud needs a fire that starts its own run (G3) 633ms
+   ✓ an automation run is a top-level agent: it gets the Slack tools that subagents never get (G3) 2562ms
+ ✓ test/e2e/shell-agent.e2e.test.ts (4 tests) 5867ms
+   ✓ shell exposes only native shell execution tools, even when an image model is available 1243ms
+   ✓ shell executes commands but rejects calls to file-editing tools 999ms
+   ✓ shell instructions and canonical type survive a normalized invocation and a process restart 2179ms
+   ✓ readonly shell intersects both restrictions and cannot write files 1444ms
+ ✓ test/e2e/background-ownership.e2e.test.ts (7 tests) 24881ms
+   ✓ a child's job that ends while the child runs wakes the main chat after the child's result, never the child (BG-OWN-1, BG-OWN-2) 5004ms
+   ✓ jobs still running when a child ends are aborted and reported to the main chat (BG-OWN-3, BG-OWN-5) 863ms
+   ✓ an interactive main chat hears a background child's result before the abort notices of the jobs it left running (BG-OWN-3) 950ms
+   ✓ an adopted background subagent ends when the main chat's process dies, as Cursor's in-process runs do (BG-OWN-4) 7598ms
+   ✓ a cloud agent, the top of its own tree, hears its own jobs, and the main chat does not (BG-OWN-7) 5550ms
+   ✓ a job the child awaited sends no notice anywhere (BG-OWN-6) 1456ms
+   ✓ a child's background subagent outlives the child and reports to the main chat (BG-OWN-4) 3457ms
+ ❯ test/e2e/task.e2e.test.ts (64 tests | 2 failed) 62323ms
+   ✓ foreground (6)
+     ✓ returns the response in Cursor format with agent ID, usage, and a transcript (TASK-002, TASK-012, TASK-014) 3351ms
+     ✓ streams the child steps into the running card before the result 776ms
+     ✓ a failed child returns an error status with its message (TASK-015) 997ms
+     ✓ an invalid model fails with the allowed list before any child starts (TASK-007) 503ms
+     ✓ a Cursor slug picks the model and thinking level (TASK-007) 976ms
+     ✓ file attachments reach the child first message (TASK-016) 967ms
+   ✓ cloud worktrees (TASK-010) (7)
+     ✓ runs the child in its own worktree on pstack/<agent id> from the parent's HEAD, without uncommitted changes 1128ms
+     ✓ cloud_base_branch picks the branch the worktree starts from 1079ms
+     ✓ a working directory outside git fails before any child starts 433ms
+     ✓ cloud_base_branch without environment cloud fails 562ms
+     ✓ resume runs the agent in its recorded worktree, from the parent workspace 2036ms
+     ✓ the root resumes and forks a descendant its cloud worker started inside the worktree 3514ms
+     ✓ resume fails when the recorded worktree is gone 1457ms
+   ❯ subagent types (17)
+     ✓ comment-sicko reads the system reminder Cursor builds for a plugin agent 1080ms
+     ✓ poteto-agent reads the system reminder Cursor builds for a plugin agent 1615ms
+     ✓ ci-watcher reads the system reminder Cursor builds for a plugin agent 856ms
+     ✓ thermo-nuclear-code-quality-review reads the system reminder Cursor builds for a plugin agent 1256ms
+     ✓ readonly limits the child to read, grep, find, ls, a read-only shell, and its todo list (TASK-008, TASK-019) 913ms
+     × a readonly child runs git log and network reads but cannot write files (TASK-019, G12) 1151ms
+     ✓ a readonly child cannot mutate host state through a Unix socket 996ms
+     × readonly children still inherit environment credentials 899ms
+     ✓ a writable child keeps the ordinary shell (TASK-019) 481ms
+     ✓ a subagent gets the project resources its parent trusted (review r2: security) 961ms
+     ✓ a child's system prompt names the main chat's store as the root agent's store (autopilot-full step 2) 446ms
+     ✓ a normal child has write tools and the pstack tools 437ms
+     ✓ a child has no AskQuestion, as Cursor gives its subagents none 421ms
+     ✓ every child hears that it is a subagent, as Cursor tells its subagents 433ms
+     ✓ explore runs as a file-search specialist that cannot launch subagents, like Cursor's built-in explore 855ms
+     ✓ an unknown type fails with the valid list (TASK-006) 202ms
+     ✓ a subagent of a subagent cannot launch more (TASK-011) 618ms
+   ✓ background and parallel (6)
+     ✓ returns at once and delivers a <task> notification after the turn (TASK-003) 1946ms
+     ✓ while a subagent runs, its run lock names the child process that writes the transcript (recheck) 210ms
+     ✓ the background notification records the child usage (review r2: architecture 1) 410ms
+     ✓ a failed background child notifies with status error and its message (TASK-015) 409ms
+     ✓ a plugin agent runs in the foreground unless the call asks for the background, as Cursor drops is_background for plugin agents 406ms
+     ✓ two Task calls in one message run at the same time (TASK-004) 1649ms
+   ✓ usage accounting (2)
+     ✓ foreground usage includes what the child spent on its own subagent (review r2: architecture 2) 611ms
+     ✓ foreground subagent usage enters the session totals (TASK-014) 401ms
+   ✓ resume over RPC (1)
+     ✓ continues the same transcript, refuses a running agent with Cursor's error, and refuses unknown agents (TASK-005) 3857ms
+   ✓ resume across processes and workspaces (4)
+     ✓ a new Pi process in the same workspace resumes the agent with its context (TASK-005) 818ms
+     ✓ another workspace cannot resume it, so agents never cross workspaces (review: parity 4, security) 610ms
+     ✓ two calls in one message that resume the same agent get one writer: the second fails as Cursor fails a follow-up to a running agent (review: security 3) 2360ms
+     ✓ a resume runs in the foreground unless the call asks for the background 838ms
+   ✓ resume edge cases (11)
+     ✓ a resume that names another subagent_type fails as Cursor desktop does, and the same type in another spelling resumes 1026ms
+     ✓ an empty prompt fails before any child starts 200ms
+     ✓ honors readonly: true for an agent that started writable (review r2: security 2) 814ms
+     ✓ a raised readonly floor survives later resumes requesting undefined 1192ms
+     ✓ a raised readonly floor survives later resumes requesting false 1225ms
+     ✓ resume honors a current readonly agent definition over an older writable record 854ms
+     ✓ refuses an agent whose transcript is missing instead of starting it fresh (review r2: security) 197ms
+     ✓ explains a recorded type this version no longer has (review r2: architecture 5) 198ms
+     ✓ a subagent that resumes a depth-1 agent runs it one level down, so nesting stays capped (recheck r2: 1) 1026ms
+     ✓ refuses an agent whose record names another working directory (recheck r2) 200ms
+     ✓ an agent keeps its depth on resume, so the root cannot lift a grandchild (review r2: architecture) 1011ms
+   ✓ stop_agent (C-H4) (2)
+     ✓ stops a background agent this chat runs; its notification reports the stop 3244ms
+     ✓ stops an agent another Pi process runs, which Task resume there refuses to message, and leaves an idle agent alone 1139ms
+   ✓ plan mode launches (C-H3, C-M1) (2)
+     ✓ a cloud Task in plan mode runs here, readonly, and creates no worktree or branch 447ms
+     ✓ a resume in plan mode runs readonly for that launch only, leaving the record writable 1059ms
+   ✓ isolated workers share the root workspace (C-M2) (1)
+     ✓ a cloud worker's own subagent is recorded in the root workspace, where agent_status in the root sees it 1038ms
+   ✓ child environment (2)
+     ✓ a bad attachment leaves no agent record behind (review: security 4, architecture 8) 201ms
+     ✓ commands a subagent runs do not inherit the port's variables (review: architecture) 425ms
+   ✓ cancellation (3)
+     ✓ aborting the parent turn stops a foreground child (TASK-013) 212ms
+     ✓ closing the session stops a background child (TASK-013) 205ms
+     ✓ a subagent busy in a silent command exits when its parent is killed outright (review: parity 5) 481ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/linux-readonly-sandbox.test.ts > read-only commands and network reads run, while writes and Unix sockets are refused (G12)
+AssertionError: expected '' to contain 'RO-MARK'
+
+- Expected
++ Received
+
+- RO-MARK
+
+ ❯ test/linux-readonly-sandbox.test.ts:71:18
+     69|     signal,
+     70|   );
+     71|   expect(output).toContain('RO-MARK');
+       |                  ^
+     72|   expect(output).toContain('WRITE-REFUSED');
+     73|   expect(output).toContain('SOCKET-EPERM');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > a shared pre-initialized sandbox policy does not weaken the shell (TASK-019)
+AssertionError: expected 'ERROR: no verified OS sandbox is avai…' to match /Operation not permitted|Read-only fil…/
+
+- Expected:
+/Operation not permitted|Read-only file system/
+
++ Received:
+"ERROR: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>."
+
+ ❯ test/readonly-shell-security.test.ts:48:16
+     46|   const dir = tempDir('pi-pstack-ro-shared-');
+     47|   const text = await run(dir, bash(), `printf shared-escape > ${join(d…
+     48|   expect(text).toMatch(/Operation not permitted|Read-only file system/…
+       |                ^
+     49|   expect(existsSync(join(dir, 'shared-escape.txt'))).toBe(false);
+     50| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > the dependency default write paths stay denied (TASK-019)
+Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
+ ❯ linuxCommand src/readonly-shell.ts:99:11
+     97|     return linuxReadonlyCommand(command, cwd);
+     98|   } catch (error) {
+     99|     throw new Error(`no verified OS sandbox is available: ${error inst…
+       |           ^
+    100|   }
+    101| }
+ ❯ Object.execute src/readonly-shell.ts:84:54
+ ❯ run test/readonly-shell-security.test.ts:41:29
+ ❯ test/readonly-shell-security.test.ts:59:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)
+Error: no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
+ ❯ linuxCommand src/readonly-shell.ts:99:11
+     97|     return linuxReadonlyCommand(command, cwd);
+     98|   } catch (error) {
+     99|     throw new Error(`no verified OS sandbox is available: ${error inst…
+       |           ^
+    100|   }
+    101| }
+ ❯ Object.execute src/readonly-shell.ts:84:54
+ ❯ run test/readonly-shell-security.test.ts:41:29
+ ❯ test/readonly-shell-security.test.ts:76:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  test/readonly-shell-security.test.ts > an already-aborted call never spawns the command (TASK-019)
+AssertionError: expected [Function] to throw error matching /aborted/i but got 'no verified OS sandbox is available: …'
+
+- Expected:
+/aborted/i
+
++ Received:
+"no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>."
+
+ ❯ test/readonly-shell-security.test.ts:85:87
+     83|   const controller = new AbortController();
+     84|   controller.abort();
+     85|   await expect(run(dir, bash(), 'sleep 1; printf ran-after-abort', con…
+       |                                                                                       ^
+     86| });
+     87|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  test/readonly-shell.test.ts > a process that used the shell exits on its own once its session shuts down
+AssertionError: expected '' to contain 'SANDBOXED'
+
+- Expected
++ Received
+
+- SANDBOXED
+
+ ❯ test/readonly-shell.test.ts:30:25
+     28|   onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+     29|   const result = spawnSync(process.execPath, [join(import.meta.dirname…
+     30|   expect(result.stdout).toContain('SANDBOXED');
+       |                         ^
+     31|   expect(result.stdout).toContain('SHUTDOWN-DONE');
+     32|   expect([result.error?.message, result.signal, result.status]).toEqua…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  test/records.test.ts > run lock: one writer per agent ID (review: security 3, architecture 2) > release never throws, because a leftover lock is taken over once its holder is gone (review r2: security)
+Error: ENOENT: no such file or directory, open '/tmp/locks-3wUaLR/11111111-2222-4333-8444-555555555555.lock'
+ ❯ test/records.test.ts:96:12
+     94|       chmodSync(dir, 0o700);
+     95|     }
+     96|     expect(readFileSync(join(dir, `${id}.lock`), 'utf8')).toBe(String(…
+       |            ^
+     97|   });
+     98|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  test/scripts.test.ts > worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) > a settings sessionDir that starts with ~ is expanded (recheck)
+AssertionError: expected [ '-', 'safe' ] to deeply equal [ '2026-11-06', 'verify-recent-chat' ]
+
+- Expected
++ Received
+
+  [
+-   "2026-11-06",
+-   "verify-recent-chat",
++   "-",
++   "safe",
+  ]
+
+ ❯ test/scripts.test.ts:138:29
+    136|       writeFileSync(join(sessions, '2026-10-12T00-00-00-000Z_s.jsonl')…
+    137|     });
+    138|     expect(row.slice(6, 8)).toEqual([today(), 'verify-recent-chat']);
+       |                             ^
+    139|   });
+    140|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  test/scripts.test.ts > worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) > a project .pi/settings.json sessionDir wins over the global one and resolves from the working directory (recheck)
+AssertionError: expected [ '-', 'safe' ] to deeply equal [ '2026-11-06', 'verify-recent-chat' ]
+
+- Expected
++ Received
+
+  [
+-   "2026-11-06",
+-   "verify-recent-chat",
++   "-",
++   "safe",
+  ]
+
+ ❯ test/scripts.test.ts:160:29
+    158|       writeFileSync(join(repo, '.pi/sessions/2026-10-12T00-00-00-000Z_…
+    159|     });
+    160|     expect(row.slice(6, 8)).toEqual([today(), 'verify-recent-chat']);
+       |                             ^
+    161|   });
+    162|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  test/e2e/package.e2e.test.ts > installs from a fresh copy without node_modules, then removes cleanly (PKG-001)
+AssertionError: expected 'This is the output of the subagent:\n…' to contain 'Read-only file system'
+
+- Expected
++ Received
+
+- Read-only file system
++ This is the output of the subagent:
++
++ response:
++ <response>
++ RESULTS:
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ </response>
++
++ Agent ID: 0a624976-7b2b-4fc0-a57b-7c0fe5ba9b3f (can be used with the `resume` parameter to send a follow-up after it completes)
+
+ ❯ test/e2e/package.e2e.test.ts:128:57
+    126|   const steps = [{ tool: 'bash', args: { command: 'touch escaped.txt' …
+    127|   const readonlyRun = await runJson(sandbox, script([{ tool: 'Task', a…
+    128|   expect(toolEnds(readonlyRun.events, 'Task')[0]?.text).toContain(proc…
+       |                                                         ^
+    129|   expect(existsSync(join(sandbox.workDir, 'escaped.txt'))).toBe(false);
+    130|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > a readonly child runs git log and network reads but cannot write files (TASK-019, G12)
+AssertionError: expected 'RESULTS:\n[bash error] no verified OS…' to contain 'RO-COMMIT-MARK'
+
+- Expected
++ Received
+
+- RO-COMMIT-MARK
++ RESULTS:
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
+
+ ❯ test/e2e/task.e2e.test.ts:222:19
+    220|     const { result } = await runTask({ prompt: `go\n@@script ${JSON.st…
+    221|     const lines = /<response>\n([\s\S]*)\n<\/response>/.exec(result.te…
+    222|     expect(lines).toContain('RO-COMMIT-MARK');
+       |                   ^
+    223|     expect(lines).toContain('KEPT');
+    224|     expect(lines).toContain('NET-OK');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/12]⎯
+
+ FAIL  test/e2e/task.e2e.test.ts > subagent types > readonly children still inherit environment credentials
+AssertionError: expected 'This is the output of the subagent:\n…' to contain 'FAKE-BENNY-CREDENTIAL'
+
+- Expected
++ Received
+
+- FAKE-BENNY-CREDENTIAL
++ This is the output of the subagent:
++
++ response:
++ <response>
++ RESULTS:
++ [bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
++ </response>
++
++ Agent ID: c09af2f4-7878-4f6b-bb4b-4d7151a00348 (can be used with the `resume` parameter to send a follow-up after it completes)
+
+ ❯ test/e2e/task.e2e.test.ts:265:25
+    263|     const { result } = await runTask({ prompt: script([{ tool: 'bash',…
+    264|     expect(result.isError).toBe(false);
+    265|     expect(result.text).toContain('FAKE-BENNY-CREDENTIAL');
+       |                         ^
+    266|   });
+    267|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/12]⎯
+
+
+ Test Files  7 failed | 57 passed | 3 skipped (67)
+      Tests  12 failed | 824 passed | 7 skipped (843)
+   Start at  17:22:54
+   Duration  63.31s (tests 85%, import 14%, transform 1%)
+
+JSON report written to /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/full-package-tests.json
+error: script "test" exited with code 1
+
+exit_code: 1
+finished_utc: 2026-11-06T17:23:58Z

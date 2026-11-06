@@ -1,0 +1,92 @@
+started_utc: 2026-11-06T17:21:35Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y bubblewrap socat ripgrep; printf "\nInstalled prerequisite versions:\n"; bwrap --version; socat -V; rg --version
+
+Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [34.8 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 Packages [8689 kB]
+Get:5 http://deb.debian.org/debian bookworm-updates/main arm64 Packages [6936 B]
+Get:6 http://deb.debian.org/debian-security bookworm-security/main arm64 Packages [360 kB]
+Fetched 9297 kB in 2s (3749 kB/s)
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libwrap0
+The following NEW packages will be installed:
+  bubblewrap libwrap0 ripgrep socat
+0 upgraded, 4 newly installed, 0 to remove and 0 not upgraded.
+Need to get 1545 kB of archives.
+After this operation, 5988 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 bubblewrap arm64 0.8.0-2+deb12u1 [45.2 kB]
+Get:2 http://deb.debian.org/debian bookworm/main arm64 libwrap0 arm64 7.6.q-32 [54.7 kB]
+Get:3 http://deb.debian.org/debian bookworm/main arm64 ripgrep arm64 13.0.0-4+b2 [1079 kB]
+Get:4 http://deb.debian.org/debian bookworm/main arm64 socat arm64 1.7.4.4-2 [366 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 1545 kB in 0s (10.4 MB/s)
+Selecting previously unselected package bubblewrap.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23282 files and directories currently installed.)
+Preparing to unpack .../bubblewrap_0.8.0-2+deb12u1_arm64.deb ...
+Unpacking bubblewrap (0.8.0-2+deb12u1) ...
+Selecting previously unselected package libwrap0:arm64.
+Preparing to unpack .../libwrap0_7.6.q-32_arm64.deb ...
+Unpacking libwrap0:arm64 (7.6.q-32) ...
+Selecting previously unselected package ripgrep.
+Preparing to unpack .../ripgrep_13.0.0-4+b2_arm64.deb ...
+Unpacking ripgrep (13.0.0-4+b2) ...
+Selecting previously unselected package socat.
+Preparing to unpack .../socat_1.7.4.4-2_arm64.deb ...
+Unpacking socat (1.7.4.4-2) ...
+Setting up bubblewrap (0.8.0-2+deb12u1) ...
+Setting up libwrap0:arm64 (7.6.q-32) ...
+Setting up socat (1.7.4.4-2) ...
+Setting up ripgrep (13.0.0-4+b2) ...
+Processing triggers for libc-bin (2.36-9+deb12u14) ...
+
+Installed prerequisite versions:
+bubblewrap 0.8.0
+socat by Gerhard Rieger and contributors - see www.dest-unreach.org
+socat version 1.7.4.4 on 06 Nov 2022 08:15:51
+   running on Linux version #1 SMP PREEMPT Thu Oct 22 22:17:17 UTC 2026, release 7.2.12-orbstack-00394-gbecdd6130068, machine aarch64
+features:
+  #define WITH_STDIO 1
+  #define WITH_FDNUM 1
+  #define WITH_FILE 1
+  #define WITH_CREAT 1
+  #define WITH_GOPEN 1
+  #define WITH_TERMIOS 1
+  #define WITH_PIPE 1
+  #define WITH_UNIX 1
+  #define WITH_ABSTRACT_UNIXSOCKET 1
+  #define WITH_IP4 1
+  #define WITH_IP6 1
+  #define WITH_RAWIP 1
+  #define WITH_GENERICSOCKET 1
+  #define WITH_INTERFACE 1
+  #define WITH_TCP 1
+  #define WITH_UDP 1
+  #define WITH_SCTP 1
+  #define WITH_LISTEN 1
+  #define WITH_SOCKS4 1
+  #define WITH_SOCKS4A 1
+  #define WITH_VSOCK 1
+  #define WITH_PROXY 1
+  #define WITH_SYSTEM 1
+  #define WITH_EXEC 1
+  #undef WITH_READLINE
+  #define WITH_TUN 1
+  #define WITH_PTY 1
+  #define WITH_OPENSSL 1
+  #undef WITH_FIPS
+  #define WITH_LIBWRAP 1
+  #define WITH_SYCLS 1
+  #define WITH_FILAN 1
+  #define WITH_RETRY 1
+  #define WITH_MSGLEVEL 0 /*debug*/
+ripgrep 13.0.0
+-SIMD -AVX (compiled)
+
+exit_code: 0
+finished_utc: 2026-11-06T17:21:39Z

@@ -1,0 +1,43 @@
+started_utc: 2026-11-06T17:26:12Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; printf "Package README explicitly declares worktree-audit.sh needs rg and jq:\n"; sed -n "102p" extensions/pi-pstack/README.md; printf "\nInitial jq lookup:\n"; command -v jq || true; printf "\nInstall only this additional declared script prerequisite:\n"; DEBIAN_FRONTEND=noninteractive apt-get install -y jq; jq --version
+
+Package README explicitly declares worktree-audit.sh needs rg and jq:
+- `skills/poteto-mode/scripts/watch-pr` needs Bun and installs its one dependency on first run. `check-plan.mjs` needs only Node. `worktree-audit.sh` needs `rg` and `jq`, and works with BSD (macOS) or GNU `stat` and `date`.
+
+Initial jq lookup:
+
+Install only this additional declared script prerequisite:
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libjq1 libonig5
+The following NEW packages will be installed:
+  jq libjq1 libonig5
+0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
+Need to get 365 kB of archives.
+After this operation, 1197 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main arm64 libonig5 arm64 6.9.8-1 [179 kB]
+Get:2 http://deb.debian.org/debian-security bookworm-security/main arm64 libjq1 arm64 1.6-2.1+deb12u3 [122 kB]
+Get:3 http://deb.debian.org/debian-security bookworm-security/main arm64 jq arm64 1.6-2.1+deb12u3 [64.0 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 365 kB in 0s (3076 kB/s)
+Selecting previously unselected package libonig5:arm64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23361 files and directories currently installed.)
+Preparing to unpack .../libonig5_6.9.8-1_arm64.deb ...
+Unpacking libonig5:arm64 (6.9.8-1) ...
+Selecting previously unselected package libjq1:arm64.
+Preparing to unpack .../libjq1_1.6-2.1+deb12u3_arm64.deb ...
+Unpacking libjq1:arm64 (1.6-2.1+deb12u3) ...
+Selecting previously unselected package jq.
+Preparing to unpack .../jq_1.6-2.1+deb12u3_arm64.deb ...
+Unpacking jq (1.6-2.1+deb12u3) ...
+Setting up libonig5:arm64 (6.9.8-1) ...
+Setting up libjq1:arm64 (1.6-2.1+deb12u3) ...
+Setting up jq (1.6-2.1+deb12u3) ...
+Processing triggers for libc-bin (2.36-9+deb12u14) ...
+jq-1.6
+
+exit_code: 0
+finished_utc: 2026-11-06T17:26:15Z

@@ -1,0 +1,98 @@
+{
+  "status": "PASS",
+  "checks": {
+    "isolation": {
+      "status": "PASS",
+      "home": "/tmp/pstack-linux-consumer.s8ADTA/home",
+      "cwd": "/tmp/pstack-linux-consumer.s8ADTA/work",
+      "packageRoot": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack",
+      "executable": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js",
+      "environmentKeys": [
+        "HOME",
+        "PATH",
+        "LANG",
+        "CI",
+        "PI_OFFLINE",
+        "PI_SKIP_VERSION_CHECK"
+      ],
+      "cursorExecutables": [],
+      "cursorPluginDirectories": [],
+      "copiedTestFixtures": [
+        "scripted-model.ts"
+      ]
+    },
+    "discovery": {
+      "status": "PASS",
+      "skillCommands": 78,
+      "tools": [
+        "read",
+        "bash",
+        "edit",
+        "write",
+        "SwitchMode",
+        "visualize",
+        "Task",
+        "stop_agent",
+        "agent_status",
+        "subscribe_github_pr",
+        "subscribe_timer",
+        "subscribe_webhook",
+        "subscribe_slack",
+        "list_subscriptions",
+        "unsubscribe",
+        "bash_background",
+        "AwaitShell",
+        "Loop",
+        "TodoWrite",
+        "AskQuestion",
+        "request_secret"
+      ],
+      "resourceRoot": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack"
+    },
+    "task": {
+      "status": "PASS",
+      "agentId": "7cec8175-cd0d-4cb9-a14a-08dd8c61b55e",
+      "childType": "poteto-agent",
+      "persistedTranscript": "2026-11-06T17-26-02-457Z_7cec8175-cd0d-4cb9-a14a-08dd8c61b55e.jsonl",
+      "observedChildTools": [
+        "read",
+        "read",
+        "bash"
+      ],
+      "packagedResourcesRead": [
+        "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/SKILL.md",
+        "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack/rules/no-inline-imports.mdc"
+      ],
+      "marker": "PACKAGED_CHILD_EXECUTED",
+      "models": [
+        "scripted/echo"
+      ],
+      "details": {
+        "agentId": "7cec8175-cd0d-4cb9-a14a-08dd8c61b55e",
+        "forkedFrom": null,
+        "subagentType": "poteto-agent",
+        "model": {
+          "provider": "scripted",
+          "id": "echo",
+          "thinking": "medium"
+        },
+        "readonly": false,
+        "background": false,
+        "status": "success",
+        "transcript": "/tmp/pstack-linux-consumer.s8ADTA/home/.pi/agent/pstack/workspaces/--tmp-pstack-linux-consumer.s8ADTA-work--/subagents/2026-11-06T17-26-02-457Z_7cec8175-cd0d-4cb9-a14a-08dd8c61b55e.jsonl",
+        "pid": null,
+        "machine": null,
+        "description": "packaged native Linux child"
+      }
+    },
+    "json": {
+      "status": "PASS",
+      "marker": "CLEAN_JSON_OK"
+    },
+    "credentials": {
+      "status": "PASS",
+      "providerEnvironmentKeys": [],
+      "storedProviderKeys": []
+    }
+  }
+}

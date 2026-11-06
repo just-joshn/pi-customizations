@@ -1,0 +1,151 @@
+started_utc: 2026-11-06T17:25:56Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: bash '/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/clean-install.sh'
+
+consumer_root=/tmp/pstack-linux-consumer.s8ADTA
+
++ npm pack local source into a fresh artifact directory
+ce80efe79cf33fd1b4d0ee00d83f491f8b46e8d54057f0445a8c096647d25fdf  /tmp/pstack-linux-consumer.s8ADTA/artifacts/justjoshn-pi-pstack-0.15.36-pi.20.tgz
+
++ clean npm install of stable Pi 1.5.0 and the tarball (no workspace or dev dependencies)
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+added 131 packages in 4s
+npm warn install-scripts 2 packages have install scripts not yet covered by allowScripts:
+npm warn install-scripts   @google/genai@2.21.0 (preinstall: echo 'preinstall: no-op')
+npm warn install-scripts   protobufjs@7.6.6 (postinstall: node scripts/postinstall)
+npm warn install-scripts
+npm warn install-scripts Run `npm install-scripts ls` to review, or `npm install-scripts approve <pkg>` to allow.
+
++ installed package versions and dependency tree
+1.5.0
+v26.13.0
+11.20.0
+1.4.2
+@earendil-works/pi-coding-agent@1.5.0
+@justjoshn/pi-pstack@0.15.36-pi.20
+
++ copy only scripted-model.ts from the source test tree
+d96ce4b9bcd41732acf3ccc832e3589d037b2ab4f83b321653de77bd1288596e  /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack/test/fixtures/scripted-model.ts
+d96ce4b9bcd41732acf3ccc832e3589d037b2ab4f83b321653de77bd1288596e  /tmp/pstack-linux-consumer.s8ADTA/work/test/scripted-model.ts
+
++ register the installed tarball payload using actual pi install
+Installing /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack...
+Installed /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack
+
++ verify pi list and settings written by pi install
+User packages:
+  ../../../work/node_modules/@justjoshn/pi-pstack
+    /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack
+{
+  "packages": [
+    "../../../work/node_modules/@justjoshn/pi-pstack"
+  ]
+}
++ add only the deterministic model fixture to the clean user settings
+
++ runtime wire-protocol verification (stdlib-only driver; no checkout runtime imports)
+RPC: /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/.bin/pi --mode rpc --offline --no-session --no-mcp --no-approve --model scripted/echo
+JSON: /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/.bin/pi --mode json --offline --no-session --no-mcp --no-approve --model scripted/echo scripted JSON check
+@@say CLEAN_JSON_OK
+{
+  "status": "PASS",
+  "checks": {
+    "isolation": {
+      "status": "PASS",
+      "home": "/tmp/pstack-linux-consumer.s8ADTA/home",
+      "cwd": "/tmp/pstack-linux-consumer.s8ADTA/work",
+      "packageRoot": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack",
+      "executable": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js",
+      "environmentKeys": [
+        "HOME",
+        "PATH",
+        "LANG",
+        "CI",
+        "PI_OFFLINE",
+        "PI_SKIP_VERSION_CHECK"
+      ],
+      "cursorExecutables": [],
+      "cursorPluginDirectories": [],
+      "copiedTestFixtures": [
+        "scripted-model.ts"
+      ]
+    },
+    "discovery": {
+      "status": "PASS",
+      "skillCommands": 78,
+      "tools": [
+        "read",
+        "bash",
+        "edit",
+        "write",
+        "SwitchMode",
+        "visualize",
+        "Task",
+        "stop_agent",
+        "agent_status",
+        "subscribe_github_pr",
+        "subscribe_timer",
+        "subscribe_webhook",
+        "subscribe_slack",
+        "list_subscriptions",
+        "unsubscribe",
+        "bash_background",
+        "AwaitShell",
+        "Loop",
+        "TodoWrite",
+        "AskQuestion",
+        "request_secret"
+      ],
+      "resourceRoot": "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack"
+    },
+    "task": {
+      "status": "PASS",
+      "agentId": "7cec8175-cd0d-4cb9-a14a-08dd8c61b55e",
+      "childType": "poteto-agent",
+      "persistedTranscript": "2026-11-06T17-26-02-457Z_7cec8175-cd0d-4cb9-a14a-08dd8c61b55e.jsonl",
+      "observedChildTools": [
+        "read",
+        "read",
+        "bash"
+      ],
+      "packagedResourcesRead": [
+        "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/SKILL.md",
+        "/tmp/pstack-linux-consumer.s8ADTA/work/node_modules/@justjoshn/pi-pstack/rules/no-inline-imports.mdc"
+      ],
+      "marker": "PACKAGED_CHILD_EXECUTED",
+      "models": [
+        "scripted/echo"
+      ],
+      "details": {
+        "agentId": "7cec8175-cd0d-4cb9-a14a-08dd8c61b55e",
+        "forkedFrom": null,
+        "subagentType": "poteto-agent",
+        "model": {
+          "provider": "scripted",
+          "id": "echo",
+          "thinking": "medium"
+        },
+        "readonly": false,
+        "background": false,
+        "status": "success",
+        "transcript": "/tmp/pstack-linux-consumer.s8ADTA/home/.pi/agent/pstack/workspaces/--tmp-pstack-linux-consumer.s8ADTA-work--/subagents/2026-11-06T17-26-02-457Z_7cec8175-cd0d-4cb9-a14a-08dd8c61b55e.jsonl",
+        "pid": null,
+        "machine": null,
+        "description": "packaged native Linux child"
+      }
+    },
+    "json": {
+      "status": "PASS",
+      "marker": "CLEAN_JSON_OK"
+    },
+    "credentials": {
+      "status": "PASS",
+      "providerEnvironmentKeys": [],
+      "storedProviderKeys": []
+    }
+  }
+}
+
+exit_code: 0
+finished_utc: 2026-11-06T17:26:02Z

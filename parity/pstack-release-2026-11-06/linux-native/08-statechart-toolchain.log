@@ -1,0 +1,21 @@
+started_utc: 2026-11-06T17:23:50Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: set -eu; TOOLCHAIN=$(cat /tmp/pstack-linux-toolchain-location); curl --fail --location --retry 3 "https://api.adoptium.net/v3/binary/version/jdk-25.0.5%2B8/linux/aarch64/jdk/hotspot/normal/eclipse" -o "$TOOLCHAIN/java.tar.gz"; sha256sum "$TOOLCHAIN/java.tar.gz"; mkdir "$TOOLCHAIN/java"; tar -xzf "$TOOLCHAIN/java.tar.gz" --strip-components=1 -C "$TOOLCHAIN/java"; "$TOOLCHAIN/java/bin/java" --version; curl --fail --location --retry 3 https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar -o "$TOOLCHAIN/tla2tools.jar"; echo "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88  $TOOLCHAIN/tla2tools.jar" | sha256sum --check
+
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+ 12  133M   12 17.0M    0     0  14.8M      0  0:00:08  0:00:01  0:00:07 14.8M 42  133M   42 56.3M    0     0  26.1M      0  0:00:05  0:00:02  0:00:03 38.9M 58  133M   58 78.3M    0     0  24.8M      0  0:00:05  0:00:03  0:00:02 30.6M 87  133M   87  116M    0     0  28.0M      0  0:00:04  0:00:04 --:--:-- 33.0M100  133M  100  133M    0     0  29.3M      0  0:00:04  0:00:04 --:--:-- 34.3M
+bb5b2ded252f21c6090cf780b0a408ad0d83bbb557e702955643557f13231880  /tmp/pstack-linux-toolchain.KfUCVQ/java.tar.gz
+openjdk 25.0.5 2026-10-20 LTS
+OpenJDK Runtime Environment Temurin-25.0.5+8 (build 25.0.5+8-LTS)
+OpenJDK 64-Bit Server VM Temurin-25.0.5+8 (build 25.0.5+8-LTS, mixed mode, sharing)
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 2221k  100 2221k    0     0  5846k      0 --:--:-- --:--:-- --:--:-- 5846k
+/tmp/pstack-linux-toolchain.KfUCVQ/tla2tools.jar: OK
+
+exit_code: 0
+finished_utc: 2026-11-06T17:23:56Z

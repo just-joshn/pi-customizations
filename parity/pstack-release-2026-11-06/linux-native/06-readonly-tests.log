@@ -1,0 +1,65 @@
+started_utc: 2026-11-06T17:22:53Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+command: env -i HOME='/tmp/pstack-tests-home.IhMw3N' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/local/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 bun run test test/linux-readonly-sandbox.test.ts test/readonly-shell.test.ts --reporter=default --reporter=json --outputFile='/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/readonly-tests.json'
+
+$ vitest run test/linux-readonly-sandbox.test.ts test/readonly-shell.test.ts "--reporter=default" "--reporter=json" "--outputFile=/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/readonly-tests.json"
+
+ RUN  v5.0.2 /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+
+ ❯ test/linux-readonly-sandbox.test.ts (2 tests | 1 failed) 17ms
+   ✓ an architecture without a filter is refused instead of running unfiltered 1ms
+   × read-only commands and network reads run, while writes and Unix sockets are refused (G12) 16ms
+ ❯ test/readonly-shell.test.ts (3 tests | 1 failed) 368ms
+   ✓ describes the subprocess boundary without claiming whole-process isolation 1ms
+   × a process that used the shell exits on its own once its session shuts down 319ms
+   ✓ unsupported hosts fail closed without running a command 47ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/linux-readonly-sandbox.test.ts > read-only commands and network reads run, while writes and Unix sockets are refused (G12)
+AssertionError: expected '' to contain 'RO-MARK'
+
+- Expected
++ Received
+
+- RO-MARK
+
+ ❯ test/linux-readonly-sandbox.test.ts:71:18
+     69|     signal,
+     70|   );
+     71|   expect(output).toContain('RO-MARK');
+       |                  ^
+     72|   expect(output).toContain('WRITE-REFUSED');
+     73|   expect(output).toContain('SOCKET-EPERM');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/readonly-shell.test.ts > a process that used the shell exits on its own once its session shuts down
+AssertionError: expected '' to contain 'SANDBOXED'
+
+- Expected
++ Received
+
+- SANDBOXED
+
+ ❯ test/readonly-shell.test.ts:30:25
+     28|   onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+     29|   const result = spawnSync(process.execPath, [join(import.meta.dirname…
+     30|   expect(result.stdout).toContain('SANDBOXED');
+       |                         ^
+     31|   expect(result.stdout).toContain('SHUTDOWN-DONE');
+     32|   expect([result.error?.message, result.signal, result.status]).toEqua…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 3 passed (5)
+   Start at  17:22:53
+   Duration  948ms (import 52%, tests 41%, transform 7%)
+
+JSON report written to /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/readonly-tests.json
+error: script "test" exited with code 1
+
+exit_code: 1
+finished_utc: 2026-11-06T17:22:54Z

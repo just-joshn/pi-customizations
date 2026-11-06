@@ -1,0 +1,40 @@
+started_utc: 2026-11-06T17:33:29Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: python3 - <<'PY'
+from pathlib import Path
+import json,os,re,subprocess
+root=Path("parity/pstack-release-2026-11-06/linux-native")
+files=[p for p in root.rglob("*") if p.is_file()]
+secrets=[(key,value.encode()) for key,value in os.environ.items() if re.search(r"token|secret|password|api.?key|authorization",key,re.I) and len(value)>12]
+patterns=[rb"gh[pousr]_[A-Za-z0-9]{25,}",rb"github_pat_[A-Za-z0-9_]{25,}",rb"sk-ant-[A-Za-z0-9_-]{25,}",rb"xox[baprs]-[A-Za-z0-9-]{20,}",rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"]
+hits=[]
+for file in files:
+    assert not file.is_symlink(), str(file)
+    data=file.read_bytes()
+    for key,value in secrets:
+        if value in data: hits.append({"file":str(file),"environmentName":key})
+    for pattern in patterns:
+        if re.search(pattern,data): hits.append({"file":str(file),"pattern":"credential-shaped content"})
+    data.decode("utf8")
+assert not hits, hits
+print(f"PASS: {len(files)} UTF-8 evidence files; no live credential-environment values or credential-shaped content found. Values were not printed.")
+changed=subprocess.check_output(["git","diff","--name-only","544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90"],text=True).splitlines()
+untracked=subprocess.check_output(["git","ls-files","--others","--exclude-standard"],text=True).splitlines()
+assert all(path.startswith(str(root)+"/") for path in changed+untracked), changed+untracked
+print("PASS: all tracked changes and untracked candidate files are inside the requested evidence directory.")
+consumer=json.loads((root/"consumer-checks.json").read_text())
+assert consumer["status"]=="PASS"
+assert consumer["checks"]["credentials"]["storedProviderKeys"]==[]
+assert consumer["checks"]["isolation"]["cursorExecutables"]==[]
+assert consumer["checks"]["isolation"]["cursorPluginDirectories"]==[]
+print("PASS: clean consumer credentials/Cursor assertions were retained.")
+print("LIMITATION: pattern/value scans are a safety check, not a universal secret-detection guarantee; checks ran with allowlisted, credential-free environments.")
+PY
+
+PASS: 51 UTF-8 evidence files; no live credential-environment values or credential-shaped content found. Values were not printed.
+PASS: all tracked changes and untracked candidate files are inside the requested evidence directory.
+PASS: clean consumer credentials/Cursor assertions were retained.
+LIMITATION: pattern/value scans are a safety check, not a universal secret-detection guarantee; checks ran with allowlisted, credential-free environments.
+
+exit_code: 0
+finished_utc: 2026-11-06T17:33:29Z

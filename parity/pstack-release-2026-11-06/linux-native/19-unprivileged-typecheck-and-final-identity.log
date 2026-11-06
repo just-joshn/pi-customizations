@@ -1,0 +1,31 @@
+started_utc: 2026-11-06T17:31:11Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/extensions/pi-pstack
+command: set -eu; /usr/sbin/runuser -u nobody -- env -i HOME='/tmp/pstack-unpriv-home.tbcR5c' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 /bin/bash -c 'id; bun run typecheck'; printf '\nSource package tree at baseline/current:\n'; git rev-parse 544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90:extensions/pi-pstack HEAD:extensions/pi-pstack; printf '\nNo tracked product changes:\n'; git diff --exit-code 544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90 -- . ':(exclude)parity/pstack-release-2026-11-06/linux-native'; printf '\nFinal versions:\n'; uname -m; node --version; npm --version; bun --version; node_modules/.bin/pi --version; node_modules/.bin/tsc --version; bwrap --version; jq --version; printf '\nFinal lock/manifest hashes:\n'; sha256sum ../../bun.lock ../../package.json package.json ../../.github/workflows/pi-pstack.yml
+
+uid=65534(nobody) gid=65534(nogroup) groups=65534(nogroup)
+$ tsc --noEmit -p tsconfig.json
+
+Source package tree at baseline/current:
+162e2bd157a28c4ffd156111d6390f3c635ca538
+162e2bd157a28c4ffd156111d6390f3c635ca538
+
+No tracked product changes:
+
+Final versions:
+aarch64
+v26.13.0
+11.20.0
+1.4.2
+1.5.0
+Version 7.0.2
+bubblewrap 0.8.0
+jq-1.6
+
+Final lock/manifest hashes:
+9f8dc488a7b592b419f5d6dc24490b6b71378ed5e8f3e7cfb410e20ca4ad2385  ../../bun.lock
+e48c4947f5a617c91d39eb597ab7213666942f9ca341709ff6419395e10d9b95  ../../package.json
+7cf6f9252fe504edfdebffa8e0b64905596ae739a1ae34bf891c2fba7c318ba7  package.json
+38a089f4624bf23065f9684d7d06e41fb48e25f9f38a78c1f15ae54a6c70a271  ../../.github/workflows/pi-pstack.yml
+
+exit_code: 0
+finished_utc: 2026-11-06T17:31:12Z

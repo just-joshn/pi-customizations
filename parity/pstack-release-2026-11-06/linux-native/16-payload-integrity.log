@@ -1,0 +1,42 @@
+started_utc: 2026-11-06T17:28:54Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: python3 - <<'PY'
+import hashlib,json,subprocess,tarfile
+from pathlib import Path
+sha="544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90"
+e=Path("parity/pstack-release-2026-11-06/linux-native")
+root=Path("/tmp/pstack-linux-consumer-location").read_text().strip()
+pack=json.loads((e/"pack-manifest.json").read_text())[0]
+artifact=Path(root)/"artifacts"/pack["filename"]
+missing=[]
+mismatches=[]
+verified=0
+with tarfile.open(artifact) as tar:
+    for entry in tar.getmembers():
+        if not entry.isfile(): continue
+        relative=entry.name.removeprefix("package/")
+        original=subprocess.run(["git","show",f"{sha}:extensions/pi-pstack/{relative}"],capture_output=True)
+        if original.returncode: missing.append(relative)
+        elif tar.extractfile(entry).read()!=original.stdout: mismatches.append(relative)
+        else: verified+=1
+result={"status":"PASS" if not missing and not mismatches else "ISSUES","sourceSha":sha,"sourcePackageTree":subprocess.check_output(["git","rev-parse",f"{sha}:extensions/pi-pstack"],text=True).strip(),"tarballSha256":hashlib.sha256(artifact.read_bytes()).hexdigest(),"matchedFiles":verified,"missingAtBaseline":missing,"contentMismatches":mismatches,"packedSkillFiles":len([f for f in pack["files"] if f["path"].startswith("skills/") and f["path"].endswith("/SKILL.md")]),"bundledNodeModules":len([f for f in pack["files"] if "node_modules/" in f["path"]])}
+(e/"payload-source-match.json").write_text(json.dumps(result,indent=2)+"\n")
+print(json.dumps(result,indent=2))
+assert result["status"]=="PASS"
+assert verified==len(pack["files"])
+PY
+
+{
+  "status": "PASS",
+  "sourceSha": "544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90",
+  "sourcePackageTree": "162e2bd157a28c4ffd156111d6390f3c635ca538",
+  "tarballSha256": "ce80efe79cf33fd1b4d0ee00d83f491f8b46e8d54057f0445a8c096647d25fdf",
+  "matchedFiles": 665,
+  "missingAtBaseline": [],
+  "contentMismatches": [],
+  "packedSkillFiles": 78,
+  "bundledNodeModules": 0
+}
+
+exit_code: 0
+finished_utc: 2026-11-06T17:28:55Z

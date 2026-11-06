@@ -1,0 +1,37 @@
+started_utc: 2026-11-06T17:30:24Z
+cwd: /tmp/pstack-linux-consumer.s8ADTA/work
+command: env -i HOME='/tmp/pstack-linux-consumer.s8ADTA/home' PATH='/tmp/pstack-linux-toolchain.KfUCVQ/node-v26.13.0-linux-arm64/bin:/tmp/pstack-linux-toolchain.KfUCVQ/bin:/usr/bin:/bin' LANG=C.UTF-8 CI=1 node '/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/readonly-runtime.mjs' '/tmp/pstack-linux-consumer.s8ADTA' '/Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native'
+
+Command: /tmp/pstack-linux-consumer.s8ADTA/work/node_modules/.bin/pi --mode json --offline --no-session --no-mcp --no-approve --model scripted/echo run the script
+@@script [{"tool":"Task","args":{"description":"packaged readonly shell probes","readonly":true,"run_in_background":false,"prompt":"run the script\n@@script [{\"tool\":\"bash\",\"args\":{\"command\":\"cat readonly-input.txt\"}},{\"tool\":\"bash\",\"args\":{\"command\":\"node -e 'fetch(\\\"http://127.0.0.1:42171/\\\").then(r=>r.text()).then(t=>process.stdout.write(t))'\"}},{\"tool\":\"bash\",\"args\":{\"command\":\"touch readonly-must-not-exist.txt\"}}]"}}]
+{
+  "status": "BLOCKED",
+  "positiveRead": "BLOCKED",
+  "positiveLocalNetworkRead": "BLOCKED",
+  "writeAttemptRefused": true,
+  "localHttpServerReached": false,
+  "noUnsandboxedFallbackObserved": true,
+  "response": "This is the output of the subagent:\n\nresponse:\n<response>\nRESULTS:\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n[bash error] no verified OS sandbox is available: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.\n</response>\n\nAgent ID: 6e612754-058a-49ff-b4e8-a08a38db3515 (can be used with the `resume` parameter to send a follow-up after it completes)"
+}
+node:internal/modules/run_main:111
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: BLOCKED: positive readonly file read must execute
+
+false !== true
+
+    at file:///Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo/parity/pstack-release-2026-11-06/linux-native/readonly-runtime.mjs:54:10
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v26.13.0
+
+exit_code: 1
+finished_utc: 2026-11-06T17:30:24Z

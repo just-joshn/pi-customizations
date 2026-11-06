@@ -1,0 +1,30 @@
+started_utc: 2026-11-06T17:34:37Z
+cwd: /Users/josh-desktop/.pi/agent/pstack/workspaces/--Users-josh-desktop-src-personal-pi-customizations--/machines/12b98223-eb08-484c-86ac-9ab7d04cf9fc/repo
+command: python3 - <<'PY'
+from pathlib import Path
+import subprocess
+left=[]
+for path in Path("/proc").glob("[0-9]*/cmdline"):
+    try:
+        parts=path.read_bytes().split(b"\0")
+    except OSError:
+        continue
+    if not parts or not parts[0]: continue
+    command=Path(parts[0].decode(errors="replace")).name
+    if command not in ("node","pi","java","bun"): continue
+    if any(b"/tmp/pi-pstack-e2e-" in part or b"/tmp/pstack-linux-consumer." in part or b"statechart/scripts" in part for part in parts[1:]):
+        left.append({"pid":path.parent.name,"executable":command})
+assert left==[], left
+print("PASS: no Pi/Node/Java/Bun test child or supervisor processes remain for the temporary verification roots.")
+root="parity/pstack-release-2026-11-06/linux-native/"
+changed=subprocess.check_output(["git","diff","--name-only","544e2deb2cf4c404a8be1c3dc5afc2b79b21bc90"],text=True).splitlines()
+new=subprocess.check_output(["git","ls-files","--others","--exclude-standard"],text=True).splitlines()
+assert all(path.startswith(root) for path in changed+new)
+print("PASS: evidence-only commit scope rechecked.")
+PY
+
+PASS: no Pi/Node/Java/Bun test child or supervisor processes remain for the temporary verification roots.
+PASS: evidence-only commit scope rechecked.
+
+exit_code: 0
+finished_utc: 2026-11-06T17:34:37Z

@@ -9,7 +9,7 @@ log=$1
 cwd=$2
 command=$3
 mkdir -p "$(dirname "$log")"
-{
+(
   printf 'started_utc: '; date -u +%Y-%m-%dT%H:%M:%SZ
   printf 'cwd: %s\ncommand: %s\n\n' "$cwd" "$command"
   (cd "$cwd" && bash -o pipefail -c "$command")
@@ -17,7 +17,7 @@ mkdir -p "$(dirname "$log")"
   printf '\nexit_code: %s\nfinished_utc: ' "$status"
   date -u +%Y-%m-%dT%H:%M:%SZ
   exit "$status"
-} >"$log" 2>&1
+) >"$log" 2>&1
 status=$?
 cat "$log"
 exit "$status"
