@@ -83,6 +83,24 @@ function shippedFiles(predicate: (path: string) => boolean): string[] {
 const CURSOR_HOST_TERMS =
   // Cloud agents, cloud VMs, and Alt+Enter modes are Pi features now (Task environment cloud, /in-cloud, mode.ts).
   /~\/\.cursor|\.cursor\/|\.cursor-plugin|\.mdc\b|Option\+Enter|agent-transcripts|cursor\.com|github\.com\/cursor\/|api2\.cursor|update_state|SendToUser|add-plugin|Custom Mode|cursor-team-kit|Grok Bot/i;
+/** Markdown with fenced code blocks blanked: link syntax inside a fence is example text, not a link (CommonMark). */
+function outsideCodeFences(text: string): string {
+  let fence: string | undefined;
+  return text
+    .split('\n')
+    .map((line) => {
+      const opener = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1];
+      if (fence === undefined) {
+        if (opener === undefined) return line;
+        fence = opener;
+        return '';
+      }
+      if (opener !== undefined && opener[0] === fence[0] && opener.length >= fence.length && line.trim() === opener) fence = undefined;
+      return '';
+    })
+    .join('\n');
+}
+
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
@@ -166,7 +184,7 @@ describe('shipped resources', () => {
   test('resolves every relative Markdown link in shipped text (RES-007)', () => {
     const broken: string[] = [];
     for (const file of shippedFiles((path) => path.endsWith('.md'))) {
-      const text = readFileSync(join(root, file), 'utf8');
+      const text = outsideCodeFences(readFileSync(join(root, file), 'utf8'));
       // Every relative target that names a file or folder (an extension or a trailing /); placeholders such as (url) are not links.
       for (const match of text.matchAll(/\]\((?![a-z]+:|#|\/)([^)#\s]+(?:\.[a-z0-9]+|\/))\)/gi)) {
         const target = resolve(dirname(join(root, file)), match[1] ?? '');
@@ -234,26 +252,19 @@ describe('shipped resources', () => {
     expect(shippedFiles(() => true)).toContain('README.md');
   });
 
-  test('create-skill covers builtin interview depth in Pi terms (gap-list item 3)', () => {
+  test("create-skill is Cursor's built-in create-skill with only host facts translated (CREATE-SKILL)", () => {
+    // Section outline of ~/.cursor/skills-cursor/create-skill/SKILL.md as synced 2026-11-06T07:44Z (parity/pstack-linux-2026-11-05).
     const text = readFileSync(join(root, 'skills/create-skill/SKILL.md'), 'utf8');
-    expect(text.startsWith('---\nname: create-skill\n')).toBe(true);
-    for (const heading of [
-      '## Before you begin: gather requirements',
-      '### Verbatim text from the user',
-      '## Writing effective descriptions',
-      '### Tune the description (trigger loop)',
-      '## Core authoring principles',
-      '## Common patterns',
-      '## Anti-patterns to avoid',
-      '### Phase 4: Draft, test, iterate',
-      '## Summary checklist',
-    ]) {
-      expect(text, heading).toContain(heading);
-    }
-    expect(text).toContain('~/.pi/agent/skills/');
-    expect(text).toContain('.pi/skills/');
+    const outline = text
+      .split('\n')
+      .filter((line) => /^## (?!Extract|Report|Executive|Key|Recommendations|Commit|Form|Document|Utility scripts|Quick|Additional|Current|Old|Instructions|Examples$|Review|Providing)|^### (?:[A-Z0-9]|Verbatim)/.test(line))
+      .filter((line) => !/^### (?:[A-Z][a-z]+ [a-z]+ [a-z]+ \(deprecated\))/.test(line));
+    expect(outline.slice(0, 4)).toEqual(['## Before You Begin: Gather Requirements', '### Verbatim text from the user', '### Inferring from Context', '### Gathering Additional Information']);
+    expect(outline.filter((line) => line.startsWith('### Phase'))).toEqual(['### Phase 1: Discovery', '### Phase 2: Design', '### Phase 3: Implementation', '### Phase 4: Verification']);
+    expect([text.includes('Draft, test, iterate'), text.includes('trigger loop'), text.includes('persistent agent stores')]).toEqual([false, false, false]);
+    expect(text).toContain('| Personal | ~/.pi/agent/skills/skill-name/ | Available in every project on this machine |');
+    expect(text).toContain('| Project | .pi/skills/skill-name/ | Shared with anyone using the repository |');
     expect(hostTermLines('skills/create-skill/SKILL.md', text)).toEqual([]);
-    expect(Buffer.byteLength(text)).toBeGreaterThan(12_000);
   });
 
   test('ships every team-kit soft-dep skill and agent as a literal inventory (RES-013)', () => {
