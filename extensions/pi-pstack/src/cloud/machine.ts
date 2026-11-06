@@ -220,6 +220,7 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
         ...mounts,
         '--workdir',
         cwd,
+        ...hostUserArgs(),
         ...(token === undefined ? [] : ['--env-file', join(secrets, 'env')]),
         image,
         'sleep',
@@ -256,6 +257,17 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
     rmSync(path, { recursive: true, force: true });
     throw error;
   }
+}
+
+/**
+ * On Linux a container's writes reach bind-mounted host folders with the container user's uid, so a root container would
+ * leave the clone and the shared Projects and store folders full of files the user cannot edit or delete. The machine
+ * therefore runs as the host user there, with a writable home; image-level setup belongs in `build.dockerfile`, which
+ * still builds as root. Docker Desktop and OrbStack map file ownership to the user themselves.
+ */
+export function hostUserArgs(platform: NodeJS.Platform = process.platform, uid: number | undefined = process.getuid?.(), gid: number | undefined = process.getgid?.()): string[] {
+  if (platform !== 'linux' || uid === undefined || gid === undefined || uid === 0) return [];
+  return ['--user', `${uid}:${gid}`, '--env', 'HOME=/tmp'];
 }
 
 /** Boots a stopped container machine again, with its start command and terminals, before a resumed run. */
