@@ -71,6 +71,22 @@ test('AwaitShell waits on a moved command, which then sends no notification and 
   expect(shellNotices(run.events)).toEqual([]);
 });
 
+test('AwaitShell that sees a moved command already ended skips its notification and the extra turn', async () => {
+  const run = await runJson(
+    sandbox(),
+    script([
+      { tool: 'bash', args: { command: 'echo START; sleep 2; echo FINISHED', timeout: 1 } },
+      { tool: 'AwaitShell', args: { block_until_ms: 3_000 } },
+      { tool: 'AwaitShell', args: { shell_id: '@@shell-id', block_until_ms: 1_000 } },
+    ]),
+    ['--no-session'],
+  );
+
+  expect(toolEnds(run.events, 'AwaitShell').map((end) => end.text)).toEqual(['Slept for 3s.', expect.stringMatching(/^Task completed in \d+ms with exit code: 0\./)]);
+  expect(shellNotices(run.events)).toEqual([]);
+  expect(run.events.filter((event) => event.type === 'agent_start')).toHaveLength(1);
+});
+
 test('closing the session stops a moved command', async () => {
   const rpc = startRpc(sandbox(), ['--no-session']);
   onTestFinished(() => rpc.close());
