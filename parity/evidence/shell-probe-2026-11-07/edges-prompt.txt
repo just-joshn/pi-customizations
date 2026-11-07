@@ -1,0 +1,11 @@
+Run exactly these shell tool calls, one per tool call, in this order, and nothing else. Do not combine them and do not change them.
+1: cd /usr && export PSTACK_A=1 && unset PSTACK_BASE
+2: pwd; echo "a=$PSTACK_A base=${PSTACK_BASE-unset}"
+3: export PSTACK_B=2; cd /tmp; exit 3
+4: pwd; echo "b=$PSTACK_B"
+5: mkdir -p /tmp/pstack-gone-probe && cd /tmp/pstack-gone-probe && rmdir /tmp/pstack-gone-probe
+6: pwd; echo "after-gone a=$PSTACK_A"
+7: cd /usr && sleep 30
+   Give this call a timeout of 2 seconds (2000 ms).
+8: pwd
+Then report the exact output of every call.

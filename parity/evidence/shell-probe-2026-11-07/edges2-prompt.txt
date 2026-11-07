@@ -1,0 +1,10 @@
+Run exactly these shell tool calls, one per tool call, in this order, and nothing else. Do not combine them and do not change them.
+1: cd /usr && export PSTACK_A=1
+2: cd /tmp && export PSTACK_C=3 && false
+3: pwd; echo "c=$PSTACK_C"
+4: PSTACK_LOCAL=5; pstack_fn() { echo fn; }
+5: echo "local=${PSTACK_LOCAL-unset}"; type pstack_fn 2>&1 | head -1
+6: cd /usr && pwd > "$OLDPWD/pstack-bg-probe.txt" && echo "a=$PSTACK_A" >> /tmp/pstack-bg-probe.txt
+   Run call 6 as a background command.
+7: sleep 2; cat /tmp/pstack-bg-probe.txt; pwd
+Then report the exact output of every call.
