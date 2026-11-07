@@ -13,6 +13,7 @@ import { Text } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isOneShot } from './modes.ts';
 import { firstMatcher, OutputWatchDependencyError, type OutputWatchRequest, ShellOutputWatch } from './shell-output-watch.ts';
+import { type SessionShell, settingsShellPath } from './shell-state.ts';
 
 export const SHELL_NOTICE_TYPE = 'pstack/shell';
 const BACKGROUND_TOOL = 'bash_background';
@@ -204,6 +205,8 @@ export interface ShellJobsOptions {
 
 export interface StartRequest {
   command: string;
+  /** Shell lines that run before the command, such as the session shell's exports; the job header shows only the command. */
+  setup?: string;
   cwd: string;
   title: string;
   toolCallId: string;
@@ -283,12 +286,13 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         console.warn('Invalid shell output notification pattern', { shellId: id, error: error instanceof Error ? error.message : String(error) });
       }
     }
-    const remote = options.spawner?.spawn(request.command, request.cwd);
+    const run = `${request.setup ?? ''}${request.command}`;
+    const remote = options.spawner?.spawn(run, request.cwd);
     const config = getShellConfig(options.shellPath());
     const viaStdin = remote === undefined && config.commandTransport === 'stdin';
     const child =
       remote?.child ??
-      spawn(config.shell, viaStdin ? config.args : [...config.args, request.command], {
+      spawn(config.shell, viaStdin ? config.args : [...config.args, run], {
         cwd: request.cwd,
         env: sessionEnv(ctx),
         detached: process.platform !== 'win32',
@@ -299,7 +303,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     child.once('error', (error) => {
       spawnError = error;
     });
-    if (viaStdin) child.stdin?.end(request.command);
+    if (viaStdin) child.stdin?.end(run);
     if (child.pid === undefined) throw new Error(`Could not start ${remote === undefined ? config.shell : 'the job on the cloud machine'}${spawnError === undefined ? '' : `: ${spawnError.message}`}.`);
     if (remote !== undefined) ends.set(child.pid, remote.end);
     const startedAt = Date.now();
@@ -545,6 +549,8 @@ export interface BackgroundShellOptions {
   forward?: ((notice: ShellNotice) => void) | undefined;
   /** A cloud agent's machine, where its jobs run. */
   spawner?: JobSpawner | undefined;
+  /** The session's shell: a job starts in its working directory, with its exported variables. */
+  shell: SessionShell;
 }
 
 /** bash_background and AwaitShell, plus the notifications their jobs send. `announce` delivers a descendant's notice here. */
@@ -573,10 +579,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
   const jobs: ShellJobs = createShellJobs(
     {
       terminalsDir: options.terminalsDir,
-      shellPath: () => {
-        const value = (pi.getSettings() as { shellPath?: unknown }).shellPath;
-        return typeof value === 'string' && value !== '' ? value.replace(/^~(?=$|\/)/, process.env['HOME'] ?? '~') : undefined;
-      },
+      shellPath: () => settingsShellPath(pi),
       spawner: options.spawner,
     },
     deliver,
@@ -614,11 +617,13 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     parameters: BackgroundParams,
     annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
     async execute(toolCallId, params, signal, _onUpdate, ctx) {
-      const cwd = params.working_directory === undefined || params.working_directory.trim() === '' ? ctx.cwd : resolve(ctx.cwd, params.working_directory);
+      const base = options.shell.cwd() ?? ctx.cwd;
+      const cwd = params.working_directory === undefined || params.working_directory.trim() === '' ? base : resolve(base, params.working_directory);
       const title = params.description?.trim() || params.command.trim().split('\n')[0]?.slice(0, 80) || params.command;
       const watch = params.notify_on_output;
       const job = jobs.start(ctx, {
         command: params.command,
+        setup: options.shell.exports(),
         cwd,
         title,
         toolCallId,

@@ -58,11 +58,59 @@ delete process.env[ROOT_PID_ENV];
 // src/cloud/machine.ts
 import { execFileSync as execFileSync2 } from "node:child_process";
 import { createWriteStream, existsSync as existsSync2, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join as join3 } from "node:path";
+import { join as join4 } from "node:path";
+
+// src/paths.ts
+import { homedir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+var PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+var SKILLS_DIR = join(PACKAGE_ROOT, "skills");
+var AGENTS_DIR = join(PACKAGE_ROOT, "agents");
+function agentDir() {
+  const path = process.env["PI_CODING_AGENT_DIR"];
+  if (!path)
+    return join(homedir(), ".pi", "agent");
+  if (path === "~")
+    return homedir();
+  if (path.startsWith("~/"))
+    return join(homedir(), path.slice(2));
+  return path.startsWith("file://") ? fileURLToPath(path) : path;
+}
+function stateDir() {
+  return join(agentDir(), "pstack");
+}
+function routinesDir() {
+  return join(stateDir(), "routines");
+}
+function durableDir(cwd) {
+  return join(stateDir(), "durable", workspaceSlug(cwd));
+}
+function durableRegistryPath(cwd) {
+  return join(durableDir(cwd), "subscriptions.json");
+}
+function durableRuntimeDir(cwd) {
+  return join(durableDir(cwd), "runtime");
+}
+function workspaceSlug(cwd) {
+  return `--${resolve(cwd).replace(/^[/\\]/, "").replace(/[/\\:]/g, "-")}--`;
+}
+function workspaceStateDir(cwd, inherited = childIdentity.workspaceState) {
+  return inherited ?? join(stateDir(), "workspaces", workspaceSlug(cwd));
+}
+function projectsDir(cwd) {
+  return join(workspaceStateDir(cwd), "projects");
+}
+function worktreesDir(cwd) {
+  return join(workspaceStateDir(cwd), "worktrees");
+}
+function machinesDir(cwd) {
+  return join(workspaceStateDir(cwd), "machines");
+}
 
 // src/cloud/checkout.ts
 import { execFile, execFileSync } from "node:child_process";
-import { join } from "node:path";
+import { join as join2 } from "node:path";
 function git(dir, args) {
   return execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 }
@@ -131,7 +179,7 @@ async function resolveCloudBase(cwd, baseBranch, signal) {
 }
 function mappedCwd(cwd, clone, commit) {
   const prefix = tryGit(cwd, ["rev-parse", "--show-prefix"])?.replace(/\/$/, "") ?? "";
-  return prefix !== "" && tryGit(clone, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined ? join(clone, prefix) : clone;
+  return prefix !== "" && tryGit(clone, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined ? join2(clone, prefix) : clone;
 }
 async function cloneCheckout(cwd, base, dest, branch, signal) {
   const common = tryGit(cwd, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
@@ -223,8 +271,8 @@ async function imageExists(image) {
 // src/cloud/environment.ts
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { join as join2, resolve } from "node:path";
-var ENVIRONMENT_FILE = join2(".pi", "environment.json");
+import { join as join3, resolve as resolve2 } from "node:path";
+var ENVIRONMENT_FILE = join3(".pi", "environment.json");
 var DEFAULT_IMAGE_ENV = "PSTACK_CLOUD_IMAGE";
 var DEFAULT_IMAGE = "node:24-bookworm";
 var fail = (path, problem) => {
@@ -253,7 +301,7 @@ function terminalsOf(path, value) {
   });
 }
 function readEnvironment(repo, env = process.env) {
-  const path = join2(repo, ENVIRONMENT_FILE);
+  const path = join3(repo, ENVIRONMENT_FILE);
   const fallbackImage = env[DEFAULT_IMAGE_ENV] === undefined || env[DEFAULT_IMAGE_ENV] === "" ? DEFAULT_IMAGE : env[DEFAULT_IMAGE_ENV];
   if (!existsSync(path))
     return { source: undefined, image: { kind: "pull", reference: fallbackImage }, install: undefined, start: undefined, terminals: [] };
@@ -281,11 +329,11 @@ function readEnvironment(repo, env = process.env) {
     const dockerfile = optionalString(path, build.dockerfile, "build.dockerfile");
     if (dockerfile === undefined)
       return fail(path, "build.dockerfile is required");
-    const base = join2(repo, ".pi");
-    const file = resolve(base, dockerfile);
+    const base = join3(repo, ".pi");
+    const file = resolve2(base, dockerfile);
     if (!existsSync(file))
       fail(path, `build.dockerfile ${file} does not exist`);
-    const context = resolve(base, optionalString(path, build.context, "build.context") ?? ".");
+    const context = resolve2(base, optionalString(path, build.context, "build.context") ?? ".");
     const digest = createHash("sha256").update(readFileSync(file)).update("\x00").update(context.slice(repo.length)).digest("hex").slice(0, 16);
     image = { kind: "build", dockerfile: file, context, tag: `pstack-env:${digest}` };
   }
@@ -384,11 +432,11 @@ async function provisionMachine(plan, signal, env = process.env) {
   if (plan.driver === "worktree")
     throw new Error("provisionMachine creates container machines; worktree machines come from task/worktree.ts");
   const base = await resolveCloudBase(plan.cwd, plan.baseBranch, signal);
-  const path = join3(plan.home, "repo");
+  const path = join4(plan.home, "repo");
   const branch = `pstack/${plan.agentId}`;
   const container = containerName(plan.agentId);
   mkdirSync(plan.home, { recursive: true, mode: 448 });
-  const logFile = join3(plan.home, "provision.log");
+  const logFile = join4(plan.home, "provision.log");
   const log = (line) => writeFileSync(logFile, `${new Date().toISOString()} ${line}
 `, { flag: "a" });
   let created = false;
@@ -398,18 +446,18 @@ async function provisionMachine(plan, signal, env = process.env) {
     const environment = readEnvironment(path, env);
     const image = await ensureImage(environment, log, signal);
     const token = githubToken(env);
-    const secrets = join3(plan.home, "secrets");
-    const mounts = ["-v", `${path}:${path}${plan.readonly ? ":ro" : ""}`];
+    const secrets = join4(plan.home, "secrets");
+    const mounts = ["-v", `${path}:${path}${plan.readonly ? ":ro" : ""}`, "-v", `${PACKAGE_ROOT}:${PACKAGE_ROOT}:ro`];
     for (const folder of plan.shared) {
       mkdirSync(folder, { recursive: true, mode: 448 });
       mounts.push("-v", `${folder}:${folder}${plan.readonly ? ":ro" : ""}`);
     }
     if (token !== undefined) {
       mkdirSync(secrets, { recursive: true, mode: 448 });
-      writeFileSync(join3(secrets, "github-token"), token, { mode: 384 });
+      writeFileSync(join4(secrets, "github-token"), token, { mode: 384 });
       configureGithubAuth(path);
-      mounts.push("-v", `${join3(secrets, "github-token")}:${GITHUB_TOKEN_PATH}:ro`);
-      writeFileSync(join3(secrets, "env"), `GH_TOKEN=${token}
+      mounts.push("-v", `${join4(secrets, "github-token")}:${GITHUB_TOKEN_PATH}:ro`);
+      writeFileSync(join4(secrets, "env"), `GH_TOKEN=${token}
 `, { mode: 384 });
     }
     const cwd = mappedCwd(plan.cwd, path, base.commit);
@@ -425,16 +473,18 @@ async function provisionMachine(plan, signal, env = process.env) {
       "--label",
       `pstack.agent=${plan.agentId}`,
       ...mounts,
+      ...plan.readonly ? ["--read-only", "--ipc", "none"] : [],
       "--workdir",
       cwd,
-      ...hostUserArgs(),
-      ...token === undefined ? [] : ["--env-file", join3(secrets, "env")],
+      ...hostUserArgs(plan.readonly),
+      ...token === undefined ? [] : ["--env-file", join4(secrets, "env")],
       image,
       "sleep",
       "infinity"
     ], { timeoutMs: 120000, ...signal === undefined ? {} : { signal } });
     created = true;
-    await docker(["exec", container, "git", "config", "--global", "--add", "safe.directory", "*"], { timeoutMs: 30000 });
+    if (!plan.readonly)
+      await docker(["exec", container, "git", "config", "--global", "--add", "safe.directory", "*"], { timeoutMs: 30000 });
     const machine = {
       driver: "container",
       path,
@@ -451,7 +501,7 @@ async function provisionMachine(plan, signal, env = process.env) {
     };
     if (environment.install !== undefined) {
       log(`install: ${environment.install}`);
-      await execLogged(container, cwd, environment.install, join3(plan.home, "install.log"), INSTALL_TIMEOUT_MS, signal);
+      await execLogged(container, cwd, environment.install, join4(plan.home, "install.log"), INSTALL_TIMEOUT_MS, signal);
     }
     await startServices(machine);
     log("ready");
@@ -465,8 +515,8 @@ async function provisionMachine(plan, signal, env = process.env) {
     throw error;
   }
 }
-function hostUserArgs(platform = process.platform, uid = process.getuid?.(), gid = process.getgid?.()) {
-  if (platform !== "linux" || uid === undefined || gid === undefined || uid === 0)
+function hostUserArgs(readonly, platform = process.platform, uid = process.getuid?.(), gid = process.getgid?.()) {
+  if (platform !== "linux" && !readonly || uid === undefined || gid === undefined || uid === 0)
     return [];
   return ["--user", `${uid}:${gid}`, "--env", "HOME=/tmp"];
 }
@@ -475,54 +525,6 @@ async function stopMachine(machine) {
     return;
   if (await containerState(machine.container) === "running")
     await docker(["stop", "--time", "5", machine.container], { timeoutMs: 30000 });
-}
-
-// src/paths.ts
-import { homedir } from "node:os";
-import { dirname, join as join4, resolve as resolve2 } from "node:path";
-import { fileURLToPath } from "node:url";
-var PACKAGE_ROOT = join4(dirname(fileURLToPath(import.meta.url)), "..");
-var SKILLS_DIR = join4(PACKAGE_ROOT, "skills");
-var AGENTS_DIR = join4(PACKAGE_ROOT, "agents");
-function agentDir() {
-  const path = process.env["PI_CODING_AGENT_DIR"];
-  if (!path)
-    return join4(homedir(), ".pi", "agent");
-  if (path === "~")
-    return homedir();
-  if (path.startsWith("~/"))
-    return join4(homedir(), path.slice(2));
-  return path.startsWith("file://") ? fileURLToPath(path) : path;
-}
-function stateDir() {
-  return join4(agentDir(), "pstack");
-}
-function routinesDir() {
-  return join4(stateDir(), "routines");
-}
-function durableDir(cwd) {
-  return join4(stateDir(), "durable", workspaceSlug(cwd));
-}
-function durableRegistryPath(cwd) {
-  return join4(durableDir(cwd), "subscriptions.json");
-}
-function durableRuntimeDir(cwd) {
-  return join4(durableDir(cwd), "runtime");
-}
-function workspaceSlug(cwd) {
-  return `--${resolve2(cwd).replace(/^[/\\]/, "").replace(/[/\\:]/g, "-")}--`;
-}
-function workspaceStateDir(cwd, inherited = childIdentity.workspaceState) {
-  return inherited ?? join4(stateDir(), "workspaces", workspaceSlug(cwd));
-}
-function projectsDir(cwd) {
-  return join4(workspaceStateDir(cwd), "projects");
-}
-function worktreesDir(cwd) {
-  return join4(workspaceStateDir(cwd), "worktrees");
-}
-function machinesDir(cwd) {
-  return join4(workspaceStateDir(cwd), "machines");
 }
 
 // src/task/worktree.ts

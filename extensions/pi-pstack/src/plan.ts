@@ -10,6 +10,7 @@ import type * as YAML from 'yaml';
 import { canAsk } from './modes.ts';
 import { plansDir } from './paths.ts';
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
+import type { SessionShell } from './shell-state.ts';
 import type { TodoItem } from './todo.ts';
 
 export const PLAN_ENTRY = 'pstack/plan';
@@ -389,6 +390,8 @@ export interface PlanModeOptions {
   setTodos?: (todos: TodoItem[], ctx: ExtensionContext) => void;
   /** Starts the build in an isolated worktree worker, Pi's counterpart to Cursor's "build in cloud". Returns the agent ID. */
   buildInWorker?: (planFile: string, request: string) => Promise<string>;
+  /** The session's shell, which plan mode's read-only shell shares with bash. */
+  shell?: SessionShell;
 }
 
 export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}) {
@@ -398,7 +401,7 @@ export function registerPlanMode(pi: ExtensionAPI, options: PlanModeOptions = {}
   let review: string | undefined;
 
   // Inactive until plan mode turns it on.
-  pi.registerTool({ ...createReadonlyBashTool(PLAN_BASH), defaultActive: false });
+  pi.registerTool({ ...createReadonlyBashTool(PLAN_BASH, options.shell), defaultActive: false });
   pi.registerTool({
     name: PLAN_SAVE,
     label: 'Create plan',
