@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.33] - 2026-11-07
+
+- Have `/poteto-help` link the public copy of the file its answer came from, `https://github.com/cursor/plugins/blob/main/pstack/` followed by its path, as Cursor's pstack does. It gave the installed package path instead.
+
 ## [0.15.36-pi.32] - 2026-11-07
 
 - Run the readonly shell on Linux armv7, ppc64le, and s390x. Its seccomp filter knew only x64 and arm64, so every readonly command on those architectures was refused. Each architecture's filter uses its kernel's audit arch and syscall numbers, refuses `socket(AF_UNIX)`, `io_uring_setup`, and `socketcall(SYS_SOCKET)`, and kills other ABIs. On s390x, glibc creates every socket through `socketcall`, so programs built on glibc, Node and curl included, cannot open a network connection in the readonly shell there.

@@ -104,6 +104,7 @@ function outsideCodeFences(text: string): string {
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
+  { file: 'skills/poteto-help/SKILL.md', span: /`https:\/\/github\.com\/cursor\/plugins\/blob\/main\/pstack\/`/, reason: 'upstream links the public source copy, which is not a host feature' },
 ];
 
 const WHOLE_FILE_EXEMPT = new Map([['docs/parity-status.md', 'records the upstream source, its host translations, and the host differences that remain']]);
