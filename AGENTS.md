@@ -63,87 +63,61 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
-## 5. Vitest
 
-These rules cover the Vitest suites under `extensions/*/test`. They restate the official Vitest 5 guide (vitest.dev, `docs/guide` at tag `v5.0.5`) for this repository: Node-only Pi extensions and CLI scripts, `environment: 'node'`, `globals: false`, `pool: 'forks'`, `isolate: true`, V8 coverage. Browser mode and DOM environments do not apply here.
+# Vitest testing instructions
 
-Run tests with each package's own scripts (`bun run test`, `bun run test:coverage`), or `bun run test` at the root for every workspace. A package's `test` script runs `vitest run`, never watch mode. `bun run check:tests` enforces the rules below that a static scan can decide. Follow the existing conventions: `test` rather than `it`, explicit imports from `vitest`, `*.test.ts` files in each package's `test/` directory.
+## Before writing tests
 
-### What to test
+- Read the code under test, its relevant dependencies and types, nearby tests, and the Vitest configuration. Follow the project's test layout, naming, imports, fixtures, and environment.
+- Check the installed Vitest version before using an API. Use the project's existing commands and package manager. Vitest APIs and defaults can differ between versions.
+- Test the public contract. Cover expected results, observable side effects, errors, realistic boundaries, and relevant failure paths. Do not assert implementation details unless they are part of the contract.
+- For a bug, first write and run a test that reproduces it. Confirm that the test fails for the reported reason, fix the bug, and run the test again.
 
-- Test what callers can observe: return values, thrown errors, side effects, and output. Do not assert private helpers, intermediate variables, or which internal options were passed.
-- Keep each test on one behavior. Name it after that behavior, such as "rejects an expired token", never "works correctly".
-- Cover the main behavior, then boundaries, error paths, and the inputs the code realistically receives. Do not chase every possible input.
-- Fix a bug by first writing a test that fails because of it, then changing the code. Never make a failing test pass by weakening the test.
-- Do not depend on test order, generated IDs, shared module-level counters, or wall-clock timing.
+## Write focused tests
 
-### Structure
+- Give each test a concise name that describes one behavior. Arrange the inputs, perform the action, and assert the result. Group related tests with `describe` when useful, and keep nesting shallow.
+- Use the project's `test` or `it` convention. Import Vitest APIs from `vitest` unless the project enables globals. Use Vitest's `vi` APIs, not Jest's `jest` APIs.
+- Use parameterized tests for cases that share the same logic. In versions that support it, prefer `test.for` for new tests when it fits the project's conventions.
+- Use `toBe` for primitives or object identity, `toEqual` for structural equality, and `toStrictEqual` when types, sparse arrays, or explicit `undefined` properties matter. Use `toBeCloseTo` for floating-point results when appropriate.
+- Choose assertions that express the contract. For example, use `toMatchObject` for relevant object fields and wrap synchronous calls in a function for `toThrow`. Avoid assertions that pass for nearly any result.
 
-- Use Arrange, Act, Assert. Section comments are not needed.
-- Keep `describe` nesting to one or two levels. Drop `describe` when it adds no context.
-- Use `test.for` for parameterized cases, not Jest-style `test.each`. Use named case objects once a case has more than two or three values.
-- Never commit `.only`. Use `.skip`, `.skipIf`, and `.todo` only when the reason is visible to the next reader.
-- Use Vitest APIs (`vi.fn`, `vi.mock`), never Jest names (`jest.fn`, `jest.mock`).
+## Handle async work and isolation
 
-### Isolation and setup
+- Await or return asynchronous work and assertions. Await `expect(promise).resolves` and `expect(promise).rejects`. Wrap callback APIs in a promise when needed.
+- Use `expect.hasAssertions()` or `expect.assertions(n)` when assertions inside callbacks, loops, or branches might not run.
+- Give tests independent state. Use scoped `beforeEach` and `afterEach` hooks, fixtures, or local setup and cleanup. Use `beforeAll` and `afterAll` for shared expensive resources, and clean up resources even on failure.
+- Use `setupFiles` for setup that must run before each test file, such as custom matchers or polyfills. Avoid adding global configuration when local setup is enough.
+- For concurrent tests, use the test context's `expect` for assertions and snapshots. Do not share mutable state between concurrent tests.
 
-- Every test must pass alone and in any order. Create fresh mutable state per test.
-- Prefer `test.extend` fixtures for reusable setup and teardown over `let` variables shared through hooks. Keep fixtures test-scoped unless sharing is intended.
-- Use `beforeEach`/`afterEach` for per-test work and `beforeAll`/`afterAll` only for resources that are deliberately shared. Scope hooks to the smallest `describe`.
-- Put cleanup next to the resource it releases with `onTestFinished`. Use `using` with `vi.spyOn`, `vi.fn`, or `vi.doMock` when a spy should be restored at the end of a block (Node 24+ or a TypeScript target that supports explicit resource management).
-- Restore every process-wide change: environment variables (`vi.stubEnv` plus `vi.unstubAllEnvs`), globals (`vi.stubGlobal` plus `vi.unstubAllGlobals`), fake timers, temp directories, servers, child processes, and `process` listeners.
-- Keep `isolate: true`. Turning isolation off is only safe for files that do not mutate module-level state, stub globals or env, patch prototypes, register long-lived listeners, or need a fresh module for `vi.mock`. Prove it by running with `--sequence.shuffle` more than once.
+## Mock deliberately
 
-### Async work
+- Exercise the real subject under test. Prefer real dependencies when they are fast and reliable. Mock slow or nondeterministic dependencies and side effects that tests cannot safely control.
+- Use `vi.fn()` for a mock function and `vi.spyOn()` for an existing method. A spy calls the original method unless its implementation is replaced. Use `mockResolvedValue` or `mockRejectedValue` for async outcomes.
+- Reset mock state and restore spies between tests as needed. `mockClear` clears history, `mockReset` also resets the implementation, and `mockRestore` restores a spied-on method. Follow existing project configuration.
+- Remember that `vi.mock` is hoisted. Where the installed version supports it, prefer `vi.mock(import('./module.js'), factory)` for module type inference and refactoring support.
+- Mock call arguments are stored by reference. Assert before mutation or capture a copy at call time when the original value matters.
 
-- Write async tests with `async`/`await`. Always `await` `expect(...).resolves` and `expect(...).rejects`. Vitest fails a test that leaves an assertion unawaited.
-- Await every promise the test starts. An unhandled rejection fails the run. Do not silence it.
-- Add `expect.hasAssertions()` or `expect.assertions(n)` only where assertions sit inside callbacks, loops, or branches that might not run.
-- Pass the test context `signal` to `fetch`, `spawn`, timers, and any helper that takes an `AbortSignal`, so a timed-out or cancelled test releases its work.
-- Never wait with a fixed `setTimeout` sleep. Use `expect.poll` when the condition is an assertion, `vi.waitFor` when the work itself throws until ready, and `vi.waitUntil` when a lookup may be falsy and a throw should fail fast.
-- When the code depends on time, use `vi.useFakeTimers()`, advance time explicitly, and call `vi.useRealTimers()` afterwards.
-- Raise a timeout only for work that is genuinely slow, never to hide an unresolved promise.
+## Use snapshots with care
 
-### Assertions
+- Prefer targeted assertions for specific properties. Use snapshots for stable, structured output when changes across the whole output matter. Use inline snapshots for small values and file snapshots when the output format benefits from a separate file.
+- Use asymmetric property matchers for volatile fields when appropriate. Await file snapshot assertions. Commit external snapshots alongside the tests.
+- Review every snapshot diff against the intended behavior. Update snapshots only after confirming the new output is correct. Never accept a snapshot update merely to make a test pass.
 
-- Pick the matcher that states the requirement: `toBe` for primitives and identity, `toEqual` for structure, `toStrictEqual` when `undefined` keys, classes, or sparse arrays matter, `toBeCloseTo` for floats.
-- Use `toMatchObject`, `toHaveProperty`, and asymmetric matchers (`expect.any`, `expect.objectContaining`, `expect.stringMatching`) when only part of a value is the contract.
-- Every test makes at least one assertion. A weak matcher (`toBeDefined`, `toBeTruthy`, `toBeFalsy`, `not.toThrow`, `toHaveBeenCalled`, `toBeGreaterThan(0)`) is never a test's only check. Assert the value the code produces.
-- Assert exact values: `toBe(true)` and `toBe(false)`, not `toBeTruthy()` and `toBeFalsy()`.
-- Wrap the call in a function for `toThrow`: `expect(() => parse(input)).toThrow(/expected/)`.
-- Use `expect.soft` only for independent checks where seeing every failure helps.
-- `mock.calls` holds references, not copies. Assert before the argument is mutated, or copy it first.
+## Run and debug tests
 
-### Mocking
+- Run the affected tests with the project's Vitest command in non-watch mode, such as `vitest run path/to/file.test.ts`. Then run the relevant broader checks required by the project. Run type checking separately because a normal Vitest run does not type-check TypeScript.
+- Read the failing assertion, expected and received values, stack trace, and snapshot diff before changing a test. Isolate a failure by file or test name, then rerun the broader suite after fixing it.
+- If a test passes alone but fails in the suite, investigate shared state, mock cleanup, and test order. For timeouts or intermittent failures, inspect awaited work and callbacks. For missing browser globals, check the configured environment or Browser Mode.
+- Remove temporary `.only` modifiers and debugging code before finishing. Do not skip or weaken a failing test merely to make the suite pass. Report checks that could not be run.
 
-- Prefer real implementations when they are fast and deterministic: pure functions, in-memory structures, temp directories.
-- Never mock the unit under test. Mock its boundaries: network, the Pi host, the clock, child processes.
-- Use `vi.fn()` for new functions and `vi.spyOn()` to observe or replace an existing method. Use `mockResolvedValue` and `mockRejectedValue` for async results, and `vi.when()` when the result depends on the arguments.
-- Write module mocks as `vi.mock(import('./module.js'), factory)` so TypeScript checks the path and types `importOriginal`. Remember `vi.mock` is hoisted above imports; values its factory needs must come from `vi.hoisted`.
-- `clearMocks` defaults to `true` in Vitest 5, so call history resets before each test. Implementations are not reset and spies are not restored unless `restoreMocks` is enabled or the test restores them. Do not enable `restoreMocks`, `unstubEnvs`, or `unstubGlobals` globally for files that use `test.concurrent`; each one undoes state for tests still running.
-- For HTTP, use the package's existing approach (a fake fetch or a local server). If a new suite needs network mocking, Vitest recommends Mock Service Worker over hand-written fetch stubs. For heavy file-system mocking, Vitest recommends `memfs`; a real temp directory is usually simpler here.
+## Official sources
 
-### Snapshots
-
-- Snapshot only stable output where the whole shape matters. Use targeted assertions when a few fields matter.
-- Prefer `toMatchInlineSnapshot` for small values and `toMatchSnapshot` or `toMatchFileSnapshot` for large ones.
-- Replace IDs, timestamps, and absolute paths with property matchers or normalization before snapshotting.
-- Read every snapshot diff before running with `-u`. Commit `.snap` files with the test.
-- In `test.concurrent` tests, use the `expect` from the test context so snapshots attach to the right test.
-
-### Parallelism and performance
-
-- Tests inside a file run sequentially by default. Use `test.concurrent` only for independent tests that spend time waiting.
-- Keep file parallelism on. Serialize only the files that share an exclusive resource, through a separate project with `fileParallelism: false`, not by turning it off for the whole package.
-- Do not change `pool`, `isolate`, or worker counts because a suite feels slow. Measure first: read the transform, import, and tests timings Vitest prints, profile with `execArgv: ['--cpu-prof']`, or compare configurations with `vitest doctor`.
-
-### Coverage and types
-
-- Use the V8 provider and keep `coverage.include` pointed at `src/**/*.ts` so untested files appear in the report. Keep each package's existing thresholds; do not invent new ones.
-- Vitest strips types without checking them. Run the package's `bun run typecheck` when types matter.
-- When a type is the contract, test it with `expectTypeOf` or `assertType` in a `*.test-d.ts` file run with `vitest --typecheck`.
-
-### Before you finish
-
-- Run the narrowest test file first, then the package suite. Run the root `make verify` for changes that cross packages.
-- Confirm no `.only` remains, every resource your tests open is closed, and every snapshot change was reviewed.
+- [Writing tests](https://vitest.dev/guide/learn/writing-tests)
+- [Using matchers](https://vitest.dev/guide/learn/matchers)
+- [Testing asynchronous code](https://vitest.dev/guide/learn/async)
+- [Setup and teardown](https://vitest.dev/guide/learn/setup-teardown)
+- [Mock functions](https://vitest.dev/guide/learn/mock-functions)
+- [Snapshot testing](https://vitest.dev/guide/learn/snapshots)
+- [Testing in practice](https://vitest.dev/guide/learn/testing-in-practice)
+- [Debugging failing tests](https://vitest.dev/guide/learn/debugging-tests)
+- [Writing tests with AI](https://vitest.dev/guide/learn/writing-tests-with-ai)
