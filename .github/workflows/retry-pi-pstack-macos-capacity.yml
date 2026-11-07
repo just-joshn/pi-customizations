@@ -3,6 +3,7 @@ name: retry-pi-pstack-macos-capacity
 # Hosted macOS ARM often queues, then cancels with no steps when GitHub never
 # assigns a runner. That leaves the required verify-macos check red even when
 # Ubuntu passed. Re-run failed jobs once on attempt 1 for that case only.
+# Re-running failed jobs also re-runs the verify-macos job that needs them.
 
 on:
   workflow_run:
@@ -19,9 +20,10 @@ jobs:
   retry-once:
     if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt == 1
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Re-run when verify-macos never acquired a runner
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const owner = context.repo.owner;
@@ -36,33 +38,30 @@ jobs:
             });
 
             const linux = jobs.find((job) => job.name === 'verify');
-            const macos = jobs.find((job) => job.name === 'verify-macos');
-            if (linux?.conclusion !== 'success' || macos === undefined) {
-              core.info('Skip retry: Linux verify did not succeed, or verify-macos is missing.');
+            const macos = jobs.filter((job) => job.name.startsWith('macos ') && job.conclusion !== 'success');
+            if (linux?.conclusion !== 'success' || macos.length === 0) {
+              core.info('Skip retry: Linux verify did not succeed, or every macOS shard passed.');
               return;
             }
 
-            const neverStarted =
-              (macos.conclusion === 'cancelled' || macos.conclusion === 'failure') &&
-              (!Array.isArray(macos.steps) || macos.steps.length === 0);
+            const capacityMiss = async (job) => {
+              if ((job.conclusion === 'cancelled' || job.conclusion === 'failure') && (!Array.isArray(job.steps) || job.steps.length === 0)) {
+                return true;
+              }
+              try {
+                const annotations = await github.rest.checks.listAnnotations({ owner, repo, check_run_id: job.id });
+                return annotations.data.some((annotation) => /not acquired by Runner|capacity constraints/i.test(annotation.message ?? ''));
+              } catch (error) {
+                core.info(`Annotation lookup skipped: ${error instanceof Error ? error.message : String(error)}`);
+                return false;
+              }
+            };
 
-            let capacityAnnotation = false;
-            try {
-              const annotations = await github.rest.checks.listAnnotations({
-                owner,
-                repo,
-                check_run_id: macos.id,
-              });
-              capacityAnnotation = annotations.data.some((annotation) =>
-                /not acquired by Runner|capacity constraints/i.test(annotation.message ?? ''),
-              );
-            } catch (error) {
-              core.info(`Annotation lookup skipped: ${error instanceof Error ? error.message : String(error)}`);
-            }
-
-            if (!neverStarted && !capacityAnnotation) {
-              core.info(`Skip retry: verify-macos conclusion=${macos.conclusion}; not a capacity miss.`);
-              return;
+            for (const job of macos) {
+              if (!(await capacityMiss(job))) {
+                core.info(`Skip retry: ${job.name} conclusion=${job.conclusion}; not a capacity miss.`);
+                return;
+              }
             }
 
             core.info(`Re-running failed jobs for run ${runId} after macOS runner capacity miss.`);
