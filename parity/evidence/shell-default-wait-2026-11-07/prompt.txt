@@ -1,0 +1,1 @@
+Run this in one shell tool call: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. Then report exactly what the tool returned, and wait for any notification about the command and report it too.

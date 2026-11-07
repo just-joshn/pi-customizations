@@ -3,9 +3,10 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import type { ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { type BashOperations, createLocalBashOperations } from '@earendil-works/pi-coding-agent';
 import { test as base, describe, expect, onTestFinished, vi } from 'vitest';
-import { type BackgroundedCommand, createSessionShell, type MovedCommand, type SessionShell } from '../src/shell-state.ts';
+import { type BackgroundedCommand, createSessionShell, type MovedCommand, type SessionShell, sessionBashDefinition } from '../src/shell-state.ts';
 
 interface Run {
   exitCode: number | null | string;
@@ -275,5 +276,69 @@ describe('a timeout with somewhere to move the command', () => {
 
     await expect.poll(() => to.exits).toEqual([0]);
     expect(to.later).toBe('later\n');
+  });
+});
+
+describe('a bash call that sets no timeout', () => {
+  const textOf = (result: { content: { type: string; text?: string }[] }) => result.content.map((part) => part.text ?? '').join('');
+  const watched = () => {
+    const seen = { started: false };
+    const ops: BashOperations = {
+      exec: (command, cwd, options) =>
+        local.exec(command, cwd, {
+          ...options,
+          onData: (bytes) => {
+            seen.started = true;
+            options.onData(bytes);
+          },
+        }),
+    };
+    return { seen, ops };
+  };
+
+  test('moves a command still running after 30 seconds to the background', async ({ dir, shell }) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    const to = handover();
+    const { seen, ops } = watched();
+    const bash = sessionBashDefinition(shell, dir, ops, { background: (_ctx, _call, moved) => to.take(moved) });
+
+    const running = bash.execute('call', { command: 'echo first; sleep 3; echo second' }, undefined, undefined, {
+      cwd: dir,
+      model: undefined,
+      sessionManager: { getSessionId: () => 'session', getSessionFile: () => undefined },
+    } as unknown as ExtensionToolContext);
+    await vi.waitFor(() => expect(seen.started).toBe(true));
+    await vi.advanceTimersByTimeAsync(29_000);
+    expect(to.moved).toEqual([]);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    await expect(running.then(textOf)).resolves.toBe('moved');
+    vi.useRealTimers();
+    expect(to.moved).toEqual([expect.objectContaining({ waitedMs: 30_000, output: Buffer.from('first\n') })]);
+    await expect.poll(() => to.exits, { timeout: 10_000 }).toEqual([0]);
+    expect(to.later).toBe('second\n');
+  });
+
+  test('keeps waiting for the command when nothing can take it after 30 seconds', async ({ dir, shell }) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    const { seen, ops } = watched();
+    const bash = sessionBashDefinition(shell, dir, ops, { background: () => undefined });
+
+    const running = bash.execute('call', { command: 'echo first; sleep 3; echo second' }, undefined, undefined, {
+      cwd: dir,
+      model: undefined,
+      sessionManager: { getSessionId: () => 'session', getSessionFile: () => undefined },
+    } as unknown as ExtensionToolContext);
+    await vi.waitFor(() => expect(seen.started).toBe(true));
+    await vi.advanceTimersByTimeAsync(30_000);
+    vi.useRealTimers();
+
+    await expect(running.then(textOf)).resolves.toBe('first\nsecond\n');
   });
 });
