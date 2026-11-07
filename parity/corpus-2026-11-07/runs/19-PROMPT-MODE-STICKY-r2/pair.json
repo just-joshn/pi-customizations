@@ -1,0 +1,10 @@
+{
+  "id": "19-PROMPT-MODE-STICKY-r2",
+  "ordinal": 19,
+  "scenarioId": "PROMPT-MODE-STICKY",
+  "repeat": 2,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

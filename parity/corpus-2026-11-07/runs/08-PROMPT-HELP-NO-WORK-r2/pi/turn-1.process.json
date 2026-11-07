@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/08-PROMPT-HELP-NO-WORK-r2/pi/sessions",
+    "--session-id",
+    "84d2b533-8938-40bc-b74c-fde8585e55fd",
+    "--",
+    "/poteto-help Which skill should I use to understand how a module works? Do not start the investigation."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/08-PROMPT-HELP-NO-WORK-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 10955,
+    "timeoutMs": 180000
+  }
+}

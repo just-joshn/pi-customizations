@@ -1,0 +1,56 @@
+---
+pid: 14132
+cwd: "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/pi/work"
+command: "for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED"
+title: "for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED"
+status: succeeded
+started_at: 2026-11-07T16:58:23.522Z
+running_for_ms: 40422    
+---
+tick 1
+tick 2
+tick 3
+tick 4
+tick 5
+tick 6
+tick 7
+tick 8
+tick 9
+tick 10
+tick 11
+tick 12
+tick 13
+tick 14
+tick 15
+tick 16
+tick 17
+tick 18
+tick 19
+tick 20
+tick 21
+tick 22
+tick 23
+tick 24
+tick 25
+tick 26
+tick 27
+tick 28
+tick 29
+tick 30
+tick 31
+tick 32
+tick 33
+tick 34
+tick 35
+tick 36
+tick 37
+tick 38
+tick 39
+tick 40
+FINISHED
+
+---
+exit_code: 0
+elapsed_ms: 40422
+ended_at: 2026-11-07T16:59:03.944Z
+---

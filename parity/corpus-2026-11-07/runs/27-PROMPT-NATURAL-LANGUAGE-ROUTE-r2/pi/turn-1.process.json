@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/pi/sessions",
+    "--session-id",
+    "c7e42598-2e8c-40ff-97ac-436301c04ee0",
+    "--",
+    "configure pstack models for me. show me the budget options first and don't write anything yet."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 16493,
+    "timeoutMs": 300000
+  }
+}

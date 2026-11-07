@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/13-PROMPT-NONTRIGGER-MENTION-r1/pi/sessions",
+    "--session-id",
+    "1d5811b9-8385-4c37-b28a-2ea89d1ef8b4",
+    "--",
+    "I am documenting command names. Reply with exactly NONTRIGGER-20261106. The name poteto-mode is an example, not an invocation. Do not run tools."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/13-PROMPT-NONTRIGGER-MENTION-r1/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 2554,
+    "timeoutMs": 180000
+  }
+}

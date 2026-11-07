@@ -1,0 +1,9 @@
+{"type":"extension_ui_request","id":"de0390ca-e6e0-47a8-95bd-2ed0319e3887","method":"setStatus","statusKey":"pstack-mode"}
+{"type":"extension_ui_request","id":"1f06e50f-f002-454e-b500-af9998252fa2","method":"setStatus","statusKey":"pstack-plan"}
+{"type":"extension_ui_request","id":"2eb47fed-ea71-4e23-98d2-9a05eeae0b1b","method":"setStatus","statusKey":"pstack-project"}
+{"type":"extension_ui_request","id":"e47be1af-d1ea-4264-ad67-ab3f39deb0a5","method":"setStatus","statusKey":"pstack-listening"}
+{"type":"extension_ui_request","id":"fce0268d-13db-462e-9490-7c766d13d71f","method":"setWidget","widgetKey":"pstack-todos"}
+{"type":"entry_appended","entry":{"type":"custom","customType":"pstack/mode","data":{"skill":"poteto-mode"},"id":"83d5b0fc","parentId":"51e17830","timestamp":"2026-11-07T17:01:42.074Z"}}
+{"type":"extension_ui_request","id":"32d65a1d-f3d9-4deb-96e5-31fb4a7a6eea","method":"setStatus","statusKey":"pstack-mode","statusText":"\u001b[38;5;3m♛ mode: poteto-mode\u001b[39m"}
+{"type":"extension_ui_request","id":"4442b7da-ad39-4a4f-b9f8-41c110fba267","method":"notify","message":"Mode on: poteto-mode. /mode off exits.","notifyType":"info"}
+{"id":"turn-1","type":"response","command":"prompt","success":true,"data":{"disposition":"handled"}}

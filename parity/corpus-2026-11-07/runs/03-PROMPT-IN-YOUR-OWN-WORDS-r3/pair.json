@@ -1,0 +1,10 @@
+{
+  "id": "03-PROMPT-IN-YOUR-OWN-WORDS-r3",
+  "ordinal": 3,
+  "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+  "repeat": 3,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--",
+    "/poteto-help Which skill should I use to understand how a module works? Do not start the investigation."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/08-PROMPT-HELP-NO-WORK-r2/cursor/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 22104,
+    "timeoutMs": 180000
+  }
+}

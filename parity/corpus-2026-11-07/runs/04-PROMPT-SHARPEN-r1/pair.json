@@ -1,0 +1,10 @@
+{
+  "id": "04-PROMPT-SHARPEN-r1",
+  "ordinal": 4,
+  "scenarioId": "PROMPT-SHARPEN",
+  "repeat": 1,
+  "order": [
+    "pi",
+    "cursor"
+  ]
+}

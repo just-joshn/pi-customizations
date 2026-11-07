@@ -1,0 +1,13 @@
+{
+  "agentId": "e7262793-a041-450d-aed4-3d9669100c7f",
+  "type": "generalPurpose",
+  "readonly": true,
+  "cwd": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/21-PROMPT-HOW-READONLY-EXPLORERS-r2/pi/work",
+  "createdAt": "2026-11-07T16:51:18.667Z",
+  "depth": 1,
+  "model": {
+    "provider": "openai",
+    "id": "gpt-5.6-sol",
+    "thinking": "medium"
+  }
+}

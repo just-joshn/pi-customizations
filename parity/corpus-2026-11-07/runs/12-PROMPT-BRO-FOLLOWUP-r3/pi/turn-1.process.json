@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/12-PROMPT-BRO-FOLLOWUP-r3/pi/sessions",
+    "--session-id",
+    "d658bbf6-4d77-4cf2-a4d1-e1f3152b7263",
+    "--",
+    "Reply with exactly this sentence and do not run tools. The asynchronous consumer retains the final buffered line until the producer signals end of stream."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/12-PROMPT-BRO-FOLLOWUP-r3/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 6896,
+    "timeoutMs": 180000
+  }
+}

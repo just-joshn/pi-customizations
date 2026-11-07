@@ -1,0 +1,10 @@
+{
+  "id": "10-PROMPT-BRO-FOLLOWUP-r1",
+  "ordinal": 10,
+  "scenarioId": "PROMPT-BRO-FOLLOWUP",
+  "repeat": 1,
+  "order": [
+    "pi",
+    "cursor"
+  ]
+}

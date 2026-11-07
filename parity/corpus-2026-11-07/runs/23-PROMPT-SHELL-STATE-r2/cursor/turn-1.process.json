@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--",
+    "Run exactly two separate shell tool calls, one after the other, and nothing else. First call: cd /usr && export CORPUS_PROBE=42. Second call, as its own tool call: pwd; echo \"probe=$CORPUS_PROBE\". Then report the exact output of the second call."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/23-PROMPT-SHELL-STATE-r2/cursor/work",
+  "exit": {
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 16688,
+    "timeoutMs": 180000
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2",
+  "ordinal": 17,
+  "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+  "repeat": 2,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

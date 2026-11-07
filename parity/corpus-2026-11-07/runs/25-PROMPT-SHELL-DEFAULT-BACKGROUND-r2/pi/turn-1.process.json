@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/pi/sessions",
+    "--session-id",
+    "3eed2128-7577-4511-bb7e-e3b303961b60",
+    "--",
+    "Run this exact command in a single shell call, and do not set any timeout or wait option yourself: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. When it is done, tell me the last line it printed."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 49646,
+    "timeoutMs": 300000
+  }
+}

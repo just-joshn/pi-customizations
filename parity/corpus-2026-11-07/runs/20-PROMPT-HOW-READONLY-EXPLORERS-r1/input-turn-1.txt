@@ -1,0 +1,1 @@
+/how does this repository's git storage work end to end? Cover how HEAD, the refs, the index, and the object store fit together to produce README.md in the working tree.

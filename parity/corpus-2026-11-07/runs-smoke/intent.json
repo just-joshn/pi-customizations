@@ -1,0 +1,41 @@
+{
+  "startedAt": "2026-11-07T16:19:59.743Z",
+  "corpusSha256": "ef9dbe4283565213f80a5504f5a0796f21b0bd7a01f64eabfe22ad071e929f71",
+  "runnerSha256": "8549b999fb44bf664d8615f97582c2c6521e7aaa2b8cc1ba53b3b2d9bd419f08",
+  "archive": {
+    "path": "/tmp/corpus-2026-11-07/pack/justjoshn-pi-pstack-0.15.36-pi.30.tgz",
+    "sha256": "f535b0d4bd006ed6b1b93aa9a312f8541357bde778072520bf3c432e14d68012"
+  },
+  "pluginRevisions": [
+    {
+      "plugin": "/Users/josh-desktop/src/experiments/plugins/pstack",
+      "rev": "2776ddd2355d6d6c8747d3964600f28daf62f049"
+    },
+    {
+      "plugin": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+      "rev": "2776ddd2355d6d6c8747d3964600f28daf62f049"
+    }
+  ],
+  "model": {
+    "cursor": "gpt-5.6-sol-medium",
+    "pi": "openai/gpt-5.6-sol",
+    "thinking": "medium"
+  },
+  "versions": {
+    "cursor": "2026.11.05-86047df",
+    "pi": "1.5.0",
+    "node": "v24.22.1"
+  },
+  "attempts": [
+    {
+      "id": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "ordinal": 13,
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "repeat": 1,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    }
+  ]
+}

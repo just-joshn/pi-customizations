@@ -1,0 +1,10 @@
+{
+  "id": "13-PROMPT-NONTRIGGER-MENTION-r1",
+  "ordinal": 13,
+  "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+  "repeat": 1,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

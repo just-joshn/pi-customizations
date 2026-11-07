@@ -1,0 +1,13 @@
+{
+  "agentId": "68c6dacd-f0e7-4334-a2af-536f0a642eb0",
+  "type": "generalPurpose",
+  "readonly": true,
+  "cwd": "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi/work",
+  "createdAt": "2026-11-07T16:35:56.206Z",
+  "depth": 1,
+  "model": {
+    "provider": "openai",
+    "id": "gpt-5.6-sol",
+    "thinking": "medium"
+  }
+}

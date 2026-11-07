@@ -1,0 +1,87 @@
+{
+  "host": "pi",
+  "scenarioId": "PROMPT-MODE-STICKY",
+  "attempt": "01-PROMPT-MODE-STICKY-rpc-r1",
+  "transport": "rpc",
+  "turns": [
+    {
+      "turn": 1,
+      "exit": {
+        "code": 0,
+        "timedOut": false,
+        "durationMs": 1145
+      },
+      "response": {
+        "id": "turn-1",
+        "type": "response",
+        "command": "prompt",
+        "success": true,
+        "data": {
+          "disposition": "handled"
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "exit": {
+        "code": 0,
+        "timedOut": false,
+        "durationMs": 47813
+      },
+      "response": null
+    },
+    {
+      "turn": 3,
+      "exit": {
+        "code": 0,
+        "timedOut": false,
+        "durationMs": 502
+      },
+      "response": {
+        "id": "turn-3",
+        "type": "response",
+        "command": "prompt",
+        "success": true,
+        "data": {
+          "disposition": "handled"
+        }
+      }
+    },
+    {
+      "turn": 4,
+      "exit": {
+        "code": 0,
+        "timedOut": false,
+        "durationMs": 8438
+      },
+      "response": null
+    }
+  ],
+  "before": {
+    "files": [
+      {
+        "path": "README.md"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "after": {
+    "files": [
+      {
+        "path": "README.md"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "hostModelRule": {
+    "path": ".pi/agent/pstack/pstack-models.md",
+    "exists": false
+  },
+  "credentialLinksRemoved": true
+}

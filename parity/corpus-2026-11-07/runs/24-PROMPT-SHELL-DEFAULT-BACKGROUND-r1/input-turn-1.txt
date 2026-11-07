@@ -1,0 +1,1 @@
+Run this exact command in a single shell call, and do not set any timeout or wait option yourself: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. When it is done, tell me the last line it printed.

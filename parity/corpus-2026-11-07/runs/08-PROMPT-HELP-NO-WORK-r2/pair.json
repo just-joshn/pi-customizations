@@ -1,0 +1,10 @@
+{
+  "id": "08-PROMPT-HELP-NO-WORK-r2",
+  "ordinal": 8,
+  "scenarioId": "PROMPT-HELP-NO-WORK",
+  "repeat": 2,
+  "order": [
+    "pi",
+    "cursor"
+  ]
+}

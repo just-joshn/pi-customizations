@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/21-PROMPT-HOW-READONLY-EXPLORERS-r2/pi/sessions",
+    "--session-id",
+    "dec54bd0-e03c-4f4a-8d98-14b516bdb2a3",
+    "--",
+    "/how does this repository's git storage work end to end? Cover how HEAD, the refs, the index, and the object store fit together to produce README.md in the working tree."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/21-PROMPT-HOW-READONLY-EXPLORERS-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 338246,
+    "timeoutMs": 600000
+  }
+}

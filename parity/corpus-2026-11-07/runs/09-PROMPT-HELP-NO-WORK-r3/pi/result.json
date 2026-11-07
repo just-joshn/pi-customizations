@@ -1,0 +1,63 @@
+{
+  "host": "pi",
+  "scenarioId": "PROMPT-HELP-NO-WORK",
+  "attempt": "09-PROMPT-HELP-NO-WORK-r3",
+  "model": {
+    "selector": "openai/gpt-5.6-sol",
+    "thinking": "medium"
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "inputSha256": "d6db6dc0b3ecb8b2b63d0deca4b59922cd6892084c4c75f86a4b392dce3b76b3",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 9875,
+        "timeoutMs": 180000
+      },
+      "cursorSession": null
+    }
+  ],
+  "before": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "piSettings": {
+    "packages": [
+      "npm:@justjoshn/pi-pstack@file:/tmp/corpus-2026-11-07/pack/justjoshn-pi-pstack-0.15.36-pi.30.tgz"
+    ]
+  },
+  "piSessionId": "e782a951-491c-4d89-a486-ee1978d3620f",
+  "credentialLinksRemoved": true,
+  "after": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "hostModelRule": {
+    "path": ".pi/agent/pstack/pstack-models.md",
+    "exists": false
+  },
+  "retained": {
+    "sessions": 1,
+    "hostState": 0
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "host": "cursor",
+  "scenarioId": "PROMPT-MODE-STICKY",
+  "attempt": "18-PROMPT-MODE-STICKY-r1",
+  "model": {
+    "selector": "gpt-5.6-sol-medium"
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "inputSha256": "cdab934ac4a6e5e5ef1127bc81581141ded784e701b081dcd825203af1c2d648",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 38665,
+        "timeoutMs": 600000
+      },
+      "cursorSession": "b23dc347-e52a-462a-8ca7-28875fbc415e"
+    },
+    {
+      "turn": 2,
+      "inputSha256": "4eb83b57cf94d6b7f250527175b7fe26950c6f62aa4312a2d6f4416d47022568",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 44363,
+        "timeoutMs": 600000
+      },
+      "cursorSession": "b23dc347-e52a-462a-8ca7-28875fbc415e"
+    },
+    {
+      "turn": 3,
+      "inputSha256": "4811b6a9b9a0ba091d877e7f0d547a9ff71152c10f83e681a65af7a1f7068110",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 6244,
+        "timeoutMs": 600000
+      },
+      "cursorSession": "b23dc347-e52a-462a-8ca7-28875fbc415e"
+    },
+    {
+      "turn": 4,
+      "inputSha256": "603c86631b9a16e8ced5536f52ab25a2a22d817d0e1977be2b6ca0a736e704e3",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 11751,
+        "timeoutMs": 600000
+      },
+      "cursorSession": "b23dc347-e52a-462a-8ca7-28875fbc415e"
+    }
+  ],
+  "before": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "credentialLinksRemoved": true,
+  "after": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "hostModelRule": {
+    "path": ".cursor/rules/pstack-models.mdc",
+    "exists": false
+  },
+  "retained": {
+    "sessions": 0,
+    "hostState": 4
+  }
+}

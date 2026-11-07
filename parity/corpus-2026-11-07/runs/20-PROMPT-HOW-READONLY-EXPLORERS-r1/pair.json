@@ -1,0 +1,10 @@
+{
+  "id": "20-PROMPT-HOW-READONLY-EXPLORERS-r1",
+  "ordinal": 20,
+  "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+  "repeat": 1,
+  "order": [
+    "pi",
+    "cursor"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "host": "cursor",
+  "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+  "attempt": "02-PROMPT-IN-YOUR-OWN-WORDS-r2",
+  "model": {
+    "selector": "gpt-5.6-sol-medium"
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "inputSha256": "be398c155288898aec66b84fe260e34f85054ee68220ea0e2783d4f046f63f2b",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 27755,
+        "timeoutMs": 180000
+      },
+      "cursorSession": "5834c6d1-cb8a-4c8e-9f4c-58a4da779c8d"
+    }
+  ],
+  "before": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "credentialLinksRemoved": true,
+  "after": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "hostModelRule": {
+    "path": ".cursor/rules/pstack-models.mdc",
+    "exists": false
+  },
+  "retained": {
+    "sessions": 0,
+    "hostState": 2
+  }
+}

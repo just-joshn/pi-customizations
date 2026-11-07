@@ -1,0 +1,73 @@
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/09-PROMPT-HELP-NO-WORK-r3/cursor/work","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","model":"GPT-5.6 Sol 272K Medium","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"/poteto-help Which skill should I use to understand how a module works? Do not start the investigation."}]},"session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c"}
+{"type":"thinking","subtype":"delta","text":"**Considering skill assessment**\n\nI","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839591}
+{"type":"thinking","subtype":"delta","text":" need","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839594}
+{"type":"thinking","subtype":"delta","text":" to","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839604}
+{"type":"thinking","subtype":"delta","text":" understand","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839612}
+{"type":"thinking","subtype":"delta","text":" the","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839631}
+{"type":"thinking","subtype":"delta","text":" skill","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839664}
+{"type":"thinking","subtype":"delta","text":" level","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839675}
+{"type":"thinking","subtype":"delta","text":" before","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839693}
+{"type":"thinking","subtype":"delta","text":" making","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839704}
+{"type":"thinking","subtype":"delta","text":" any","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839713}
+{"type":"thinking","subtype":"delta","text":" recommendations","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839724}
+{"type":"thinking","subtype":"delta","text":".","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839765}
+{"type":"thinking","subtype":"delta","text":" It","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839775}
+{"type":"thinking","subtype":"delta","text":" feels","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839790}
+{"type":"thinking","subtype":"delta","text":" important","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839802}
+{"type":"thinking","subtype":"delta","text":" to","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839815}
+{"type":"thinking","subtype":"delta","text":" give","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839827}
+{"type":"thinking","subtype":"delta","text":" a","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839838}
+{"type":"thinking","subtype":"delta","text":" solid","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839847}
+{"type":"thinking","subtype":"delta","text":" foundation","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839880}
+{"type":"thinking","subtype":"delta","text":".","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839881}
+{"type":"thinking","subtype":"delta","text":" Maybe","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839888}
+{"type":"thinking","subtype":"delta","text":" I","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839898}
+{"type":"thinking","subtype":"delta","text":" should","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839911}
+{"type":"thinking","subtype":"delta","text":" also","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839921}
+{"type":"thinking","subtype":"delta","text":" provide","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839937}
+{"type":"thinking","subtype":"delta","text":" a","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839947}
+{"type":"thinking","subtype":"delta","text":" prompt","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839956}
+{"type":"thinking","subtype":"delta","text":" and","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839968}
+{"type":"thinking","subtype":"delta","text":" a","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839982}
+{"type":"thinking","subtype":"delta","text":" public","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068839998}
+{"type":"thinking","subtype":"delta","text":" link","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840014}
+{"type":"thinking","subtype":"delta","text":" to","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840031}
+{"type":"thinking","subtype":"delta","text":" help","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840041}
+{"type":"thinking","subtype":"delta","text":" guide","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840050}
+{"type":"thinking","subtype":"delta","text":" the","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840061}
+{"type":"thinking","subtype":"delta","text":" user","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840070}
+{"type":"thinking","subtype":"delta","text":".","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840098}
+{"type":"thinking","subtype":"delta","text":" I","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840111}
+{"type":"thinking","subtype":"delta","text":" should","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840128}
+{"type":"thinking","subtype":"delta","text":" consider","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840153}
+{"type":"thinking","subtype":"delta","text":" how","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840161}
+{"type":"thinking","subtype":"delta","text":" best","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840171}
+{"type":"thinking","subtype":"delta","text":" to","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840181}
+{"type":"thinking","subtype":"delta","text":" outline","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840197}
+{"type":"thinking","subtype":"delta","text":" the","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840207}
+{"type":"thinking","subtype":"delta","text":" path","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840227}
+{"type":"thinking","subtype":"delta","text":" forward","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840231}
+{"type":"thinking","subtype":"delta","text":".","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840241}
+{"type":"thinking","subtype":"delta","text":" Reading","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840252}
+{"type":"thinking","subtype":"delta","text":" through","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840265}
+{"type":"thinking","subtype":"delta","text":" the","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840272}
+{"type":"thinking","subtype":"delta","text":" file","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840293}
+{"type":"thinking","subtype":"delta","text":" seems","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840303}
+{"type":"thinking","subtype":"delta","text":" like","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840320}
+{"type":"thinking","subtype":"delta","text":" a","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840335}
+{"type":"thinking","subtype":"delta","text":" necessary","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840345}
+{"type":"thinking","subtype":"delta","text":" step","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840356}
+{"type":"thinking","subtype":"delta","text":" to","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840369}
+{"type":"thinking","subtype":"delta","text":" ensure","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840376}
+{"type":"thinking","subtype":"delta","text":" I","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840390}
+{"type":"thinking","subtype":"delta","text":" have","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840409}
+{"type":"thinking","subtype":"delta","text":" all","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840425}
+{"type":"thinking","subtype":"delta","text":" the","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840443}
+{"type":"thinking","subtype":"delta","text":" context","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840452}
+{"type":"thinking","subtype":"delta","text":".","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840463}
+{"type":"thinking","subtype":"completed","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840501}
+{"type":"tool_call","subtype":"started","call_id":"call_NSZC0kh5Y2pPS66EGRtuBgBn\nfc_0e92041611215de0016aef51686bc087d1b2f0915257a0903a","tool_call":{"readToolCall":{"args":{"path":"/Users/josh-desktop/src/experiments/plugins/pstack/skills/how/SKILL.md"}},"hookAdditionalContexts":[],"toolCallId":"call_NSZC0kh5Y2pPS66EGRtuBgBn\nfc_0e92041611215de0016aef51686bc087d1b2f0915257a0903a","startedAtMs":"1794068840630"},"model_call_id":"00bd17f0-f94b-4b0f-bf39-a2aeaaedaa14-0-zw9l","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840647}
+{"type":"tool_call","subtype":"completed","call_id":"call_NSZC0kh5Y2pPS66EGRtuBgBn\nfc_0e92041611215de0016aef51686bc087d1b2f0915257a0903a","tool_call":{"readToolCall":{"args":{"path":"/Users/josh-desktop/src/experiments/plugins/pstack/skills/how/SKILL.md"},"result":{"success":{"content":"---\nname: how\ndescription: \"Use for \\\"how does X work\\\", code walkthroughs before changing something, and placement / ownership / layering questions (\\\"where should this live\\\", \\\"which package owns this\\\", \\\"is this the right layer\\\"). Explains subsystem architecture, runtime flow, onboarding mental models. Use why for motivation.\"\ndisable-model-invocation: true\n---\n\n# How\n\nExplore the codebase to answer \"how does X work?\" questions. Produce architectural explanations at the level of a senior engineer onboarding onto a subsystem, enough to build a working mental model, not so much that it reads like annotated source code.\n\nEvery spawn is a Task subagent with `subagent_type: generalPurpose` and `readonly: true`. Explorers use the `how explorer` line in the `pstack-models.mdc` rule (default `grok-4.7-xhigh-fast`), and every explainer uses the `how explainer` line (default `claude-opus-5-5-xhigh`). Set `model` to that line's value, or to the default if the rule or the line is missing. Leave `model` unset when the value is `auto` or `inherit-parent`. If the Task tool rejects a slug, use the default and say so. If it rejects the default, use the closest valid slug of the same family from its error message. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.\n\n## 1. Assess complexity\n\nIf the scope is ambiguous, state your interpretation and explore. The user can redirect.\n\n- **Simple** (a single module, a small utility, a narrow question such as \"how does function X work\"): no explorers. Spawn one explainer that explores and explains in one pass, built from `references/explainer-prompt.md` without the explorer-findings section. Go to step 4.\n- **Complex** (a subsystem spanning multiple files or services, a cross-cutting feature, a full architectural overview): go to step 2.\n\nWhen in doubt, take the simple path.\n\n## 2. Explore (complex only)\n\nDecompose the question into 2 to 4 angles, each a distinct slice of the subsystem. Spawn all explorers in a single message, each with `references/explorer-prompt.md` and its angle filled in.\n\n## 3. Synthesize (complex only)\n\nOnce all explorers have returned, spawn one explainer with `references/explainer-prompt.md` and every explorer's findings filled in.\n\n## 4. Present\n\nPresent the explainer's output. Light edits for clarity or context from the conversation are fine. Do not substantially rewrite it.\n\n## Output format\n\nThe explanation uses the sections defined in `references/explainer-prompt.md`, dropping any that do not apply: Overview, Key Concepts, How It Works, Where Things Live, Gotchas.\n","isEmpty":false,"exceededLimit":false,"totalLines":37,"fileSize":2651,"path":"/Users/josh-desktop/src/experiments/plugins/pstack/skills/how/SKILL.md","readRange":{"startLine":1,"endLine":37},"relatedCursorRulePaths":[],"relatedCursorRules":[]}}},"hookAdditionalContexts":[],"toolCallId":"call_NSZC0kh5Y2pPS66EGRtuBgBn\nfc_0e92041611215de0016aef51686bc087d1b2f0915257a0903a","startedAtMs":"1794068840630","completedAtMs":"1794068840673"},"model_call_id":"00bd17f0-f94b-4b0f-bf39-a2aeaaedaa14-0-zw9l","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","timestamp_ms":1794068840696}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Use `/how` for module architecture, runtime flow, key concepts, and code ownership.\n\n```text\n/how Explain how the <module name> module works.\n```\n\n[Read the `/how` skill](https://github.com/cursor/plugins/blob/main/pstack/skills/how/SKILL.md)"}]},"session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c"}
+{"type":"result","subtype":"success","duration_ms":5894,"duration_api_ms":5894,"is_error":false,"result":"Use `/how` for module architecture, runtime flow, key concepts, and code ownership.\n\n```text\n/how Explain how the <module name> module works.\n```\n\n[Read the `/how` skill](https://github.com/cursor/plugins/blob/main/pstack/skills/how/SKILL.md)","session_id":"cef28a1b-7555-4bcb-90ad-2c98a0e1de3c","request_id":"00bd17f0-f94b-4b0f-bf39-a2aeaaedaa14","usage":{"inputTokens":6,"outputTokens":132,"cacheReadTokens":18297,"cacheWriteTokens":18994,"reasoningTokens":28}}
