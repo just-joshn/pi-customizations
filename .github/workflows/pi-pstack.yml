@@ -1,10 +1,9 @@
 name: pi-pstack
 
+# Every pull request runs this workflow, because `verify` and `verify-macos` are required checks and a workflow skipped
+# by a path filter leaves them pending forever. The `changes` job decides whether the suites run.
 on:
   pull_request:
-    paths:
-      - 'extensions/pi-pstack/**'
-      - '.github/workflows/pi-pstack.yml'
   push:
     branches:
       - main
@@ -21,10 +20,33 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      pstack: ${{ steps.diff.outputs.pstack }}
+    steps:
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            echo pstack=true >> "$GITHUB_OUTPUT"
+          elif gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[].filename' | grep -qE '^(extensions/pi-pstack/|\.github/workflows/pi-pstack\.yml$)'; then
+            echo pstack=true >> "$GITHUB_OUTPUT"
+          else
+            echo pstack=false >> "$GITHUB_OUTPUT"
+          fi
+
   # Each suite runs in its own job, so the slowest one, not their sum, sets how long a run takes. The required
   # checks `verify` and `verify-macos` below pass only when every shard of their OS passed.
   linux:
     name: linux ${{ matrix.suite }}
+    needs: changes
+    if: needs.changes.outputs.pstack == 'true'
     runs-on: ubuntu-24.04
     # A shard takes 1 to 5 minutes. A hung test fails its job and leaves a log within 15 minutes instead of
     # waiting out GitHub's 6-hour default.
@@ -112,6 +134,8 @@ jobs:
   # retry-pi-pstack-macos-capacity.yml re-runs failed jobs once when that happens and Ubuntu already passed.
   macos:
     name: macos ${{ matrix.suite }}
+    needs: changes
+    if: needs.changes.outputs.pstack == 'true'
     runs-on: macos-15
     timeout-minutes: 15
     strategy:
@@ -171,23 +195,26 @@ jobs:
           node --disable-warning=ExperimentalWarning --test "$@"
 
   # The required checks. `!cancelled()` lets them report a failed or capacity-cancelled shard instead of skipping,
-  # since a skipped job counts as success for a required check.
+  # since a skipped job counts as success for a required check. They pass with no shards only when the pull request
+  # changes nothing the suites cover.
   verify:
-    needs: linux
+    needs: [changes, linux]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - run: test "$RESULT" = success
+      - run: test "$RESULT" = success || { test "$PSTACK" = false && test "$RESULT" = skipped; }
         env:
           RESULT: ${{ needs.linux.result }}
+          PSTACK: ${{ needs.changes.outputs.pstack }}
 
   verify-macos:
-    needs: macos
+    needs: [changes, macos]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - run: test "$RESULT" = success
+      - run: test "$RESULT" = success || { test "$PSTACK" = false && test "$RESULT" = skipped; }
         env:
           RESULT: ${{ needs.macos.result }}
+          PSTACK: ${{ needs.changes.outputs.pstack }}
