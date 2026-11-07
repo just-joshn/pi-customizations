@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { SKILLS_DIR, workspaceSlug } from '../../src/paths.ts';
-import { makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
+import { makeSandbox, type PiEvent, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 const IMAGE = process.env['PSTACK_TEST_CLOUD_IMAGE'] ?? 'node:22.22.2-bookworm';
 
@@ -305,6 +305,74 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(nestedIds).toHaveLength(1);
     expect(docker('ps', '--all', '--quiet', '--filter', `name=^pstack-${nestedIds[0]}$`)).toBe('');
   });
+
+  test("a readonly sibling whose owning run was killed is removed when the next chat starts, and a live run's sibling stays", async () => {
+    await pushedRepo();
+    const records = join(sandbox.agentDir, 'pstack/workspaces', workspaceSlug(sandbox.workDir), 'subagents');
+    const pids: number[] = [];
+    const known = new Set<string>();
+    const recordIds = () =>
+      existsSync(records)
+        ? readdirSync(records)
+            .filter((name) => name.endsWith('.json'))
+            .map((name) => name.slice(0, -'.json'.length))
+        : [];
+    const lockPid = (agentId: string) => Number(readFileSync(join(records, `${agentId}.lock`), 'utf8'));
+    const runPid = (agentId: string) => (JSON.parse(readFileSync(join(records, `${agentId}.json`), 'utf8')) as { run: { pid: number } }).run.pid;
+    const alive = (pid: number) => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const state = (container: string) => docker('ps', '--all', '--filter', `name=^${container}$`, '--format', '{{.State}}');
+    /** Starts a writable cloud agent whose readonly subagent sleeps on its sibling, and waits until the sibling runs. */
+    async function cloudAgentWithSleepingReader(): Promise<{ agentId: string; nestedId: string }> {
+      const nested = { tool: 'Task', args: { description: 'sleeping reader', readonly: true, prompt: script([{ tool: 'bash', args: { command: 'sleep 600', timeout: 600 } }]) } };
+      const launcher = startRpc(sandbox, ['--no-session']);
+      let launched: PiEvent;
+      try {
+        launcher.send({ type: 'prompt', message: script([{ tool: 'Task', args: { description: 'writable owner', prompt: script([nested]), environment: 'cloud', run_in_background: true } }]) });
+        launched = await launcher.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'Task', 120_000);
+        await launcher.waitFor((event) => event.type === 'agent_settled', 60_000);
+      } finally {
+        await launcher.close();
+      }
+      const agentId = AGENT_ID.exec((launched['result'] as { content: { text: string }[] }).content[0]?.text ?? '')?.[1] ?? '';
+      containers.push(`pstack-${agentId}`);
+      known.add(agentId);
+      const nestedId = await vi.waitUntil(() => recordIds().find((id) => !known.has(id)), { timeout: 180_000, interval: 250 });
+      known.add(nestedId);
+      containers.push(`pstack-${nestedId}`);
+      pids.push(runPid(agentId), lockPid(nestedId));
+      await expect.poll(() => state(`pstack-${nestedId}`), { timeout: 30_000 }).toBe('running');
+      return { agentId, nestedId };
+    }
+
+    let chat: ReturnType<typeof startRpc> | undefined;
+    try {
+      const killed = await cloudAgentWithSleepingReader();
+      const live = await cloudAgentWithSleepingReader();
+      const orphanedReader = lockPid(killed.nestedId);
+      process.kill(Number(execFileSync('ps', ['-o', 'ppid=', '-p', String(orphanedReader)], { encoding: 'utf8' })), 'SIGKILL');
+      await expect.poll(() => alive(orphanedReader), { timeout: 30_000 }).toBe(false);
+      expect(state(`pstack-${killed.nestedId}`)).toBe('running');
+
+      chat = startRpc(sandbox, ['--no-session']);
+      await expect.poll(() => state(`pstack-${killed.nestedId}`), { timeout: 30_000, interval: 500 }).toBe('');
+      expect(state(`pstack-${live.nestedId}`)).toBe('running');
+      expect(alive(lockPid(live.nestedId))).toBe(true);
+    } finally {
+      await chat?.close();
+      for (const pid of pids) {
+        try {
+          process.kill(-pid, 'SIGKILL');
+        } catch {}
+      }
+    }
+  }, 240_000);
 
   test("the machine's bash keeps the shell's working directory and exported variables between calls, and its background jobs start there", async () => {
     await pushedRepo();

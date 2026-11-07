@@ -4,6 +4,7 @@
 // when no container engine is available or PSTACK_CLOUD_DRIVER=worktree asks for it.
 import { execFileSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { hostname } from 'node:os';
 import { join } from 'node:path';
 
 import { PACKAGE_ROOT } from '../paths.ts';
@@ -275,11 +276,15 @@ export function hostUserArgs(readonly: boolean, platform: NodeJS.Platform = proc
   return ['--user', `${uid}:${gid}`, '--env', 'HOME=/tmp'];
 }
 
+/** Names the run-lock folder whose `<agent id>.lock` owns a readonly sibling, and the host whose processes hold it. */
+const SIBLING_LOCKS_LABEL = 'pstack.sibling-locks';
+const SIBLING_HOST_LABEL = 'pstack.sibling-host';
+
 /**
  * A container's mounts and root filesystem are fixed when it starts, so a readonly run of a subagent on a writable machine
  * gets a sibling container instead: the machine's image and every one of its mounts, all read-only.
  */
-export async function startReadonlySibling(machine: ContainerMachine, agentId: string, signal?: AbortSignal): Promise<ContainerMachine> {
+export async function startReadonlySibling(machine: ContainerMachine, agentId: string, locks: string, signal?: AbortSignal): Promise<ContainerMachine> {
   const container = containerName(agentId);
   try {
     await docker(
@@ -291,6 +296,10 @@ export async function startReadonlySibling(machine: ContainerMachine, agentId: s
         container,
         '--label',
         `pstack.agent=${agentId}`,
+        '--label',
+        `${SIBLING_LOCKS_LABEL}=${locks}`,
+        '--label',
+        `${SIBLING_HOST_LABEL}=${hostname()}`,
         '--volumes-from',
         `${machine.container}:ro`,
         '--read-only',
@@ -311,6 +320,22 @@ export async function startReadonlySibling(machine: ContainerMachine, agentId: s
   }
   const { start: _start, terminals: _terminals, ...rest } = machine;
   return { ...rest, container, readonly: true };
+}
+
+/**
+ * Removes the readonly siblings owned by run locks in `locks` whose agent no longer runs. A run takes its lock before it
+ * starts its sibling and holds it until its subagent exits, so the sibling of a live run always passes `running`, from
+ * any Pi process sharing the folder. Only this host's siblings are listed, since a lock names a process on the host that
+ * wrote it and an engine can be shared. Removal goes by container ID, so a sibling started again under the same name since
+ * the listing is never the one removed.
+ */
+export async function reapReadonlySiblings(locks: string, running: (agentId: string) => boolean): Promise<void> {
+  const listed = await docker(['ps', '--all', '--filter', `label=${SIBLING_LOCKS_LABEL}=${locks}`, '--filter', `label=${SIBLING_HOST_LABEL}=${hostname()}`, '--format', '{{.ID}} {{.Label "pstack.agent"}}'], { timeoutMs: 30_000 });
+  const stale = listed.split('\n').flatMap((line) => {
+    const [id, agentId] = line.trim().split(' ');
+    return id && agentId && !running(agentId) ? [id] : [];
+  });
+  await Promise.all(stale.map(removeContainer));
 }
 
 export function removeContainer(container: string): Promise<void> {
