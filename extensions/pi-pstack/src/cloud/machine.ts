@@ -275,6 +275,51 @@ export function hostUserArgs(readonly: boolean, platform: NodeJS.Platform = proc
   return ['--user', `${uid}:${gid}`, '--env', 'HOME=/tmp'];
 }
 
+/**
+ * A container's mounts and root filesystem are fixed when it starts, so a readonly run of a subagent on a writable machine
+ * gets a sibling container instead: the machine's image and every one of its mounts, all read-only.
+ */
+export async function startReadonlySibling(machine: ContainerMachine, agentId: string, signal?: AbortSignal): Promise<ContainerMachine> {
+  const container = containerName(agentId);
+  try {
+    await docker(
+      [
+        'run',
+        '--detach',
+        '--init',
+        '--name',
+        container,
+        '--label',
+        `pstack.agent=${agentId}`,
+        '--volumes-from',
+        `${machine.container}:ro`,
+        '--read-only',
+        '--ipc',
+        'none',
+        '--workdir',
+        machine.cwd,
+        ...hostUserArgs(true),
+        machine.image,
+        'sleep',
+        'infinity',
+      ],
+      { timeoutMs: 120_000, ...(signal === undefined ? {} : { signal }) },
+    );
+  } catch (error) {
+    await removeContainer(container);
+    throw error;
+  }
+  const { start: _start, terminals: _terminals, ...rest } = machine;
+  return { ...rest, container, readonly: true };
+}
+
+export function removeContainer(container: string): Promise<void> {
+  return docker(['rm', '--force', container], { timeoutMs: 30_000 }).then(
+    () => undefined,
+    () => undefined,
+  );
+}
+
 /** Boots a stopped container machine again, with its start command and terminals, before a resumed run. */
 export async function bootMachine(machine: Machine): Promise<void> {
   if (machine.driver === 'worktree') {
