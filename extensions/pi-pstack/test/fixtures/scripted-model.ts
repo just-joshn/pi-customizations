@@ -13,7 +13,8 @@
 //   @@script <json array>        step i (i = assistant messages since that user message) is
 //                                {"tool":name,"args":{}} | [{"tool":...},...] | {"text":...}
 //                                after the last step, reply "RESULTS:" plus every tool result text since the user message;
-//                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background or bash result
+//                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background or bash result,
+//                                and one written "@@agent-id" the last Agent ID in the latest Task result
 // Anything else is echoed as "ECHO: <text>".
 // A compaction request, which carries the transcript and so its directives, gets the reply SUMMARY.
 import type { AssistantMessage, Message, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
@@ -44,9 +45,20 @@ function lastShellId(after: readonly Message[]): string | undefined {
   return undefined;
 }
 
+function lastAgentId(after: readonly Message[]): string | undefined {
+  const result = [...after].reverse().find((message) => message.role === 'toolResult' && message.toolName === 'Task');
+  return result === undefined ? undefined : [...textOf(result.content).matchAll(/^Agent ID: ([0-9a-f-]{36})/gm)].at(-1)?.[1];
+}
+
+function placeholder(value: ToolCall['arguments'][string], after: readonly Message[]): ToolCall['arguments'][string] {
+  if (value === '@@shell-id') return lastShellId(after) ?? value;
+  if (value === '@@agent-id') return lastAgentId(after) ?? value;
+  return value;
+}
+
 function toolCalls(step: Step | Step[], after: readonly Message[]): ToolCall[] {
   const steps = Array.isArray(step) ? step : [step];
-  const resolve = (args: ToolCall['arguments']) => Object.fromEntries(Object.entries(args).map(([key, value]) => [key, value === '@@shell-id' ? (lastShellId(after) ?? value) : value]));
+  const resolve = (args: ToolCall['arguments']) => Object.fromEntries(Object.entries(args).map(([key, value]) => [key, placeholder(value, after)]));
   return steps.flatMap((item) => ('tool' in item ? [fauxToolCall(item.tool, resolve(item.args))] : []));
 }
 
