@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,6 +15,9 @@ const npm = npmBin.endsWith('.js') ? npmBin : join(dirname(node), '../lib/node_m
 const peers = ['@earendil-works/pi-ai', '@earendil-works/pi-agent-core', '@earendil-works/pi-coding-agent', '@earendil-works/pi-tui', 'typebox'];
 const artifacts = ['dist/supervisor-main.js', 'skills/statechart/scripts/statechart.js', 'skills/statechart/scripts/worker.js'];
 const receipts = process.env['PSTACK_HELPER_RECEIPTS'];
+// Node alone on PATH: Homebrew and /usr/local install Bun beside Node, and the consumer must not see it.
+const nodeBin = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-node-bin-')));
+symlinkSync(node, join(nodeBin, 'node'));
 let installation: string;
 let installed: string;
 
@@ -28,7 +31,7 @@ function environment(home: string): NodeJS.ProcessEnv {
   return {
     HOME: home,
     TMPDIR: home,
-    PATH: `${dirname(node)}:/usr/bin:/bin`,
+    PATH: `${nodeBin}:/usr/bin:/bin`,
     PI_OFFLINE: '1',
     PI_SKIP_VERSION_CHECK: '1',
     npm_config_userconfig: '/dev/null',
@@ -62,6 +65,7 @@ beforeAll(() => {
 
 afterAll(() => {
   if (installation !== undefined) rmSync(installation, { recursive: true, force: true });
+  rmSync(nodeBin, { recursive: true, force: true });
 });
 
 function sandbox() {
@@ -128,7 +132,8 @@ test('the consumer installs all production dependencies with exactly the five ho
   const missing = tree.problems ?? [];
   expect(missing.map((problem) => problem.match(/^missing: (.*)@\*, required by /)?.[1]).sort()).toEqual([...peers].sort());
   expect(listing.status).toBe(1);
-  expect(run('/bin/sh', ['-c', 'command -v bun'], installation, environment(installation)).status).toBe(1);
+  const bun = run('/bin/sh', ['-c', 'command -v bun'], installation, environment(installation));
+  expect({ found: bun.stdout, failed: bun.status !== 0 }).toEqual({ found: '', failed: true });
 });
 
 test('the packed supervisor starts directly, keeps its lock, and cleans up after SIGTERM', async ({ signal }) => {
