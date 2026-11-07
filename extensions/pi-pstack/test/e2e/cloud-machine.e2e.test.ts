@@ -271,4 +271,38 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(result?.text).toContain(`[bash] pstack-${agentId.slice(0, 8)}`);
     expect(result?.text).toContain('token=none');
   });
+
+  test("a writable cloud agent's readonly subagent reads the clone and the package but writes nowhere", async () => {
+    await pushedRepo();
+    const shared = join(sandbox.agentDir, 'pstack/workspaces', workspaceSlug(sandbox.workDir), 'projects/nested-readonly.txt');
+    const probe = `cat a.txt; echo; for t in a.txt /tmp/nested-probe.txt '${shared}'; do if printf BYPASS > "$t" 2>/dev/null; then echo "WROTE $t"; else echo "DENIED $t"; fi; done`;
+    const nested = script([
+      { tool: 'read', args: { path: join(SKILLS_DIR, 'poteto-mode/SKILL.md'), limit: 2 } },
+      { tool: 'bash', args: { command: probe } },
+    ]);
+    const steps = [
+      { tool: 'Task', args: { description: 'nested readonly', readonly: true, prompt: nested } },
+      { tool: 'bash', args: { command: 'cat a.txt; echo; test -e /tmp/nested-probe.txt && echo PARENT-TMP-WRITTEN || echo PARENT-TMP-CLEAN' } },
+    ];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'writable parent', prompt: script(steps), environment: 'cloud' } }]), ['--no-session'], 240_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const agentId = (result?.details as { agentId?: string } | undefined)?.agentId ?? '';
+    const nestedIds = [...(result?.text ?? '').matchAll(/Agent ID: ([0-9a-f-]{36})/g)].map((match) => match[1] ?? '').filter((id) => id !== agentId);
+    containers.push(`pstack-${agentId}`, ...nestedIds.map((id) => `pstack-${id}`));
+    expect(result?.isError, result?.text).toBe(false);
+    const text = result?.text ?? '';
+    expect(text).toContain('name: poteto-mode');
+    expect(text).toContain('[bash] PUSHED');
+    expect(text).toContain('DENIED a.txt');
+    expect(text).toContain('DENIED /tmp/nested-probe.txt');
+    expect(text).toContain(`DENIED ${shared}`);
+    expect(text).not.toContain('WROTE');
+    expect(text).toContain('PARENT-TMP-CLEAN');
+    const machine = (result?.details as { machine?: { path: string } } | undefined)?.machine;
+    if (machine === undefined) throw new Error('the Task result names no machine');
+    expect(readFileSync(join(machine.path, 'a.txt'), 'utf8')).toBe('PUSHED');
+    expect(existsSync(shared)).toBe(false);
+    expect(nestedIds).toHaveLength(1);
+    expect(docker('ps', '--all', '--quiet', '--filter', `name=^pstack-${nestedIds[0]}$`)).toBe('');
+  });
 });

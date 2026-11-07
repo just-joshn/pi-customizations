@@ -7,7 +7,7 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { type Static, Type } from 'typebox';
 import { AUTOMATION_ENV, BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PARENT_ENV, PROJECT_ENV, type RootChat } from '../child-env.ts';
 import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
-import { bootMachine, type CloudDriver, describeMachine, type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
+import { bootMachine, type CloudDriver, type ContainerMachine, describeMachine, type Machine, machinePreface, parseMachine, provisionMachine, removeContainer, selectDriver, startReadonlySibling, stopMachine } from '../cloud/machine.ts';
 import { inboxDir, postItem } from '../inbox.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
@@ -119,6 +119,8 @@ export interface Launch {
   machine: Machine | undefined;
   /** A fresh cloud agent whose container machine still has to be provisioned. */
   provision?: { home: string; baseBranch: string | undefined };
+  /** A readonly run of a subagent of an agent on a writable container machine runs on this read-only sibling instead. */
+  readonlyMachine?: ContainerMachine;
   /** More host folders this launch shares with its machine, such as an automation's memory folder. */
   extraShared?: string[];
   /** The Project of the chat that launches it, which the agent joins. */
@@ -318,10 +320,11 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json', adopted = false) {
   const readonly = runsReadonly(plan);
   const detached = mode === 'json';
   // A subagent never receives Slack credentials (only a top-level agent posts to Slack), and a subagent of an agent on
-  // a container machine runs on that same machine rather than on this host.
+  // a container machine runs on that same machine, or on a read-only sibling of it when readonly, rather than on this host.
   const { SLACK_BOT_TOKEN: _bot, SLACK_TOKEN: _token, ...stripped } = process.env;
   const inherited = plan.automation === true ? process.env : stripped;
-  const machine = plan.machine?.driver === 'container' ? JSON.stringify(plan.machine) : childIdentity.machine;
+  const own = plan.machine?.driver === 'container' ? plan.machine : plan.readonlyMachine;
+  const machine = own === undefined ? childIdentity.machine : JSON.stringify(own);
   const env = {
     ...inherited,
     ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached && !adopted ? undefined : plan.root, detached),
@@ -449,7 +452,11 @@ function start(
         if (signal.aborted) abort();
         else signal.addEventListener('abort', abort, { once: true });
       }
-    } else handle = launchChild(plan, input, signal, onEvent);
+    } else {
+      handle = launchChild(plan, input, signal, onEvent);
+      const sibling = plan.readonlyMachine;
+      if (sibling !== undefined) void handle.done.then(() => removeContainer(sibling.container));
+    }
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
       if (plan.kind === 'resume') recordResume(plan, run);
@@ -593,7 +600,8 @@ async function driverFor(params: TaskInput, planMode: boolean): Promise<CloudDri
 
 /**
  * Creates a fresh cloud agent's machine: its worktree, or its clone and container. A resume or fork boots the machine it
- * ran on. Only these launches await before starting, under the run lock.
+ * ran on. A readonly run of a subagent on a writable container machine gets a read-only sibling of it. Only these
+ * launches await before starting, under the run lock.
  */
 async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | undefined): Promise<void> {
   try {
@@ -614,6 +622,10 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
       plan.executionCwd = plan.machine.cwd;
       plan.notes = [...plan.notes, describeMachine(plan.machine)];
     } else if (plan.machine !== undefined) await bootMachine(plan.machine);
+    else if (childIdentity.machine !== undefined && runsReadonly(plan)) {
+      const inherited = parseMachine(childIdentity.machine);
+      if (!inherited.readonly) plan.readonlyMachine = await startReadonlySibling(inherited, plan.agentId, signal);
+    }
   } catch (error) {
     lock.release();
     throw error;
@@ -838,8 +850,8 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
           content: [{ type: 'text', text: plan.provision === undefined ? 'Preparing the cloud agent.' : 'Preparing the cloud machine: cloning the pushed remote and starting its container.' }],
           details: details(plan, params.run_in_background === true, 'preparing'),
         });
-        await createMachine(plan, lock, signal);
       }
+      await createMachine(plan, lock, signal);
       const detached = plan.machine !== undefined;
       const background = params.run_in_background === true;
       // In Cursor a subagent's background subagent belongs to the main chat and outlives the subagent. A main chat or a
@@ -897,7 +909,7 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     if (startOptions?.shared !== undefined) plan.extraShared = startOptions.shared;
     plan.project = options.project?.();
     if (startOptions?.automation === true) plan.automation = true;
-    if (plan.machine !== undefined || plan.provision !== undefined) await createMachine(plan, lock, undefined);
+    await createMachine(plan, lock, undefined);
     const toolCallId = `pstack-${plan.agentId}`;
     const owner: RunOwner = { ownerSessionId: ctx.sessionManager.getSessionId(), toolCallId, title: notificationTitle(prompt), description: description.replace(/\s+/g, ' ').trim(), background: true };
     const handle = start(plan, { text: prompt.trim(), images: [] }, undefined, lock, owner);
