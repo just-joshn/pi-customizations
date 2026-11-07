@@ -1136,7 +1136,7 @@ function loadRegistry(cwd) {
     }
     const eventIds = new Set;
     for (const event of raw.pending) {
-      if (typeof event.id !== "string" || eventIds.has(event.id) || !ids.has(event.subscriptionId) || !Number.isFinite(event.acceptedAt) || typeof event.content !== "string" || event.claim !== undefined && (!Number.isInteger(event.claim.pid) || event.claim.pid <= 0 || typeof event.claim.token !== "string" || !["live", "detached"].includes(event.claim.mode)) || event.attempts !== undefined && (!Number.isInteger(event.attempts) || event.attempts < 0) || event.retryAt !== undefined && !Number.isFinite(event.retryAt))
+      if (typeof event.id !== "string" || eventIds.has(event.id) || !ids.has(event.subscriptionId) || !Number.isFinite(event.acceptedAt) || typeof event.content !== "string" || event.claim !== undefined && (!Number.isInteger(event.claim.pid) || event.claim.pid <= 0 || typeof event.claim.token !== "string" || !["live", "detached"].includes(event.claim.mode)) || event.deliveredTo !== undefined && typeof event.deliveredTo !== "string" || event.attempts !== undefined && (!Number.isInteger(event.attempts) || event.attempts < 0) || event.retryAt !== undefined && !Number.isFinite(event.retryAt))
         throw new Error("invalid pending event");
       eventIds.add(event.id);
     }

@@ -236,7 +236,7 @@ const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: typ
 export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptions) {
   const dir = options.routinesDir ?? routinesDir();
   let workspaceCwd = canonicalPath(process.cwd());
-  let owner: { id: string; cwd: string; lease: Lease; notify: (message: string) => void } | undefined;
+  let owner: { id: string; cwd: string; lease: Lease; notify: (message: string) => void; history: ExtensionContext['sessionManager'] } | undefined;
   let ownerPoll: ReturnType<typeof setInterval> | undefined;
   let fallback: Supervisor | undefined;
   let starting: Promise<void> | undefined;
@@ -257,9 +257,22 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
         return registry.subscriptions.some((sub) => sub.id === event.subscriptionId && sub.ownerSessionId === session.id);
       });
       if (pending.length === 0) return;
-      deliverOwner(session.cwd, session.id, eligible, (sub, event) => {
-        pi.sendMessage({ customType: WAKE_TYPE, content: event.content, display: true, details: { id: sub.id, eventId: event.id, kind: sub.config.kind, name: sub.name } }, { triggerTurn: true, deliverAs: 'followUp' });
-      });
+      const persisted = new Set(
+        session.history.getBranch().flatMap((entry) => {
+          if (entry.type !== 'custom_message' || entry.customType !== WAKE_TYPE) return [];
+          const details = entry.details as { id?: unknown; eventId?: unknown } | undefined;
+          return [`${details?.id} ${details?.eventId}`];
+        }),
+      );
+      deliverOwner(
+        session.cwd,
+        { sessionId: session.id, leaseToken: session.lease.token },
+        eligible,
+        (event) => persisted.has(`${event.subscriptionId} ${event.id}`),
+        (sub, event) => {
+          pi.sendMessage({ customType: WAKE_TYPE, content: event.content, display: true, details: { id: sub.id, eventId: event.id, kind: sub.config.kind, name: sub.name } }, { triggerTurn: true, deliverAs: 'followUp' });
+        },
+      );
       for (const event of pending) {
         const claim = startFresh(session.cwd, event.id, session.id, eligible, (sub, pending) =>
           options.runFresh(pending.content, sub.name, {
@@ -405,7 +418,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       return;
     }
     const notify = ctx.ui.notify.bind(ctx.ui);
-    owner = { id, cwd, lease, notify: (message) => notify(message, 'error') };
+    owner = { id, cwd, lease, notify: (message) => notify(message, 'error'), history: ctx.sessionManager };
     drain();
     ownerPoll = setInterval(drain, 250);
     ownerPoll.unref?.();

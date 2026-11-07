@@ -46,7 +46,7 @@ function registryPath(sandbox: ReturnType<typeof makeSandbox>): string {
 
 function registry(sandbox: ReturnType<typeof makeSandbox>): {
   subscriptions: { id: string; lifecycle: string; ownerSessionFile?: string; lastError?: { text: string }; lastOutcome?: { text: string } }[];
-  pending: { subscriptionId: string }[];
+  pending: { subscriptionId: string; deliveredTo?: string }[];
 } {
   return JSON.parse(readFileSync(registryPath(sandbox), 'utf8'));
 }
@@ -163,7 +163,7 @@ test('a busy owner receives its native follow-up after the current tool finishes
       .poll(
         () => {
           const state = registry(sandbox);
-          return state.subscriptions[0]?.lifecycle === 'completed' && state.pending.length === 0;
+          return state.subscriptions[0]?.lifecycle === 'completed' && state.pending[0]?.deliveredTo !== undefined;
         },
         { timeout: 6_000 },
       )
@@ -177,6 +177,7 @@ test('a busy owner receives its native follow-up after the current tool finishes
   expect(completed).toBeGreaterThan(-1);
   expect(owner.events.indexOf(wake)).toBeGreaterThan(completed);
   expect(contentText((wake['message'] as { content: string }).content)).toContain('BUSY-OWNER-WAKE');
+  await expect.poll(() => registry(sandbox).pending, { timeout: 5_000 }).toEqual([]);
 });
 
 test('an accepted wake survives an owner crash before notification persistence', async ({ onTestFinished }) => {

@@ -76,6 +76,9 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
 
 type Fake = ReturnType<typeof fakePi>;
 const wakes = (fake: Fake) => fake.sent.map((item) => item.message.content);
+const persistSent = (fake: Fake) => {
+  for (const { message } of fake.sent) fake.entries.push({ type: 'custom_message', customType: message.customType, details: message.details });
+};
 
 function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entries'], mode = 'rpc', previous?: { agentDir: string; cwd: string; controllers: { shutdown: () => void }[] }, sessionId = 'owner') {
   // The code canonicals paths, so the temp root is realpath'd first. macOS reports /var for a /private/var symlink.
@@ -124,6 +127,7 @@ describe('subscribe_timer', () => {
         options: { triggerTurn: true, deliverAs: 'followUp' },
       },
     ]);
+    persistSent(fake);
     vi.setSystemTime(Date.now() + 600_000);
     await vi.advanceTimersByTimeAsync(250);
     expect(fake.sent).toHaveLength(1);
@@ -225,6 +229,8 @@ describe('subscribe_timer', () => {
     expect(details['expiresAt']).toBe(new Date(Date.now() + 2_500).toISOString());
     await vi.advanceTimersByTimeAsync(5_000);
     expect(wakes(fake)).toEqual(['[timer] tick\n\ntick', '[timer] tick\n\ntick']);
+    persistSent(fake);
+    await vi.advanceTimersByTimeAsync(250);
     expect((await fake.call('list_subscriptions', {})).text).toBe('No subscriptions.');
   });
 });
@@ -511,6 +517,8 @@ describe('workspace authority and owner delivery', () => {
     expect(readRegistry(first.cwd).pending).toHaveLength(1);
     const resumed = setup({}, undefined, 'rpc', first, 'owner');
     expect(wakes(resumed)).toEqual(['PRIVATE-OWNER']);
+    persistSent(resumed);
+    await vi.advanceTimersByTimeAsync(250);
     expect(readRegistry(first.cwd).pending).toEqual([]);
   });
 
@@ -535,6 +543,8 @@ describe('workspace authority and owner delivery', () => {
     const receipt = structuredClone(first.entries);
     await vi.advanceTimersByTimeAsync(1_000);
     expect(wakes(first)).toEqual(['[timer] done\n\nonce']);
+    persistSent(first);
+    await vi.advanceTimersByTimeAsync(250);
     first.emit('session_shutdown');
     const resumed = setup({}, receipt, 'rpc', first);
     await vi.advanceTimersByTimeAsync(60_000);

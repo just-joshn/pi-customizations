@@ -192,6 +192,7 @@ function loadRegistry(cwd: string): DurableRegistry {
         !Number.isFinite(event.acceptedAt) ||
         typeof event.content !== 'string' ||
         (event.claim !== undefined && (!Number.isInteger(event.claim.pid) || event.claim.pid <= 0 || typeof event.claim.token !== 'string' || !['live', 'detached'].includes(event.claim.mode))) ||
+        (event.deliveredTo !== undefined && typeof event.deliveredTo !== 'string') ||
         (event.attempts !== undefined && (!Number.isInteger(event.attempts) || event.attempts < 0)) ||
         (event.retryAt !== undefined && !Number.isFinite(event.retryAt))
       )
@@ -292,15 +293,22 @@ export function acceptEvent(cwd: string, subscriptionId: string, occurrence: str
   });
 }
 
-export function deliverOwner(cwd: string, ownerSessionId: string, eligible: () => boolean, send: (sub: StoredSubscription, event: PendingEvent) => void): void {
+/**
+ * Hands each owner wake to one owner lease, and acknowledges a wake only once the owner's session history holds it, so
+ * a wake lost with its owner process is sent again by the next lease.
+ */
+export function deliverOwner(cwd: string, owner: { sessionId: string; leaseToken: string }, eligible: () => boolean, persisted: (event: PendingEvent) => boolean, send: (sub: StoredSubscription, event: PendingEvent) => void): void {
   transaction(cwd, (registry) => {
     for (const event of [...registry.pending]) {
       const sub = registry.subscriptions.find((entry) => entry.id === event.subscriptionId);
-      if (sub === undefined || sub.ownerSessionId !== ownerSessionId || sub.lifecycle === 'cancelled' || runsDetached(sub)) continue;
+      if (sub === undefined || sub.ownerSessionId !== owner.sessionId || sub.lifecycle === 'cancelled' || runsDetached(sub)) continue;
       if (!eligible()) return;
-      // Pi enqueue and disk acknowledgement cannot commit atomically. A crash can replay this event.
-      send(sub, event);
-      registry.pending = registry.pending.filter((entry) => entry.id !== event.id);
+      if (persisted(event)) {
+        registry.pending = registry.pending.filter((entry) => entry.id !== event.id);
+      } else if (event.deliveredTo !== owner.leaseToken) {
+        send(sub, event);
+        event.deliveredTo = owner.leaseToken;
+      }
     }
   });
 }
