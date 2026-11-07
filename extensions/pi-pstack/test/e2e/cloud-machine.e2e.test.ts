@@ -5,6 +5,7 @@ import { networkInterfaces } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { SKILLS_DIR, workspaceSlug } from '../../src/paths.ts';
 import { makeSandbox, runJson, type Sandbox, script, startRpc, toolEnds } from './harness.ts';
 
 const IMAGE = process.env['PSTACK_TEST_CLOUD_IMAGE'] ?? 'node:22.22.2-bookworm';
@@ -128,6 +129,64 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(resumed?.text).toContain(`RESULTS:\n[bash] KEPT\npstack-${agentId.slice(0, 8)}`);
     const runs = join(sandbox.agentDir, 'pstack/workspaces', `--${sandbox.workDir.replace(/^\//, '').replace(/[/\\:]/g, '-')}--`, 'machines', agentId, 'runs');
     expect(existsSync(runs) ? readdirSync(runs).toSorted() : []).toEqual(['1', '2']);
+  });
+
+  test('cloud reads can follow the advertised skill and playbook paths', async () => {
+    await pushedRepo();
+    const steps = [
+      { tool: 'read', args: { path: join(SKILLS_DIR, 'poteto-mode/SKILL.md'), limit: 4 } },
+      { tool: 'read', args: { path: join(SKILLS_DIR, 'poteto-mode/playbooks/feature.md'), limit: 3 } },
+      { tool: 'read', args: { path: join(SKILLS_DIR, 'poteto-mode/scripts/check-plan.mjs'), limit: 2 } },
+    ];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'resource probe', prompt: script(steps), environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const agentId = AGENT_ID.exec(result?.text ?? '')?.[1] ?? '';
+    containers.push(`pstack-${agentId}`);
+    expect(result?.isError, result?.text).toBe(false);
+    expect(result?.text).toContain('name: poteto-mode');
+    expect(result?.text).toContain('# Feature');
+    expect(result?.text).toContain('#!/usr/bin/env node');
+    expect(result?.text).not.toContain('ENOENT');
+  });
+
+  test('a fresh readonly cloud task can read but cannot write container-local persistent files', async () => {
+    await pushedRepo();
+    const command = 'cat a.txt; if printf CHANGED > /tmp/pstack-readonly-probe.txt; then printf "\\nWRITE-SUCCEEDED"; else printf "\\nWRITE-DENIED"; fi';
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'fresh readonly probe', readonly: true, environment: 'cloud', prompt: script([{ tool: 'bash', args: { command } }]) } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const agentId = AGENT_ID.exec(result?.text ?? '')?.[1] ?? '';
+    containers.push(`pstack-${agentId}`);
+    expect(result?.isError, result?.text).toBe(false);
+    expect(result?.text).toContain('[bash] PUSHED');
+    expect(result?.text).toContain('WRITE-DENIED');
+  });
+
+  test.for(['resume', 'fork'] as const)('a readonly %s cannot reuse writable cloud mounts', async (operation) => {
+    await pushedRepo();
+    const first = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'writable source', prompt: 'go\n@@say READY', environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [started] = toolEnds(first.events, 'Task');
+    const agentId = AGENT_ID.exec(started?.text ?? '')?.[1] ?? '';
+    containers.push(`pstack-${agentId}`);
+    expect(started?.isError, started?.text).toBe(false);
+    const machine = (started?.details as { machine?: { path: string } } | undefined)?.machine;
+    if (machine === undefined) throw new Error('the Task result names no machine');
+    const clone = machine.path;
+    const shared = join(sandbox.agentDir, 'pstack/workspaces', workspaceSlug(sandbox.workDir), 'projects/readonly-bypass');
+    const second = await runJson(
+      sandbox,
+      script([
+        { tool: 'Task', args: { description: 'restricted continuation', [operation]: agentId, readonly: true, prompt: script([{ tool: 'bash', args: { command: `printf BYPASS > a.txt; printf BYPASS > '${shared}'; printf FINISHED` } }]) } },
+      ]),
+      ['--no-session'],
+      180_000,
+    );
+    const [continued] = toolEnds(second.events, 'Task');
+    const nextId = AGENT_ID.exec(continued?.text ?? '')?.[1];
+    if (nextId !== undefined && nextId !== agentId) containers.push(`pstack-${nextId}`);
+    expect(readFileSync(join(clone, 'a.txt'), 'utf8')).toBe('PUSHED');
+    expect(existsSync(shared)).toBe(false);
+    if (continued?.isError === true) expect(continued.text).toMatch(/read.?only|writable/i);
+    else expect(continued?.text).toMatch(/denied|read.only file system/i);
   });
 
   test("the agent's file tools act on the machine: only the clone and the workspace's shared Project folders reach the host (G1, G2)", async () => {
