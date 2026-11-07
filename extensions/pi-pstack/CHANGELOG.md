@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.23] - 2026-11-07
+
+- Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.
+
 ## [0.15.36-pi.22] - 2026-11-07
 
 - Let a readonly or plan-mode shell on macOS read a server on loopback, such as a local dev server. sandbox-runtime sends loopback addresses around its proxy, and the sandbox refused the direct connect with `EPERM`, so `curl` and Node's `fetch` failed unless told to use the proxy. File writes and Unix sockets stay blocked. Linux already allowed it.
@@ -9,7 +13,6 @@
 - Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources, and the supervisor's launcher is a POSIX `sh` script, so it also starts on Alpine without bash. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
 - Start the statechart worker with V8's `--single-threaded` on Node. Built as one bundled script, the worker could deadlock at exit while a V8 background thread compiled it, which hung the check until it was killed. In a Linux container, 9 of 24 runs of the statechart CLI tests hung before the change, and 0 of 8 full statechart suites hung after it.
 - Give the supervisor and the detached runs it starts the absolute agent directory, so a relative or `file://` `PI_CODING_AGENT_DIR` still names the same profile after the supervisor changes directory.
-- Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.
 
 ## [0.15.36-pi.20] - 2026-11-06
 
