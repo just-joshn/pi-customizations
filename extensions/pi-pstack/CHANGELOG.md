@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.22] - 2026-11-07
+
+- Let a readonly or plan-mode shell on macOS read a server on loopback, such as a local dev server. sandbox-runtime sends loopback addresses around its proxy, and the sandbox refused the direct connect with `EPERM`, so `curl` and Node's `fetch` failed unless told to use the proxy. File writes and Unix sockets stay blocked. Linux already allowed it.
+
 ## [0.15.36-pi.21] - 2026-11-07
 
 - Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources, and the supervisor's launcher is a POSIX `sh` script, so it also starts on Alpine without bash. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
