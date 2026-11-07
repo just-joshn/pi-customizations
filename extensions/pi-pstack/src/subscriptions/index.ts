@@ -258,7 +258,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       });
       if (pending.length === 0) return;
       const persisted = new Set(
-        session.history.getBranch().flatMap((entry) => {
+        session.history.getEntries().flatMap((entry) => {
           if (entry.type !== 'custom_message' || entry.customType !== WAKE_TYPE) return [];
           const details = entry.details as { id?: unknown; eventId?: unknown } | undefined;
           return [`${details?.id} ${details?.eventId}`];
