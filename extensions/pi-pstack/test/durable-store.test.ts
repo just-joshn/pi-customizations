@@ -535,21 +535,24 @@ local('an accepted fresh event still runs after the subscription expires', async
 });
 
 // Taking over a pre-epoch lock reads the holder's command line from /proc on Linux or ps on macOS.
-local.skipIf(process.platform !== 'linux' && process.platform !== 'darwin').for(['supervisor-main.ts', 'supervisor-main.js', 'pstack-routines-supervisor.mjs'])('a legacy lock is taken over from a live %s supervisor', async (entry, { cwd, onTestFinished, signal }) => {
-  const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)', entry, '--workspace', cwd], { stdio: 'ignore', signal });
-  const exited = new Promise((resolve) => child.once('exit', resolve));
-  onTestFinished(async () => {
-    child.kill('SIGKILL');
+local.skipIf(process.platform !== 'linux' && process.platform !== 'darwin').for(['supervisor-main.ts', 'supervisor-main.js', 'pstack-routines-supervisor.mjs'])(
+  'a legacy lock is taken over from a live %s supervisor',
+  async (entry, { cwd, onTestFinished, signal }) => {
+    const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)', entry, '--workspace', cwd], { stdio: 'ignore', signal });
+    const exited = new Promise((resolve) => child.once('exit', resolve));
+    onTestFinished(async () => {
+      child.kill('SIGKILL');
+      await exited;
+    });
+    await new Promise((resolve) => child.once('spawn', resolve));
+    if (child.pid === undefined) throw new Error('the supervisor fixture did not start');
+    mkdirSync(dirname(supervisorLockPath(cwd)), { recursive: true });
+    writeFileSync(supervisorLockPath(cwd), JSON.stringify({ pid: child.pid, startedAt: Date.now() }));
+    expect(acquireSupervisorLock(cwd)).toEqual({ acquired: true });
     await exited;
-  });
-  await new Promise((resolve) => child.once('spawn', resolve));
-  if (child.pid === undefined) throw new Error('the supervisor fixture did not start');
-  mkdirSync(dirname(supervisorLockPath(cwd)), { recursive: true });
-  writeFileSync(supervisorLockPath(cwd), JSON.stringify({ pid: child.pid, startedAt: Date.now() }));
-  expect(acquireSupervisorLock(cwd)).toEqual({ acquired: true });
-  await exited;
-  expect(child.signalCode).toBe('SIGTERM');
-});
+    expect(child.signalCode).toBe('SIGTERM');
+  },
+);
 
 local('a legacy lock naming an unrelated live process is left alone', async ({ cwd, onTestFinished }) => {
   const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1_000)'], { stdio: 'ignore' });
