@@ -1,11 +1,12 @@
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { ExtensionAPI, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { createLocalBashOperations, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { registerReadonlyShell } from '../src/readonly-shell.ts';
+import { createReadonlyBashTool, registerReadonlyShell, releaseReadonlySandbox } from '../src/readonly-shell.ts';
+import { createSessionShell, sessionBashDefinition } from '../src/shell-state.ts';
 
 function registeredBash(): ToolDefinition {
   const tools: ToolDefinition[] = [];
@@ -41,4 +42,19 @@ test('unsupported hosts fail closed without running a command', async () => {
   onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
   await expect(registeredBash().execute('call-1', { command: 'touch escaped.txt' }, undefined, undefined, { cwd } as ExtensionToolContext)).rejects.toThrow('no verified OS sandbox is available');
   expect(existsSync(join(cwd, 'escaped.txt'))).toBe(false);
+});
+
+test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')("plan mode's read-only shell continues from bash's state and still denies writes", async () => {
+  await releaseReadonlySandbox();
+  onTestFinished(() => releaseReadonlySandbox());
+  const cwd = realpathSync(mkdtempSync(join(tmpdir(), 'pi-pstack-ro-state-')));
+  onTestFinished(() => rmSync(cwd, { recursive: true, force: true }));
+  const ctx = { cwd, model: undefined, sessionManager: { getSessionId: () => 'session', getSessionFile: () => undefined } } as unknown as ExtensionToolContext;
+  const shell = createSessionShell();
+  await sessionBashDefinition(shell, cwd, createLocalBashOperations()).execute('call', { command: 'mkdir sub && cd sub && export PSTACK_A=1' }, undefined, undefined, ctx);
+
+  const result = await createReadonlyBashTool('plan_bash', shell).execute('call', { command: 'pwd; echo "a=$PSTACK_A"; touch escaped.txt 2>/dev/null || echo DENIED' }, undefined, undefined, ctx);
+
+  expect(result.content).toEqual([{ type: 'text', text: `${cwd}/sub\na=1\nDENIED\n` }]);
+  expect(existsSync(join(cwd, 'sub', 'escaped.txt'))).toBe(false);
 });

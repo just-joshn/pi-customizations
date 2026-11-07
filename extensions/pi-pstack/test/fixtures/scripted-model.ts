@@ -15,6 +15,7 @@
 //                                after the last step, reply "RESULTS:" plus every tool result text since the user message;
 //                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background result
 // Anything else is echoed as "ECHO: <text>".
+// A compaction request, which carries the transcript and so its directives, gets the reply SUMMARY.
 import type { AssistantMessage, Message, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
 import { fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall, getCurrentSystemPrompt, getCurrentTools } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
@@ -106,6 +107,7 @@ function directiveReply(directive: string, argument: string, messages: readonly 
 }
 
 export function respond(messages: readonly Message[]): AssistantMessage | Promise<AssistantMessage> {
+  if (getCurrentSystemPrompt(messages)?.startsWith('You are a context summarization assistant')) return fauxAssistantMessage('SUMMARY');
   const userIndex = lastUserIndex(messages);
   const user = messages[userIndex];
   const text = user === undefined ? '' : textOf(user.content);
