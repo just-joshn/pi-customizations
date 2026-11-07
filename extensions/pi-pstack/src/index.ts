@@ -22,6 +22,7 @@ import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, type SessionRule, sessionRule } from './rule.ts';
 import { registerSecretRequest } from './secrets.ts';
 import { hostSection, subagentsSection, todayText } from './sections.ts';
+import { createSessionShell, registerSessionBash } from './shell-state.ts';
 import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
 import { memoryDir } from './subscriptions/memories.ts';
@@ -111,7 +112,10 @@ export default function piPstack(pi: ExtensionAPI): void {
   const agents = loadAgentDefinitions();
   // A cloud agent on a container machine runs every tool there; its own Pi process stays on the host.
   const machine = childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine);
-  if (machine !== undefined) registerMachineTools(pi, machine);
+  // One shell per session: Pi builds a new runtime, and so a new shell, on a new, resumed, or forked session.
+  const shell = createSessionShell();
+  if (machine !== undefined) registerMachineTools(pi, machine, shell);
+  else if (!childIdentity.readonly) registerSessionBash(pi, shell);
 
   // Before the alias handler, so a task sent with /in-cloud reaches the cloud agent as the user typed it.
   if (childIdentity.depth === 0) registerInCloud(pi, (description, prompt) => task.startBackground(description, prompt, { environment: 'cloud' }));
@@ -125,6 +129,7 @@ export default function piPstack(pi: ExtensionAPI): void {
 
   const mode = registerMode(pi);
   const plan = registerPlanMode(pi, {
+    shell,
     ...(childIdentity.buildPlan === undefined ? {} : { buildPlan: childIdentity.buildPlan }),
     setTodos: (items, ctx) => todos.replace(items, ctx),
     buildInWorker: (planFile, request) => task.startBackground(`Build ${basename(planFile)}`, request, { environment: 'cloud', buildPlan: planFile }),
@@ -162,7 +167,7 @@ export default function piPstack(pi: ExtensionAPI): void {
       forwardFrom = { dir: inboxDir(workspaceStateDir(ctx.cwd), root.sessionId), agentId: ctx.sessionManager.getSessionId() };
     });
   // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox. On a container
-  // machine the readonly boundary is the machine's read-only clone, so jobs run there.
+  // machine the readonly boundary is the machine's read-only filesystem, so jobs run there.
   const shells =
     childIdentity.readonly && machine === undefined
       ? undefined
@@ -176,6 +181,7 @@ export default function piPstack(pi: ExtensionAPI): void {
                 }
               : undefined,
           spawner: machine === undefined ? undefined : machineJobSpawner(machine),
+          shell,
         });
   const loop = registerLoop(pi, { hasPendingWork: () => task.hasBackgroundWork() || shells?.hasRunningJobs() === true });
   const todos = registerTodoWrite(pi, childIdentity.readonly ? {} : { onWrite: plan.syncTodos });
@@ -183,7 +189,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   if (childIdentity.depth === 0) registerSecretRequest(pi, () => activateSlackTools(pi));
   if (childIdentity.depth === 0 || childIdentity.automation) registerSlackTools(pi);
   if (childIdentity.parentPid !== undefined) watchParent(pi, childIdentity.parentPid);
-  if (childIdentity.readonly && machine === undefined) registerReadonlyShell(pi);
+  if (childIdentity.readonly && machine === undefined) registerReadonlyShell(pi, shell);
 
   // Read when the session starts, as Cursor loads its always-applied rules: a rule written later applies to new sessions.
   let rule: SessionRule = { inScope: false };

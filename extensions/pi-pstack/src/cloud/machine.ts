@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { createWriteStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { PACKAGE_ROOT } from '../paths.ts';
 import { type CloudBase, cloneCheckout, mappedCwd, resolveCloudBase } from './checkout.ts';
 import { containerState, DockerError, docker, dockerServerVersion, imageExists } from './docker.ts';
 import { type Environment, readEnvironment, type Terminal } from './environment.ts';
@@ -192,7 +193,8 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
     const image = await ensureImage(environment, log, signal);
     const token = githubToken(env);
     const secrets = join(plan.home, 'secrets');
-    const mounts = ['-v', `${path}:${path}${plan.readonly ? ':ro' : ''}`];
+    // The system prompt names the package's skills, playbooks, scripts, and docs by their host paths.
+    const mounts = ['-v', `${path}:${path}${plan.readonly ? ':ro' : ''}`, '-v', `${PACKAGE_ROOT}:${PACKAGE_ROOT}:ro`];
     for (const folder of plan.shared) {
       mkdirSync(folder, { recursive: true, mode: 0o700 });
       mounts.push('-v', `${folder}:${folder}${plan.readonly ? ':ro' : ''}`);
@@ -218,9 +220,10 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
         '--label',
         `pstack.agent=${plan.agentId}`,
         ...mounts,
+        ...(plan.readonly ? ['--read-only', '--ipc', 'none'] : []),
         '--workdir',
         cwd,
-        ...hostUserArgs(),
+        ...hostUserArgs(plan.readonly),
         ...(token === undefined ? [] : ['--env-file', join(secrets, 'env')]),
         image,
         'sleep',
@@ -229,8 +232,9 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
       { timeoutMs: 120_000, ...(signal === undefined ? {} : { signal }) },
     );
     created = true;
-    // The clone belongs to the host user, and git refuses a repository another user owns unless it is marked safe.
-    await docker(['exec', container, 'git', 'config', '--global', '--add', 'safe.directory', '*'], { timeoutMs: 30_000 });
+    // The clone belongs to the host user, and git refuses a repository another user owns unless it is marked safe. A
+    // readonly machine already runs as the host user, and its read-only root filesystem has no global config to write.
+    if (!plan.readonly) await docker(['exec', container, 'git', 'config', '--global', '--add', 'safe.directory', '*'], { timeoutMs: 30_000 });
     const machine: ContainerMachine = {
       driver: 'container',
       path,
@@ -263,11 +267,57 @@ export async function provisionMachine(plan: MachinePlan, signal?: AbortSignal, 
  * On Linux a container's writes reach bind-mounted host folders with the container user's uid, so a root container would
  * leave the clone and the shared Projects and store folders full of files the user cannot edit or delete. The machine
  * therefore runs as the host user there, with a writable home; image-level setup belongs in `build.dockerfile`, which
- * still builds as root. Docker Desktop and OrbStack map file ownership to the user themselves.
+ * still builds as root. Docker Desktop and OrbStack map file ownership to the user themselves. A readonly machine runs
+ * as the host user everywhere, since root could still write the engine's own /dev tmpfs under `--read-only`.
  */
-export function hostUserArgs(platform: NodeJS.Platform = process.platform, uid: number | undefined = process.getuid?.(), gid: number | undefined = process.getgid?.()): string[] {
-  if (platform !== 'linux' || uid === undefined || gid === undefined || uid === 0) return [];
+export function hostUserArgs(readonly: boolean, platform: NodeJS.Platform = process.platform, uid: number | undefined = process.getuid?.(), gid: number | undefined = process.getgid?.()): string[] {
+  if ((platform !== 'linux' && !readonly) || uid === undefined || gid === undefined || uid === 0) return [];
   return ['--user', `${uid}:${gid}`, '--env', 'HOME=/tmp'];
+}
+
+/**
+ * A container's mounts and root filesystem are fixed when it starts, so a readonly run of a subagent on a writable machine
+ * gets a sibling container instead: the machine's image and every one of its mounts, all read-only.
+ */
+export async function startReadonlySibling(machine: ContainerMachine, agentId: string, signal?: AbortSignal): Promise<ContainerMachine> {
+  const container = containerName(agentId);
+  try {
+    await docker(
+      [
+        'run',
+        '--detach',
+        '--init',
+        '--name',
+        container,
+        '--label',
+        `pstack.agent=${agentId}`,
+        '--volumes-from',
+        `${machine.container}:ro`,
+        '--read-only',
+        '--ipc',
+        'none',
+        '--workdir',
+        machine.cwd,
+        ...hostUserArgs(true),
+        machine.image,
+        'sleep',
+        'infinity',
+      ],
+      { timeoutMs: 120_000, ...(signal === undefined ? {} : { signal }) },
+    );
+  } catch (error) {
+    await removeContainer(container);
+    throw error;
+  }
+  const { start: _start, terminals: _terminals, ...rest } = machine;
+  return { ...rest, container, readonly: true };
+}
+
+export function removeContainer(container: string): Promise<void> {
+  return docker(['rm', '--force', container], { timeoutMs: 30_000 }).then(
+    () => undefined,
+    () => undefined,
+  );
 }
 
 /** Boots a stopped container machine again, with its start command and terminals, before a resumed run. */

@@ -66,6 +66,8 @@ export type PendingEvent = {
   acceptedAt: number;
   content: string;
   claim?: { pid: number; token: string; mode: 'live' | 'detached' };
+  /** The owner lease token whose Pi process was handed this wake; it stays pending until that session persists it. */
+  deliveredTo?: string;
   attempts?: number;
   retryAt?: number;
 };

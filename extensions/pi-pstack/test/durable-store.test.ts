@@ -81,15 +81,17 @@ local('once acceptance commits completion and pending delivery together', ({ cwd
   const received: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => {
       received.push(event.content);
     },
   );
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
+    () => true,
     () => true,
     (_sub, event) => {
       received.push(event.content);
@@ -107,8 +109,9 @@ local('peer and missing owner identities cannot drain another session backlog', 
   for (const id of ['peer', ''])
     deliverOwner(
       cwd,
-      id,
+      { sessionId: id, leaseToken: 'lease' },
       () => true,
+      () => false,
       (_sub, event) => {
         received.push(event.content);
       },
@@ -117,7 +120,8 @@ local('peer and missing owner identities cannot drain another session backlog', 
   expect(readRegistry(cwd).pending).toHaveLength(1);
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
+    () => false,
     () => false,
     () => {
       throw new Error('obsolete lifecycle');
@@ -132,8 +136,9 @@ local('failed native enqueue retains the accepted event for retry', ({ cwd }) =>
   expect(() =>
     deliverOwner(
       cwd,
-      'owner',
+      { sessionId: 'owner', leaseToken: 'lease' },
       () => true,
+      () => false,
       () => {
         throw new Error('enqueue failed');
       },
@@ -161,8 +166,9 @@ local('expired subscriptions keep accepted deliveries but reject later fires', (
   const received: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => {
       received.push(event.content);
     },
@@ -181,8 +187,9 @@ local('a stored routine written before detached webhooks existed still loads as 
   const delivered: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => delivered.push(event.id),
   );
   expect(delivered).toEqual(['one']);
@@ -194,8 +201,9 @@ local('a detached routine accepts events without an owner and refuses owner deli
   const delivered: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => delivered.push(event.id),
   );
   expect(delivered).toEqual([]);
@@ -436,18 +444,19 @@ local.for(['before', 'after'] as const)('producer death %s the acceptance commit
   const received: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => {
       received.push(event.content);
     },
   );
   expect(received).toEqual(crash === 'before' ? [] : ['accepted in producer']);
   expect(readRegistry(cwd).subscriptions[0]?.lifecycle).toBe(crash === 'before' ? 'active' : 'completed');
-  expect(readRegistry(cwd).pending).toEqual([]);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(crash === 'before' ? [] : ['one']);
 });
 
-local('a crash after send but before acknowledgement permits an at-least-once replay', async ({ cwd, signal }) => {
+local('a crash after send leaves the wake pending for the next owner lease', async ({ cwd, signal }) => {
   createDesired(cwd, timer());
   acceptEvent(cwd, 'sub-aaaa', 'one', 'accepted');
   const marker = join(dirname(cwd), 'sent-events');
@@ -462,13 +471,38 @@ local('a crash after send but before acknowledgement permits an at-least-once re
   const replayed: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'next' },
     () => true,
+    () => false,
     (_sub, event) => {
       replayed.push(event.id);
     },
   );
   expect(replayed).toEqual(['one']);
+  expect(readRegistry(cwd).pending).toMatchObject([{ id: 'one', deliveredTo: 'next' }]);
+});
+
+local('a wake is sent once per owner lease and acknowledged once the owner session holds it', ({ cwd }) => {
+  createDesired(cwd, timer());
+  acceptEvent(cwd, 'sub-aaaa', 'one', 'check');
+  const sent: string[] = [];
+  const deliver = (leaseToken: string, persisted: boolean) =>
+    deliverOwner(
+      cwd,
+      { sessionId: 'owner', leaseToken },
+      () => true,
+      () => persisted,
+      (_sub, event) => {
+        sent.push(`${leaseToken} ${event.id}`);
+      },
+    );
+  deliver('first', false);
+  deliver('first', false);
+  deliver('second', false);
+  expect(sent).toEqual(['first one', 'second one']);
+  expect(readRegistry(cwd).pending.map((event) => event.id)).toEqual(['one']);
+  deliver('third', true);
+  expect(sent).toEqual(['first one', 'second one']);
   expect(readRegistry(cwd).pending).toEqual([]);
 });
 
@@ -481,8 +515,9 @@ local('cross-process cancellation wins over either acceptance ordering', async (
   const received: string[] = [];
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => {
       received.push(event.content);
     },
@@ -500,7 +535,8 @@ local('a full delivery queue refuses a new event without evicting accepted work'
   expect(readRegistry(cwd).subscriptions[0]?.lastOccurrence).toBe(`e${MAX_PENDING_PER_SUBSCRIPTION - 1}`);
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
+    () => true,
     () => true,
     () => undefined,
   );
