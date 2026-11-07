@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.27] - 2026-11-07
+
+- Remove a cloud agent's read-only sibling container once the run that started it has died. A killed Pi process left the sibling running forever. Each Pi session now removes, when it starts, every sibling of its workspace whose run lock names no live process, so a sibling in use by a live run is never touched.
+
 ## [0.15.36-pi.26] - 2026-11-07
 
 - Count a subscription wake as delivered once any branch of the owner session holds it. Before, a restart after `/tree` left the branch that held the wake sent it again.
