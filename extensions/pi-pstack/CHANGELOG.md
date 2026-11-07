@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.29] - 2026-11-07
+
+- Resume and fork a cloud agent's subagent on that agent's container machine. From the main chat, such a run used to execute on the host in the clone folder. It now boots the machine if it is stopped, stops it again afterwards, takes the read-only sibling container for a readonly run, and fails with "The cloud machine … no longer exists" when the machine is gone.
+
 ## [0.15.36-pi.28] - 2026-11-07
 
 - Let a cloud agent resume and fork the subagents it started. Its Pi process runs in its own checkout, and the ownership check compared that only against the main chat's workspace, so the cloud agent got "belongs to … not this workspace". A subagent now belongs to the caller whose working directory is its workspace root or its own checkout, so another cloud agent's subagents are still refused.
