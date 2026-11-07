@@ -616,11 +616,13 @@ function readRun(path) {
     return;
   }
 }
-function readPid(path) {
+function readLock(path) {
   try {
-    return Number.parseInt(readFileSync3(path, "utf8"), 10);
+    const [pid = "", container] = readFileSync3(path, "utf8").split(`
+`);
+    return { pid: Number.parseInt(pid, 10), ...container === undefined ? {} : { container } };
   } catch {
-    return Number.NaN;
+    return { pid: Number.NaN };
   }
 }
 var isUnder = (parent, child) => {
@@ -633,13 +635,13 @@ function inUse(machine, locks, self) {
   return readdirSync2(locks).some((name) => {
     if (!name.endsWith(".lock"))
       return false;
-    const pid = readPid(join5(locks, name));
+    const { pid, container } = readLock(join5(locks, name));
     if (pid === self || !alive(pid))
       return false;
     const record = readRun(join5(locks, `${name.slice(0, -".lock".length)}.json`));
-    if (record?.machine?.container !== machine.container && !(typeof record?.cwd === "string" && isUnder(machine.path, record.cwd)))
+    if (container !== machine.container && record?.machine?.container !== machine.container && !(typeof record?.cwd === "string" && isUnder(machine.path, record.cwd)))
       return false;
-    return record.run?.pid !== pid || typeof record.run.exit !== "string" || !existsSync2(record.run.exit);
+    return record?.run?.pid !== pid || typeof record.run.exit !== "string" || !existsSync2(record.run.exit);
   });
 }
 var LEASE_POLL_MS = 100;
@@ -1324,7 +1326,7 @@ function recordError(cwd, id, error) {
     }
   });
 }
-function readLock(cwd) {
+function readLock2(cwd) {
   try {
     const value = JSON.parse(readFileSync5(supervisorLockPath(cwd), "utf8"));
     return Number.isInteger(value.pid) && value.pid > 0 && Number.isFinite(value.startedAt) && typeof value.epoch === "string" && value.epoch !== "" ? { pid: value.pid, startedAt: value.startedAt, epoch: value.epoch } : undefined;
@@ -1372,7 +1374,7 @@ function acquireSupervisorLock(cwd, pid = process.pid, startedAt = Date.now()) {
 }
 function releaseSupervisorLock(cwd, pid = process.pid, epoch) {
   withRegistryLock(cwd, () => {
-    const lock = readLock(cwd);
+    const lock = readLock2(cwd);
     if (lock?.pid === pid && (epoch === undefined || epoch === lock.epoch))
       rmSync3(supervisorLockPath(cwd), { force: true });
   });
@@ -1978,7 +1980,7 @@ ${config.prompt}` : config.prompt;
       const lock = acquireSupervisorLock(cwd);
       if (!lock.acquired)
         return { started: false, alreadyRunning: true, pid: lock.pid };
-      epoch = readLock(cwd)?.epoch;
+      epoch = readLock2(cwd)?.epoch;
       active = true;
       try {
         await reconcile();

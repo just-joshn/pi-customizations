@@ -576,6 +576,9 @@ export function backgroundNotice(plan: Launch, prompt: string, description: stri
   };
 }
 
+/** The container machine a run's lock names: its own, or the one its parent cloud agent runs on. */
+const lockedMachine = (plan: Launch) => (plan.machine?.driver === 'container' ? plan.machine.container : plan.parentMachine?.container);
+
 /**
  * A fork takes the new agent's run lock, then the source's only while it copies the transcript, so the source cannot
  * start writing mid-copy and the two never share a writer lock. The plan is made again under the locks.
@@ -584,7 +587,7 @@ export function prepareFork(params: TaskInput, ctx: ExtensionContext, options: T
   const planMode = options.planMode?.() === true;
   const initialPlan = planFork(params, ctx, options.agents, isRunning, options.depth, randomUUID(), planMode);
   const dir = subagentDir(initialPlan.workspace);
-  const lock = acquireRunLock(dir, initialPlan.agentId);
+  const lock = acquireRunLock(dir, initialPlan.agentId, lockedMachine(initialPlan));
   try {
     const sourceId = initialPlan.forkedFrom ?? '';
     let sourceLock: RunLock;
@@ -614,7 +617,7 @@ function prepare(params: TaskInput, ctx: ExtensionContext, options: TaskToolOpti
   const initialPlan = fresh ? planFresh(params, ctx, options.agents, options.depth, planMode, driver) : planResume(params, ctx, options.agents, isRunning, options.depth, planMode);
   let lock: RunLock;
   try {
-    lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId);
+    lock = acquireRunLock(subagentDir(initialPlan.workspace), initialPlan.agentId, lockedMachine(initialPlan));
   } catch (error) {
     // Another Pi process runs the agent; Cursor answers a follow-up to a running agent the same way.
     if (!fresh && error instanceof AgentRunningError) throw new Error(SUBAGENT_RUNNING);

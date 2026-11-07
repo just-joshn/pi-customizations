@@ -378,11 +378,13 @@ function readRun(path: string): RunOnMachine | undefined {
   }
 }
 
-function readPid(path: string): number {
+/** A run lock's pid, and the container machine it names, if any. */
+function readLock(path: string): { pid: number; container?: string } {
   try {
-    return Number.parseInt(readFileSync(path, 'utf8'), 10);
+    const [pid = '', container] = readFileSync(path, 'utf8').split('\n');
+    return { pid: Number.parseInt(pid, 10), ...(container === undefined ? {} : { container }) };
   } catch {
-    return Number.NaN;
+    return { pid: Number.NaN };
   }
 }
 
@@ -393,19 +395,20 @@ const isUnder = (parent: string, child: string): boolean => {
 
 /**
  * Whether a live run other than process `self` uses the machine. The workspace's run locks (`locks`) already name the
- * live process of every run, whichever Pi session started it, and each agent's record says where it runs: its own
- * machine, or a working directory in that machine's clone. A holder that died stops counting, and so does a detached
- * run that has recorded its exit.
+ * live process of every run, whichever Pi session started it. A run's lock names its container machine from the moment
+ * it is taken, because a starting run has no record yet. Each agent's record also says where it runs: its own machine, or
+ * a working directory in that machine's clone. A holder that died stops counting, and so does a detached run that has
+ * recorded its exit.
  */
 function inUse(machine: Pick<ContainerMachine, 'container' | 'path'>, locks: string, self: number | undefined): boolean {
   if (!existsSync(locks)) return false;
   return readdirSync(locks).some((name) => {
     if (!name.endsWith('.lock')) return false;
-    const pid = readPid(join(locks, name));
+    const { pid, container } = readLock(join(locks, name));
     if (pid === self || !alive(pid)) return false;
     const record = readRun(join(locks, `${name.slice(0, -'.lock'.length)}.json`));
-    if (record?.machine?.container !== machine.container && !(typeof record?.cwd === 'string' && isUnder(machine.path, record.cwd))) return false;
-    return record.run?.pid !== pid || typeof record.run.exit !== 'string' || !existsSync(record.run.exit);
+    if (container !== machine.container && record?.machine?.container !== machine.container && !(typeof record?.cwd === 'string' && isUnder(machine.path, record.cwd))) return false;
+    return record?.run?.pid !== pid || typeof record.run.exit !== 'string' || !existsSync(record.run.exit);
   });
 }
 

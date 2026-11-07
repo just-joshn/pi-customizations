@@ -453,7 +453,7 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
             .filter((name) => name.endsWith('.json'))
             .map((name) => name.slice(0, -'.json'.length))
         : [];
-    const lockPid = (agentId: string) => Number(readFileSync(join(records, `${agentId}.lock`), 'utf8'));
+    const lockPid = (agentId: string) => Number.parseInt(readFileSync(join(records, `${agentId}.lock`), 'utf8'), 10);
     const runPid = (agentId: string) => (JSON.parse(readFileSync(join(records, `${agentId}.json`), 'utf8')) as { run: { pid: number } }).run.pid;
     const alive = (pid: number) => {
       try {

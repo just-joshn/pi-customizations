@@ -201,9 +201,9 @@ function holderOf(path: string): number | undefined {
   }
 }
 
-function createExclusive(path: string): boolean {
+function createExclusive(path: string, text: string): boolean {
   try {
-    writeFileSync(path, String(process.pid), { flag: 'wx', mode: 0o600 });
+    writeFileSync(path, text, { flag: 'wx', mode: 0o600 });
     return true;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'EEXIST') return false;
@@ -234,21 +234,23 @@ export interface RunLock {
  * Pi appends to a session file without a lock, so two processes on one agent ID would interleave its transcript.
  * The lock file holds the pid of the process writing the transcript. A lock without a readable pid counts as held.
  * A token-directory lease serializes acquisition and stale recovery without changing the PID file read by stop/status.
+ * A second line names the container machine the run uses, so the run counts as using it before its record says so.
  */
-export function acquireRunLock(dir: string, agentId: string): RunLock {
+export function acquireRunLock(dir: string, agentId: string, container?: string): RunLock {
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const path = join(dir, `${agentId}.lock`);
   const lease = acquireLease(`${path}.owner`);
   if (lease === undefined) throw stillRunning(agentId, runningPid(dir, agentId), path);
+  const text = (pid: number) => (container === undefined ? String(pid) : `${pid}\n${container}`);
   let acquired = false;
   try {
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      if (createExclusive(path)) {
+      if (createExclusive(path, text(process.pid))) {
         acquired = true;
         let owner = process.pid;
         return {
           holdFor: (pid) => {
-            writeAtomically(path, String(pid));
+            writeAtomically(path, text(pid));
             owner = pid;
           },
           release: () => {
