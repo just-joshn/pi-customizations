@@ -1,0 +1,4 @@
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/18-PROMPT-MODE-STICKY-r1/cursor/work","session_id":"b23dc347-e52a-462a-8ca7-28875fbc415e","model":"GPT-5.6 Sol 272K Medium","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"/mode off"}]},"session_id":"b23dc347-e52a-462a-8ca7-28875fbc415e"}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Poteto mode is off."}]},"session_id":"b23dc347-e52a-462a-8ca7-28875fbc415e"}
+{"type":"result","subtype":"success","duration_ms":2782,"duration_api_ms":2782,"is_error":false,"result":"Poteto mode is off.","session_id":"b23dc347-e52a-462a-8ca7-28875fbc415e","request_id":"5c01879c-0feb-4b47-90b8-f7fe5152e557","usage":{"inputTokens":3,"outputTokens":41,"cacheReadTokens":29246,"cacheWriteTokens":51,"reasoningTokens":29}}

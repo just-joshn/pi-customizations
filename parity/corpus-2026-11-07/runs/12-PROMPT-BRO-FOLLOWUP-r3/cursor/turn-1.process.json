@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--",
+    "Reply with exactly this sentence and do not run tools. The asynchronous consumer retains the final buffered line until the producer signals end of stream."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/12-PROMPT-BRO-FOLLOWUP-r3/cursor/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 20827,
+    "timeoutMs": 180000
+  }
+}

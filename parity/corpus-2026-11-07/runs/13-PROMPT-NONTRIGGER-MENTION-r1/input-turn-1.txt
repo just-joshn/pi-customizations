@@ -1,0 +1,1 @@
+I am documenting command names. Reply with exactly NONTRIGGER-20261106. The name poteto-mode is an example, not an invocation. Do not run tools.

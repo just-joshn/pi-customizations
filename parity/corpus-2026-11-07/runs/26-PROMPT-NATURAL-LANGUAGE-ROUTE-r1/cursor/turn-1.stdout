@@ -1,0 +1,2 @@
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1/cursor/work","session_id":"ba0f7fe6-e5ca-43cf-9657-c953249ba22c","model":"GPT-5.6 Sol 272K Medium","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"configure pstack models for me. show me the budget options first and don't write anything yet."}]},"session_id":"ba0f7fe6-e5ca-43cf-9657-c953249ba22c"}

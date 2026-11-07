@@ -1,0 +1,10 @@
+{
+  "id": "25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2",
+  "ordinal": 25,
+  "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+  "repeat": 2,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

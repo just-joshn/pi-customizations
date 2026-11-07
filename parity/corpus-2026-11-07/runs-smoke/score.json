@@ -1,0 +1,95 @@
+{
+  "scoredAt": "2026-11-07T16:20:40.958Z",
+  "rows": [
+    {
+      "attempt": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/13-PROMPT-NONTRIGGER-MENTION-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        28
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/13-PROMPT-NONTRIGGER-MENTION-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        6
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    }
+  ]
+}

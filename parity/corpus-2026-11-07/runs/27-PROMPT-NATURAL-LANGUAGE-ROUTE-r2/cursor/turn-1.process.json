@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--",
+    "configure pstack models for me. show me the budget options first and don't write anything yet."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/cursor/work",
+  "exit": {
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 18168,
+    "timeoutMs": 300000
+  }
+}

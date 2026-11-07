@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi/sessions",
+    "--session-id",
+    "ad084e16-c718-4eae-b42f-4b7f564ec084",
+    "--",
+    "/poteto-mode how many commits does this repository have, and who wrote them? don't change anything."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 127730,
+    "timeoutMs": 600000
+  }
+}

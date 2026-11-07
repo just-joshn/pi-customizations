@@ -1,0 +1,301 @@
+{
+  "startedAt": "2026-11-07T16:20:49.690Z",
+  "corpusSha256": "ef9dbe4283565213f80a5504f5a0796f21b0bd7a01f64eabfe22ad071e929f71",
+  "runnerSha256": "8549b999fb44bf664d8615f97582c2c6521e7aaa2b8cc1ba53b3b2d9bd419f08",
+  "archive": {
+    "path": "/tmp/corpus-2026-11-07/pack/justjoshn-pi-pstack-0.15.36-pi.30.tgz",
+    "sha256": "f535b0d4bd006ed6b1b93aa9a312f8541357bde778072520bf3c432e14d68012"
+  },
+  "pluginRevisions": [
+    {
+      "plugin": "/Users/josh-desktop/src/experiments/plugins/pstack",
+      "rev": "2776ddd2355d6d6c8747d3964600f28daf62f049"
+    },
+    {
+      "plugin": "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+      "rev": "2776ddd2355d6d6c8747d3964600f28daf62f049"
+    }
+  ],
+  "model": {
+    "cursor": "gpt-5.6-sol-medium",
+    "pi": "openai/gpt-5.6-sol",
+    "thinking": "medium"
+  },
+  "versions": {
+    "cursor": "2026.11.05-86047df",
+    "pi": "1.5.0",
+    "node": "v24.22.1"
+  },
+  "attempts": [
+    {
+      "id": "01-PROMPT-IN-YOUR-OWN-WORDS-r1",
+      "ordinal": 1,
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "repeat": 1,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "02-PROMPT-IN-YOUR-OWN-WORDS-r2",
+      "ordinal": 2,
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "repeat": 2,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "03-PROMPT-IN-YOUR-OWN-WORDS-r3",
+      "ordinal": 3,
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "repeat": 3,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "04-PROMPT-SHARPEN-r1",
+      "ordinal": 4,
+      "scenarioId": "PROMPT-SHARPEN",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "05-PROMPT-SHARPEN-r2",
+      "ordinal": 5,
+      "scenarioId": "PROMPT-SHARPEN",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "06-PROMPT-SHARPEN-r3",
+      "ordinal": 6,
+      "scenarioId": "PROMPT-SHARPEN",
+      "repeat": 3,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "07-PROMPT-HELP-NO-WORK-r1",
+      "ordinal": 7,
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "repeat": 1,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "08-PROMPT-HELP-NO-WORK-r2",
+      "ordinal": 8,
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "repeat": 2,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "09-PROMPT-HELP-NO-WORK-r3",
+      "ordinal": 9,
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "repeat": 3,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "10-PROMPT-BRO-FOLLOWUP-r1",
+      "ordinal": 10,
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "11-PROMPT-BRO-FOLLOWUP-r2",
+      "ordinal": 11,
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "12-PROMPT-BRO-FOLLOWUP-r3",
+      "ordinal": 12,
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "repeat": 3,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "ordinal": 13,
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "repeat": 1,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "14-PROMPT-NONTRIGGER-MENTION-r2",
+      "ordinal": 14,
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "repeat": 2,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "15-PROMPT-NONTRIGGER-MENTION-r3",
+      "ordinal": 15,
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "repeat": 3,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1",
+      "ordinal": 16,
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2",
+      "ordinal": 17,
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "18-PROMPT-MODE-STICKY-r1",
+      "ordinal": 18,
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "19-PROMPT-MODE-STICKY-r2",
+      "ordinal": 19,
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "20-PROMPT-HOW-READONLY-EXPLORERS-r1",
+      "ordinal": 20,
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "21-PROMPT-HOW-READONLY-EXPLORERS-r2",
+      "ordinal": 21,
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "22-PROMPT-SHELL-STATE-r1",
+      "ordinal": 22,
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "23-PROMPT-SHELL-STATE-r2",
+      "ordinal": 23,
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "24-PROMPT-SHELL-DEFAULT-BACKGROUND-r1",
+      "ordinal": 24,
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2",
+      "ordinal": 25,
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    },
+    {
+      "id": "26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1",
+      "ordinal": 26,
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "repeat": 1,
+      "order": [
+        "pi",
+        "cursor"
+      ]
+    },
+    {
+      "id": "27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2",
+      "ordinal": 27,
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "repeat": 2,
+      "order": [
+        "cursor",
+        "pi"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Run exactly two separate shell tool calls, one after the other, and nothing else. First call: cd /usr && export CORPUS_PROBE=42. Second call, as its own tool call: pwd; echo "probe=$CORPUS_PROBE". Then report the exact output of the second call.

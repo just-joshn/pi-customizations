@@ -1,0 +1,29 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--resume",
+    "0e7873fd-0d83-4d6e-9f87-9960d55d2573",
+    "--",
+    "/bro"
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/12-PROMPT-BRO-FOLLOWUP-r3/cursor/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 11651,
+    "timeoutMs": 180000
+  }
+}

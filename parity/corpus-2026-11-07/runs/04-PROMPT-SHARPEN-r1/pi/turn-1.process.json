@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/04-PROMPT-SHARPEN-r1/pi/sessions",
+    "--session-id",
+    "153efa0f-fb84-4b60-a756-2f965884aa5f",
+    "--",
+    "/sharpen Investigate why a command-line application sometimes loses the last line of output when it exits."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/04-PROMPT-SHARPEN-r1/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 31177,
+    "timeoutMs": 180000
+  }
+}

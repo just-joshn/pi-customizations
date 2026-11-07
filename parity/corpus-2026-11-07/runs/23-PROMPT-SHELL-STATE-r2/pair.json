@@ -1,0 +1,10 @@
+{
+  "id": "23-PROMPT-SHELL-STATE-r2",
+  "ordinal": 23,
+  "scenarioId": "PROMPT-SHELL-STATE",
+  "repeat": 2,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

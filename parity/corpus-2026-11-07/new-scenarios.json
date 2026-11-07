@@ -1,0 +1,170 @@
+[
+  {
+    "id": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+    "requirements": ["SKILL-PSTACK-poteto-mode", "HOST-SKILL-ATTACH-ONE-MESSAGE"],
+    "source": "pstack/skills/poteto-mode/SKILL.md:124 (open a todolist whose first items are the matched playbook's steps, copied verbatim, after opening playbooks/<title>.md); pstack/skills/poteto-mode/playbooks/investigation.md:5-10; pstack/docs/guide/01-setup.md:64 (plain Enter attaches the skill to one message); cursor.com/docs/skills (a skill invoked with / attaches to one message)",
+    "repeats": 2,
+    "turnTimeoutMs": 600000,
+    "messages": ["/poteto-mode how many commits does this repository have, and who wrote them? don't change anything."],
+    "assertions": [
+      "The poteto-mode skill is attached to this message.",
+      "The agent opens the full steps of a matched playbook file under poteto-mode/playbooks/.",
+      "The agent opens a todo list whose first item is that playbook's step 1, copied verbatim.",
+      "No file in the repository changes.",
+      "The reply says the repository has one commit, authored by Corpus fixture."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "playbook-read", "kind": "readPath", "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$"},
+      {"id": "todo-first-item-is-playbook-step-1", "kind": "todoFirstMatchesPlaybookStep"},
+      {"id": "unchanged-tree", "kind": "unchangedTree"},
+      {"id": "no-file-tools", "kind": "noTool", "tools": ["write", "edit", "delete"]}
+    ],
+    "outcome": [
+      {"id": "investigation-playbook-read", "kind": "readPath", "pattern": "poteto-mode/playbooks/investigation\\.md$"},
+      {"id": "reply-names-count-and-author", "kind": "finalTextIncludes", "texts": ["1", "Corpus fixture"]}
+    ],
+    "normalization": ["Absolute repository roots", "Absolute installed skill and plugin roots", "Host tool names per protocol.toolNameMap", "Todo item ids and status enums", "Subagent ids and models"]
+  },
+  {
+    "id": "PROMPT-MODE-STICKY",
+    "requirements": ["HOST-CUSTOM-MODE-STICKY", "SKILL-PSTACK-poteto-mode"],
+    "source": "cursor.com/docs/skills#using-a-skill-as-a-custom-mode (a Custom Mode keeps the skill in context for the whole session until you exit it); pstack/docs/guide/01-setup.md:64; pstack/skills/poteto-mode/SKILL.md:124",
+    "repeats": 2,
+    "turnTimeoutMs": 600000,
+    "messages": [
+      "/mode poteto-mode",
+      "how many commits does this repository have, and who wrote them? don't change anything.",
+      "/mode off",
+      "how many files does this repository track? don't change anything."
+    ],
+    "hostCommandTurns": {"pi": [1, 3]},
+    "comparability": "UNVERIFIED_BY_DESIGN. Cursor documents Custom Mode entry only as Option+Enter (Mac) or Alt+Enter on a skill in the interactive / menu. Cursor CLI 2026.11.05 has no /mode slash command (cursor.com/docs/cli/reference/slash-commands) and print mode (-p) has no Custom Mode entry. The same bytes are still sent to both hosts and both are scored, but a cross-host difference on this scenario cannot be read as a parity violation. Pi is scored against Cursor's documented Custom Mode semantics.",
+    "assertions": [
+      "Turn 1 enters a persistent poteto-mode.",
+      "Turn 2, sent without a slash, runs under poteto-mode: it opens a playbook file and a todo list whose first item is that playbook's step 1.",
+      "Turn 3 exits the mode.",
+      "Turn 4 runs without poteto-mode: no playbook file is opened.",
+      "No file in the repository changes."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "turn-2-playbook-read", "kind": "readPath", "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$", "turn": 2},
+      {"id": "turn-2-todo-first-item-is-playbook-step-1", "kind": "todoFirstMatchesPlaybookStep", "turn": 2},
+      {"id": "unchanged-tree", "kind": "unchangedTree"},
+      {"id": "no-file-tools", "kind": "noTool", "tools": ["write", "edit", "delete"]}
+    ],
+    "outcome": [
+      {"id": "turn-4-no-playbook-read", "kind": "noReadPath", "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$", "turn": 4},
+      {"id": "turn-4-no-todo", "kind": "noTool", "tools": ["TodoWrite"], "turn": 4},
+      {"id": "turn-2-reply-names-author", "kind": "finalTextIncludes", "texts": ["Corpus fixture"], "turn": 2},
+      {"id": "turn-4-reply-names-file", "kind": "finalTextIncludes", "texts": ["README.md"], "turn": 4}
+    ],
+    "normalization": ["Absolute repository roots", "Absolute installed skill and plugin roots", "Host tool names per protocol.toolNameMap", "Todo item ids and status enums", "Host command turns that produce no model turn on Pi"]
+  },
+  {
+    "id": "PROMPT-HOW-READONLY-EXPLORERS",
+    "requirements": ["SKILL-PSTACK-how", "HOST-TASK-READONLY"],
+    "source": "pstack/skills/how/SKILL.md:10 (every spawn is a Task subagent with subagent_type generalPurpose and readonly true), :14-26 (complex questions decompose into 2 to 4 explorers spawned in one message, then one explainer), :36 (output sections)",
+    "repeats": 2,
+    "turnTimeoutMs": 600000,
+    "messages": ["/how does this repository's git storage work end to end? Cover how HEAD, the refs, the index, and the object store fit together to produce README.md in the working tree."],
+    "assertions": [
+      "The agent delegates through Task subagents rather than answering alone.",
+      "Every Task is readonly.",
+      "Every Task uses the generalPurpose subagent type.",
+      "No file in the repository changes.",
+      "A complex question takes the explorer path: two or more explorers, then one explainer.",
+      "The reply uses the explainer sections, including Overview and How It Works."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "task-delegated", "kind": "toolCount", "tool": "Task", "min": 1},
+      {"id": "every-task-readonly", "kind": "everyTaskReadonly", "note": "Cursor stream-json taskToolCall args carry no readonly field (schema probe 2026-11-07 with an explicit readonly request), so this check is UNVERIFIED on Cursor and decided on Pi."},
+      {"id": "every-task-general-purpose", "kind": "everyTaskSubagentType", "equals": "generalPurpose", "note": "Cursor reports generalPurpose as subagentType {unspecified:{}} or {generalPurpose:{}}; both count."},
+      {"id": "unchanged-tree", "kind": "unchangedTree"},
+      {"id": "no-file-tools", "kind": "noTool", "tools": ["write", "edit", "delete"]}
+    ],
+    "outcome": [
+      {"id": "explorer-path", "kind": "toolCount", "tool": "Task", "min": 3},
+      {"id": "explainer-sections", "kind": "finalTextIncludes", "texts": ["Overview", "How It Works"]},
+      {"id": "names-git-parts", "kind": "finalTextIncludes", "texts": ["HEAD", "index", "blob"]}
+    ],
+    "normalization": ["Absolute repository roots", "Absolute installed skill and plugin roots", "Host tool names per protocol.toolNameMap", "Task model slugs, which follow each host's model catalog", "Subagent ids"]
+  },
+  {
+    "id": "PROMPT-SHELL-STATE",
+    "requirements": ["HOST-SHELL-STATE"],
+    "source": "Cursor CLI 2026.11.05 Shell tool keeps cwd and exported variables between calls (parity/evidence/shell-probe-2026-11-07/run-1.jsonl and run-2.jsonl, second call stdout /usr and probe=42)",
+    "repeats": 2,
+    "turnTimeoutMs": 180000,
+    "messages": ["Run exactly two separate shell tool calls, one after the other, and nothing else. First call: cd /usr && export CORPUS_PROBE=42. Second call, as its own tool call: pwd; echo \"probe=$CORPUS_PROBE\". Then report the exact output of the second call."],
+    "assertions": [
+      "The first shell call changes directory to /usr and exports CORPUS_PROBE=42.",
+      "A later, separate shell call that does not change directory prints /usr and probe=42.",
+      "The reply reports /usr and probe=42.",
+      "No file in the repository changes."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "state-persists-across-calls", "kind": "shellStatePersists", "setPattern": "cd\\s+/usr\\b[\\s\\S]*export\\s+CORPUS_PROBE=42", "usePattern": "\\bpwd\\b", "expect": ["/usr", "probe=42"]},
+      {"id": "unchanged-tree", "kind": "unchangedTree"}
+    ],
+    "outcome": [
+      {"id": "exactly-two-shell-calls", "kind": "toolCount", "tool": "bash", "min": 2, "max": 2},
+      {"id": "reply-reports-state", "kind": "finalTextIncludes", "texts": ["/usr", "probe=42"]}
+    ],
+    "normalization": ["Absolute repository roots", "Host tool names per protocol.toolNameMap", "Shell ids, PIDs, and durations"]
+  },
+  {
+    "id": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+    "requirements": ["HOST-SHELL-DEFAULT-WAIT", "HOST-AWAIT"],
+    "source": "Cursor CLI 2026.11.05 Shell tool: a call with the default 30000 ms wait returns 'The command did not complete in 30000ms and was sent to the background' with a shell id, and the agent awaits it (parity/evidence/shell-default-wait-2026-11-07/cursor-run-1.jsonl)",
+    "repeats": 2,
+    "turnTimeoutMs": 300000,
+    "messages": ["Run this exact command in a single shell call, and do not set any timeout or wait option yourself: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. When it is done, tell me the last line it printed."],
+    "assertions": [
+      "The loop runs in exactly one foreground shell call.",
+      "That call returns early because the command is moved to the background.",
+      "The agent then waits on the background job with the await tool.",
+      "The agent observes FINISHED from the job.",
+      "The reply says the last line was FINISHED."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "single-loop-call", "kind": "shellCallCount", "pattern": "seq 1 40", "equals": 1},
+      {"id": "default-background-move", "kind": "shellMovedToBackground", "pattern": "seq 1 40"},
+      {"id": "awaited-after-move", "kind": "toolAfterShell", "pattern": "seq 1 40", "tool": "AwaitShell"},
+      {"id": "finished-observed", "kind": "toolResultAfterShellIncludes", "pattern": "seq 1 40", "text": "FINISHED"},
+      {"id": "unchanged-tree", "kind": "unchangedTree"}
+    ],
+    "outcome": [
+      {"id": "reply-reports-finished", "kind": "finalTextIncludes", "texts": ["FINISHED"]}
+    ],
+    "normalization": ["Absolute repository roots", "Host tool names per protocol.toolNameMap", "Shell ids, PIDs, output file paths, and durations", "Wait units (Cursor milliseconds, Pi seconds)"]
+  },
+  {
+    "id": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+    "requirements": ["HOST-SKILL-AUTO-INVOKE", "SKILL-PSTACK-setup-pstack"],
+    "source": "pstack/skills/setup-pstack/SKILL.md:3 (the only pstack skill without disable-model-invocation; description names 'configure pstack models'), :29-34 (budget labels); cursor.com/docs/skills (the agent applies a skill when relevant unless disable-model-invocation is true)",
+    "repeats": 2,
+    "turnTimeoutMs": 300000,
+    "messages": ["configure pstack models for me. show me the budget options first and don't write anything yet."],
+    "assertions": [
+      "The agent loads the setup-pstack skill without a slash command.",
+      "No file is written, including the host's pstack model rule.",
+      "The reply offers the four budget labels: unlimited, large, medium, small."
+    ],
+    "mandatory": [
+      {"id": "run-valid", "kind": "runValid"},
+      {"id": "setup-pstack-skill-read", "kind": "readPath", "pattern": "setup-pstack/SKILL\\.md$"},
+      {"id": "unchanged-tree", "kind": "unchangedTree"},
+      {"id": "no-file-tools", "kind": "noTool", "tools": ["write", "edit", "delete"]},
+      {"id": "model-rule-not-written", "kind": "hostFileAbsent"}
+    ],
+    "outcome": [
+      {"id": "budget-labels", "kind": "finalTextIncludes", "texts": ["unlimited", "large", "medium", "small"]}
+    ],
+    "normalization": ["Absolute repository roots", "Absolute installed skill and plugin roots", "Host tool names per protocol.toolNameMap", "Host rule path (Cursor ~/.cursor/rules/pstack-models.mdc, Pi $PI_CODING_AGENT_DIR/pstack/pstack-models.md)"]
+  }
+]

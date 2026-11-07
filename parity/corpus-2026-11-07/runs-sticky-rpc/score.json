@@ -1,0 +1,234 @@
+{
+  "scoredAt": "2026-11-07T17:03:42.346Z",
+  "rows": [
+    {
+      "attempt": "01-PROMPT-MODE-STICKY-rpc-r1",
+      "host": "cursor",
+      "missing": true
+    },
+    {
+      "attempt": "01-PROMPT-MODE-STICKY-rpc-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/01-PROMPT-MODE-STICKY-rpc-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-sticky-rpc-ZAVtC1/01-PROMPT-MODE-STICKY-rpc-r1/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "Corpus fixture"
+            ],
+            "final": "The local Git history reports one commit reachable from `HEAD`. I am checking the author identity and command basis before giving the final count."
+          }
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "This repository tracks **1 file**.\n\nCommand used:\n\n```bash\ngit ls-files -z | awk 'BEGIN { RS=\"\\0\" } NF { count++ } END { print count+0 }'\n```\n\nNo files were changed."
+          }
+        }
+      ],
+      "durationsS": [
+        1,
+        48,
+        1,
+        8
+      ],
+      "tools": [
+        "",
+        "read,read,TodoWrite,read,read,read,Task,Task,bash",
+        "",
+        "bash"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "grok-4.7[effort=high,fast=false]"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        }
+      ],
+      "finalText": "This repository tracks **1 file**.\n\nCommand used:\n\n```bash\ngit ls-files -z | awk 'BEGIN { RS=\"\\0\" } NF { count++ } END { print count+0 }'\n```\n\nNo files were changed."
+    },
+    {
+      "attempt": "02-PROMPT-MODE-STICKY-rpc-r2",
+      "host": "cursor",
+      "missing": true
+    },
+    {
+      "attempt": "02-PROMPT-MODE-STICKY-rpc-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/02-PROMPT-MODE-STICKY-rpc-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-sticky-rpc-ZAVtC1/02-PROMPT-MODE-STICKY-rpc-r2/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "FAIL",
+          "detail": [
+            {
+              "name": "TodoWrite",
+              "args": "{\"todos\":[{\"id\":\"investigation-1\",\"status\":\"cancelled\"},{\"id\":\"investigation-2\",\"status\":\"cancelled\"},{\"id\":\"investigation-3\",\"status\":\"cancelled\"},{\"id\":\"investigation-4\",\"status\":\"cancelled\"}],\"merg"
+            }
+          ]
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "Corpus fixture"
+            ],
+            "final": "I’m checking the current branch history and all repository refs. No files or Git state will be changed."
+          }
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "The repository tracks **1 file**, according to `git ls-files`.\n\nNo files or Git state were changed."
+          }
+        }
+      ],
+      "durationsS": [
+        1,
+        44,
+        1,
+        15
+      ],
+      "tools": [
+        "",
+        "read,read,read,TodoWrite,read,read,Task,Task",
+        "",
+        "bash,agent_status,TodoWrite,stop_agent"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "grok-4.7[effort=low,fast=false]"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        }
+      ],
+      "finalText": "The repository tracks **1 file**, according to `git ls-files`.\n\nNo files or Git state were changed."
+    }
+  ]
+}

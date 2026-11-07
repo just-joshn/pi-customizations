@@ -1,0 +1,102 @@
+{
+  "host": "pi",
+  "scenarioId": "PROMPT-MODE-STICKY",
+  "attempt": "19-PROMPT-MODE-STICKY-r2",
+  "model": {
+    "selector": "openai/gpt-5.6-sol",
+    "thinking": "medium"
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "inputSha256": "cdab934ac4a6e5e5ef1127bc81581141ded784e701b081dcd825203af1c2d648",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 666,
+        "timeoutMs": 600000
+      },
+      "cursorSession": null
+    },
+    {
+      "turn": 2,
+      "inputSha256": "4eb83b57cf94d6b7f250527175b7fe26950c6f62aa4312a2d6f4416d47022568",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 9840,
+        "timeoutMs": 600000
+      },
+      "cursorSession": null
+    },
+    {
+      "turn": 3,
+      "inputSha256": "4811b6a9b9a0ba091d877e7f0d547a9ff71152c10f83e681a65af7a1f7068110",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 227,
+        "timeoutMs": 600000
+      },
+      "cursorSession": null
+    },
+    {
+      "turn": 4,
+      "inputSha256": "603c86631b9a16e8ced5536f52ab25a2a22d817d0e1977be2b6ca0a736e704e3",
+      "exit": {
+        "code": 0,
+        "signal": null,
+        "timedOut": false,
+        "spawnError": null,
+        "durationMs": 6570,
+        "timeoutMs": 600000
+      },
+      "cursorSession": null
+    }
+  ],
+  "before": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "piSettings": {
+    "packages": [
+      "npm:@justjoshn/pi-pstack@file:/tmp/corpus-2026-11-07/pack/justjoshn-pi-pstack-0.15.36-pi.30.tgz"
+    ]
+  },
+  "piSessionId": "820e8db2-dde9-4020-b646-0dccb62e3306",
+  "credentialLinksRemoved": true,
+  "after": {
+    "files": [
+      {
+        "path": "README.md",
+        "sha256": "bd0da14eab659e95f64741da3075b76154260455e050b8cfb3f6d7d0562af1b5"
+      }
+    ],
+    "head": "d9722409cabd904e7339fda14fe1818d77be6641",
+    "tree": "7e476488da437541819d424ac7276cf48b3491a6",
+    "status": "",
+    "diff": ""
+  },
+  "hostModelRule": {
+    "path": ".pi/agent/pstack/pstack-models.md",
+    "exists": false
+  },
+  "retained": {
+    "sessions": 1,
+    "hostState": 0
+  }
+}

@@ -1,0 +1,4 @@
+{"type":"entry_appended","entry":{"type":"custom","customType":"pstack/mode","data":null,"id":"afe91ecf","parentId":"881a550f","timestamp":"2026-11-07T17:03:26.184Z"}}
+{"type":"extension_ui_request","id":"54c512c3-f294-47e1-891b-da9714a11a60","method":"setStatus","statusKey":"pstack-mode"}
+{"type":"extension_ui_request","id":"3f5d931b-7fe1-4359-b1fe-83e4e4d29266","method":"notify","message":"Mode off.","notifyType":"info"}
+{"id":"turn-3","type":"response","command":"prompt","success":true,"data":{"disposition":"handled"}}

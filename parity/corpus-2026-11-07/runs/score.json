@@ -1,0 +1,3267 @@
+{
+  "scoredAt": "2026-11-07T17:00:29.337Z",
+  "rows": [
+    {
+      "attempt": "01-PROMPT-IN-YOUR-OWN-WORDS-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/01-PROMPT-IN-YOUR-OWN-WORDS-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        23
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that identifies duplicate files contributing to wasted disk space, without modifying or deleting anything."
+    },
+    {
+      "attempt": "01-PROMPT-IN-YOUR-OWN-WORDS-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/01-PROMPT-IN-YOUR-OWN-WORDS-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        10
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that scans for files with identical contents and lists the duplicate groups so you can assess wasted disk space. It must not delete, move, or modify anything—you want to review the results before deciding what, if anything, to remove."
+    },
+    {
+      "attempt": "02-PROMPT-IN-YOUR-OWN-WORDS-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/02-PROMPT-IN-YOUR-OWN-WORDS-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        28
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that identifies duplicate files wasting disk space, reports them for review, and never deletes or modifies data."
+    },
+    {
+      "attempt": "02-PROMPT-IN-YOUR-OWN-WORDS-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/02-PROMPT-IN-YOUR-OWN-WORDS-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        11
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that scans for duplicate files and reports them—ideally showing how much space they consume—without deleting, moving, or modifying anything. Your goal is to identify potential disk-space savings while avoiding any risk of data loss."
+    },
+    {
+      "attempt": "03-PROMPT-IN-YOUR-OWN-WORDS-r3",
+      "host": "cursor",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/03-PROMPT-IN-YOUR-OWN-WORDS-r3/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        23
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that identifies duplicate files so you can review potential disk-space savings, without deleting or modifying any data."
+    },
+    {
+      "attempt": "03-PROMPT-IN-YOUR-OWN-WORDS-r3",
+      "host": "pi",
+      "scenarioId": "PROMPT-IN-YOUR-OWN-WORDS",
+      "evidence": "runs/03-PROMPT-IN-YOUR-OWN-WORDS-r3/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        7
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "You want a safe, read-only command that scans for files with identical contents and lists the duplicate groups—ideally showing their paths and sizes—so you can identify wasted disk space without automatically deleting or modifying anything."
+    },
+    {
+      "attempt": "04-PROMPT-SHARPEN-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/04-PROMPT-SHARPEN-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        25
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "1. A top systems engineer would isolate whether loss occurs in the application, runtime buffering, shell pipeline, PTY, or output-capture layer—and build a minimal deterministic reproduction.\n\n2. They would start from raw stdout/stderr bytes, process lifecycle events, system-call traces, exit status, source code around shutdown, and the exact execution environment—not summarized logs.\n\n3. They wou"
+    },
+    {
+      "attempt": "04-PROMPT-SHARPEN-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/04-PROMPT-SHARPEN-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        31
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "### 1. What a top professional would do that you’re not asking for\n\nThey would turn “sometimes loses the last line” into a falsifiable failure model. They would determine exactly **where the bytes disappear**:\n\n- Never handed to the application’s output API\n- Buffered in user space when shutdown begins\n- Submitted to an asynchronous writer but not completed\n- Written to the OS file descriptor but "
+    },
+    {
+      "attempt": "05-PROMPT-SHARPEN-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/05-PROMPT-SHARPEN-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        26
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "1. A top professional would localize the loss across application buffering, runtime shutdown, OS writes, terminal rendering, and parent-process capture—then test competing hypotheses before proposing a fix.\n\n2. Raw material:\n- Minimal reproducer and exact invocation\n- Source for output and shutdown paths\n- Raw stdout/stderr bytes\n- System-call traces\n- Runtime, shell, terminal, OS, and exit detail"
+    },
+    {
+      "attempt": "05-PROMPT-SHARPEN-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/05-PROMPT-SHARPEN-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        27
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "### 1. What a top professional would do that you are not explicitly asking for\n\nThey would turn the intermittent symptom into a falsifiable causal investigation:\n\n- Reproduce the loss reliably under controlled exit and output conditions.\n- Distinguish application-level buffering from runtime, OS, pipe, terminal, and parent-process behavior.\n- Compare normal return, explicit exit, signal terminatio"
+    },
+    {
+      "attempt": "06-PROMPT-SHARPEN-r3",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/06-PROMPT-SHARPEN-r3/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        26
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "1. A top systems engineer would isolate the failing exit path, distinguish application buffering from terminal/pipe capture loss, and produce a minimal deterministic reproduction.\n\n2. They would start from raw stdout/stderr bytes, syscall traces, exit status/signal data, and source code around the final write, flush, cleanup, and termination—not summarized logs.\n\n3. They would use repeated control"
+    },
+    {
+      "attempt": "06-PROMPT-SHARPEN-r3",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHARPEN",
+      "evidence": "runs/06-PROMPT-SHARPEN-r3/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        27
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "### 1. What a top professional would do that you are not explicitly asking for\n\nA systems/CLI engineer would turn “sometimes loses the last line” into a falsifiable failure model. They would:\n\n- Reproduce the problem reliably and estimate its frequency.\n- Determine whether bytes are lost, merely not displayed, or overwritten by terminal control sequences.\n- Separate buffering at each boundary: app"
+    },
+    {
+      "attempt": "07-PROMPT-HELP-NO-WORK-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/07-PROMPT-HELP-NO-WORK-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        39
+      ],
+      "tools": [
+        "read,read"
+      ],
+      "tasks": [],
+      "finalText": "Use `/how` for a module walkthrough—architecture, runtime flow, key concepts, file locations, and gotchas. It won’t modify code.\n\n```text\n/how Explain how the <module> works and give me a practical mental model. Do not change any code.\n```\n\nSource: [How skill](https://github.com/cursor/plugins/blob/main/pstack/skills/how/SKILL.md)"
+    },
+    {
+      "attempt": "07-PROMPT-HELP-NO-WORK-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/07-PROMPT-HELP-NO-WORK-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "https://github.com/"
+            ],
+            "final": "Use **`/how`**. It explains a module’s architecture, key concepts, runtime flow, file ownership, and gotchas—without changing code.\n\nExample prompt:\n\n```text\n/how Explain how the authentication module works, including its entry points, data flow, and where its responsibilities live.\n```\n\nSource: [`s"
+          }
+        }
+      ],
+      "durationsS": [
+        10
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "Use **`/how`**. It explains a module’s architecture, key concepts, runtime flow, file ownership, and gotchas—without changing code.\n\nExample prompt:\n\n```text\n/how Explain how the authentication module works, including its entry points, data flow, and where its responsibilities live.\n```\n\nSource: [`skills/how/SKILL.md`](/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/07-PROMPT"
+    },
+    {
+      "attempt": "08-PROMPT-HELP-NO-WORK-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/08-PROMPT-HELP-NO-WORK-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        22
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "Use `/how` for module architecture, runtime flow, ownership, and key concepts. Use `/why` when you want design rationale.\n\n```text\n/how Explain how the authentication module works.\n```\n\n[View the `/how` skill](https://github.com/cursor/plugins/blob/main/pstack/skills/how/SKILL.md)"
+    },
+    {
+      "attempt": "08-PROMPT-HELP-NO-WORK-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/08-PROMPT-HELP-NO-WORK-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "https://github.com/"
+            ],
+            "final": "Use **`/how`**. It explains how a module works, including its architecture, runtime flow, key concepts, file locations, and gotchas—without changing code.\n\nExample prompt:\n\n```text\n/how Explain how the authentication module works, from an incoming request through authorization and response.\n```\n\nSou"
+          }
+        }
+      ],
+      "durationsS": [
+        11
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "Use **`/how`**. It explains how a module works, including its architecture, runtime flow, key concepts, file locations, and gotchas—without changing code.\n\nExample prompt:\n\n```text\n/how Explain how the authentication module works, from an incoming request through authorization and response.\n```\n\nSource: [`skills/how/SKILL.md`](/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-"
+    },
+    {
+      "attempt": "09-PROMPT-HELP-NO-WORK-r3",
+      "host": "cursor",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/09-PROMPT-HELP-NO-WORK-r3/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        21
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "Use `/how` for module architecture, runtime flow, key concepts, and code ownership.\n\n```text\n/how Explain how the <module name> module works.\n```\n\n[Read the `/how` skill](https://github.com/cursor/plugins/blob/main/pstack/skills/how/SKILL.md)"
+    },
+    {
+      "attempt": "09-PROMPT-HELP-NO-WORK-r3",
+      "host": "pi",
+      "scenarioId": "PROMPT-HELP-NO-WORK",
+      "evidence": "runs/09-PROMPT-HELP-NO-WORK-r3/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "https://github.com/"
+            ],
+            "final": "Use **`/how`**. It explains a module’s architecture, key concepts, runtime flow, file locations, and gotchas—without focusing on the historical reasons behind the design.\n\nSend:\n\n```text\n/how Explain how the <module name/path> module works and how it fits into the surrounding system.\n```\n\nSource: [`"
+          }
+        }
+      ],
+      "durationsS": [
+        10
+      ],
+      "tools": [
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "Use **`/how`**. It explains a module’s architecture, key concepts, runtime flow, file locations, and gotchas—without focusing on the historical reasons behind the design.\n\nSend:\n\n```text\n/how Explain how the <module name/path> module works and how it fits into the surrounding system.\n```\n\nSource: [`skills/how/SKILL.md`](/private/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/"
+    },
+    {
+      "attempt": "10-PROMPT-BRO-FOLLOWUP-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/10-PROMPT-BRO-FOLLOWUP-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        17,
+        7
+      ],
+      "tools": [
+        "",
+        ""
+      ],
+      "tasks": [],
+      "finalText": "The consumer keeps the last line until the producer says it’s done."
+    },
+    {
+      "attempt": "10-PROMPT-BRO-FOLLOWUP-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/10-PROMPT-BRO-FOLLOWUP-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        3,
+        5
+      ],
+      "tools": [
+        "",
+        ""
+      ],
+      "tasks": [],
+      "finalText": "The consumer keeps the last line until the producer says it’s done."
+    },
+    {
+      "attempt": "11-PROMPT-BRO-FOLLOWUP-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/11-PROMPT-BRO-FOLLOWUP-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        19,
+        6
+      ],
+      "tools": [
+        "",
+        ""
+      ],
+      "tasks": [],
+      "finalText": "The receiver keeps the last line until the sender says it’s finished."
+    },
+    {
+      "attempt": "11-PROMPT-BRO-FOLLOWUP-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/11-PROMPT-BRO-FOLLOWUP-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        3,
+        8
+      ],
+      "tools": [
+        "",
+        "read"
+      ],
+      "tasks": [],
+      "finalText": "The consumer keeps the last line until the producer says it’s finished."
+    },
+    {
+      "attempt": "12-PROMPT-BRO-FOLLOWUP-r3",
+      "host": "cursor",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/12-PROMPT-BRO-FOLLOWUP-r3/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        21,
+        12
+      ],
+      "tools": [
+        "",
+        ""
+      ],
+      "tasks": [],
+      "finalText": "It keeps the last line until the producer says it’s done."
+    },
+    {
+      "attempt": "12-PROMPT-BRO-FOLLOWUP-r3",
+      "host": "pi",
+      "scenarioId": "PROMPT-BRO-FOLLOWUP",
+      "evidence": "runs/12-PROMPT-BRO-FOLLOWUP-r3/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        7,
+        4
+      ],
+      "tools": [
+        "",
+        ""
+      ],
+      "tasks": [],
+      "finalText": "The consumer keeps the last line until the producer says it’s done."
+    },
+    {
+      "attempt": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/13-PROMPT-NONTRIGGER-MENTION-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        18
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/13-PROMPT-NONTRIGGER-MENTION-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        3
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "14-PROMPT-NONTRIGGER-MENTION-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/14-PROMPT-NONTRIGGER-MENTION-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        17
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "14-PROMPT-NONTRIGGER-MENTION-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/14-PROMPT-NONTRIGGER-MENTION-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        4
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "15-PROMPT-NONTRIGGER-MENTION-r3",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/15-PROMPT-NONTRIGGER-MENTION-r3/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        18
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "15-PROMPT-NONTRIGGER-MENTION-r3",
+      "host": "pi",
+      "scenarioId": "PROMPT-NONTRIGGER-MENTION",
+      "evidence": "runs/15-PROMPT-NONTRIGGER-MENTION-r3/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "status": "PASS",
+          "detail": "NONTRIGGER-20261106"
+        }
+      ],
+      "durationsS": [
+        3
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": "NONTRIGGER-20261106"
+    },
+    {
+      "attempt": "16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "evidence": "runs/16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "investigation-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "reply-names-count-and-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        79
+      ],
+      "tools": [
+        "read,read,read,GetDynamicTools,find,read,TodoWrite,read,grep,GetDynamicTools,Task,bash,TodoWrite"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        }
+      ],
+      "finalText": "You want an exact commit count and author breakdown from the local Git history. I will inspect the repository read-only and report the evidence without changing files, refs, or configuration.The local Git data shows one commit on all refs and on `HEAD`, authored by `Corpus fixture <fixture@example.invalid>`. I am waiting for the required independent read-only check before I finalize the count.\nThi"
+    },
+    {
+      "attempt": "16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "evidence": "runs/16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "investigation-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/16-PROMPT-POTETO-MODE-ONE-MESSAGE-r1/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "reply-names-count-and-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        113
+      ],
+      "tools": [
+        "read,read,read,TodoWrite,read,read,read,read,Task,bash,TodoWrite"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        }
+      ],
+      "finalText": "You wanted the repository’s total commit count and author breakdown without changing anything.\n\n## Overview\n\nThe repository has **1 commit** across all Git refs.\n\n| Author | Email | Commits |\n|---|---|---:|\n| Corpus fixture | `fixture@example.invalid` | 1 |\n\n## How it works\n\nI verified the count and author with:\n\n```bash\ngit rev-list --count --all\ngit shortlog -sne --all\n```\n\nThe repository has on"
+    },
+    {
+      "attempt": "17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "evidence": "runs/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "investigation-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "reply-names-count-and-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        89
+      ],
+      "tools": [
+        "find,find,find,read,read,find,GetDynamicTools,TodoWrite,read,read,find,find,GetDynamicTools,Task,bash,find,TodoWrite,read"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        }
+      ],
+      "finalText": "You want a read-only audit of the repository’s commit count and authorship. I will inspect Git history and report the exact counts without changing files.## Overview\n\nYou wanted the repository’s commit count and authorship without changes.\n\n- **Total commits:** 1\n- **Author:** Corpus fixture `<fixture@example.invalid>` with 1 commit\n- **Branch:** `main`\n\n`HEAD` and all refs both report one commit."
+    },
+    {
+      "attempt": "17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "evidence": "runs/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "investigation-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/17-PROMPT-POTETO-MODE-ONE-MESSAGE-r2/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "reply-names-count-and-author",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "1",
+              "Corpus fixture"
+            ],
+            "final": "No follow-up is needed."
+          }
+        }
+      ],
+      "durationsS": [
+        128
+      ],
+      "tools": [
+        "read,read,TodoWrite,read,read,read,Task,bash,bash,TodoWrite"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        }
+      ],
+      "finalText": "No follow-up is needed."
+    },
+    {
+      "attempt": "18-PROMPT-MODE-STICKY-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/18-PROMPT-MODE-STICKY-r1/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/18-PROMPT-MODE-STICKY-r1/cursor/home/.cursor/plugins/cache/cursor-public/pstack/ae5650febf4320793844c12c4adaa937f417f8da/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "The repository tracks 1 file. Nothing was changed."
+          }
+        }
+      ],
+      "durationsS": [
+        39,
+        44,
+        6,
+        12
+      ],
+      "tools": [
+        "GetDynamicTools,find,read,find,find,read",
+        "read,GetDynamicTools,find,read,TodoWrite,find,read,GetDynamicTools,Task,bash,TodoWrite",
+        "",
+        "bash"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "gpt-5.6-sol-medium"
+        }
+      ],
+      "finalText": "The repository tracks 1 file. Nothing was changed."
+    },
+    {
+      "attempt": "18-PROMPT-MODE-STICKY-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/18-PROMPT-MODE-STICKY-r1/pi",
+      "valid": true,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "FAIL",
+          "detail": []
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "FAIL",
+          "detail": "no playbook read"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "This repository tracks **1 file**. No files were changed."
+          }
+        }
+      ],
+      "durationsS": [
+        1,
+        6,
+        0,
+        6
+      ],
+      "tools": [
+        "",
+        "bash,bash",
+        "",
+        "bash"
+      ],
+      "tasks": [],
+      "finalText": "This repository tracks **1 file**. No files were changed."
+    },
+    {
+      "attempt": "19-PROMPT-MODE-STICKY-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/19-PROMPT-MODE-STICKY-r2/cursor",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/19-PROMPT-MODE-STICKY-r2/cursor/home/.cursor/plugins/cache/cursor-public/pstack/ae5650febf4320793844c12c4adaa937f417f8da/skills/poteto-mode/playbooks/investigation.md"
+          ]
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "PASS",
+          "detail": {
+            "playbook": "investigation",
+            "first": "route through the how skill. for motivation questions, also route through the why skill."
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "The repository tracks **1 file**. Nothing was changed."
+          }
+        }
+      ],
+      "durationsS": [
+        37,
+        78,
+        10,
+        14
+      ],
+      "tools": [
+        "GetDynamicTools,find,read,find,read",
+        "read,GetDynamicTools,TodoWrite,find,read,find,read,GetDynamicTools,Task,bash,find,read,TodoWrite,bash,TodoWrite",
+        "",
+        "bash"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "gpt-5.6-sol-medium"
+        }
+      ],
+      "finalText": "The repository tracks **1 file**. Nothing was changed."
+    },
+    {
+      "attempt": "19-PROMPT-MODE-STICKY-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-MODE-STICKY",
+      "evidence": "runs/19-PROMPT-MODE-STICKY-r2/pi",
+      "valid": true,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "status": "FAIL",
+          "detail": []
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "status": "FAIL",
+          "detail": "no playbook read"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "status": "PASS",
+          "detail": []
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "README.md"
+            ],
+            "final": "This repository tracks **1 file**. No files were changed."
+          }
+        }
+      ],
+      "durationsS": [
+        1,
+        10,
+        0,
+        7
+      ],
+      "tools": [
+        "",
+        "bash,bash",
+        "",
+        "bash"
+      ],
+      "tasks": [],
+      "finalText": "This repository tracks **1 file**. No files were changed."
+    },
+    {
+      "attempt": "20-PROMPT-HOW-READONLY-EXPLORERS-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "evidence": "runs/20-PROMPT-HOW-READONLY-EXPLORERS-r1/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "task-delegated",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 4
+        },
+        {
+          "id": "every-task-readonly",
+          "kind": "everyTaskReadonly",
+          "status": "UNVERIFIED",
+          "detail": {
+            "reason": "readonly not present in host events",
+            "values": [
+              null,
+              null,
+              null,
+              null
+            ]
+          }
+        },
+        {
+          "id": "every-task-general-purpose",
+          "kind": "everyTaskSubagentType",
+          "status": "PASS",
+          "detail": [
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "explorer-path",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 4
+        },
+        {
+          "id": "explainer-sections",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "Overview",
+              "How It Works"
+            ],
+            "final": ""
+          }
+        },
+        {
+          "id": "names-git-parts",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "HEAD",
+              "index",
+              "blob"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        76
+      ],
+      "tools": [
+        "find,find,find,read,read,read,find,GetDynamicTools,Task,Task,Task,Task"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": null,
+          "model": "grok-4.7-high-fast"
+        }
+      ],
+      "finalText": ""
+    },
+    {
+      "attempt": "20-PROMPT-HOW-READONLY-EXPLORERS-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "evidence": "runs/20-PROMPT-HOW-READONLY-EXPLORERS-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "task-delegated",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 4
+        },
+        {
+          "id": "every-task-readonly",
+          "kind": "everyTaskReadonly",
+          "status": "PASS",
+          "detail": 4
+        },
+        {
+          "id": "every-task-general-purpose",
+          "kind": "everyTaskSubagentType",
+          "status": "PASS",
+          "detail": [
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "explorer-path",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 4
+        },
+        {
+          "id": "explainer-sections",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "names-git-parts",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        394
+      ],
+      "tools": [
+        "read,read,read,read,Task,Task,Task,Task"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": null
+        }
+      ],
+      "finalText": "### Overview\n\nYes. **This repository’s current Git storage is internally coherent end to end.** Git can resolve `HEAD` to the `main` branch, follow that branch to a commit, traverse the commit’s tree to find `README.md`, load its blob, and correlate that blob with both the index and the working-tree file.\n\nThis is a minimal Git storage fixture, not a Git implementation. It contains one tracked fil"
+    },
+    {
+      "attempt": "21-PROMPT-HOW-READONLY-EXPLORERS-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "evidence": "runs/21-PROMPT-HOW-READONLY-EXPLORERS-r2/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "task-delegated",
+          "kind": "toolCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "every-task-readonly",
+          "kind": "everyTaskReadonly",
+          "status": "UNVERIFIED",
+          "detail": "no Task calls"
+        },
+        {
+          "id": "every-task-general-purpose",
+          "kind": "everyTaskSubagentType",
+          "status": "UNVERIFIED",
+          "detail": "no Task calls"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "explorer-path",
+          "kind": "toolCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "explainer-sections",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "Overview",
+              "How It Works"
+            ],
+            "final": ""
+          }
+        },
+        {
+          "id": "names-git-parts",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "HEAD",
+              "index",
+              "blob"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        19
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "21-PROMPT-HOW-READONLY-EXPLORERS-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-HOW-READONLY-EXPLORERS",
+      "evidence": "runs/21-PROMPT-HOW-READONLY-EXPLORERS-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "task-delegated",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 8
+        },
+        {
+          "id": "every-task-readonly",
+          "kind": "everyTaskReadonly",
+          "status": "PASS",
+          "detail": 8
+        },
+        {
+          "id": "every-task-general-purpose",
+          "kind": "everyTaskSubagentType",
+          "status": "PASS",
+          "detail": [
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose",
+            "generalPurpose"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "explorer-path",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 8
+        },
+        {
+          "id": "explainer-sections",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        },
+        {
+          "id": "names-git-parts",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        338
+      ],
+      "tools": [
+        "read,read,read,bash,bash,Task,Task,Task,Task,Task,Task,Task,Task"
+      ],
+      "tasks": [
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "grok-4.7[effort=xhigh,fast=true]"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "grok-4.7[effort=xhigh,fast=true]"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "grok-4.7[effort=xhigh,fast=true]"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "inherit"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "inherit"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "inherit"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "claude-opus-5-5:xhigh"
+        },
+        {
+          "type": "generalPurpose",
+          "readonly": true,
+          "model": "inherit"
+        }
+      ],
+      "finalText": "### Overview\n\n**Yes—the repository’s Git storage is internally coherent end to end for `README.md`.**\n\n`HEAD` resolves through the `main` branch ref to commit `d9722409…`. That commit names root tree `7e476488…`; the tree maps `README.md` to blob `8c1828de…`; and that blob contains the same 34 bytes currently present in the working-tree file. The index independently records the same blob for `READ"
+    },
+    {
+      "attempt": "22-PROMPT-SHELL-STATE-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "evidence": "runs/22-PROMPT-SHELL-STATE-r1/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "state-persists-across-calls",
+          "kind": "shellStatePersists",
+          "status": "FAIL",
+          "detail": {
+            "reason": "no setting call",
+            "commands": []
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exactly-two-shell-calls",
+          "kind": "toolCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "reply-reports-state",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "/usr",
+              "probe=42"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        16
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "22-PROMPT-SHELL-STATE-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "evidence": "runs/22-PROMPT-SHELL-STATE-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "state-persists-across-calls",
+          "kind": "shellStatePersists",
+          "status": "PASS",
+          "detail": {
+            "command": "pwd; echo \"probe=$CORPUS_PROBE\"",
+            "output": "/usr\nprobe=42\n"
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exactly-two-shell-calls",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 2
+        },
+        {
+          "id": "reply-reports-state",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        8
+      ],
+      "tools": [
+        "bash,bash"
+      ],
+      "tasks": [],
+      "finalText": "/usr\nprobe=42"
+    },
+    {
+      "attempt": "23-PROMPT-SHELL-STATE-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "evidence": "runs/23-PROMPT-SHELL-STATE-r2/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "state-persists-across-calls",
+          "kind": "shellStatePersists",
+          "status": "FAIL",
+          "detail": {
+            "reason": "no setting call",
+            "commands": []
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exactly-two-shell-calls",
+          "kind": "toolCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "reply-reports-state",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "/usr",
+              "probe=42"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        17
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "23-PROMPT-SHELL-STATE-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHELL-STATE",
+      "evidence": "runs/23-PROMPT-SHELL-STATE-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "state-persists-across-calls",
+          "kind": "shellStatePersists",
+          "status": "PASS",
+          "detail": {
+            "command": "pwd; echo \"probe=$CORPUS_PROBE\"",
+            "output": "/usr\nprobe=42\n"
+          }
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exactly-two-shell-calls",
+          "kind": "toolCount",
+          "status": "PASS",
+          "detail": 2
+        },
+        {
+          "id": "reply-reports-state",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        8
+      ],
+      "tools": [
+        "bash,bash"
+      ],
+      "tasks": [],
+      "finalText": "/usr\nprobe=42"
+    },
+    {
+      "attempt": "24-PROMPT-SHELL-DEFAULT-BACKGROUND-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "evidence": "runs/24-PROMPT-SHELL-DEFAULT-BACKGROUND-r1/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "single-loop-call",
+          "kind": "shellCallCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "default-background-move",
+          "kind": "shellMovedToBackground",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "awaited-after-move",
+          "kind": "toolAfterShell",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "finished-observed",
+          "kind": "toolResultAfterShellIncludes",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "reply-reports-finished",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "FINISHED"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        20
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "24-PROMPT-SHELL-DEFAULT-BACKGROUND-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "evidence": "runs/24-PROMPT-SHELL-DEFAULT-BACKGROUND-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "single-loop-call",
+          "kind": "shellCallCount",
+          "status": "PASS",
+          "detail": 1
+        },
+        {
+          "id": "default-background-move",
+          "kind": "shellMovedToBackground",
+          "status": "PASS",
+          "detail": {
+            "timeoutArg": null,
+            "result": "tick 6\ntick 7\ntick 8\ntick 9\ntick 10\ntick 11\ntick 12\ntick 13\ntick 14\ntick 15\ntick 16\ntick 17\ntick 18\ntick 19\ntick 20\ntick 21\ntick 22\ntick 23\ntick 24\ntick 25\ntick 26\ntick 27\ntick 28\ntick 29\ntick 30\n\n```"
+          }
+        },
+        {
+          "id": "awaited-after-move",
+          "kind": "toolAfterShell",
+          "status": "PASS",
+          "detail": 2
+        },
+        {
+          "id": "finished-observed",
+          "kind": "toolResultAfterShellIncludes",
+          "status": "PASS",
+          "detail": "observed"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "reply-reports-finished",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "FINISHED"
+            ],
+            "final": "No follow-up needed."
+          }
+        }
+      ],
+      "durationsS": [
+        52
+      ],
+      "tools": [
+        "bash,AwaitShell,AwaitShell"
+      ],
+      "tasks": [],
+      "finalText": "No follow-up needed."
+    },
+    {
+      "attempt": "25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "evidence": "runs/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "single-loop-call",
+          "kind": "shellCallCount",
+          "status": "FAIL",
+          "detail": 0
+        },
+        {
+          "id": "default-background-move",
+          "kind": "shellMovedToBackground",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "awaited-after-move",
+          "kind": "toolAfterShell",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "finished-observed",
+          "kind": "toolResultAfterShellIncludes",
+          "status": "FAIL",
+          "detail": "no matching shell call"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "reply-reports-finished",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "FINISHED"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        16
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "evidence": "runs/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/pi",
+      "valid": true,
+      "mandatoryPass": false,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "single-loop-call",
+          "kind": "shellCallCount",
+          "status": "PASS",
+          "detail": 1
+        },
+        {
+          "id": "default-background-move",
+          "kind": "shellMovedToBackground",
+          "status": "PASS",
+          "detail": {
+            "timeoutArg": null,
+            "result": "tick 6\ntick 7\ntick 8\ntick 9\ntick 10\ntick 11\ntick 12\ntick 13\ntick 14\ntick 15\ntick 16\ntick 17\ntick 18\ntick 19\ntick 20\ntick 21\ntick 22\ntick 23\ntick 24\ntick 25\ntick 26\ntick 27\ntick 28\ntick 29\ntick 30\n\n```"
+          }
+        },
+        {
+          "id": "awaited-after-move",
+          "kind": "toolAfterShell",
+          "status": "PASS",
+          "detail": 1
+        },
+        {
+          "id": "finished-observed",
+          "kind": "toolResultAfterShellIncludes",
+          "status": "FAIL",
+          "detail": "not in any tool result or notification"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "reply-reports-finished",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        50
+      ],
+      "tools": [
+        "bash,AwaitShell"
+      ],
+      "tasks": [],
+      "finalText": "The last line printed was:\n\n```text\nFINISHED\n```"
+    },
+    {
+      "attempt": "26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "evidence": "runs/26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "setup-pstack-skill-read",
+          "kind": "readPath",
+          "status": "FAIL",
+          "detail": []
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "model-rule-not-written",
+          "kind": "hostFileAbsent",
+          "status": "PASS",
+          "detail": ".cursor/rules/pstack-models.mdc"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "budget-labels",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "unlimited",
+              "large",
+              "medium",
+              "small"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        15
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1",
+      "host": "pi",
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "evidence": "runs/26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "setup-pstack-skill-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/26-PROMPT-NATURAL-LANGUAGE-ROUTE-r1/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/setup-pstack/SKILL.md"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "model-rule-not-written",
+          "kind": "hostFileAbsent",
+          "status": "PASS",
+          "detail": ".pi/agent/pstack/pstack-models.md"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "budget-labels",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        24
+      ],
+      "tools": [
+        "read,bash,bash,AskQuestion"
+      ],
+      "tasks": [],
+      "finalText": "No configuration exists yet, and **nothing was written**. `large` matches pstack’s defaults.\n\n| Budget | Target reasoning |\n|---|---|\n| `unlimited — max reasoning` | Maximum available effort per model; models that lack `max` use their highest supported level below it |\n| `large — xhigh reasoning` | Strongest default; best for difficult work |\n| `medium — high reasoning` | Balanced quality, latency"
+    },
+    {
+      "attempt": "27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2",
+      "host": "cursor",
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "evidence": "runs/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/cursor",
+      "valid": false,
+      "mandatoryPass": false,
+      "outcomePass": false,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "FAIL",
+          "detail": [
+            "turn 1 exit 1 timedOut false",
+            "turn 1 not completed"
+          ]
+        },
+        {
+          "id": "setup-pstack-skill-read",
+          "kind": "readPath",
+          "status": "FAIL",
+          "detail": []
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "model-rule-not-written",
+          "kind": "hostFileAbsent",
+          "status": "PASS",
+          "detail": ".cursor/rules/pstack-models.mdc"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "budget-labels",
+          "kind": "finalTextIncludes",
+          "status": "FAIL",
+          "detail": {
+            "missing": [
+              "unlimited",
+              "large",
+              "medium",
+              "small"
+            ],
+            "final": ""
+          }
+        }
+      ],
+      "durationsS": [
+        18
+      ],
+      "tools": [
+        ""
+      ],
+      "tasks": [],
+      "finalText": ""
+    },
+    {
+      "attempt": "27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2",
+      "host": "pi",
+      "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "evidence": "runs/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/pi",
+      "valid": true,
+      "mandatoryPass": true,
+      "outcomePass": true,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid",
+          "status": "PASS",
+          "detail": "valid"
+        },
+        {
+          "id": "setup-pstack-skill-read",
+          "kind": "readPath",
+          "status": "PASS",
+          "detail": [
+            "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2/pi/home/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/skills/setup-pstack/SKILL.md"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree",
+          "status": "PASS",
+          "detail": "unchanged"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "status": "PASS",
+          "detail": "none"
+        },
+        {
+          "id": "model-rule-not-written",
+          "kind": "hostFileAbsent",
+          "status": "PASS",
+          "detail": ".pi/agent/pstack/pstack-models.md"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "budget-labels",
+          "kind": "finalTextIncludes",
+          "status": "PASS",
+          "detail": "present"
+        }
+      ],
+      "durationsS": [
+        16
+      ],
+      "tools": [
+        "read,read"
+      ],
+      "tasks": [],
+      "finalText": "No configuration exists yet, so **`large` matches pstack’s skill defaults**.\n\nBudget options:\n\n- `unlimited — max reasoning`\n- `large — xhigh reasoning` **(default)**\n- `medium — high reasoning`\n- `small — medium reasoning`\n\nLower-capability models automatically use their highest supported reasoning level at or below the selected budget.\n\n**Nothing has been written.** Tell me which budget you want"
+    }
+  ]
+}

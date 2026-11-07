@@ -1,0 +1,124 @@
+{
+  "plugin-slack-slack": {
+    "scopeStepUp": {
+      "stepUpScopes": [],
+      "signInMissing": [],
+      "requestedScopes": [
+        "canvases:read",
+        "canvases:write",
+        "channels:history",
+        "channels:read",
+        "channels:write",
+        "chat:write",
+        "emoji:read",
+        "files:read",
+        "files:write",
+        "groups:history",
+        "groups:read",
+        "groups:write",
+        "im:history",
+        "im:read",
+        "im:write",
+        "lists:read",
+        "lists:write",
+        "mpim:history",
+        "mpim:read",
+        "mpim:write",
+        "reactions:read",
+        "reactions:write",
+        "search:read.files",
+        "search:read.im",
+        "search:read.mpim",
+        "search:read.private",
+        "search:read.public",
+        "search:read.users",
+        "users:read",
+        "users:read.email"
+      ]
+    }
+  },
+  "plugin-outlook-calendar-outlook-calendar": {
+    "scopeStepUp": {
+      "stepUpScopes": [],
+      "signInMissing": [],
+      "requestedScopes": [
+        "https://graph.microsoft.com/User.Read",
+        "https://graph.microsoft.com/Calendars.ReadWrite",
+        "offline_access"
+      ]
+    }
+  },
+  "plugin-outlook-outlook": {
+    "scopeStepUp": {
+      "stepUpScopes": [],
+      "signInMissing": [],
+      "requestedScopes": [
+        "https://graph.microsoft.com/User.Read",
+        "https://graph.microsoft.com/Mail.ReadWrite",
+        "https://graph.microsoft.com/Mail.Send",
+        "https://graph.microsoft.com/Contacts.Read",
+        "offline_access"
+      ]
+    }
+  },
+  "plugin-atlassian-atlassian": {
+    "clientInfo": {
+      "redirect_uris": [
+        "https://www.cursor.com/agents/mcp/oauth/callback",
+        "http://localhost:8787/callback"
+      ],
+      "token_endpoint_auth_method": "none",
+      "client_name": "Cursor",
+      "client_id": "R6aHCqqwFl57Vm8GIBQmkEMS3idRjUkT",
+      "client_secret": "ATOAf1CZTPySVUTW4PN1jk5CL7FcLSRNCYjKaQKLcwzdujSIps5nDwylMMKxbYeA9huO9C95C3E4",
+      "client_id_issued_at": 1794068985,
+      "client_secret_expires_at": 0
+    },
+    "scopeStepUp": {
+      "stepUpScopes": [],
+      "signInMissing": [],
+      "requestedScopes": [
+        "read:me",
+        "read:account",
+        "offline_access",
+        "email",
+        "read:jira:agent-interface",
+        "write:jira:agent-interface",
+        "search:jira:agent-interface",
+        "delete:jira:agent-interface",
+        "manage:jira:agent-interface",
+        "read:confluence:agent-interface",
+        "write:confluence:agent-interface",
+        "search:confluence:agent-interface",
+        "search:rovo:agent-interface",
+        "search:code:agent-interface",
+        "read:jsm:agent-interface",
+        "write:jsm:agent-interface",
+        "read:all:twg",
+        "write:all:twg",
+        "read:goals:agent-interface",
+        "write:goals:agent-interface",
+        "read:projects:agent-interface",
+        "write:projects:agent-interface",
+        "read:bitbucket:agent-interface",
+        "write:bitbucket:agent-interface",
+        "read:loom:agent-interface",
+        "write:loom:agent-interface",
+        "read:talent:agent-interface",
+        "write:talent:agent-interface",
+        "read:jira-align:agent-interface",
+        "write:jira-align:agent-interface",
+        "read:teams:agent-interface",
+        "write:teams:agent-interface",
+        "read:artifacts:agent-interface",
+        "write:artifacts:agent-interface",
+        "read:capacity-planning:agent-interface",
+        "write:capacity-planning:agent-interface",
+        "read:focus:agent-interface",
+        "write:focus:agent-interface",
+        "read:assets:agent-interface",
+        "write:assets:agent-interface"
+      ]
+    }
+  }
+}

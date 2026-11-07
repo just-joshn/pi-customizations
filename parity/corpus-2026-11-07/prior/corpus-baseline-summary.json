@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "scope": "Initial model-mediated scenarios. This corpus is not complete contract coverage.",
+  "evidenceDirectory": "/Users/josh-desktop/src/personal/pi-customizations/.audit/pstack-release-2026-11-06/corpus-baseline-001",
+  "completedAt": "2026-11-06T18:02:03.612Z",
+  "declaredPairs": 15,
+  "executedPairs": 15,
+  "attemptedHostSetups": 30,
+  "executedHostAttempts": 30,
+  "invokedModelTurns": 36,
+  "completedModelTurns": 36,
+  "automaticPrechecks": {
+    "PASS": 27,
+    "FAIL": 3,
+    "UNVERIFIED": 0
+  },
+  "semanticStatus": "PENDING_INDEPENDENT_REVIEW",
+  "comparability": "UNVERIFIED",
+  "overallParityClaim": false,
+  "sourceDigests": {
+    "runner": "c07ea820ffdcb347b1680f3f34b6744389a89aa77d646ffcd90659785b0098ed",
+    "corpus": "97711c1cb89de4321c663907ad85b137016f35c76eed76182012401c93de5831",
+    "tarball": "ce80efe79cf33fd1b4d0ee00d83f491f8b46e8d54057f0445a8c096647d25fdf"
+  },
+  "artifactManifestSha256": "a9b601c6533b0e9dcb41c85d990c092247e65231db1d7b62d09a0fc370495364",
+  "artifactCount": 1524,
+  "failedPrechecks": [
+    {
+      "pair": "07-PROMPT-HELP-NO-WORK-r1",
+      "host": "pi",
+      "setup": "COMPLETE",
+      "checks": [
+        {
+          "id": "text-presence-only:https://github.com/",
+          "status": "FAIL",
+          "detail": "String presence is not a semantic verdict"
+        }
+      ]
+    },
+    {
+      "pair": "08-PROMPT-HELP-NO-WORK-r2",
+      "host": "pi",
+      "setup": "COMPLETE",
+      "checks": [
+        {
+          "id": "text-presence-only:https://github.com/",
+          "status": "FAIL",
+          "detail": "String presence is not a semantic verdict"
+        }
+      ]
+    },
+    {
+      "pair": "09-PROMPT-HELP-NO-WORK-r3",
+      "host": "pi",
+      "setup": "COMPLETE",
+      "checks": [
+        {
+          "id": "text-presence-only:https://github.com/",
+          "status": "FAIL",
+          "detail": "String presence is not a semantic verdict"
+        }
+      ]
+    }
+  ],
+  "initialFixturesIdentical": true,
+  "modelIdentities": {
+    "cursor": [
+      {
+        "model": "GPT-5.6 Sol 272K Medium",
+        "contextReported": "272K",
+        "permissionMode": "default"
+      }
+    ],
+    "pi": [
+      {
+        "provider": "openai",
+        "model": "gpt-5.6-sol",
+        "api": "openai-responses",
+        "thinking": "medium"
+      }
+    ]
+  },
+  "reviewFiles": [
+    {
+      "pair": "01-PROMPT-IN-YOUR-OWN-WORDS-r1",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-IN-YOUR-OWN-WORDS",
+      "cursor": "01-PROMPT-IN-YOUR-OWN-WORDS-r1/cursor/result.json",
+      "pi": "01-PROMPT-IN-YOUR-OWN-WORDS-r1/pi/result.json"
+    },
+    {
+      "pair": "02-PROMPT-IN-YOUR-OWN-WORDS-r2",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-IN-YOUR-OWN-WORDS",
+      "cursor": "02-PROMPT-IN-YOUR-OWN-WORDS-r2/cursor/result.json",
+      "pi": "02-PROMPT-IN-YOUR-OWN-WORDS-r2/pi/result.json"
+    },
+    {
+      "pair": "03-PROMPT-IN-YOUR-OWN-WORDS-r3",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-IN-YOUR-OWN-WORDS",
+      "cursor": "03-PROMPT-IN-YOUR-OWN-WORDS-r3/cursor/result.json",
+      "pi": "03-PROMPT-IN-YOUR-OWN-WORDS-r3/pi/result.json"
+    },
+    {
+      "pair": "04-PROMPT-SHARPEN-r1",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-SHARPEN",
+      "cursor": "04-PROMPT-SHARPEN-r1/cursor/result.json",
+      "pi": "04-PROMPT-SHARPEN-r1/pi/result.json"
+    },
+    {
+      "pair": "05-PROMPT-SHARPEN-r2",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-SHARPEN",
+      "cursor": "05-PROMPT-SHARPEN-r2/cursor/result.json",
+      "pi": "05-PROMPT-SHARPEN-r2/pi/result.json"
+    },
+    {
+      "pair": "06-PROMPT-SHARPEN-r3",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-SHARPEN",
+      "cursor": "06-PROMPT-SHARPEN-r3/cursor/result.json",
+      "pi": "06-PROMPT-SHARPEN-r3/pi/result.json"
+    },
+    {
+      "pair": "07-PROMPT-HELP-NO-WORK-r1",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-HELP-NO-WORK",
+      "cursor": "07-PROMPT-HELP-NO-WORK-r1/cursor/result.json",
+      "pi": "07-PROMPT-HELP-NO-WORK-r1/pi/result.json"
+    },
+    {
+      "pair": "08-PROMPT-HELP-NO-WORK-r2",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-HELP-NO-WORK",
+      "cursor": "08-PROMPT-HELP-NO-WORK-r2/cursor/result.json",
+      "pi": "08-PROMPT-HELP-NO-WORK-r2/pi/result.json"
+    },
+    {
+      "pair": "09-PROMPT-HELP-NO-WORK-r3",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-HELP-NO-WORK",
+      "cursor": "09-PROMPT-HELP-NO-WORK-r3/cursor/result.json",
+      "pi": "09-PROMPT-HELP-NO-WORK-r3/pi/result.json"
+    },
+    {
+      "pair": "10-PROMPT-BRO-FOLLOWUP-r1",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-BRO-FOLLOWUP",
+      "cursor": "10-PROMPT-BRO-FOLLOWUP-r1/cursor/result.json",
+      "pi": "10-PROMPT-BRO-FOLLOWUP-r1/pi/result.json"
+    },
+    {
+      "pair": "11-PROMPT-BRO-FOLLOWUP-r2",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-BRO-FOLLOWUP",
+      "cursor": "11-PROMPT-BRO-FOLLOWUP-r2/cursor/result.json",
+      "pi": "11-PROMPT-BRO-FOLLOWUP-r2/pi/result.json"
+    },
+    {
+      "pair": "12-PROMPT-BRO-FOLLOWUP-r3",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-BRO-FOLLOWUP",
+      "cursor": "12-PROMPT-BRO-FOLLOWUP-r3/cursor/result.json",
+      "pi": "12-PROMPT-BRO-FOLLOWUP-r3/pi/result.json"
+    },
+    {
+      "pair": "13-PROMPT-NONTRIGGER-MENTION-r1",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-NONTRIGGER-MENTION",
+      "cursor": "13-PROMPT-NONTRIGGER-MENTION-r1/cursor/result.json",
+      "pi": "13-PROMPT-NONTRIGGER-MENTION-r1/pi/result.json"
+    },
+    {
+      "pair": "14-PROMPT-NONTRIGGER-MENTION-r2",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-NONTRIGGER-MENTION",
+      "cursor": "14-PROMPT-NONTRIGGER-MENTION-r2/cursor/result.json",
+      "pi": "14-PROMPT-NONTRIGGER-MENTION-r2/pi/result.json"
+    },
+    {
+      "pair": "15-PROMPT-NONTRIGGER-MENTION-r3",
+      "rubric": "/Users/josh-desktop/src/personal/pi-customizations/parity/pstack-release-2026-11-06/corpus.json#PROMPT-NONTRIGGER-MENTION",
+      "cursor": "15-PROMPT-NONTRIGGER-MENTION-r3/cursor/result.json",
+      "pi": "15-PROMPT-NONTRIGGER-MENTION-r3/pi/result.json"
+    }
+  ],
+  "limitations": [
+    "Only five fixed scenarios with three repeats each were executed. This is not complete source coverage.",
+    "Text-presence checks are literal prechecks, not semantic passes.",
+    "Comparable inference controls remain unverified.",
+    "No timing or performance comparison is claimed.",
+    "Raw events exclude private credential values. Private homes and configs are not evidence.",
+    "No inherited MCP profiles, external-service credentials or user model rules were loaded. No live service workflows were exercised."
+  ],
+  "runSummarySha256": "d37d2891e94ce3353bb7b489ee10df82ef6468676e54d486858d78db21324088",
+  "testsSha256": "b77f767c6c1a8df60d590aa79ddea305800f12119ce528aeb5646af8e221ce1a"
+}

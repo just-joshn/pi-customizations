@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/02-PROMPT-IN-YOUR-OWN-WORDS-r2/pi/sessions",
+    "--session-id",
+    "cde9c295-6529-4e08-856a-a074cd764b53",
+    "--",
+    "/in-your-own-words I want a command that lists duplicate files without deleting them. My problem is wasted disk space, but I do not want to lose data."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/02-PROMPT-IN-YOUR-OWN-WORDS-r2/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 11122,
+    "timeoutMs": 180000
+  }
+}

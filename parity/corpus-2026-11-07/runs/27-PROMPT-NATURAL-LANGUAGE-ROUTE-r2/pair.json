@@ -1,0 +1,10 @@
+{
+  "id": "27-PROMPT-NATURAL-LANGUAGE-ROUTE-r2",
+  "ordinal": 27,
+  "scenarioId": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+  "repeat": 2,
+  "order": [
+    "cursor",
+    "pi"
+  ]
+}

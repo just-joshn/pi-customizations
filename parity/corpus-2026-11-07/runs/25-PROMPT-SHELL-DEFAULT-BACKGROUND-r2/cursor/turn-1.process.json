@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.local/bin/cursor-agent",
+  "argv": [
+    "--print",
+    "--output-format",
+    "stream-json",
+    "--trust",
+    "--force",
+    "--model",
+    "gpt-5.6-sol-medium",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/pstack",
+    "--plugin-dir",
+    "/Users/josh-desktop/src/experiments/plugins/cursor-team-kit",
+    "--",
+    "Run this exact command in a single shell call, and do not set any timeout or wait option yourself: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. When it is done, tell me the last line it printed."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/25-PROMPT-SHELL-DEFAULT-BACKGROUND-r2/cursor/work",
+  "exit": {
+    "code": 1,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 15929,
+    "timeoutMs": 300000
+  }
+}

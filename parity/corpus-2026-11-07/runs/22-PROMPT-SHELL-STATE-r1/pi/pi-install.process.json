@@ -1,0 +1,16 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "install",
+    "npm:@justjoshn/pi-pstack@file:/tmp/corpus-2026-11-07/pack/justjoshn-pi-pstack-0.15.36-pi.30.tgz"
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/22-PROMPT-SHELL-STATE-r1/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 1193,
+    "timeoutMs": 120000
+  }
+}

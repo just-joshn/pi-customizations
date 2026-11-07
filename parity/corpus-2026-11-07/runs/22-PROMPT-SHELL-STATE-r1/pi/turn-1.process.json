@@ -1,0 +1,27 @@
+{
+  "executable": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "argv": [
+    "--mode",
+    "json",
+    "--model",
+    "openai/gpt-5.6-sol",
+    "--thinking",
+    "medium",
+    "--no-mcp",
+    "--session-dir",
+    "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/22-PROMPT-SHELL-STATE-r1/pi/sessions",
+    "--session-id",
+    "4497d425-5768-4330-bb87-7e51f4a36a9c",
+    "--",
+    "Run exactly two separate shell tool calls, one after the other, and nothing else. First call: cd /usr && export CORPUS_PROBE=42. Second call, as its own tool call: pwd; echo \"probe=$CORPUS_PROBE\". Then report the exact output of the second call."
+  ],
+  "cwd": "/var/folders/11/m_kwnqr97632l_cjt0mhytvh0000gn/T/pstack-corpus-ur5cbW/22-PROMPT-SHELL-STATE-r1/pi/work",
+  "exit": {
+    "code": 0,
+    "signal": null,
+    "timedOut": false,
+    "spawnError": null,
+    "durationMs": 7821,
+    "timeoutMs": 180000
+  }
+}
