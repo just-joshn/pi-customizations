@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.28] - 2026-11-07
+
+- Let a cloud agent resume and fork the subagents it started. Its Pi process runs in its own checkout, and the ownership check compared that only against the main chat's workspace, so the cloud agent got "belongs to … not this workspace". A subagent now belongs to the caller whose working directory is its workspace root or its own checkout, so another cloud agent's subagents are still refused.
+
 ## [0.15.36-pi.27] - 2026-11-07
 
 - Remove a cloud agent's read-only sibling container once the run that started it has died. A killed Pi process left the sibling running forever. Each Pi session now removes, when it starts, every sibling of its workspace whose run lock names no live process, so a sibling in use by a live run is never touched.

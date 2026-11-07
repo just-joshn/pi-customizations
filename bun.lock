@@ -72,7 +72,7 @@
     },
     "extensions/pi-pstack": {
       "name": "@justjoshn/pi-pstack",
-      "version": "0.15.36-pi.27",
+      "version": "0.15.36-pi.28",
       "bin": {
         "pstack-routines-supervisor": "./bin/pstack-routines-supervisor",
       },
