@@ -175,11 +175,12 @@ const isUnder = (parent: string, child: string): boolean => {
 
 /**
  * Whether this workspace owns the record. The shared workspace state already scopes discovery; a descendant of a
- * cloud worker records the worktree it ran in, while the root that must resume it records the workspace root.
- * Older records have no workspaceRoot, so a worktree under this workspace's state folder stands in for it.
+ * cloud worker records the checkout it ran in, which the worker itself resumes from, and the workspace root, which the
+ * root resumes from. Another cloud worker's checkout matches neither. Older records have no workspaceRoot, so a
+ * checkout under this workspace's state folder stands in for it.
  */
 export function recordBelongsToWorkspace(record: Pick<AgentRecord, 'cwd' | 'workspaceRoot'>, cwd: string): boolean {
-  if (record.workspaceRoot !== undefined) return record.workspaceRoot === cwd;
+  if (record.workspaceRoot !== undefined) return record.workspaceRoot === cwd || record.cwd === cwd;
   return record.cwd === cwd || isUnder(worktreesDir(cwd), record.cwd) || isUnder(machinesDir(cwd), record.cwd);
 }
 
