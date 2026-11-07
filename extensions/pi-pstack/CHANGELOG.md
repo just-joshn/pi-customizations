@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.24] - 2026-11-07
+
+- Move a `bash` command whose `timeout` elapses to the background instead of killing it, as Cursor CLI 2026.11.05 does. The call returns the output so far with Cursor's wording, the shell ID, the PID, and the terminals file; the command keeps writing to that file, `AwaitShell` can wait on it, a notification arrives after the turn when it finishes, and ending the session stops it. It keeps no shell state. A cloud agent's `bash` does the same on its machine; the read-only shells of readonly subagents and plan mode still stop the command, since they have no background shells.
+
 ## [0.15.36-pi.23] - 2026-11-07
 
 - Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.
@@ -8,7 +12,6 @@
 - Run a cloud agent's readonly subagent on a read-only sibling container instead of the agent's writable machine: the same image and mounts, all read-only, with the read-only root filesystem and your user, removed when the subagent ends. It used to write the clone, `/tmp`, and the Projects folder from its read-only `bash`.
 - Keep a cloud command's stdout and stderr in the order the command wrote them, and make ending a cloud command (abort, timeout, or ending a background job) kill it on the machine: Debian's `sh` rejected the `kill -- -<pid>` the old code sent, so the command kept running.
 - Keep the shell's working directory and exported environment variables between `bash` calls in a session, as Cursor CLI 2026.11.05 does. Pi started every command fresh in the session's directory, so a `cd` or `export` in one call was gone in the next. `bash_background` jobs now start from the same state. Readonly subagents, plan mode, and cloud machines share the behavior; a new, resumed, or forked session and every subagent start fresh.
-- Move a `bash` command whose `timeout` elapses to the background instead of killing it, as Cursor CLI 2026.11.05 does. The call returns the output so far with Cursor's wording, the shell ID, the PID, and the terminals file; the command keeps writing to that file, `AwaitShell` can wait on it, a notification arrives after the turn when it finishes, and ending the session stops it. It keeps no shell state. A cloud agent's `bash` does the same on its machine; the read-only shells of readonly subagents and plan mode still stop the command, since they have no background shells.
 
 ## [0.15.36-pi.22] - 2026-11-07
 
