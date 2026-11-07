@@ -1,3 +1,4 @@
+import { once } from 'node:events';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -176,6 +177,49 @@ test('a busy owner receives its native follow-up after the current tool finishes
   expect(completed).toBeGreaterThan(-1);
   expect(owner.events.indexOf(wake)).toBeGreaterThan(completed);
   expect(contentText((wake['message'] as { content: string }).content)).toContain('BUSY-OWNER-WAKE');
+});
+
+test('an accepted wake survives an owner crash before notification persistence', async ({ onTestFinished }) => {
+  const sandbox = makeSandbox();
+  const owner = startRpc(sandbox);
+  const resumedSessions: ReturnType<typeof startRpc>[] = [];
+  const release = join(sandbox.workDir, 'release-crashed-owner');
+  const started = join(sandbox.workDir, 'crashed-tool-started');
+  const finished = join(sandbox.workDir, 'crashed-tool-finished');
+  onTestFinished(async () => {
+    writeFileSync(release, 'continue');
+    if (owner.child.exitCode === null && owner.child.signalCode === null) await owner.close();
+    if (existsSync(started)) await expect.poll(() => existsSync(finished), { timeout: 5_000 }).toBe(true);
+    await dispose(sandbox, resumedSessions);
+  });
+  owner.send({ type: 'prompt', message: script([{ tool: 'subscribe_timer', args: { name: 'crash-owner', prompt: 'CRASH-RECOVERED-WAKE', delaySeconds: 2, once: true } }]) });
+  await owner.waitFor((event) => event.type === 'agent_settled');
+  expect(toolEnds(owner.events, 'subscribe_timer')[0]?.isError).toBe(false);
+  const file = registry(sandbox).subscriptions[0]?.ownerSessionFile;
+  expect(file).toEqual(expect.any(String));
+  const mark = owner.events.length;
+  owner.send({ type: 'prompt', message: script([{ tool: 'bash', args: { command: `printf STARTED > '${started}'; while [ ! -f '${release}' ]; do sleep 0.01; done; printf DONE > '${finished}'; printf RELEASED` } }]) });
+  await owner.waitFor((event) => event.type === 'tool_execution_start' && event['toolName'] === 'bash' && owner.events.indexOf(event) >= mark);
+  await expect.poll(() => registry(sandbox).subscriptions[0]?.lifecycle, { timeout: 6_000 }).toBe('completed');
+  expect(owner.events.slice(mark).filter((event) => event.type === 'message_end' && (event['message'] as { customType?: string } | undefined)?.customType === 'pstack/subscription')).toEqual([]);
+  const closed = once(owner.child, 'close');
+  owner.child.kill('SIGKILL');
+  await closed;
+  writeFileSync(release, 'continue');
+
+  const resumed = startRpc(sandbox, ['--session', String(file)]);
+  resumedSessions.push(resumed);
+  const wake = await resumed.waitFor((event) => event.type === 'message_end' && (event['message'] as { customType?: string } | undefined)?.customType === 'pstack/subscription', 8_000);
+  expect(contentText((wake['message'] as { content: string }).content)).toContain('CRASH-RECOVERED-WAKE');
+  await resumed.waitFor((event) => event.type === 'agent_settled');
+  await expect.poll(() => registry(sandbox).pending.length, { timeout: 5_000 }).toBe(0);
+  await resumed.close();
+
+  const reopened = startRpc(sandbox, ['--session', String(file)]);
+  resumedSessions.push(reopened);
+  reopened.send({ type: 'prompt', message: 'go\n@@say NOTHING-PENDING' });
+  await reopened.waitFor((event) => event.type === 'agent_settled');
+  expect(reopened.events.filter((event) => event.type === 'message_end' && (event['message'] as { customType?: string } | undefined)?.customType === 'pstack/subscription')).toEqual([]);
 });
 
 test('a live fresh timer keeps the Task completion notification path', async ({ onTestFinished }) => {
