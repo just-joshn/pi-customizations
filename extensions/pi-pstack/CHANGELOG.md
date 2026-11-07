@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.30] - 2026-11-07
+
+- Stop a cloud machine only when no live run still uses it. A cloud agent, its forks, and resumes of its subagents can share one container, and each stopped it when its own run ended, so the first to finish killed the others mid-command. Every stop now first checks the workspace's run locks and records, under a per-machine lease, and the machine still stops when its last run ends. A run whose process died no longer counts.
+
 ## [0.15.36-pi.29] - 2026-11-07
 
 - Resume and fork a cloud agent's subagent on that agent's container machine. From the main chat, such a run used to execute on the host in the clone folder. It now boots the machine if it is stopped, stops it again afterwards, takes the read-only sibling container for a readonly run, and fails with "The cloud machine … no longer exists" when the machine is gone.
