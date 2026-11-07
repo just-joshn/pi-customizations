@@ -13,7 +13,7 @@
 //   @@script <json array>        step i (i = assistant messages since that user message) is
 //                                {"tool":name,"args":{}} | [{"tool":...},...] | {"text":...}
 //                                after the last step, reply "RESULTS:" plus every tool result text since the user message;
-//                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background result
+//                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background or bash result
 // Anything else is echoed as "ECHO: <text>".
 // A compaction request, which carries the transcript and so its directives, gets the reply SUMMARY.
 import type { AssistantMessage, Message, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
@@ -37,7 +37,7 @@ function lastUserIndex(messages: readonly Message[]): number {
 
 function lastShellId(after: readonly Message[]): string | undefined {
   for (const message of [...after].reverse()) {
-    if (message.role !== 'toolResult' || message.toolName !== 'bash_background') continue;
+    if (message.role !== 'toolResult' || (message.toolName !== 'bash_background' && message.toolName !== 'bash')) continue;
     const id = /^Shell ID: (\d+)$/m.exec(textOf(message.content))?.[1];
     if (id !== undefined) return id;
   }

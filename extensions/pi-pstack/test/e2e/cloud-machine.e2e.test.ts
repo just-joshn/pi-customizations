@@ -320,4 +320,21 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(result?.text).toContain('RESULTS:\n[bash] (no output)\n[bash] /usr\nprobe=42\n');
     expect(result?.text).toContain('bg=/usr 42');
   });
+
+  test('a machine bash call whose timeout elapses keeps running on the machine as a background job', async () => {
+    await pushedRepo();
+    const steps = [
+      { tool: 'bash', args: { command: 'echo START; sleep 2; echo LATE', timeout: 1 } },
+      { tool: 'AwaitShell', args: { shell_id: '@@shell-id', block_until_ms: 20_000 } },
+    ];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'cloud timeout', prompt: `go\n@@script ${JSON.stringify(steps)}`, environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    containers.push(`pstack-${(result?.details as { agentId?: string } | undefined)?.agentId ?? ''}`);
+    expect(result?.isError, result?.text).toBe(false);
+    expect(result?.text).toMatch(
+      /\[bash\] The command did not complete in 1000ms and was sent to the background\.\nShell ID: \d+\nPID: \d+\n[\s\S]*```\nSTART\n\n```\n\[AwaitShell\] Task completed in \d+ms with exit code: 0\.\noutput_file_path: (\S+)\n/,
+    );
+    const path = /output_file_path: (\S+)/.exec(result?.text ?? '')?.[1] ?? '';
+    expect(readFileSync(path, 'utf8')).toMatch(/---\nSTART\nLATE\n\n---\nexit_code: 0\n/);
+  });
 });
