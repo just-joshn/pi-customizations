@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "sourceRevision": "2776ddd2355d6d6c8747d3964600f28daf62f049",
+  "definedBeforeExecution": "2026-11-06",
+  "scope": "Initial model-mediated scenarios. This corpus is not complete contract coverage.",
+  "protocol": {
+    "repeats": 3,
+    "order": "Alternate Cursor-first and pi-first on successive attempts. Run every declared attempt and retain failures.",
+    "fixture": "Separate empty Git repositories with identical README.md bytes and initial tree. No project instructions, no model-rule overrides, and no sticky mode at start.",
+    "model": "gpt-5.6-sol at medium reasoning on both hosts. Cursor selector gpt-5.6-sol-medium. Pi selector openai/gpt-5.6-sol with --thinking medium. Record reported provider identities, context sizes and any unavailable inference controls. An unestablished required control leaves comparability UNVERIFIED rather than silently passing.",
+    "modelAmendment": "Before any acceptance-corpus pair completed, preflights for gpt-5.4-mini and gpt-5.3-codex were blocked because Pi's ChatGPT-backed credentials rejected those models with model_not_found. Cursor also required both access and refresh credentials in its isolated profile. Failed preflights remain under .audit/pstack-release-2026-11-06/prompt-first, prompt-retry, model-preflight and cursor-auth-preflight. Fresh isolated preflights on gpt-5.6-sol returned the exact sentinel on both hosts. No successful corpus samples were discarded. Prompts and assertions did not change.",
+    "normalization": ["Absolute disposable repository roots", "Absolute installed skill roots"],
+    "notNormalized": ["Tool failures", "Missing workflow steps", "Changed file contents", "Different external effects", "Missing gates", "Model responses"],
+    "assessment": "Assert deterministic predicates automatically. Retain semantic assertions for independent review. Text heuristics cannot establish all semantic assertions."
+  },
+  "scenarios": [
+    {
+      "id": "PROMPT-IN-YOUR-OWN-WORDS",
+      "requirements": ["SKILL-PSTACK-in-your-own-words"],
+      "source": "pstack/skills/in-your-own-words/SKILL.md:7",
+      "messages": ["/in-your-own-words I want a command that lists duplicate files without deleting them. My problem is wasted disk space, but I do not want to lose data."],
+      "assertions": ["The reply restates the goal of finding duplicate files.", "The reply retains the no-deletion and data-safety constraints.", "No file is created, edited, or deleted.", "No implementation or delegation starts."],
+      "automatic": {"unchangedTree": true, "forbiddenTools": ["Task", "write", "edit"], "requiredText": ["duplicat", "delet"]}
+    },
+    {
+      "id": "PROMPT-SHARPEN",
+      "requirements": ["SKILL-PSTACK-sharpen"],
+      "source": "pstack/skills/sharpen/SKILL.md:7-16",
+      "messages": ["/sharpen Investigate why a command-line application sometimes loses the last line of output when it exits."],
+      "assertions": ["The reply states what a top professional would add.", "The reply names raw evidence to inspect.", "The reply names specific methods and tools.", "The reply identifies an external correctness check.", "A rewritten prompt follows those four considerations.", "The reply does not silently select user-owned product choices.", "No implementation or external effect occurs."],
+      "automatic": {"unchangedTree": true, "forbiddenTools": ["Task", "write", "edit"], "requiredText": ["prompt", "output"]}
+    },
+    {
+      "id": "PROMPT-HELP-NO-WORK",
+      "requirements": ["SKILL-PSTACK-poteto-help"],
+      "source": "pstack/skills/poteto-help/SKILL.md:9-15,69-73,191-193",
+      "messages": ["/poteto-help Which skill should I use to understand how a module works? Do not start the investigation."],
+      "assertions": ["The reply recommends /how.", "The reply gives at most one adapted example prompt.", "The reply links the public source for its answer.", "No module investigation, delegation, or code edit starts."],
+      "automatic": {"unchangedTree": true, "forbiddenTools": ["Task", "write", "edit"], "requiredText": ["/how", "https://github.com/"]}
+    },
+    {
+      "id": "PROMPT-BRO-FOLLOWUP",
+      "requirements": ["SKILL-PSTACK-bro"],
+      "source": "pstack/skills/bro/SKILL.md:7",
+      "messages": ["Reply with exactly this sentence and do not run tools. The asynchronous consumer retains the final buffered line until the producer signals end of stream.", "/bro"],
+      "assertions": ["The follow-up restates the preceding assistant message rather than inventing a new task.", "The reply uses simpler language.", "The reply preserves that the consumer waits for the producer's end signal before releasing the last buffered line.", "No file or external effect occurs."],
+      "automatic": {"unchangedTree": true, "forbiddenTools": ["Task", "write", "edit"], "requiredText": ["line"]}
+    },
+    {
+      "id": "PROMPT-NONTRIGGER-MENTION",
+      "requirements": ["HOST-SKILL-LOAD", "HOST-SKILL-REF"],
+      "source": "pstack/skills/poteto-help/SKILL.md:42,171-174",
+      "messages": ["I am documenting command names. Reply with exactly NONTRIGGER-20261106. The name poteto-mode is an example, not an invocation. Do not run tools."],
+      "assertions": ["The reply is exactly NONTRIGGER-20261106.", "No pstack playbook, todo list, persistent mode, or delegation activates.", "No file or external effect occurs."],
+      "automatic": {"unchangedTree": true, "forbiddenTools": ["Task", "TodoWrite", "Loop", "write", "edit"], "exactFinalText": "NONTRIGGER-20261106"}
+    }
+  ]
+}

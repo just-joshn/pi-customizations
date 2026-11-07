@@ -1,0 +1,871 @@
+{
+  "schemaVersion": 2,
+  "sourceRevision": "2776ddd2355d6d6c8747d3964600f28daf62f049",
+  "definedBeforeExecution": "2026-11-07",
+  "scope": "Five model-mediated scenarios defined 2026-11-06 plus six host and invocation scenarios defined 2026-11-07, before any run of this corpus. Not complete contract coverage.",
+  "priorCorpusSha256": "97711c1cb89de4321c663907ad85b137016f35c76eed76182012401c93de5831",
+  "protocol": {
+    "repeats": "Per scenario: 3 for the 2026-11-06 scenarios, 2 for the 2026-11-07 scenarios.",
+    "order": "Pairs run sequentially in corpus order. Odd global pair ordinals run Cursor first, even ordinals run Pi first. Every declared attempt runs once with no retries, and every attempt is retained, failures included.",
+    "concurrency": "One host process at a time, so Pi OAuth refreshes through the symlinked auth file never race each other.",
+    "fixture": "Separate empty Git repositories with identical README.md bytes and initial tree. No project instructions, no model-rule overrides, and no sticky mode at start.",
+    "model": "gpt-5.6-sol at medium reasoning on both hosts. Cursor --model gpt-5.6-sol-medium (reports \"GPT-5.6 Sol 272K Medium\"). Pi --model openai/gpt-5.6-sol --thinking medium (catalog context 272K). Unmatched or unobservable controls: provider routing and build identity, temperature, top-p, seed, output cap, host system prompts and tool schemas, and subagent models chosen by skills (each host resolves skill defaults against its own catalog).",
+    "cursorInvocation": "cursor-agent --print --output-format stream-json --trust --force --model gpt-5.6-sol-medium --plugin-dir <pstack> --plugin-dir <cursor-team-kit> [--resume <session>] -- <message>. Isolated HOME/XDG per attempt; the only link to the user profile is HOME/Library/Keychains -> ~/Library/Keychains for login. --force matches Pi, which has no command approval gate. The 2026-11-06 run omitted --force.",
+    "piInvocation": "pi --mode json --model openai/gpt-5.6-sol --thinking medium --no-mcp --session-dir <attempt>/sessions --session-id <fixed uuid per attempt> -- <message>. Fresh PI_CODING_AGENT_DIR per attempt with only the packed pi-pstack installed by `pi install npm:@justjoshn/pi-pstack@file:<archive>`, and auth.json symlinked to the user file, never copied.",
+    "toolNameMap": {
+      "cursor": {
+        "readToolCall": "read",
+        "shellToolCall": "bash",
+        "editToolCall": "edit",
+        "writeToolCall": "write",
+        "deleteToolCall": "delete",
+        "updateTodosToolCall": "TodoWrite",
+        "taskToolCall": "Task",
+        "awaitToolCall": "AwaitShell",
+        "globToolCall": "find",
+        "grepToolCall": "grep",
+        "lsToolCall": "ls",
+        "getMcpToolsToolCall": "GetDynamicTools"
+      },
+      "pi": {
+        "read": "read",
+        "bash": "bash",
+        "bash_background": "bash_background",
+        "edit": "edit",
+        "write": "write",
+        "TodoWrite": "TodoWrite",
+        "Task": "Task",
+        "AwaitShell": "AwaitShell",
+        "find": "find",
+        "grep": "grep",
+        "ls": "ls"
+      }
+    },
+    "checkKinds": {
+      "runValid": "Every turn: process exit 0, no timeout, no output cap, no host error event. Every turn not listed in hostCommandTurns for that host: the host reports a completed agent turn and every assistant message reports gpt-5.6-sol at medium (Pi provider openai, thinking medium; Cursor model label GPT-5.6 Sol <ctx> Medium).",
+      "unchangedTree": "Repository file manifest, HEAD, tree, status, and diff are identical before and after.",
+      "noTool": "No call to any listed normalized tool (in the given turn, or any turn).",
+      "toolCount": "Count of calls to the normalized tool lies within [min, max].",
+      "readPath": "A read call whose path matches the pattern, or a bash call whose command contains a string matching it.",
+      "noReadPath": "Negation of readPath.",
+      "todoFirstMatchesPlaybookStep": "The first TodoWrite call (in the turn) has a first item whose normalized content contains the first six normalized words of step 1 of a playbook the agent read in that turn, taken from Cursor pstack at sourceRevision. Normalization: lowercase, drop ** and backticks and leading list numbers, collapse whitespace.",
+      "everyTaskReadonly": "Every Task call has readonly true. UNVERIFIED on a host whose events do not carry the field.",
+      "everyTaskSubagentType": "Every Task call names the subagent type.",
+      "shellStatePersists": "Some bash call matches setPattern, and a later separate bash call matches usePattern, contains no cd and no CORPUS_PROBE assignment, and its own output contains every expect string.",
+      "shellCallCount": "Number of bash or bash_background calls whose command contains the pattern equals the value.",
+      "shellMovedToBackground": "The first such call is a foreground bash call (Pi tool bash; Cursor isBackground false) and its result says it moved to the background (Cursor backgroundReason set or background text; Pi background text).",
+      "toolAfterShell": "A call to the tool occurs after that shell call.",
+      "toolResultAfterShellIncludes": "A tool result or host notification event after that shell call starts contains the text (Cursor tool_call completed and system events; Pi tool_execution_update/end and non-assistant, non-user messages). Assistant text does not count.",
+      "finalTextIncludes": "The final assistant text of the turn (last turn by default) contains each string (case-sensitive unless caseInsensitive).",
+      "finalTextExact": "The final assistant text equals the string.",
+      "hostFileAbsent": "The host's pstack model rule file does not exist after the attempt."
+    },
+    "scoring": "Mandatory checks are workflow steps and effects; outcome checks are reply content and optional paths. A check is PASS, FAIL, or UNVERIFIED. A scenario attempt passes mandatory only if every mandatory check is PASS. An invalid run (runValid FAIL) still has every other check scored on what happened and is reported as invalid, never dropped. Prose assertions not encoded as checks are not machine-scored and are reported as UNVERIFIED.",
+    "normalization": [
+      "Absolute disposable repository roots",
+      "Absolute installed skill roots"
+    ],
+    "notNormalized": [
+      "Tool failures",
+      "Missing workflow steps",
+      "Changed file contents",
+      "Different external effects",
+      "Missing gates",
+      "Model responses"
+    ],
+    "credentialHandling": "Credentials are symlinked, never copied or printed. Retained transcripts are scrubbed for bearer tokens, JWTs, and the literal token values of the user auth file before they are written."
+  },
+  "scenarios": [
+    {
+      "id": "PROMPT-IN-YOUR-OWN-WORDS",
+      "requirements": [
+        "SKILL-PSTACK-in-your-own-words"
+      ],
+      "source": "pstack/skills/in-your-own-words/SKILL.md:7",
+      "messages": [
+        "/in-your-own-words I want a command that lists duplicate files without deleting them. My problem is wasted disk space, but I do not want to lose data."
+      ],
+      "assertions": [
+        "The reply restates the goal of finding duplicate files.",
+        "The reply retains the no-deletion and data-safety constraints.",
+        "No file is created, edited, or deleted.",
+        "No implementation or delegation starts."
+      ],
+      "automatic": {
+        "unchangedTree": true,
+        "forbiddenTools": [
+          "Task",
+          "write",
+          "edit"
+        ],
+        "requiredText": [
+          "duplicat",
+          "delet"
+        ]
+      },
+      "origin": "parity/pstack-release-2026-11-06/corpus.json (stash@{0}, defined 2026-11-06)",
+      "repeats": 3,
+      "turnTimeoutMs": 180000,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "tools": [
+            "Task",
+            "write",
+            "edit"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "duplicat",
+            "delet"
+          ],
+          "caseInsensitive": true
+        }
+      ],
+      "messageSha256": [
+        "be398c155288898aec66b84fe260e34f85054ee68220ea0e2783d4f046f63f2b"
+      ]
+    },
+    {
+      "id": "PROMPT-SHARPEN",
+      "requirements": [
+        "SKILL-PSTACK-sharpen"
+      ],
+      "source": "pstack/skills/sharpen/SKILL.md:7-16",
+      "messages": [
+        "/sharpen Investigate why a command-line application sometimes loses the last line of output when it exits."
+      ],
+      "assertions": [
+        "The reply states what a top professional would add.",
+        "The reply names raw evidence to inspect.",
+        "The reply names specific methods and tools.",
+        "The reply identifies an external correctness check.",
+        "A rewritten prompt follows those four considerations.",
+        "The reply does not silently select user-owned product choices.",
+        "No implementation or external effect occurs."
+      ],
+      "automatic": {
+        "unchangedTree": true,
+        "forbiddenTools": [
+          "Task",
+          "write",
+          "edit"
+        ],
+        "requiredText": [
+          "prompt",
+          "output"
+        ]
+      },
+      "origin": "parity/pstack-release-2026-11-06/corpus.json (stash@{0}, defined 2026-11-06)",
+      "repeats": 3,
+      "turnTimeoutMs": 180000,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "tools": [
+            "Task",
+            "write",
+            "edit"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "prompt",
+            "output"
+          ],
+          "caseInsensitive": true
+        }
+      ],
+      "messageSha256": [
+        "708fe5e4d058b9be4c02265e1c17d03f994031846d93d631866ef89d789cae72"
+      ]
+    },
+    {
+      "id": "PROMPT-HELP-NO-WORK",
+      "requirements": [
+        "SKILL-PSTACK-poteto-help"
+      ],
+      "source": "pstack/skills/poteto-help/SKILL.md:9-15,69-73,191-193",
+      "messages": [
+        "/poteto-help Which skill should I use to understand how a module works? Do not start the investigation."
+      ],
+      "assertions": [
+        "The reply recommends /how.",
+        "The reply gives at most one adapted example prompt.",
+        "The reply links the public source for its answer.",
+        "No module investigation, delegation, or code edit starts."
+      ],
+      "automatic": {
+        "unchangedTree": true,
+        "forbiddenTools": [
+          "Task",
+          "write",
+          "edit"
+        ],
+        "requiredText": [
+          "/how",
+          "https://github.com/"
+        ]
+      },
+      "origin": "parity/pstack-release-2026-11-06/corpus.json (stash@{0}, defined 2026-11-06)",
+      "repeats": 3,
+      "turnTimeoutMs": 180000,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "tools": [
+            "Task",
+            "write",
+            "edit"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "/how",
+            "https://github.com/"
+          ],
+          "caseInsensitive": true
+        }
+      ],
+      "messageSha256": [
+        "d6db6dc0b3ecb8b2b63d0deca4b59922cd6892084c4c75f86a4b392dce3b76b3"
+      ]
+    },
+    {
+      "id": "PROMPT-BRO-FOLLOWUP",
+      "requirements": [
+        "SKILL-PSTACK-bro"
+      ],
+      "source": "pstack/skills/bro/SKILL.md:7",
+      "messages": [
+        "Reply with exactly this sentence and do not run tools. The asynchronous consumer retains the final buffered line until the producer signals end of stream.",
+        "/bro"
+      ],
+      "assertions": [
+        "The follow-up restates the preceding assistant message rather than inventing a new task.",
+        "The reply uses simpler language.",
+        "The reply preserves that the consumer waits for the producer's end signal before releasing the last buffered line.",
+        "No file or external effect occurs."
+      ],
+      "automatic": {
+        "unchangedTree": true,
+        "forbiddenTools": [
+          "Task",
+          "write",
+          "edit"
+        ],
+        "requiredText": [
+          "line"
+        ]
+      },
+      "origin": "parity/pstack-release-2026-11-06/corpus.json (stash@{0}, defined 2026-11-06)",
+      "repeats": 3,
+      "turnTimeoutMs": 180000,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "tools": [
+            "Task",
+            "write",
+            "edit"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "text-presence",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "line"
+          ],
+          "caseInsensitive": true
+        }
+      ],
+      "messageSha256": [
+        "c641d43404c5ed310e990f9eb9c43e4927f668332323af5517a44db83f6cef1f",
+        "f783a9a3a07864307a986ce8d66eb8c6ac6ac2cc35117f0d4eeec665a919d2aa"
+      ]
+    },
+    {
+      "id": "PROMPT-NONTRIGGER-MENTION",
+      "requirements": [
+        "HOST-SKILL-LOAD",
+        "HOST-SKILL-REF"
+      ],
+      "source": "pstack/skills/poteto-help/SKILL.md:42,171-174",
+      "messages": [
+        "I am documenting command names. Reply with exactly NONTRIGGER-20261106. The name poteto-mode is an example, not an invocation. Do not run tools."
+      ],
+      "assertions": [
+        "The reply is exactly NONTRIGGER-20261106.",
+        "No pstack playbook, todo list, persistent mode, or delegation activates.",
+        "No file or external effect occurs."
+      ],
+      "automatic": {
+        "unchangedTree": true,
+        "forbiddenTools": [
+          "Task",
+          "TodoWrite",
+          "Loop",
+          "write",
+          "edit"
+        ],
+        "exactFinalText": "NONTRIGGER-20261106"
+      },
+      "origin": "parity/pstack-release-2026-11-06/corpus.json (stash@{0}, defined 2026-11-06)",
+      "repeats": 3,
+      "turnTimeoutMs": 180000,
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "forbidden-tools",
+          "kind": "noTool",
+          "tools": [
+            "Task",
+            "TodoWrite",
+            "Loop",
+            "write",
+            "edit"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exact-final-text",
+          "kind": "finalTextExact",
+          "text": "NONTRIGGER-20261106"
+        }
+      ],
+      "messageSha256": [
+        "613826c89061b17d27d9bce94ac3a8c4845598d65a06b43366c8a4325800b0cc"
+      ]
+    },
+    {
+      "id": "PROMPT-POTETO-MODE-ONE-MESSAGE",
+      "requirements": [
+        "SKILL-PSTACK-poteto-mode",
+        "HOST-SKILL-ATTACH-ONE-MESSAGE"
+      ],
+      "source": "pstack/skills/poteto-mode/SKILL.md:124 (open a todolist whose first items are the matched playbook's steps, copied verbatim, after opening playbooks/<title>.md); pstack/skills/poteto-mode/playbooks/investigation.md:5-10; pstack/docs/guide/01-setup.md:64 (plain Enter attaches the skill to one message); cursor.com/docs/skills (a skill invoked with / attaches to one message)",
+      "repeats": 2,
+      "turnTimeoutMs": 600000,
+      "messages": [
+        "/poteto-mode how many commits does this repository have, and who wrote them? don't change anything."
+      ],
+      "assertions": [
+        "The poteto-mode skill is attached to this message.",
+        "The agent opens the full steps of a matched playbook file under poteto-mode/playbooks/.",
+        "The agent opens a todo list whose first item is that playbook's step 1, copied verbatim.",
+        "No file in the repository changes.",
+        "The reply says the repository has one commit, authored by Corpus fixture."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "playbook-read",
+          "kind": "readPath",
+          "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$"
+        },
+        {
+          "id": "todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "tools": [
+            "write",
+            "edit",
+            "delete"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "investigation-playbook-read",
+          "kind": "readPath",
+          "pattern": "poteto-mode/playbooks/investigation\\.md$"
+        },
+        {
+          "id": "reply-names-count-and-author",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "1",
+            "Corpus fixture"
+          ]
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Absolute installed skill and plugin roots",
+        "Host tool names per protocol.toolNameMap",
+        "Todo item ids and status enums",
+        "Subagent ids and models"
+      ],
+      "messageSha256": [
+        "dc0f92b99919d9bf8f622ec812e9aa47a6a83009761595d83a7bad239fa5921a"
+      ]
+    },
+    {
+      "id": "PROMPT-MODE-STICKY",
+      "requirements": [
+        "HOST-CUSTOM-MODE-STICKY",
+        "SKILL-PSTACK-poteto-mode"
+      ],
+      "source": "cursor.com/docs/skills#using-a-skill-as-a-custom-mode (a Custom Mode keeps the skill in context for the whole session until you exit it); pstack/docs/guide/01-setup.md:64; pstack/skills/poteto-mode/SKILL.md:124",
+      "repeats": 2,
+      "turnTimeoutMs": 600000,
+      "messages": [
+        "/mode poteto-mode",
+        "how many commits does this repository have, and who wrote them? don't change anything.",
+        "/mode off",
+        "how many files does this repository track? don't change anything."
+      ],
+      "hostCommandTurns": {
+        "pi": [
+          1,
+          3
+        ]
+      },
+      "comparability": "UNVERIFIED_BY_DESIGN. Cursor documents Custom Mode entry only as Option+Enter (Mac) or Alt+Enter on a skill in the interactive / menu. Cursor CLI 2026.11.05 has no /mode slash command (cursor.com/docs/cli/reference/slash-commands) and print mode (-p) has no Custom Mode entry. The same bytes are still sent to both hosts and both are scored, but a cross-host difference on this scenario cannot be read as a parity violation. Pi is scored against Cursor's documented Custom Mode semantics.",
+      "assertions": [
+        "Turn 1 enters a persistent poteto-mode.",
+        "Turn 2, sent without a slash, runs under poteto-mode: it opens a playbook file and a todo list whose first item is that playbook's step 1.",
+        "Turn 3 exits the mode.",
+        "Turn 4 runs without poteto-mode: no playbook file is opened.",
+        "No file in the repository changes."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "turn-2-playbook-read",
+          "kind": "readPath",
+          "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$",
+          "turn": 2
+        },
+        {
+          "id": "turn-2-todo-first-item-is-playbook-step-1",
+          "kind": "todoFirstMatchesPlaybookStep",
+          "turn": 2
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "tools": [
+            "write",
+            "edit",
+            "delete"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "turn-4-no-playbook-read",
+          "kind": "noReadPath",
+          "pattern": "poteto-mode/playbooks/[a-z0-9-]+\\.md$",
+          "turn": 4
+        },
+        {
+          "id": "turn-4-no-todo",
+          "kind": "noTool",
+          "tools": [
+            "TodoWrite"
+          ],
+          "turn": 4
+        },
+        {
+          "id": "turn-2-reply-names-author",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "Corpus fixture"
+          ],
+          "turn": 2
+        },
+        {
+          "id": "turn-4-reply-names-file",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "README.md"
+          ],
+          "turn": 4
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Absolute installed skill and plugin roots",
+        "Host tool names per protocol.toolNameMap",
+        "Todo item ids and status enums",
+        "Host command turns that produce no model turn on Pi"
+      ],
+      "messageSha256": [
+        "cdab934ac4a6e5e5ef1127bc81581141ded784e701b081dcd825203af1c2d648",
+        "4eb83b57cf94d6b7f250527175b7fe26950c6f62aa4312a2d6f4416d47022568",
+        "4811b6a9b9a0ba091d877e7f0d547a9ff71152c10f83e681a65af7a1f7068110",
+        "603c86631b9a16e8ced5536f52ab25a2a22d817d0e1977be2b6ca0a736e704e3"
+      ]
+    },
+    {
+      "id": "PROMPT-HOW-READONLY-EXPLORERS",
+      "requirements": [
+        "SKILL-PSTACK-how",
+        "HOST-TASK-READONLY"
+      ],
+      "source": "pstack/skills/how/SKILL.md:10 (every spawn is a Task subagent with subagent_type generalPurpose and readonly true), :14-26 (complex questions decompose into 2 to 4 explorers spawned in one message, then one explainer), :36 (output sections)",
+      "repeats": 2,
+      "turnTimeoutMs": 600000,
+      "messages": [
+        "/how does this repository's git storage work end to end? Cover how HEAD, the refs, the index, and the object store fit together to produce README.md in the working tree."
+      ],
+      "assertions": [
+        "The agent delegates through Task subagents rather than answering alone.",
+        "Every Task is readonly.",
+        "Every Task uses the generalPurpose subagent type.",
+        "No file in the repository changes.",
+        "A complex question takes the explorer path: two or more explorers, then one explainer.",
+        "The reply uses the explainer sections, including Overview and How It Works."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "task-delegated",
+          "kind": "toolCount",
+          "tool": "Task",
+          "min": 1
+        },
+        {
+          "id": "every-task-readonly",
+          "kind": "everyTaskReadonly",
+          "note": "Cursor stream-json taskToolCall args carry no readonly field (schema probe 2026-11-07 with an explicit readonly request), so this check is UNVERIFIED on Cursor and decided on Pi."
+        },
+        {
+          "id": "every-task-general-purpose",
+          "kind": "everyTaskSubagentType",
+          "equals": "generalPurpose",
+          "note": "Cursor reports generalPurpose as subagentType {unspecified:{}} or {generalPurpose:{}}; both count."
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "tools": [
+            "write",
+            "edit",
+            "delete"
+          ]
+        }
+      ],
+      "outcome": [
+        {
+          "id": "explorer-path",
+          "kind": "toolCount",
+          "tool": "Task",
+          "min": 3
+        },
+        {
+          "id": "explainer-sections",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "Overview",
+            "How It Works"
+          ]
+        },
+        {
+          "id": "names-git-parts",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "HEAD",
+            "index",
+            "blob"
+          ]
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Absolute installed skill and plugin roots",
+        "Host tool names per protocol.toolNameMap",
+        "Task model slugs, which follow each host's model catalog",
+        "Subagent ids"
+      ],
+      "messageSha256": [
+        "fc73c612292ad1df92e8079a4ebc189e0eb5c7aa265726e1a1f56ba4a661c27d"
+      ]
+    },
+    {
+      "id": "PROMPT-SHELL-STATE",
+      "requirements": [
+        "HOST-SHELL-STATE"
+      ],
+      "source": "Cursor CLI 2026.11.05 Shell tool keeps cwd and exported variables between calls (parity/evidence/shell-probe-2026-11-07/run-1.jsonl and run-2.jsonl, second call stdout /usr and probe=42)",
+      "repeats": 2,
+      "turnTimeoutMs": 180000,
+      "messages": [
+        "Run exactly two separate shell tool calls, one after the other, and nothing else. First call: cd /usr && export CORPUS_PROBE=42. Second call, as its own tool call: pwd; echo \"probe=$CORPUS_PROBE\". Then report the exact output of the second call."
+      ],
+      "assertions": [
+        "The first shell call changes directory to /usr and exports CORPUS_PROBE=42.",
+        "A later, separate shell call that does not change directory prints /usr and probe=42.",
+        "The reply reports /usr and probe=42.",
+        "No file in the repository changes."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "state-persists-across-calls",
+          "kind": "shellStatePersists",
+          "setPattern": "cd\\s+/usr\\b[\\s\\S]*export\\s+CORPUS_PROBE=42",
+          "usePattern": "\\bpwd\\b",
+          "expect": [
+            "/usr",
+            "probe=42"
+          ]
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "exactly-two-shell-calls",
+          "kind": "toolCount",
+          "tool": "bash",
+          "min": 2,
+          "max": 2
+        },
+        {
+          "id": "reply-reports-state",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "/usr",
+            "probe=42"
+          ]
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Host tool names per protocol.toolNameMap",
+        "Shell ids, PIDs, and durations"
+      ],
+      "messageSha256": [
+        "d1e72221f0e1fb21250ba1157627a61733acb0f33edd00ee403eba979d0a91b7"
+      ]
+    },
+    {
+      "id": "PROMPT-SHELL-DEFAULT-BACKGROUND",
+      "requirements": [
+        "HOST-SHELL-DEFAULT-WAIT",
+        "HOST-AWAIT"
+      ],
+      "source": "Cursor CLI 2026.11.05 Shell tool: a call with the default 30000 ms wait returns 'The command did not complete in 30000ms and was sent to the background' with a shell id, and the agent awaits it (parity/evidence/shell-default-wait-2026-11-07/cursor-run-1.jsonl)",
+      "repeats": 2,
+      "turnTimeoutMs": 300000,
+      "messages": [
+        "Run this exact command in a single shell call, and do not set any timeout or wait option yourself: for i in $(seq 1 40); do echo tick $i; sleep 1; done; echo FINISHED. When it is done, tell me the last line it printed."
+      ],
+      "assertions": [
+        "The loop runs in exactly one foreground shell call.",
+        "That call returns early because the command is moved to the background.",
+        "The agent then waits on the background job with the await tool.",
+        "The agent observes FINISHED from the job.",
+        "The reply says the last line was FINISHED."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "single-loop-call",
+          "kind": "shellCallCount",
+          "pattern": "seq 1 40",
+          "equals": 1
+        },
+        {
+          "id": "default-background-move",
+          "kind": "shellMovedToBackground",
+          "pattern": "seq 1 40"
+        },
+        {
+          "id": "awaited-after-move",
+          "kind": "toolAfterShell",
+          "pattern": "seq 1 40",
+          "tool": "AwaitShell"
+        },
+        {
+          "id": "finished-observed",
+          "kind": "toolResultAfterShellIncludes",
+          "pattern": "seq 1 40",
+          "text": "FINISHED"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "reply-reports-finished",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "FINISHED"
+          ]
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Host tool names per protocol.toolNameMap",
+        "Shell ids, PIDs, output file paths, and durations",
+        "Wait units (Cursor milliseconds, Pi seconds)"
+      ],
+      "messageSha256": [
+        "fbe9705871792bf438eec6928bf9d08ede8b6a191e3b9f6a72d2fbac5f58c999"
+      ]
+    },
+    {
+      "id": "PROMPT-NATURAL-LANGUAGE-ROUTE",
+      "requirements": [
+        "HOST-SKILL-AUTO-INVOKE",
+        "SKILL-PSTACK-setup-pstack"
+      ],
+      "source": "pstack/skills/setup-pstack/SKILL.md:3 (the only pstack skill without disable-model-invocation; description names 'configure pstack models'), :29-34 (budget labels); cursor.com/docs/skills (the agent applies a skill when relevant unless disable-model-invocation is true)",
+      "repeats": 2,
+      "turnTimeoutMs": 300000,
+      "messages": [
+        "configure pstack models for me. show me the budget options first and don't write anything yet."
+      ],
+      "assertions": [
+        "The agent loads the setup-pstack skill without a slash command.",
+        "No file is written, including the host's pstack model rule.",
+        "The reply offers the four budget labels: unlimited, large, medium, small."
+      ],
+      "mandatory": [
+        {
+          "id": "run-valid",
+          "kind": "runValid"
+        },
+        {
+          "id": "setup-pstack-skill-read",
+          "kind": "readPath",
+          "pattern": "setup-pstack/SKILL\\.md$"
+        },
+        {
+          "id": "unchanged-tree",
+          "kind": "unchangedTree"
+        },
+        {
+          "id": "no-file-tools",
+          "kind": "noTool",
+          "tools": [
+            "write",
+            "edit",
+            "delete"
+          ]
+        },
+        {
+          "id": "model-rule-not-written",
+          "kind": "hostFileAbsent"
+        }
+      ],
+      "outcome": [
+        {
+          "id": "budget-labels",
+          "kind": "finalTextIncludes",
+          "texts": [
+            "unlimited",
+            "large",
+            "medium",
+            "small"
+          ]
+        }
+      ],
+      "normalization": [
+        "Absolute repository roots",
+        "Absolute installed skill and plugin roots",
+        "Host tool names per protocol.toolNameMap",
+        "Host rule path (Cursor ~/.cursor/rules/pstack-models.mdc, Pi $PI_CODING_AGENT_DIR/pstack/pstack-models.md)"
+      ],
+      "messageSha256": [
+        "41ece1f5a995d21930ed6105d422834b0e76e4d17a99baec50105567741d6389"
+      ]
+    }
+  ]
+}
