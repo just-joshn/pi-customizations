@@ -1,12 +1,20 @@
 # Installed helpers on released Pi 1.5.0
 
-Archive `justjoshn-pi-pstack-0.15.36-pi.20.tgz` packed from branch `fix/pstack-standalone-helpers`. SHA-256 `14a6a2ceb6a80af3ce735a89ea6dac855f878adbb2448f46684e62c91f134e75`, 671 files. `npm pack` ran the `prepack` freshness check with Bun 1.4.4.
+`run.sh` packs `extensions/pi-pstack`, installs the archive into a fresh Pi profile with `pi install npm:@justjoshn/pi-pstack@file:<archive>`, and drives the installed copy. Every step runs under `env -i` with `HOME` and `PI_CODING_AGENT_DIR` in a temporary directory and a `PATH` of one Node directory plus `/usr/bin:/bin`. The script fails if Bun is on that PATH.
 
-Every command below ran with `env -i`, `HOME` and `PI_CODING_AGENT_DIR` under `/tmp/pstack-h12`, and `PATH` holding only a Node directory plus `/usr/bin:/bin`. No Bun was on that PATH, and no `PSTACK_*` variable was set.
+```sh
+TLA2TOOLS=<tla2tools.jar 1.7.4> JAVA_BIN=<dir with java> \
+  parity/evidence/installed-helpers-2026-11-06/run.sh <node 24 bin dir> <node 22.19.0 bin dir>
+```
 
-1. `pi install npm:@justjoshn/pi-pstack@file:<archive>` with Pi 1.5.0 exited 0. It installed into the isolated profile's `npm/node_modules`.
-2. `node rpc.mjs rpc.json` started `pi --mode rpc --no-session` in that profile. `get_commands` returned 88 commands: the 10 extension commands and 78 skills. `/mode poteto-mode` appended a `pstack/mode` entry and named the installed `SKILL.md` path. See `rpc.json`.
-3. The installed `skills/statechart/scripts/statechart Login/Login.tla` checked the corpus model with real TLC 1.7.4. It reported `TypeOK, NoDeadlock` and exit 0 on Node 24.22.1 and on Node 22.19.0.
-4. The installed `bin/pstack-routines-supervisor --workspace /tmp/pstack-h12/work` started on Node 24.22.1 (`supervisor.log`) and on Node 22.19.0 (`supervisor22.log`). It created the workspace's durable directory and left no process after SIGTERM.
+The recorded run at commit `f1de4697` used Pi 1.5.0 on macOS 27.2 arm64:
 
-Before this change, the published 0.15.36-pi.20 supervisor failed under the same PATH with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, because Node does not strip types under `node_modules`.
+- `archive.sha256` holds the packed `0.15.36-pi.21` archive hash. `npm pack` ran the `prepack` freshness check with Bun 1.4.4.
+- `install.log` shows Pi's install exiting 0.
+- `rpc.json` comes from `pi --mode rpc --no-session` in that profile. `get_commands` lists 88 commands: the 10 extension commands and the 78 skills. `/mode poteto-mode` appends a `pstack/mode` entry and names the installed `SKILL.md`.
+- `statechart-v24.22.1.log` and `statechart-v22.19.0.log` show the installed statechart script checking the Login corpus model with real TLC.
+- `supervisor-v24.22.1.log` and `supervisor-v22.19.0.log` show the installed routines supervisor starting. It is gone after SIGTERM.
+
+Before this change the published `0.15.36-pi.20` supervisor failed under the same PATH with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, because Node does not strip types under `node_modules`.
+
+This covers macOS arm64 only. Linux and the other targets in the support contract are not covered here.

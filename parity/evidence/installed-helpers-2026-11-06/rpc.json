@@ -93,31 +93,31 @@
   "events": [
     {
       "type": "extension_ui_request",
-      "id": "1c82584c-a298-4f14-9db3-038aa35d56f6",
+      "id": "e30253c5-253f-4bdd-bef5-24dfeb00e27e",
       "method": "setStatus",
       "statusKey": "pstack-mode"
     },
     {
       "type": "extension_ui_request",
-      "id": "6333c6e0-210b-43fb-9c7c-a3e9e3332a60",
+      "id": "a4cb7dfb-e5dc-49cb-8665-57bff33e95de",
       "method": "setStatus",
       "statusKey": "pstack-plan"
     },
     {
       "type": "extension_ui_request",
-      "id": "0e3260d3-4d6b-4afa-8633-c24150311bc4",
+      "id": "53b89a35-4a8c-4a57-bcd8-c1b37571c2ec",
       "method": "setStatus",
       "statusKey": "pstack-project"
     },
     {
       "type": "extension_ui_request",
-      "id": "579a9ee4-9ba3-4b2b-b6a0-b7842b3e0956",
+      "id": "624796ec-2efd-4976-95ac-1cc144240802",
       "method": "setStatus",
       "statusKey": "pstack-listening"
     },
     {
       "type": "extension_ui_request",
-      "id": "8fc0908a-b9fa-4f04-bae8-aea90e75d95c",
+      "id": "afbd9000-c73c-4158-b81e-df8d8109af13",
       "method": "setWidget",
       "widgetKey": "pstack-todos"
     },
@@ -129,21 +129,21 @@
         "data": {
           "skill": "poteto-mode"
         },
-        "id": "7da67a9e",
-        "parentId": "b6476486",
-        "timestamp": "2026-11-07T02:04:55.783Z"
+        "id": "a88cc547",
+        "parentId": "d772e703",
+        "timestamp": "2026-11-07T02:06:48.759Z"
       }
     },
     {
       "type": "extension_ui_request",
-      "id": "d59aaf03-9624-4958-98a0-cd38432ec581",
+      "id": "a3acbe69-4c31-484c-9527-94fd1cb10a31",
       "method": "setStatus",
       "statusKey": "pstack-mode",
       "statusText": "\u001b[38;5;3m♛ mode: poteto-mode\u001b[39m"
     },
     {
       "type": "extension_ui_request",
-      "id": "e61d7ef4-a225-4c57-8eca-669be3aec11c",
+      "id": "aa08613c-fed0-4399-b70c-10315243e66e",
       "method": "notify",
       "message": "Mode on: poteto-mode. /mode off exits.",
       "notifyType": "info"
@@ -159,9 +159,9 @@
     },
     {
       "type": "extension_ui_request",
-      "id": "31a68e3e-d747-4ec9-b598-763c889c07b7",
+      "id": "85428874-6d8c-401e-bca9-27ab88de79c8",
       "method": "notify",
-      "message": "Mode on: poteto-mode (/tmp/pstack-h12/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/SKILL.md).",
+      "message": "Mode on: poteto-mode (/tmp/pstack-installed-sDjAz1/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/SKILL.md).",
       "notifyType": "info"
     },
     {
