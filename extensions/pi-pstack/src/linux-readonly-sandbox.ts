@@ -15,40 +15,73 @@ const SECCOMP_RET_ERRNO_EPERM = 0x0005_0001;
 const SECCOMP_RET_KILL_PROCESS = 0x8000_0000;
 const X32_SYSCALL_BIT = 0x4000_0000;
 const AF_UNIX = 1;
+const SYS_SOCKET = 1;
+const IO_URING_SETUP = 425;
+const SOCKETCALL = 102;
+const ARM_OABI_SYSCALL = 113;
 
-const ARCHES: Record<string, { audit: number; socket: number; ioUringSetup: number }> = {
-  x64: { audit: 0xc000_003e, socket: 41, ioUringSetup: 425 },
-  arm64: { audit: 0xc000_00b7, socket: 198, ioUringSetup: 425 },
-};
+interface Arch {
+  audit: number;
+  endian: 'LE' | 'BE';
+  /** Syscalls that fail with EPERM when their first argument is the given value. */
+  refusedWhen: [syscall: number, firstArgument: number][];
+  refused: number[];
+}
 
-const instruction = (code: number, jt: number, jf: number, k: number): Buffer => {
-  const bytes = Buffer.alloc(8);
-  bytes.writeUInt16LE(code, 0);
-  bytes.writeUInt8(jt, 2);
-  bytes.writeUInt8(jf, 3);
-  bytes.writeUInt32LE(k >>> 0, 4);
-  return bytes;
+// AUDIT_ARCH_* from include/uapi/linux/audit.h and syscall numbers from each architecture's syscall table; Linux 5.14
+// through 6.12 agree. socketcall(SYS_SOCKET) hides socket's domain behind a pointer a classic BPF filter cannot read, so
+// it fails for every domain; its other calls only use descriptors the command already holds, as they do on x64. ARM's
+// OABI indirect syscall would run any syscall past the filter. ppc64 is little-endian: Node publishes no big-endian build.
+const SOCKETCALL_SOCKET: [number, number] = [SOCKETCALL, SYS_SOCKET];
+const ARCHES: Record<string, Arch> = {
+  x64: { audit: 0xc000_003e, endian: 'LE', refusedWhen: [[41, AF_UNIX]], refused: [IO_URING_SETUP] },
+  arm64: { audit: 0xc000_00b7, endian: 'LE', refusedWhen: [[198, AF_UNIX]], refused: [IO_URING_SETUP] },
+  arm: { audit: 0x4000_0028, endian: 'LE', refusedWhen: [[281, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP, ARM_OABI_SYSCALL] },
+  ppc64: { audit: 0xc000_0015, endian: 'LE', refusedWhen: [[326, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
+  s390x: { audit: 0x8000_0016, endian: 'BE', refusedWhen: [[359, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
 };
 
 /**
- * A classic BPF seccomp program: socket(AF_UNIX, ...) and io_uring_setup fail with EPERM, any other architecture or
- * the x32 ABI kills the process, and everything else is allowed. Jumps are relative to the next instruction.
+ * A classic BPF seccomp program in the architecture's byte order: the `refusedWhen` and `refused` syscalls fail with
+ * EPERM, any other architecture or the x32 ABI kills the process, and everything else is allowed. Jumps are relative
+ * to the next instruction.
  */
 export function seccompFilter(arch: string): Buffer {
   const target = ARCHES[arch];
   if (target === undefined) throw new Error(`the read-only shell has no seccomp filter for ${arch}`);
+  const le = target.endian === 'LE';
+  const instruction = (code: number, jt: number, jf: number, k: number): Buffer => {
+    const bytes = Buffer.alloc(8);
+    if (le) bytes.writeUInt16LE(code, 0);
+    else bytes.writeUInt16BE(code, 0);
+    bytes.writeUInt8(jt, 2);
+    bytes.writeUInt8(jf, 3);
+    if (le) bytes.writeUInt32LE(k >>> 0, 4);
+    else bytes.writeUInt32BE(k >>> 0, 4);
+    return bytes;
+  };
+  const refusedAt = 4 + 3 * target.refusedWhen.length;
+  const allow = refusedAt + target.refused.length;
+  const errno = allow + 1;
+  const kill = allow + 2;
+  const to = (from: number, label: number) => label - from - 1;
   return Buffer.concat([
     instruction(LD_ABS_W, 0, 0, 4), // 0: architecture
-    instruction(JEQ_K, 0, 8, target.audit), // 1: native → 2, otherwise → 10
+    instruction(JEQ_K, 0, to(1, kill), target.audit), // 1: native → 2, otherwise → kill
     instruction(LD_ABS_W, 0, 0, 0), // 2: syscall number
-    instruction(JGE_K, 6, 0, X32_SYSCALL_BIT), // 3: x32 → 10
-    instruction(JEQ_K, 0, 2, target.socket), // 4: socket → 5, otherwise → 7
-    instruction(LD_ABS_W, 0, 0, 16), // 5: low word of the first argument, the domain
-    instruction(JEQ_K, 2, 1, AF_UNIX), // 6: AF_UNIX → 9, otherwise → 8
-    instruction(JEQ_K, 1, 0, target.ioUringSetup), // 7: io_uring_setup → 9, otherwise → 8
-    instruction(RET_K, 0, 0, SECCOMP_RET_ALLOW), // 8
-    instruction(RET_K, 0, 0, SECCOMP_RET_ERRNO_EPERM), // 9
-    instruction(RET_K, 0, 0, SECCOMP_RET_KILL_PROCESS), // 10
+    instruction(JGE_K, to(3, kill), 0, X32_SYSCALL_BIT), // 3: x32 → kill
+    ...target.refusedWhen.flatMap(([nr, value], index) => {
+      const at = 4 + 3 * index;
+      return [
+        instruction(JEQ_K, 0, 2, nr), // this syscall → next, otherwise → the next rule
+        instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // the low word of the first argument
+        instruction(JEQ_K, to(at + 2, errno), to(at + 2, allow), value),
+      ];
+    }),
+    ...target.refused.map((nr, index) => instruction(JEQ_K, to(refusedAt + index, errno), 0, nr)),
+    instruction(RET_K, 0, 0, SECCOMP_RET_ALLOW), // allow
+    instruction(RET_K, 0, 0, SECCOMP_RET_ERRNO_EPERM), // errno
+    instruction(RET_K, 0, 0, SECCOMP_RET_KILL_PROCESS), // kill
   ]);
 }
 

@@ -1,0 +1,199 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x; initrd /work/boot/initrd.img-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+[    0.418561] Linux version 6.12.115+deb13.1-s390x (debian-kernel@lists.debian.org) (s390x-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP Debian 6.12.115-2 (2026-11-01)
+[    0.419263] setup: Linux is running under KVM in 64-bit mode
+[    0.425650] setup: The maximum memory size is 2048MB
+[    0.425889] setup: Relocating AMODE31 section of size 0x00003000
+[    0.427019] cpu: 2 configured CPUs, 0 standby CPUs
+[    0.461549] Write protected kernel read-only data: 19744k
+[    0.462976] Zone ranges:
+[    0.462989]   DMA      [mem 0x0000000000000000-0x000000007fffffff]
+[    0.463284]   Normal   empty
+[    0.463301] Movable zone start for each node
+[    0.463316] Early memory node ranges
+[    0.463326]   node   0: [mem 0x0000000000000000-0x000000007fffffff]
+[    0.463475] Initmem setup node 0 [mem 0x0000000000000000-0x000000007fffffff]
+[    0.468625] percpu: Embedded 31 pages/cpu s86272 r8192 d32512 u126976
+[    0.469597] Kernel command line: root=/dev/vda ro init=/ro-check/guest-init.sh panic=-1 console=ttysclp0
+[    0.470488] random: crng init done
+[    0.470899] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes, linear)
+[    0.471172] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.471727] Built 1 zonelists, mobility grouping on.  Total pages: 524288
+[    0.471885] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.480483] SLUB: HWalign=256, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.527669] ftrace: allocating 33713 entries in 132 pages
+[    0.527805] ftrace: allocated 132 pages with 2 groups
+[    0.532801] rcu: Hierarchical RCU implementation.
+[    0.532818] rcu: 	RCU restricting CPUs from NR_CPUS=256 to nr_cpu_ids=2.
+[    0.532892] 	Rude variant of Tasks RCU enabled.
+[    0.532897] 	Tracing variant of Tasks RCU enabled.
+[    0.532951] rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+[    0.532970] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.533642] RCU Tasks Rude: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.533680] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.554831] NR_IRQS: 3, nr_irqs: 3, preallocated irqs: 3
+[    0.556117] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.556784] clocksource: tod: mask: 0xffffffffffffffff max_cycles: 0x3b0a9be803b, max_idle_ns: 440795202126 ns
+[    0.559427] Console: colour dummy device 80x25
+[    0.563128] printk: legacy console [ttysclp0] enabled
+[    0.564820] pid_max: default: 32768 minimum: 301
+[    0.565718] LSM: initializing lsm=capability,landlock,lockdown,yama,apparmor,tomoyo,ipe,ima,evm
+[    0.566172] landlock: Up and running.
+[    0.566199] Yama: disabled by default; enable with sysctl kernel.yama.*
+[    0.567691] AppArmor: AppArmor initialized
+[    0.567757] TOMOYO Linux initialized
+[    0.568828] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.568860] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.590117] rcu: Hierarchical SRCU implementation.
+[    0.590162] rcu: 	Max phase no-delay instances is 1000.
+[    0.593044] smp: Bringing up secondary CPUs ...
+[    0.597979] smp: Brought up 1 node, 2 CPUs
+[    0.623477] node 0 deferred pages initialised in 20ms
+[    0.623965] Memory: 2003232K/2097152K available (12184K kernel code, 1944K rwdata, 7560K rodata, 1160K init, 768K bss, 90428K reserved, 0K cma-reserved)
+[    0.631501] devtmpfs: initialized
+[    0.635547] futex hash table entries: 512 (order: 5, 131072 bytes, linear)
+[    0.639354] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.640742] audit: initializing netlink subsys (disabled)
+[    0.641757] audit: type=2000 audit(1794069844.634:1): state=initialized audit_enabled=0 res=1
+[    0.643361] thermal_sys: Registered thermal governor 'fair_share'
+[    0.643405] thermal_sys: Registered thermal governor 'bang_bang'
+[    0.643425] thermal_sys: Registered thermal governor 'step_wise'
+[    0.643435] thermal_sys: Registered thermal governor 'user_space'
+[    0.657721] iommu: Default domain type: Translated
+[    0.657782] iommu: DMA domain TLB invalidation policy: lazy mode
+[    0.658643] pps_core: LinuxPPS API ver. 1 registered
+[    0.658665] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.658712] PTP clock support registered
+[    0.667200] NetLabel: Initializing
+[    0.667246] NetLabel:  domain hash size = 128
+[    0.667258] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.667811] NetLabel:  unlabeled traffic allowed by default
+[    0.721572] VFS: Disk quotas dquot_6.6.0
+[    0.721715] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.722815] hugetlbfs: disabling because there are no supported hugepage sizes
+[    0.724162] AppArmor: AppArmor Filesystem Enabled
+[    0.743950] NET: Registered PF_INET protocol family
+[    0.745024] IP idents hash table entries: 32768 (order: 6, 262144 bytes, linear)
+[    0.776615] tcp_listen_portaddr_hash hash table entries: 1024 (order: 2, 16384 bytes, linear)
+[    0.776743] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.776991] TCP established hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.777290] TCP bind hash table entries: 16384 (order: 7, 524288 bytes, linear)
+[    0.777544] TCP: Hash tables configured (established 16384 bind 16384)
+[    0.778250] MPTCP token hash table entries: 2048 (order: 4, 49152 bytes, linear)
+[    0.778423] UDP hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.778571] UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.779351] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.779543] NET: Registered PF_XDP protocol family
+[    0.782382] Trying to unpack rootfs image as initramfs...
+[    0.782777] hypfs: The hardware system does not support hypfs
+[    0.784889] Initialise system trusted keyrings
+[    0.785893] Key type blacklist registered
+[    0.786672] workingset: timestamp_bits=46 max_order=19 bucket_order=0
+[    0.786752] zbud: loaded
+[    0.787577] fuse: init (API version 7.41)
+[    0.789136] integrity: Platform Keyring initialized
+[    1.072398] Key type asymmetric registered
+[    1.072509] Asymmetric key parser 'x509' registered
+[    1.242652] Freeing initrd memory: 25676K
+[    1.336484] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 249)
+[    1.337294] io scheduler mq-deadline registered
+[    1.347971] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.349177] hvc_iucv: The z/VM IUCV HVC device driver cannot be used without z/VM
+[    1.351640] mousedev: PS/2 mouse device common for all mice
+[    1.352919] cio: Channel measurement facility initialized using format extended (mode autodetected)
+[    1.354578] ap: The hardware system does not support AP instructions
+[    1.357011] NET: Registered PF_INET6 protocol family
+[    1.426746] Segment Routing with IPv6
+[    1.426932] In-situ OAM (IOAM) with IPv6
+[    1.427257] mip6: Mobile IPv6
+[    1.427398] NET: Registered PF_PACKET protocol family
+[    1.427804] mpls_gso: MPLS GSO support
+[    1.436961] registered taskstats version 1
+[    1.437946] Loading compiled-in X.509 certificates
+[    1.576099] Loaded X.509 cert 'Build time autogenerated kernel key: dc92233baac2120e950e67f36f4c31eacc038d7d'
+[    1.585889] Key type .fscrypt registered
+[    1.585927] Key type fscrypt-provisioning registered
+[    1.902594] Key type encrypted registered
+[    1.902706] AppArmor: AppArmor sha256 policy hashing enabled
+[    1.903007] ima: No TPM chip found, activating TPM-bypass!
+[    1.903045] ima: Allocated hash algorithm: sha256
+[    1.903918] ima: No architecture policies found
+[    1.904269] evm: Initialising EVM extended attributes:
+[    1.904284] evm: security.selinux
+[    1.904305] evm: security.SMACK64 (disabled)
+[    1.904313] evm: security.SMACK64EXEC (disabled)
+[    1.904321] evm: security.SMACK64TRANSMUTE (disabled)
+[    1.904329] evm: security.SMACK64MMAP (disabled)
+[    1.904336] evm: security.apparmor
+[    1.904343] evm: security.ima
+[    1.904350] evm: security.capability
+[    1.904362] evm: HMAC attrs: 0x1
+[    2.084488] Freeing unused kernel image (initmem) memory: 1160K
+[    2.091967] Write protected read-only-after-init data: 228k
+[    2.092107] Run /init as init process
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+[    3.251412] virtio_blk virtio0: 1/0/0 default/read/poll queues
+[    3.281976] virtio_blk virtio0: [vda] 6291456 512-byte logical blocks (3.22 GB/3.00 GiB)
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+[    3.958598] EXT4-fs (vda): mounted filesystem c9882604-9a9b-4fc6-b434-d57f387e0cc1 ro with ordered data mode. Quota mode: none.
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+=== node: s390x v22.23.4
+=== libc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41
+=== bwrap: bubblewrap 0.12.0
+=== kernel.io_uring_disabled=0
+=== before: node /ro-check/check.ts /ro-check/before/linux-readonly-sandbox.ts
+SANDBOX-REFUSED: the read-only shell has no seccomp filter for s390x
+=== before exit 1
+=== after: node /ro-check/check.ts /ro-check/after/linux-readonly-sandbox.ts
+sandbox command: exec '/usr/bin/bwrap' '--new-session' '--die-with-parent' '--unshare-all' '--share-net' '--ro-bind' '/' '/' '--dev' '/dev' '--proc' '/proc' '--cap-drop' 'ALL' '--chdir' '/tmp/ro-check-O7rQHK' '--seccomp' '3' -- '/bin/bash' -c 'true' 3< '/tmp/pi-pstack-ro-AUfWYg/unix-block.bpf'
+PASS cat
+  host:      13.7
+  sandboxed: 13.7
+PASS ls
+  host:      node | node-v22.23.4-linux-s390x
+  sandboxed: node | node-v22.23.4-linux-s390x
+PASS git log
+  host:      514fe0e RO-MARK
+  sandboxed: 514fe0e RO-MARK
+PASS touch
+  host:      WROTE
+  sandboxed: WRITE-REFUSED | touch: cannot touch 'made.txt': Read-only file system
+PASS node unix connect
+  host:      SOCKET-CONNECTED | node exit 0
+  sandboxed: SOCKET-EPERM | node exit 0
+PASS node stdout on an inherited socket
+  host:      stdout socket=true stream=Socket
+  sandboxed: stdout socket=true stream=Socket
+PASS python socket(AF_UNIX)
+  host:      socket-unix: ok
+  sandboxed: socket-unix: EPERM
+PASS direct socket syscall
+  host:      direct-socket-unix: ok | direct-socket-inet: ok
+  sandboxed: direct-socket-unix: EPERM | direct-socket-inet: ok
+PASS io_uring_setup
+  host:      io_uring_setup: ok
+  sandboxed: io_uring_setup: EPERM
+PASS node fetch loopback (refused: glibc socketcall)
+  host:      HTTP-BODY-OK | node exit 0
+  sandboxed: FETCH-FAILED EPERM | node exit 0
+PASS curl loopback (refused: glibc socketcall)
+  host:      HTTP-BODY-OK
+  sandboxed: curl: (7) Failed to connect to 127.0.0.1 port 39801 after 3 ms: Could not connect to server
+PASS socketcall(SYS_SOCKET, AF_UNIX)
+  host:      socketcall-socket-unix: ok
+  sandboxed: socketcall-socket-unix: EPERM
+RESULT: PASS 12/12 on s390x v22.23.4
+=== after exit 0
+[   16.387673] sysrq: Power Off

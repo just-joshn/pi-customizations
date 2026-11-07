@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.32] - 2026-11-07
+
+- Run the readonly shell on Linux armv7, ppc64le, and s390x. Its seccomp filter knew only x64 and arm64, so every readonly command on those architectures was refused. Each architecture's filter uses its kernel's audit arch and syscall numbers, refuses `socket(AF_UNIX)`, `io_uring_setup`, and `socketcall(SYS_SOCKET)`, and kills other ABIs. On s390x, glibc creates every socket through `socketcall`, so programs built on glibc, Node and curl included, cannot open a network connection in the readonly shell there.
+
 ## [0.15.36-pi.31] - 2026-11-07
 
 - Count a run as using its cloud machine from the moment it takes its run lock. A fork that was still starting held its lock but had no record yet, so another run ending on the same machine could stop the container under it. The run lock now names the container on a second line after the pid.
