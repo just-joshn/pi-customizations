@@ -9,13 +9,14 @@ import { linuxReadonlyCommand } from './linux-readonly-sandbox.ts';
 // Cursor's Ask-mode shell (workspace_readonly with the user's network policy; no sandbox at all by default), so
 // `gh pr view` and `curl` work, and "no state-changing commands" over the network is an instruction, as in Cursor.
 // Linux uses bubblewrap directly (linux-readonly-sandbox.ts); macOS uses sandbox-runtime's Seatbelt policy below, whose
-// proxy admits every host through the ask callback.
+// proxy admits every host through the ask callback. sandbox-runtime's NO_PROXY sends loopback around the proxy, so
+// allowLocalBinding admits direct loopback connects, which the proxy already admitted.
 // denyWrite names the paths the sandbox makes writable for itself (/tmp/claude is a dependency default), and
 // denyRead drops the dependency's writable home defaults (~/.npm/_logs, ~/.claude/debug). Seatbelt is
 // last-match-wins with deny emitted after allow.
 // Unix sockets must stay blocked too: a host service can mutate files on a command's behalf.
 const READ_ONLY_POLICY: SandboxRuntimeConfig = {
-  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: false, allowMachLookup: ['com.apple.trustd', 'com.apple.ocspd'] },
+  network: { allowedDomains: [], deniedDomains: [], allowAllUnixSockets: false, allowLocalBinding: true, allowMachLookup: ['com.apple.trustd', 'com.apple.ocspd'] },
   // trustd verifies TLS certificates for macOS and Go clients (curl, gh, git); without it every HTTPS read fails.
   enableWeakerNetworkIsolation: true,
   filesystem: {
