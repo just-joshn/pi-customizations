@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.31] - 2026-11-07
+
+- Count a run as using its cloud machine from the moment it takes its run lock. A fork that was still starting held its lock but had no record yet, so another run ending on the same machine could stop the container under it. The run lock now names the container on a second line after the pid.
+
 ## [0.15.36-pi.30] - 2026-11-07
 
 - Stop a cloud machine only when no live run still uses it. A cloud agent, its forks, and resumes of its subagents can share one container, and each stopped it when its own run ended, so the first to finish killed the others mid-command. Every stop now first checks the workspace's run locks and records, under a per-machine lease, and the machine still stops when its last run ends. A run whose process died no longer counts.
