@@ -38,7 +38,7 @@ test('publishes bundled tools without locally installed script dependencies', as
   writeFileSync(join(installed, 'index.js'), 'throw new Error("must not ship");');
 
   const { stdout } = await promisify(execFile)('npm', ['pack', copy, '--dry-run', '--json'], { cwd: sandbox.workDir, env: sandbox.env, signal });
-  const packed = JSON.parse(stdout) as { files: { path: string }[] }[];
+  const packed = JSON.parse(stdout.slice(stdout.indexOf('[\n'))) as { files: { path: string }[] }[];
   const paths = packed.flatMap((entry) => entry.files.map((file) => file.path));
   expect(paths.filter((path) => path.includes('node_modules/'))).toEqual([]);
   expect(paths).toEqual(

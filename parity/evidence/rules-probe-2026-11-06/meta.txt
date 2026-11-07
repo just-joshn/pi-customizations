@@ -1,0 +1,2 @@
+workspace=/tmp/rules-probe-t7Hp
+0875363c2051ab9b0295ba41cfce0123ec1fa7cfe4571e58fdec15eeaddddb1f  /Users/josh-desktop/src/personal/pi-customizations/.audit/rules-probe-2026-11-06/prompt.txt

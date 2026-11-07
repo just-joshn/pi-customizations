@@ -1,9 +1,17 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Starts the durable routines supervisor for one workspace.
-set -euo pipefail
-here="$(cd "$(dirname "$0")" && pwd)"
-entry="$here/../src/subscriptions/supervisor-main.ts"
+set -eu
+self=$0
+while [ -L "$self" ]; do
+  link=$(readlink "$self")
+  case $link in
+    /*) self=$link ;;
+    *) self=$(dirname "$self")/$link ;;
+  esac
+done
+here="$(cd "$(dirname "$self")" && pwd)"
+entry="$here/pstack-routines-supervisor.mjs"
 if command -v bun >/dev/null 2>&1; then
   exec bun "$entry" "$@"
 fi
-exec node --experimental-strip-types "$entry" "$@"
+exec node "$entry" "$@"

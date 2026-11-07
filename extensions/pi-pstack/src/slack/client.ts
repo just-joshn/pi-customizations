@@ -1,7 +1,7 @@
 // The Slack Web API, the boundary for Slack triggers and Slack tools: Cursor's Slack integration reads channels, posts
 // thread replies, and reacts as a bot. The token comes from the slack connector's credential file (request_secret or
 // `/secret slack token`) or SLACK_BOT_TOKEN; PSTACK_SLACK_API_URL points at another API root (Enterprise Grid, tests).
-import { readCredential } from '../secrets.ts';
+import { readCredential } from '../connector-store.ts';
 
 export const SLACK_API_ENV = 'PSTACK_SLACK_API_URL';
 const DEFAULT_API = 'https://slack.com/api/';

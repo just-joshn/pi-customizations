@@ -1,47 +1,14 @@
 // Cursor's SendToUser secret request: the agent asks the user for a secret, the user types it into a masked field, and the
 // value lands in the connector's credential file without ever entering the conversation. Connectors such as Slack read
 // their credentials from the same files.
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import type { Component, Focusable } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
+import { checkCredentialName, writeCredential } from './connector-store.ts';
 import { canAsk } from './modes.ts';
-import { stateDir } from './paths.ts';
 
-const CONNECTOR = /^[a-z0-9][a-z0-9-]{0,62}$/;
-const FIELD = /^[A-Za-z_][A-Za-z0-9_]{0,62}$/;
 const PASTE_START = '\x1b[200~';
 const PASTE_END = '\x1b[201~';
-
-export const connectorsDir = (): string => join(stateDir(), 'connectors');
-export const credentialPath = (connector: string): string => join(connectorsDir(), connector, 'credentials.json');
-
-function checkName(connector: string, field: string): void {
-  if (!CONNECTOR.test(connector)) throw new Error(`connector must be lowercase letters, digits, and hyphens: "${connector}"`);
-  if (!FIELD.test(field)) throw new Error(`field must be letters, digits, and underscores: "${field}"`);
-}
-
-/** One field of a connector's credentials, or undefined when it was never stored. */
-export function readCredential(connector: string, field: string): string | undefined {
-  const path = credentialPath(connector);
-  if (!existsSync(path)) return undefined;
-  const value = (JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>)[field];
-  return typeof value === 'string' && value !== '' ? value : undefined;
-}
-
-/** Stores one field, keeping the connector's other fields; the file is readable by this user only. */
-export function writeCredential(connector: string, field: string, value: string): string {
-  checkName(connector, field);
-  const path = credentialPath(connector);
-  mkdirSync(join(connectorsDir(), connector), { recursive: true, mode: 0o700 });
-  const current = existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>) : {};
-  const temporary = `${path}.${process.pid}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify({ ...current, [field]: value }, null, 2)}\n`, { mode: 0o600 });
-  renameSync(temporary, path);
-  return path;
-}
 
 /** A single-line field that shows a dot per character, for typing or pasting a secret in the terminal. */
 export class MaskedInput implements Component, Focusable {
@@ -116,7 +83,7 @@ export function registerSecretRequest(pi: ExtensionAPI, onStored: () => void = (
     parameters: SecretParams,
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
-      checkName(params.connector, params.field);
+      checkCredentialName(params.connector, params.field);
       if (!canAsk(ctx)) throw new Error('Nobody can enter a secret in this run. Ask the user to run /secret in an interactive chat, or to set the value in the environment.');
       const value = await askSecret(ctx, params.label);
       if (value === undefined || value.trim() === '') return { content: [{ type: 'text', text: `The user did not provide ${params.label}. Nothing was stored.` }], details: { stored: false } };
@@ -134,7 +101,7 @@ export function registerSecretRequest(pi: ExtensionAPI, onStored: () => void = (
     handler: async (args, ctx) => {
       const [connector = '', field = '', ...label] = args.trim().split(/\s+/);
       try {
-        checkName(connector, field);
+        checkCredentialName(connector, field);
         const value = await askSecret(ctx, label.join(' ') || `${connector} ${field}`);
         if (value === undefined || value.trim() === '') return ctx.ui.notify('Nothing stored.', 'info');
         ctx.ui.notify(`Stored in ${writeCredential(connector, field, value.trim())} under "${field}".`, 'info');

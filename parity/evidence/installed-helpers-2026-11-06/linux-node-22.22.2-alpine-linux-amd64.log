@@ -1,0 +1,30 @@
+Unable to find image 'node:22.22.2-alpine' locally
+22.22.2-alpine: Pulling from library/node
+8bfa0019f928: Pulling fs layer
+9e177ba73d9f: Pulling fs layer
+6a0ac1617861: Pulling fs layer
+4cc15311d45b: Pulling fs layer
+8bfa0019f928: Download complete
+4cc15311d45b: Download complete
+34860bf91a09: Download complete
+4c216c2c3668: Download complete
+9e177ba73d9f: Download complete
+6a0ac1617861: Download complete
+6a0ac1617861: Pull complete
+8bfa0019f928: Pull complete
+4cc15311d45b: Pull complete
+9e177ba73d9f: Pull complete
+Digest: sha256:8ea2348b068a9544dae7317b4f3aafcdc032df1647bb7d768a05a5cad1a7683f
+Status: Image is up to date for node:22.22.2-alpine
+x86_64
+v22.22.2
+1.5.0
+Installing npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.21.tgz...
+
+added 8 packages in 2s
+Installed npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.21.tgz
+88 commands
+TypeOK, NoDeadlock
+
+Wrote chart
+pstack-routines-supervisor started for /work (pid 219).

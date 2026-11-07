@@ -1,0 +1,1 @@
+Do not use any tools. Are skills named "control-cli", "fix-ci", and "poteto-mode" available to you? Answer yes or no for each and quote the first sentence of each description you see.

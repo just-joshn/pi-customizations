@@ -1,0 +1,178 @@
+{
+  "commandCount": 88,
+  "names": [
+    "extension:in-cloud",
+    "extension:mode",
+    "extension:plan",
+    "extension:project",
+    "extension:automations",
+    "extension:routines",
+    "extension:loop",
+    "extension:secret",
+    "extension:llama",
+    "extension:mcp",
+    "skill:skill:architect",
+    "skill:skill:arena",
+    "skill:skill:automate",
+    "skill:skill:automate-me",
+    "skill:skill:benchmark-checklist",
+    "skill:skill:blast-radius",
+    "skill:skill:bro",
+    "skill:skill:check-compiler-errors",
+    "skill:skill:control-cli",
+    "skill:skill:control-ui",
+    "skill:skill:correct",
+    "skill:skill:create-formal-verification-skill",
+    "skill:skill:create-skill",
+    "skill:skill:create-verification-skill",
+    "skill:skill:deslop",
+    "skill:skill:figure-it-out",
+    "skill:skill:fix-ci",
+    "skill:skill:fix-merge-conflicts",
+    "skill:skill:get-pr-comments",
+    "skill:skill:how",
+    "skill:skill:in-your-own-words",
+    "skill:skill:interrogate",
+    "skill:skill:ketchup",
+    "skill:skill:ketchup-video",
+    "skill:skill:loop-on-ci",
+    "skill:skill:maintain-formal-verification-skill",
+    "skill:skill:maintain-verification-skill",
+    "skill:skill:make-bot-ui",
+    "skill:skill:make-pr-easy-to-review",
+    "skill:skill:new-branch-and-pr",
+    "skill:skill:no-comments",
+    "skill:skill:poteto-help",
+    "skill:skill:poteto-mode",
+    "skill:skill:pr-review-canvas",
+    "skill:skill:principle-attack-the-premise",
+    "skill:skill:principle-boundary-discipline",
+    "skill:skill:principle-build-the-lever",
+    "skill:skill:principle-encode-lessons-in-structure",
+    "skill:skill:principle-exhaust-the-design-space",
+    "skill:skill:principle-experience-first",
+    "skill:skill:principle-explain-the-number",
+    "skill:skill:principle-fix-root-causes",
+    "skill:skill:principle-foundational-thinking",
+    "skill:skill:principle-guard-the-context-window",
+    "skill:skill:principle-laziness-protocol",
+    "skill:skill:principle-make-operations-idempotent",
+    "skill:skill:principle-migrate-callers-then-delete-legacy-apis",
+    "skill:skill:principle-minimize-reader-load",
+    "skill:skill:principle-model-the-domain",
+    "skill:skill:principle-never-block-on-the-human",
+    "skill:skill:principle-outcome-oriented-execution",
+    "skill:skill:principle-prove-it-works",
+    "skill:skill:principle-redesign-from-first-principles",
+    "skill:skill:principle-separate-before-serializing-shared-state",
+    "skill:skill:principle-sequence-verifiable-units",
+    "skill:skill:principle-subtract-before-you-add",
+    "skill:skill:principle-test-behavior-not-implementation",
+    "skill:skill:principle-type-system-discipline",
+    "skill:skill:recall",
+    "skill:skill:reflect",
+    "skill:skill:review-and-ship",
+    "skill:skill:run-smoke-tests",
+    "skill:skill:setup-pstack",
+    "skill:skill:sharpen",
+    "skill:skill:show-me-your-work",
+    "skill:skill:statechart",
+    "skill:skill:swarm",
+    "skill:skill:tdd",
+    "skill:skill:teach",
+    "skill:skill:technical-writing",
+    "skill:skill:thermo-nuclear-code-quality-review",
+    "skill:skill:typescript-best-practices",
+    "skill:skill:unslop",
+    "skill:skill:verify-this",
+    "skill:skill:weekly-review",
+    "skill:skill:what-did-i-get-done",
+    "skill:skill:why",
+    "skill:skill:workflow-from-chats"
+  ],
+  "events": [
+    {
+      "type": "extension_ui_request",
+      "id": "7427e6e3-218f-49f3-81df-8635df22f2cc",
+      "method": "setStatus",
+      "statusKey": "pstack-mode"
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "787bcad1-5e09-4fad-88c8-8d6a8716202f",
+      "method": "setStatus",
+      "statusKey": "pstack-plan"
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "e7eb30ed-ed29-46e5-9a91-3812c679f207",
+      "method": "setStatus",
+      "statusKey": "pstack-project"
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "edf70cdd-2013-41b3-9bb6-89efea4171d3",
+      "method": "setStatus",
+      "statusKey": "pstack-listening"
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "4c774c34-b8b0-48cd-9389-00ea5a6465a2",
+      "method": "setWidget",
+      "widgetKey": "pstack-todos"
+    },
+    {
+      "type": "entry_appended",
+      "entry": {
+        "type": "custom",
+        "customType": "pstack/mode",
+        "data": {
+          "skill": "poteto-mode"
+        },
+        "id": "180c2369",
+        "parentId": "1580202d",
+        "timestamp": "2026-11-07T02:17:19.467Z"
+      }
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "5a4c9492-b119-4842-83d0-5545d2490588",
+      "method": "setStatus",
+      "statusKey": "pstack-mode",
+      "statusText": "\u001b[38;5;3m♛ mode: poteto-mode\u001b[39m"
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "01ec9b65-d03e-46ea-9c7b-adb7df31bccc",
+      "method": "notify",
+      "message": "Mode on: poteto-mode. /mode off exits.",
+      "notifyType": "info"
+    },
+    {
+      "id": "m1",
+      "type": "response",
+      "command": "prompt",
+      "success": true,
+      "data": {
+        "disposition": "handled"
+      }
+    },
+    {
+      "type": "extension_ui_request",
+      "id": "2390212f-e352-475b-9d28-fb14d303fdb9",
+      "method": "notify",
+      "message": "Mode on: poteto-mode (/root/agent/npm/node_modules/@justjoshn/pi-pstack/skills/poteto-mode/SKILL.md).",
+      "notifyType": "info"
+    },
+    {
+      "id": "m2",
+      "type": "response",
+      "command": "prompt",
+      "success": true,
+      "data": {
+        "disposition": "handled"
+      }
+    }
+  ],
+  "stderr": ""
+}
