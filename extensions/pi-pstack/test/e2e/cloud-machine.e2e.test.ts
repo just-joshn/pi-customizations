@@ -330,6 +330,40 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     await expect.poll(() => docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`), { timeout: 20_000 }).toBe('exited');
   });
 
+  test('a run that ends first leaves the machine running for another run on it, and the last run to end stops it', async () => {
+    await pushedRepo();
+    const first = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'owner', prompt: 'go\n@@say READY', environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [owner] = toolEnds(first.events, 'Task');
+    const ownerId = (owner?.details as { agentId?: string } | undefined)?.agentId ?? '';
+    containers.push(`pstack-${ownerId}`);
+    expect(owner?.isError, owner?.text).toBe(false);
+    await expect.poll(() => docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`), { timeout: 20_000 }).toBe('exited');
+
+    const chat = startRpc(sandbox, ['--no-session']);
+    try {
+      const long = script([
+        { tool: 'bash', args: { command: 'sleep 15; echo LONG-FIRST', timeout: 60 } },
+        { tool: 'bash', args: { command: 'hostname' } },
+      ]);
+      chat.send({
+        type: 'prompt',
+        message: script([
+          { tool: 'Task', args: { description: 'long fork', fork: ownerId, run_in_background: true, prompt: long } },
+          { tool: 'Task', args: { description: 'short resume', resume: ownerId, prompt: script([{ tool: 'bash', args: { command: 'echo SHORT' } }]) } },
+        ]),
+      });
+      const forked = await chat.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'Task', 120_000);
+      const forkId = AGENT_ID.exec((forked['result'] as { content: { text: string }[] }).content[0]?.text ?? '')?.[1] ?? '';
+      const resumed = await chat.waitFor((event) => event.type === 'tool_execution_end' && event['toolName'] === 'Task' && event !== forked, 120_000);
+      expect(JSON.stringify(resumed['result'])).toContain('[bash] SHORT');
+      const notice = await chat.waitFor((event) => event.type === 'message_end' && JSON.stringify(event['message'] ?? {}).includes(`task_id: ${forkId}`), 120_000);
+      expect(JSON.stringify(notice['message'])).toContain(`[bash] LONG-FIRST\\n\\n[bash] pstack-${ownerId.slice(0, 8)}`);
+      await expect.poll(() => docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`), { timeout: 20_000 }).toBe('exited');
+    } finally {
+      await chat.close();
+    }
+  }, 300_000);
+
   test("the main chat's readonly resume of a cloud agent's subagent runs on a read-only sibling of its machine", async () => {
     const { ownerId, nestedId, clone } = await stoppedOwnerWithSubagent();
     const continued = await continueFromMainChat({ resume: nestedId, readonly: true }, 'cat a.txt; echo; grep -q bookworm /etc/os-release && echo DEBIAN; if (printf BYPASS > a.txt) 2>/dev/null; then echo WROTE; else echo DENIED; fi');

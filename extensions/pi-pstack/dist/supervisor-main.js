@@ -56,9 +56,10 @@ delete process.env[ROOT_SESSION_ENV];
 delete process.env[ROOT_PID_ENV];
 
 // src/cloud/machine.ts
-import { execFileSync as execFileSync2 } from "node:child_process";
-import { createWriteStream, existsSync as existsSync2, mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join as join4 } from "node:path";
+import { execFileSync as execFileSync3 } from "node:child_process";
+import { createWriteStream, existsSync as existsSync2, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync3, rmSync as rmSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { isAbsolute, join as join5, relative } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 
 // src/paths.ts
 import { homedir } from "node:os";
@@ -98,6 +99,9 @@ function workspaceSlug(cwd) {
 function workspaceStateDir(cwd, inherited = childIdentity.workspaceState) {
   return inherited ?? join(stateDir(), "workspaces", workspaceSlug(cwd));
 }
+function subagentDir(cwd) {
+  return join(workspaceStateDir(cwd), "subagents");
+}
 function projectsDir(cwd) {
   return join(workspaceStateDir(cwd), "projects");
 }
@@ -108,11 +112,96 @@ function machinesDir(cwd) {
   return join(workspaceStateDir(cwd), "machines");
 }
 
+// src/process-lock.ts
+import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
+import { mkdirSync, readdirSync, readFileSync, renameSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
+import { dirname as dirname2, join as join2 } from "node:path";
+function zombie(pid) {
+  try {
+    if (process.platform === "linux") {
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      const close = stat.lastIndexOf(")");
+      return close !== -1 && stat.slice(close + 2, close + 3) === "Z";
+    }
+    if (process.platform === "darwin") {
+      return execFileSync("ps", ["-o", "state=", "-p", String(pid)], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim().startsWith("Z");
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+function alive(pid) {
+  if (!Number.isInteger(pid) || pid <= 0)
+    return false;
+  try {
+    process.kill(pid, 0);
+    return !zombie(pid);
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+}
+function acquireLease(path) {
+  mkdirSync(dirname2(path), { recursive: true, mode: 448 });
+  const token = `${process.pid}-${randomUUID()}`;
+  const temporary = `${path}.${token}.tmp`;
+  mkdirSync(temporary, { mode: 448 });
+  try {
+    writeFileSync(join2(temporary, token), "", { mode: 384 });
+    for (let attempt = 0;attempt < 4; attempt += 1) {
+      try {
+        renameSync(temporary, path);
+        return {
+          token,
+          release: () => {
+            rmSync(join2(path, token), { force: true });
+            try {
+              rmdirSync(path);
+            } catch (error) {
+              if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
+                throw error;
+            }
+          }
+        };
+      } catch (error) {
+        if (!["ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
+          throw error;
+      }
+      let holders;
+      try {
+        holders = readdirSync(path);
+      } catch (error) {
+        if (error.code === "ENOENT")
+          continue;
+        throw error;
+      }
+      for (const holder of holders) {
+        const pid = Number(/^(\d+)-[a-f0-9-]+$/.exec(holder)?.[1]);
+        if (!Number.isInteger(pid))
+          throw new Error(`Invalid process lock ${path}. Retain it for diagnosis.`);
+        if (alive(pid))
+          return;
+        rmSync(join2(path, holder), { force: true });
+      }
+      try {
+        rmdirSync(path);
+      } catch (error) {
+        if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
+          throw error;
+      }
+    }
+    return;
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+}
+
 // src/cloud/checkout.ts
-import { execFile, execFileSync } from "node:child_process";
-import { join as join2 } from "node:path";
+import { execFile, execFileSync as execFileSync2 } from "node:child_process";
+import { join as join3 } from "node:path";
 function git(dir, args) {
-  return execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync2("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 }
 function tryGit(dir, args) {
   try {
@@ -179,7 +268,7 @@ async function resolveCloudBase(cwd, baseBranch, signal) {
 }
 function mappedCwd(cwd, clone, commit) {
   const prefix = tryGit(cwd, ["rev-parse", "--show-prefix"])?.replace(/\/$/, "") ?? "";
-  return prefix !== "" && tryGit(clone, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined ? join2(clone, prefix) : clone;
+  return prefix !== "" && tryGit(clone, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined ? join3(clone, prefix) : clone;
 }
 async function cloneCheckout(cwd, base, dest, branch, signal) {
   const common = tryGit(cwd, ["rev-parse", "--path-format=absolute", "--git-common-dir"]);
@@ -270,9 +359,9 @@ async function imageExists(image) {
 
 // src/cloud/environment.ts
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
-import { join as join3, resolve as resolve2 } from "node:path";
-var ENVIRONMENT_FILE = join3(".pi", "environment.json");
+import { existsSync, readFileSync as readFileSync2 } from "node:fs";
+import { join as join4, resolve as resolve2 } from "node:path";
+var ENVIRONMENT_FILE = join4(".pi", "environment.json");
 var DEFAULT_IMAGE_ENV = "PSTACK_CLOUD_IMAGE";
 var DEFAULT_IMAGE = "node:24-bookworm";
 var fail = (path, problem) => {
@@ -301,13 +390,13 @@ function terminalsOf(path, value) {
   });
 }
 function readEnvironment(repo, env = process.env) {
-  const path = join3(repo, ENVIRONMENT_FILE);
+  const path = join4(repo, ENVIRONMENT_FILE);
   const fallbackImage = env[DEFAULT_IMAGE_ENV] === undefined || env[DEFAULT_IMAGE_ENV] === "" ? DEFAULT_IMAGE : env[DEFAULT_IMAGE_ENV];
   if (!existsSync(path))
     return { source: undefined, image: { kind: "pull", reference: fallbackImage }, install: undefined, start: undefined, terminals: [] };
   let raw;
   try {
-    raw = JSON.parse(readFileSync(path, "utf8"));
+    raw = JSON.parse(readFileSync2(path, "utf8"));
   } catch (error) {
     return fail(path, `not valid JSON (${error instanceof Error ? error.message : String(error)})`);
   }
@@ -329,12 +418,12 @@ function readEnvironment(repo, env = process.env) {
     const dockerfile = optionalString(path, build.dockerfile, "build.dockerfile");
     if (dockerfile === undefined)
       return fail(path, "build.dockerfile is required");
-    const base = join3(repo, ".pi");
+    const base = join4(repo, ".pi");
     const file = resolve2(base, dockerfile);
     if (!existsSync(file))
       fail(path, `build.dockerfile ${file} does not exist`);
     const context = resolve2(base, optionalString(path, build.context, "build.context") ?? ".");
-    const digest = createHash("sha256").update(readFileSync(file)).update("\x00").update(context.slice(repo.length)).digest("hex").slice(0, 16);
+    const digest = createHash("sha256").update(readFileSync2(file)).update("\x00").update(context.slice(repo.length)).digest("hex").slice(0, 16);
     image = { kind: "build", dockerfile: file, context, tag: `pstack-env:${digest}` };
   }
   return {
@@ -376,14 +465,14 @@ ${prompt}`;
 ${prompt}`;
 }
 function git2(dir, args) {
-  return execFileSync2("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync3("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 }
 function githubToken(env) {
   const fromEnv = env["GH_TOKEN"] ?? env["GITHUB_TOKEN"];
   if (fromEnv !== undefined && fromEnv !== "")
     return fromEnv;
   try {
-    const token = execFileSync2("gh", ["auth", "token"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 1e4 }).trim();
+    const token = execFileSync3("gh", ["auth", "token"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 1e4 }).trim();
     return token === "" ? undefined : token;
   } catch {
     return;
@@ -432,12 +521,12 @@ async function provisionMachine(plan, signal, env = process.env) {
   if (plan.driver === "worktree")
     throw new Error("provisionMachine creates container machines; worktree machines come from task/worktree.ts");
   const base = await resolveCloudBase(plan.cwd, plan.baseBranch, signal);
-  const path = join4(plan.home, "repo");
+  const path = join5(plan.home, "repo");
   const branch = `pstack/${plan.agentId}`;
   const container = containerName(plan.agentId);
-  mkdirSync(plan.home, { recursive: true, mode: 448 });
-  const logFile = join4(plan.home, "provision.log");
-  const log = (line) => writeFileSync(logFile, `${new Date().toISOString()} ${line}
+  mkdirSync2(plan.home, { recursive: true, mode: 448 });
+  const logFile = join5(plan.home, "provision.log");
+  const log = (line) => writeFileSync2(logFile, `${new Date().toISOString()} ${line}
 `, { flag: "a" });
   let created = false;
   try {
@@ -446,18 +535,18 @@ async function provisionMachine(plan, signal, env = process.env) {
     const environment = readEnvironment(path, env);
     const image = await ensureImage(environment, log, signal);
     const token = githubToken(env);
-    const secrets = join4(plan.home, "secrets");
+    const secrets = join5(plan.home, "secrets");
     const mounts = ["-v", `${path}:${path}${plan.readonly ? ":ro" : ""}`, "-v", `${PACKAGE_ROOT}:${PACKAGE_ROOT}:ro`];
     for (const folder of plan.shared) {
-      mkdirSync(folder, { recursive: true, mode: 448 });
+      mkdirSync2(folder, { recursive: true, mode: 448 });
       mounts.push("-v", `${folder}:${folder}${plan.readonly ? ":ro" : ""}`);
     }
     if (token !== undefined) {
-      mkdirSync(secrets, { recursive: true, mode: 448 });
-      writeFileSync(join4(secrets, "github-token"), token, { mode: 384 });
+      mkdirSync2(secrets, { recursive: true, mode: 448 });
+      writeFileSync2(join5(secrets, "github-token"), token, { mode: 384 });
       configureGithubAuth(path);
-      mounts.push("-v", `${join4(secrets, "github-token")}:${GITHUB_TOKEN_PATH}:ro`);
-      writeFileSync(join4(secrets, "env"), `GH_TOKEN=${token}
+      mounts.push("-v", `${join5(secrets, "github-token")}:${GITHUB_TOKEN_PATH}:ro`);
+      writeFileSync2(join5(secrets, "env"), `GH_TOKEN=${token}
 `, { mode: 384 });
     }
     const cwd = mappedCwd(plan.cwd, path, base.commit);
@@ -477,7 +566,7 @@ async function provisionMachine(plan, signal, env = process.env) {
       "--workdir",
       cwd,
       ...hostUserArgs(plan.readonly),
-      ...token === undefined ? [] : ["--env-file", join4(secrets, "env")],
+      ...token === undefined ? [] : ["--env-file", join5(secrets, "env")],
       image,
       "sleep",
       "infinity"
@@ -501,7 +590,7 @@ async function provisionMachine(plan, signal, env = process.env) {
     };
     if (environment.install !== undefined) {
       log(`install: ${environment.install}`);
-      await execLogged(container, cwd, environment.install, join4(plan.home, "install.log"), INSTALL_TIMEOUT_MS, signal);
+      await execLogged(container, cwd, environment.install, join5(plan.home, "install.log"), INSTALL_TIMEOUT_MS, signal);
     }
     await startServices(machine);
     log("ready");
@@ -511,7 +600,7 @@ async function provisionMachine(plan, signal, env = process.env) {
       await docker(["rm", "--force", container]).catch(() => {
         return;
       });
-    rmSync(path, { recursive: true, force: true });
+    rmSync2(path, { recursive: true, force: true });
     throw error;
   }
 }
@@ -520,18 +609,73 @@ function hostUserArgs(readonly, platform = process.platform, uid = process.getui
     return [];
   return ["--user", `${uid}:${gid}`, "--env", "HOME=/tmp"];
 }
-async function stopMachine(machine) {
+function readRun(path) {
+  try {
+    return JSON.parse(readFileSync3(path, "utf8"));
+  } catch {
+    return;
+  }
+}
+function readPid(path) {
+  try {
+    return Number.parseInt(readFileSync3(path, "utf8"), 10);
+  } catch {
+    return Number.NaN;
+  }
+}
+var isUnder = (parent, child) => {
+  const path = relative(parent, child);
+  return path === "" || !path.startsWith("..") && !isAbsolute(path);
+};
+function inUse(machine, locks, self) {
+  if (!existsSync2(locks))
+    return false;
+  return readdirSync2(locks).some((name) => {
+    if (!name.endsWith(".lock"))
+      return false;
+    const pid = readPid(join5(locks, name));
+    if (pid === self || !alive(pid))
+      return false;
+    const record = readRun(join5(locks, `${name.slice(0, -".lock".length)}.json`));
+    if (record?.machine?.container !== machine.container && !(typeof record?.cwd === "string" && isUnder(machine.path, record.cwd)))
+      return false;
+    return record.run?.pid !== pid || typeof record.run.exit !== "string" || !existsSync2(record.run.exit);
+  });
+}
+var LEASE_POLL_MS = 100;
+async function withMachineLease(machine, locks, step) {
+  if (machine.driver === "worktree")
+    return step();
+  const path = join5(locks, `${machine.container}.lease`);
+  let lease = acquireLease(path);
+  while (lease === undefined) {
+    await sleep(LEASE_POLL_MS);
+    lease = acquireLease(path);
+  }
+  try {
+    return await step();
+  } finally {
+    lease.release();
+  }
+}
+async function releaseMachine(machine, locks, options = {}) {
   if (machine.driver === "worktree")
     return;
-  if (await containerState(machine.container) === "running")
-    await docker(["stop", "--time", "5", machine.container], { timeoutMs: 30000 });
+  await withMachineLease(machine, locks, async () => {
+    try {
+      if (!inUse(machine, locks, options.self) && await containerState(machine.container) === "running")
+        await docker(["stop", "--time", "5", machine.container], { timeoutMs: 30000 });
+    } finally {
+      options.finish?.();
+    }
+  });
 }
 
 // src/task/worktree.ts
-import { execFile as execFile3, execFileSync as execFileSync3 } from "node:child_process";
-import { join as join5 } from "node:path";
+import { execFile as execFile3, execFileSync as execFileSync4 } from "node:child_process";
+import { join as join6 } from "node:path";
 function git3(dir, args) {
-  return execFileSync3("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return execFileSync4("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
 }
 function tryGit2(dir, args) {
   try {
@@ -562,9 +706,9 @@ function planWorktree(cwd, worktreesDir, agentId, baseBranch) {
   if (prefix === undefined)
     throw new Error(`environment "cloud" runs the subagent in its own git worktree, but ${cwd} is not inside a git repository. Omit environment to run the subagent here.`);
   const { base, commit } = resolveBase(cwd, baseBranch);
-  const path = join5(worktreesDir, agentId);
+  const path = join6(worktreesDir, agentId);
   const inBase = prefix !== "" && tryGit2(cwd, ["cat-file", "-e", `${commit}:${prefix}`]) !== undefined;
-  return { driver: "worktree", path, cwd: inBase ? join5(path, prefix) : path, branch: `pstack/${agentId}`, base, commit };
+  return { driver: "worktree", path, cwd: inBase ? join6(path, prefix) : path, branch: `pstack/${agentId}`, base, commit };
 }
 function addWorktree(repoDir, worktree, signal) {
   const args = ["-C", repoDir, "worktree", "add", "--quiet", "-b", worktree.branch, worktree.path, worktree.commit];
@@ -587,94 +731,9 @@ import { join as join9 } from "node:path";
 // src/subscriptions/durable-store.ts
 import { execFileSync as execFileSync5 } from "node:child_process";
 import { createHash as createHash3, randomUUID as randomUUID3 } from "node:crypto";
-import { existsSync as existsSync4, mkdirSync as mkdirSync4, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync, renameSync as renameSync2, rmSync as rmSync3, writeFileSync as writeFileSync4 } from "node:fs";
+import { existsSync as existsSync4, mkdirSync as mkdirSync4, readdirSync as readdirSync3, readFileSync as readFileSync5, realpathSync, renameSync as renameSync2, rmSync as rmSync3, writeFileSync as writeFileSync4 } from "node:fs";
 import { dirname as dirname3, join as join8, resolve as resolve3 } from "node:path";
 import { performance } from "node:perf_hooks";
-
-// src/process-lock.ts
-import { execFileSync as execFileSync4 } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync2, renameSync, rmdirSync, rmSync as rmSync2, writeFileSync as writeFileSync2 } from "node:fs";
-import { dirname as dirname2, join as join6 } from "node:path";
-function zombie(pid) {
-  try {
-    if (process.platform === "linux") {
-      const stat = readFileSync2(`/proc/${pid}/stat`, "utf8");
-      const close = stat.lastIndexOf(")");
-      return close !== -1 && stat.slice(close + 2, close + 3) === "Z";
-    }
-    if (process.platform === "darwin") {
-      return execFileSync4("ps", ["-o", "state=", "-p", String(pid)], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim().startsWith("Z");
-    }
-    return false;
-  } catch {
-    return false;
-  }
-}
-function alive(pid) {
-  if (!Number.isInteger(pid) || pid <= 0)
-    return false;
-  try {
-    process.kill(pid, 0);
-    return !zombie(pid);
-  } catch (error) {
-    return error.code === "EPERM";
-  }
-}
-function acquireLease(path) {
-  mkdirSync2(dirname2(path), { recursive: true, mode: 448 });
-  const token = `${process.pid}-${randomUUID()}`;
-  const temporary = `${path}.${token}.tmp`;
-  mkdirSync2(temporary, { mode: 448 });
-  try {
-    writeFileSync2(join6(temporary, token), "", { mode: 384 });
-    for (let attempt = 0;attempt < 4; attempt += 1) {
-      try {
-        renameSync(temporary, path);
-        return {
-          token,
-          release: () => {
-            rmSync2(join6(path, token), { force: true });
-            try {
-              rmdirSync(path);
-            } catch (error) {
-              if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
-                throw error;
-            }
-          }
-        };
-      } catch (error) {
-        if (!["ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
-          throw error;
-      }
-      let holders;
-      try {
-        holders = readdirSync(path);
-      } catch (error) {
-        if (error.code === "ENOENT")
-          continue;
-        throw error;
-      }
-      for (const holder of holders) {
-        const pid = Number(/^(\d+)-[a-f0-9-]+$/.exec(holder)?.[1]);
-        if (!Number.isInteger(pid))
-          throw new Error(`Invalid process lock ${path}. Retain it for diagnosis.`);
-        if (alive(pid))
-          return;
-        rmSync2(join6(path, holder), { force: true });
-      }
-      try {
-        rmdirSync(path);
-      } catch (error) {
-        if (!["ENOENT", "ENOTEMPTY", "EEXIST"].includes(error.code ?? ""))
-          throw error;
-      }
-    }
-    return;
-  } finally {
-    rmSync2(temporary, { recursive: true, force: true });
-  }
-}
 
 // src/subscriptions/cron.ts
 var MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -740,7 +799,7 @@ function cronMatches(schedule, date) {
 
 // src/subscriptions/webhook.ts
 import { createHash as createHash2, randomBytes, randomUUID as randomUUID2, timingSafeEqual } from "node:crypto";
-import { chmodSync, existsSync as existsSync3, mkdirSync as mkdirSync3, readFileSync as readFileSync3, writeFileSync as writeFileSync3 } from "node:fs";
+import { chmodSync, existsSync as existsSync3, mkdirSync as mkdirSync3, readFileSync as readFileSync4, writeFileSync as writeFileSync3 } from "node:fs";
 import { createServer } from "node:http";
 import { join as join7 } from "node:path";
 var DEFAULT_ROUTINES_PORT = 47913;
@@ -758,7 +817,7 @@ function credentialFile(routinesDir, slug) {
 }
 function readKey(file) {
   try {
-    const key = JSON.parse(readFileSync3(file, "utf8"))?.key;
+    const key = JSON.parse(readFileSync4(file, "utf8"))?.key;
     return typeof key === "string" && KEY.test(key) ? key : undefined;
   } catch {
     return;
@@ -1003,7 +1062,7 @@ var ownerLockPath = (cwd, id) => join8(runtime(cwd), `owner-${createHash3("sha25
 var routinesPortPath = (cwd) => join8(runtime(cwd), "routines.port");
 function readRoutinesPort(cwd) {
   try {
-    const port = Number(readFileSync4(routinesPortPath(cwd), "utf8").trim());
+    const port = Number(readFileSync5(routinesPortPath(cwd), "utf8").trim());
     return Number.isInteger(port) && port > 0 && port < 65536 ? port : undefined;
   } catch {
     return;
@@ -1021,7 +1080,7 @@ function writeRoutinesPort(cwd, port) {
 function ownerIsLive(cwd, sessionId) {
   const path = ownerLockPath(cwd, sessionId);
   try {
-    const holders = readdirSync2(path);
+    const holders = readdirSync3(path);
     for (const holder of holders) {
       const pid = Number(/^(\d+)-[a-f0-9-]+$/.exec(holder)?.[1]);
       if (Number.isInteger(pid) && alive(pid))
@@ -1095,7 +1154,7 @@ function migratedOwner(sub) {
   if (sub.ownerSessionFile === undefined)
     return;
   try {
-    const header = JSON.parse(readFileSync4(sub.ownerSessionFile, "utf8").split(`
+    const header = JSON.parse(readFileSync5(sub.ownerSessionFile, "utf8").split(`
 `)[0] ?? "");
     return header.type === "session" && typeof header.id === "string" && header.id ? header.id : undefined;
   } catch {
@@ -1107,7 +1166,7 @@ function loadRegistry(cwd) {
   if (!existsSync4(path))
     return emptyRegistry(cwd);
   try {
-    const raw = JSON.parse(readFileSync4(path, "utf8"));
+    const raw = JSON.parse(readFileSync5(path, "utf8"));
     if (typeof raw !== "object" || raw === null || ![1, 2].includes(raw.version) || !Array.isArray(raw.subscriptions) || !raw.subscriptions.every(validSubscription))
       throw new Error("invalid subscriptions");
     if (typeof raw.workspaceCwd !== "string" || canonicalPath(raw.workspaceCwd) !== canonicalPath(cwd))
@@ -1150,7 +1209,7 @@ function loadRegistry(cwd) {
 function readRegistry(cwd) {
   const path = durableRegistryPath(canonicalPath(cwd));
   const registry = loadRegistry(cwd);
-  if (existsSync4(path) && JSON.parse(readFileSync4(path, "utf8")).version === 1) {
+  if (existsSync4(path) && JSON.parse(readFileSync5(path, "utf8")).version === 1) {
     return withRegistryLock(cwd, () => {
       const current = loadRegistry(cwd);
       writeAtomic(path, current);
@@ -1267,7 +1326,7 @@ function recordError(cwd, id, error) {
 }
 function readLock(cwd) {
   try {
-    const value = JSON.parse(readFileSync4(supervisorLockPath(cwd), "utf8"));
+    const value = JSON.parse(readFileSync5(supervisorLockPath(cwd), "utf8"));
     return Number.isInteger(value.pid) && value.pid > 0 && Number.isFinite(value.startedAt) && typeof value.epoch === "string" && value.epoch !== "" ? { pid: value.pid, startedAt: value.startedAt, epoch: value.epoch } : undefined;
   } catch (error) {
     if (error.code === "ENOENT")
@@ -1277,7 +1336,7 @@ function readLock(cwd) {
 }
 function supervisorProcess(pid, cwd) {
   try {
-    const cmdline = process.platform === "linux" ? readFileSync4(`/proc/${pid}/cmdline`, "utf8").split("\x00").join(" ") : process.platform === "darwin" ? execFileSync5("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }) : "";
+    const cmdline = process.platform === "linux" ? readFileSync5(`/proc/${pid}/cmdline`, "utf8").split("\x00").join(" ") : process.platform === "darwin" ? execFileSync5("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }) : "";
     return cmdline.includes(cwd) && (cmdline.includes("supervisor-main.ts") || cmdline.includes("supervisor-main.js") || cmdline.includes("pstack-routines-supervisor"));
   } catch {
     return false;
@@ -1286,7 +1345,7 @@ function supervisorProcess(pid, cwd) {
 function acquireSupervisorLock(cwd, pid = process.pid, startedAt = Date.now()) {
   return withRegistryLock(cwd, () => {
     try {
-      const raw = JSON.parse(readFileSync4(supervisorLockPath(cwd), "utf8"));
+      const raw = JSON.parse(readFileSync5(supervisorLockPath(cwd), "utf8"));
       if (Number.isInteger(raw.pid) && raw.pid > 0 && alive(raw.pid)) {
         if (typeof raw.epoch === "string" && raw.epoch !== "") {
           return { acquired: false, alreadyRunning: true, pid: raw.pid };
@@ -1341,7 +1400,7 @@ Automation memory: ${memoryFile(sub.name)} holds notes from this automation's ea
 import { randomUUID as randomUUID4 } from "node:crypto";
 
 // src/slack/trigger.ts
-import { existsSync as existsSync6, mkdirSync as mkdirSync7, readFileSync as readFileSync6, renameSync as renameSync4, writeFileSync as writeFileSync6 } from "node:fs";
+import { existsSync as existsSync6, mkdirSync as mkdirSync7, readFileSync as readFileSync7, renameSync as renameSync4, writeFileSync as writeFileSync6 } from "node:fs";
 import { join as join11 } from "node:path";
 
 // src/shell-output-watch.ts
@@ -1362,7 +1421,7 @@ function re2Test(pattern) {
 }
 
 // src/connector-store.ts
-import { existsSync as existsSync5, mkdirSync as mkdirSync6, readFileSync as readFileSync5, renameSync as renameSync3, writeFileSync as writeFileSync5 } from "node:fs";
+import { existsSync as existsSync5, mkdirSync as mkdirSync6, readFileSync as readFileSync6, renameSync as renameSync3, writeFileSync as writeFileSync5 } from "node:fs";
 import { join as join10 } from "node:path";
 var connectorsDir = () => join10(stateDir(), "connectors");
 var credentialPath = (connector) => join10(connectorsDir(), connector, "credentials.json");
@@ -1370,7 +1429,7 @@ function readCredential(connector, field) {
   const path = credentialPath(connector);
   if (!existsSync5(path))
     return;
-  const value = JSON.parse(readFileSync5(path, "utf8"))[field];
+  const value = JSON.parse(readFileSync6(path, "utf8"))[field];
   return typeof value === "string" && value !== "" ? value : undefined;
 }
 
@@ -1440,7 +1499,7 @@ function cursorFile(runtimeDir, subscriptionId) {
 function readCursor(file) {
   if (!existsSync6(file))
     return;
-  const value = JSON.parse(readFileSync6(file, "utf8"));
+  const value = JSON.parse(readFileSync7(file, "utf8"));
   return typeof value.ts === "string" && typeof value.replyTs === "string" ? { ts: value.ts, replyTs: value.replyTs } : undefined;
 }
 function writeCursor(file, cursor) {
@@ -2003,7 +2062,7 @@ async function runFresh(prompt, name, meta) {
   try {
     return await runPi(machinePreface(machine, prompt), name, meta, machine.cwd, env);
   } finally {
-    await stopMachine(machine).catch(() => {
+    await releaseMachine(machine, subagentDir(machine.cwd)).catch(() => {
       return;
     });
   }
