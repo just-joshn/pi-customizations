@@ -216,11 +216,13 @@ function readRun(path) {
     return;
   }
 }
-function readPid(path) {
+function readLock(path) {
   try {
-    return Number.parseInt(readFileSync2(path, "utf8"), 10);
+    const [pid = "", container] = readFileSync2(path, "utf8").split(`
+`);
+    return { pid: Number.parseInt(pid, 10), ...container === undefined ? {} : { container } };
   } catch {
-    return Number.NaN;
+    return { pid: Number.NaN };
   }
 }
 var isUnder = (parent, child) => {
@@ -233,13 +235,13 @@ function inUse(machine, locks, self) {
   return readdirSync2(locks).some((name) => {
     if (!name.endsWith(".lock"))
       return false;
-    const pid = readPid(join4(locks, name));
+    const { pid, container } = readLock(join4(locks, name));
     if (pid === self || !alive(pid))
       return false;
     const record = readRun(join4(locks, `${name.slice(0, -".lock".length)}.json`));
-    if (record?.machine?.container !== machine.container && !(typeof record?.cwd === "string" && isUnder(machine.path, record.cwd)))
+    if (container !== machine.container && record?.machine?.container !== machine.container && !(typeof record?.cwd === "string" && isUnder(machine.path, record.cwd)))
       return false;
-    return record.run?.pid !== pid || typeof record.run.exit !== "string" || !existsSync(record.run.exit);
+    return record?.run?.pid !== pid || typeof record.run.exit !== "string" || !existsSync(record.run.exit);
   });
 }
 var LEASE_POLL_MS = 100;
