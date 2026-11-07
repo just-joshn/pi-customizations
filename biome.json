@@ -15,6 +15,7 @@
       "!!parity/fixtures",
       "!!parity/evidence",
       "!!parity/*/evidence",
+      "!!parity/corpus-*",
       "!!parity/pi-rea/rea-6.8.0-*.json",
       "!!extensions/pi-rea/schemas/tool-contracts.json",
       "!!parity/private",
