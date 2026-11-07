@@ -2,9 +2,10 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import type { ExtensionContext } from '@earendil-works/pi-coding-agent';
+import { createLocalBashOperations, type ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { describe, expect, test, vi } from 'vitest';
 import { createShellJobs, noticeText, type ShellNotice, terminalHeader } from '../src/background-shell.ts';
+import { createSessionShell } from '../src/shell-state.ts';
 
 const ctx = { cwd: '/', model: undefined, sessionManager: { getSessionId: () => 'session', getSessionFile: () => undefined } } as unknown as ExtensionContext;
 
@@ -144,5 +145,26 @@ describe('background jobs', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  shell('session shutdown stops a command a bash call moved here, records it aborted, and does not notify', async ({ dir, jobs, notices }) => {
+    const session = createSessionShell();
+    const command = 'echo START; sleep 30';
+    let adopted: ReturnType<typeof jobs.adopt>['job'] | undefined;
+    const moving = session
+      .operations(createLocalBashOperations({ shellPath: '/bin/bash' }), (moved) => {
+        const { job, data, exit } = jobs.adopt(ctx, { command, cwd: dir, title: 'moved job', toolCallId: 'call-1' }, moved);
+        adopted = job;
+        return { data, exit, text: 'moved', outputPath: job.path };
+      })
+      .exec(session.script(command), dir, { onData: () => {}, timeout: 0.5 });
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+
+    jobs.shutdown();
+    await adopted?.done;
+
+    expect(readFileSync(adopted?.path ?? '', 'utf8')).toMatch(/status: aborted {2}\n[\s\S]*---\nSTART\n\n---\nexit_code: 143\n/);
+    expect(notices).toEqual([]);
+    expect(() => process.kill(adopted?.pid ?? 0, 0)).toThrow();
   });
 });

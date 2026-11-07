@@ -13,7 +13,7 @@ import { Text } from '@earendil-works/pi-tui';
 import { Type } from 'typebox';
 import { isOneShot } from './modes.ts';
 import { firstMatcher, OutputWatchDependencyError, type OutputWatchRequest, ShellOutputWatch } from './shell-output-watch.ts';
-import { type SessionShell, settingsShellPath } from './shell-state.ts';
+import { type Background, type MovedCommand, type SessionShell, settingsShellPath } from './shell-state.ts';
 
 export const SHELL_NOTICE_TYPE = 'pstack/shell';
 const BACKGROUND_TOOL = 'bash_background';
@@ -42,10 +42,12 @@ interface ShellJob {
   readonly headerBytes: number;
   readonly statusOffset: number;
   readonly runningOffset: number;
-  readonly child: ChildProcess;
+  /** Signals the command wherever it runs. */
+  readonly end: (signal: NodeJS.Signals) => void;
   readonly watch: ShellOutputWatch | undefined;
   readonly listeners: Set<() => void>;
   readonly done: Promise<void>;
+  readonly release: () => void;
   /** Where the next output byte goes; the header is rewritten in place, so the file is never opened for append. */
   size: number;
   /** Where the output ends once the footer is written. */
@@ -203,20 +205,25 @@ export interface ShellJobsOptions {
   spawner?: JobSpawner | undefined;
 }
 
-export interface StartRequest {
+interface JobRequest {
   command: string;
-  /** Shell lines that run before the command, such as the session shell's exports; the job header shows only the command. */
-  setup?: string;
   cwd: string;
   title: string;
   toolCallId: string;
   watch?: OutputWatchRequest;
 }
 
+export interface StartRequest extends JobRequest {
+  /** Shell lines that run before the command, such as the session shell's exports; the job header shows only the command. */
+  setup?: string;
+}
+
+/** A job's title when the call gives no description: the command's first line. */
+const titleOf = (command: string, description?: string) => description?.trim() || command.trim().split('\n')[0]?.slice(0, 80) || command;
+
 /** Every background shell this runtime started, and the notifications they owe the agent. */
 export function createShellJobs(options: ShellJobsOptions, deliver: (notice: ShellNotice) => void) {
   const jobs = new Map<string, ShellJob>();
-  const ends = new Map<number, () => void>();
   let nextId: number | undefined;
 
   const allocateId = (dir: string): string => {
@@ -269,8 +276,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     notify(job);
   };
 
-  const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
-    if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
+  const prepare = (ctx: ExtensionContext, request: JobRequest) => {
     const dir = options.terminalsDir(ctx);
     mkdirSync(dir, { recursive: true });
     const id = allocateId(dir);
@@ -286,6 +292,60 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         console.warn('Invalid shell output notification pattern', { shellId: id, error: error instanceof Error ? error.message : String(error) });
       }
     }
+    return { id, path, watch };
+  };
+
+  /** Writes the header of a running command's output file and registers the job. */
+  const track = (request: JobRequest, { id, path, watch }: ReturnType<typeof prepare>, running: { pid: number; startedAt: number; end: (signal: NodeJS.Signals) => void }): ShellJob => {
+    const header = terminalHeader({ pid: running.pid, cwd: request.cwd, command: request.command, title: request.title, startedAt: running.startedAt });
+    const fd = openSync(path, 'w+');
+    let release: () => void = () => undefined;
+    const job: ShellJob = {
+      id,
+      pid: running.pid,
+      command: request.command,
+      cwd: request.cwd,
+      title: request.title,
+      toolCallId: request.toolCallId,
+      path,
+      startedAt: running.startedAt,
+      fd,
+      headerBytes: Buffer.byteLength(header.text),
+      statusOffset: header.statusOffset,
+      runningOffset: header.runningOffset,
+      end: running.end,
+      watch,
+      listeners: new Set(),
+      done: new Promise<void>((resolveDone) => {
+        release = resolveDone;
+      }),
+      release: () => release(),
+      size: 0,
+      bodyEnd: undefined,
+      status: 'running',
+      exitCode: undefined,
+      endedAt: undefined,
+      observed: false,
+      awaiting: 0,
+      refresh: undefined,
+    };
+    append(job, header.text);
+    job.refresh = setInterval(() => refreshRunning(job), HEADER_REFRESH_MS);
+    job.refresh.unref();
+    jobs.set(id, job);
+    return job;
+  };
+
+  const receive = (job: ShellJob, text: string) => {
+    if (job.status !== 'running') return;
+    append(job, text);
+    job.watch?.observe(text);
+    notify(job);
+  };
+
+  const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
+    if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
+    const prepared = prepare(ctx, request);
     const run = `${request.setup ?? ''}${request.command}`;
     const remote = options.spawner?.spawn(run, request.cwd);
     const config = getShellConfig(options.shellPath());
@@ -304,75 +364,50 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
       spawnError = error;
     });
     if (viaStdin) child.stdin?.end(run);
-    if (child.pid === undefined) throw new Error(`Could not start ${remote === undefined ? config.shell : 'the job on the cloud machine'}${spawnError === undefined ? '' : `: ${spawnError.message}`}.`);
-    if (remote !== undefined) ends.set(child.pid, remote.end);
-    const startedAt = Date.now();
-    const header = terminalHeader({ pid: child.pid, cwd: request.cwd, command: request.command, title: request.title, startedAt });
-    const fd = openSync(path, 'w+');
-    let release: () => void = () => undefined;
-    const job: ShellJob = {
-      id,
-      pid: child.pid,
-      command: request.command,
-      cwd: request.cwd,
-      title: request.title,
-      toolCallId: request.toolCallId,
-      path,
-      startedAt,
-      fd,
-      headerBytes: Buffer.byteLength(header.text),
-      statusOffset: header.statusOffset,
-      runningOffset: header.runningOffset,
-      child,
-      watch,
-      listeners: new Set(),
-      done: new Promise<void>((resolveDone) => {
-        release = resolveDone;
-      }),
-      size: 0,
-      bodyEnd: undefined,
-      status: 'running',
-      exitCode: undefined,
-      endedAt: undefined,
-      observed: false,
-      awaiting: 0,
-      refresh: undefined,
+    const pid = child.pid;
+    if (pid === undefined) throw new Error(`Could not start ${remote === undefined ? config.shell : 'the job on the cloud machine'}${spawnError === undefined ? '' : `: ${spawnError.message}`}.`);
+    const end = (signal: NodeJS.Signals) => {
+      if (signal === 'SIGTERM') remote?.end();
+      signalGroupId(pid, signal);
     };
-    append(job, header.text);
-    job.refresh = setInterval(() => refreshRunning(job), HEADER_REFRESH_MS);
-    job.refresh.unref();
+    const job = track(request, prepared, { pid, startedAt: Date.now(), end });
     for (const stream of [child.stdout, child.stderr]) {
       if (stream === null) continue;
       const decoder = new StringDecoder('utf8');
-      stream.on('data', (chunk: Buffer) => {
-        if (job.status !== 'running') return;
-        const text = decoder.write(chunk);
-        append(job, text);
-        job.watch?.observe(text);
-        notify(job);
-      });
-      stream.on('end', () => {
-        if (job.status !== 'running') return;
-        const text = decoder.end();
-        append(job, text);
-        job.watch?.observe(text);
-        notify(job);
-      });
+      stream.on('data', (chunk: Buffer) => receive(job, decoder.write(chunk)));
+      stream.on('end', () => receive(job, decoder.end()));
     }
     child.on('error', (error) => {
       if (job.status === 'running') append(job, `${error.message}\n`);
       finish(job, 'failed', 127, true);
-      release();
+      job.release();
     });
     child.on('close', (code, signal) => {
-      liveGroups.delete(job.pid);
+      liveGroups.delete(pid);
       const { status, exitCode } = exitStatus(code, signal);
       finish(job, status, exitCode, true);
-      release();
+      job.release();
     });
-    trackGroup(job.pid);
-    jobs.set(id, job);
+    trackGroup(pid);
     return job;
+  };
+
+  /** Takes over a command another tool started and still runs: a bash call whose timeout elapsed. */
+  const adopt = (ctx: ExtensionContext, request: JobRequest, moved: MovedCommand) => {
+    const job = track(request, prepare(ctx, request), { pid: moved.pid, startedAt: moved.startedAt, end: moved.stop });
+    const decoder = new StringDecoder('utf8');
+    receive(job, decoder.write(moved.output));
+    return {
+      job,
+      data: (chunk: Buffer) => receive(job, decoder.write(chunk)),
+      exit: (exitCode: number | undefined) => {
+        // Appended without waking waiters: finish wakes them, and a waiter woken first would miss the end and let it notify.
+        if (job.status === 'running') append(job, decoder.end());
+        const ended = exitCode === undefined ? { status: 'aborted' as const, exitCode: 128 + constants.signals.SIGTERM } : exitStatus(exitCode, null);
+        finish(job, ended.status, ended.exitCode, true);
+        job.release();
+      },
+    };
   };
 
   /** The command's output so far: the file between the header and the footer. */
@@ -426,31 +461,27 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     }
   };
 
-  const signalGroup = (job: ShellJob, signal: NodeJS.Signals) => {
-    if (signal === 'SIGTERM') ends.get(job.pid)?.();
-    signalGroupId(job.pid, signal);
-  };
-
   /** Session end: every running job is stopped and recorded as aborted, announced only when `announce` is set. */
   const shutdown = (announce = false) => {
     for (const job of jobs.values()) {
       if (job.status !== 'running') continue;
-      signalGroup(job, 'SIGTERM');
-      const kill = setTimeout(() => signalGroup(job, 'SIGKILL'), KILL_GRACE_MS);
+      job.end('SIGTERM');
+      const kill = setTimeout(() => job.end('SIGKILL'), KILL_GRACE_MS);
       kill.unref();
       finish(job, 'aborted', 128 + constants.signals.SIGTERM, announce);
     }
   };
   return {
     start,
+    adopt,
     output,
     awaitJob,
     change,
     shutdown,
     running: () => [...jobs.values()].filter((job) => job.status === 'running'),
     stop: (job: ShellJob) => {
-      signalGroup(job, 'SIGTERM');
-      setTimeout(() => signalGroup(job, 'SIGKILL'), KILL_GRACE_MS).unref();
+      job.end('SIGTERM');
+      setTimeout(() => job.end('SIGKILL'), KILL_GRACE_MS).unref();
     },
   };
 }
@@ -554,7 +585,7 @@ export interface BackgroundShellOptions {
 }
 
 /** bash_background and AwaitShell, plus the notifications their jobs send. `announce` delivers a descendant's notice here. */
-export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShellOptions): { hasRunningJobs: () => boolean; announce: (notice: ShellNotice) => void } {
+export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShellOptions): { hasRunningJobs: () => boolean; announce: (notice: ShellNotice) => void; adopt: Background } {
   const pending: ShellNotice[] = [];
   const arrivals = new Set<() => void>();
   let mode: ExtensionContext['mode'] | undefined;
@@ -619,7 +650,7 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     async execute(toolCallId, params, signal, _onUpdate, ctx) {
       const base = options.shell.cwd() ?? ctx.cwd;
       const cwd = params.working_directory === undefined || params.working_directory.trim() === '' ? base : resolve(base, params.working_directory);
-      const title = params.description?.trim() || params.command.trim().split('\n')[0]?.slice(0, 80) || params.command;
+      const title = titleOf(params.command, params.description);
       const watch = params.notify_on_output;
       const job = jobs.start(ctx, {
         command: params.command,
@@ -668,5 +699,10 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     },
   });
 
-  return { hasRunningJobs: () => jobs.running().length > 0, announce };
+  const adopt: Background = (ctx, call, moved) => {
+    const { job, data, exit } = jobs.adopt(ctx, { command: call.command, cwd: call.cwd, title: titleOf(call.command), toolCallId: call.toolCallId }, moved);
+    return { data, exit, text: movedText(job, moved.waitedMs, jobs.output(job)), outputPath: job.path };
+  };
+
+  return { hasRunningJobs: () => jobs.running().length > 0, announce, adopt };
 }

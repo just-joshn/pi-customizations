@@ -22,7 +22,7 @@ import { registerReadonlyShell } from './readonly-shell.ts';
 import { migrateLegacyRule, modelsSection, type SessionRule, sessionRule } from './rule.ts';
 import { registerSecretRequest } from './secrets.ts';
 import { hostSection, subagentsSection, todayText } from './sections.ts';
-import { createSessionShell, registerSessionBash } from './shell-state.ts';
+import { type Background, createSessionShell, registerSessionBash } from './shell-state.ts';
 import { activateSlackTools, registerSlackTools } from './slack/tools.ts';
 import { registerSubscriptions } from './subscriptions/index.ts';
 import { memoryDir } from './subscriptions/memories.ts';
@@ -114,8 +114,11 @@ export default function piPstack(pi: ExtensionAPI): void {
   const machine = childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine);
   // One shell per session: Pi builds a new runtime, and so a new shell, on a new, resumed, or forked session.
   const shell = createSessionShell();
-  if (machine !== undefined) registerMachineTools(pi, machine, shell);
-  else if (!childIdentity.readonly) registerSessionBash(pi, shell);
+  // A bash call whose timeout elapses moves to the background shells. The read-only shells of a local readonly agent
+  // and of plan mode have none to move to, so their commands still stop.
+  const background: Background = (ctx, call, moved) => shells?.adopt(ctx, call, moved);
+  if (machine !== undefined) registerMachineTools(pi, machine, shell, background);
+  else if (!childIdentity.readonly) registerSessionBash(pi, shell, background);
 
   // Before the alias handler, so a task sent with /in-cloud reaches the cloud agent as the user typed it.
   if (childIdentity.depth === 0) registerInCloud(pi, (description, prompt) => task.startBackground(description, prompt, { environment: 'cloud' }));
