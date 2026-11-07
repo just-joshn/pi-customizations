@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.26] - 2026-11-07
+
+- Count a subscription wake as delivered once any branch of the owner session holds it. Before, a restart after `/tree` left the branch that held the wake sent it again.
+
 ## [0.15.36-pi.25] - 2026-11-07
 
 - Wait 30 seconds by default before moving a `bash` command to the background, as Cursor CLI's Shell does with its default `block_until_ms`. Before, a call without `timeout` held the turn until a long build or test run ended. The `timeout` description now says the command keeps running. A readonly subagent and plan mode have no background shells, so their `bash` still waits for the command to end.

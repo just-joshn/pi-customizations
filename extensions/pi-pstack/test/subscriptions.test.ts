@@ -24,7 +24,7 @@ interface Tool {
   execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<{ content: { text: string }[]; details: unknown }>;
 }
 
-function fakePi(entries: { type: string; customType?: string; data?: unknown; details?: unknown }[] = [], cwd = join(tmpdir(), 'pstack-sub-cwd'), sessionId = 'owner') {
+function fakePi(entries: { type: string; customType?: string; data?: unknown; details?: unknown; offBranch?: boolean }[] = [], cwd = join(tmpdir(), 'pstack-sub-cwd'), sessionId = 'owner') {
   const handlers = new Map<string, Handler[]>();
   const tools = new Map<string, Tool>();
   const commands = new Map<string, { handler: (args: string, ctx: unknown) => Promise<void> }>();
@@ -46,7 +46,7 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
     thinkingLevel: 'high',
     isProjectTrusted: () => true,
     ui: { notify: (text: string) => notices.push(text), setStatus: () => undefined, confirm: async () => true },
-    sessionManager: { getBranch: () => entries, getSessionFile: () => sessionFile, getSessionId: () => sessionId },
+    sessionManager: { getBranch: () => entries.filter((entry) => entry.offBranch !== true), getEntries: () => entries, getSessionFile: () => sessionFile, getSessionId: () => sessionId },
   });
   const emit = (name: string, mode = 'rpc') => {
     for (const handler of handlers.get(name) ?? []) handler({}, ctx(mode));
@@ -154,6 +154,20 @@ describe('subscribe_timer', () => {
     recovered.controllers.at(-1)?.shutdown();
 
     const reopened = setup({}, recovered.entries, 'rpc', recovered);
+    expect(wakes(reopened)).toEqual([]);
+  });
+
+  test('a wake saved on a branch the session has left is not sent again', async () => {
+    const first = setup();
+    await first.call('subscribe_timer', { name: 'left-branch', prompt: 'SAVED-OFF-BRANCH', delaySeconds: 1, once: true });
+    await vi.advanceTimersByTimeAsync(1_000);
+    const message = first.sent[0]?.message;
+    first.entries.push({ type: 'custom_message', customType: WAKE_TYPE, details: message?.details, offBranch: true });
+    await vi.advanceTimersByTimeAsync(250);
+    expect(readRegistry(first.cwd).pending).toEqual([]);
+    first.controllers[0]?.shutdown();
+
+    const reopened = setup({}, first.entries, 'rpc', first);
     expect(wakes(reopened)).toEqual([]);
   });
 
