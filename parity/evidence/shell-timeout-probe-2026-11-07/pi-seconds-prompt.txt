@@ -1,0 +1,1 @@
+Run exactly one shell tool call with a 5 second timeout: for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo tick $i; sleep 1; done; echo FINISHED. Do not set it to run in the background yourself. After the call returns, report exactly what the tool returned, then wait for any notification about that command and report it too.
