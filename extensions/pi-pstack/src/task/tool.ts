@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readdirSync, rmSync } from 'node:fs';
-import { isAbsolute, join, relative } from 'node:path';
+import { isAbsolute, join, relative, sep } from 'node:path';
 
 import { getSupportedThinkingLevels } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
@@ -133,6 +133,10 @@ export interface Launch {
   machine: Machine | undefined;
   /** A fresh cloud agent whose container machine still has to be provisioned. */
   provision?: { home: string; baseBranch: string | undefined };
+  /** The container machine of the cloud agent this agent was started under, where its tools run. */
+  parentMachine: ContainerMachine | undefined;
+  /** Whether this launch booted the stopped parent machine, which then stops again when its run ends. */
+  bootedParent?: boolean;
   /** A readonly run of a subagent of an agent on a writable container machine runs on this read-only sibling instead. */
   readonlyMachine?: ContainerMachine;
   /** More host folders this launch shares with its machine, such as an automation's memory folder. */
@@ -210,6 +214,7 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
     executionCwd: machine?.cwd ?? ctx.cwd,
     rootWorkspace: rootWorkspaceOf(ctx),
     machine,
+    parentMachine: childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine),
     ...(provision === undefined ? {} : { provision }),
     rootStore: rootStoreOf(ctx),
     root: rootChatOf(ctx),
@@ -229,6 +234,16 @@ function refuseReadonlyOnWritableMachine(machine: Machine | undefined, readonly:
   );
 }
 
+/** A cloud agent's subagents run in its clone on its machine, so one resumed or forked from outside it must return there. */
+function parentMachineOf(record: AgentRecord, workspace: string): ContainerMachine | undefined {
+  const machines = machinesDir(workspace);
+  if (record.machine !== undefined || !isUnder(machines, record.cwd)) return undefined;
+  const ownerId = relative(machines, record.cwd).split(sep)[0] ?? '';
+  const machine = readRecord(subagentDir(workspace), ownerId)?.machine;
+  if (machine?.driver !== 'container') throw new Error(`Agent ${record.agentId} ran on the cloud machine of agent ${ownerId}, whose record no longer names that machine. Start a new agent instead.`);
+  return machine;
+}
+
 function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type: string): AgentDefinition {
   const agent = agents.find((candidate) => candidate.type === type);
   if (agent === undefined) throw new Error(`Agent ${agentId} was a "${type}" subagent, a type this version no longer has. Start a new agent instead.`);
@@ -246,8 +261,10 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   // Without its transcript, --session-id would start an empty session under the old ID.
   if (transcriptFor(dir, agentId) === undefined) throw new Error(`Agent ${agentId} has no transcript to resume, so its earlier context is gone. Start a new agent instead.`);
   const { machine } = record;
-  if (machine !== undefined && !existsSync(machine.cwd))
-    throw new Error(`Agent ${agentId} ran in ${machine.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${machine.path}, which no longer exists. Start a new agent instead.`);
+  const parentMachine = parentMachineOf(record, ctx.cwd);
+  const checkout = machine ?? parentMachine;
+  if (checkout !== undefined && !existsSync(checkout.cwd))
+    throw new Error(`Agent ${agentId} ran in ${checkout.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${checkout.path}, which no longer exists. Start a new agent instead.`);
   const agent = recordedAgent(agents, agentId, record.type);
   if (params.subagent_type !== undefined && normalizedType(params.subagent_type) !== normalizedType(record.type))
     throw new Error(
@@ -271,6 +288,7 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
     executionCwd: machine?.cwd ?? record.cwd,
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
     machine,
+    parentMachine,
     rootStore: rootStoreOf(ctx),
     root: rootChatOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
@@ -295,8 +313,10 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   if (!recordBelongsToWorkspace(record, ctx.cwd)) throw new Error(`Agent ${sourceId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
   if (transcriptFor(dir, sourceId) === undefined) throw new Error(`Agent ${sourceId} has no transcript to fork, so its context is gone. Start a new agent instead.`);
   const { machine } = record;
-  if (machine !== undefined && !existsSync(machine.cwd))
-    throw new Error(`Agent ${sourceId} ran in ${machine.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${machine.path}, which no longer exists. Start a new agent instead.`);
+  const parentMachine = parentMachineOf(record, ctx.cwd);
+  const checkout = machine ?? parentMachine;
+  if (checkout !== undefined && !existsSync(checkout.cwd))
+    throw new Error(`Agent ${sourceId} ran in ${checkout.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${checkout.path}, which no longer exists. Start a new agent instead.`);
   const sourceType = agents.find((candidate) => candidate.type === record.type);
   const agent = params.subagent_type === undefined ? recordedAgent(agents, sourceId, record.type) : findAgent(agents, params.subagent_type);
   const model = params.model === undefined ? record.model : resolveSubagentModel(params.model, availableModels(ctx), parentModel(ctx));
@@ -317,6 +337,7 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
     executionCwd: machine?.cwd ?? record.cwd,
     rootWorkspace: record.workspaceRoot ?? rootWorkspaceOf(ctx),
     machine,
+    parentMachine,
     rootStore: rootStoreOf(ctx),
     root: rootChatOf(ctx),
     depth: Math.max(record.depth ?? 0, depth + 1),
@@ -338,14 +359,13 @@ function launchSpec(plan: Launch, mode: 'rpc' | 'json', adopted = false) {
   // a container machine runs on that same machine, or on a read-only sibling of it when readonly, rather than on this host.
   const { SLACK_BOT_TOKEN: _bot, SLACK_TOKEN: _token, ...stripped } = process.env;
   const inherited = plan.automation === true ? process.env : stripped;
-  const own = plan.machine?.driver === 'container' ? plan.machine : plan.readonlyMachine;
-  const machine = own === undefined ? childIdentity.machine : JSON.stringify(own);
+  const machine = plan.machine?.driver === 'container' ? plan.machine : (plan.readonlyMachine ?? plan.parentMachine);
   const env = {
     ...inherited,
     ...childVariables(plan.agent.type, plan.depth, readonly, plan.rootStore, workspaceStateDir(plan.workspace), plan.rootWorkspace, detached && !adopted ? undefined : plan.root, detached),
     ...(adopted ? { [PARENT_ENV]: String(plan.root.pid) } : {}),
     ...(plan.buildPlan === undefined ? {} : { [BUILD_PLAN_ENV]: plan.buildPlan }),
-    ...(machine === undefined ? {} : { [MACHINE_ENV]: machine }),
+    ...(machine === undefined ? {} : { [MACHINE_ENV]: JSON.stringify(machine) }),
     ...(plan.project === undefined ? {} : { [PROJECT_ENV]: plan.project }),
     ...(plan.automation === true ? { [AUTOMATION_ENV]: '1' } : {}),
   };
@@ -471,6 +491,8 @@ function start(
       handle = launchChild(plan, input, signal, onEvent);
       const sibling = plan.readonlyMachine;
       if (sibling !== undefined) void handle.done.then(() => removeContainer(sibling.container));
+      const parent = plan.parentMachine;
+      if (plan.bootedParent === true && parent !== undefined) void handle.done.then(() => stopMachine(parent).catch(() => undefined));
     }
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
@@ -637,9 +659,9 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
       plan.executionCwd = plan.machine.cwd;
       plan.notes = [...plan.notes, describeMachine(plan.machine)];
     } else if (plan.machine !== undefined) await bootMachine(plan.machine);
-    else if (childIdentity.machine !== undefined && runsReadonly(plan)) {
-      const inherited = parseMachine(childIdentity.machine);
-      if (!inherited.readonly) plan.readonlyMachine = await startReadonlySibling(inherited, plan.agentId, subagentDir(plan.workspace), signal);
+    else if (plan.parentMachine !== undefined) {
+      if (runsReadonly(plan) && !plan.parentMachine.readonly) plan.readonlyMachine = await startReadonlySibling(plan.parentMachine, plan.agentId, subagentDir(plan.workspace), signal);
+      else plan.bootedParent = await bootMachine(plan.parentMachine);
     }
   } catch (error) {
     lock.release();

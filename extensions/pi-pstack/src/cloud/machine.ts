@@ -345,17 +345,18 @@ export function removeContainer(container: string): Promise<void> {
   );
 }
 
-/** Boots a stopped container machine again, with its start command and terminals, before a resumed run. */
-export async function bootMachine(machine: Machine): Promise<void> {
+/** Boots a stopped container machine again, with its start command and terminals, before a resumed run; true when it was stopped. */
+export async function bootMachine(machine: Machine): Promise<boolean> {
   if (machine.driver === 'worktree') {
     if (!existsSync(machine.cwd)) throw new Error(`The git worktree ${machine.path} no longer exists.`);
-    return;
+    return false;
   }
   const state = await containerState(machine.container);
   if (state === 'missing') throw new Error(`The cloud machine ${machine.container} no longer exists.`);
-  if (state === 'running') return;
+  if (state === 'running') return false;
   await docker(['start', machine.container], { timeoutMs: 60_000 });
   await startServices(machine);
+  return true;
 }
 
 /** Stops a container machine's processes; its disk stays, so a resume boots it again. */

@@ -299,6 +299,55 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(readFileSync(join(machine.path, 'a.txt'), 'utf8')).toBe('PUSHED');
   });
 
+  /** A cloud agent whose subagent left /tmp/nested-state.txt on the machine, once the machine has stopped. */
+  async function stoppedOwnerWithSubagent(): Promise<{ ownerId: string; nestedId: string; clone: string }> {
+    await pushedRepo();
+    const nested = { tool: 'Task', args: { description: 'nested', prompt: script([{ tool: 'bash', args: { command: 'echo KEPT > /tmp/nested-state.txt; echo STARTED' } }]) } };
+    const first = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'owner', prompt: script([nested]), environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [owner] = toolEnds(first.events, 'Task');
+    const { agentId: ownerId = '', machine } = (owner?.details ?? {}) as { agentId?: string; machine?: { path: string } };
+    const [nestedId = ''] = nestedIdsOf(owner?.text ?? '', ownerId);
+    containers.push(`pstack-${ownerId}`);
+    expect(owner?.isError, owner?.text).toBe(false);
+    if (machine === undefined) throw new Error('the Task result names no machine');
+    await expect.poll(() => docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`), { timeout: 20_000 }).toBe('exited');
+    return { ownerId, nestedId, clone: machine.path };
+  }
+
+  const continueFromMainChat = async (args: Record<string, unknown>, command: string) => {
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'continue', ...args, prompt: script([{ tool: 'bash', args: { command } }]) } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const nextId = (result?.details as { agentId?: string } | undefined)?.agentId;
+    if (nextId !== undefined) containers.push(`pstack-${nextId}`);
+    return result;
+  };
+
+  test.for(['resume', 'fork'] as const)("the main chat's %s of a cloud agent's subagent boots the stopped machine, runs there, and stops it again", async (operation) => {
+    const { ownerId, nestedId } = await stoppedOwnerWithSubagent();
+    const continued = await continueFromMainChat({ [operation]: nestedId }, 'cat /tmp/nested-state.txt; hostname');
+    expect(continued?.isError, continued?.text).toBe(false);
+    expect(continued?.text).toContain(`RESULTS:\n[bash] KEPT\npstack-${ownerId.slice(0, 8)}`);
+    await expect.poll(() => docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`), { timeout: 20_000 }).toBe('exited');
+  });
+
+  test("the main chat's readonly resume of a cloud agent's subagent runs on a read-only sibling of its machine", async () => {
+    const { ownerId, nestedId, clone } = await stoppedOwnerWithSubagent();
+    const continued = await continueFromMainChat({ resume: nestedId, readonly: true }, 'cat a.txt; echo; grep -q bookworm /etc/os-release && echo DEBIAN; if (printf BYPASS > a.txt) 2>/dev/null; then echo WROTE; else echo DENIED; fi');
+    expect(continued?.isError, continued?.text).toBe(false);
+    expect(continued?.text).toContain('RESULTS:\n[bash] PUSHED\nDEBIAN\nDENIED');
+    expect(readFileSync(join(clone, 'a.txt'), 'utf8')).toBe('PUSHED');
+    expect(docker('ps', '--all', '--quiet', '--filter', `name=^pstack-${nestedId}$`)).toBe('');
+    expect(docker('inspect', '--format', '{{.State.Status}}', `pstack-${ownerId}`)).toBe('exited');
+  });
+
+  test("the main chat's resume of a cloud agent's subagent fails when the machine is gone, without running on the host", async () => {
+    const { ownerId, nestedId } = await stoppedOwnerWithSubagent();
+    docker('rm', '--force', `pstack-${ownerId}`);
+    const continued = await continueFromMainChat({ resume: nestedId }, 'hostname');
+    expect(continued?.isError).toBe(true);
+    expect(continued?.text).toContain(`The cloud machine pstack-${ownerId} no longer exists.`);
+  });
+
   test("a cloud agent cannot resume or fork another cloud agent's subagent", async () => {
     await pushedRepo();
     const first = await runJson(
