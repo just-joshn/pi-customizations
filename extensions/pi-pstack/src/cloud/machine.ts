@@ -3,11 +3,13 @@
 // files or credentials beyond a GitHub token for pushing. A worktree machine is a git worktree on this host, used only
 // when no container engine is available or PSTACK_CLOUD_DRIVER=worktree asks for it.
 import { execFileSync } from 'node:child_process';
-import { createWriteStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { hostname } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, relative } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 
 import { PACKAGE_ROOT } from '../paths.ts';
+import { acquireLease, alive } from '../process-lock.ts';
 import { type CloudBase, cloneCheckout, mappedCwd, resolveCloudBase } from './checkout.ts';
 import { containerState, DockerError, docker, dockerServerVersion, imageExists } from './docker.ts';
 import { type Environment, readEnvironment, type Terminal } from './environment.ts';
@@ -345,24 +347,100 @@ export function removeContainer(container: string): Promise<void> {
   );
 }
 
-/** Boots a stopped container machine again, with its start command and terminals, before a resumed run; true when it was stopped. */
-export async function bootMachine(machine: Machine): Promise<boolean> {
+/** Boots a stopped container machine again, with its start command and terminals, before a resumed run. */
+export async function bootMachine(machine: Machine): Promise<void> {
   if (machine.driver === 'worktree') {
     if (!existsSync(machine.cwd)) throw new Error(`The git worktree ${machine.path} no longer exists.`);
-    return false;
+    return;
   }
   const state = await containerState(machine.container);
   if (state === 'missing') throw new Error(`The cloud machine ${machine.container} no longer exists.`);
-  if (state === 'running') return false;
+  if (state === 'running') return;
   await docker(['start', machine.container], { timeoutMs: 60_000 });
   await startServices(machine);
-  return true;
 }
 
-/** Stops a container machine's processes; its disk stays, so a resume boots it again. */
-export async function stopMachine(machine: Machine): Promise<void> {
+/** What release needs of a machine: a container machine's container and the clone its subagents start in. */
+type SharedMachine = WorktreeMachine | Pick<ContainerMachine, 'driver' | 'container' | 'path'>;
+
+// Read here rather than through task/records.ts, which loads Pi's packages: the release helper runs without them.
+interface RunOnMachine {
+  cwd?: unknown;
+  machine?: { container?: unknown };
+  run?: { pid?: unknown; exit?: unknown };
+}
+
+function readRun(path: string): RunOnMachine | undefined {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8')) as RunOnMachine;
+  } catch {
+    return undefined;
+  }
+}
+
+function readPid(path: string): number {
+  try {
+    return Number.parseInt(readFileSync(path, 'utf8'), 10);
+  } catch {
+    return Number.NaN;
+  }
+}
+
+const isUnder = (parent: string, child: string): boolean => {
+  const path = relative(parent, child);
+  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
+};
+
+/**
+ * Whether a live run other than process `self` uses the machine. The workspace's run locks (`locks`) already name the
+ * live process of every run, whichever Pi session started it, and each agent's record says where it runs: its own
+ * machine, or a working directory in that machine's clone. A holder that died stops counting, and so does a detached
+ * run that has recorded its exit.
+ */
+function inUse(machine: Pick<ContainerMachine, 'container' | 'path'>, locks: string, self: number | undefined): boolean {
+  if (!existsSync(locks)) return false;
+  return readdirSync(locks).some((name) => {
+    if (!name.endsWith('.lock')) return false;
+    const pid = readPid(join(locks, name));
+    if (pid === self || !alive(pid)) return false;
+    const record = readRun(join(locks, `${name.slice(0, -'.lock'.length)}.json`));
+    if (record?.machine?.container !== machine.container && !(typeof record?.cwd === 'string' && isUnder(machine.path, record.cwd))) return false;
+    return record.run?.pid !== pid || typeof record.run.exit !== 'string' || !existsSync(record.run.exit);
+  });
+}
+
+const LEASE_POLL_MS = 100;
+
+/** Runs `step` under the machine's lease, so booting it for one run never interleaves with another run's release. */
+export async function withMachineLease<T>(machine: SharedMachine, locks: string, step: () => Promise<T>): Promise<T> {
+  if (machine.driver === 'worktree') return step();
+  const path = join(locks, `${machine.container}.lease`);
+  let lease = acquireLease(path);
+  while (lease === undefined) {
+    await sleep(LEASE_POLL_MS);
+    lease = acquireLease(path);
+  }
+  try {
+    return await step();
+  } finally {
+    lease.release();
+  }
+}
+
+/**
+ * Stops a container machine once no live run uses it, so it stops when its last run ends; its disk stays, so a resume
+ * boots it again. `finish` runs under the same lease after the decision, so a detached run records its exit before
+ * another run's release looks.
+ */
+export async function releaseMachine(machine: SharedMachine, locks: string, options: { self?: number; finish?: () => void } = {}): Promise<void> {
   if (machine.driver === 'worktree') return;
-  if ((await containerState(machine.container)) === 'running') await docker(['stop', '--time', '5', machine.container], { timeoutMs: 30_000 });
+  await withMachineLease(machine, locks, async () => {
+    try {
+      if (!inUse(machine, locks, options.self) && (await containerState(machine.container)) === 'running') await docker(['stop', '--time', '5', machine.container], { timeoutMs: 30_000 });
+    } finally {
+      options.finish?.();
+    }
+  });
 }
 
 /** The machine's state as one word for agent_status. */

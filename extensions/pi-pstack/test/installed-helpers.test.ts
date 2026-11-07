@@ -13,7 +13,7 @@ const node = process.env['PSTACK_HELPER_NODE'] ?? process.execPath;
 const npmBin = realpathSync(spawnSync('/bin/sh', ['-c', 'command -v npm'], { encoding: 'utf8' }).stdout.trim());
 const npm = npmBin.endsWith('.js') ? npmBin : join(dirname(node), '../lib/node_modules/npm/bin/npm-cli.js');
 const peers = ['@earendil-works/pi-ai', '@earendil-works/pi-agent-core', '@earendil-works/pi-coding-agent', '@earendil-works/pi-tui', 'typebox'];
-const artifacts = ['dist/supervisor-main.js', 'skills/statechart/scripts/statechart.js', 'skills/statechart/scripts/worker.js'];
+const artifacts = ['dist/supervisor-main.js', 'dist/release-machine.js', 'skills/statechart/scripts/statechart.js', 'skills/statechart/scripts/worker.js'];
 const receipts = process.env['PSTACK_HELPER_RECEIPTS'];
 // Node alone on PATH: Homebrew and /usr/local install Bun beside Node, and the consumer must not see it.
 const nodeBin = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-node-bin-')));

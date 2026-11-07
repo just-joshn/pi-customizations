@@ -5,8 +5,8 @@ import { join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 
 import { MACHINE_ENV } from '../child-env.ts';
-import { type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
-import { machinesDir, PACKAGE_ROOT, projectsDir, stateDir, worktreesDir } from '../paths.ts';
+import { type Machine, machinePreface, provisionMachine, releaseMachine, selectDriver } from '../cloud/machine.ts';
+import { machinesDir, PACKAGE_ROOT, projectsDir, stateDir, subagentDir, worktreesDir } from '../paths.ts';
 import { addWorktree, planWorktree } from '../task/worktree.ts';
 import { memoryDir } from './memories.ts';
 import { createSupervisor, type FreshMeta } from './supervisor.ts';
@@ -74,7 +74,8 @@ async function runFresh(prompt: string, name: string, meta: FreshMeta): Promise<
   try {
     return await runPi(machinePreface(machine, prompt), name, meta, machine.cwd, env);
   } finally {
-    await stopMachine(machine).catch(() => undefined);
+    // The fire's Pi runs in the machine's clone, so its subagents keep their run locks in that workspace's state.
+    await releaseMachine(machine, subagentDir(machine.cwd)).catch(() => undefined);
   }
 }
 

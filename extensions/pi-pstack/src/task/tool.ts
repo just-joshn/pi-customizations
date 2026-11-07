@@ -17,10 +17,11 @@ import {
   parseMachine,
   provisionMachine,
   reapReadonlySiblings,
+  releaseMachine,
   removeContainer,
   selectDriver,
   startReadonlySibling,
-  stopMachine,
+  withMachineLease,
 } from '../cloud/machine.ts';
 import { inboxDir, postItem } from '../inbox.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
@@ -135,8 +136,6 @@ export interface Launch {
   provision?: { home: string; baseBranch: string | undefined };
   /** The container machine of the cloud agent this agent was started under, where its tools run. */
   parentMachine: ContainerMachine | undefined;
-  /** Whether this launch booted the stopped parent machine, which then stops again when its run ends. */
-  bootedParent?: boolean;
   /** A readonly run of a subagent of an agent on a writable container machine runs on this read-only sibling instead. */
   readonlyMachine?: ContainerMachine;
   /** More host folders this launch shares with its machine, such as an automation's memory folder. */
@@ -407,7 +406,7 @@ function launchDetached(plan: Launch, input: ChildInput, files: readonly string[
     cwd: plan.executionCwd,
     env,
     runDir: nextRunDir(plan),
-    container: plan.machine?.driver === 'container' ? plan.machine.container : undefined,
+    machine: plan.machine?.driver === 'container' ? { container: plan.machine.container, path: plan.machine.path, locks: subagentDir(plan.workspace) } : undefined,
   });
 }
 
@@ -454,10 +453,10 @@ function markDelivered(workspace: string, agentId: string, pid: number): void {
   writeRecord(dir, { ...record, run: { ...record.run, delivered: true } });
 }
 
-/** Stopping a cloud agent also stops its container machine; the machine's disk stays for a resume. */
+/** Stopping a cloud agent also stops its container machine unless another run uses it; the machine's disk stays for a resume. */
 function stopAfter(plan: Launch): (() => Promise<void>) | undefined {
   const { machine } = plan;
-  return machine === undefined ? undefined : () => stopMachine(machine).catch(() => undefined);
+  return machine === undefined ? undefined : () => releaseMachine(machine, subagentDir(plan.workspace)).catch(() => undefined);
 }
 
 /**
@@ -492,7 +491,7 @@ function start(
       const sibling = plan.readonlyMachine;
       if (sibling !== undefined) void handle.done.then(() => removeContainer(sibling.container));
       const parent = plan.parentMachine;
-      if (plan.bootedParent === true && parent !== undefined) void handle.done.then(() => stopMachine(parent).catch(() => undefined));
+      if (sibling === undefined && parent !== undefined) void handle.done.then(() => releaseMachine(parent, subagentDir(plan.workspace)).catch(() => undefined));
     }
     if (handle.pid !== undefined) {
       lock.holdFor(handle.pid);
@@ -658,10 +657,13 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
       );
       plan.executionCwd = plan.machine.cwd;
       plan.notes = [...plan.notes, describeMachine(plan.machine)];
-    } else if (plan.machine !== undefined) await bootMachine(plan.machine);
-    else if (plan.parentMachine !== undefined) {
-      if (runsReadonly(plan) && !plan.parentMachine.readonly) plan.readonlyMachine = await startReadonlySibling(plan.parentMachine, plan.agentId, subagentDir(plan.workspace), signal);
-      else plan.bootedParent = await bootMachine(plan.parentMachine);
+    } else if (plan.machine !== undefined) {
+      const { machine } = plan;
+      await withMachineLease(machine, subagentDir(plan.workspace), () => bootMachine(machine));
+    } else if (plan.parentMachine !== undefined) {
+      const parent = plan.parentMachine;
+      if (runsReadonly(plan) && !parent.readonly) plan.readonlyMachine = await startReadonlySibling(parent, plan.agentId, subagentDir(plan.workspace), signal);
+      else await withMachineLease(parent, subagentDir(plan.workspace), () => bootMachine(parent));
     }
   } catch (error) {
     lock.release();
@@ -852,8 +854,8 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
       const { record, run } = owned;
       const { machine } = record;
       if (machine === undefined) continue;
-      const handle = followDetached(run, undefined, () => stopMachine(machine).catch(() => undefined));
-      if (!runActive(run)) void stopMachine(machine).catch(() => undefined);
+      const handle = followDetached(run, undefined, () => releaseMachine(machine, dir).catch(() => undefined));
+      if (!runActive(run)) void releaseMachine(machine, dir).catch(() => undefined);
       registry.track(agentId, handle, () => undefined, runNotice(ctx, dir, agentId, run), { detached: true, onDelivered: () => markDelivered(ctx.cwd, agentId, run.pid) });
     }
   }

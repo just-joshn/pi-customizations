@@ -4,23 +4,27 @@
 // same interface as an RPC child: done, stop, kill, pid.
 import { spawn } from 'node:child_process';
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 
+import { PACKAGE_ROOT } from '../paths.ts';
 import { alive } from '../process-lock.ts';
 import { type AssistantRecord, addUsage, type ChildHandle, type ChildOutcome, KILL_GRACE_MS, parseEvent, readAssistant, signalGroup, type Usage, usageOf, zeroUsage } from '../task/runner.ts';
 import { dockerPrefix } from './docker.ts';
 
 const POLL_MS = 300;
-// The wrapper stops the run's container machine before it records the exit code, so a machine never outlives its run and
-// a resume that sees the exit code never races the stop.
+// The wrapper releases the run's container machine before it records the exit code, so a machine never outlives its last
+// run and a resume that sees the exit code never races the stop. The release helper records the exit code itself; when
+// it cannot run, the wrapper stops the machine itself and records the code.
 const WRAPPER = [
   'exec 0<"$PSTACK_PROMPT"',
   '"$@" >"$PSTACK_EVENTS" 2>"$PSTACK_ERRORS"',
   'code=$?',
-  'if [ -n "$PSTACK_MACHINE_CONTAINER" ]; then docker $PSTACK_DOCKER_PREFIX stop --time 5 "$PSTACK_MACHINE_CONTAINER" >/dev/null 2>&1; fi',
-  'printf %s "$code" >"$PSTACK_EXIT.tmp" && mv "$PSTACK_EXIT.tmp" "$PSTACK_EXIT"',
+  'if [ -n "$PSTACK_MACHINE_CONTAINER" ]; then "$PSTACK_RELEASE_RUNTIME" "$PSTACK_RELEASE_SCRIPT" $$ "$code" >/dev/null 2>>"$PSTACK_ERRORS" || docker $PSTACK_DOCKER_PREFIX stop --time 5 "$PSTACK_MACHINE_CONTAINER" >/dev/null 2>&1; fi',
+  '[ -e "$PSTACK_EXIT" ] || { printf %s "$code" >"$PSTACK_EXIT.tmp" && mv "$PSTACK_EXIT.tmp" "$PSTACK_EXIT"; }',
 ].join('; ');
+const RELEASE_RUNTIME = /^(node|bun)(\.exe)?$/i.test(basename(process.execPath)) ? process.execPath : 'node';
+const RELEASE_SCRIPT = join(PACKAGE_ROOT, 'dist/release-machine.js');
 
 /** One detached run of a cloud agent: its process group and the files it writes. */
 export interface DetachedRun {
@@ -40,8 +44,8 @@ export interface DetachedLaunch {
   env: NodeJS.ProcessEnv;
   /** Holds this run's prompt, events, stderr, and exit files. */
   runDir: string;
-  /** The container machine the run's wrapper stops when the run ends. */
-  container?: string | undefined;
+  /** The container machine the run's wrapper releases when the run ends, and the workspace's run locks that say who else uses it. */
+  machine?: { container: string; path: string; locks: string } | undefined;
 }
 
 /** Starts the run in its own process group with no tie to this process: it survives this process exiting. */
@@ -59,7 +63,11 @@ export function spawnDetached(launch: DetachedLaunch): DetachedRun {
       PSTACK_EVENTS: files.events,
       PSTACK_ERRORS: files.errors,
       PSTACK_EXIT: files.exit,
-      PSTACK_MACHINE_CONTAINER: launch.container ?? '',
+      PSTACK_MACHINE_CONTAINER: launch.machine?.container ?? '',
+      PSTACK_MACHINE_PATH: launch.machine?.path ?? '',
+      PSTACK_LOCKS: launch.machine?.locks ?? '',
+      PSTACK_RELEASE_RUNTIME: RELEASE_RUNTIME,
+      PSTACK_RELEASE_SCRIPT: RELEASE_SCRIPT,
       PSTACK_DOCKER_PREFIX: dockerPrefix(launch.env).join(' '),
     },
     detached: true,
