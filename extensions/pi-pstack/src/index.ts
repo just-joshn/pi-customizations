@@ -162,7 +162,7 @@ export default function piPstack(pi: ExtensionAPI): void {
       forwardFrom = { dir: inboxDir(workspaceStateDir(ctx.cwd), root.sessionId), agentId: ctx.sessionManager.getSessionId() };
     });
   // A readonly agent's shell is the sandboxed one, and a background job would run outside that sandbox. On a container
-  // machine the readonly boundary is the machine's read-only clone, so jobs run there.
+  // machine the readonly boundary is the machine's read-only filesystem, so jobs run there.
   const shells =
     childIdentity.readonly && machine === undefined
       ? undefined

@@ -204,6 +204,14 @@ function planFresh(params: TaskInput, ctx: ExtensionContext, agents: readonly Ag
   };
 }
 
+/** A container's mounts and root filesystem are fixed when it is created, so a readonly run cannot share a writable machine. */
+function refuseReadonlyOnWritableMachine(machine: Machine | undefined, readonly: boolean, agentId: string, operation: 'resume' | 'fork'): void {
+  if (machine?.driver !== 'container' || machine.readonly || !readonly) return;
+  throw new Error(
+    `Agent ${agentId} runs on a writable cloud machine, whose clone and shared folders stay writable for every run on it, so a readonly ${operation} cannot run there. ${operation === 'resume' ? 'Resume' : 'Fork'} it without readonly (plan mode makes every launch readonly), or start a new readonly cloud agent.`,
+  );
+}
+
 function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type: string): AgentDefinition {
   const agent = agents.find((candidate) => candidate.type === type);
   if (agent === undefined) throw new Error(`Agent ${agentId} was a "${type}" subagent, a type this version no longer has. Start a new agent instead.`);
@@ -231,6 +239,7 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const notes = [...(machine === undefined ? [] : [describeMachine(machine)]), ...(params.environment === undefined ? [] : [`Note: environment "${params.environment}" was ignored; a resumed agent runs where it first ran.`])];
   const readonly = effectiveReadonly(effectiveReadonly(record.readonly, agent.readonly), params.readonly);
+  refuseReadonlyOnWritableMachine(machine, readonly || planMode, agentId, 'resume');
   // An agent never runs shallower than it was created or than its caller allows: a grandchild resumed from the main chat
   // and a main-chat agent resumed from a subagent both run at depth 2. A call can add readonly but not lift it, and a
   // type that has since become readonly restricts an older writable record too.
@@ -275,6 +284,7 @@ export function planFork(params: TaskInput, ctx: ExtensionContext, agents: reado
   const agent = params.subagent_type === undefined ? recordedAgent(agents, sourceId, record.type) : findAgent(agents, params.subagent_type);
   const model = params.model === undefined ? record.model : resolveSubagentModel(params.model, availableModels(ctx), parentModel(ctx));
   const readonly = effectiveReadonly(record.readonly || sourceType?.readonly === true || agent.readonly, params.readonly);
+  refuseReadonlyOnWritableMachine(machine, readonly || planMode, sourceId, 'fork');
   const attachments = resolveAttachments(params.file_attachments ?? [], ctx.cwd);
   const turns = params.fork_turns === undefined ? '' : `, keeping its first ${params.fork_turns} user turn${params.fork_turns === 1 ? '' : 's'}`;
   const notes = [`Forked from agent ${sourceId}${turns}.`, ...(machine === undefined ? [] : [describeMachine(machine)])];
