@@ -305,4 +305,19 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(nestedIds).toHaveLength(1);
     expect(docker('ps', '--all', '--quiet', '--filter', `name=^pstack-${nestedIds[0]}$`)).toBe('');
   });
+
+  test("the machine's bash keeps the shell's working directory and exported variables between calls, and its background jobs start there", async () => {
+    await pushedRepo();
+    const steps = [
+      { tool: 'bash', args: { command: 'cd /usr && export PSTACK_PROBE=42' } },
+      { tool: 'bash', args: { command: 'pwd; echo "probe=$PSTACK_PROBE"' } },
+      { tool: 'bash_background', args: { command: 'echo "bg=$(pwd) $PSTACK_PROBE"', block_until_ms: 20_000 } },
+    ];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'cloud shell', prompt: `go\n@@script ${JSON.stringify(steps)}`, environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [result] = toolEnds(run.events, 'Task');
+    containers.push(`pstack-${(result?.details as { agentId?: string } | undefined)?.agentId ?? ''}`);
+    expect(result?.isError, result?.text).toBe(false);
+    expect(result?.text).toContain('RESULTS:\n[bash] (no output)\n[bash] /usr\nprobe=42\n');
+    expect(result?.text).toContain('bg=/usr 42');
+  });
 });

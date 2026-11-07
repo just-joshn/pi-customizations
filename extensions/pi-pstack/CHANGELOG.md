@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.25] - 2026-11-07
+
+- Keep the shell's working directory and exported environment variables between `bash` calls in a session, as Cursor CLI 2026.11.05 does. Pi started every command fresh in the session's directory, so a `cd` or `export` in one call was gone in the next. `bash_background` jobs now start from the same state. Readonly subagents, plan mode, and cloud machines share the behavior; a new, resumed, or forked session and every subagent start fresh.
+
 ## [0.15.36-pi.24] - 2026-11-07
 
 - Mount the pi-pstack package read-only on every cloud machine, so a cloud agent can read the skills, playbooks, and scripts its system prompt names; they were missing from the container.

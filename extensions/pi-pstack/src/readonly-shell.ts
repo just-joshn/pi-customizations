@@ -1,8 +1,9 @@
 import { existsSync } from 'node:fs';
 
 import type { SandboxRuntimeConfig } from '@anthropic-ai/sandbox-runtime';
-import { type BashSpawnContext, createBashTool, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
+import { type BashSpawnContext, createBashTool, createLocalBashOperations, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { linuxReadonlyCommand } from './linux-readonly-sandbox.ts';
+import { createSessionShell, type SessionShell, SHELL_STATE_NOTE } from './shell-state.ts';
 
 // Cursor's readonly subagent: "no file edits, no state-changing shell commands". The OS sandbox enforces the file
 // half: nothing may be written, so a pipe, substitution, or pager cannot get around it. Network stays open, as it is in
@@ -73,18 +74,19 @@ type BashParameters = ReturnType<typeof createBashTool>['parameters'];
  * The read-only shell as a tool definition: every command runs inside the read-only OS sandbox, or not at all.
  * `name` lets a caller offer it next to Pi's own `bash` (plan mode does).
  */
-export function createReadonlyBashTool(name = 'bash'): ToolDefinition<BashParameters> {
+export function createReadonlyBashTool(name = 'bash', shell: SessionShell = createSessionShell()): ToolDefinition<BashParameters> {
   const base = createBashTool(process.cwd());
   return {
     ...base,
     name,
     label: 'bash (read-only)',
-    description: `${base.description}${NOTE}`,
+    description: `${base.description}${NOTE}${SHELL_STATE_NOTE}`,
     async execute(toolCallId, params, signal, onUpdate, ctx: ExtensionToolContext) {
       // Fail closed: when the sandbox cannot start, the call fails here and nothing spawns.
-      const command = process.platform === 'linux' ? linuxCommand(params.command, ctx.cwd) : await wrapped(params.command, signal);
+      const script = shell.script(params.command);
+      const command = process.platform === 'linux' ? linuxCommand(script, ctx.cwd) : await wrapped(script, signal);
       const bash = createBashTool(ctx.cwd, {
-        ...(existsSync('/bin/bash') ? { shellPath: '/bin/bash' } : {}),
+        operations: shell.operations(createLocalBashOperations(existsSync('/bin/bash') ? { shellPath: '/bin/bash' } : {})),
         // Node's fetch ignores the proxy variables unless told to use them, and the proxy is the only way out.
         spawnHook: (spawn: BashSpawnContext) => ({ ...spawn, command, env: { ...strippedEnv(spawn.env), NODE_USE_ENV_PROXY: '1' } }),
       });
@@ -120,7 +122,7 @@ export async function releaseReadonlySandbox(): Promise<void> {
 }
 
 /** Replaces `bash` in a readonly subagent. */
-export function registerReadonlyShell(pi: ExtensionAPI): void {
-  pi.registerTool(createReadonlyBashTool());
+export function registerReadonlyShell(pi: ExtensionAPI, shell?: SessionShell): void {
+  pi.registerTool(createReadonlyBashTool('bash', shell));
   pi.on('session_shutdown', releaseReadonlySandbox);
 }
