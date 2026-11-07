@@ -22,7 +22,7 @@ import {
   type WriteOperations,
 } from '@earendil-works/pi-coding-agent';
 import type { JobSpawner } from '../background-shell.ts';
-import { type SessionShell, sessionBashDefinition } from '../shell-state.ts';
+import { type Background, type SessionShell, sessionBashDefinition } from '../shell-state.ts';
 import { docker, dockerPrefix } from './docker.ts';
 import type { ContainerMachine } from './machine.ts';
 
@@ -184,9 +184,9 @@ async function machineSearch(machine: ContainerMachine, cwd: string, script: str
  * Replaces Pi's built-in tools with versions that act on the machine. find and grep inside the clone keep Pi's own
  * implementation (fd and ripgrep over the bind mount see exactly the machine's files); outside it they search the machine.
  */
-export function registerMachineTools(pi: ExtensionAPI, machine: ContainerMachine, shell: SessionShell): void {
+export function registerMachineTools(pi: ExtensionAPI, machine: ContainerMachine, shell: SessionShell, background: Background): void {
   const cwd = machine.cwd;
-  pi.registerTool(sessionBashDefinition(shell, cwd, machineBashOperations(machine)));
+  pi.registerTool(sessionBashDefinition(shell, cwd, machineBashOperations(machine), { background }));
   pi.registerTool(createReadTool(cwd, { operations: machineReadOperations(machine) }));
   pi.registerTool(createWriteTool(cwd, { operations: machineWriteOperations(machine) }));
   pi.registerTool(createEditTool(cwd, { operations: machineEditOperations(machine) }));

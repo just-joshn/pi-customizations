@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.24] - 2026-11-07
+
+- Move a `bash` command whose `timeout` elapses to the background instead of killing it, as Cursor CLI 2026.11.05 does. The call returns the output so far with Cursor's wording, the shell ID, the PID, and the terminals file; the command keeps writing to that file, `AwaitShell` can wait on it, a notification arrives after the turn when it finishes, and ending the session stops it. It keeps no shell state. A cloud agent's `bash` does the same on its machine; the read-only shells of readonly subagents and plan mode still stop the command, since they have no background shells.
+
 ## [0.15.36-pi.23] - 2026-11-07
 
 - Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.

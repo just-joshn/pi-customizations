@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { type BashOperations, createLocalBashOperations } from '@earendil-works/pi-coding-agent';
-import { test as base, expect } from 'vitest';
-import { createSessionShell, type SessionShell } from '../src/shell-state.ts';
+import { test as base, describe, expect, onTestFinished, vi } from 'vitest';
+import { type BackgroundedCommand, createSessionShell, type MovedCommand, type SessionShell } from '../src/shell-state.ts';
 
 interface Run {
   exitCode: number | null | string;
@@ -146,4 +146,134 @@ test('two shells keep separate state', async ({ dir, run }) => {
   await run('cd /usr && export PSTACK_A=1');
 
   await expect(run('pwd; echo "a=$PSTACK_A"', { shell: other })).resolves.toEqual({ exitCode: 0, output: `${dir}\na=\n` });
+});
+
+interface Handover {
+  moved: MovedCommand[];
+  later: string;
+  exits: (number | undefined)[];
+  take: (moved: MovedCommand) => BackgroundedCommand;
+}
+
+function handover(): Handover {
+  const record: Handover = {
+    moved: [],
+    later: '',
+    exits: [],
+    take: (moved) => {
+      record.moved.push(moved);
+      return {
+        data: (chunk) => {
+          record.later += chunk.toString('utf8');
+        },
+        exit: (exitCode) => record.exits.push(exitCode),
+        text: 'moved',
+        outputPath: '/terminals/1.txt',
+      };
+    },
+  };
+  return record;
+}
+
+const alive = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const local = createLocalBashOperations({ shellPath: '/bin/bash' });
+
+describe('a timeout with somewhere to move the command', () => {
+  test('hands over the still-running command with its process and output so far, and keeps none of its state', async ({ dir, shell, run }) => {
+    const to = handover();
+    let output = '';
+
+    const moving = shell.operations(local, to.take).exec(shell.script('cd /usr; export PSTACK_A=1; echo first; sleep 1; echo second'), dir, {
+      onData: (bytes) => {
+        output += bytes.toString('utf8');
+      },
+      timeout: 0.5,
+    });
+
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+    expect(to.moved).toEqual([expect.objectContaining({ waitedMs: 500, output: Buffer.from('first\n') })]);
+    expect(alive(to.moved[0]?.pid ?? 0)).toBe(true);
+    expect(output).toBe('first\n');
+    await expect.poll(() => to.exits).toEqual([0]);
+    expect(to.later).toBe('second\n');
+    await expect(run('pwd; echo "a=$PSTACK_A"')).resolves.toEqual({ exitCode: 0, output: `${dir}\na=\n` });
+  });
+
+  test('a command whose state report has arrived when the timeout elapses finishes in the foreground and keeps its state', async ({ dir, shell, run }) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    const to = handover();
+    let exited = false;
+    let release = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const exitsAfterTheDeadline: BashOperations = {
+      exec: async (command, cwd, options) => {
+        const result = await local.exec(command, cwd, options);
+        exited = true;
+        await gate;
+        return result;
+      },
+    };
+    let output = '';
+
+    const finishing = shell.operations(exitsAfterTheDeadline, to.take).exec(shell.script('cd /usr; echo done'), dir, {
+      onData: (bytes) => {
+        output += bytes.toString('utf8');
+      },
+      timeout: 100,
+    });
+    await vi.waitFor(() => expect(exited).toBe(true));
+    vi.advanceTimersByTime(100_000);
+    release();
+
+    await expect(finishing).resolves.toEqual({ exitCode: 0 });
+    vi.useRealTimers();
+    expect(to.moved).toEqual([]);
+    expect(output).toBe('done\n');
+    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: '/usr\n' });
+  });
+
+  test('aborting the call before the timeout stops the command and hands nothing over', async ({ dir, shell }) => {
+    const to = handover();
+    const controller = new AbortController();
+    let pid = 0;
+
+    const running = shell.operations(local, to.take).exec(shell.script('echo $$; sleep 30'), dir, {
+      onData: (bytes) => {
+        pid ||= Number.parseInt(bytes.toString('utf8'), 10);
+      },
+      signal: controller.signal,
+      timeout: 20,
+    });
+    await vi.waitFor(() => expect(pid).toBeGreaterThan(0));
+    controller.abort();
+
+    await expect(running).rejects.toThrow('aborted');
+    expect(to.moved).toEqual([]);
+    expect(alive(pid)).toBe(false);
+  });
+
+  test('aborting the call after the hand-off leaves the command running to its end', async ({ dir, shell }) => {
+    const to = handover();
+    const controller = new AbortController();
+
+    const moving = shell.operations(local, to.take).exec(shell.script('sleep 0.6; echo later'), dir, { onData: () => {}, signal: controller.signal, timeout: 0.3 });
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+    controller.abort();
+
+    await expect.poll(() => to.exits).toEqual([0]);
+    expect(to.later).toBe('later\n');
+  });
 });
