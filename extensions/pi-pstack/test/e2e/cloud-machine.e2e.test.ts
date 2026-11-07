@@ -272,6 +272,59 @@ describe.skipIf(!ready)(`cloud agents on a container machine (needs a Docker eng
     expect(result?.text).toContain('token=none');
   });
 
+  const nestedIdsOf = (text: string, agentId: string) => [...new Set([...text.matchAll(/Agent ID: ([0-9a-f-]{36})/g)].map((match) => match[1] ?? ''))].filter((id) => id !== agentId);
+
+  test('a cloud agent resumes and forks the subagent it started, on its own machine, and a readonly resume writes nowhere', async () => {
+    await pushedRepo();
+    const probe = 'if (printf BYPASS > a.txt) 2>/dev/null; then echo WROTE; else echo DENIED; fi';
+    const steps = [
+      { tool: 'Task', args: { description: 'nested', prompt: script([{ tool: 'bash', args: { command: 'echo KEPT > /tmp/nested-state.txt; echo STARTED' } }]) } },
+      { tool: 'Task', args: { description: 'resumed', resume: '@@agent-id', prompt: script([{ tool: 'bash', args: { command: 'cat /tmp/nested-state.txt; hostname' } }]) } },
+      { tool: 'Task', args: { description: 'forked', fork: '@@agent-id', prompt: script([{ tool: 'bash', args: { command: 'cat /tmp/nested-state.txt; hostname' } }]) } },
+      { tool: 'Task', args: { description: 'readonly resume', resume: '@@agent-id', readonly: true, prompt: script([{ tool: 'bash', args: { command: probe } }]) } },
+    ];
+    const run = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'writable parent', prompt: script(steps), environment: 'cloud' } }]), ['--no-session'], 240_000);
+    const [result] = toolEnds(run.events, 'Task');
+    const agentId = (result?.details as { agentId?: string } | undefined)?.agentId ?? '';
+    const text = result?.text ?? '';
+    const nestedIds = nestedIdsOf(text, agentId);
+    containers.push(`pstack-${agentId}`, ...nestedIds.map((id) => `pstack-${id}`));
+    expect(result?.isError, text).toBe(false);
+    expect(text).not.toContain('[Task error]');
+    expect(text.split(`[bash] KEPT\npstack-${agentId.slice(0, 8)}`)).toHaveLength(3);
+    expect(text).toContain('[bash] DENIED');
+    expect(nestedIds).toHaveLength(2);
+    const machine = (result?.details as { machine?: { path: string } } | undefined)?.machine;
+    if (machine === undefined) throw new Error('the Task result names no machine');
+    expect(readFileSync(join(machine.path, 'a.txt'), 'utf8')).toBe('PUSHED');
+  });
+
+  test("a cloud agent cannot resume or fork another cloud agent's subagent", async () => {
+    await pushedRepo();
+    const first = await runJson(
+      sandbox,
+      script([{ tool: 'Task', args: { description: 'owner', prompt: script([{ tool: 'Task', args: { description: 'nested', prompt: 'go\n@@say OWNED' } }]), environment: 'cloud' } }]),
+      ['--no-session'],
+      180_000,
+    );
+    const [owner] = toolEnds(first.events, 'Task');
+    const { agentId: ownerId = '', machine } = (owner?.details ?? {}) as { agentId?: string; machine?: { path: string } };
+    const [nestedId = ''] = nestedIdsOf(owner?.text ?? '', ownerId);
+    containers.push(`pstack-${ownerId}`);
+    expect(owner?.isError, owner?.text).toBe(false);
+    if (machine === undefined) throw new Error('the Task result names no machine');
+    const steps = [
+      { tool: 'Task', args: { description: 'steal', resume: nestedId, prompt: 'again\n@@say STOLEN' } },
+      { tool: 'Task', args: { description: 'copy', fork: nestedId, prompt: 'copy\n@@say STOLEN' } },
+    ];
+    const second = await runJson(sandbox, script([{ tool: 'Task', args: { description: 'other', prompt: script(steps), environment: 'cloud' } }]), ['--no-session'], 180_000);
+    const [other] = toolEnds(second.events, 'Task');
+    containers.push(`pstack-${(other?.details as { agentId?: string } | undefined)?.agentId ?? ''}`);
+    expect(other?.isError, other?.text).toBe(false);
+    const refusal = `Agent ${nestedId} belongs to ${machine.path}, not this workspace. Start a new agent instead.`;
+    expect(other?.text).toContain(`[Task error] ${refusal}\n[Task error] ${refusal}`);
+  });
+
   test("a writable cloud agent's readonly subagent reads the clone and the package but writes nowhere", async () => {
     await pushedRepo();
     const shared = join(sandbox.agentDir, 'pstack/workspaces', workspaceSlug(sandbox.workDir), 'projects/nested-readonly.txt');
