@@ -27,23 +27,27 @@ import { docker, dockerPrefix } from './docker.ts';
 import type { ContainerMachine } from './machine.ts';
 
 const KILL_GRACE_SECONDS = 2;
+const EXEC_MARKER = 'PSTACK_EXEC';
 
 export const isInside = (root: string, path: string): boolean => {
   const rel = relative(root, path);
   return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel));
 };
 
-/** argv for `docker exec` that runs `command` with bash in its own session, recording the session leader's pid. */
+/**
+ * argv for `docker exec` that runs `command` with bash in its own session, tagged with `execId` in its environment so
+ * killInMachine can find it without writing a file, which a readonly machine's filesystem refuses. stderr joins stdout
+ * in the machine, because docker's two output pipes reach this host with no order between them.
+ */
 export function execArgv(machine: Pick<ContainerMachine, 'container'>, cwd: string, command: string, execId: string, interactive = false): string[] {
-  const leader = `mkdir -p /tmp/pstack-exec && echo $$ > /tmp/pstack-exec/${execId} && exec bash -c "$1"`;
-  return [...dockerPrefix(), 'exec', ...(interactive ? ['-i'] : []), '-w', cwd, machine.container, 'setsid', '-w', 'bash', '-c', leader, 'pstack', command];
+  return [...dockerPrefix(), 'exec', ...(interactive ? ['-i'] : []), '--env', `${EXEC_MARKER}=${execId}`, '-w', cwd, machine.container, 'setsid', '-w', 'bash', '-c', 'exec bash -c "$1" 2>&1', 'pstack', command];
 }
 
-/** Ends the process group a routed command started inside the machine: TERM, then KILL after a grace period. */
+/** Ends the process groups of a routed command's tagged processes inside the machine: TERM, then KILL after a grace period. */
 export function killInMachine(machine: Pick<ContainerMachine, 'container'>, execId: string): Promise<void> {
-  const file = `/tmp/pstack-exec/${execId}`;
-  const script = `pid=$(cat ${file} 2>/dev/null) || exit 0; kill -TERM -- -$pid 2>/dev/null; for i in $(seq 1 ${KILL_GRACE_SECONDS * 10}); do kill -0 -- -$pid 2>/dev/null || exit 0; sleep 0.1; done; kill -KILL -- -$pid 2>/dev/null; exit 0`;
-  return docker(['exec', machine.container, 'sh', '-c', script], { timeoutMs: 15_000 }).then(
+  const groups = `for f in /proc/[0-9]*/environ; do tr '\\0' '\\n' < "$f" 2>/dev/null | grep -qx "${EXEC_MARKER}=$1" && sed 's/.*) //' "\${f%environ}stat" | cut -d' ' -f3; done | sort -u`;
+  const script = `g=$(${groups}); [ -n "$g" ] || exit 0; for p in $g; do kill -TERM -$p 2>/dev/null; done; for i in $(seq 1 ${KILL_GRACE_SECONDS * 10}); do alive=; for p in $g; do kill -0 -$p 2>/dev/null && alive=1; done; [ -z "$alive" ] && exit 0; sleep 0.1; done; for p in $g; do kill -KILL -$p 2>/dev/null; done; exit 0`;
+  return docker(['exec', machine.container, 'sh', '-c', script, 'pstack', execId], { timeoutMs: 15_000 }).then(
     () => undefined,
     () => undefined,
   );
