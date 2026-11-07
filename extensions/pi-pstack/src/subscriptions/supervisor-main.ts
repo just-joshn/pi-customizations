@@ -3,11 +3,10 @@ import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
-import { fileURLToPath } from 'node:url';
 
 import { MACHINE_ENV } from '../child-env.ts';
 import { type Machine, machinePreface, provisionMachine, selectDriver, stopMachine } from '../cloud/machine.ts';
-import { machinesDir, PACKAGE_ROOT, projectsDir, worktreesDir } from '../paths.ts';
+import { machinesDir, PACKAGE_ROOT, projectsDir, stateDir, worktreesDir } from '../paths.ts';
 import { addWorktree, planWorktree } from '../task/worktree.ts';
 import { memoryDir } from './memories.ts';
 import { createSupervisor, type FreshMeta } from './supervisor.ts';
@@ -94,7 +93,7 @@ function runPi(prompt: string, name: string, meta: FreshMeta, cwd: string, env: 
     }
     const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, ...freshArgs(meta), prompt], {
       cwd,
-      env,
+      env: { ...env, PI_CODING_AGENT_DIR: resolve(stateDir(), '..') },
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let outcome: string | undefined;
@@ -134,7 +133,7 @@ function runPi(prompt: string, name: string, meta: FreshMeta, cwd: string, env: 
   });
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const { workspace } = parseArgs(process.argv.slice(2));
   const supervisor = createSupervisor({ workspaceCwd: workspace, runFresh, isDaemon: true });
   const result = await supervisor.start();
@@ -153,12 +152,5 @@ async function main(): Promise<void> {
     process.on('SIGHUP', () => {
       void supervisor.reconcile();
     });
-  });
-}
-
-if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exit(1);
   });
 }

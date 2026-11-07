@@ -1,0 +1,1 @@
+Do not use any tools. List every rule or instruction present in your context that mentions any of these: "inline imports", "exhaustive switch", "never check", "ORCHID". Quote each one verbatim with its heading. If none mention a term, write NONE for that term.

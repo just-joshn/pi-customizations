@@ -1,16 +1,25 @@
+import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { childIdentity } from './child-env.ts';
 
 export const PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const SKILLS_DIR = join(PACKAGE_ROOT, 'skills');
 export const AGENTS_DIR = join(PACKAGE_ROOT, 'agents');
 
+// Pi 1.5.0's getAgentDir on macOS and Linux, without loading host peers in the standalone helpers.
+function agentDir(): string {
+  const path = process.env['PI_CODING_AGENT_DIR'];
+  if (!path) return join(homedir(), '.pi', 'agent');
+  if (path === '~') return homedir();
+  if (path.startsWith('~/')) return join(homedir(), path.slice(2));
+  return path.startsWith('file://') ? fileURLToPath(path) : path;
+}
+
 /** Pi-owned state for this package. Follows PI_CODING_AGENT_DIR, so tests and users can relocate it. */
 export function stateDir(): string {
-  return join(getAgentDir(), 'pstack');
+  return join(agentDir(), 'pstack');
 }
 
 /** The model rule: pstack's per-role model choices, read when a session starts in a workspace under the home directory. */

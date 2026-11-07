@@ -59,7 +59,7 @@ export function makeSandbox(settings: Record<string, unknown> = {}): Sandbox {
 /** A subscription auto-starts a supervisor daemon for its workspace, which would outlive the deleted sandbox. */
 function stopSupervisors(workDir: string): void {
   try {
-    execFileSync('pkill', ['-f', `supervisor-main.ts --workspace ${workDir}`]);
+    execFileSync('pkill', ['-f', `(supervisor-main.ts|pstack-routines-supervisor.mjs) --workspace ${workDir}`]);
   } catch (error) {
     // pkill exits 1 when no process matched.
     if ((error as { status?: number }).status !== 1) throw error;

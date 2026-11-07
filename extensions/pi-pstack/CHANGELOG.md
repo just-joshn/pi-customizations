@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.15.36-pi.21] - 2026-11-07
+
+- Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
+- Give the supervisor and the detached runs it starts the absolute agent directory, so a relative or `file://` `PI_CODING_AGENT_DIR` still names the same profile after the supervisor changes directory.
+
 ## [0.15.36-pi.20] - 2026-11-06
 
 Matches the Cursor CLI 2026.11.05 contracts a Linux run observed with pstack installed. `parity/pstack-linux-2026-11-05/` in the repository holds the probes, the ledger, the decisions, and the mutation lever.

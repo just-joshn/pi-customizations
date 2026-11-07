@@ -1,7 +1,8 @@
 import { spawn } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { getAgentDir } from '@earendil-works/pi-coding-agent';
 import { piCommand } from '../pi-command.ts';
 import { isSupervisorLive, readArm, readRegistry } from './durable-store.ts';
 import type { ArmStatus, StoredSubscription } from './durable-types.ts';
@@ -27,7 +28,7 @@ export type EnsureSupervisorSpawnOptions = {
  */
 export function defaultEnsureSupervisor(cwd: string, options: EnsureSupervisorSpawnOptions = {}): void {
   if (isSupervisorLive(cwd)) return;
-  const env: NodeJS.ProcessEnv = { ...process.env, PI_PSTACK_PI_COMMAND: JSON.stringify(piCommand()) };
+  const env: NodeJS.ProcessEnv = { ...process.env, PI_CODING_AGENT_DIR: resolve(getAgentDir()), PI_PSTACK_PI_COMMAND: JSON.stringify(piCommand()) };
   if (options.routinesPort !== undefined) {
     env['PSTACK_ROUTINES_PORT'] = String(options.routinesPort);
   }

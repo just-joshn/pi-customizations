@@ -401,14 +401,13 @@ export function isSupervisorLive(cwd: string): boolean {
 
 function supervisorProcess(pid: number, cwd: string): boolean {
   try {
-    // The bin is a bash shim that execs bun or node on supervisor-main.ts, so either name can be the live argv.
     const cmdline =
       process.platform === 'linux'
         ? readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ')
         : process.platform === 'darwin'
           ? execFileSync('ps', ['-o', 'command=', '-p', String(pid)], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
           : '';
-    return cmdline.includes(cwd) && (cmdline.includes('supervisor-main.ts') || cmdline.includes('pstack-routines-supervisor'));
+    return cmdline.includes(cwd) && (cmdline.includes('supervisor-main.ts') || cmdline.includes('supervisor-main.js') || cmdline.includes('pstack-routines-supervisor'));
   } catch {
     return false;
   }

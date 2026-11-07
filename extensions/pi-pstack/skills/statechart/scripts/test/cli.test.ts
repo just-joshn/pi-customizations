@@ -158,14 +158,14 @@ const fakeBun = (version: string) => () => {
   return bin;
 };
 
-test("the launcher runs statechart.ts on Bun 1.1.5 when PATH has no Node", () => {
+test("the launcher runs statechart.js on Bun 1.1.5 when PATH has no Node", () => {
   const r = run(path.join(corpus, "Login"), {
     command: [launcher],
     env: { PATH: fakeBun("1.1.5")() },
   });
   assert.equal(r.stderr, "");
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, `${path.join(here, "../statechart.ts")}\n`);
+  assert.equal(r.stdout, `${path.join(here, "../statechart.js")}\n`);
 });
 
 for (const [what, bin] of [
