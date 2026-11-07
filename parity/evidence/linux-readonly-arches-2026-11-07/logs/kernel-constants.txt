@@ -1,0 +1,178 @@
+=== v5.14
+audit.h: #define __AUDIT_ARCH_64BIT 0x80000000
+audit.h: #define __AUDIT_ARCH_LE 0x40000000
+audit.h: #define AUDIT_ARCH_AARCH64 (EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARM (EM_ARM|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARMEB (EM_ARM)
+audit.h: #define AUDIT_ARCH_I386 (EM_386|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_PPC (EM_PPC)
+audit.h: #define AUDIT_ARCH_PPC64 (EM_PPC64|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_PPC64LE (EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_S390 (EM_S390)
+audit.h: #define AUDIT_ARCH_S390X (EM_S390|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_X86_64 (EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+elf-em.h: #define EM_386 3
+elf-em.h: #define EM_PPC 20 /* PowerPC */
+elf-em.h: #define EM_PPC64 21 /* PowerPC64 */
+elf-em.h: #define EM_ARM 40 /* ARM 32 bit */
+elf-em.h: #define EM_X86_64 62 /* AMD x86-64 */
+elf-em.h: #define EM_S390 22 /* IBM S/390 */
+elf-em.h: #define EM_AARCH64 183 /* ARM 64 bit */
+x86 syscall_64.tbl: 41 common socket sys_socket
+x86 syscall_64.tbl: 257 common openat sys_openat
+x86 syscall_64.tbl: 425 common io_uring_setup sys_io_uring_setup
+asm-generic unistd.h (arm64): #define __NR_openat 56
+asm-generic unistd.h (arm64): #define __NR_socket 198
+asm-generic unistd.h (arm64): #define __NR_io_uring_setup 425
+arm syscall.tbl: 102 oabi socketcall sys_socketcall sys_oabi_socketcall
+arm syscall.tbl: 113 oabi syscall sys_syscall
+arm syscall.tbl: 281 common socket sys_socket
+arm syscall.tbl: 322 common openat sys_openat
+arm syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+powerpc syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+powerpc syscall.tbl: 286 common openat sys_openat compat_sys_openat
+powerpc syscall.tbl: 326 common socket sys_socket
+powerpc syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+s390 syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+s390 syscall.tbl: 288 common openat sys_openat compat_sys_openat
+s390 syscall.tbl: 359 common socket sys_socket sys_socket
+s390 syscall.tbl: 425 common io_uring_setup sys_io_uring_setup sys_io_uring_setup
+net.h: #define SYS_SOCKET 1 /* sys_socket(2) */
+=== v6.1
+audit.h: #define __AUDIT_ARCH_64BIT 0x80000000
+audit.h: #define __AUDIT_ARCH_LE 0x40000000
+audit.h: #define AUDIT_ARCH_AARCH64 (EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARM (EM_ARM|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARMEB (EM_ARM)
+audit.h: #define AUDIT_ARCH_I386 (EM_386|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_PPC (EM_PPC)
+audit.h: #define AUDIT_ARCH_PPC64 (EM_PPC64|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_PPC64LE (EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_S390 (EM_S390)
+audit.h: #define AUDIT_ARCH_S390X (EM_S390|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_X86_64 (EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+elf-em.h: #define EM_386 3
+elf-em.h: #define EM_PPC 20 /* PowerPC */
+elf-em.h: #define EM_PPC64 21 /* PowerPC64 */
+elf-em.h: #define EM_ARM 40 /* ARM 32 bit */
+elf-em.h: #define EM_X86_64 62 /* AMD x86-64 */
+elf-em.h: #define EM_S390 22 /* IBM S/390 */
+elf-em.h: #define EM_AARCH64 183 /* ARM 64 bit */
+x86 syscall_64.tbl: 41 common socket sys_socket
+x86 syscall_64.tbl: 257 common openat sys_openat
+x86 syscall_64.tbl: 425 common io_uring_setup sys_io_uring_setup
+asm-generic unistd.h (arm64): #define __NR_openat 56
+asm-generic unistd.h (arm64): #define __NR_socket 198
+asm-generic unistd.h (arm64): #define __NR_io_uring_setup 425
+arm syscall.tbl: 102 oabi socketcall sys_socketcall sys_oabi_socketcall
+arm syscall.tbl: 113 oabi syscall sys_syscall
+arm syscall.tbl: 281 common socket sys_socket
+arm syscall.tbl: 322 common openat sys_openat
+arm syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+powerpc syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+powerpc syscall.tbl: 286 common openat sys_openat compat_sys_openat
+powerpc syscall.tbl: 326 common socket sys_socket
+powerpc syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+s390 syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+s390 syscall.tbl: 288 common openat sys_openat compat_sys_openat
+s390 syscall.tbl: 359 common socket sys_socket sys_socket
+s390 syscall.tbl: 425 common io_uring_setup sys_io_uring_setup sys_io_uring_setup
+net.h: #define SYS_SOCKET 1 /* sys_socket(2) */
+=== v6.8
+audit.h: #define __AUDIT_ARCH_64BIT 0x80000000
+audit.h: #define __AUDIT_ARCH_LE 0x40000000
+audit.h: #define AUDIT_ARCH_AARCH64 (EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARM (EM_ARM|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARMEB (EM_ARM)
+audit.h: #define AUDIT_ARCH_I386 (EM_386|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_PPC (EM_PPC)
+audit.h: #define AUDIT_ARCH_PPC64 (EM_PPC64|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_PPC64LE (EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_S390 (EM_S390)
+audit.h: #define AUDIT_ARCH_S390X (EM_S390|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_X86_64 (EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+elf-em.h: #define EM_386 3
+elf-em.h: #define EM_PPC 20 /* PowerPC */
+elf-em.h: #define EM_PPC64 21 /* PowerPC64 */
+elf-em.h: #define EM_ARM 40 /* ARM 32 bit */
+elf-em.h: #define EM_X86_64 62 /* AMD x86-64 */
+elf-em.h: #define EM_S390 22 /* IBM S/390 */
+elf-em.h: #define EM_AARCH64 183 /* ARM 64 bit */
+x86 syscall_64.tbl: 41 common socket sys_socket
+x86 syscall_64.tbl: 257 common openat sys_openat
+x86 syscall_64.tbl: 425 common io_uring_setup sys_io_uring_setup
+asm-generic unistd.h (arm64): #define __NR_openat 56
+asm-generic unistd.h (arm64): #define __NR_socket 198
+asm-generic unistd.h (arm64): #define __NR_io_uring_setup 425
+arm syscall.tbl: 102 oabi socketcall sys_socketcall sys_oabi_socketcall
+arm syscall.tbl: 113 oabi syscall sys_syscall
+arm syscall.tbl: 281 common socket sys_socket
+arm syscall.tbl: 322 common openat sys_openat
+arm syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+powerpc syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+powerpc syscall.tbl: 286 common openat sys_openat compat_sys_openat
+powerpc syscall.tbl: 326 common socket sys_socket
+powerpc syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+s390 syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+s390 syscall.tbl: 288 common openat sys_openat compat_sys_openat
+s390 syscall.tbl: 359 common socket sys_socket sys_socket
+s390 syscall.tbl: 425 common io_uring_setup sys_io_uring_setup sys_io_uring_setup
+net.h: #define SYS_SOCKET 1 /* sys_socket(2) */
+=== v6.12
+audit.h: #define __AUDIT_ARCH_64BIT 0x80000000
+audit.h: #define __AUDIT_ARCH_LE 0x40000000
+audit.h: #define AUDIT_ARCH_AARCH64 (EM_AARCH64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARM (EM_ARM|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_ARMEB (EM_ARM)
+audit.h: #define AUDIT_ARCH_I386 (EM_386|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_PPC (EM_PPC)
+audit.h: #define AUDIT_ARCH_PPC64 (EM_PPC64|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_PPC64LE (EM_PPC64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+audit.h: #define AUDIT_ARCH_S390 (EM_S390)
+audit.h: #define AUDIT_ARCH_S390X (EM_S390|__AUDIT_ARCH_64BIT)
+audit.h: #define AUDIT_ARCH_X86_64 (EM_X86_64|__AUDIT_ARCH_64BIT|__AUDIT_ARCH_LE)
+elf-em.h: #define EM_386 3
+elf-em.h: #define EM_PPC 20 /* PowerPC */
+elf-em.h: #define EM_PPC64 21 /* PowerPC64 */
+elf-em.h: #define EM_ARM 40 /* ARM 32 bit */
+elf-em.h: #define EM_X86_64 62 /* AMD x86-64 */
+elf-em.h: #define EM_S390 22 /* IBM S/390 */
+elf-em.h: #define EM_AARCH64 183 /* ARM 64 bit */
+x86 syscall_64.tbl: 41 common socket sys_socket
+x86 syscall_64.tbl: 257 common openat sys_openat
+x86 syscall_64.tbl: 425 common io_uring_setup sys_io_uring_setup
+asm-generic unistd.h (arm64): #define __NR_openat 56
+asm-generic unistd.h (arm64): #define __NR_socket 198
+asm-generic unistd.h (arm64): #define __NR_io_uring_setup 425
+arm syscall.tbl: 102 oabi socketcall sys_socketcall sys_oabi_socketcall
+arm syscall.tbl: 113 oabi syscall sys_syscall
+arm syscall.tbl: 281 common socket sys_socket
+arm syscall.tbl: 322 common openat sys_openat
+arm syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+powerpc syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+powerpc syscall.tbl: 286 common openat sys_openat compat_sys_openat
+powerpc syscall.tbl: 326 common socket sys_socket
+powerpc syscall.tbl: 425 common io_uring_setup sys_io_uring_setup
+s390 syscall.tbl: 102 common socketcall sys_socketcall compat_sys_socketcall
+s390 syscall.tbl: 288 common openat sys_openat compat_sys_openat
+s390 syscall.tbl: 359 common socket sys_socket sys_socket
+s390 syscall.tbl: 425 common io_uring_setup sys_io_uring_setup sys_io_uring_setup
+net.h: #define SYS_SOCKET 1 /* sys_socket(2) */
+=== v6.12 struct seccomp_data (include/uapi/linux/seccomp.h)
+struct seccomp_data {
+	int nr;
+	__u32 arch;
+	__u64 instruction_pointer;
+	__u64 args[6];
+};
+=== v6.12 arch/arm/kernel/entry-common.S: OABI numbers and the indirect syscall
+247:	eorne	scno, r10, #__NR_OABI_SYSCALL_BASE
+368:sys_syscall:
+381:		ldrlo	pc, [tbl, scno, lsl #2]
+=== glibc 2.41 sysdeps/unix/sysv/linux/s390/kernel-features.h
+24:/* Direct socketcalls available with kernel 4.3.  */
+25:#if __LINUX_KERNEL_VERSION < 0x040300
+37:# undef __ASSUME_SOCKET_SYSCALL
+=== qemu v10.0.0 linux-user/syscall.c: qemu-user refuses PR_SET_SECCOMP
+6524:    case PR_SET_SECCOMP:
+6530:        /* Disable to prevent the target disabling stuff we need. */

@@ -1,0 +1,21 @@
+=== glibc 2.41, Debian trixie, armv7: python3 socket(AF_UNIX), then node connecting to 127.0.0.1
+7 socket(PF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0) = 3
+10 socket(PF_INET,SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK,IPPROTO_IP) = 18
+10 connect(18,0x408001c4,16) = -1 errno=115 (Operation in progress)
+=== glibc 2.41, Debian trixie, ppc64le: python3 socket(AF_UNIX), then node connecting to 127.0.0.1
+7 socket(PF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0) = 3
+10 socket(PF_INET,SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK,IPPROTO_IP) = 18
+10 connect(18,0x94efe9c8,16) = -1 errno=115 (Operation in progress)
+=== glibc 2.41, Debian trixie, s390x: python3 socket(AF_UNIX), then node connecting to 127.0.0.1
+7 SOCKET(PF_UNIX,SOCK_STREAM|SOCK_CLOEXEC,0) = 3
+10 SOCKET(PF_INET,SOCK_STREAM|SOCK_CLOEXEC|SOCK_NONBLOCK,IPPROTO_IP) = 18
+10 CONNECT(18,{sin_family=AF_INET,sin_port=htons(1),sin_addr=inet_addr("127.0.0.1")},16,) = -1 errno=115 (Operation in progress)
+=== musl, alpine:3.20, linux/arm/v7: busybox wget 127.0.0.1
+1 socket(PF_INET,SOCK_STREAM,IPPROTO_IP) = 3
+1 connect(3,0x4aee14,16) = -1 errno=111 (Connection refused)
+=== musl, alpine:3.20, linux/ppc64le: busybox wget 127.0.0.1
+1 socket(PF_INET,SOCK_STREAM,IPPROTO_IP) = 3
+1 connect(3,0x110b74,16) = -1 errno=111 (Connection refused)
+=== musl, alpine:3.20, linux/s390x: busybox wget 127.0.0.1
+1 socket(PF_INET,SOCK_STREAM,IPPROTO_IP) = 3
+1 connect(3,0xf6b74,16) = -1 errno=111 (Connection refused)

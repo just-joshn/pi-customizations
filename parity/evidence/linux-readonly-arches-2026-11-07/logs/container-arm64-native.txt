@@ -1,0 +1,79 @@
+=== kernel: Linux 7.2.12-orbstack-00394-gbecdd6130068 aarch64
+=== node: arm64 v22.23.4
+=== libc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41
+=== bwrap: bubblewrap 0.12.0
+=== kernel.io_uring_disabled=0
+=== before: node /ro-check/check.ts /ro-check/before/linux-readonly-sandbox.ts
+sandbox command: exec '/usr/bin/bwrap' '--new-session' '--die-with-parent' '--unshare-all' '--share-net' '--ro-bind' '/' '/' '--dev' '/dev' '--proc' '/proc' '--cap-drop' 'ALL' '--chdir' '/tmp/ro-check-fB3m5V' '--seccomp' '3' -- '/bin/bash' -c 'true' 3< '/tmp/pi-pstack-ro-Ln4V5j/unix-block.bpf'
+PASS cat
+  host:      13.7
+  sandboxed: 13.7
+PASS ls
+  host:      node | node-v22.23.4-linux-arm64
+  sandboxed: node | node-v22.23.4-linux-arm64
+PASS git log
+  host:      c0d8d9b RO-MARK
+  sandboxed: c0d8d9b RO-MARK
+PASS touch
+  host:      WROTE
+  sandboxed: WRITE-REFUSED | touch: cannot touch 'made.txt': Read-only file system
+PASS node unix connect
+  host:      SOCKET-CONNECTED | node exit 0
+  sandboxed: SOCKET-EPERM | node exit 0
+PASS node stdout on an inherited socket
+  host:      stdout socket=true stream=Socket
+  sandboxed: stdout socket=true stream=Socket
+PASS python socket(AF_UNIX)
+  host:      socket-unix: ok
+  sandboxed: socket-unix: EPERM
+PASS direct socket syscall
+  host:      direct-socket-unix: ok | direct-socket-inet: ok
+  sandboxed: direct-socket-unix: EPERM | direct-socket-inet: ok
+PASS io_uring_setup
+  host:      io_uring_setup: ok
+  sandboxed: io_uring_setup: EPERM
+PASS node fetch loopback
+  host:      HTTP-BODY-OK | node exit 0
+  sandboxed: HTTP-BODY-OK | node exit 0
+PASS curl loopback
+  host:      HTTP-BODY-OK
+  sandboxed: HTTP-BODY-OK
+RESULT: PASS 11/11 on arm64 v22.23.4
+=== before exit 0
+=== after: node /ro-check/check.ts /ro-check/after/linux-readonly-sandbox.ts
+sandbox command: exec '/usr/bin/bwrap' '--new-session' '--die-with-parent' '--unshare-all' '--share-net' '--ro-bind' '/' '/' '--dev' '/dev' '--proc' '/proc' '--cap-drop' 'ALL' '--chdir' '/tmp/ro-check-SCua4g' '--seccomp' '3' -- '/bin/bash' -c 'true' 3< '/tmp/pi-pstack-ro-ZTsCTp/unix-block.bpf'
+PASS cat
+  host:      13.7
+  sandboxed: 13.7
+PASS ls
+  host:      node | node-v22.23.4-linux-arm64
+  sandboxed: node | node-v22.23.4-linux-arm64
+PASS git log
+  host:      c0d8d9b RO-MARK
+  sandboxed: c0d8d9b RO-MARK
+PASS touch
+  host:      WROTE
+  sandboxed: WRITE-REFUSED | touch: cannot touch 'made.txt': Read-only file system
+PASS node unix connect
+  host:      SOCKET-CONNECTED | node exit 0
+  sandboxed: SOCKET-EPERM | node exit 0
+PASS node stdout on an inherited socket
+  host:      stdout socket=true stream=Socket
+  sandboxed: stdout socket=true stream=Socket
+PASS python socket(AF_UNIX)
+  host:      socket-unix: ok
+  sandboxed: socket-unix: EPERM
+PASS direct socket syscall
+  host:      direct-socket-unix: ok | direct-socket-inet: ok
+  sandboxed: direct-socket-unix: EPERM | direct-socket-inet: ok
+PASS io_uring_setup
+  host:      io_uring_setup: ok
+  sandboxed: io_uring_setup: EPERM
+PASS node fetch loopback
+  host:      HTTP-BODY-OK | node exit 0
+  sandboxed: HTTP-BODY-OK | node exit 0
+PASS curl loopback
+  host:      HTTP-BODY-OK
+  sandboxed: HTTP-BODY-OK
+RESULT: PASS 11/11 on arm64 v22.23.4
+=== after exit 0

@@ -1,0 +1,287 @@
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-armmp; initrd /work/boot/initrd.img-6.12.115+deb13.1-armmp
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 6.12.115+deb13.1-armmp (debian-kernel@lists.debian.org) (arm-linux-gnueabihf-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP Debian 6.12.115-2 (2026-11-01)
+[    0.000000] CPU: ARMv7 Processor [414fc0f0] revision 0 (ARMv7), cr=10c5387d
+[    0.000000] CPU: div instructions available: patching division code
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, PIPT instruction cache
+[    0.000000] OF: fdt: Machine model: linux,dummy-virt
+[    0.000000] random: crng init done
+[    0.000000] Memory policy: Data cache writealloc
+[    0.000000] efi: UEFI not found.
+[    0.000000] cma: Reserved 16 MiB at 0x7f000000 on node -1
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000040000000-0x000000006fffffff]
+[    0.000000]   Normal   empty
+[    0.000000]   HighMem  [mem 0x0000000070000000-0x000000007fffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000040000000-0x000000007fffffff]
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] psci: probing for conduit method from DT.
+[    0.000000] psci: PSCIv1.1 detected in firmware.
+[    0.000000] psci: Using standard PSCI v0.2 function IDs
+[    0.000000] psci: Trusted OS migration not required
+[    0.000000] psci: SMC Calling Convention v1.0
+[    0.000000] percpu: Embedded 20 pages/cpu s50444 r8192 d23284 u81920
+[    0.000000] Kernel command line: root=/dev/vda ro init=/ro-check/guest-init.sh panic=-1 console=ttyAMA0
+[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 262144
+[    0.000000] allocated 1048576 bytes of page_ext
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] ftrace: allocating 44126 entries in 130 pages
+[    0.000000] ftrace: allocated 130 pages with 2 groups
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=8 to nr_cpu_ids=2.
+[    0.000000] 	Rude variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.000000] RCU Tasks Rude: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.000000] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] GICv2m: range[mem 0x08020000-0x08020fff], SPI[80:143]
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+[    0.000000] arch_timer: cp15 timer(s) running at 62.50MHz (virt).
+[    0.000000] clocksource: arch_sys_counter: mask: 0x1ffffffffffffff max_cycles: 0x1cd42e208c, max_idle_ns: 881590405314 ns
+[    0.000106] sched_clock: 57 bits at 63MHz, resolution 16ns, wraps every 4398046511096ns
+[    0.000178] Switching to timer-based delay loop, resolution 16ns
+[    0.003144] Console: colour dummy device 80x25
+[    0.006681] Calibrating delay loop (skipped), value calculated using timer frequency.. 125.00 BogoMIPS (lpj=250000)
+[    0.006786] CPU: Testing write buffer coherency: ok
+[    0.007466] CPU0: Spectre v2: firmware did not set auxiliary control register IBE bit, system vulnerable
+[    0.007549] CPU0: Spectre BHB: enabling loop workaround for all CPUs
+[    0.007605] pid_max: default: 32768 minimum: 301
+[    0.008624] LSM: initializing lsm=lockdown,capability,landlock,yama,apparmor,tomoyo,bpf,ipe,ima,evm
+[    0.009399] landlock: Up and running.
+[    0.009413] Yama: disabled by default; enable with sysctl kernel.yama.*
+[    0.011555] AppArmor: AppArmor initialized
+[    0.011942] TOMOYO Linux initialized
+[    0.014952] LSM support for eBPF active
+[    0.016527] Mount-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.016551] Mountpoint-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.030605] /cpus/cpu@0 missing clock-frequency property
+[    0.030751] /cpus/cpu@1 missing clock-frequency property
+[    0.030826] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.036656] Setting up static identity map for 0x40300000 - 0x403000ac
+[    0.037830] rcu: Hierarchical SRCU implementation.
+[    0.037847] rcu: 	Max phase no-delay instances is 1000.
+[    0.038602] Timer migration: 1 hierarchy levels; 8 children per group; 1 crossnode level
+[    0.040973] EFI services will not be available.
+[    0.041966] smp: Bringing up secondary CPUs ...
+[    0.043771] CPU1: thread -1, cpu 1, socket 0, mpidr 80000001
+[    0.043812] CPU1: Spectre v2: firmware did not set auxiliary control register IBE bit, system vulnerable
+[    0.045840] smp: Brought up 1 node, 2 CPUs
+[    0.045877] SMP: Total of 2 processors activated (250.00 BogoMIPS).
+[    0.045907] CPU: All CPU(s) started in SVC mode.
+[    0.050154] Memory: 970628K/1048576K available (12288K kernel code, 1798K rwdata, 4204K rodata, 2048K init, 425K bss, 58156K reserved, 16384K cma-reserved, 245760K highmem)
+[    0.055160] devtmpfs: initialized
+[    0.060815] VFP support v0.3: implementor 41 architecture 4 part 30 variant f rev 0
+[    0.071400] futex hash table entries: 512 (order: 3, 32768 bytes, linear)
+[    0.077664] pinctrl core: initialized pinctrl subsystem
+[    0.082291] DMI not present or invalid.
+[    0.087151] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.101124] DMA: preallocated 256 KiB pool for atomic coherent allocations
+[    0.101982] audit: initializing netlink subsys (disabled)
+[    0.106666] audit: type=2000 audit(0.084:1): state=initialized audit_enabled=0 res=1
+[    0.109700] thermal_sys: Registered thermal governor 'fair_share'
+[    0.109720] thermal_sys: Registered thermal governor 'bang_bang'
+[    0.109729] thermal_sys: Registered thermal governor 'step_wise'
+[    0.109732] thermal_sys: Registered thermal governor 'user_space'
+[    0.109734] thermal_sys: Registered thermal governor 'power_allocator'
+[    0.110072] No ATAGs?
+[    0.110657] hw-breakpoint: found 5 (+1 reserved) breakpoint and 4 watchpoint registers.
+[    0.110693] hw-breakpoint: maximum watchpoint size is 8 bytes.
+[    0.112117] Serial: AMBA PL011 UART driver
+[    0.130419] 9000000.pl011: ttyAMA0 at MMIO 0x9000000 (irq = 28, base_baud = 0) is a PL011 rev1
+[    0.131230] printk: legacy console [ttyAMA0] enabled
+[    0.143956] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+[    0.158093] iommu: Default domain type: Translated
+[    0.158256] iommu: DMA domain TLB invalidation policy: strict mode
+[    0.159588] pps_core: LinuxPPS API ver. 1 registered
+[    0.159834] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.160179] PTP clock support registered
+[    0.166387] NetLabel: Initializing
+[    0.166558] NetLabel:  domain hash size = 128
+[    0.166762] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.167574] NetLabel:  unlabeled traffic allowed by default
+[    0.168407] vgaarb: loaded
+[    0.172698] clocksource: Switched to clocksource arch_sys_counter
+[    0.200842] VFS: Disk quotas dquot_6.6.0
+[    0.201174] VFS: Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+[    0.206075] AppArmor: AppArmor Filesystem Enabled
+[    0.216658] NET: Registered PF_INET protocol family
+[    0.217488] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.222716] tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 4096 bytes, linear)
+[    0.223085] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.223533] TCP established hash table entries: 8192 (order: 3, 32768 bytes, linear)
+[    0.223737] TCP bind hash table entries: 8192 (order: 5, 131072 bytes, linear)
+[    0.223945] TCP: Hash tables configured (established 8192 bind 8192)
+[    0.224811] MPTCP token hash table entries: 1024 (order: 2, 16384 bytes, linear)
+[    0.224995] UDP hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    0.225150] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    0.226370] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.226744] NET: Registered PF_XDP protocol family
+[    0.227962] PCI: CLS 0 bytes, default 64
+[    0.231532] Trying to unpack rootfs image as initramfs...
+[    0.236651] Initialise system trusted keyrings
+[    0.238537] Key type blacklist registered
+[    0.239351] workingset: timestamp_bits=14 max_order=18 bucket_order=4
+[    0.239693] zbud: loaded
+[    0.241886] fuse: init (API version 7.41)
+[    0.244218] integrity: Platform Keyring initialized
+[    0.244749] integrity: Machine keyring initialized
+[    0.431837] Key type asymmetric registered
+[    0.432249] Asymmetric key parser 'x509' registered
+[    0.710925] Freeing initrd memory: 24212K
+[    0.825012] bounce: pool size: 64 pages
+[    0.825334] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 248)
+[    0.826534] io scheduler mq-deadline registered
+[    0.839937] pl061_gpio 9030000.pl061: PL061 GPIO chip registered
+[    0.841053] ledtrig-cpu: registered to indicate activity on CPUs
+[    0.842756] pci-host-generic 4010000000.pcie: host bridge /pcie@10000000 ranges:
+[    0.843301] pci-host-generic 4010000000.pcie:       IO 0x003eff0000..0x003effffff -> 0x0000000000
+[    0.843797] pci-host-generic 4010000000.pcie:      MEM 0x0010000000..0x003efeffff -> 0x0010000000
+[    0.844623] pci-host-generic 4010000000.pcie:      MEM 0x8000000000..0xffffffffff -> 0x8000000000
+[    0.845391] pci-host-generic 4010000000.pcie: missing "reg" property
+[    0.845523] pci-host-generic 4010000000.pcie: probe with driver pci-host-generic failed with error -75
+[    0.851937] Serial: 8250/16550 driver, 5 ports, IRQ sharing enabled
+[    0.854887] Serial: AMBA driver
+[    0.855539] STM32 USART driver initialized
+[    0.859416] mousedev: PS/2 mouse device common for all mice
+[    0.862850] rtc-pl031 9010000.pl031: registered as rtc0
+[    0.863473] rtc-pl031 9010000.pl031: setting system clock to 2026-11-07T16:44:58 UTC (1794069898)
+[    0.868467] NET: Registered PF_INET6 protocol family
+[    0.914929] Segment Routing with IPv6
+[    0.915296] In-situ OAM (IOAM) with IPv6
+[    0.915703] mip6: Mobile IPv6
+[    0.915946] NET: Registered PF_PACKET protocol family
+[    0.916718] mpls_gso: MPLS GSO support
+[    0.917222] ThumbEE CPU extension supported.
+[    0.917329] Registering SWP/SWPB emulation handler
+[    0.925509] registered taskstats version 1
+[    0.927211] Loading compiled-in X.509 certificates
+[    1.109142] Loaded X.509 cert 'Build time autogenerated kernel key: 3cebbe119089322aca8b81528be265dba70a6717'
+[    1.118861] Key type .fscrypt registered
+[    1.118960] Key type fscrypt-provisioning registered
+[    1.313542] Key type encrypted registered
+[    1.313689] AppArmor: AppArmor sha256 policy hashing enabled
+[    1.314092] ima: No TPM chip found, activating TPM-bypass!
+[    1.314174] ima: Allocated hash algorithm: sha256
+[    1.315028] ima: No architecture policies found
+[    1.315407] evm: Initialising EVM extended attributes:
+[    1.315454] evm: security.selinux
+[    1.315495] evm: security.SMACK64 (disabled)
+[    1.315529] evm: security.SMACK64EXEC (disabled)
+[    1.315564] evm: security.SMACK64TRANSMUTE (disabled)
+[    1.315600] evm: security.SMACK64MMAP (disabled)
+[    1.315631] evm: security.apparmor
+[    1.315656] evm: security.ima
+[    1.315692] evm: security.capability
+[    1.315726] evm: HMAC attrs: 0x1
+[    1.439075] input: gpio-keys as /devices/platform/gpio-keys/input/input0
+[    1.468441] clk: Disabling unused clocks
+[    1.468650] PM: genpd: Disabling unused power domains
+[    1.618629] Freeing unused kernel image (initmem) memory: 2048K
+[    1.669172] Run /init as init process
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+[    4.314077] virtio_blk virtio0: 1/0/0 default/read/poll queues
+[    4.317522] virtio_blk virtio0: [vda] 6291456 512-byte logical blocks (3.22 GB/3.00 GiB)
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... Begin: Waiting for suspend/resume device ... Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+Begin: Running /scripts/local-block ... done.
+done.
+Gave up waiting for suspend/resume device
+done.
+Warning: fsck not present, so skipping root file system
+[   37.668417] EXT4-fs (vda): mounted filesystem 58949452-b973-4368-b5b7-3f670b6df57e ro with ordered data mode. Quota mode: none.
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-armmp armv7l
+=== node: arm v22.23.4
+=== libc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41
+=== bwrap: bubblewrap 0.12.0
+=== kernel.io_uring_disabled=0
+=== before: node /ro-check/check.ts /ro-check/before/linux-readonly-sandbox.ts
+SANDBOX-REFUSED: the read-only shell has no seccomp filter for arm
+=== before exit 1
+=== after: node /ro-check/check.ts /ro-check/after/linux-readonly-sandbox.ts
+sandbox command: exec '/usr/bin/bwrap' '--new-session' '--die-with-parent' '--unshare-all' '--share-net' '--ro-bind' '/' '/' '--dev' '/dev' '--proc' '/proc' '--cap-drop' 'ALL' '--chdir' '/tmp/ro-check-nd8uga' '--seccomp' '3' -- '/bin/bash' -c 'true' 3< '/tmp/pi-pstack-ro-QkbQtX/unix-block.bpf'
+PASS cat
+  host:      13.7
+  sandboxed: 13.7
+PASS ls
+  host:      node | node-v22.23.4-linux-armv7l
+  sandboxed: node | node-v22.23.4-linux-armv7l
+PASS git log
+  host:      362a7bb RO-MARK
+  sandboxed: 362a7bb RO-MARK
+PASS touch
+  host:      WROTE
+  sandboxed: WRITE-REFUSED | touch: cannot touch 'made.txt': Read-only file system
+PASS node unix connect
+  host:      SOCKET-CONNECTED | node exit 0
+  sandboxed: SOCKET-EPERM | node exit 0
+PASS node stdout on an inherited socket
+  host:      stdout socket=true stream=Socket
+  sandboxed: stdout socket=true stream=Socket
+PASS python socket(AF_UNIX)
+  host:      socket-unix: ok
+  sandboxed: socket-unix: EPERM
+PASS direct socket syscall
+  host:      direct-socket-unix: ok | direct-socket-inet: ok
+  sandboxed: direct-socket-unix: EPERM | direct-socket-inet: ok
+PASS io_uring_setup
+  host:      io_uring_setup: ok
+  sandboxed: io_uring_setup: EPERM
+PASS node fetch loopback
+  host:      HTTP-BODY-OK | node exit 0
+  sandboxed: HTTP-BODY-OK | node exit 0
+PASS curl loopback
+  host:      HTTP-BODY-OK
+  sandboxed: HTTP-BODY-OK
+PASS socketcall(SYS_SOCKET, AF_UNIX)
+  host:      socketcall-socket-unix: ENOSYS
+  sandboxed: socketcall-socket-unix: EPERM
+PASS OABI syscall(socket, AF_UNIX)
+  host:      indirect-socket-unix: ENOSYS
+  sandboxed: indirect-socket-unix: EPERM
+RESULT: PASS 13/13 on arm v22.23.4
+=== after exit 0
+[   53.458909] sysrq: Power Off
+[   53.461397] reboot: Power down
