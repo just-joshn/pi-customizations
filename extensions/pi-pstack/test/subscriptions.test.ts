@@ -24,7 +24,7 @@ interface Tool {
   execute: (id: string, params: unknown, signal: undefined, onUpdate: undefined, ctx: unknown) => Promise<{ content: { text: string }[]; details: unknown }>;
 }
 
-function fakePi(entries: { type: string; customType?: string; data?: unknown }[] = [], cwd = join(tmpdir(), 'pstack-sub-cwd'), sessionId = 'owner') {
+function fakePi(entries: { type: string; customType?: string; data?: unknown; details?: unknown }[] = [], cwd = join(tmpdir(), 'pstack-sub-cwd'), sessionId = 'owner') {
   const handlers = new Map<string, Handler[]>();
   const tools = new Map<string, Tool>();
   const commands = new Map<string, { handler: (args: string, ctx: unknown) => Promise<void> }>();
@@ -128,6 +128,29 @@ describe('subscribe_timer', () => {
     await vi.advanceTimersByTimeAsync(250);
     expect(fake.sent).toHaveLength(1);
     expect((await fake.call('list_subscriptions', {})).text).toBe('No subscriptions.');
+  });
+
+  test('a wake remains recoverable until its notification is persisted', async () => {
+    const first = setup();
+    await first.call('subscribe_timer', { name: 'durable-wake', prompt: 'PERSIST-BEFORE-ACK', delaySeconds: 1, once: true });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(first)).toEqual(['[timer] durable-wake\n\nPERSIST-BEFORE-ACK']);
+    expect(readRegistry(first.cwd).pending.map((event) => event.content)).toEqual(['[timer] durable-wake\n\nPERSIST-BEFORE-ACK']);
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(first)).toEqual(['[timer] durable-wake\n\nPERSIST-BEFORE-ACK']);
+    first.controllers[0]?.shutdown();
+
+    const recovered = setup({}, first.entries, 'rpc', first);
+    expect(wakes(recovered)).toEqual(['[timer] durable-wake\n\nPERSIST-BEFORE-ACK']);
+    const message = recovered.sent[0]?.message;
+    expect(message?.customType).toBe(WAKE_TYPE);
+    recovered.entries.push({ type: 'custom_message', customType: WAKE_TYPE, details: message?.details });
+    await vi.advanceTimersByTimeAsync(250);
+    expect(readRegistry(first.cwd).pending).toEqual([]);
+    recovered.controllers.at(-1)?.shutdown();
+
+    const reopened = setup({}, recovered.entries, 'rpc', recovered);
+    expect(wakes(reopened)).toEqual([]);
   });
 
   test('a repeating delay fires every period', async () => {
