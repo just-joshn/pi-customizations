@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Starts the durable routines supervisor for one workspace.
-set -euo pipefail
+set -eu
 self=$0
 while [ -L "$self" ]; do
   link=$(readlink "$self")

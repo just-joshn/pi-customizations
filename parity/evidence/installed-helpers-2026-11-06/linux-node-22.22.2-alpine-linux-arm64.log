@@ -1,0 +1,12 @@
+aarch64
+v22.22.2
+1.5.0
+Installing npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.21.tgz...
+
+added 8 packages in 866ms
+Installed npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.21.tgz
+88 commands
+TypeOK, NoDeadlock
+
+Wrote chart
+pstack-routines-supervisor started for /work (pid 216).

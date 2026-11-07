@@ -2,7 +2,7 @@
 
 ## [0.15.36-pi.21] - 2026-11-07
 
-- Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
+- Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources, and the supervisor's launcher is a POSIX `sh` script, so it also starts on Alpine without bash. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
 - Give the supervisor and the detached runs it starts the absolute agent directory, so a relative or `file://` `PI_CODING_AGENT_DIR` still names the same profile after the supervisor changes directory.
 
 ## [0.15.36-pi.20] - 2026-11-06

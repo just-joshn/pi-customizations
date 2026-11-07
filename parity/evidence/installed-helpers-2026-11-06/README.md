@@ -17,4 +17,15 @@ The recorded run at commit `f1de4697` used Pi 1.5.0 on macOS 27.2 arm64:
 
 Before this change the published `0.15.36-pi.20` supervisor failed under the same PATH with `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, because Node does not strip types under `node_modules`.
 
-This covers macOS arm64 only. Linux and the other targets in the support contract are not covered here.
+`run-linux.sh <image> <platform>` repeats the run inside a container: it installs Pi 1.5.0 from npm, installs the archive with `pi install`, lists commands over RPC, checks the TLC model, and starts and stops the supervisor. No Bun is in these images. The recorded `linux-*.log` runs used OrbStack on this Mac:
+
+| Image | Platform | libc | Result |
+|---|---|---|---|
+| `node:22.22.2-bookworm` | `linux/arm64` | glibc | 88 commands, TLC model holds, supervisor started |
+| `node:22.22.2-bookworm` | `linux/amd64` (emulated) | glibc | same |
+| `node:22.22.2-alpine` | `linux/arm64` | musl | same |
+| `node:22.22.2-alpine` | `linux/amd64` (emulated) | musl | same |
+
+The first Alpine run found that the supervisor launcher needed bash, which Alpine does not ship. The launcher is now a POSIX `sh` script.
+
+These containers share the Mac's Linux VM kernel. They do not cover armv7, ppc64le, s390x, a native x64 kernel, or minimum macOS versions.
