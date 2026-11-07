@@ -7,7 +7,21 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { type Static, Type } from 'typebox';
 import { AUTOMATION_ENV, BUILD_PLAN_ENV, childIdentity, childVariables, MACHINE_ENV, PARENT_ENV, PROJECT_ENV, type RootChat } from '../child-env.ts';
 import { type DetachedRun, followDetached, runActive, spawnDetached } from '../cloud/detached.ts';
-import { bootMachine, type CloudDriver, type ContainerMachine, describeMachine, type Machine, machinePreface, parseMachine, provisionMachine, removeContainer, selectDriver, startReadonlySibling, stopMachine } from '../cloud/machine.ts';
+import {
+  bootMachine,
+  type CloudDriver,
+  type ContainerMachine,
+  describeMachine,
+  type Machine,
+  machinePreface,
+  parseMachine,
+  provisionMachine,
+  reapReadonlySiblings,
+  removeContainer,
+  selectDriver,
+  startReadonlySibling,
+  stopMachine,
+} from '../cloud/machine.ts';
 import { inboxDir, postItem } from '../inbox.ts';
 import { machinesDir, projectsDir, rootStoreDir, subagentDir, workspaceStateDir, worktreesDir } from '../paths.ts';
 import { piCommand } from '../pi-command.ts';
@@ -16,7 +30,7 @@ import { renderTaskCard, renderTaskNotification } from './card.ts';
 import { backgroundText, bounded, foregroundText, notificationTitle } from './format.ts';
 import { type AvailableModel, fastVariant, type ModelSpec, resolveSubagentModel } from './models.ts';
 import { createProgress } from './progress.ts';
-import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, type RunRecord, readonlyLaunchRestores, readRecord, recordIds, transcriptFor, writeRecord } from './records.ts';
+import { type AgentRecord, AgentRunningError, acquireRunLock, forkTranscript, type RunLock, type RunRecord, readonlyLaunchRestores, readRecord, recordIds, runningPid, transcriptFor, writeRecord } from './records.ts';
 import { type BackgroundNotice, createSubagentRegistry, NOTIFICATION_TYPE } from './registry.ts';
 import { type ChildHandle, type ChildInput, type ChildOutcome, childArgs, resolveAttachments, signalGroup, startChild, validateAgentId, withAttachments } from './runner.ts';
 import { registerStopAgent } from './stop.ts';
@@ -624,7 +638,7 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
     } else if (plan.machine !== undefined) await bootMachine(plan.machine);
     else if (childIdentity.machine !== undefined && runsReadonly(plan)) {
       const inherited = parseMachine(childIdentity.machine);
-      if (!inherited.readonly) plan.readonlyMachine = await startReadonlySibling(inherited, plan.agentId, signal);
+      if (!inherited.readonly) plan.readonlyMachine = await startReadonlySibling(inherited, plan.agentId, subagentDir(plan.workspace), signal);
     }
   } catch (error) {
     lock.release();
@@ -770,6 +784,9 @@ export function registerTask(pi: ExtensionAPI, options: TaskToolOptions): TaskHa
     delete carrier[STOPPED_NOTICE];
     if (message !== undefined && ctx.hasUI) ctx.ui.notify(message, 'warning');
     reattach(ctx);
+    // A run whose Pi process was killed leaves its readonly sibling running; only a workspace with cloud machines has any.
+    const locks = subagentDir(ctx.cwd);
+    if (existsSync(machinesDir(ctx.cwd))) void reapReadonlySiblings(locks, (agentId) => runningPid(locks, agentId) !== undefined).catch(() => undefined);
   });
 
   /** The notice a detached run's result becomes, built from what its record kept about the Task call that started it. */
