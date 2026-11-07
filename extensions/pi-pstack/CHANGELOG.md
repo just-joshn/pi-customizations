@@ -3,6 +3,7 @@
 ## [0.15.36-pi.21] - 2026-11-07
 
 - Run the routines supervisor and the statechart script on plain Node 22.19 or later, with no Bun. Both shipped as TypeScript that Node refuses to strip under `node_modules`, so an npm-installed package could not keep timers and webhook routines running after the chat closed, or check a statechart, unless Bun was on PATH. They now ship as JavaScript built by Bun 1.4.4 from the same sources, and the supervisor's launcher is a POSIX `sh` script, so it also starts on Alpine without bash. `bun run check:helpers`, `prepack`, CI, and the release job fail when a built helper is stale.
+- Start the statechart worker with V8's `--single-threaded` on Node. Built as one bundled script, the worker could deadlock at exit while a V8 background thread compiled it, which hung the check until it was killed. In a Linux container, 9 of 24 runs of the statechart CLI tests hung before the change, and 0 of 8 full statechart suites hung after it.
 - Give the supervisor and the detached runs it starts the absolute agent directory, so a relative or `file://` `PI_CODING_AGENT_DIR` still names the same profile after the supervisor changes directory.
 
 ## [0.15.36-pi.20] - 2026-11-06

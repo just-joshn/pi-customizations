@@ -96,7 +96,10 @@ try {
           "--allow-run",
           "--allow-env",
         ]
-      : process.execArgv;
+      : process.versions.bun
+        ? process.execArgv
+        : // Node can deadlock at exit while a V8 background thread compiles the bundled worker.
+          [...process.execArgv, "--single-threaded"];
     const worker = spawn(
       process.execPath,
       [

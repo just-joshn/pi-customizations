@@ -184,7 +184,7 @@ try {
       "--allow-write",
       "--allow-run",
       "--allow-env"
-    ] : process.execArgv;
+    ] : process.versions.bun ? process.execArgv : [...process.execArgv, "--single-threaded"];
     const worker = spawn2(process.execPath, [
       ...runtime,
       path.join(import.meta.dirname, "worker.js"),
