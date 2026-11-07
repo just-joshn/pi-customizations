@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.25] - 2026-11-07
+
+- Wait 30 seconds by default before moving a `bash` command to the background, as Cursor CLI's Shell does with its default `block_until_ms`. Before, a call without `timeout` held the turn until a long build or test run ended. The `timeout` description now says the command keeps running. A readonly subagent and plan mode have no background shells, so their `bash` still waits for the command to end.
+
 ## [0.15.36-pi.24] - 2026-11-07
 
 - Move a `bash` command whose `timeout` elapses to the background instead of killing it, as Cursor CLI 2026.11.05 does. The call returns the output so far with Cursor's wording, the shell ID, the PID, and the terminals file; the command keeps writing to that file, `AwaitShell` can wait on it, a notification arrives after the turn when it finishes, and ending the session stops it. It keeps no shell state. A cloud agent's `bash` does the same on its machine; the read-only shells of readonly subagents and plan mode still stop the command, since they have no background shells.

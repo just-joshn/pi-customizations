@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { basename } from 'node:path';
 
 import { type BashOperations, type BashToolOptions, createBashToolDefinition, createLocalBashOperations, type ExtensionAPI, type ExtensionContext, getShellConfig } from '@earendil-works/pi-coding-agent';
+import { Type } from 'typebox';
 
 /**
  * What a session's shell carries from one finished command to the next, as Cursor's shell does: the working directory
@@ -17,7 +18,10 @@ interface ShellState {
 export const SHELL_STATE_NOTE = ' The working directory and exported environment variables carry over to the next call in this session. A command that runs exit, times out, or is aborted keeps neither.';
 
 const BACKGROUND_NOTE =
-  ' A command still running when its timeout elapses is not stopped: it moves to the background, and the result names its shell ID, PID, and output file. AwaitShell waits on it, and a notification arrives after your turn when it finishes.';
+  ' A command still running when its timeout elapses is not stopped: it moves to the background, and the result names its shell ID, PID, and output file. Without a timeout, that happens after 30 seconds. AwaitShell waits on it, and a notification arrives after your turn when it finishes.';
+
+/** Cursor's Shell waits 30 seconds in the foreground when the call names no time. */
+const DEFAULT_WAIT_SECONDS = 30;
 
 const MAX_TIMEOUT_MS = 2_147_483_647;
 
@@ -148,7 +152,7 @@ export function createSessionShell() {
    * `moveOnTimeout`, a command still running when its timeout elapses goes there instead of being stopped, and keeps no
    * state.
    */
-  const operations = (inner: BashOperations, moveOnTimeout?: (moved: MovedCommand) => BackgroundedCommand | undefined): BashOperations => ({
+  const operations = (inner: BashOperations, moveOnTimeout?: (moved: MovedCommand) => BackgroundedCommand | undefined, keepUnmoved = false): BashOperations => ({
     exec: (command, cwd, options) => {
       const { onData, signal, timeout, ...rest } = options;
       const waitMs = timeoutMs(timeout);
@@ -189,6 +193,7 @@ export function createSessionShell() {
             return reject(error);
           }
           if (moved === undefined) {
+            if (keepUnmoved) return;
             timedOut = true;
             return abort();
           }
@@ -234,17 +239,26 @@ export type SessionShell = ReturnType<typeof createSessionShell>;
  */
 export function sessionBashDefinition(shell: SessionShell, cwd: string, operations: BashOperations, options: Pick<BashToolOptions, 'commandPrefix'> & { background?: Background | undefined } = {}) {
   const { background, ...bashOptions } = options;
-  const define = (moveOnTimeout?: (moved: MovedCommand) => BackgroundedCommand | undefined) =>
-    createBashToolDefinition(cwd, { ...bashOptions, operations: shell.operations(operations, moveOnTimeout), spawnHook: (spawn) => ({ ...spawn, command: shell.script(spawn.command) }) });
+  const define = (moveOnTimeout?: (moved: MovedCommand) => BackgroundedCommand | undefined, keepUnmoved = false) =>
+    createBashToolDefinition(cwd, { ...bashOptions, operations: shell.operations(operations, moveOnTimeout, keepUnmoved), spawnHook: (spawn) => ({ ...spawn, command: shell.script(spawn.command) }) });
   const definition = define();
   if (background === undefined) return { ...definition, description: `${definition.description}${SHELL_STATE_NOTE}` };
   const tool: typeof definition = {
     ...definition,
     description: `${definition.description}${SHELL_STATE_NOTE}${BACKGROUND_NOTE}`,
+    parameters: {
+      ...definition.parameters,
+      properties: {
+        ...definition.parameters.properties,
+        timeout: Type.Optional(Type.Number({ description: `Seconds to wait for the command before it moves to the background, where it keeps running (default ${DEFAULT_WAIT_SECONDS})` })),
+      },
+    },
     async execute(toolCallId, params, signal, onUpdate, ctx) {
       const call = { toolCallId, command: params.command, cwd: shell.cwd() ?? ctx.cwd };
       try {
-        return await define((moved) => background(ctx, call, moved)).execute(toolCallId, params, signal, onUpdate, ctx);
+        const defaulted = params.timeout === undefined;
+        const timed = defaulted ? { ...params, timeout: DEFAULT_WAIT_SECONDS } : params;
+        return await define((moved) => background(ctx, call, moved), defaulted).execute(toolCallId, timed, signal, onUpdate, ctx);
       } catch (error) {
         if (!(error instanceof MovedToBackground)) throw error;
         return { content: [{ type: 'text', text: error.command.text }], details: { fullOutputPath: error.command.outputPath } };

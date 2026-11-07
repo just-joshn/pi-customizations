@@ -98,7 +98,7 @@ describe('background shells line', () => {
     const without = hostSection(facts(ALL_TOOLS));
     expect(withShells).toContain('- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to /state/terminals/<shell id>.txt.');
     expect(withShells).toContain('start a watcher with bash_background that exits, or prints a line its notify_on_output pattern matches, when the event fires');
-    expect(withShells).toContain('bash waits for its command to finish unless its timeout elapses, which moves the command to the background, so start anything that can run for minutes');
+    expect(withShells).toContain('bash waits for its command up to its timeout, 30 seconds when the call sets none, and then moves a command still running to the background, so start anything that can run for minutes');
     expect([without.includes('bash_background'), without.includes('AwaitShell')]).toEqual([false, false]);
   });
 });
