@@ -17,8 +17,9 @@ if (operation === 'hold') {
 } else if (operation === 'deliver') {
   deliverOwner(
     cwd,
-    'owner',
+    { sessionId: 'owner', leaseToken: 'lease' },
     () => true,
+    () => false,
     (_sub, event) => appendFileSync(value, `${event.id}\n`),
   );
 } else {
