@@ -1,19 +1,13 @@
 # Changelog
 
-## [0.15.36-pi.25] - 2026-11-07
+## [0.15.36-pi.23] - 2026-11-07
 
-- Keep the shell's working directory and exported environment variables between `bash` calls in a session, as Cursor CLI 2026.11.05 does. Pi started every command fresh in the session's directory, so a `cd` or `export` in one call was gone in the next. `bash_background` jobs now start from the same state. Readonly subagents, plan mode, and cloud machines share the behavior; a new, resumed, or forked session and every subagent start fresh.
-
-## [0.15.36-pi.24] - 2026-11-07
-
+- Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.
 - Mount the pi-pstack package read-only on every cloud machine, so a cloud agent can read the skills, playbooks, and scripts its system prompt names; they were missing from the container.
 - Make a readonly cloud agent's machine unwritable: a read-only root filesystem, no `/dev/shm`, and your user instead of root, on top of the read-only clone, Projects folder, and store. `/tmp` and the rest of the container were writable before. A readonly `resume` or `fork` of an agent on a writable machine now fails with an error, since it used to run with that machine's writable mounts.
 - Run a cloud agent's readonly subagent on a read-only sibling container instead of the agent's writable machine: the same image and mounts, all read-only, with the read-only root filesystem and your user, removed when the subagent ends. It used to write the clone, `/tmp`, and the Projects folder from its read-only `bash`.
 - Keep a cloud command's stdout and stderr in the order the command wrote them, and make ending a cloud command (abort, timeout, or ending a background job) kill it on the machine: Debian's `sh` rejected the `kill -- -<pid>` the old code sent, so the command kept running.
-
-## [0.15.36-pi.23] - 2026-11-07
-
-- Keep a subscription wake pending until the owner's session file holds it. Before, a wake left the pending queue as soon as it was handed to Pi, so an owner that died while busy, or before Pi saved the message, lost it for good. Now the next process that opens the session receives it, and a session that already holds the wake does not receive it again. A busy owner can hold at most 20 unsaved wakes per subscription; further fires report the queue as full.
+- Keep the shell's working directory and exported environment variables between `bash` calls in a session, as Cursor CLI 2026.11.05 does. Pi started every command fresh in the session's directory, so a `cd` or `export` in one call was gone in the next. `bash_background` jobs now start from the same state. Readonly subagents, plan mode, and cloud machines share the behavior; a new, resumed, or forked session and every subagent start fresh.
 
 ## [0.15.36-pi.22] - 2026-11-07
 
