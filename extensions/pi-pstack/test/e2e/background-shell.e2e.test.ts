@@ -119,6 +119,34 @@ describe('print and JSON runs', () => {
     ]);
   });
 
+  test('AwaitShell that sees a background command already ended skips its notification and the extra turn', async () => {
+    const run = await runJson(
+      sandbox,
+      script([
+        { tool: 'bash_background', args: { command: 'sleep 1; echo BG-DONE' } },
+        { tool: 'AwaitShell', args: { block_until_ms: 2_500 } },
+        { tool: 'AwaitShell', args: { shell_id: '@@shell-id', block_until_ms: 1_000 } },
+      ]),
+      ['--no-session'],
+    );
+    expect(toolEnds(run.events, 'AwaitShell').map((end) => end.text)).toEqual(['Slept for 2.5s.', expect.stringMatching(/^Task completed in \d+ms with exit code: 0\./)]);
+    expect(shellNotices(run.events)).toEqual([]);
+    expect(run.events.filter((event) => event.type === 'agent_start')).toHaveLength(1);
+  });
+
+  test('a background command that ends unawaited during the turn notifies once the turn ends', async () => {
+    const run = await runJson(
+      sandbox,
+      script([
+        { tool: 'bash_background', args: { command: 'echo BG-DONE', description: 'quick probe' } },
+        { tool: 'AwaitShell', args: { block_until_ms: 1_000 } },
+      ]),
+      ['--no-session'],
+    );
+    expect(shellNotices(run.events)).toEqual([expect.stringContaining('status: success\ntask_id: ')]);
+    expect(assistantTexts(run.events).at(-1)?.startsWith('ECHO: <system_notification>\nThe following task has finished.')).toBe(true);
+  });
+
   test("AwaitShell refuses to wait for subagents and to check no shell, with Cursor desktop's errors", async () => {
     const run = await runJson(
       sandbox,
@@ -151,6 +179,23 @@ describe('interactive sessions', () => {
       expect(turns.filter((text) => text.includes('ECHO: <system_notification>'))).toHaveLength(2);
       const progress = rpc.events.find((event) => event.type === 'message_end' && JSON.stringify(event['message']).includes(`task_id: ${shellId}:task_progress:1`));
       expect(JSON.stringify(progress?.['message'])).toContain('detail: Shell output has pattern /^TICK-2/. This is occurrence number 1. Matched text: TICK-2. The title message is being displayed to the user.\\noutput_path: ');
+    } finally {
+      await rpc.close();
+    }
+  });
+
+  test('a command that ends unawaited during the turn wakes the agent once the turn ends', async () => {
+    const rpc = startRpc(sandbox, ['--no-session']);
+    try {
+      rpc.send({
+        type: 'prompt',
+        message: script([
+          { tool: 'bash_background', args: { command: 'echo BG-DONE', description: 'quick probe' } },
+          { tool: 'AwaitShell', args: { block_until_ms: 1_000 } },
+        ]),
+      });
+      const woken = await rpc.waitFor((event) => event.type === 'message_end' && (event['message'] as { role: string }).role === 'assistant' && JSON.stringify(event['message']).includes('title: quick probe'), 10_000);
+      expect(JSON.stringify(woken['message'])).toContain('ECHO: <system_notification>');
     } finally {
       await rpc.close();
     }

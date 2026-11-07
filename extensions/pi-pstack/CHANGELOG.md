@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.34] - 2026-11-07
+
+- Skip a background job's completion notice when `AwaitShell` saw the job end, even when it saw the end after the job had exited. A job that finished while the agent was busy queued its notice at exit, so a later `AwaitShell` that reported it complete still left a notice that started an extra turn after the answer. A notice for a job that ends during a run now waits until the run ends, and goes out only when nothing saw the job end.
+
 ## [0.15.36-pi.33] - 2026-11-07
 
 - Have `/poteto-help` link the public copy of the file its answer came from, `https://github.com/cursor/plugins/blob/main/pstack/` followed by its path, as Cursor's pstack does. It gave the installed package path instead.

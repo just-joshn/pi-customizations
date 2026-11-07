@@ -225,6 +225,9 @@ const titleOf = (command: string, description?: string) => description?.trim() |
 export function createShellJobs(options: ShellJobsOptions, deliver: (notice: ShellNotice) => void) {
   const jobs = new Map<string, ShellJob>();
   let nextId: number | undefined;
+  // Cursor notifies at the end of the turn, so a job that ends during one is held until then and skipped if AwaitShell sees it.
+  let inTurn = false;
+  const held: { job: ShellJob; notice: ShellNotice }[] = [];
 
   const allocateId = (dir: string): string => {
     nextId ??= 100_000 + Math.floor(Math.random() * 800_000);
@@ -262,7 +265,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     if (announce) {
       if (!job.observed) {
         const noticeStatus: NoticeStatus = status === 'succeeded' ? 'success' : status === 'failed' ? 'error' : 'aborted';
-        deliver({
+        const notice: ShellNotice = {
           kind: 'finished',
           status: noticeStatus,
           taskId: job.id,
@@ -270,7 +273,9 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
           title: job.title,
           toolCallId: job.toolCallId,
           ...(noticeStatus === 'error' ? { detail: `exit_code=${exitCode}` } : {}),
-        });
+        };
+        if (inTurn) held.push({ job, notice });
+        else deliver(notice);
       }
     }
     notify(job);
@@ -478,6 +483,13 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     awaitJob,
     change,
     shutdown,
+    beginTurn: () => {
+      inTurn = true;
+    },
+    endTurn: () => {
+      inTurn = false;
+      for (const { job, notice } of held.splice(0)) if (!job.observed) deliver(notice);
+    },
     running: () => [...jobs.values()].filter((job) => job.status === 'running'),
     stop: (job: ShellJob) => {
       job.end('SIGTERM');
@@ -621,6 +633,8 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
     mode = ctx.mode;
     retired = false;
   });
+  pi.on('agent_start', () => jobs.beginTurn());
+  pi.on('agent_end', () => jobs.endTurn());
   // Cursor's print mode holds its exit for background shells and reports each notification as a turn.
   pi.on('agent_before_settle', async (event, ctx) => {
     if (!isOneShot(ctx.mode) || event.outcome === 'aborted') return undefined;
