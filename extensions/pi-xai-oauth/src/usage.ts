@@ -2,20 +2,17 @@ import type { ExtensionAPI, ExtensionCommandContext } from '@earendil-works/pi-c
 import { PROVIDER_ID, PROXY_BASE_URL } from './catalog.ts';
 import { GROK_CLIENT_VERSION } from './request.ts';
 
-/** One product's share of the weekly pool. Percents are 0 through 100. */
 export type ProductShare = {
   readonly product: string;
   readonly usagePercent: number;
 };
 
-/** The credits window. Missing bounds fall back to billingPeriodStart and billingPeriodEnd. */
 export type PlanPeriod = {
   readonly type?: string;
   readonly start?: string;
   readonly end?: string;
 };
 
-/** Plan usage after a successful credits parse. Left percent is 100 minus usedPercent. */
 export type PlanUsage = {
   readonly usedPercent: number;
   readonly period: PlanPeriod;
@@ -44,7 +41,6 @@ function text(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
-/** A plan percent. Anything missing or outside 0..100 is refused, not coerced. */
 function percent(value: unknown): number | undefined {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100) return undefined;
   return value;
