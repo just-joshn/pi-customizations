@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.6] - 2026-11-09
+
+- Add `/usage`. It reads `GET /v1/billing?format=credits` and prints the weekly plan meter, the reset time, and the GrokBuild and Cursor product split when billing is unified.
+- Name the Grok Build login "Grok Build (The X Subscription)". The provider still lists only Grok Build models.
+
 ## [0.1.5] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. Source changes are formatting and import order only.

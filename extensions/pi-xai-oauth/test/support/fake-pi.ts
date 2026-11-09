@@ -1,16 +1,23 @@
 import type { Provider } from '@earendil-works/pi-ai';
 import type { ExtensionAPI, ExtensionContext, ExtensionVirtualModel, ProviderConfig } from '@earendil-works/pi-coding-agent';
 
-type Registering = Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel'>;
+type Registering = Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand'>;
+
+export type RegisteredCommandCapture = {
+  readonly name: string;
+  readonly description?: string | undefined;
+};
 
 export type Registrations = {
   readonly providers: readonly Provider[];
   readonly virtualModels: readonly ExtensionVirtualModel[];
+  readonly commands: readonly RegisteredCommandCapture[];
 };
 
 export function register(factory: (pi: Registering) => void): Registrations {
   const providers: Provider[] = [];
   const virtualModels: ExtensionVirtualModel[] = [];
+  const commands: RegisteredCommandCapture[] = [];
   const registerProvider = (first: Provider | string, config?: ProviderConfig): void => {
     if (typeof first === 'string') throw new Error(`legacy registerProvider(${JSON.stringify(first)}, config) is not supported, received ${config === undefined ? 'no config' : 'a config'}`);
     providers.push(first);
@@ -18,8 +25,11 @@ export function register(factory: (pi: Registering) => void): Registrations {
   const registerVirtualModel = (model: ExtensionVirtualModel): void => {
     virtualModels.push(model);
   };
-  factory({ registerProvider, registerVirtualModel });
-  return { providers, virtualModels };
+  const registerCommand: ExtensionAPI['registerCommand'] = (name, options) => {
+    commands.push({ name, ...(options.description !== undefined ? { description: options.description } : {}) });
+  };
+  factory({ registerProvider, registerVirtualModel, registerCommand });
+  return { providers, virtualModels, commands };
 }
 
 export function onlyProvider(registrations: Registrations): Provider {

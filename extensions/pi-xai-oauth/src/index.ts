@@ -4,6 +4,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { BASELINE, catalogFailure, type EffortAlias, effortAliases, listPrices, PROVIDER_ID, PROXY_BASE_URL, parseCatalog, toPiModel } from './catalog.ts';
 import { loginGrokBuild } from './login.ts';
 import { withGrokHeaders } from './request.ts';
+import { createUsageCommand } from './usage.ts';
 
 const XAI_MISSING = "Pi's built-in xai provider with SuperGrok / X Premium OAuth is not available.";
 const NOT_LOGGED_IN = 'Grok Build is not logged in. Run /login and choose Grok Build.';
@@ -29,7 +30,7 @@ export function createGrokBuildProvider(xai: Provider): Provider {
     id: PROVIDER_ID,
     name: 'Grok Build',
     baseUrl: PROXY_BASE_URL,
-    auth: { oauth: { ...oauth, name: 'Grok Build (SuperGrok or X Premium)', login: loginGrokBuild } },
+    auth: { oauth: { ...oauth, name: 'Grok Build (The X Subscription)', loginLabel: 'Sign in with The X Subscription', login: loginGrokBuild } },
     models: BASELINE.map((model) => toPiModel(model, prices)),
     fetchModels,
     api: withGrokHeaders(xai),
@@ -46,10 +47,11 @@ function routeAlias({ target, effort }: EffortAlias, ctx: RouteContext) {
   return { model, thinkingLevel: effort };
 }
 
-export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel'>) {
+export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerVirtualModel' | 'registerCommand'>) {
   const xai = builtinProviders().find((provider) => provider.id === 'xai');
   if (!xai) throw new Error(XAI_MISSING);
   pi.registerProvider(createGrokBuildProvider(xai));
+  pi.registerCommand('usage', createUsageCommand());
   for (const alias of effortAliases(BASELINE)) {
     pi.registerVirtualModel({
       provider: PROVIDER_ID,

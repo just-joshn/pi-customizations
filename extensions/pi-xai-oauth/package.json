@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-xai-oauth",
-  "version": "0.1.5",
-  "description": "Use a SuperGrok or X Premium subscription in Pi with every Grok Build model, including grok-4.7-build-fast.",
+  "version": "0.1.6",
+  "description": "Use The X Subscription in Pi with Grok Build models, including grok-4.7-build-fast, and check plan usage with /usage.",
   "type": "module",
   "license": "MIT",
   "repository": {

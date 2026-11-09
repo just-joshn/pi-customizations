@@ -37,9 +37,13 @@ test('the only login method is OAuth', () => {
 });
 
 test('the login is labeled as a Grok Build subscription', () => {
-  expect(provider.auth.oauth?.name).toBe('Grok Build (SuperGrok or X Premium)');
+  expect(provider.auth.oauth?.name).toBe('Grok Build (The X Subscription)');
   expect(provider.auth.oauth?.isSubscription).toBe(true);
-  expect(provider.auth.oauth?.loginLabel).toBe('Sign in with SuperGrok or X Premium');
+  expect(provider.auth.oauth?.loginLabel).toBe('Sign in with The X Subscription');
+});
+
+test('the usage command is registered', () => {
+  expect(registrations.commands).toStrictEqual([{ name: 'usage', description: 'Show The X Subscription plan usage for Grok Build' }]);
 });
 
 function providerOver(overrides: { refresh?: () => Promise<never>; toAuth?: () => Promise<{ apiKey: string }> }) {
