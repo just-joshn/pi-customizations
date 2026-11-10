@@ -1,6 +1,7 @@
 import { createProvider, type OAuthCredential, type Provider, type ProviderAuthInteraction, type RefreshModelsContext } from '@earendil-works/pi-ai';
 import { type ExchangeApiKey, exchangeCursorApiKey, KEYCHAIN_ACCOUNT, KEYCHAIN_API_KEY_SERVICE, loginCursor, readKeychainCredential, readMacKeychain, refreshCursor, runCursorAgentLogin } from './auth.ts';
 import { BASELINE, CURSOR_BASE_URL, CURSOR_LOGIN_HINT, CURSOR_PROVIDER_ID, CURSOR_PROVIDER_NAME, catalogFailure, cursorCatalogHeaders, parseUsableModels, toPiModel, usableModelsUrl } from './catalog.ts';
+import { type NativeOpener, openCursorRun } from './native/http2.ts';
 import { type AgentRunner, createCursorStreams, runCursorAgent } from './stream.ts';
 
 export type CursorDeps = {
@@ -9,6 +10,7 @@ export type CursorDeps = {
   readonly exchange?: ExchangeApiKey;
   readonly runLogin?: (signal: AbortSignal) => Promise<void>;
   readonly runAgent?: AgentRunner;
+  readonly openNative?: NativeOpener;
 };
 
 export function createCursorProvider(deps: CursorDeps = {}): Provider {
@@ -16,7 +18,9 @@ export function createCursorProvider(deps: CursorDeps = {}): Provider {
   const readApiKey = deps.readApiKey ?? (() => readMacKeychain(KEYCHAIN_API_KEY_SERVICE, KEYCHAIN_ACCOUNT));
   const exchange = deps.exchange ?? exchangeCursorApiKey;
   const runLogin = deps.runLogin ?? runCursorAgentLogin;
-  const streams = createCursorStreams(deps.runAgent ?? runCursorAgent);
+  const agent = deps.runAgent ?? runCursorAgent;
+  const native = deps.openNative ?? (deps.runAgent ? undefined : openCursorRun);
+  const streams = createCursorStreams(agent, native);
   const oauth = {
     name: CURSOR_PROVIDER_NAME,
     isSubscription: true,

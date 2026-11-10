@@ -1,0 +1,10 @@
+{
+  "endpoint": "/agent.v1.AgentService/Run",
+  "contentType": "application/connect+proto",
+  "capturedFrom": "cursor-agent cli-2026.11.05-86047df",
+  "prompt": "Reply with exactly the word [redacted] and nothing else.",
+  "modelId": "composer-2.5",
+  "askMode": 2,
+  "contextReply": "empty RequestContextSuccess",
+  "assistantText": "[redacted]"
+}
