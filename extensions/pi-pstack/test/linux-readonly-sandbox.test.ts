@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 import { expect, onTestFinished, test } from 'vitest';
-import { linuxReadonlyCommand, seccompFilter } from '../src/linux-readonly-sandbox.ts';
+import { linuxReadonlyCommand } from '../src/linux-readonly-sandbox.ts';
+import { seccompFilter } from '../src/seccomp-filter.ts';
 
 const linux = process.platform === 'linux';
 

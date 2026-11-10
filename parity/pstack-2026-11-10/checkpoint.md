@@ -157,3 +157,20 @@ The 4 skips are the `socketcall` cases for the x64 and arm64 filters, skipped by
 - This is a refusal to run with a descriptor the shell cannot close, not a silent hole, so the code is unchanged. Pi uses bash unless none exists on the host, and Debian and Ubuntu always have bash.
 - Corrects an earlier note that said the read-only shell breaks on a dash-only host. That test left two-digit descriptors open on purpose.
 - Verified: the shell-state and sandbox tests (`readonly-shell`, `readonly-shell-security`, `linux-readonly-sandbox`) pass through the real Linux launch path on an aarch64 7.2.12 kernel with bubblewrap 0.8.0. The shell-state descriptor, fd 9, is created inside the script after the loop (`shell-state.ts:158`).
+
+## Update: structure review of the branch
+
+A strict structure review asked for a restructure. What was done, with the gate:
+
+- The seccomp policy moved to `src/seccomp-filter.ts` with a named `Arch` model (`socket`, `socketpair`, an optional `socketcall` block with its refused and brokered calls), labels as symbols resolved in one pass, and `brokeredSeccompFilter(arch)` as a separate function that returns nothing where no broker is needed. The `brokered` boolean and the `nr === SOCKETCALL` special case are gone.
+- `src/linux-readonly-sandbox.ts` builds the chain once in `launchArgv`, and both the probe and the production command use it, with `FILTER_FD` defined once. `Sandbox` is a two-case union. The unused `linuxReadonlyProfile` export was deleted, with its mentions in the docs.
+- Gate: all five architecture filters and the brokered s390x filter are byte-for-byte identical to the filters before the change (cmp, 136, 136, 176, 168, 160 and 176 bytes). The typecheck is clean and the sandbox, seccomp, shell and netbroker-build tests pass.
+- The launch command strings differ only in that `'--'` and `'-c'` are now quoted, which bash reads as the same arguments.
+- Real s390x 6.12 kernel under QEMU, refactored TypeScript and the committed binary (`evidence/s390x-broker/vm5.log`): brokered at `ptrace_scope` 0 and 2, degraded when the binary is absent and at scope 3, with every probe passing, including 20,000 argument-flip races per call.
+
+Deferred on purpose, to a follow-up with an independent reviewer:
+
+- Restructuring `handle()` and `main()` in `native/netbroker.c` (goto cleanup, repeated reply sites, mixed errno signs).
+- Removing the `--policy` string by using the header constants in C. The self-test already catches any disagreement.
+- Moving the broker staging into its own module.
+- The reasons: those edit security-sensitive native code that has had no independent review, they need the binary rebuilt, and none of them changes behavior.

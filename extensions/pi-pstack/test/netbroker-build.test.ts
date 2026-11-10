@@ -8,10 +8,11 @@ import { expect, onTestFinished, test } from 'vitest';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const committed = join(root, 'dist/netbroker-s390x');
+const pinnedVersion = /ZIG_VERSION = '([^']+)'/.exec(readFileSync(join(root, 'scripts/build-netbroker.mjs'), 'utf8'))?.[1] ?? '';
 
 const STUB = `#!/bin/sh
 case "$1" in
-  version) echo 0.17.1 ;;
+  version) echo "$STUB_VERSION" ;;
   cc) while [ $# -gt 0 ]; do [ "$1" = -o ] && out=$2; shift; done; cat "$STUB_BYTES" > "$out" ;;
 esac
 `;
@@ -27,7 +28,7 @@ function check(bytes: Buffer): { status: number | null; stdout: string; stderr: 
   const { status, stdout, stderr } = spawnSync(process.execPath, [join(root, 'scripts/build-netbroker.mjs'), '--check'], {
     cwd: root,
     encoding: 'utf8',
-    env: { ...process.env, ZIG: zig, STUB_BYTES: built },
+    env: { ...process.env, ZIG: zig, STUB_BYTES: built, STUB_VERSION: pinnedVersion },
   });
   return { status, stdout, stderr };
 }

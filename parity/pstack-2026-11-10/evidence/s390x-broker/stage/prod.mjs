@@ -3,13 +3,14 @@ import { createServer } from 'node:net';
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { promisify } from 'node:util';
 const [, , modulePath, expected] = process.argv;
-const { linuxReadonlyCommand, linuxReadonlyProfile } = await import(modulePath);
+const { linuxReadonlyCommand } = await import(modulePath);
+const profile = () => (linuxReadonlyCommand('true', '/').includes('netbroker') ? 'brokered' : 'degraded');
 const exec = promisify(execFile);
 let failures = 0;
 const check = (name, ok, detail = '') => { console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` | ${detail}` : ''}`); if (!ok) failures++; };
 const sandboxed = async (command) => { try { const r = await exec('/bin/bash', ['-c', linuxReadonlyCommand(command, '/tmp')], { encoding: 'utf8', timeout: 60000 }); return (r.stdout + r.stderr).trim(); } catch (e) { return `${e.stdout ?? ''}${e.stderr ?? ''}`.trim() || String(e.message); } };
 
-check(`profile is ${expected}`, linuxReadonlyProfile() === expected, linuxReadonlyProfile());
+check(`profile is ${expected}`, profile() === expected, profile());
 const tcp = createServer((c) => c.end('HTTP/1.1 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\nHELLO')).listen(0, '127.0.0.1');
 await new Promise((r) => tcp.once('listening', r));
 const port = tcp.address().port;
