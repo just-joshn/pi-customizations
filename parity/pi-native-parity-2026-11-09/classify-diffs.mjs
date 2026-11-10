@@ -2,8 +2,8 @@
 /**
  * Classify each changed text file from tree-map as HOST_TRANSLATION, CONTENT_DRIFT,
  * MIXED, or PACKAGING by scoring known host-substitution patterns vs other hunks.
- * Root LICENSE files are PACKAGING: one shipped notice holds every upstream copyright
- * plus the port author. Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
+ * A root LICENSE whose only changes are added copyright lines is PACKAGING: one shipped
+ * notice holds every upstream copyright plus the port author. Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -117,7 +117,8 @@ function classifyDiff(diffText) {
 
 const results = [];
 for (const row of map.rows.filter((r) => r.status === 'changed')) {
-  if (row.file === 'LICENSE') {
+  const licenseLines = row.file === 'LICENSE' ? readFileSync(join(mapDir, 'diffs', row.plugin, 'LICENSE.diff'), 'utf8').split('\n').filter((l) => /^[+-]/.test(l) && !/^[+-]{3}/.test(l)) : [];
+  if (licenseLines.length > 0 && licenseLines.every((l) => /^\+Copyright \(c\) /.test(l))) {
     results.push({
       plugin: row.plugin,
       file: row.file,
