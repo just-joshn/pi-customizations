@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.36-pi.37] - 2026-11-10
+
+- Keep a GitHub pull request watch's last snapshot on disk. After the supervisor stops and starts, the next poll wakes the chat for a change that happened while it was down.
+- Building a project plan loads its unfinished phase todos into the session list. A later status update writes that status back onto the phase todo in the plan file.
+
+## [0.15.36-pi.36] - 2026-11-10
+
+- Keep Lauren Tan, Cursor, and Josh copyright lines in the root MIT `LICENSE` so both vendored upstream notices stay with the port author.
+- Record tree-map classification with zero unexplained `CONTENT_DRIFT`, a `PACKAGING` class for that LICENSE, and USAGE_BLOCKED receipts for live corpus, Slack, Benny, image, and reboot proofs.
+
 ## [0.15.36-pi.35] - 2026-11-10
 
 - Refuse a foreground `bash` `timeout` of 1000 or more so a copied Cursor `block_until_ms` cannot wait thousands of seconds.

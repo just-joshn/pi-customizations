@@ -16,7 +16,7 @@ changed	18	pstack/automations/benny/README.md
 changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md
 changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md
 changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md
-changed	64	pstack/automations/benny/skills/setup-benny/SKILL.md
+changed	66	pstack/automations/benny/skills/setup-benny/SKILL.md
 changed	2	pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md
 changed	6	pstack/automations/benny/templates/configuration.example.yaml
 changed	4	pstack/automations/benny/templates/reproduce-automation-prompt.md
@@ -62,7 +62,7 @@ changed	2	pstack/skills/poteto-mode/playbooks/runtime-forensics.md
 changed	2	pstack/skills/poteto-mode/playbooks/session-pickup.md
 changed	2	pstack/skills/poteto-mode/playbooks/shipping.md
 changed	2	pstack/skills/poteto-mode/playbooks/trace-forensics.md
-changed	8	pstack/skills/poteto-mode/playbooks/worktree-cleanup.md
+changed	12	pstack/skills/poteto-mode/playbooks/worktree-cleanup.md
 changed	0	pstack/skills/poteto-mode/scripts/bun.lock
 changed	2	pstack/skills/poteto-mode/scripts/package.json
 changed	32	pstack/skills/poteto-mode/scripts/worktree-audit.sh
@@ -80,12 +80,13 @@ changed	17	pstack/skills/statechart/scripts/test/cli.test.ts
 changed	2	pstack/skills/swarm/SKILL.md
 changed	3	pstack/skills/typescript-best-practices/SKILL.md
 changed	10	pstack/skills/why/SKILL.md
-extra (23):
+extra (24):
   CHANGELOG.md
   bin/pstack-routines-supervisor
   bin/pstack-routines-supervisor.mjs
   dist/release-machine.js
   dist/supervisor-main.js
+  docs/host-limits.md
   docs/native-gaps.md
   docs/parity-reverse-engineering.md
   docs/parity-status.md

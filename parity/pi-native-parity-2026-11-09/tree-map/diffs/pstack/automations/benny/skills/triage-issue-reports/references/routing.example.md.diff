@@ -1,0 +1,10 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md	2026-09-23 19:32:33
++++ extensions/pi-pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md	2026-11-05 07:29:25
+@@ -1,6 +1,6 @@
+ # Routing map example
+ 
+-Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.
++Copy this file outside `.pi/automations/benny/`, for example to `.pi/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.
+ 
+ The triage skill treats this as data. A route needs evidence from the report or cause trace. A keyword match alone is not enough.
+ 

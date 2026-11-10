@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Classify each changed text file from tree-map as HOST_TRANSLATION, CONTENT_DRIFT,
- * or MIXED by scoring known host-substitution patterns vs other hunks.
- * Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
+ * MIXED, or PACKAGING by scoring known host-substitution patterns vs other hunks.
+ * A root LICENSE whose only changes are added copyright lines is PACKAGING: one shipped
+ * notice holds every upstream copyright plus the port author. Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,6 +53,33 @@ const HOST_PATTERNS = [
   /the model rather than its `-fast` variant/,
   /Auto users stay on Auto/,
   /follows the chat model when the user switches/,
+  /recent Pi chats/,
+  /\.pi\/(?:skills|automations|benny)\//,
+  /\.pi\/settings\.json/,
+  /prefer_pi_pstack_slack_tools/,
+  /`read`, `grep`, and `find`/,
+  /system player/,
+  /OS player/,
+  /statechart\.js/,
+  /--single-threaded/,
+  /realpathSync\(fs\.mkdtempSync/,
+  /draft entry that is gone/,
+  /<pstack_subagents>/,
+  /pi --list-models/,
+  /subscribe_webhook/,
+  /routine accepts the event/,
+  /this whole package/,
+  /Install the package/,
+  /#cloud-agents/,
+  /\/project new /,
+  /wake the Pi session/,
+  /cloud agent's ID/,
+  /a Pi restart/,
+  /stop_agent/,
+  /<SKILLS>/,
+  /pi_chat_dirs/,
+  /pi mcp list/,
+  /Treating `auto` as a model/,
 ];
 
 function classifyDiff(diffText) {
@@ -89,6 +117,19 @@ function classifyDiff(diffText) {
 
 const results = [];
 for (const row of map.rows.filter((r) => r.status === 'changed')) {
+  const licenseLines = row.file === 'LICENSE' ? readFileSync(join(mapDir, 'diffs', row.plugin, 'LICENSE.diff'), 'utf8').split('\n').filter((l) => /^[+-]/.test(l) && !/^[+-]{3}/.test(l)) : [];
+  if (licenseLines.length > 0 && licenseLines.every((l) => /^\+Copyright \(c\) /.test(l))) {
+    results.push({
+      plugin: row.plugin,
+      file: row.file,
+      diffLines: row.diffLines,
+      klass: 'PACKAGING',
+      hostHunks: 0,
+      otherHunks: 0,
+      otherSamples: [],
+    });
+    continue;
+  }
   const diffPath = join(mapDir, 'diffs', row.plugin, `${row.file}.diff`);
   if (!existsSync(diffPath)) {
     results.push({ ...row, klass: 'NO_DIFF_FILE' });

@@ -1,0 +1,11 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md	2026-09-23 19:32:33
++++ extensions/pi-pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md	2026-11-05 07:29:25
+@@ -2,7 +2,7 @@
+ 
+ Map every user-facing feature Benny may reproduce. Read the relevant section before driving the app. Keep this map at the user point of view. Discover internals and current code paths at runtime instead of freezing them here.
+ 
+-Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.
++Copy this file outside `.pi/automations/benny/`, for example to `.pi/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.
+ 
+ ## Per-feature template
+ 

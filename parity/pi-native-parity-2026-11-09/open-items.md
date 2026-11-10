@@ -16,6 +16,8 @@ Source: mechanism inventory from explore agent `edd494e1-b9bd-4942-91ec-f8628e04
 | C8 | Node engine allows 22.19; macOS readonly fetch needs 22.21 | `engines.node: >=22.21.0` | package.json + note |
 | C9 | Supervisor not a user service | Document + exercise packaging unit scripts | packaging dry-run |
 | C10 | Live proofs (image, Slack, Benny, corpus 20–27) | Runs when credentials/usage exist | evidence dirs |
+| G1 | GitHub PR watch baseline is process memory only; restart re-baselines and drops changes | Persist PrSnapshot like Slack writeCursor | subscriptions restart wake test |
+| G2 | CreatePlan phase todos never import on build or sync | Flatten unfinished phase todos into planTodos and sync back onto phase nodes | plan.test.ts phase todo import |
 
 ## Host-limit (document + lock equivalent)
 
@@ -50,6 +52,9 @@ Cursor cloud VMs do not get the laptop's personal skill tree. Mounting `$HOME` p
 | C7 | done |
 | C8 | done |
 | C9 | done |
-| C10 | blocked on credentials / Cursor usage |
+| C10 | USAGE_BLOCKED; receipts in `usage-blocked.md` |
+| G1 | done (pi.37); snapshots in `runtime/github-<id>.json` |
+| G2 | done (pi.37); `planTodos` flattens phase todos and sync writes back |
 | worktree-cleanup | done |
-| Phase E | suite green (`npm test` 969 passed, `tsc --noEmit`); PR for `0.15.36-pi.35` |
+| content drift | classifier `CONTENT_DRIFT: 0`; remaining changed files are `HOST_TRANSLATION` (72), `PACKAGING` LICENSE (2), `NO_DIFF_FILE` bun.lock (1); triage in `drift-triage.tsv` |
+| Phase E | pi.37 on PR 198; closable mechanism gaps closed; live proofs USAGE_BLOCKED |

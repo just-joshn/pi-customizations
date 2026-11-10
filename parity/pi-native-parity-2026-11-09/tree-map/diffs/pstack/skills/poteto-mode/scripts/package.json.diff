@@ -1,0 +1,9 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/scripts/package.json	2026-11-04 15:30:17
++++ extensions/pi-pstack/skills/poteto-mode/scripts/package.json	2026-11-04 15:14:14
+@@ -1,5 +1,5 @@
+ {
+-  "name": "@cursor-skill/poteto-mode-tools",
++  "name": "@pi-pstack/poteto-mode-tools",
+   "private": true,
+   "type": "module",
+   "scripts": {

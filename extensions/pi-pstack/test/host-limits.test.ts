@@ -12,6 +12,7 @@ const LIMITS = [
   'loopback webhook',
   'no Debug/Ask',
   'sandbox stronger than instructions',
+  'macOS readonly keychain TLS',
   'team-kit rules unwired',
   'Claude Code omitted',
   'host MCP in cloud',

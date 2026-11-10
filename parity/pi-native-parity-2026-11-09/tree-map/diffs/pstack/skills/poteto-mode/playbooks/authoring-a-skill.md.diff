@@ -1,0 +1,11 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/playbooks/authoring-a-skill.md	2026-09-23 19:32:33
++++ extensions/pi-pstack/skills/poteto-mode/playbooks/authoring-a-skill.md	2026-11-04 15:14:14
+@@ -2,7 +2,7 @@
+ 
+ **You own the skill's voice.**
+ 
+-1. Use the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).
++1. Use the **create-skill** skill (shipped with pi-pstack for authoring SKILL.md files).
+ 2. Validate the skill: frontmatter has `name` and `description`, referenced files exist, cross-skill links resolve.
+ 3. Test cases if structural. Skip if subjective.
+ 4. Run **Opening a PR**.

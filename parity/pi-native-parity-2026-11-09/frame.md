@@ -13,7 +13,7 @@ Cursor ships plugin text plus host tools (Task, TodoWrite, SwitchMode, plan mode
 All of the following are true on a clean rerun:
 
 1. `tree-map.mjs` against the plugins checkout that pins `pstack`/`cursor-team-kit` reports zero absent skill, agent, automation, or rule content files. Allowed absents are only Cursor packaging (`.cursor-plugin/`, `plugin.json`, `.gitignore`, avatar) and the Claude Code harness doc this package intentionally omits.
-2. Every changed tracked text file is classified `HOST_TRANSLATION` (or binary lock noise). Zero unexplained `CONTENT_DRIFT` after human review of the classifier's false positives.
+2. Every changed tracked text file is classified `HOST_TRANSLATION`, `PACKAGING` (the combined root `LICENSE`), or binary lock noise (`NO_DIFF_FILE` for `bun.lock`). Zero unexplained `CONTENT_DRIFT` after human review of the classifier's false positives.
 3. Every item under "Open, so the release is not complete" in `parity/status-2026-11-07.md` is either closed with a test or evidence artifact, recorded as a host-limit with a named Pi equivalent and a regression that locks the equivalent, or blocked only on operator credentials / Cursor usage with a receipt that names the block.
 4. `npm test` (and the package's documented e2e subset that does not need live Slack or Cursor quota) is green on this tree.
 5. `docs/parity-status.md` and `docs/native-gaps.md` match the verified state. No claim of VERIFIED without a path to evidence.

@@ -155,7 +155,53 @@ test('a project with no root todos still saves its phases', () => {
   expect(readFileSync(file, 'utf8')).toBe(
     '<!-- session -->\n---\nisProject: true\nphases:\n  - name: "First"\n    todos:\n      - id: "one"\n        content: "First task"\n        status: pending\n  - name: "Empty"\n    todos:\n---\n# Project',
   );
-  expect(planTodos(file)).toEqual([]);
+  expect(planTodos(file)).toEqual([{ id: 'one', content: 'First task', status: 'pending', phase: 'First' }]);
+});
+
+test('a phase todo is imported on build with its phase name and later status writes land on that phase node', () => {
+  const file = savePlan('phase-import', '# Project', undefined, [{ id: 'root', content: 'Root task' }], undefined, {
+    is_project: true,
+    phases: [
+      { name: 'First', todos: [{ id: 'one', content: 'First task' }, { id: 'skip', content: 'Done already' }] },
+      { name: 'Second', todos: [{ id: 'two', content: 'Second task', dependencies: ['one'] }] },
+    ],
+  });
+  onTestFinished(() => rmSync(file, { force: true }));
+  const saved = readFileSync(file, 'utf8');
+  writeFileSync(file, saved.replace('id: "skip"\n        content: "Done already"\n        status: pending', 'id: "skip"\n        content: "Done already"\n        status: "completed" # keep'));
+
+  expect(planTodos(file)).toEqual([
+    { id: 'root', content: 'Root task', status: 'pending' },
+    { id: 'one', content: 'First task', status: 'pending', phase: 'First' },
+    { id: 'skip', content: 'Done already', status: 'completed', phase: 'First' },
+    { id: 'two', content: 'Second task', status: 'pending', dependencies: ['one'], phase: 'Second' },
+  ]);
+
+  const imports: unknown[] = [];
+  const h = harness(undefined, { buildPlan: file, setTodos: (todos) => imports.push(structuredClone(todos)) });
+  h.emit('session_start');
+  expect(imports).toEqual([
+    [
+      { id: 'root', content: 'Root task', status: 'pending' },
+      { id: 'one', content: 'First task', status: 'pending', phase: 'First' },
+      { id: 'two', content: 'Second task', status: 'pending', dependencies: ['one'], phase: 'Second' },
+    ],
+  ]);
+
+  syncPlanTodoStatuses(file, [
+    { id: 'one', content: 'First task', status: 'in_progress' },
+    { id: 'two', content: 'Second task', status: 'completed' },
+    { id: 'root', content: 'Root task', status: 'completed' },
+  ]);
+  const after = readFileSync(file, 'utf8');
+  expect(after).toBe(
+    saved
+      .replace('id: "root"\n    content: "Root task"\n    status: pending', 'id: "root"\n    content: "Root task"\n    status: completed')
+      .replace('id: "one"\n        content: "First task"\n        status: pending', 'id: "one"\n        content: "First task"\n        status: in_progress')
+      .replace('id: "skip"\n        content: "Done already"\n        status: pending', 'id: "skip"\n        content: "Done already"\n        status: "completed" # keep')
+      .replace('id: "two"\n        content: "Second task"\n        status: pending', 'id: "two"\n        content: "Second task"\n        status: completed'),
+  );
+  expect(planTodos(file).find((todo) => todo.id === 'one')).toEqual({ id: 'one', content: 'First task', status: 'in_progress', phase: 'First' });
 });
 
 test('plan status synchronization preserves scalar quotes, comments, CRLF, and unrelated todos', () => {
@@ -397,4 +443,18 @@ test('a stored plan path outside the plans folder never reaches a build', async 
   const inside = join(dir, 'plans', 'Plan-01234567.plan.md');
   expect(planFromBranch([{ type: 'custom', customType: PLAN_ENTRY, data: { enabled: false, planFile: outside } }], join(dir, 'plans'))).toEqual({ enabled: false });
   expect(planFromBranch([{ type: 'custom', customType: PLAN_ENTRY, data: { enabled: false, planFile: inside } }], join(dir, 'plans'))).toEqual({ enabled: false, planFile: inside });
+});
+
+test('a todo id reused across the root list and a phase is rejected when the plan is saved', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plan-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  expect(() => savePlan('dup', '# Project', undefined, [{ id: 'a', content: 'Root' }], dir, { is_project: true, phases: [{ name: 'First', todos: [{ id: 'a', content: 'Phase' }] }] })).toThrow('Plan todo id "a" appears more than once.');
+});
+
+test('a saved plan file that reuses a todo id fails to load with the id and the file named', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plan-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'dup.plan.md');
+  writeFileSync(file, '---\ntodos:\n  - id: a\n    content: Root\nphases:\n  - name: First\n    todos:\n      - id: a\n        content: Phase\n---\n# Project');
+  expect(() => planTodos(file)).toThrow(`Plan todo id "a" appears more than once in ${file}.`);
 });

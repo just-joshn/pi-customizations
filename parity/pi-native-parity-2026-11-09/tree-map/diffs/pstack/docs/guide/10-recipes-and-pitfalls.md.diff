@@ -1,0 +1,20 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/docs/guide/10-recipes-and-pitfalls.md	2026-11-04 15:30:17
++++ extensions/pi-pstack/docs/guide/10-recipes-and-pitfalls.md	2026-11-05 07:07:32
+@@ -158,7 +158,7 @@
+ 
+ [`/ketchup`](../../skills/ketchup/SKILL.md) tells you in plain words what changed since your last message, then lists each call waiting on you with its pick, evidence, and risk. It changes nothing while it reports.
+ 
+-To watch the catch-up instead, run [`/ketchup-video`](../../skills/ketchup-video/SKILL.md). It shows what happened in a short subtitled video of slides, and lists the calls waiting on you as text under it.
++To watch the catch-up instead, run [`/ketchup-video`](../../skills/ketchup-video/SKILL.md). It opens a short subtitled video of slides in the system player, shows one frame per slide in chat, and lists the calls waiting on you as text under it.
+ 
+ ## The pitfalls
+ 
+@@ -173,7 +173,7 @@
+ - **Correcting the same mistake by hand.** A correction in chat helps one run. `/correct` fixes the repo so no later run repeats it.
+ - **Using `/arena` for coverage.** `/arena` repeats one design or code brief, then picks a base and grafts the best parts. `/swarm` partitions slices or declared race arms and aggregates one report.
+ - **Accepting every review comment.** Bots and humans both file real catches and noise in one list. `/interrogate` keeps only the findings a rerun proves and lists what it dropped and why, and you can override either way.
+-- **Treating `auto` as a model slug.** `auto` and `inherit-parent` mean "omit the model field so the subagent inherits the parent chat model." [Setup](./01-setup.md) covers the roles.
++- **Treating `auto` as a model.** `auto` and `inherit-parent` mean "omit the model field so the subagent inherits the parent chat model." [Setup](./01-setup.md) covers the roles.
+ - **Reporting success off a green build.** A build proves it compiles. Ask for the real command, flow, stored value, or profile, and expect the evidence in the reply.
+ - **Writing a `SKILL.md` freehand.** Route it through the [Authoring or modifying a skill playbook](../../skills/poteto-mode/playbooks/authoring-a-skill.md) so validation and review happen.
+ 
