@@ -29,3 +29,5 @@ ts	phase	decision	why	evidence	result
 2026-11-10T05:05:36Z	verify	npm hyphen env filter + AwaitShell e2e keep-cwd	shell-state skips non-identifier env names; timeout e2e expects /usr cwd and unset vars	npm test: 969 passed / 25 skipped; tsc --noEmit exit 0	VERIFIED
 2026-11-10T05:06:47Z	ship	opened PR #197 for 0.15.36-pi.35	closable C1-C9 + host-limits; C10 remains blocked	https://github.com/just-joshn/pi-customizations/pull/197	VERIFIED
 2026-11-10T05:13:52Z	bugfix	epoch cwd test uses fixture dirs not /bin	Linux usrmerge makes cd /bin capture as /usr/bin via cd -P; CI linux vitest 2/2 red	vitest shell-state foreground-cd test	VERIFIED
+2026-11-10T05:18:20Z	bugfix	AwaitShell sleep reports waitMs on timer completion	Date.now() under-read made seconds() emit 3.0s on Linux CI; sleep now returns full|early	e2e shell-timeout AwaitShell sleep assertion	VERIFIED pending
+2026-11-10T05:18:41Z	bugfix	AwaitShell sleep reports waitMs on timer completion	Date.now() under-read made seconds() emit 3.0s on Linux CI; sleep now returns full|early	e2e shell-timeout + background-shell	VERIFIED

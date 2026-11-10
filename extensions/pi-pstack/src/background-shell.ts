@@ -181,16 +181,18 @@ function signalGroupId(pid: number, signal: NodeJS.Signals): void {
   }
 }
 
+/** Resolves `full` when the timer fires, `early` when the signal aborts. Do not infer that from Date.now(); timers can wake a few ms early. */
 const sleep = (ms: number, signal: AbortSignal | undefined) =>
-  new Promise<void>((done) => {
-    if (signal?.aborted === true) return done();
-    const timer = setTimeout(finish, ms);
-    function finish() {
+  new Promise<'full' | 'early'>((done) => {
+    if (signal?.aborted === true) return done('early');
+    const timer = setTimeout(() => finish('full'), ms);
+    function finish(reason: 'full' | 'early') {
       clearTimeout(timer);
-      signal?.removeEventListener('abort', finish);
-      done();
+      signal?.removeEventListener('abort', onAbort);
+      done(reason);
     }
-    signal?.addEventListener('abort', finish, { once: true });
+    const onAbort = () => finish('early');
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 
 /** Runs a job somewhere other than this host: the child is the local process that carries its output, and `end` stops the job where it runs. */
@@ -735,8 +737,9 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       if (shellId === undefined || shellId === '') {
         if (waitMs === 0) throw new Error('Invalid arguments:\nshell_id: Required when block_until_ms is 0. Without shell_id there is nothing to check: pass the shell_id to check, or a nonzero block_until_ms to sleep.');
         const started = Date.now();
-        await sleep(waitMs, signal);
-        return { content: [{ type: 'text', text: `Slept for ${seconds(Date.now() - started >= waitMs ? waitMs : Date.now() - started)}.` }], details: { sleptMs: Date.now() - started } };
+        const finished = await sleep(waitMs, signal);
+        const sleptMs = finished === 'full' ? waitMs : Date.now() - started;
+        return { content: [{ type: 'text', text: `Slept for ${seconds(sleptMs)}.` }], details: { sleptMs } };
       }
       const text = await jobs.awaitJob(shellId, waitMs, params.pattern, signal);
       return { content: [{ type: 'text', text }], details: { shellId } };
