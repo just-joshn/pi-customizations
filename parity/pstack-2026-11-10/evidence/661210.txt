@@ -1,0 +1,16 @@
+---
+pid: 39655
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "orb start && docker version --format '{{.Server.Version}}'"
+title: "Start local Linux runtime"
+status: succeeded
+started_at: 2026-11-10T14:43:07.262Z
+running_for_ms: 1761     
+---
+29.8.2
+
+---
+exit_code: 0
+elapsed_ms: 1761
+ended_at: 2026-11-10T14:43:09.023Z
+---

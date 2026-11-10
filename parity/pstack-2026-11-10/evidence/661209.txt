@@ -1,0 +1,16 @@
+---
+pid: 39333
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "cursor-agent --print --model claude-sonnet-5-5-high 'Reply with exactly the word READY.'"
+title: "Alternate Cursor model probe"
+status: failed   
+started_at: 2026-11-10T14:42:56.444Z
+running_for_ms: 3424     
+---
+ActionRequiredError: Claude Sonnet 5.5 is not included in your weekly usage Buy credits or switch to a Grok model to continue.
+
+---
+exit_code: 1
+elapsed_ms: 3424
+ended_at: 2026-11-10T14:42:59.868Z
+---

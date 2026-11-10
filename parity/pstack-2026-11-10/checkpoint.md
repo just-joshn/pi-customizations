@@ -1,0 +1,86 @@
+# pi-pstack parity checkpoint, 2026-11-10
+
+## Definition of done
+
+The original request is complete only when every source-derived obligation has verified exact or independently reviewed equivalent behavior, including the required installed-package, live integration, and platform gates. Existing source coverage and passing local checks are not sufficient.
+
+## Baseline
+
+- Cursor plugins repository HEAD: `de8ee15dd1194627d21eb5fcd41cb1873208dabb`, retrieved 2026-11-10 UTC.
+- Package's existing source revision: `ae5650febf4320793844c12c4adaa937f417f8da`, pstack 0.15.36.
+- Both revisions have pstack tree `4719e1c4b4c43bac85d4206a8b41dd2899769c1c` and cursor-team-kit tree `6ccaf3821c0e9f82780c5224a2f2cd5ef3f580ee`. Repository-wide changes therefore do not change these two source trees. Other dependencies still need independent drift checks.
+- Pi coding agent: 1.5.2. Its upstream `v1.5.2` tag resolves to `b4afdddf44e059c67ccf5097e5317d913521b470`. npm reported 1.5.2 as current on 2026-11-10.
+- Cursor CLI: `2026.11.05-86047df`, invoked as `cursor-agent`. The `agent` command on PATH is a different CLI. Node: `v24.22.1`. Host: macOS arm64. Target package: `@justjoshn/pi-pstack` `0.15.36-pi.37`.
+
+Repeat the tree comparison with `gh api repos/cursor/plugins/git/trees/<revision> --jq '.tree[] | select(.path == "pstack" or .path == "cursor-team-kit") | [.path,.sha] | @tsv'`.
+
+## Workflow
+
+1. Compare current source and dependencies with the existing inventory. Record unresolved references and drift before adapting behavior.
+2. Run existing deterministic checks and probe the paired live-model and platform prerequisites. Preserve unavailable checks as unverified.
+3. For each demonstrated gap, capture a failing behavioral check, make a focused correction, and rerun the check. Do not weaken source obligations.
+4. Test the packed distributable in isolated profiles and execute paired and platform gates where access exists. Independently review the evidence and report all remaining gaps.
+
+The existing baseline and limitations are in `parity/status-2026-11-07.md`, `parity/corpus-2026-11-07/report.md`, and `parity/pi-native-parity-2026-11-09/usage-blocked.md`. They are historical evidence, not proof for the new Pi release or every required workflow.
+
+## Current observations
+
+- Package typecheck and generated-helper freshness checks passed locally on 2026-11-10. The package regression suite passed 988 tests; 25 were skipped across 79 files. The package's development dependencies resolve Pi APIs at 1.5.0, not the installed CLI's 1.5.2. This is a macOS source-tree run, not proof of Pi 1.5.2 compatibility, installed-package behavior, or cross-platform parity.
+- Direct Cursor CLI probes of `gpt-5.6-sol-medium` and `claude-sonnet-5-5-high` failed with weekly-usage errors. This does not establish that other models or paired tests are impossible.
+- The initial Docker probe found its configured OrbStack socket unavailable. Starting OrbStack succeeded and Docker reports server 29.8.2. A clean Linux arm64 container installed the packed package with Pi 1.5.2; RPC returned 88 commands and assertions found `mode` and `poteto-mode` (`evidence/661211.txt`, `evidence/linux-arm64-rpc.json`). This does not verify their full behavior or the platform matrix.
+- Source inspection indicates that the s390x read-only sandbox denies `socketcall(SYS_SOCKET)` for every domain because classic BPF cannot inspect its pointer arguments (`extensions/pi-pstack/src/linux-readonly-sandbox.ts`). Allowing that syscall without another enforcement mechanism would also allow Unix sockets. This run did not execute an s390x test; a replacement remains unproven.
+- Full parity remains **INCONCLUSIVE**. Existing unverified live integrations and platform cells remain open.
+
+## Restart queue
+
+1. Save reproducible upstream tree comparison and typecheck receipts; enumerate skipped tests.
+2. Recheck Pi 1.5.2 public APIs against `extensions/pi-pstack/docs/native-gaps.md` and run relevant checks against 1.5.2 dependencies.
+3. Run the existing s390x QEMU harness at `parity/evidence/linux-readonly-arches-2026-11-07/` and investigate a secure portable network solution without weakening the sandbox.
+4. Probe available matched models and author the missing paired corpus scenarios, preserving unavailable live runs as unverified.
+5. Refresh dependency closure, requirement statuses, and the platform matrix. Test the packed package across remaining supported environments and integrations.
+
+The run stopped after preliminary checks; no runtime implementation changes were made. An independent trail review also noted that the two initial in-progress log rows were written after their commands had completed; later rows record their results.
+
+## Update: datagram socketpair bypass (Stage 1)
+
+- Verified on a real arm64 kernel with bubblewrap, against the unmodified shipped module: a datagram `socketpair` could `sendto` and `connect` to host pathname and abstract Unix sockets (`evidence/interrogate/run1.mjs`).
+- Fix: `extensions/pi-pstack/src/linux-readonly-sandbox.ts` now refuses `socketpair(AF_UNIX, type)` unless `type & 0xf` is `SOCK_STREAM`, for the direct syscall on all five architectures. `socketcall(SYS_SOCKETPAIR)` is still allowed on arm, ppc64 and s390x, so the fix is complete only on x64 and arm64. `test/linux-readonly-seccomp.test.ts` covers DGRAM, DGRAM with flags, RAW, SEQPACKET, a high-bit domain, STREAM, and AF_INET. It failed on all five before the change and passes after.
+- Real kernel after the fix: the datagram pair fails with EPERM and the host log is never created. Node child pipes (`stdout` still a `Socket`) and loopback TCP still work (`evidence/interrogate/pipes.mjs`).
+- Package typecheck is clean. The full suite shows the same 20 `cloud-machine.e2e` failures with and without this change; they need a LAN address and Docker setup.
+
+Still open:
+
+- s390x: `socketcall(SYS_SOCKETPAIR)` stays allowed, because refusing it measurably breaks Node child pipes and Python asyncio there. The bypass therefore remains on s390x through glibc. This is a security versus compatibility decision for you.
+- s390x network parity is unchanged. It still needs a supervisor or equivalent, and a measured fallback to no network is not parity.
+- The x64, armv7, and ppc64le real-kernel runs, and the s390x QEMU rerun, have not been done for this change.
+- The startup check does not detect a bubblewrap that ignores the filter, and one transient failure disables the sandbox for the process.
+- Loopback TCP can reach host services. The shell is not a security boundary against them.
+
+- Interrogation reruns: `socketcall(SYS_SOCKETPAIR)` bypass reproduced at filter level for arm, ppc64, s390x and on a real s390x kernel; a reviewer also reproduced it on ppc64le. Inherited descriptors and `SCM_RIGHTS` can reach host sockets if a caller leaks or passes one (not rerun here). See `s390x-synthesis.md`.
+
+## Update: socketcall socketpair on arm and ppc64
+
+- Failing test first: `test/linux-readonly-seccomp.test.ts` expected `socketcall(SYS_SOCKETPAIR)` to return EPERM on arm and ppc64 and got ALLOW (`2147418112` instead of `327681`). s390x stays ALLOW in the test, named as open until the broker.
+- Fix: arm and ppc64 refuse `socketcall(8)`. The filter now continues to the next rule when a syscall matches but its value does not, so two rules can name `socketcall`. Previously the second was unreachable.
+- After: seccomp tests green, typecheck clean, differential check over all five architectures shows 0 mismatches, and the arm64 kernel run still passes Node pipes, loopback TCP, and the closed datagram bypass.
+- Measured by a reviewer on real ppc64le and armv7 kernels (QEMU): stock check 12/12 and 13/13, Node fork IPC and spawn pipes, Python asyncio and multiprocessing, git, and loopback curl all work with `socketcall(8)` refused. glibc on ppc64le uses the direct `socketpair` syscall, shown by a QEMU strace. Logs: `evidence/interrogate3/`. Not run by me directly.
+- Default chosen without your answer: refuse on arm and ppc64, leave s390x for the broker. Easy to revert.
+
+- Third interrogation: no new findings beyond the known s390x `socketcall` gap. A reference-model fuzz of all five filters over 16.6 million cases found 0 mismatches. Not run: musl or Alpine, Go and static binaries, x64 real kernel.
+
+## Corrections from the third interrogation
+
+- armv7 EABI has no `socketcall`: on real armv7 and armv7-on-arm64 kernels `syscall(102, 8, ...)` returns `ENOSYS`, so the arm `socketcall(SYS_SOCKETPAIR)` rule is a filter-level guard for OABI compat, not a demonstrated bypass. The bypass through `socketcall(8)` is demonstrated on ppc64le (`ok` before, `EPERM` after) and s390x.
+- The earlier line saying no real arm or ppc64le kernel had run is stale. armv7, armv7-on-arm64 and ppc64le kernels ran with the new filter, and Node, Python asyncio, git and loopback TCP worked.
+- SEQPACKET `AF_UNIX` pairs are refused. On the old filter a SEQPACKET pair did not reach a host socket on arm64, so this is stricter than needed. It is kept on purpose: its safety depends on kernel behavior not verified across versions, and nothing measured needs it. Reconsider if a real program fails.
+- Mutation checks (23 variants) all failed the seccomp tests except widening the type mask to 0xff, which is behaviorally equivalent because the kernel rejects type bits 4 to 7.
+- Not run: a real x64 kernel (Docker `linux/amd64` here runs under Rosetta on an arm64 kernel), the x32 guard on a real kernel, `SCM_RIGHTS` and descriptor leaks, armeb, 31-bit s390, and 32-bit ppc.
+
+## Update: quality refactor of the filter builder
+
+Applied the strict code-quality audit. `refusedWhen` now groups first-argument values per syscall, which removed the per-rule syscall reload and the `SOCKETCALL_SOCKETPAIR` constant. Jump offsets come from labels instead of hand-counted indices, so adding a rule no longer means recounting. The policy comment now says why `socketcall(SYS_SOCKETPAIR)` is refused on arm and ppc64 and left open on s390x. A duplicate test was removed.
+
+- Behavior unchanged: the pre-refactor and new filters were compared over 225,504 cases per architecture with 0 decision differences. Programs shrank from 18, 18, 27, 26, 22 to 17, 17, 22, 21, 20 instructions (x64, arm64, arm, ppc64, s390x).
+- Checks: typecheck clean, biome applied to the two files, the five related test files pass (41 passed, 6 skipped), and the arm64 kernel run still passes Node pipes and loopback TCP with the datagram pair refused.
+- Not rerun after the refactor: the s390x, ppc64le and armv7 kernel runs. The differential covers the decisions, but the new byte layout was loaded by a real kernel only on arm64.
+- File length went from 169 to 217 lines, so the assembler is larger than the audit's estimate. It is still well under any size limit.

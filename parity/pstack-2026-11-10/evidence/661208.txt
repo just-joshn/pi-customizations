@@ -1,0 +1,25 @@
+---
+pid: 8243
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "bun run --filter @justjoshn/pi-pstack test"
+title: "Existing package regression suite"
+status: succeeded
+started_at: 2026-11-10T14:40:23.634Z
+running_for_ms: 58954    
+---
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test:  RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test:  Test Files  77 passed | 2 skipped (79)
+@justjoshn/pi-pstack test:       Tests  988 passed | 25 skipped (1013)
+@justjoshn/pi-pstack test:    Start at  06:40:23
+@justjoshn/pi-pstack test:    Duration  58.71s (tests 95%, import 5%)
+@justjoshn/pi-pstack test: 
+@justjoshn/pi-pstack test: Exited with code 0
+
+---
+exit_code: 0
+elapsed_ms: 58954
+ended_at: 2026-11-10T14:41:22.588Z
+---
