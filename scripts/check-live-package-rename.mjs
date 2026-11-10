@@ -4,10 +4,11 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const needle = ['pi', 'xai', 'oauth'].join('-');
+const needles = ['pi-xai-oauth', 'verify-xai-oauth-live'];
+const checker = 'scripts/check-live-package-rename.mjs';
 const planMaySpellOldPackage = new Set(['docs/plans/pi-x-subscription-oauth.md']);
 
-function notesOnly(text) {
+function notesOnly(text, needle) {
   let parsed;
   try {
     parsed = JSON.parse(text);
@@ -21,13 +22,17 @@ function notesOnly(text) {
 
 let listed = '';
 try {
-  listed = execFileSync('rg', ['-l', '--hidden', '-g', '!.git/**', '-g', '!node_modules/**', '-g', '!coverage/**', '-g', '!parity/**', needle, '.'], {
-    cwd: root,
-    encoding: 'utf8',
-  });
+  listed = execFileSync(
+    'rg',
+    ['-l', '--hidden', '-g', '!.git/**', '-g', '!node_modules/**', '-g', '!coverage/**', '-g', '!parity/**', '-e', needles[0], '-e', needles[1], '.'],
+    {
+      cwd: root,
+      encoding: 'utf8',
+    },
+  );
 } catch (error) {
   if (error.status === 1) {
-    process.stdout.write(`no live ${needle} hits\n`);
+    process.stdout.write(`no live ${needles.join(' or ')} hits\n`);
     process.exit(0);
   }
   throw error;
@@ -38,18 +43,20 @@ for (const rel of listed
   .split('\n')
   .filter(Boolean)
   .map((line) => line.replace(/^\.\//, ''))) {
-  if (planMaySpellOldPackage.has(rel)) continue;
+  if (rel === checker || planMaySpellOldPackage.has(rel)) continue;
   const text = readFileSync(join(root, rel), 'utf8');
-  if (rel.endsWith('authorize-url.json') && notesOnly(text)) continue;
-  for (const [index, line] of text.split('\n').entries()) {
-    if (line.includes(needle)) hits.push(`${rel}:${index + 1}:${line.trim()}`);
+  for (const needle of needles) {
+    if (rel.endsWith('authorize-url.json') && notesOnly(text, needle)) continue;
+    for (const [index, line] of text.split('\n').entries()) {
+      if (line.includes(needle)) hits.push(`${rel}:${index + 1}:${line.trim()}`);
+    }
   }
 }
 
 if (hits.length === 0) {
-  process.stdout.write(`no live ${needle} hits\n`);
+  process.stdout.write(`no live ${needles.join(' or ')} hits\n`);
   process.exit(0);
 }
 
-process.stderr.write(`${hits.length} live ${needle} hit(s)\n${hits.join('\n')}\n`);
+process.stderr.write(`${hits.length} live hit(s)\n${hits.join('\n')}\n`);
 process.exit(1);
