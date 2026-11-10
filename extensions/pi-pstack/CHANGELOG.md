@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.15.36-pi.39] - 2026-11-10
+
+- Edit an automation's prompt without replacing its subscription ID, expiry, owner, or pending events. If re-arming fails, report that the prompt was saved.
+- Share recorded-agent validation between resume and fork, and require a fork source in the launch type.
+
 ## [0.15.36-pi.38] - 2026-11-10
 
 - The Linux read-only shell refuses a datagram `AF_UNIX` `socketpair`, which could `sendto` or `connect` to host pathname and abstract Unix sockets. Stream pairs stay allowed, so Node child pipes and the inherited stdout socket still work. arm and ppc64 also refuse `socketcall(SYS_SOCKETPAIR)`.

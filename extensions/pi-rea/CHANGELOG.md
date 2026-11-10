@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.2] - 2026-11-10
+
+- Validate persisted unknown records and updates before replay. Skip malformed or stale mutations without blocking later valid entries.
+- Generate handler parameter types from the published tool catalog and check registry registrations against them, retaining existing tool schemas and error ordering.
+
 ## [0.2.1] - 2026-11-03
 
 - Resolve `swift-demangle` from `PATH` as well as the macOS locations, so a Linux Swift toolchain works. Build the Mach-O parity fixtures on any host and follow the repository Vitest rules in the test suite.
