@@ -16,7 +16,7 @@ function run(args, agentDir) {
   });
 }
 
-const agentDir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-install-'));
+const agentDir = await mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-install-'));
 if (resolve(agentDir) === userAgentDir) throw new Error('refusing to install into the user agent directory');
 try {
   const installed = await run(['install', packageDir, '--no-approve'], agentDir);

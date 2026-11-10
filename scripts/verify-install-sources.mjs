@@ -40,7 +40,7 @@ const packages = [
       { source: 'prompt', name: 'investigate_feature' },
     ],
   },
-  { dir: 'pi-xai-oauth', name: `${scope}/pi-xai-oauth`, providers: ['grok-build'], commands: [] },
+  { dir: 'pi-x-subscription-oauth', name: `${scope}/pi-x-subscription-oauth`, providers: ['grok-build'], commands: [] },
 ];
 const scenarios = [
   {

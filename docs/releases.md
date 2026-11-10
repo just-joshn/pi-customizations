@@ -44,7 +44,7 @@ silent publish failures in release run 41527084422; see Troubleshooting.
 ## One-time setup per package
 
 All six packages (`pi-anthropic-oauth`, `pi-antigravity-oauth`,
-`pi-maintainer`, `pi-pstack`, `pi-rea`, `pi-xai-oauth`) already exist on
+`pi-maintainer`, `pi-pstack`, `pi-rea`, `pi-x-subscription-oauth`) already exist on
 npmjs.com. For each one:
 
 1. Open the package page on npmjs.com and go to Settings.

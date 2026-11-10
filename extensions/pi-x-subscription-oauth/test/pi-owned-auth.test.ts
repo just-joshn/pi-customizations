@@ -35,7 +35,7 @@ function rejected401(): AssistantMessage {
 
 const test = base.extend<{ paths: { authPath: string; modelsPath: string } }>({
   paths: async ({ networkGuard: _networkGuard }, use) => {
-    const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-auth-'));
+    const dir = await mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-auth-'));
     try {
       const modelsPath = join(dir, 'models.json');
       await writeFile(modelsPath, JSON.stringify({ providers: { 'grok-build': { modelOverrides: { 'grok-4.7': { contextWindow: 500000, maxTokens: 500000 } } } } }));

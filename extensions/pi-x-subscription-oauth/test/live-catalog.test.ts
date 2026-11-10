@@ -33,7 +33,7 @@ test.for([
 });
 
 test('a models.json base URL moves discovery to the same endpoint chat uses', async ({ onTestFinished }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-base-'));
+  const dir = await mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-base-'));
   onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const authPath = join(dir, 'auth.json');
   const modelsPath = join(dir, 'models.json');

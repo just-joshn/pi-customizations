@@ -14,7 +14,7 @@ const cli = join(root, 'extensions/pi-pstack/node_modules/@earendil-works/pi-cod
 const providers = [
   { dir: 'extensions/pi-anthropic-oauth', provider: 'claude-subscription' },
   { dir: 'extensions/pi-antigravity-oauth', provider: 'google-antigravity' },
-  { dir: 'extensions/pi-xai-oauth', provider: 'grok-build' },
+  { dir: 'extensions/pi-x-subscription-oauth', provider: 'grok-build' },
 ];
 
 function copyableFile(path) {
