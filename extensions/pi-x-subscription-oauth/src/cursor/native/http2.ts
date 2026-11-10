@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import http2 from 'node:http2';
 
-import { CURSOR_BASE_URL } from '../catalog.ts';
+import { CURSOR_BASE_URL, cursorRejectedSession } from '../catalog.ts';
 import type { NativeSession } from './turn.ts';
 import { CURSOR_CLIENT_VERSION, FrameBuffer } from './wire.ts';
 
@@ -9,17 +9,14 @@ export class CursorStatusError extends Error {
   readonly status: number;
 
   constructor(status: number) {
-    const message =
-      status === 401 || status === 403
-        ? `Cursor rejected the session (HTTP ${status}). Run /login and choose Cursor.`
-        : status === 429
-          ? 'Cursor rejected the ask because usage or credits are exhausted.'
-          : `Cursor request failed (HTTP ${status}).`;
+    const message = status === 401 || status === 403 ? cursorRejectedSession(status) : status === 429 ? 'Cursor rejected the ask because usage or credits are exhausted.' : `Cursor request failed (HTTP ${status}).`;
     super(message);
     this.name = 'CursorStatusError';
     this.status = status;
   }
 }
+
+const PREFACE_MS = 10_000;
 
 export class NativeTransportError extends Error {
   constructor(message: string) {
@@ -32,6 +29,7 @@ export type NativeOpenInput = {
   readonly token: string;
   readonly signal: AbortSignal | undefined;
   readonly baseUrl?: string;
+  readonly prefaceMs?: number;
 };
 
 export type NativeOpener = (input: NativeOpenInput) => Promise<NativeSession>;
@@ -68,24 +66,18 @@ export function openCursorRun(input: NativeOpenInput): Promise<NativeSession> {
     pending.push(frame);
   };
   const fail = (error: Error) => {
-    if (failed) return;
+    if (failed || closed) return;
     failed = error;
     push(null);
   };
   const buffer = new FrameBuffer();
-  client.on('error', (error) => fail(new NativeTransportError(error.message)));
-  req.on('error', (error) => fail(new NativeTransportError(error.message)));
-  req.on('response', (headers) => {
-    const status = Number(headers[':status'] ?? 0);
-    if (status >= 400) fail(new CursorStatusError(status));
-  });
   req.on('data', (chunk: Buffer) => {
     for (const frame of buffer.push(chunk)) push(frame);
   });
   req.on('end', () => push(null));
-  const onAbort = () => fail(new DOMException('Request was aborted', 'AbortError'));
-  if (input.signal?.aborted) onAbort();
-  else input.signal?.addEventListener('abort', onAbort, { once: true });
+  let onAbort = (): void => {
+    fail(new DOMException('Request was aborted', 'AbortError'));
+  };
 
   const session: NativeSession = {
     write(frame) {
@@ -119,5 +111,43 @@ export function openCursorRun(input: NativeOpenInput): Promise<NativeSession> {
       client.close();
     },
   };
-  return Promise.resolve(session);
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let preface: ReturnType<typeof setTimeout> | undefined;
+    const rejectOpen = (error: Error) => {
+      if (settled) {
+        fail(error);
+        return;
+      }
+      settled = true;
+      if (preface) clearTimeout(preface);
+      closed = true;
+      input.signal?.removeEventListener('abort', onAbort);
+      client.close();
+      reject(error);
+    };
+    const acceptOpen = () => {
+      if (settled) return;
+      settled = true;
+      if (preface) clearTimeout(preface);
+      resolve(session);
+    };
+    onAbort = () => {
+      const error = new DOMException('Request was aborted', 'AbortError');
+      if (settled) fail(error);
+      else rejectOpen(error);
+    };
+    preface = setTimeout(() => rejectOpen(new NativeTransportError('Cursor HTTP/2 connection timed out.')), input.prefaceMs ?? PREFACE_MS);
+    client.on('remoteSettings', () => acceptOpen());
+    client.on('error', (error) => rejectOpen(new NativeTransportError(error.message)));
+    req.on('error', (error) => rejectOpen(new NativeTransportError(error.message)));
+    req.on('response', (headers) => {
+      const status = Number(headers[':status'] ?? 0);
+      if (status >= 400) rejectOpen(new CursorStatusError(status));
+      else acceptOpen();
+    });
+    if (input.signal?.aborted) onAbort();
+    else input.signal?.addEventListener('abort', onAbort, { once: true });
+  });
 }

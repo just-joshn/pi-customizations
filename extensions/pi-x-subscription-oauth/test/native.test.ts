@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { ServerHttp2Stream } from 'node:http2';
 import http2 from 'node:http2';
+import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
@@ -199,6 +200,192 @@ test('a native quota error names credits and does not crash', async () => {
     expect(agentCalled).toBe(false);
   } finally {
     await server.close();
+  }
+});
+
+function pause(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function contextRequest(id: number): Buffer {
+  const tag = (field: number, wire: number) => {
+    let rest = BigInt((field << 3) | wire);
+    const bytes: number[] = [];
+    while (rest > 127n) {
+      bytes.push(Number((rest & 127n) | 128n));
+      rest >>= 7n;
+    }
+    bytes.push(Number(rest));
+    return Buffer.from(bytes);
+  };
+  const idField = Buffer.concat([tag(1, 0), Buffer.from([id])]);
+  const inner = Buffer.concat([idField, tag(10, 2), Buffer.from([0])]);
+  const body = Buffer.concat([tag(2, 2), Buffer.from([inner.length]), inner]);
+  return flagged(0, body);
+}
+
+test('later text still joins the reply', async () => {
+  const text = await readAssistantText(
+    {
+      write() {},
+      async *frames() {
+        yield encodeTextFrame('hello');
+        await pause(1_600);
+        yield encodeTextFrame(' world');
+        yield encodeTurnEndFrame();
+      },
+      close() {},
+    },
+    { prompt: 'ping', modelId: 'composer-2.5' },
+  );
+  expect(text).toBe('hello world');
+});
+
+test('a credits error after the first text still fails the ask', async () => {
+  await expect(
+    readAssistantText(
+      {
+        write() {},
+        async *frames() {
+          yield encodeTextFrame('hello');
+          await pause(1_600);
+          yield encodeErrorFrame('You have no credits left for this usage period.');
+        },
+        close() {},
+      },
+      { prompt: 'ping', modelId: 'composer-2.5' },
+    ),
+  ).rejects.toThrow(/credits/i);
+});
+
+test('a connect not-logged-in error tells the user to log in', async () => {
+  const body = Buffer.from(
+    JSON.stringify({
+      error: {
+        code: 'unauthenticated',
+        message: 'Error',
+        details: [{ type: 'aiserver.v1.ErrorDetails', debug: { error: 'ERROR_NOT_LOGGED_IN', details: { detail: 'If you are logged in, try logging out and back in.' } } }],
+      },
+    }),
+  );
+  const server = await listen((stream) => {
+    stream.respond({ ':status': 200, 'content-type': 'application/connect+proto' });
+    stream.write(flagged(2, body));
+    stream.end();
+  });
+  try {
+    const { message, agentCalled } = await ask(server.url, 'cursor-secret');
+    expect(message.stopReason).toBe('error');
+    expect(message.errorMessage).toBe('Cursor rejected the session (HTTP 401). Run /login and choose Cursor.');
+    expect(message.errorMessage).not.toContain('cursor-secret');
+    expect(agentCalled).toBe(false);
+  } finally {
+    await server.close();
+  }
+});
+
+test('a context reply copies the exec id and returns the model text', async () => {
+  const server = await listen((stream) => {
+    stream.respond({ ':status': 200, 'content-type': 'application/connect+proto' });
+    const buffer = new FrameBuffer();
+    let stage = 0;
+    stream.on('data', (chunk: Buffer) => {
+      for (const frame of buffer.push(chunk)) {
+        stage += 1;
+        if (stage === 1) stream.write(contextRequest(42));
+        if (stage === 2) {
+          if (!frame.includes(Buffer.from([0x08, 42]))) {
+            stream.end();
+            return;
+          }
+          stream.write(encodeTextFrame('pong'));
+          stream.write(encodeTurnEndFrame());
+          stream.end();
+        }
+      }
+    });
+  });
+  try {
+    const { message, agentCalled } = await ask(server.url);
+    expect(message.stopReason).toBe('stop');
+    expect(message.content).toEqual([{ type: 'text', text: 'pong' }]);
+    expect(agentCalled).toBe(false);
+  } finally {
+    await server.close();
+  }
+});
+
+test('an accepted ask that dies does not call cursor-agent', async () => {
+  const server = http2.createServer();
+  server.on('session', (session) => {
+    session.on('error', () => undefined);
+  });
+  server.on('stream', (stream) => {
+    stream.on('error', () => undefined);
+    stream.respond({ ':status': 200, 'content-type': 'application/connect+proto' });
+    stream.on('data', () => {
+      stream.session?.destroy(new Error('reset after headers'));
+    });
+  });
+  const url = await new Promise<string>((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      const port = address && typeof address === 'object' ? address.port : 0;
+      resolve(`http://127.0.0.1:${port}`);
+    });
+  });
+  let agentCalled = false;
+  const provider = createCursorProvider({
+    openNative: (input) => openCursorRun({ ...input, baseUrl: url }),
+    runAgent: async () => {
+      agentCalled = true;
+      return { code: 0, stdout: SUCCESS, stderr: '' };
+    },
+  });
+  const models = createModels({ credentials: await storeCursor(cursorCredential()) });
+  models.setProvider(provider);
+  const model = models.getModel('cursor', 'composer-2.5');
+  if (!model) throw new Error('cursor/composer-2.5 is not listed');
+  try {
+    const message = await models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }).result();
+    expect(agentCalled).toBe(false);
+    expect(message.stopReason).toBe('error');
+    expect(message.content).toEqual([]);
+  } finally {
+    await new Promise<void>((done) => server.close(() => done()));
+  }
+});
+
+test('a silent TCP accept falls back to cursor-agent', async () => {
+  const sockets = new Set<net.Socket>();
+  const server = net.createServer((socket) => {
+    sockets.add(socket);
+    socket.on('error', () => undefined);
+    socket.on('close', () => sockets.delete(socket));
+  });
+  const port = await new Promise<number>((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      resolve(address && typeof address === 'object' ? address.port : 0);
+    });
+  });
+  const provider = createCursorProvider({
+    openNative: (input) => openCursorRun({ ...input, baseUrl: `http://127.0.0.1:${port}`, prefaceMs: 200 }),
+    runAgent: async () => ({ code: 0, stdout: SUCCESS, stderr: '' }),
+  });
+  const models = createModels({ credentials: await storeCursor(cursorCredential()) });
+  models.setProvider(provider);
+  const model = models.getModel('cursor', 'composer-2.5');
+  if (!model) throw new Error('cursor/composer-2.5 is not listed');
+  try {
+    const message = await models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }).result();
+    expect(message.stopReason).toBe('stop');
+    expect(message.content).toEqual([{ type: 'text', text: 'pong' }]);
+  } finally {
+    for (const socket of sockets) socket.destroy();
+    await new Promise<void>((done) => server.close(() => done()));
   }
 });
 

@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
+import { cursorRejectedSession } from '../catalog.ts';
+
 export const CURSOR_CLIENT_VERSION = 'cli-2026.11.05-86047df';
 const ASK_MODE = 2;
 
@@ -61,8 +63,10 @@ export function encodeRunFrame(input: RunInput): Buffer {
   return envelope(delimited(1, run));
 }
 
-export function encodeContextFrame(): Buffer {
-  return envelope(delimited(2, delimited(10, delimited(1, delimited(1, Buffer.alloc(0))))));
+export function encodeContextFrame(execField?: Buffer): Buffer {
+  const result = delimited(10, delimited(1, delimited(1, Buffer.alloc(0))));
+  const inner = execField && execField.length > 0 ? Buffer.concat([execField, result]) : result;
+  return envelope(delimited(2, inner));
 }
 
 export function encodeContextRequestFrame(): Buffer {
@@ -81,9 +85,9 @@ export function encodeErrorFrame(message: string): Buffer {
   return envelope(Buffer.from(JSON.stringify({ error: { code: 'resource_exhausted', message } })), 2);
 }
 
-export type ServerNotice = { readonly type: 'text'; readonly text: string } | { readonly type: 'context' } | { readonly type: 'turn_end' } | { readonly type: 'error'; readonly message: string };
+export type ServerNotice = { readonly type: 'text'; readonly text: string } | { readonly type: 'context'; readonly execField?: Buffer } | { readonly type: 'turn_end' } | { readonly type: 'error'; readonly message: string };
 
-type Field = { readonly field: number; readonly buf?: Buffer };
+type Field = { readonly field: number; readonly buf?: Buffer; readonly raw: Buffer };
 
 function readVarint(buf: Buffer, offset: number): [bigint, number] {
   let value = 0n;
@@ -103,6 +107,7 @@ function readFields(buf: Buffer): Field[] {
   const fields: Field[] = [];
   let cursor = 0;
   while (cursor < buf.length) {
+    const start = cursor;
     const [key, next] = readVarint(buf, cursor);
     if (next <= cursor) break;
     cursor = next;
@@ -110,20 +115,34 @@ function readFields(buf: Buffer): Field[] {
     const wire = Number(key & 7n);
     if (wire === 0) {
       const [, after] = readVarint(buf, cursor);
+      if (after <= cursor) break;
       cursor = after;
-      fields.push({ field });
+      fields.push({ field, raw: buf.subarray(start, cursor) });
     } else if (wire === 2) {
       const [length, after] = readVarint(buf, cursor);
       cursor = after;
       const size = Number(length);
       if (!Number.isFinite(size) || size < 0 || cursor + size > buf.length) break;
-      fields.push({ field, buf: buf.subarray(cursor, cursor + size) });
+      fields.push({ field, buf: buf.subarray(cursor, cursor + size), raw: buf.subarray(start, cursor + size) });
       cursor += size;
-    } else if (wire === 1) cursor += 8;
-    else if (wire === 5) cursor += 4;
-    else break;
+    } else if (wire === 1) {
+      if (cursor + 8 > buf.length) break;
+      cursor += 8;
+      fields.push({ field, raw: buf.subarray(start, cursor) });
+    } else if (wire === 5) {
+      if (cursor + 4 > buf.length) break;
+      cursor += 4;
+      fields.push({ field, raw: buf.subarray(start, cursor) });
+    } else break;
   }
   return fields;
+}
+
+function jsonMentions(value: unknown, needle: string): boolean {
+  if (typeof value === 'string') return value === needle;
+  if (Array.isArray(value)) return value.some((item) => jsonMentions(item, needle));
+  if (value !== null && typeof value === 'object') return Object.values(value).some((item) => jsonMentions(item, needle));
+  return false;
 }
 
 function framePayload(frame: Buffer): { readonly flags: number; readonly payload: Buffer } | undefined {
@@ -149,7 +168,8 @@ export function decodeFrame(frame: Buffer): ServerNotice[] {
     const raw = parsed.payload.toString('utf8').trim();
     if (raw.length === 0) return [];
     try {
-      const body = JSON.parse(raw) as { error?: { message?: unknown } };
+      const body = JSON.parse(raw) as { error?: { message?: unknown; details?: unknown } };
+      if (jsonMentions(body.error?.details, 'ERROR_NOT_LOGGED_IN')) return [{ type: 'error', message: cursorRejectedSession(401) }];
       if (typeof body.error?.message === 'string' && body.error.message.length > 0) return [{ type: 'error', message: body.error.message }];
     } catch {
       return [{ type: 'error', message: raw }];
@@ -158,7 +178,13 @@ export function decodeFrame(frame: Buffer): ServerNotice[] {
   }
   const notices: ServerNotice[] = [];
   for (const top of readFields(parsed.payload)) {
-    if (top.field === 2 && top.buf && readFields(top.buf).some((field) => field.field === 10)) notices.push({ type: 'context' });
+    if (top.field === 2 && top.buf) {
+      const inner = readFields(top.buf);
+      if (inner.some((field) => field.field === 10)) {
+        const exec = inner.find((field) => field.field === 1);
+        notices.push(exec ? { type: 'context', execField: Buffer.from(exec.raw) } : { type: 'context' });
+      }
+    }
     if (top.field !== 1 || !top.buf) continue;
     for (const update of readFields(top.buf)) {
       if (update.field === 14) notices.push({ type: 'turn_end' });

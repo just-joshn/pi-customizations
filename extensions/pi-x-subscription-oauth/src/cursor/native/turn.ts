@@ -6,14 +6,13 @@ export type NativeSession = {
   close(): void;
 };
 
-const QUIET_MS = 1500;
 const FIRST_BYTE_MS = 120_000;
 
-function wait(ms: number, signal: AbortSignal | undefined): { readonly promise: Promise<'quiet' | 'aborted'>; cancel(): void } {
+function wait(ms: number, signal: AbortSignal | undefined): { readonly promise: Promise<'timeout' | 'aborted'>; cancel(): void } {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort: (() => void) | undefined;
-  const promise = new Promise<'quiet' | 'aborted'>((resolve) => {
-    timer = setTimeout(() => resolve('quiet'), ms);
+  const promise = new Promise<'timeout' | 'aborted'>((resolve) => {
+    timer = setTimeout(() => resolve('timeout'), ms);
     timer.unref?.();
     onAbort = () => {
       if (timer) clearTimeout(timer);
@@ -40,18 +39,23 @@ export async function readAssistantText(session: NativeSession, input: RunInput,
   try {
     while (true) {
       if (signal?.aborted) throw new DOMException('Request was aborted', 'AbortError');
-      if (Date.now() - started >= deadlineMs) throw new Error('Cursor ask timed out.');
-      const next = iterator.next();
-      const gate = wait(text.length > 0 ? QUIET_MS : FIRST_BYTE_MS, signal);
-      const winner = await Promise.race([next.then((value) => ({ kind: 'frame' as const, value })), gate.promise.then((kind) => ({ kind }))]);
+      const remaining = deadlineMs - (Date.now() - started);
+      if (remaining <= 0) throw new Error('Cursor ask timed out.');
+      const incoming = iterator.next().then(
+        (value) => ({ kind: 'frame' as const, value }),
+        (error: unknown) => ({ kind: 'failed' as const, error }),
+      );
+      const gate = wait(remaining, signal);
+      const winner = await Promise.race([incoming, gate.promise.then((kind) => (kind === 'aborted' ? { kind: 'aborted' as const } : { kind: 'timeout' as const }))]);
       gate.cancel();
       if (winner.kind === 'aborted') throw new DOMException('Request was aborted', 'AbortError');
-      if (winner.kind === 'quiet') break;
-      if (winner.kind !== 'frame' || winner.value.done) break;
+      if (winner.kind === 'timeout') throw new Error('Cursor ask timed out.');
+      if (winner.kind === 'failed') throw winner.error;
+      if (winner.value.done) break;
       for (const notice of decodeFrame(winner.value.value)) {
         if (notice.type === 'context' && !contextSent) {
           contextSent = true;
-          session.write(encodeContextFrame());
+          session.write(encodeContextFrame(notice.execField));
         } else if (notice.type === 'text') text += notice.text;
         else if (notice.type === 'error') throw new Error(notice.message);
         else if (notice.type === 'turn_end') {

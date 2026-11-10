@@ -155,13 +155,15 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
     const prompt = promptFrom(context.messages);
     if (prompt.length === 0) throw new Error('Cursor ask needs text. This adapter does not send images or tool calls.');
     if (openNative) {
+      let opened = false;
       try {
         const session = await openNative({ token: options.apiKey, signal: options.signal });
+        opened = true;
         const text = await readAssistantText(session, { prompt, modelId: model.id }, options.signal);
         publish(output, stream, text, ZERO_USAGE);
         return;
       } catch (error) {
-        if (!(error instanceof NativeTransportError)) throw error;
+        if (opened || !(error instanceof NativeTransportError)) throw error;
       }
     }
     const agent = await runAgent(cursorAgentArgs(model.id, prompt), options.signal);
