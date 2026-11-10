@@ -25,7 +25,7 @@ export type AgentReply = { readonly kind: 'text'; readonly text: string; readonl
 const ZERO_USAGE: Usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 
 export function cursorAgentArgs(modelId: string, prompt: string): readonly string[] {
-  return ['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', modelId, prompt];
+  return ['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', modelId, '--', prompt];
 }
 
 function textFrom(content: unknown): string {
@@ -48,17 +48,21 @@ export function promptFrom(messages: TranscriptContext['messages']): string {
     .join('\n\n');
 }
 
-function numberOrZero(value: unknown): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+function usageNumber(record: Record<string, unknown>, keys: readonly string[]): number {
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+  }
+  return 0;
 }
 
 function usageFrom(value: unknown): Usage {
   if (!value || typeof value !== 'object') return ZERO_USAGE;
   const record = value as Record<string, unknown>;
-  const input = numberOrZero(record['input_tokens']);
-  const output = numberOrZero(record['output_tokens']);
-  const cacheRead = numberOrZero(record['cache_read_input_tokens']);
-  const cacheWrite = numberOrZero(record['cache_creation_input_tokens']);
+  const input = usageNumber(record, ['inputTokens', 'input_tokens']);
+  const output = usageNumber(record, ['outputTokens', 'output_tokens']);
+  const cacheRead = usageNumber(record, ['cacheReadTokens', 'cache_read_tokens', 'cache_read_input_tokens']);
+  const cacheWrite = usageNumber(record, ['cacheWriteTokens', 'cache_write_tokens', 'cache_creation_input_tokens']);
   return { input, output, cacheRead, cacheWrite, totalTokens: input + output + cacheRead + cacheWrite, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 }
 
@@ -107,10 +111,12 @@ export function runCursorAgent(args: readonly string[], signal: AbortSignal | un
 }
 
 function failureText(run: AgentRun, reply: AgentReply, secret: string | undefined): string {
-  const parsed = reply.kind === 'error' ? reply.message : reply.text.trim();
   const stderr = run.stderr.trim();
-  const raw = run.code !== 0 && stderr.length > 0 ? stderr : parsed || stderr || `cursor-agent exited ${run.code}.`;
-  return scrubText(raw, secret ? [secret] : []);
+  const secrets = secret ? [secret] : [];
+  if (run.code !== 0 && stderr.length > 0) return scrubText(stderr, secrets);
+  if (run.code !== 0 && run.stdout.trim().length === 0) return `cursor-agent exited ${run.code}.`;
+  const parsed = reply.kind === 'error' ? reply.message : reply.text.trim();
+  return scrubText(parsed || stderr || `cursor-agent exited ${run.code}.`, secrets);
 }
 
 function emptyMessage(model: Model<Api>): AssistantMessage {

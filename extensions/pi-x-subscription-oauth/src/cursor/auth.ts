@@ -1,12 +1,16 @@
 import { execFile, spawn } from 'node:child_process';
 
 import type { OAuthCredential } from '@earendil-works/pi-ai';
-import { CURSOR_BIN_HINT, CURSOR_LOGIN_HINT } from './catalog.ts';
+import { CURSOR_BASE_URL, CURSOR_BIN_HINT, CURSOR_LOGIN_HINT } from './catalog.ts';
 
 export const KEYCHAIN_ACCESS_SERVICE = 'cursor-access-token';
 export const KEYCHAIN_REFRESH_SERVICE = 'cursor-refresh-token';
+export const KEYCHAIN_API_KEY_SERVICE = 'cursor-api-key';
 export const KEYCHAIN_ACCOUNT = 'cursor-user';
 const KEYCHAIN_PLACEHOLDER = 'cursor-keychain';
+const EXCHANGE_URL = `${CURSOR_BASE_URL}/auth/exchange_user_api_key`;
+/** Pi refreshes a stored token this early. A session inside the window is not usable. */
+const SESSION_SKEW_MS = 5 * 60 * 1000;
 
 const JWT_TEXT = /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g;
 
@@ -84,22 +88,68 @@ export function runCursorAgentLogin(signal: AbortSignal): Promise<void> {
   });
 }
 
-export async function loginCursor(signal: AbortSignal, readSession: () => Promise<OAuthCredential | undefined>, runLogin: (signal: AbortSignal) => Promise<void>): Promise<OAuthCredential> {
+export type MintedSession = {
+  readonly access: string;
+  readonly refresh?: string;
+};
+
+export type ExchangeApiKey = (apiKey: string, signal: AbortSignal) => Promise<MintedSession>;
+
+function sessionUsable(credential: OAuthCredential | undefined): credential is OAuthCredential {
+  return credential !== undefined && credential.access.length > 0 && credential.expires > Date.now() + SESSION_SKEW_MS;
+}
+
+function mintedFrom(body: unknown): MintedSession | undefined {
+  if (!body || typeof body !== 'object' || !('accessToken' in body) || typeof body.accessToken !== 'string' || body.accessToken.length === 0) return undefined;
+  if ('refreshToken' in body && typeof body.refreshToken === 'string' && body.refreshToken.length > 0) return { access: body.accessToken, refresh: body.refreshToken };
+  return { access: body.accessToken };
+}
+
+export async function exchangeCursorApiKey(apiKey: string, signal: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<MintedSession> {
+  const response = await fetchImpl(EXCHANGE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+    body: '{}',
+    redirect: 'error',
+    signal,
+  });
+  if (!response.ok) throw new Error(CURSOR_LOGIN_HINT);
+  const minted = mintedFrom(await response.json().catch(() => undefined));
+  if (!minted) throw new Error(CURSOR_LOGIN_HINT);
+  return minted;
+}
+
+export async function loginCursor(signal: AbortSignal, readSession: () => Promise<OAuthCredential | undefined>, runLogin: (signal: AbortSignal) => Promise<void>, mint?: () => Promise<OAuthCredential>): Promise<OAuthCredential> {
   const existing = await readSession();
-  if (existing?.access) return existing;
+  if (sessionUsable(existing)) return existing;
+  if (mint) {
+    try {
+      const minted = await mint();
+      if (sessionUsable(minted)) return minted;
+    } catch (error) {
+      if (signal.aborted || (error instanceof Error && (error.name === 'AbortError' || error.message === 'Login cancelled'))) throw new Error('Login cancelled');
+    }
+  }
   try {
     await runLogin(signal);
   } catch (error) {
     throw new Error(scrubText(error instanceof Error ? error.message : CURSOR_LOGIN_HINT));
   }
   const created = await readSession();
-  if (!created?.access) throw new Error(CURSOR_LOGIN_HINT);
+  if (!sessionUsable(created)) throw new Error(CURSOR_LOGIN_HINT);
   return created;
 }
 
-export async function refreshCursor(signal: AbortSignal, readSession: () => Promise<OAuthCredential | undefined>): Promise<OAuthCredential> {
+export async function refreshCursor(signal: AbortSignal, readApiKey: () => Promise<string | undefined>, exchange: ExchangeApiKey = exchangeCursorApiKey): Promise<OAuthCredential> {
   if (signal.aborted) throw new Error('Login cancelled');
-  const next = await readSession();
-  if (!next?.access) throw new Error(CURSOR_LOGIN_HINT);
-  return next;
+  const apiKey = await readApiKey();
+  if (!apiKey) throw new Error(CURSOR_LOGIN_HINT);
+  try {
+    const minted = await exchange(apiKey, signal);
+    if (signal.aborted) throw new Error('Login cancelled');
+    return credentialFrom(minted.access, minted.refresh);
+  } catch (error) {
+    if (signal.aborted || (error instanceof Error && (error.name === 'AbortError' || error.message === 'Login cancelled'))) throw new Error('Login cancelled');
+    throw new Error(CURSOR_LOGIN_HINT);
+  }
 }

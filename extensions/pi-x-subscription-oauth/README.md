@@ -29,10 +29,12 @@ Install the Cursor CLI so `cursor-agent` is on `PATH`. Sign in with `cursor-agen
 `/model` lists `cursor/composer-2.5` before the first refresh. After login, Pi posts `GetUsableModels` on `https://api2.cursor.sh` and adds the models that call returns. A one-shot ask runs:
 
 ```bash
-cursor-agent --trust --print --output-format json --mode ask --model <id>
+cursor-agent --trust --print --output-format json --mode ask --model <id> -- <prompt>
 ```
 
-Ask mode does not run tools. The prompt is the text of the Pi conversation. Images are not sent. If `cursor-agent` is missing, the error names `cursor-agent` and tells you to install the Cursor CLI. If Cursor is logged out, the error tells you to run `/login` and choose Cursor.
+The `--` keeps a prompt that starts with `-` from being read as a CLI flag. Ask mode does not run tools. The prompt is the text of the Pi conversation. Images are not sent. If `cursor-agent` is missing, the error names `cursor-agent` and tells you to install the Cursor CLI. If Cursor is logged out, the error tells you to run `/login` and choose Cursor.
+
+The keychain items `cursor-access-token` and `cursor-refresh-token` are the same JWT, and that JWT lasts one hour. It is not a refresh grant. When Pi needs a new catalog token, it reads `cursor-api-key` and posts that key to `https://api2.cursor.sh/auth/exchange_user_api_key`. Cursor returns a new access token. Pi stores that token and does not store the API key. If the API key is missing, or Cursor rejects the exchange, refresh fails and tells you to run `/login` and choose Cursor. `/login` tries the same exchange before it opens `cursor-agent login`.
 
 `/usage` stays on the Grok Build credential. It still reads the shared plan meter.
 

@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { createModels, InMemoryCredentialStore, type OAuthCredential } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
-import { expiresAt, loginCursor, readKeychainCredential, refreshCursor, runCursorAgentLogin, scrubText } from '../src/cursor/auth.ts';
+import { exchangeCursorApiKey, expiresAt, loginCursor, readKeychainCredential, refreshCursor, runCursorAgentLogin, scrubText } from '../src/cursor/auth.ts';
 import { CURSOR_LOGIN_HINT, parseUsableModels, usableModelsUrl } from '../src/cursor/catalog.ts';
 import { createCursorProvider } from '../src/cursor/provider.ts';
 import { cursorAgentArgs, readAgentResult, runCursorAgent } from '../src/cursor/stream.ts';
@@ -51,12 +51,21 @@ test('a catalog body without models is unreadable', () => {
 });
 
 test('the agent argv is ask mode for the requested model', () => {
-  expect(cursorAgentArgs('composer-2.5', 'ping')).toStrictEqual(['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', 'composer-2.5', 'ping']);
+  expect(cursorAgentArgs('composer-2.5', 'ping')).toStrictEqual(['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', 'composer-2.5', '--', 'ping']);
+});
+
+test('a prompt that starts with a dash stays a prompt', () => {
+  expect(cursorAgentArgs('composer-2.5', '- old line\n+ new line')).toStrictEqual(['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', 'composer-2.5', '--', '- old line\n+ new line']);
 });
 
 test('a JSON result line is the reply text', () => {
   const reply = readAgentResult(`noise\n${SUCCESS}`);
   expect(reply).toMatchObject({ kind: 'text', text: 'pong', usage: { input: 3, output: 1, totalTokens: 4 } });
+});
+
+test('camelCase usage from cursor-agent is the reply usage', () => {
+  const reply = readAgentResult(`${JSON.stringify({ type: 'result', subtype: 'success', is_error: false, result: 'pong', usage: { inputTokens: 11088, outputTokens: 24, cacheReadTokens: 9, cacheWriteTokens: 2 } })}\n`);
+  expect(reply).toMatchObject({ kind: 'text', text: 'pong', usage: { input: 11088, output: 24, cacheRead: 9, cacheWrite: 2, totalTokens: 11123 } });
 });
 
 test('an agent error line is not reply text', () => {
@@ -138,6 +147,19 @@ test('a fake cursor-agent ask returns the result text', async () => {
   expect(JSON.stringify(seen)).not.toContain('cursor-access');
 });
 
+test('a quiet non-zero exit reports the process failure', async () => {
+  const provider = createCursorProvider({
+    runAgent: async () => ({ code: 1, stdout: '', stderr: '' }),
+  });
+  const models = createModels({ credentials: await storeCursor(cursorCredential()) });
+  models.setProvider(provider);
+  const model = models.getModel('cursor', 'composer-2.5');
+  if (!model) throw new Error('cursor/composer-2.5 is not listed');
+  const message = await models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }).result();
+  expect(message.stopReason).toBe('error');
+  expect(message.errorMessage).toBe('cursor-agent exited 1.');
+});
+
 test('a failed ask shows the agent error and hides the session token', async () => {
   const provider = createCursorProvider({
     runAgent: async () => ({ code: 1, stdout: '', stderr: 'Cannot use this model cursor-secret' }),
@@ -207,11 +229,85 @@ test('a keychain access item becomes the Pi credential', async () => {
   expect(credential).toMatchObject({ type: 'oauth', access: 'access-item', refresh: 'cursor-keychain' });
 });
 
-test('refresh reads the keychain again and fails closed when it is empty', async () => {
-  const signal = new AbortController().signal;
-  const next = cursorCredential('rotated');
-  await expect(refreshCursor(signal, async () => next)).resolves.toBe(next);
-  await expect(refreshCursor(signal, async () => undefined)).rejects.toThrow(CURSOR_LOGIN_HINT);
+test('refresh exchanges the API key and does not store that key', async () => {
+  const payload = Buffer.from(JSON.stringify({ exp: 1_800_000_000 })).toString('base64url');
+  const access = `eyJhbGciOiJub25lIn0.${payload}.sig`;
+  const seen: string[] = [];
+  const credential = await refreshCursor(
+    new AbortController().signal,
+    async () => {
+      seen.push('read');
+      return 'cursor-api-key';
+    },
+    async (apiKey) => {
+      seen.push(apiKey);
+      return { access, refresh: access };
+    },
+  );
+  expect(seen).toEqual(['read', 'cursor-api-key']);
+  expect(credential.access).toBe(access);
+  expect(credential.refresh).toBe(access);
+  expect(credential.expires).toBe(1_800_000_000_000);
+  expect(JSON.stringify(credential)).not.toContain('cursor-api-key');
+});
+
+test('refresh without an API key tells the user to log in', async () => {
+  const exchange = vi.fn(async () => ({ access: 'minted' }));
+  await expect(refreshCursor(new AbortController().signal, async () => undefined, exchange)).rejects.toThrow(CURSOR_LOGIN_HINT);
+  expect(exchange).not.toHaveBeenCalled();
+});
+
+test('a rejected API key exchange tells the user to log in', async () => {
+  await expect(
+    refreshCursor(
+      new AbortController().signal,
+      async () => 'cursor-api-key',
+      async () => Promise.reject(new Error('HTTP 401')),
+    ),
+  ).rejects.toThrow(CURSOR_LOGIN_HINT);
+});
+
+test('exchange posts the API key and reads the minted access token', async () => {
+  const payload = Buffer.from(JSON.stringify({ exp: 1_800_000_000 })).toString('base64url');
+  const access = `eyJhbGciOiJub25lIn0.${payload}.sig`;
+  const requests: { url: string; authorization: string | null; body: string | undefined }[] = [];
+  const minted = await exchangeCursorApiKey('cursor-api-key', new AbortController().signal, async (input, init) => {
+    requests.push({ url: String(input), authorization: new Headers(init?.headers).get('authorization'), body: typeof init?.body === 'string' ? init.body : undefined });
+    return Response.json({ accessToken: access, refreshToken: access });
+  });
+  expect(requests).toEqual([{ url: 'https://api2.cursor.sh/auth/exchange_user_api_key', authorization: 'Bearer cursor-api-key', body: '{}' }]);
+  expect(minted).toEqual({ access, refresh: access });
+});
+
+test('an exchange that returns no access token tells the user to log in', async () => {
+  await expect(exchangeCursorApiKey('cursor-api-key', new AbortController().signal, async () => Response.json({}))).rejects.toThrow(CURSOR_LOGIN_HINT);
+  await expect(exchangeCursorApiKey('cursor-api-key', new AbortController().signal, async () => new Response('no', { status: 401 }))).rejects.toThrow(CURSOR_LOGIN_HINT);
+});
+
+test('login mints a session when the stored access token is near expiry', async () => {
+  const fresh = cursorCredential('fresh-access');
+  const runLogin = vi.fn(async () => undefined);
+  const mint = vi.fn(async () => fresh);
+  const credential = await loginCursor(new AbortController().signal, async () => ({ ...cursorCredential(), expires: Date.now() + 30_000 }), runLogin, mint);
+  expect(credential).toBe(fresh);
+  expect(runLogin).not.toHaveBeenCalled();
+});
+
+test('login runs cursor-agent when the API key exchange cannot mint', async () => {
+  const session = cursorCredential();
+  let reads = 0;
+  const runLogin = vi.fn(async () => undefined);
+  const credential = await loginCursor(
+    new AbortController().signal,
+    async () => {
+      reads += 1;
+      return reads === 1 ? { ...cursorCredential(), expires: Date.now() - 1000 } : session;
+    },
+    runLogin,
+    async () => Promise.reject(new Error(CURSOR_LOGIN_HINT)),
+  );
+  expect(runLogin).toHaveBeenCalledOnce();
+  expect(credential).toBe(session);
 });
 
 test('a missing cursor-agent binary is named by the runner and by login', async () => {

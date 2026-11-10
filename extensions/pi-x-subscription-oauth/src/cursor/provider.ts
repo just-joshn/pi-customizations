@@ -1,24 +1,28 @@
 import { createProvider, type OAuthCredential, type Provider, type ProviderAuthInteraction, type RefreshModelsContext } from '@earendil-works/pi-ai';
-import { loginCursor, readKeychainCredential, refreshCursor, runCursorAgentLogin } from './auth.ts';
+import { type ExchangeApiKey, exchangeCursorApiKey, KEYCHAIN_ACCOUNT, KEYCHAIN_API_KEY_SERVICE, loginCursor, readKeychainCredential, readMacKeychain, refreshCursor, runCursorAgentLogin } from './auth.ts';
 import { BASELINE, CURSOR_BASE_URL, CURSOR_LOGIN_HINT, CURSOR_PROVIDER_ID, CURSOR_PROVIDER_NAME, catalogFailure, cursorCatalogHeaders, parseUsableModels, toPiModel, usableModelsUrl } from './catalog.ts';
 import { type AgentRunner, createCursorStreams, runCursorAgent } from './stream.ts';
 
 export type CursorDeps = {
   readonly readSession?: () => Promise<OAuthCredential | undefined>;
+  readonly readApiKey?: () => Promise<string | undefined>;
+  readonly exchange?: ExchangeApiKey;
   readonly runLogin?: (signal: AbortSignal) => Promise<void>;
   readonly runAgent?: AgentRunner;
 };
 
 export function createCursorProvider(deps: CursorDeps = {}): Provider {
   const readSession = deps.readSession ?? (() => readKeychainCredential());
+  const readApiKey = deps.readApiKey ?? (() => readMacKeychain(KEYCHAIN_API_KEY_SERVICE, KEYCHAIN_ACCOUNT));
+  const exchange = deps.exchange ?? exchangeCursorApiKey;
   const runLogin = deps.runLogin ?? runCursorAgentLogin;
   const streams = createCursorStreams(deps.runAgent ?? runCursorAgent);
   const oauth = {
     name: CURSOR_PROVIDER_NAME,
     isSubscription: true,
     loginLabel: 'Sign in with Cursor',
-    login: (interaction: ProviderAuthInteraction) => loginCursor(interaction.signal, readSession, runLogin),
-    refresh: (_credential: OAuthCredential, signal: AbortSignal) => refreshCursor(signal, readSession),
+    login: (interaction: ProviderAuthInteraction) => loginCursor(interaction.signal, readSession, runLogin, () => refreshCursor(interaction.signal, readApiKey, exchange)),
+    refresh: (_credential: OAuthCredential, signal: AbortSignal) => refreshCursor(signal, readApiKey, exchange),
     toAuth: async (credential: { access: string }) => ({ apiKey: credential.access }),
   };
 
