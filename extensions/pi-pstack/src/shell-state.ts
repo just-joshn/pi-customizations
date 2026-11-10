@@ -138,7 +138,8 @@ function processCwd(pid: number): string | undefined {
 }
 
 /** The per-session shell: `script` wraps a command so it restores and reports the state, `operations` reads the report. */
-export function createSessionShell() {
+export function createSessionShell(options: { hostPidCwd?: boolean } = {}) {
+  const hostPidCwd = options.hostPidCwd !== false;
   let state: ShellState = { cwd: undefined, env: new Map(), functions: '' };
   let epoch = 0;
   const marker = `\u001epstack-shell-${randomBytes(8).toString('hex')}\u001e`;
@@ -163,7 +164,7 @@ export function createSessionShell() {
       functionReplay(),
       cwd === undefined
         ? ''
-        : `cd -- ${quote(cwd)} 2>/dev/null || { printf '%s\\n' ${quote(`The shell's working directory ${cwd} no longer exists or cannot be entered. The command did not run. The shell is back in `)}"$PWD; run the command again." >&2; __pstack_capture; exit 1; }`,
+        : `builtin cd -- ${quote(cwd)} 2>/dev/null || { printf '%s\\n' ${quote(`The shell's working directory ${cwd} no longer exists or cannot be entered. The command did not run. The shell is back in `)}"$PWD; run the command again." >&2; __pstack_capture; exit 1; }`,
       `eval ${quote(command)} 9>&-`,
       '{ __pstack_status=$?; set +eux; } 2>/dev/null',
       '__pstack_capture',
@@ -241,8 +242,9 @@ export function createSessionShell() {
             return;
           }
           const parsed = parseState(fields);
+          const cwdChanged = parsed.cwd !== state.cwd;
           state = { cwd: parsed.cwd, env: parsed.env, functions: state.functions };
-          epoch += 1;
+          if (cwdChanged) epoch += 1;
         },
       );
       if (move === undefined || waitMs === undefined) return inner.exec(command, cwd, { ...options, onData: output.onData }).finally(output.flush);
@@ -266,7 +268,7 @@ export function createSessionShell() {
             timedOut = true;
             return abort();
           }
-          if (pid !== undefined) {
+          if (hostPidCwd && pid !== undefined) {
             const cwd = processCwd(pid);
             if (cwd !== undefined) adoptCwd(seenEpoch, cwd);
           }

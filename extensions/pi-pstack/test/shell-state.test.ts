@@ -245,6 +245,18 @@ describe('a timeout with somewhere to move the command', () => {
     await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${stay}\n` });
   });
 
+  test('a foreground command that does not change directory still lets a later background cd apply', async ({ dir, shell, run }) => {
+    const away = join(dir, 'away');
+    mkdirSync(away);
+    const to = handover();
+    const moving = shell.operations(local, to.take).exec(shell.script(`cd ${away}; sleep 1`), dir, { onData: () => {}, timeout: 0.3 });
+
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+    await expect(run('echo hi')).resolves.toEqual({ exitCode: 0, output: 'hi\n' });
+    await expect.poll(() => to.exits, { timeout: 5_000 }).toEqual([0]);
+    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${away}\n` });
+  });
+
   test('a command whose state report has arrived when the timeout elapses finishes in the foreground and keeps its state', async ({ dir, shell, run }) => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     onTestFinished(() => {

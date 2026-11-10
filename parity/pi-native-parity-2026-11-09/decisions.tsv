@@ -31,3 +31,4 @@ ts	phase	decision	why	evidence	result
 2026-11-10T05:13:52Z	bugfix	epoch cwd test uses fixture dirs not /bin	Linux usrmerge makes cd /bin capture as /usr/bin via cd -P; CI linux vitest 2/2 red	vitest shell-state foreground-cd test	VERIFIED
 2026-11-10T05:18:20Z	bugfix	AwaitShell sleep reports waitMs on timer completion	Date.now() under-read made seconds() emit 3.0s on Linux CI; sleep now returns full|early	e2e shell-timeout AwaitShell sleep assertion	VERIFIED pending
 2026-11-10T05:18:41Z	bugfix	AwaitShell sleep reports waitMs on timer completion	Date.now() under-read made seconds() emit 3.0s on Linux CI; sleep now returns full|early	e2e shell-timeout + background-shell	VERIFIED
+2026-11-10T05:55:49Z	review	fix 11 Interrogate threads on PR 197	verified machine release, shell epoch/cd/cwd, host paths, packaging, README expiry	vitest 61 passed targeted suites	VERIFIED

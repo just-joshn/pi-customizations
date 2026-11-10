@@ -140,6 +140,25 @@ describe('background jobs', () => {
     expect(session.cwd()).toBe(away);
   });
 
+  shell('a bare line on fd 3 does not become the session cwd; only cwd: lines do', async ({ dir, jobs }) => {
+    const session = createSessionShell();
+    const next = join(dir, 'away');
+    mkdirSync(next);
+    const away = realpathSync(next);
+    const seen = session.epoch();
+    const job = jobs.start(ctx, {
+      command: `printf 'NOT-A-DIRECTORY\\n' >&3; cd ${away} && pwd`,
+      cwd: dir,
+      title: 'fd3 junk',
+      toolCallId: 'call-1',
+      onCwd: (cwd) => session.adoptCwd(seen, cwd),
+    });
+
+    await job.done;
+    expect(jobs.output(job).trim()).toBe(away);
+    expect(session.cwd()).toBe(away);
+  });
+
   shell('session shutdown stops a running job and records it aborted without notifying', async ({ dir, jobs, notices }) => {
     const job = start(jobs, dir, 'sleep 30');
     jobs.shutdown();

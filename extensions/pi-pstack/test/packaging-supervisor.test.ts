@@ -21,6 +21,16 @@ test('fails usage without --workspace', () => {
   expect(result.stderr).toContain('--workspace');
 });
 
+test('rejects workspace paths with XML-special characters or spaces', () => {
+  const outdir = tempDir('pstack-unit-out-');
+  const amp = spawnSync(script, ['--workspace', '/tmp/ws&co', '--bin', supervisorBin, '--dry-run', outdir], { encoding: 'utf8' });
+  expect(amp.status).toBe(2);
+  expect(amp.stderr).toMatch(/spaces or XML-special/);
+  const spaced = spawnSync(script, ['--workspace', '/tmp/ws co', '--bin', supervisorBin, '--dry-run', outdir], { encoding: 'utf8' });
+  expect(spaced.status).toBe(2);
+  expect(spaced.stderr).toMatch(/spaces or XML-special/);
+});
+
 test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('dry-run writes a user unit and does not call the service manager', () => {
   const workspace = tempDir('pstack-unit-ws-');
   const outdir = tempDir('pstack-unit-out-');

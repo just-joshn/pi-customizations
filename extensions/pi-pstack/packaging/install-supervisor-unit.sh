@@ -42,6 +42,11 @@ done
   echo "error: --workspace must be an absolute path" >&2
   exit 2
 }
+case "$workspace" in *'&'*|*'<'*|*'>'*|*' '*)
+  echo "error: workspace path must not contain spaces or XML-special characters (& < >)" >&2
+  exit 2
+  ;;
+esac
 [[ -d "$workspace" ]] || {
   echo "error: workspace is not a directory: $workspace" >&2
   exit 1
@@ -55,6 +60,11 @@ fi
   echo "error: --bin must be an absolute path" >&2
   exit 2
 }
+case "$bin" in *'&'*|*'<'*|*'>'*|*' '*)
+  echo "error: bin path must not contain spaces or XML-special characters (& < >)" >&2
+  exit 2
+  ;;
+esac
 [[ -x "$bin" ]] || {
   echo "error: supervisor bin missing or not executable: $bin" >&2
   exit 1

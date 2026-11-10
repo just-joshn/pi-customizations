@@ -119,10 +119,29 @@ describe('cloud machine path accuracy (C1)', () => {
   });
 
   test('a cloud-machine session does not name host-only personal skills or the model rule path as readable files', () => {
-    const host = hostSection(facts(ALL_TOOLS, { onCloudMachine: true }));
+    const host = hostSection(
+      facts([...ALL_TOOLS, 'bash_background'], {
+        onCloudMachine: true,
+        sessionFile: '/agent/sessions/w/chat.jsonl',
+        sessionDir: '/agent/sessions/w',
+        subagentDir: '/host-only/subagents',
+        storeDir: '/host-only/store/child',
+        rootStoreDir: '/state/store/root',
+        artifactsDir: '/host-only/artifacts/s',
+        terminalsDir: '/host-only/terminals',
+      }),
+    );
     expect(host).not.toContain('/agent/skills/');
     expect(host).not.toContain('/agent/pstack/pstack-models.md');
+    expect(host).not.toContain('/agent/sessions/w');
+    expect(host).not.toContain('/host-only/subagents');
+    expect(host).not.toContain('/host-only/store/child');
+    expect(host).not.toContain('/host-only/artifacts/s');
+    expect(host).not.toContain('/host-only/terminals');
+    expect(host).toContain('/state/projects');
+    expect(host).toContain('/state/store/root');
     expect(host).toContain('- Skill folders: project `.pi/skills/` on this machine. Personal skills stay on the parent host; use <SKILLS> and attached <skill> blocks instead of reading a personal path.');
     expect(host).toContain('- The model rule content for this session is in <pstack_models>. The rule file itself stays on the parent host and is not on this machine.');
+    expect(host).toContain('Background shells: bash_background runs a command in the background');
   });
 });

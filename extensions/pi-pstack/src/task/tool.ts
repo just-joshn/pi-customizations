@@ -502,6 +502,8 @@ function start(
   } catch (error) {
     handle?.kill();
     lock.release();
+    const machine = plan.readonlyMachine ?? (plan.machine?.driver === 'container' ? plan.machine : undefined);
+    if (machine !== undefined) void releaseMachine(machine, subagentDir(plan.workspace)).catch(() => undefined);
     if (handle?.pid === undefined) removeForkTranscript(plan);
     throw error;
   }
@@ -663,21 +665,29 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
       plan.notes = [...plan.notes, describeMachine(plan.machine)];
     } else if (plan.machine !== undefined) {
       const { machine } = plan;
+      await withMachineLease(machine, subagentDir(plan.workspace), () =>
+        bootMachine(machine, () => {
+          if (machine.driver === 'container') started = machine;
+        }),
+      );
       if (machine.driver === 'container') started = machine;
-      await withMachineLease(machine, subagentDir(plan.workspace), () => bootMachine(machine));
     } else if (plan.parentMachine !== undefined) {
       const parent = plan.parentMachine;
       if (runsReadonly(plan) && !parent.readonly) {
         plan.readonlyMachine = await startReadonlySibling(parent, plan.agentId, subagentDir(plan.workspace), signal);
         started = plan.readonlyMachine;
       } else {
+        await withMachineLease(parent, subagentDir(plan.workspace), () =>
+          bootMachine(parent, () => {
+            started = parent;
+          }),
+        );
         started = parent;
-        await withMachineLease(parent, subagentDir(plan.workspace), () => bootMachine(parent));
       }
     }
   } catch (error) {
-    if (started !== undefined) await releaseMachine(started, subagentDir(plan.workspace), { self: process.pid }).catch(() => undefined);
     lock.release();
+    if (started !== undefined) await releaseMachine(started, subagentDir(plan.workspace)).catch(() => undefined);
     throw error;
   }
 }

@@ -224,14 +224,27 @@ export interface StartRequest extends JobRequest {
 
 function bashCwdScript(setup: string, command: string): string {
   return [
-    `__pstack_note_cwd() { builtin printf '%s\\n' "$PWD" >&3; }`,
+    `__pstack_note_cwd() { if { true >&3; } 2>/dev/null; then builtin printf 'cwd:%s\\n' "$PWD" >&3; else builtin printf 'cwd:%s\\n' "$PWD"; fi; }`,
     `trap '__pstack_note_cwd' DEBUG`,
     setup,
     command,
     '{ __pstack_status=$?; set +eux; trap - DEBUG; } 2>/dev/null',
-    `builtin printf '%s\\n' "$PWD" >&3`,
+    `__pstack_note_cwd`,
     'builtin exit $__pstack_status',
   ].join('\n');
+}
+
+/** Pulls harness `cwd:` lines out of a chunk for onCwd and returns the rest for the job log. */
+function takeCwdLines(pending: string, chunk: string, onCwd: ((cwd: string) => void) | undefined): { pending: string; text: string } {
+  let held = pending + chunk;
+  let text = '';
+  for (let at = held.indexOf('\n'); at !== -1; at = held.indexOf('\n')) {
+    const line = held.slice(0, at);
+    held = held.slice(at + 1);
+    if (line.startsWith('cwd:')) onCwd?.(line.slice(4));
+    else text += `${line}\n`;
+  }
+  return { pending: held, text };
 }
 
 /** A job's title when the call gives no description: the command's first line. */
@@ -368,7 +381,8 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
     if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
     const prepared = prepare(ctx, request);
     const config = getShellConfig(options.shellPath());
-    const reportCwd = options.spawner === undefined && /^bash(\.exe)?$/i.test(basename(config.shell));
+    const reportCwd = /^bash(\.exe)?$/i.test(basename(config.shell));
+    const cwdOnFd3 = reportCwd && options.spawner === undefined;
     const run = reportCwd ? bashCwdScript(request.setup ?? '', request.command) : `${request.setup ?? ''}${request.command}`;
     const remote = options.spawner?.spawn(run, request.cwd);
     const viaStdin = remote === undefined && config.commandTransport === 'stdin';
@@ -378,10 +392,10 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         cwd: request.cwd,
         env: sessionEnv(ctx),
         detached: process.platform !== 'win32',
-        stdio: reportCwd ? [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe', 'pipe'] : [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+        stdio: cwdOnFd3 ? [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe', 'pipe'] : [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       });
-    const cwdStream = reportCwd ? child.stdio[3] : undefined;
+    const cwdStream = cwdOnFd3 ? child.stdio[3] : undefined;
     if (cwdStream !== undefined && cwdStream !== null && 'setEncoding' in cwdStream) {
       let pending = '';
       cwdStream.setEncoding('utf8');
@@ -390,7 +404,7 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         for (let at = pending.indexOf('\n'); at !== -1; at = pending.indexOf('\n')) {
           const line = pending.slice(0, at);
           pending = pending.slice(at + 1);
-          if (line !== '') request.onCwd?.(line);
+          if (line.startsWith('cwd:')) request.onCwd?.(line.slice(4));
         }
       });
     }
@@ -406,11 +420,28 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
       signalGroupId(pid, signal);
     };
     const job = track(request, prepared, { pid, startedAt: Date.now(), end });
+    let cwdPending = '';
     for (const stream of [child.stdout, child.stderr]) {
       if (stream === null) continue;
       const decoder = new StringDecoder('utf8');
-      stream.on('data', (chunk: Buffer) => receive(job, decoder.write(chunk)));
-      stream.on('end', () => receive(job, decoder.end()));
+      // The docker child has no fd 3, so bash prints `cwd:` on stdout. Stderr stays intact.
+      const stripCwd = reportCwd && !cwdOnFd3 && stream === child.stdout;
+      stream.on('data', (chunk: Buffer) => {
+        const text = decoder.write(chunk);
+        if (!stripCwd) return receive(job, text);
+        const taken = takeCwdLines(cwdPending, text, request.onCwd);
+        cwdPending = taken.pending;
+        if (taken.text !== '') receive(job, taken.text);
+      });
+      stream.on('end', () => {
+        const rest = decoder.end();
+        if (!stripCwd) return receive(job, rest);
+        const taken = takeCwdLines(cwdPending, rest, request.onCwd);
+        cwdPending = '';
+        if (taken.pending.startsWith('cwd:')) request.onCwd?.(taken.pending.slice(4));
+        else if (taken.pending !== '') receive(job, taken.pending);
+        if (taken.text !== '') receive(job, taken.text);
+      });
     }
     child.on('error', (error) => {
       if (job.status === 'running') append(job, `${error.message}\n`);
