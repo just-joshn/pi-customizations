@@ -32,10 +32,10 @@ export function register(factory: (pi: Registering) => void): Registrations {
   return { providers, virtualModels, commands };
 }
 
-export function onlyProvider(registrations: Registrations): Provider {
-  const [only] = registrations.providers;
-  if (registrations.providers.length !== 1 || !only) throw new Error(`expected one native provider registration, received ${registrations.providers.length}`);
-  return only;
+export function providerNamed(registrations: Registrations, id: string): Provider {
+  const found = registrations.providers.find((provider) => provider.id === id);
+  if (!found) throw new Error(`missing provider ${id}`);
+  return found;
 }
 
 type ModelLookup = ExtensionContext['modelRegistry']['find'];

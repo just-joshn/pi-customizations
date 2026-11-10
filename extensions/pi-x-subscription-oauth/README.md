@@ -1,8 +1,10 @@
 # pi-x-subscription-oauth
 
-This Pi package lets The X Subscription answer in Pi with the models Grok Build serves, including `grok-4.7-build-fast`. It registers the provider `grok-build`, which calls `https://cli-chat-proxy.grok.com/v1`. That proxy lists Grok Build models only. Cursor CLI's third-party catalog is a different service, and this package does not request it. Pi's built-in `xai` provider is unchanged. It keeps calling `https://api.x.ai/v1`, which does not serve the fast model.
+This Pi package lets The X Subscription answer in Pi. It registers two providers, and Pi stores a separate credential for each one.
 
-The provider reuses Pi's own parts. It takes them from Pi's built-in `xai` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's credential store and refresh path keep the token fresh, and Pi's OpenAI Responses implementation builds and streams every request. The package replaces only sign-in, so that it can request the scope Grok Build grants and open the authorize request Grok 1.0.70 opens. It also sends the request headers that Grok Build expects, follows Grok Build's model catalog, registers four model ids that pin the fast model's reasoning effort, and adds `/usage` for the weekly pool.
+`grok-build` calls `https://cli-chat-proxy.grok.com/v1`. That proxy lists the models Grok Build serves, including `grok-4.7-build-fast`. `cursor` lists models from Cursor's `GetUsableModels` endpoint and sends each ask through the `cursor-agent` CLI in ask mode. Pi's built-in `xai` provider is unchanged. It keeps calling `https://api.x.ai/v1`, which does not serve the fast model.
+
+The grok-build provider reuses Pi's own parts. It takes them from Pi's built-in `xai` provider, which `@earendil-works/pi-ai/providers/all` supplies to extensions. Pi's credential store and refresh path keep the token fresh, and Pi's OpenAI Responses implementation builds and streams every request. The package replaces only sign-in, so that it can request the scope Grok Build grants and open the authorize request Grok 1.0.70 opens. It also sends the request headers that Grok Build expects, follows Grok Build's model catalog, registers four model ids that pin the fast model's reasoning effort, and adds `/usage` for the weekly pool.
 
 ## Pi 1.5.0 compatibility
 
@@ -19,6 +21,20 @@ pi -e .
 Then run `/login`, choose **Sign in with an account**, and choose **Grok Build (The X Subscription)**. Pi then asks whether to use a browser or a device code. The browser is Grok Build's default: Pi prints the authorize URL, and approving it there sends the browser back to a loopback `/callback` on this machine. The device-code option shows a code and a link to xAI's verification page, and suits a remote or headless machine. Either way, approve with the account that holds the subscription. This login is separate from the login for the built-in `xai` provider, because Pi stores one credential for each provider.
 
 Pick a `grok-build` model with `/model`. To keep the package for later sessions, run `pi install npm:@justjoshn/pi-x-subscription-oauth`, or `pi install` with the path to this directory.
+
+## Use Cursor models
+
+Install the Cursor CLI so `cursor-agent` is on `PATH`. Sign in with `cursor-agent login`, or use a Cursor session that is already in the macOS keychain under the service `cursor-access-token` and the account `cursor-user`. Then run `/login` and choose **Cursor (The X Subscription)**. That login is separate from **Grok Build (The X Subscription)**. Pi copies the keychain session into its credential store and does not print the token. If the keychain has no session, `/login` runs `cursor-agent login` and reads the keychain again.
+
+`/model` lists `cursor/composer-2.5` before the first refresh. After login, Pi posts `GetUsableModels` on `https://api2.cursor.sh` and adds the models that call returns. A one-shot ask runs:
+
+```bash
+cursor-agent --trust --print --output-format json --mode ask --model <id>
+```
+
+Ask mode does not run tools. The prompt is the text of the Pi conversation. Images are not sent. If `cursor-agent` is missing, the error names `cursor-agent` and tells you to install the Cursor CLI. If Cursor is logged out, the error tells you to run `/login` and choose Cursor.
+
+`/usage` stays on the Grok Build credential. It still reads the shared plan meter.
 
 ## Check plan usage
 
@@ -95,7 +111,7 @@ If Grok Build raises its minimum client version, requests fail with HTTP 426 and
 Run `bun install` first. It installs the Pi packages that the tests import, pinned in `package.json` for the Pi 1.5.0 upgrade. Pi does not install development dependencies when it loads the package.
 
 - `bun run typecheck` runs `tsc` in strict mode.
-- `bun run test` runs the provider against local stand-ins for Grok Build. `login.test.ts` compares the authorize request to the captured Grok 1.0.70 URL and runs both login flows against stubbed token endpoints. `catalog.test.ts` parses the model list and computes the metered prices from Pi's real `xai` catalog. `request.test.ts` checks the headers. `usage.test.ts` parses `billing?format=credits` and runs `/usage` against a stubbed fetch. `provider.test.ts` checks the login, the models, and the alias routes. `live-catalog.test.ts` runs Pi's model refresh against a stubbed `/v1/models`. `stream.test.ts` streams one request through Pi's `Models` to a local Responses server and checks the headers and the body that arrive, including the `models.json` overrides. `registration.test.ts` runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package.
+- `bun run test` runs the provider against local stand-ins for Grok Build and Cursor. `login.test.ts` compares the authorize request to the captured Grok 1.0.70 URL and runs both login flows against stubbed token endpoints. `catalog.test.ts` parses the model list and computes the metered prices from Pi's real `xai` catalog. `request.test.ts` checks the headers. `usage.test.ts` parses `billing?format=credits` and runs `/usage` against a stubbed fetch. `provider.test.ts` checks the login, the models, and the alias routes. `live-catalog.test.ts` runs Pi's model refresh against a stubbed `/v1/models`. `stream.test.ts` streams one request through Pi's `Models` to a local Responses server and checks the headers and the body that arrive, including the `models.json` overrides. `cursor.test.ts` checks that both providers register, parses a `GetUsableModels` fixture, refreshes that catalog on a stubbed fetch, and streams one ask through a fake `cursor-agent`. `registration.test.ts` runs Pi's public `discoverAndLoadExtensions` on a temporary copy of the package.
 - `bun run test:coverage` runs the same tests and enforces the coverage thresholds.
 - `bun run prove:list` (or `node --experimental-strip-types scripts/prove-pi.ts --list-only`) loads the extension in the real `pi` binary offline and checks that `pi --list-models` lists all eight ids. `make verify-oauth` runs this after typecheck and coverage. It needs `pi` on `PATH`.
 - `bun run prove` (or `node --experimental-strip-types scripts/prove-pi.ts` without `--list-only`) also sends one prompt to `grok-build/grok-4.7-xhigh-fast` with a fixture token and fails if Pi cannot resolve that id. That live step stays out of `verify`. Run it with `make verify-x-subscription-oauth-live`.

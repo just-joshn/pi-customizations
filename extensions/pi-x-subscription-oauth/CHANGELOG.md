@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Register the `cursor` provider beside `grok-build`. Model refresh calls Cursor `GetUsableModels`. Asks run through `cursor-agent` in ask mode.
+
 ## [0.1.6] - 2026-11-09
 
 - Add `/usage`. It reads `GET /v1/billing?format=credits` and prints the weekly plan meter, the reset time, and the GrokBuild and Cursor product split when billing is unified.
