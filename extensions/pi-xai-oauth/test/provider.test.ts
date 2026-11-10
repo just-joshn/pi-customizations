@@ -28,18 +28,22 @@ function request(thinkingLevel: 'low' | 'xhigh') {
   return { model: fastModel(), thinkingLevel, reason: 'user' as const, messages: [] };
 }
 
-test('the registered provider is Grok Build', () => {
-  expect([provider.id, provider.name]).toStrictEqual(['grok-build', 'Grok Build']);
+test('the login list names the provider Grok Build (The X Subscription)', () => {
+  expect([provider.id, provider.name]).toStrictEqual(['grok-build', 'Grok Build (The X Subscription)']);
 });
 
 test('the only login method is OAuth', () => {
   expect(Object.keys(provider.auth)).toStrictEqual(['oauth']);
 });
 
-test('the login is labeled as a Grok Build subscription', () => {
-  expect(provider.auth.oauth?.name).toBe('Grok Build (SuperGrok or X Premium)');
+test('the login search text matches the provider name', () => {
+  expect(provider.auth.oauth?.name).toBe(provider.name);
   expect(provider.auth.oauth?.isSubscription).toBe(true);
-  expect(provider.auth.oauth?.loginLabel).toBe('Sign in with SuperGrok or X Premium');
+  expect(provider.auth.oauth?.loginLabel).toBe('Sign in with The X Subscription');
+});
+
+test('the usage command is registered', () => {
+  expect(registrations.commands).toStrictEqual([{ name: 'usage', description: 'Show The X Subscription plan usage for Grok Build' }]);
 });
 
 function providerOver(overrides: { refresh?: () => Promise<never>; toAuth?: () => Promise<{ apiKey: string }> }) {
