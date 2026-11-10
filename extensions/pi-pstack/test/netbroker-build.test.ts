@@ -9,7 +9,6 @@ import { expect, onTestFinished, test } from 'vitest';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const committed = join(root, 'dist/netbroker-s390x');
 
-// A stand-in compiler: it reports the pinned version and writes the file named by -o from STUB_BYTES.
 const STUB = `#!/bin/sh
 case "$1" in
   version) echo 0.17.1 ;;

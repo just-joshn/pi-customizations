@@ -1,4 +1,4 @@
-// bubblewrap installs the seccomp filter itself, so this needs no nested user namespace, which hosts with
+// bubblewrap loads the seccomp filter itself, or the s390x broker does, so this needs no nested user namespace, which hosts with
 // kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
 import { spawnSync } from 'node:child_process';
 import { accessSync, chmodSync, closeSync, constants, copyFileSync, existsSync, mkdtempSync, openSync, rmSync, writeFileSync } from 'node:fs';
@@ -31,7 +31,6 @@ interface Arch {
   socketpair: number;
   refusedWhen: [syscall: number, firstArguments: number[]][];
   refused: number[];
-  /** Where glibc has no direct socket syscalls, the socketcall calls a broker answers instead of the filter refusing them. */
   brokeredSocketcalls?: number[];
 }
 
@@ -167,7 +166,6 @@ interface Sandbox {
   bwrap: string;
   filterPath: string;
   shell: string;
-  /** Present when the broker passed its check here: it, not bubblewrap, installs the filter and answers the socketcall creation calls. */
   broker?: Broker;
 }
 
@@ -200,12 +198,10 @@ function verifiedSandbox(): Sandbox {
   return verified.sandbox;
 }
 
-/** What the broker needs from TypeScript: the numbers its answers depend on, from the constants the filter was built with. */
 function brokerPolicy(): string {
   return `socketcall=${SOCKETCALL},socket=${SYS_SOCKET},socketpair=${SYS_SOCKETPAIR},unix=${AF_UNIX},stream=${SOCK_STREAM},typemask=${SOCK_TYPE_MASK}`;
 }
 
-/** The packaged broker for this architecture, copied somewhere executable, or undefined when this architecture needs none, ships none, or the copy fails, so the shell then runs on the filter alone. */
 function stagedBroker(dir: string): string | undefined {
   if (ARCHES[process.arch]?.brokeredSocketcalls === undefined) return undefined;
   const packaged = fileURLToPath(new URL(`../dist/netbroker-${process.arch}`, import.meta.url));
@@ -220,7 +216,6 @@ function stagedBroker(dir: string): string | undefined {
   return staged;
 }
 
-/** Runs `argv` with `filterPath` on fd 3 and reports whether it exited 0 before the timeout. */
 function runs(argv: string[], filterPath: string): { ok: true } | { ok: false; why: string } {
   const [command = '', ...args] = argv;
   const fd = openSync(filterPath, 'r');
@@ -233,7 +228,6 @@ function runs(argv: string[], filterPath: string): { ok: true } | { ok: false; w
   }
 }
 
-/** Writes the filters into a private directory and checks, in the exact chain a command will run, that this host can load them. */
 function checkSandbox(): Sandbox {
   const bwrap = onPath('bwrap');
   if (bwrap === undefined) throw new Error('bubblewrap (bwrap) is not available: no bwrap on PATH');
@@ -262,7 +256,6 @@ export function linuxReadonlyProfile(): 'native' | 'brokered' | 'degraded' {
   return ARCHES[process.arch]?.brokeredSocketcalls === undefined ? 'native' : 'degraded';
 }
 
-/** Closes every descriptor above the filter's fd 3, so a socket the caller left open cannot carry a datagram to a host service. */
 const CLOSE_INHERITED_DESCRIPTORS = `for f in /proc/self/fd/*; do n=\${f##*/}; if [ "$n" -gt 3 ]; then eval "exec $n>&-"; fi; done; `;
 
 /** The shell command that runs `command` inside the read-only sandbox, or an error when no sandbox can start. */

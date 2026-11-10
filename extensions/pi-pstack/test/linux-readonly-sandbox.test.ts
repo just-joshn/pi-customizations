@@ -78,8 +78,6 @@ test.skipIf(!linux)('read-only commands and network reads run, while writes and 
 const hasPython = linux && spawnSync('python3', ['--version']).status === 0;
 const LEAKED_FD = 11;
 
-// Plays the host: binds a datagram service, leaves a datagram socket open as descriptor 11 the way a careless parent would, runs the
-// sandboxed command, and reports every datagram the service received.
 const HOST = `
 import json, os, socket, subprocess, sys
 path, command = sys.argv[1:]
