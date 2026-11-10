@@ -231,13 +231,18 @@ describe('a timeout with somewhere to move the command', () => {
   });
 
   test('a foreground cd after the move stays when the background command later exits in another directory', async ({ dir, shell, run }) => {
+    // Use sibling dirs under the fixture. /bin and /usr collide on Linux usrmerge (/bin → /usr/bin).
+    const away = join(dir, 'away');
+    const stay = join(dir, 'stay');
+    mkdirSync(away);
+    mkdirSync(stay);
     const to = handover();
-    const moving = shell.operations(local, to.take).exec(shell.script('cd /usr; sleep 1'), dir, { onData: () => {}, timeout: 0.3 });
+    const moving = shell.operations(local, to.take).exec(shell.script(`cd ${away}; sleep 1`), dir, { onData: () => {}, timeout: 0.3 });
 
     await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
-    await expect(run('cd /bin && pwd')).resolves.toEqual({ exitCode: 0, output: '/bin\n' });
+    await expect(run(`cd ${stay} && pwd`)).resolves.toEqual({ exitCode: 0, output: `${stay}\n` });
     await expect.poll(() => to.exits, { timeout: 5_000 }).toEqual([0]);
-    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: '/bin\n' });
+    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${stay}\n` });
   });
 
   test('a command whose state report has arrived when the timeout elapses finishes in the foreground and keeps its state', async ({ dir, shell, run }) => {
