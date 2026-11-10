@@ -31,14 +31,16 @@ function wait(ms: number, signal: AbortSignal | undefined): { readonly promise: 
   };
 }
 
-export async function readAssistantText(session: NativeSession, input: RunInput, signal?: AbortSignal): Promise<string> {
+export async function readAssistantText(session: NativeSession, input: RunInput, signal?: AbortSignal, deadlineMs = FIRST_BYTE_MS): Promise<string> {
   session.write(encodeRunFrame(input));
   let contextSent = false;
   let text = '';
+  const started = Date.now();
   const iterator = session.frames()[Symbol.asyncIterator]();
   try {
     while (true) {
       if (signal?.aborted) throw new DOMException('Request was aborted', 'AbortError');
+      if (Date.now() - started >= deadlineMs) throw new Error('Cursor ask timed out.');
       const next = iterator.next();
       const gate = wait(text.length > 0 ? QUIET_MS : FIRST_BYTE_MS, signal);
       const winner = await Promise.race([next.then((value) => ({ kind: 'frame' as const, value })), gate.promise.then((kind) => ({ kind }))]);

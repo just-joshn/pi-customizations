@@ -124,6 +124,23 @@ test('an ended run with no text is an empty reply', async () => {
   expect(closed.value).toBe(true);
 });
 
+test('a run that never answers times out', async () => {
+  await expect(
+    readAssistantText(
+      {
+        write() {},
+        async *frames() {
+          yield encodeContextRequestFrame();
+        },
+        close() {},
+      },
+      { prompt: 'ping', modelId: 'composer-2.5' },
+      undefined,
+      0,
+    ),
+  ).rejects.toThrow('Cursor ask timed out.');
+});
+
 test('an aborted ask stops before the model answers', async () => {
   const signal = new AbortController();
   signal.abort();
