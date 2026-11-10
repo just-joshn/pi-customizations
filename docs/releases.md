@@ -53,8 +53,10 @@ publish).
 
 ### Bootstrap a new package name
 
-1. Create a repository secret `NPM_TOKEN` with publish rights for the
-   `@justjoshn` scope (see Token fallback below).
+1. Create a repository secret `NPM_TOKEN` that is an npm **Automation**
+   token (or a granular token that can publish without a one-time password)
+   with publish rights for the `@justjoshn` scope. A classic publish token
+   that still requires 2FA fails CI with `EOTP`. See Token fallback below.
 2. Re-run `release.yml` on `main` (`workflow_dispatch`, or re-run the failed
    job). The current `package.json` version publishes and gets its git tag.
    Intermediate versions that never got a tag are skipped.
@@ -81,12 +83,15 @@ lists the failures.
 ## Token fallback
 
 If you would rather use a token, create a repository secret named
-`NPM_TOKEN` (classic automation token or granular publish token). The
-workflow then appends the documented auth line to the npm userconfig and
-publishes with `npm publish --provenance --access public`
+`NPM_TOKEN`. Use an npm **Automation** token, or a granular token that is
+allowed to publish without interactive 2FA. The workflow then appends the
+documented auth line to the npm userconfig and publishes with
+`npm publish --provenance --access public`
 (<https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages>).
-Trusted publishing is still the recommended end state: tokens expire, leak,
-and need rotation; the OIDC identity is workflow-bound and short-lived.
+A token that still demands a one-time password fails the runner with
+`EOTP`. Trusted publishing is still the recommended end state: tokens
+expire, leak, and need rotation; the OIDC identity is workflow-bound and
+short-lived.
 
 ## Troubleshooting
 
@@ -103,6 +108,11 @@ already passed means the runner had no publishing identity. Common causes:
    token. This release workflow no longer sets `registry-url` for exactly
    this reason; do not add it back, and check any local `.npmrc` you might
    copy into CI.
+
+**`npm error EOTP` / `requires a one-time password`** means `NPM_TOKEN` was
+present but cannot publish non-interactively. Replace it with an Automation
+token (or finish Trusted Publishing and delete the secret so the workflow
+uses OIDC). Re-running with the same 2FA-bound token fails the same way.
 
 **`npm error 404 Not Found - PUT https://registry.npmjs.org/...`** is the
 same class of failure when the registry rejects the publish as unauthorized.
