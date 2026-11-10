@@ -52,6 +52,25 @@ test('dry-run full SEARCH/REPLACE leaves the file unchanged', { meta: { aider: [
   expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('one\ntwo\nthree\n');
 });
 
+test('diff format keeps shell suggestions out of edit authorization', async () => {
+  const ctx = await workingDirectory({ 'file.txt': 'old\n' });
+  const context: EditContext = { ...ctx, inchatRelativeFiles: ['file.txt'], notices: { output() {}, warning() {}, error() {} } };
+  const reply = '```bash\necho first\n```\nfile.txt\n<<<<<<< SEARCH\nold\n=======\nnew\n>>>>>>> REPLACE\n```sh\necho second\n```\n';
+  await diffFormat.withPlan(
+    reply,
+    context,
+    async (candidates) => {
+      expect(candidates.map((candidate) => candidate.edit[0])).toEqual(['file.txt']);
+      return [...candidates];
+    },
+    async (plan) => {
+      expect(plan.shellCommands).toEqual(['echo first\n', 'echo second\n']);
+      await plan.apply();
+    },
+  );
+  expect(await readFile(join(ctx.root, 'file.txt'), 'utf8')).toBe('new\n');
+});
+
 test('diff format plans an upsert for the named file', async () => {
   const root = await mkdtemp(join(tmpdir(), 'editblock-format-'));
   onTestFinished(() => rm(root, { recursive: true, force: true }));

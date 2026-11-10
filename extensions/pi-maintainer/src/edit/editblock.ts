@@ -17,12 +17,6 @@ export { DEFAULT_FENCE, type EditBlock, type Fence, type ParsedBlock, type Shell
 const isShellBlock = (edit: ParsedBlock): edit is ShellBlock => edit[0] === null;
 const isFileEdit = (edit: ParsedBlock): edit is EditBlock => edit[0] !== null;
 
-/** File edits plus shell fences as `PathEdit` with `path: null` for the edit pipeline. */
-export function pathEditsFromReply(reply: string, ctx: Pick<EditBlockContext, 'fence' | 'root' | 'absFnames'>): ParsedBlock[] {
-  const { edits, shellCommands } = getEdits(reply, ctx);
-  return [...edits, ...shellCommands.map((command): ShellBlock => [null, command])];
-}
-
 /** The `EditBlockCoder` attributes that its methods read. */
 export interface EditBlockContext extends ChatFiles {
   readonly fence: Fence;
@@ -177,6 +171,8 @@ async function failureReport(failed: readonly EditBlock[], passed: readonly Edit
  * earlier blocks without writing, and returns the edits with the path the cross-file fallback chose.
  * Shell blocks pass through unchanged and are never written.
  */
+export function applyEditsDryRun(edits: readonly EditBlock[], ctx: EditBlockContext): Promise<EditBlock[]>;
+export function applyEditsDryRun(edits: readonly ParsedBlock[], ctx: EditBlockContext): Promise<ParsedBlock[]>;
 export async function applyEditsDryRun(edits: readonly ParsedBlock[], ctx: EditBlockContext): Promise<ParsedBlock[]> {
   const shells = edits.filter(isShellBlock);
   const files = edits.filter(isFileEdit);

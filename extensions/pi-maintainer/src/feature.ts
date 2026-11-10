@@ -69,7 +69,7 @@ export interface EditFormat<E extends PathEdit> {
   readonly name: EditFormatName;
   readonly prompts: EditFormatName;
   editIntent(edit: E): EditIntent | null;
-  getEdits(content: string, context: EditContext): E[] | Promise<E[]>;
+  getEdits(content: string, context: EditContext): E[] | { readonly edits: E[]; readonly shellCommands: readonly string[] } | Promise<E[] | { readonly edits: E[]; readonly shellCommands: readonly string[] }>;
   applyEditsDryRun(edits: readonly E[], context: EditContext): E[] | Promise<E[]>;
   applyEdits(edits: readonly E[], context: EditContext): Promise<void>;
 }
@@ -80,7 +80,7 @@ export type PrepareToEdit = <E extends PathEdit>(candidates: readonly EditCandid
 /** The edits that survived permission, and the step that writes them. */
 export interface EditPlan {
   readonly targets: readonly (string | null)[];
-  /** Shell-command blocks surfaced as `PathEdit` with `path: null`. */
+  /** Shell-command blocks extracted separately from file edits. */
   readonly shellCommands: readonly string[];
   apply(): Promise<void>;
 }
@@ -98,7 +98,9 @@ export function registerEditFormat<E extends PathEdit>(format: EditFormat<E>): R
     prompts: format.prompts,
     async withPlan(content, context, prepare, use) {
       context.signal?.throwIfAborted();
-      const raw = await format.getEdits(content, mutationContext(context, new Set()));
+      const result = await format.getEdits(content, mutationContext(context, new Set()));
+      const raw = Array.isArray(result) ? result : result.edits;
+      const shellCommands = Array.isArray(result) ? [] : result.shellCommands;
       const paths = new Set([...context.inchatRelativeFiles, ...raw.flatMap((edit) => intentPaths(format.editIntent(edit)))].map(context.absRootPath));
       return context.tree.mutate(
         [...paths],
@@ -114,9 +116,8 @@ export function registerEditFormat<E extends PathEdit>(format: EditFormat<E>): R
           const prepared = await prepare(candidates, locked);
           const allowed = new Set([...context.inchatRelativeFiles, ...prepared.flatMap((candidate) => intentPaths(candidate.intent))].map(context.absRootPath));
           const applying = mutationContext(locked, allowed);
-          const shellCommands = prepared.flatMap((candidate) => (candidate.edit[0] === null && typeof candidate.edit[1] === 'string' ? [candidate.edit[1]] : []));
           return use({
-            targets: prepared.map((candidate) => candidate.edit[0]),
+            targets: [...prepared.map((candidate) => candidate.edit[0]), ...shellCommands.map(() => null)],
             shellCommands,
             apply: () =>
               format.applyEdits(
