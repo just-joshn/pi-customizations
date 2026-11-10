@@ -1,6 +1,6 @@
 # Pstack command surface
 
-The pstack extension registers four extension commands, `/mode`, `/loop`, `/plan`, and `/routines`, and ships its skills for Pi to load. This drive checks that all four are registered. `/mode` with no mode on reports `No mode is on.` through a UI notification.
+The pstack extension registers commands including `/mode`, `/loop`, `/plan`, `/routines`, `/automations`, `/project`, `/in-cloud`, and `/secret`, and ships its skills for Pi to load. This drive checks those eight commands are registered in a root session. `/mode` with no mode on reports `No mode is on.` through a UI notification.
 
 ## Sub-features
 
@@ -8,7 +8,8 @@ The pstack extension registers four extension commands, `/mode`, `/loop`, `/plan
 - `commands-loop` registers the `/loop` extension command.
 - `commands-plan` registers the `/plan` extension command.
 - `commands-routines` registers the `/routines` extension command.
-- `commands-skills` exposes the pstack skill commands (`skill:poteto-mode`, `skill:setup-pstack`, `skill:poteto-help`, and the rest of the package's skills).
+- `commands-other` registers `/automations`, `/project`, `/in-cloud`, and `/secret` in a root session.
+- `commands-skills` exposes pstack skill commands; the drive checks `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
 - `commands-mode-report` answers a bare `/mode` with `No mode is on.` when no mode is on.
 
 ## How to get to it (user POV)
@@ -25,7 +26,7 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - `extensions/pi-pstack` is present and unchanged.
 
-- **List the command surface.** Send `get_commands` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands`. The driver asserts `/mode`, `/loop`, `/plan`, `/routines`, `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help` are registered and saves the full command list.
+- **List the command surface.** Send `get_commands` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands`. The driver asserts `/mode`, `/loop`, `/plan`, `/routines`, `/automations`, `/project`, `/in-cloud`, `/secret`, `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help` are registered and saves the full command list.
 - **Request the mode report.** Send `/mode` to the RPC session. The fresh session has no mode on, so a `notify` UI request arrives with `No mode is on.`
 - **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/pstack-commands/commands.json` and `mode-status.txt`.
 

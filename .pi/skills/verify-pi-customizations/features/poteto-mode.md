@@ -1,6 +1,6 @@
 # Poteto mode (Custom Mode)
 
-Poteto mode is Cursor's Custom Mode: `/mode poteto-mode` keeps the skill in the system prompt on every turn until `/mode off`. Each change appends a branch entry, and the footer shows the active mode.
+Poteto mode implements a Cursor-like custom mode: `/mode poteto-mode` keeps the skill in the system prompt on every turn until `/mode off`. Each change appends a branch entry, and the footer shows the active mode.
 
 ## Sub-features
 
@@ -12,6 +12,7 @@ Poteto mode is Cursor's Custom Mode: `/mode poteto-mode` keeps the skill in the 
 ## How to get to it (user POV)
 
 - Type `/mode poteto-mode` in Pi interactive chat to turn the mode on.
+- In the TUI editor, select a loaded skill such as `/skill:poteto-mode` and press Alt+Enter to enter its mode.
 - Type `/mode off` in Pi interactive chat to turn it off.
 - Type `/mode` to see the current mode.
 - Send prompt `{"id": "...", "type": "prompt", "message": "/mode poteto-mode"}` over Pi RPC.
@@ -29,6 +30,7 @@ Preconditions:
 ## Gotchas
 
 - Mode changes report through `ctx.ui.notify`, which appears as an `extension_ui_request` over RPC rather than a chat message.
+- The RPC drive does not exercise the TUI Alt+Enter entry path or inspect injected system prompts.
 - The extension restores the mode from the active branch when a session opens or the branch changes; this `--no-session` drive does not cover restoration across restarts.
 - `/mode <skill>` only accepts loaded skills. The driver uses `poteto-mode` because the package ships it.
 - Turning the mode on with a task argument (`/mode poteto-mode <task>`) sends the task as a user message; the drive uses no task, so no model runs.
