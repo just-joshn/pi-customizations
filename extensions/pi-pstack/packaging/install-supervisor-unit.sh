@@ -4,12 +4,13 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 --workspace <abs-path> [--bin <abs-path>]" >&2
+  echo "Usage: $0 --workspace <abs-path> [--bin <abs-path>] [--dry-run <abs-outdir>]" >&2
   exit 2
 }
 
 workspace=""
 bin=""
+dry_run=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --workspace)
@@ -20,6 +21,11 @@ while [[ $# -gt 0 ]]; do
     --bin)
       [[ $# -ge 2 ]] || usage
       bin=$2
+      shift 2
+      ;;
+    --dry-run)
+      [[ $# -ge 2 ]] || usage
+      dry_run=$2
       shift 2
       ;;
     -h|--help)
@@ -53,6 +59,10 @@ fi
   echo "error: supervisor bin missing or not executable: $bin" >&2
   exit 1
 }
+if [[ -n "$dry_run" && "$dry_run" != /* ]]; then
+  echo "error: --dry-run must be an absolute path" >&2
+  exit 2
+fi
 
 # Short content hash so labels stay stable across re-runs for the same path.
 safe_hash=$(printf '%s' "$workspace" | shasum -a 256 | cut -c1-12)
@@ -61,10 +71,10 @@ os=$(uname -s)
 install_darwin() {
   local label="com.pstack.routines-supervisor.${safe_hash}"
   local plist_dir="$HOME/Library/LaunchAgents"
+  if [[ -n "$dry_run" ]]; then
+    plist_dir=$dry_run
+  fi
   local plist="$plist_dir/${label}.plist"
-  local uid domain
-  uid=$(id -u)
-  domain="gui/${uid}"
 
   mkdir -p "$plist_dir"
   cat >"$plist" <<EOF
@@ -94,6 +104,15 @@ install_darwin() {
 </plist>
 EOF
 
+  if [[ -n "$dry_run" ]]; then
+    echo "$plist"
+    return
+  fi
+
+  local uid domain
+  uid=$(id -u)
+  domain="gui/${uid}"
+
   launchctl bootout "${domain}/${label}" 2>/dev/null || true
   if launchctl bootstrap "$domain" "$plist" 2>/dev/null; then
     launchctl enable "${domain}/${label}" 2>/dev/null || true
@@ -116,6 +135,9 @@ EOF
 install_linux() {
   local unit_name="pstack-routines-supervisor-${safe_hash}.service"
   local unit_dir="$HOME/.config/systemd/user"
+  if [[ -n "$dry_run" ]]; then
+    unit_dir=$dry_run
+  fi
   local unit="$unit_dir/$unit_name"
 
   mkdir -p "$unit_dir"
@@ -134,6 +156,11 @@ RestartSec=3
 [Install]
 WantedBy=default.target
 EOF
+
+  if [[ -n "$dry_run" ]]; then
+    echo "$unit"
+    return
+  fi
 
   systemctl --user daemon-reload
   systemctl --user enable --now "$unit_name"

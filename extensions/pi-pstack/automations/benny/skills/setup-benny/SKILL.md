@@ -243,7 +243,7 @@ Ask the user to update each existing automation with `/automations edit <name>`.
 
 Never write the subscription registry, a supervisor file, or a credential file by hand, and never create an automation with a raw `subscribe_*` call that skipped the review. For new automations, the only finish path is the `automate` skill's reviewed draft, approval, and `/automations` handoff.
 
-Do not enable either automation until the thread-safety test passes after the editor save.
+Do not enable either automation until the thread-safety test passes after the `/automations` create or edit handoff.
 
 ## 8. Test thread safety
 

@@ -30,6 +30,7 @@ export interface HostFacts {
   activeTools: readonly string[];
   /** Where new cloud agents run: a container machine, a local worktree, or an error that stops them. */
   cloud: { driver: 'container' | 'worktree'; reason: string } | { error: string };
+  onCloudMachine: boolean;
 }
 
 /** What a cloud agent is on this host, so the model treats it as the machine it really is. */
@@ -93,8 +94,16 @@ export function hostSection(facts: HostFacts): string {
     `pstack runs here through the pi-pstack package at ${facts.packageRoot}. Today's date: ${facts.today}.`,
     `- <SKILLS> = ${facts.skillsDir}. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (${facts.skillNames.length}): ${facts.skillNames.join(', ')}.`,
     '- A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
-    `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
-    facts.ruleInContext ? `- The model rule is ${facts.rulePath}. The content this session started with is in <pstack_models>.` : `- The model rule is ${facts.rulePath}.`,
+    facts.onCloudMachine
+      ? '- Skill folders: project `.pi/skills/` on this machine. Personal skills stay on the parent host; use <SKILLS> and attached <skill> blocks instead of reading a personal path.'
+      : `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
+    facts.onCloudMachine
+      ? facts.ruleInContext
+        ? '- The model rule content for this session is in <pstack_models>. The rule file itself stays on the parent host and is not on this machine.'
+        : '- This session has no model rule in context. The rule file stays on the parent host and is not on this machine.'
+      : facts.ruleInContext
+        ? `- The model rule is ${facts.rulePath}. The content this session started with is in <pstack_models>.`
+        : `- The model rule is ${facts.rulePath}.`,
     ...(facts.activeTools.includes('Task')
       ? [`- Subagents: call the Task tool as the skills describe (${TASK_PARAMS}). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.`]
       : []),

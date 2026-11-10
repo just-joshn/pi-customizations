@@ -54,10 +54,9 @@ test('a bash call whose timeout elapses moves to the background, keeps running, 
   ]);
 });
 
-test('AwaitShell waits on a moved command, which then sends no notification and leaves the shell state as it was', async () => {
-  const box = sandbox();
+test('AwaitShell waits on a moved command, which then sends no notification, keeps the directory it reached, and keeps none of its variables', async () => {
   const run = await runJson(
-    box,
+    sandbox(),
     script([
       { tool: 'bash', args: { command: 'cd /usr && export PSTACK_T=1 && echo START && sleep 2 && echo LATE', timeout: 1 } },
       { tool: 'AwaitShell', args: { shell_id: '@@shell-id', block_until_ms: 20_000 } },
@@ -67,7 +66,7 @@ test('AwaitShell waits on a moved command, which then sends no notification and 
   );
 
   expect(toolEnds(run.events, 'AwaitShell').map((end) => [end.isError, end.text])).toEqual([[false, expect.stringMatching(/^Task completed in \d+ms with exit code: 0\.\noutput_file_path: \S+\noutput_length: \d+$/)]]);
-  expect(toolEnds(run.events, 'bash')[1]?.text).toBe(`${box.workDir}\nt=unset\n`);
+  expect(toolEnds(run.events, 'bash')[1]?.text).toBe('/usr\nt=unset\n');
   expect(shellNotices(run.events)).toEqual([]);
 });
 

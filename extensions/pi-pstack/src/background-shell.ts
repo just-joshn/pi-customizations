@@ -4,7 +4,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readSync, statSync, writeSync } from 'node:fs';
 import { constants } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
@@ -216,6 +216,20 @@ interface JobRequest {
 export interface StartRequest extends JobRequest {
   /** Shell lines that run before the command, such as the session shell's exports; the job header shows only the command. */
   setup?: string;
+  /** Called with the job's working directory as it changes, and again when the job exits. Bash jobs only. */
+  onCwd?: (cwd: string) => void;
+}
+
+function bashCwdScript(setup: string, command: string): string {
+  return [
+    `__pstack_note_cwd() { builtin printf '%s\\n' "$PWD" >&3; }`,
+    `trap '__pstack_note_cwd' DEBUG`,
+    setup,
+    command,
+    '{ __pstack_status=$?; set +eux; trap - DEBUG; } 2>/dev/null',
+    `builtin printf '%s\\n' "$PWD" >&3`,
+    'builtin exit $__pstack_status',
+  ].join('\n');
 }
 
 /** A job's title when the call gives no description: the command's first line. */
@@ -351,9 +365,10 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
   const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
     if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
     const prepared = prepare(ctx, request);
-    const run = `${request.setup ?? ''}${request.command}`;
-    const remote = options.spawner?.spawn(run, request.cwd);
     const config = getShellConfig(options.shellPath());
+    const reportCwd = options.spawner === undefined && /^bash(\.exe)?$/i.test(basename(config.shell));
+    const run = reportCwd ? bashCwdScript(request.setup ?? '', request.command) : `${request.setup ?? ''}${request.command}`;
+    const remote = options.spawner?.spawn(run, request.cwd);
     const viaStdin = remote === undefined && config.commandTransport === 'stdin';
     const child =
       remote?.child ??
@@ -361,9 +376,22 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         cwd: request.cwd,
         env: sessionEnv(ctx),
         detached: process.platform !== 'win32',
-        stdio: [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+        stdio: reportCwd ? [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe', 'pipe'] : [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       });
+    const cwdStream = reportCwd ? child.stdio[3] : undefined;
+    if (cwdStream !== undefined && cwdStream !== null && 'setEncoding' in cwdStream) {
+      let pending = '';
+      cwdStream.setEncoding('utf8');
+      cwdStream.on('data', (chunk: string) => {
+        pending += chunk;
+        for (let at = pending.indexOf('\n'); at !== -1; at = pending.indexOf('\n')) {
+          const line = pending.slice(0, at);
+          pending = pending.slice(at + 1);
+          if (line !== '') request.onCwd?.(line);
+        }
+      });
+    }
     let spawnError: Error | undefined;
     child.once('error', (error) => {
       spawnError = error;
@@ -666,12 +694,14 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       const cwd = params.working_directory === undefined || params.working_directory.trim() === '' ? base : resolve(base, params.working_directory);
       const title = titleOf(params.command, params.description);
       const watch = params.notify_on_output;
+      const seen = options.shell.epoch();
       const job = jobs.start(ctx, {
         command: params.command,
         setup: options.shell.exports(),
         cwd,
         title,
         toolCallId,
+        onCwd: (next) => options.shell.adoptCwd(seen, next),
         ...(watch === undefined ? {} : { watch: { pattern: watch.pattern, reason: watch.reason, ...(watch.debounce_ms === undefined ? {} : { debounceMs: watch.debounce_ms }) } }),
       });
       const blockMs = clampWait(params.block_until_ms, 0);

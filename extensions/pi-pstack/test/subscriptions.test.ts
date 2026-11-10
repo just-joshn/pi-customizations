@@ -295,6 +295,28 @@ describe('subscribe_github_pr', () => {
   beforeEach(() => vi.useFakeTimers({ now: new Date(2026, 0, 5, 9, 0) }));
   afterEach(() => vi.useRealTimers());
 
+  test('an omitted expiresInHours creates a GitHub watch that never expires', async () => {
+    const { gh } = fakeGh(new Map([[7, pr(7)]]));
+    const fake = setup({ gh });
+    const { details } = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    expect(details['expiresAt']).toBe('never');
+    expect(readRegistry(fake.cwd).subscriptions[0]?.expiresAt).toBe(0);
+    expect((await fake.call('list_subscriptions', {})).text).toContain('expires: never');
+  });
+
+  test('expiresInHours 0 creates a GitHub watch that never expires, and a positive value sets that expiry', async () => {
+    const prs = new Map([[7, pr(7)], [8, pr(8)]]);
+    const { gh } = fakeGh(prs);
+    const fake = setup({ gh });
+    const none = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7', expiresInHours: 0 });
+    expect(none.details['expiresAt']).toBe('never');
+    const hours = 2;
+    const before = Date.now();
+    const limited = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/8', expiresInHours: hours });
+    const expiresAt = Date.parse(String(limited.details['expiresAt']));
+    expect(expiresAt - before).toBe(hours * 3_600_000);
+  });
+
   test('the first poll is a baseline; each kind of change wakes with the PR and the change', async () => {
     const prs = new Map([[7, pr(7)]]);
     const { gh, calls } = fakeGh(prs);

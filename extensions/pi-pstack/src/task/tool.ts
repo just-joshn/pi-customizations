@@ -643,6 +643,7 @@ async function driverFor(params: TaskInput, planMode: boolean): Promise<CloudDri
  * launches await before starting, under the run lock.
  */
 async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | undefined): Promise<void> {
+  let started: ContainerMachine | undefined;
   try {
     if (plan.kind === 'fresh' && plan.machine?.driver === 'worktree') await addWorktree(plan.workspace, plan.machine, signal);
     else if (plan.kind === 'fresh' && plan.provision !== undefined) {
@@ -662,13 +663,20 @@ async function createMachine(plan: Launch, lock: RunLock, signal: AbortSignal | 
       plan.notes = [...plan.notes, describeMachine(plan.machine)];
     } else if (plan.machine !== undefined) {
       const { machine } = plan;
+      if (machine.driver === 'container') started = machine;
       await withMachineLease(machine, subagentDir(plan.workspace), () => bootMachine(machine));
     } else if (plan.parentMachine !== undefined) {
       const parent = plan.parentMachine;
-      if (runsReadonly(plan) && !parent.readonly) plan.readonlyMachine = await startReadonlySibling(parent, plan.agentId, subagentDir(plan.workspace), signal);
-      else await withMachineLease(parent, subagentDir(plan.workspace), () => bootMachine(parent));
+      if (runsReadonly(plan) && !parent.readonly) {
+        plan.readonlyMachine = await startReadonlySibling(parent, plan.agentId, subagentDir(plan.workspace), signal);
+        started = plan.readonlyMachine;
+      } else {
+        started = parent;
+        await withMachineLease(parent, subagentDir(plan.workspace), () => bootMachine(parent));
+      }
     }
   } catch (error) {
+    if (started !== undefined) await releaseMachine(started, subagentDir(plan.workspace), { self: process.pid }).catch(() => undefined);
     lock.release();
     throw error;
   }

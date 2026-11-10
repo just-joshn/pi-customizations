@@ -104,10 +104,12 @@ function outsideCodeFences(text: string): string {
 const OUTSIDE_DATA: { file: string; span: RegExp; reason: string }[] = [
   { file: 'README.md', span: /A `pstack-models\.mdc` from an earlier version is moved there once, without its frontmatter, and kept as `pstack-models\.mdc\.migrated`\./, reason: 'names the legacy rule file pi-pstack migrates' },
   { file: 'README.md', span: /`licenses\/cursor-team-kit\.LICENSE`/, reason: 'names the shipped MIT notice of the vendored team-kit skills and agents' },
-  { file: 'skills/poteto-help/SKILL.md', span: /`https:\/\/github\.com\/cursor\/plugins\/blob\/main\/pstack\/`/, reason: 'upstream links the public source copy, which is not a host feature' },
 ];
 
-const WHOLE_FILE_EXEMPT = new Map([['docs/parity-status.md', 'records the upstream source, its host translations, and the host differences that remain']]);
+const WHOLE_FILE_EXEMPT = new Map([
+  ['docs/parity-status.md', 'records the upstream source, its host translations, and the host differences that remain'],
+  ['docs/host-limits.md', 'names each irreducible host difference and the Pi file that encodes it'],
+]);
 
 function hostTermLines(file: string, text: string): string[] {
   if (WHOLE_FILE_EXEMPT.has(file)) return [];
@@ -231,6 +233,11 @@ describe('shipped resources', () => {
         expect(deps.filter((dep) => dep === 'pstack' || /cursor/i.test(dep))).toEqual([]);
       }
     }
+  });
+
+  test('poteto-help cites this package on GitHub for every answer (HELP-LINK)', () => {
+    const text = readFileSync(join(root, 'skills/poteto-help/SKILL.md'), 'utf8');
+    expect(text).toContain('https://github.com/just-joshn/pi-customizations/blob/main/extensions/pi-pstack/');
   });
 
   test('shipped text names Pi, not Cursor host features (RES-012)', () => {

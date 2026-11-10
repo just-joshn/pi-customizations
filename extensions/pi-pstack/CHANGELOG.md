@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.15.36-pi.35] - 2026-11-10
+
+- Refuse a foreground `bash` `timeout` of 1000 or more so a copied Cursor `block_until_ms` cannot wait thousands of seconds.
+- Persist shell functions across bash calls, and apply a background job's `cd` to the foreground session cwd.
+- Stop a cloud machine this launch booted when the launch fails and no other run uses it.
+- On a cloud machine, the host section no longer names personal skill paths or the model rule file as readable.
+- GitHub PR watches omit expiry by default, matching timers and webhooks.
+- Raise the Node engine floor to 22.21 for macOS readonly `fetch` through the sandbox proxy.
+- `/poteto-help` public links point at the pi-customizations package mirror.
+- Worktree cleanup takes a user-named or confirmed protected set instead of treating `/resume` as pins.
+- setup-benny enables automations only after the `/automations` handoff, not an editor save.
+- Add `--dry-run` to `packaging/install-supervisor-unit.sh` and lock host differences in `docs/host-limits.md`.
+
 ## [0.15.36-pi.34] - 2026-11-07
 
 - Skip a background job's completion notice when `AwaitShell` saw the job end, even when it saw the end after the job had exited. A job that finished while the agent was busy queued its notice at exit, so a later `AwaitShell` that reported it complete still left a notice that started an extra turn after the answer. A notice for a job that ends during a run now waits until the run ends, and goes out only when nothing saw the job end.

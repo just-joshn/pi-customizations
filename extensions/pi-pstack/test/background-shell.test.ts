@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -125,6 +125,19 @@ describe('background jobs', () => {
       'Shell output has pattern /€/. This is occurrence number 1. Matched text: €. The title message is being displayed to the user.',
       'Shell output has pattern /€/. This is occurrence number 2. Latest match: €. The title message is being displayed to the user.',
     ]);
+  });
+
+  shell('a background command that changes directory leaves that directory for the next foreground command', async ({ dir, jobs }) => {
+    const session = createSessionShell();
+    const next = join(dir, 'away');
+    mkdirSync(next);
+    const away = realpathSync(next);
+    const seen = session.epoch();
+    const job = jobs.start(ctx, { command: `cd ${away} && pwd`, cwd: dir, title: 'cd job', toolCallId: 'call-1', onCwd: (cwd) => session.adoptCwd(seen, cwd) });
+
+    await job.done;
+    expect(jobs.output(job).trim()).toBe(away);
+    expect(session.cwd()).toBe(away);
   });
 
   shell('session shutdown stops a running job and records it aborted without notifying', async ({ dir, jobs, notices }) => {

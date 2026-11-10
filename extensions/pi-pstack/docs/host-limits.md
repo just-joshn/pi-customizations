@@ -1,0 +1,23 @@
+# Host limits
+
+This page is the registry of host differences pi-pstack does not close. Each row names the Pi equivalent and the file that encodes it. The rows are the Host-limit list in [open-items.md](../../../parity/pi-native-parity-2026-11-09/open-items.md) and Remaining host differences in [Parity status](parity-status.md). Nothing here marks a live Slack workspace or a model following every skill as verified.
+
+| Limit | Pi equivalent | Where encoded | Evidence |
+| --- | --- | --- | --- |
+| sleeping host | The cloud agent's Pi process stays on this host, so a sleeping laptop pauses it. `PSTACK_CLOUD_DOCKER_CONTEXT` selects another container engine and does not move that process. | `src/index.ts`, `src/cloud/docker.ts` | `README.md` Limits, `docs/parity-status.md` |
+| host MCP in cloud | That same host process loads the MCP servers installed on this machine. A readonly child passes `--no-mcp`. A writable child does not. | `src/index.ts`, `src/task/runner.ts` | `README.md`, `test/task-runner.test.ts` |
+| background run outlives a crashed main chat | A subagent checks its parent every second. Once the parent is gone it aborts, shuts down, and exits. On the next start of that session, the main chat deletes inbox items addressed to the earlier process. | `src/index.ts`, `src/inbox.ts` | `test/e2e/task.e2e.test.ts`, `docs/parity-status.md` |
+| Slack poll | The supervisor reads the channel every 20 seconds from a stored position. `PSTACK_SLACK_POLL_MS` overrides that interval. A gap in uptime does not drop messages. | `src/slack/trigger.ts`, `src/subscriptions/supervisor.ts` | `README.md`. `test/e2e/slack.e2e.test.ts` drives a fake Slack API and is not a live Slack run. |
+| loopback webhook | Routines listen on `127.0.0.1`. The sender key stays in a local file. A sender on another machine needs its own forwarder. | `src/subscriptions/webhook.ts` | `test/subscriptions.test.ts`, `README.md` Limits |
+| no in-app browser or Canvas | `pr-review-canvas` opens the review page in the system browser. Automated inspection uses the `control-ui` skill. | `skills/pr-review-canvas/SKILL.md` | `docs/parity-status.md` |
+| no Debug/Ask | `SwitchMode` accepts only `plan` and `agent`. | `src/plan.ts` | `test/plan.test.ts`, `docs/parity-status.md` |
+| mode skill via section, not durable blocks | While a mode is on, the skill body is the `pstack_mode_skill` section on every request. | `src/mode.ts` | `test/mode.test.ts`, `test/e2e/mode.e2e.test.ts` |
+| media via read and open | The read tool shows an image. The system player opens a video. The reply names the path. | `src/sections.ts` | `test/sections.test.ts` |
+| no parent usage rollup | Background usage is stored on the child transcript and on the notification details. Pi 1.5.0 has no API that adds a later notification to the parent session totals. | `src/task/tool.ts` | `test/e2e/task.e2e.test.ts`, `README.md` Limits |
+| fork needs idle source | Fork throws while the source is still running, so two agents never write one checkout. | `src/task/tool.ts` | `test/task-fork.test.ts` |
+| s390x readonly network fail-closed | On s390x the readonly seccomp filter refuses `socketcall` for `SYS_SOCKET` on every domain, so glibc programs cannot open a network connection. | `src/linux-readonly-sandbox.ts` | `test/linux-readonly-seccomp.test.ts`, `README.md` Limits |
+| sandbox stronger than instructions | Plan mode and readonly shells deny file writes in an OS sandbox. | `src/readonly-shell.ts`, `src/plan.ts` | `docs/parity-status.md`, `test/readonly-shell-security.test.ts` |
+| team-kit rules unwired | The two always-applied rule files ship in `rules/` and are not added to the prompt. Cursor CLI never puts a plugin's rules in the model context, and this package matches that. | `rules/no-inline-imports.mdc`, `rules/typescript-exhaustive-switch.mdc` | `test/resources.test.ts`, `test/sections.test.ts` |
+| no Bugbot product | The host prompt treats Bugbot comments as ordinary review threads. It tells the model to skip a step that starts, waits for, or configures Bugbot when the pull request has no Bugbot check or comment. | `src/sections.ts` | The sentence in `src/sections.ts` is the encoding. No separate test asserts it. |
+| Claude Code omitted | The package does not ship a Claude Code install path or a `docs/harness` adapter. | Absence of `docs/harness`, asserted by `test/resources.test.ts` | `test/resources.test.ts`, `docs/parity-status.md` |
+| plan review is a dialog | After a saved plan, Pi asks the same choices in a select dialog. The labels are `Yes, build locally`, `Yes, build in cloud` when the workspace is a git repository, and `No, propose changes`. | `src/plan.ts` | `test/plan.test.ts` |

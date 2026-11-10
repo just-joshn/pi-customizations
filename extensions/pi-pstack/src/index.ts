@@ -69,6 +69,7 @@ async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: rea
       questionsAvailable: canAsk(ctx),
       activeTools,
       cloud,
+      onCloudMachine: childIdentity.machine !== undefined,
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
     ...(rule.inScope ? { pstack_models: modelsSection(rule.text, rulePath()) } : {}),

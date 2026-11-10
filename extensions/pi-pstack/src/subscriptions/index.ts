@@ -22,7 +22,6 @@ export const SUBSCRIPTIONS_ENTRY = 'pstack/subscriptions';
 export const WAKE_TYPE = 'pstack/subscription';
 
 const HOUR_MS = 3_600_000;
-const DEFAULT_EXPIRY_MS = 7 * 24 * HOUR_MS;
 const MAX_EXPIRY_HOURS = 30 * 24;
 
 const TargetSchema = Type.Union([
@@ -101,11 +100,8 @@ function oneShotError(tool: string): Error {
   return new Error(`${tool} needs an interactive or RPC session: print and JSON runs exit when the agent settles, so nothing could wake this run or fire this subscription later. Do the work now instead.`);
 }
 
-function expiryOf(now: number, hours: number | undefined, kind: Config['kind']): number {
-  // Cursor Automations run until they are disabled, so a timer or routine has no default expiry. A PR watch is this
-  // port's own surface and keeps a bounded default.
-  if (hours === undefined) return kind === 'github' ? now + DEFAULT_EXPIRY_MS : 0;
-  if (hours === 0) return 0;
+function expiryOf(now: number, hours: number | undefined): number {
+  if (hours === undefined || hours === 0) return 0;
   if (!(hours > 0 && hours <= MAX_EXPIRY_HOURS)) throw new Error(`expiresInHours must be 0 (no expiry) and at most ${MAX_EXPIRY_HOURS}.`);
   return now + hours * HOUR_MS;
 }
@@ -159,7 +155,7 @@ const GithubParams = Type.Object({
   repo: Type.Optional(Type.String({ description: 'scope repo or author: owner/name.' })),
   author: Type.Optional(Type.String({ description: 'scope author: a GitHub login, or @me.' })),
   name: Type.Optional(Type.String({ description: 'A name to manage the subscription by; defaults to the target.' })),
-  expiresInHours: Type.Optional(Type.Number({ description: `Hours until the subscription ends; default 168 (7 days), at most ${MAX_EXPIRY_HOURS}.` })),
+  expiresInHours: Type.Optional(Type.Number({ description: `Hours until the subscription ends; 0 or omitted means it never expires, at most ${MAX_EXPIRY_HOURS}.` })),
 });
 
 const TimerParams = Type.Object({
@@ -445,7 +441,7 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
       id: `sub-${randomBytes(12).toString('hex')}`,
       name,
       createdAt: now,
-      expiresAt: expiryOf(now, hours, config.kind),
+      expiresAt: expiryOf(now, hours),
       config,
       ownerSessionId: id,
       ...(file === undefined ? {} : { ownerSessionFile: canonicalPath(file) }),
