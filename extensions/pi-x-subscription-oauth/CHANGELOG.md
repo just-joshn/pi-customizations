@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-11-10
+
+- Send a Cursor ask with native HTTPS `POST /agent.v1.AgentService/Run`. That path is the default.
+- Finish the ask when the peer ends the turn. Text that arrives after a 1.5 second gap stays in the reply. A run with no assistant text stops after 120 seconds.
+- Report Connect `ERROR_NOT_LOGGED_IN` as `Cursor rejected the session (HTTP 401). Run /login and choose Cursor.`
+- Copy the exec id from a context notice into the context reply.
+- Call `cursor-agent` for an ask only when the native session never opens.
+
 ## [0.2.0] - 2026-11-10
 
 - Register the `cursor` provider beside `grok-build`. Model refresh calls Cursor `GetUsableModels`. Asks run through `cursor-agent` in ask mode.

@@ -8,6 +8,10 @@ export const USABLE_MODELS_PATH = '/aiserver.v1.AiService/GetUsableModels';
 export const CURSOR_CLIENT_VERSION = 'cli-2026.11.05-86047df';
 export const CURSOR_CONTEXT_WINDOW = 200_000;
 export const CURSOR_LOGIN_HINT = 'Cursor is not logged in. Run /login and choose Cursor.';
+
+export function cursorRejectedSession(status: number): string {
+  return `Cursor rejected the session (HTTP ${status}). Run /login and choose Cursor.`;
+}
 export const CURSOR_BIN_HINT = 'cursor-agent is not installed. Install the Cursor CLI, then run cursor-agent login.';
 
 const MODEL_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/;

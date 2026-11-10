@@ -3,6 +3,8 @@ import { execFile } from 'node:child_process';
 import { type Api, type AssistantMessage, type AssistantMessageEventStream, createAssistantMessageEventStream, type Model, type ProviderStreams, type SimpleStreamOptions, type TranscriptContext, type Usage } from '@earendil-works/pi-ai';
 import { scrubText } from './auth.ts';
 import { CURSOR_BIN_HINT, CURSOR_LOGIN_HINT } from './catalog.ts';
+import { type NativeOpener, NativeTransportError } from './native/http2.ts';
+import { readAssistantText } from './native/turn.ts';
 
 export type AgentRun = {
   readonly code: number;
@@ -132,38 +134,55 @@ function emptyMessage(model: Model<Api>): AssistantMessage {
   };
 }
 
-async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, runAgent: AgentRunner, stream: AssistantMessageEventStream): Promise<void> {
+function publish(output: AssistantMessage, stream: AssistantMessageEventStream, text: string, usage: Usage): void {
+  output.usage = usage;
+  output.content.push({ type: 'text', text: '' });
+  stream.push({ type: 'start', partial: output });
+  stream.push({ type: 'text_start', contentIndex: 0, partial: output });
+  const block = output.content[0];
+  if (block?.type === 'text') block.text = text;
+  stream.push({ type: 'text_delta', contentIndex: 0, delta: text, partial: output });
+  stream.push({ type: 'text_end', contentIndex: 0, content: text, partial: output });
+  output.stopReason = 'stop';
+  stream.push({ type: 'done', reason: 'stop', message: output });
+  stream.end();
+}
+
+async function run(model: Model<Api>, context: TranscriptContext, options: SimpleStreamOptions | undefined, runAgent: AgentRunner, openNative: NativeOpener | undefined, stream: AssistantMessageEventStream): Promise<void> {
   const output = emptyMessage(model);
   try {
     if (!options?.apiKey) throw new Error(CURSOR_LOGIN_HINT);
     const prompt = promptFrom(context.messages);
     if (prompt.length === 0) throw new Error('Cursor ask needs text. This adapter does not send images or tool calls.');
+    if (openNative) {
+      let opened = false;
+      try {
+        const session = await openNative({ token: options.apiKey, signal: options.signal });
+        opened = true;
+        const text = await readAssistantText(session, { prompt, modelId: model.id }, options.signal);
+        publish(output, stream, text, ZERO_USAGE);
+        return;
+      } catch (error) {
+        if (opened || !(error instanceof NativeTransportError)) throw error;
+      }
+    }
     const agent = await runAgent(cursorAgentArgs(model.id, prompt), options.signal);
     const reply = readAgentResult(agent.stdout);
     if (agent.code !== 0 || reply.kind === 'error') throw new Error(failureText(agent, reply, options.apiKey));
-    output.usage = reply.usage;
-    output.content.push({ type: 'text', text: '' });
-    stream.push({ type: 'start', partial: output });
-    stream.push({ type: 'text_start', contentIndex: 0, partial: output });
-    const block = output.content[0];
-    if (block?.type === 'text') block.text = reply.text;
-    stream.push({ type: 'text_delta', contentIndex: 0, delta: reply.text, partial: output });
-    stream.push({ type: 'text_end', contentIndex: 0, content: reply.text, partial: output });
-    output.stopReason = 'stop';
-    stream.push({ type: 'done', reason: 'stop', message: output });
+    publish(output, stream, reply.text, reply.usage);
   } catch (error) {
     const aborted = options?.signal?.aborted === true || (error instanceof Error && error.name === 'AbortError');
     output.stopReason = aborted ? 'aborted' : 'error';
     output.errorMessage = aborted ? 'Request was aborted' : scrubText(error instanceof Error ? error.message : 'Cursor request failed.', options?.apiKey ? [options.apiKey] : []);
     stream.push({ type: 'error', reason: output.stopReason, error: output });
+    stream.end();
   }
-  stream.end();
 }
 
-export function createCursorStreams(runAgent: AgentRunner = runCursorAgent): ProviderStreams {
+export function createCursorStreams(runAgent: AgentRunner = runCursorAgent, openNative?: NativeOpener): ProviderStreams {
   const streamSimple = (model: Model<Api>, context: TranscriptContext, options?: SimpleStreamOptions) => {
     const stream = createAssistantMessageEventStream();
-    void run(model, context, options, runAgent, stream);
+    void run(model, context, options, runAgent, openNative, stream);
     return stream;
   };
   return { stream: streamSimple, streamSimple };
