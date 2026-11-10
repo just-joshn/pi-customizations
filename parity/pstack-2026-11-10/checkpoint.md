@@ -106,3 +106,7 @@ Still open or not measured:
 - The broker ran on one kernel (Debian 6.12.115). Not run: RHEL, SLES or Ubuntu s390x kernels, SELinux or AppArmor policies, `ptrace_scope` 2 or 3 (the sandbox is designed to degrade, but that path was only tested by removing the binary), and per-call overhead on native hardware.
 - Stacking with a setuid bubblewrap was not tested.
 - The stream-socket `SCM_RIGHTS` path and the Cursor parity comparison are unchanged.
+
+## Gap: the broker has no independent review
+
+An independent adversarial review of `native/netbroker.c` and the brokered sandbox mode was started and did not run: the review request was stopped by a cyber-content safeguard before any work began. The broker's evidence is the author's own real-kernel run (`evidence/s390x-broker/vm3.log`), the candidate's earlier prototype run, and the CI runs. Treat the broker as unreviewed security-sensitive native code until an independent reviewer has tried to break it. A reviewer with cyber-verification access, or a human reviewer, can start from `evidence/s390x-broker/README.md`.
