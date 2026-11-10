@@ -205,7 +205,14 @@ export function createSupervisor(options: SupervisorOptions) {
       const after = await fetchPrs(gh, target);
       if (!owns(entry)) return;
       const file = snapshotFile(durableRuntimeDir(cwd), entry.sub.id);
-      const before = entry.baseline ?? readSnapshots(file);
+      let before = entry.baseline;
+      if (before === undefined) {
+        try {
+          before = readSnapshots(file);
+        } catch {
+          // An unreadable snapshot would fail every poll forever. Take a new baseline instead.
+        }
+      }
       let blocked = false;
       if (before !== undefined) {
         const blocks = await pollChanges(gh, target, before, after);

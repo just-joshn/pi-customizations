@@ -10,8 +10,10 @@ import { pathToFileURL } from 'node:url';
 
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
+import { durableRuntimeDir } from '../src/paths.ts';
 import { acceptEvent, acquireSupervisorLock, createDesired, isSupervisorLive, readRegistry, releaseSupervisorLock, visibleSubscriptions } from '../src/subscriptions/durable-store.ts';
 import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
+import { snapshotFile } from '../src/subscriptions/github.ts';
 import { createSupervisor, type FreshMeta } from '../src/subscriptions/supervisor.ts';
 import { RoutineServer, routineSlug } from '../src/subscriptions/webhook.ts';
 
@@ -517,6 +519,26 @@ describe('subscribe_github_pr', () => {
     fake.emit('session_start');
     await vi.advanceTimersByTimeAsync(0);
     expect(wakes(fake)).toHaveLength(1);
+  });
+
+  test('an unreadable snapshot file becomes a new baseline and the watch keeps working', async () => {
+    const prs = new Map([[7, pr(7)]]);
+    const { gh } = fakeGh(prs);
+    const fake = setup({ gh, pollIntervalMs: 1_000 });
+    const created = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    await vi.advanceTimersByTimeAsync(0);
+
+    for (const controller of fake.controllers) controller.shutdown();
+    writeFileSync(snapshotFile(durableRuntimeDir(readRegistry(fake.cwd).workspaceCwd), String(created.details['id'])), '');
+    fake.emit('session_start');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(wakes(fake)).toEqual([]);
+    expect(readRegistry(fake.cwd).subscriptions[0]?.lastError).toBeUndefined();
+
+    (prs.get(7) as Pr).state = 'CLOSED';
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(wakes(fake)).toHaveLength(1);
+    expect(wakes(fake)[0]).toContain('closed');
   });
 });
 
