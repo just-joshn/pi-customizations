@@ -240,8 +240,8 @@ const parseElfInventory = (bytes: Buffer, path: string, analysis: 'inventory' | 
 export interface GpuOptions {
   readonly analysis?: 'inventory' | 'kernels';
   readonly expectedSha256?: string;
-  readonly objectIds?: readonly string[];
-  readonly targets?: readonly string[];
+  readonly objectIds?: readonly unknown[];
+  readonly targets?: readonly unknown[];
   readonly cwd?: string;
 }
 

@@ -48,6 +48,66 @@ const run = async (tool: ToolDefinition, params: unknown): Promise<{ content: { 
     structuredContent?: unknown;
   };
 
+test('schema-permitted malformed arrays retain consumer error precedence', async () => {
+  const registration = loadExtension();
+  const cases = [
+    { name: 'inspect_sqlite_database', params: { path: 'db', columns: [42] }, parameter: 'columns' },
+    { name: 'inspect_web_network_capture', params: { capture_path: 'capture', format: 'mitmproxy', record_ordinals: ['bad'] }, parameter: 'record_ordinals' },
+    { name: 'update_unknown', params: { unknown_id: 'id', expected_revision: 1, status: 'open', resolution: null, supporting_evidence_ids: [false], contradicting_evidence_ids: [] }, parameter: 'supporting_evidence_ids' },
+    { name: 'update_unknown', params: { unknown_id: 'id', expected_revision: 1, status: 'open', resolution: null, supporting_evidence_ids: [], contradicting_evidence_ids: [null] }, parameter: 'contradicting_evidence_ids' },
+    { name: 'inspect_with_objdump', params: { operation: 'file_headers' }, parameter: 'path' },
+  ];
+  const payloads = [];
+  for (const { name, params } of cases) {
+    const result = await run(toolNamed(registration, name), params);
+    expect(result.isError).toBe(true);
+    payloads.push(JSON.parse(result.content[0]?.text ?? '{}'));
+  }
+  expect(payloads).toStrictEqual([
+    {
+      error: {
+        category: 'invalid_input',
+        code: 'invalid_request',
+        details: { operation: 'inspect_sqlite_database', issues: [{ message: 'Cannot inspect db: columns requires table.', path: ['path'], reason: 'invalid_value' }] },
+        message: 'The inspection input is not usable. Check the argument and retry.',
+        remediation: { action: 'The inspection input is not usable. Check the argument and retry.' },
+        retryable: true,
+      },
+    },
+    {
+      error: {
+        category: 'unsupported_target',
+        code: 'unsupported_target',
+        details: { format: 'mitmproxy', path: 'capture' },
+        message: 'pi-rea implements HAR capture inspection only; mitmproxy format fails closed.',
+        remediation: { action: 'pi-rea implements HAR capture inspection only; mitmproxy format fails closed.' },
+        retryable: false,
+      },
+    },
+    ...Array.from({ length: 2 }, () => ({
+      error: {
+        category: 'invalid_input',
+        code: 'invalid_request',
+        details: { reason: 'missing', unknown_id: 'id' },
+        message: 'Unknown id is not retained in this session.',
+        remediation: { action: 'Unknown id is not retained in this session.' },
+        retryable: true,
+      },
+    })),
+    {
+      error: {
+        category: 'invalid_input',
+        code: 'invalid_request',
+        details: { operation: 'inspect_with_objdump', parameter: 'path' },
+        message: 'inspect_with_objdump requires path.',
+        remediation: { action: 'inspect_with_objdump requires path.' },
+        retryable: true,
+      },
+    },
+  ]);
+  expect(registration.entries).toHaveLength(0);
+});
+
 test('KERN-014: every advertised tool is registered exactly once with its published contract', () => {
   const registration = loadExtension();
   const catalog = loadCatalog();

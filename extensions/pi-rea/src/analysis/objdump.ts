@@ -51,7 +51,7 @@ export interface ObjdumpInspection {
 }
 
 export const inspectWithObjdumpFromPath = async (
-  path: string,
+  path: string | undefined,
   options: {
     readonly cwd?: string;
     readonly operation?: string;

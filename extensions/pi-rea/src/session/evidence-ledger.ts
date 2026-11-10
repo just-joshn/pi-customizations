@@ -70,8 +70,7 @@ export const parseBundle = (text: string): EvidenceBundle => {
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
-  } catch (error) {
-    void error;
+  } catch {
     throw evidenceIntegrityMismatch('Evidence bundle is not valid JSON.', { reason: 'Evidence bundle validation failed' });
   }
   const { bundle, error } = validateBundle(parsed);

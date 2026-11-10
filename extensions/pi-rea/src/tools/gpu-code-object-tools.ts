@@ -10,8 +10,8 @@ export interface InspectGpuCodeObjectsParams {
   readonly path: string;
   readonly analysis?: string;
   readonly expected_sha256?: string;
-  readonly object_ids?: readonly string[];
-  readonly targets?: readonly string[];
+  readonly object_ids?: readonly unknown[];
+  readonly targets?: readonly unknown[];
   readonly detail?: string;
   readonly view?: Record<string, unknown>;
 }

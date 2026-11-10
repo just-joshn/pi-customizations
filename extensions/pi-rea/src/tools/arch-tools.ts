@@ -22,7 +22,7 @@ const thinArchitecture = (bytes: Buffer): { name: string; hidden: false; cpu_typ
 
 export const ARCH_PROVIDER = { id: 'pi-rea-in-process', name: 'pi-rea in-process analysis', version: PI_REA_VERSION } as const;
 
-export const listArchitectures = async (session: ReaSession, _params: Record<string, never> = {}): Promise<AgentToolResult<unknown>> => {
+export const listArchitectures = async (session: ReaSession, _params: import('../contract/handler-parameters.generated.ts').HandlerParameters['list_architectures'] = {}): Promise<AgentToolResult<unknown>> => {
   const target = session.target;
   if (target === undefined) {
     throw targetUnavailable('No target is open. Call open_binary with a local path before listing its architectures.');

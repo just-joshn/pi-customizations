@@ -172,7 +172,7 @@ const encodeCell = (value: unknown, encoding: SqliteInspection['database_encodin
 export interface SqliteOptions {
   readonly workerTimeoutMs?: number;
   readonly table?: string;
-  readonly columns?: readonly string[];
+  readonly columns?: readonly unknown[];
   readonly schemaScope?: 'inventory' | 'selected_table' | 'database';
   readonly rowLimit?: number;
   readonly cwd?: string;
@@ -356,7 +356,7 @@ export const inspectSqliteDatabaseFromPath = async (path: string, options: Sqlit
         throw inputError(path, 'invalid_value', 'row sampling requires an ordinary table.');
       }
       const columnNames =
-        options.columns ??
+        (options.columns as readonly string[] | undefined) ??
         (table.columns.length > 0
           ? table.columns.filter((col) => col.hidden === 0).map((col) => col.name)
           : (db.prepare(`pragma table_xinfo(${quoteIdent(selected)})`).all() as { name: string; hidden: number }[]).filter((col) => col.hidden === 0).map((col) => col.name));

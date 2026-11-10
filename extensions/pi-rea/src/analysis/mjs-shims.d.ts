@@ -199,7 +199,7 @@ declare module '*binary.mjs' {
 declare module '*har.mjs' {
   export function readHarCapture(
     document: unknown,
-    options?: { readonly record_ordinals?: readonly number[] | undefined },
+    options?: { readonly record_ordinals?: readonly unknown[] | undefined },
   ): {
     readonly version?: string;
     readonly format?: string;

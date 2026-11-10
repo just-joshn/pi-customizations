@@ -1,7 +1,7 @@
 import type { ExtensionAPI, SessionEntry } from '@earendil-works/pi-coding-agent';
 import type { ReaSession } from './binary-session.ts';
 import { isEvidenceRecord } from './evidence.ts';
-import type { UnknownDraft, UnknownStatus } from './unknown-ledger.ts';
+import { isResolution, UNKNOWN_STATUSES, type UnknownDraft, type UnknownResolution, type UnknownStatus, validateUnknownDraft } from './unknown-ledger.ts';
 
 export const EVIDENCE_ENTRY = 'rea-evidence';
 export const UNKNOWN_ENTRY = 'rea-unknown';
@@ -12,16 +12,46 @@ export type UnknownPersistEntry =
       readonly action: 'update';
       readonly unknown_id: string;
       readonly expected_revision: number;
-      readonly changes: Partial<UnknownDraft> & { readonly status?: UnknownStatus };
+      readonly changes: Partial<UnknownDraft> & { readonly status?: UnknownStatus; readonly resolution?: UnknownResolution | null };
       readonly mutation_evidence_id: string;
     };
 
+const isObject = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isDraft = (value: unknown): value is UnknownDraft => {
+  if (!isObject(value) || !Array.isArray(value['supporting_evidence_ids']) || !Array.isArray(value['contradicting_evidence_ids'])) return false;
+  try {
+    validateUnknownDraft(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const changeKeys = new Set([
+  'question',
+  'severity',
+  'domain',
+  'required_authority',
+  'required_confidence',
+  'required_environment',
+  'recommended_probes',
+  'relationships',
+  'supporting_evidence_ids',
+  'contradicting_evidence_ids',
+  'status',
+  'resolution',
+]);
+
 const isUnknownPersistEntry = (value: unknown): value is UnknownPersistEntry => {
-  if (typeof value !== 'object' || value === null) return false;
-  const record = value as Record<string, unknown>;
-  if (record['action'] === 'record') return typeof record['draft'] === 'object' && record['draft'] !== null && typeof record['mutation_evidence_id'] === 'string';
-  if (record['action'] !== 'update') return false;
-  return typeof record['unknown_id'] === 'string' && typeof record['expected_revision'] === 'number' && typeof record['mutation_evidence_id'] === 'string';
+  if (!isObject(value) || typeof value['mutation_evidence_id'] !== 'string') return false;
+  if (value['action'] === 'record') return isDraft(value['draft']);
+  if (value['action'] !== 'update' || typeof value['unknown_id'] !== 'string' || !Number.isInteger(value['expected_revision']) || (value['expected_revision'] as number) < 1) return false;
+  const changes = value['changes'];
+  if (!isObject(changes) || Object.keys(changes).some((key) => !changeKeys.has(key))) return false;
+  if ('status' in changes && !UNKNOWN_STATUSES.includes(changes['status'] as UnknownStatus)) return false;
+  if ('resolution' in changes && changes['resolution'] !== null && !isResolution(changes['resolution'])) return false;
+  return true;
 };
 
 export const persistEvidence = (pi: ExtensionAPI, record: { readonly evidence_id: string }): void => {
@@ -46,7 +76,11 @@ export const restoreBranchState = (session: ReaSession, entries: readonly Sessio
       session.unknowns.record(persisted.draft, persisted.mutation_evidence_id);
       continue;
     }
-    if (session.unknowns.get(persisted.unknown_id) === undefined) continue;
+    const existing = session.unknowns.get(persisted.unknown_id);
+    if (existing === undefined || existing.revision !== persisted.expected_revision) continue;
+    // Recording accepts whitespace-only values and normalizes them to empty strings.
+    // Validate changed fields without rejecting those already-accepted normalized values.
+    if (!isDraft({ ...existing, question: existing.question || ' ', domain: existing.domain || ' ', ...persisted.changes })) continue;
     session.unknowns.update(persisted.unknown_id, persisted.expected_revision, persisted.changes, persisted.mutation_evidence_id);
   }
 };

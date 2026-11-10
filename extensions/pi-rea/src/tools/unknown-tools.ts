@@ -48,14 +48,17 @@ const withReferenceDefaults = (draft: UnknownDraft): UnknownDraft => ({
   contradicting_evidence_ids: draft.contradicting_evidence_ids ?? [],
 });
 
-export interface UpdateUnknownParams extends Partial<UnknownDraft> {
+export interface UpdateUnknownParams extends Omit<Partial<UnknownDraft>, 'supporting_evidence_ids' | 'contradicting_evidence_ids'> {
+  readonly supporting_evidence_ids?: readonly unknown[];
+  readonly contradicting_evidence_ids?: readonly unknown[];
   readonly unknown_id: string;
   readonly expected_revision: number;
   readonly status: UnknownStatus;
   readonly resolution: UnknownResolution | null;
 }
 
-export const updateUnknown = (session: ReaSession, params: UpdateUnknownParams): AgentToolResult<unknown> => {
+export const updateUnknown = (session: ReaSession, input: UpdateUnknownParams): AgentToolResult<unknown> => {
+  const params = input as UpdateUnknownParams & Partial<UnknownDraft>;
   if ((params.status === 'resolved') !== (params.resolution !== null && params.resolution !== undefined)) {
     throw analysisInputInvalid('update_unknown', [{ path: ['resolution'], reason: 'invalid_value', message: 'Only resolved unknowns carry a resolution' }]);
   }
