@@ -18,10 +18,9 @@ const result = spawnSync(command, [...prefix, 'cc', '-target', 's390x-linux-musl
 if (result.status !== 0) throw new Error(`Could not build netbroker:\n${result.stderr}`);
 const generated = readFileSync(built);
 rmSync(built);
-if (check) {
-  if (!existsSync(output) || !readFileSync(output).equals(generated)) {
-    console.error(`Stale dist/netbroker-s390x. Run bun run build:netbroker with Zig ${ZIG_VERSION}.`);
-    process.exitCode = 1;
-  }
-} else writeFileSync(output, generated, { mode: 0o755 });
+if (check && (!existsSync(output) || !readFileSync(output).equals(generated))) {
+  console.error(`Stale dist/netbroker-s390x. Run bun run build:netbroker with Zig ${ZIG_VERSION}.`);
+  process.exit(1);
+}
+if (!check) writeFileSync(output, generated, { mode: 0o755 });
 console.log(`${check ? 'Checked' : 'Built'} dist/netbroker-s390x`);

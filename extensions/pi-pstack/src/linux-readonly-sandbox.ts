@@ -1,7 +1,7 @@
 // bubblewrap installs the seccomp filter itself, so this needs no nested user namespace, which hosts with
 // kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
 import { spawnSync } from 'node:child_process';
-import { accessSync, chmodSync, closeSync, constants, copyFileSync, existsSync, mkdtempSync, openSync, writeFileSync } from 'node:fs';
+import { accessSync, chmodSync, closeSync, constants, copyFileSync, existsSync, mkdtempSync, openSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -205,14 +205,18 @@ function brokerPolicy(): string {
   return `socketcall=${SOCKETCALL},socket=${SYS_SOCKET},socketpair=${SYS_SOCKETPAIR},unix=${AF_UNIX},stream=${SOCK_STREAM},typemask=${SOCK_TYPE_MASK}`;
 }
 
-/** The packaged broker for this architecture, copied somewhere executable, or undefined when this architecture needs none or ships none. */
+/** The packaged broker for this architecture, copied somewhere executable, or undefined when this architecture needs none, ships none, or the copy fails, so the shell then runs on the filter alone. */
 function stagedBroker(dir: string): string | undefined {
   if (ARCHES[process.arch]?.brokeredSocketcalls === undefined) return undefined;
   const packaged = fileURLToPath(new URL(`../dist/netbroker-${process.arch}`, import.meta.url));
   if (!existsSync(packaged)) return undefined;
   const staged = join(dir, 'netbroker');
-  copyFileSync(packaged, staged);
-  chmodSync(staged, 0o700);
+  try {
+    copyFileSync(packaged, staged);
+    chmodSync(staged, 0o700);
+  } catch {
+    return undefined;
+  }
   return staged;
 }
 
@@ -234,6 +238,7 @@ function checkSandbox(): Sandbox {
   const bwrap = onPath('bwrap');
   if (bwrap === undefined) throw new Error('bubblewrap (bwrap) is not available: no bwrap on PATH');
   const dir = mkdtempSync(join(tmpdir(), 'pi-pstack-ro-'));
+  process.once('exit', () => rmSync(dir, { recursive: true, force: true }));
   const filterPath = join(dir, 'unix-block.bpf');
   writeFileSync(filterPath, seccompFilter(process.arch), { mode: 0o400 });
   const shell = existsSync('/bin/bash') ? '/bin/bash' : '/bin/sh';

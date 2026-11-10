@@ -110,3 +110,13 @@ Still open or not measured:
 ## Gap: the broker has no independent review
 
 An independent adversarial review of `native/netbroker.c` and the brokered sandbox mode was started and did not run: the review request was stopped by a cyber-content safeguard before any work began. The broker's evidence is the author's own real-kernel run (`evidence/s390x-broker/vm3.log`), the candidate's earlier prototype run, and the CI runs. Treat the broker as unreviewed security-sensitive native code until an independent reviewer has tried to break it. A reviewer with cyber-verification access, or a human reviewer, can start from `evidence/s390x-broker/README.md`.
+
+## Update: packaging and fallback review
+
+A review of how the helper ships found three problems in the failure path. Each was reproduced by a rerun before any change.
+
+- An unreadable helper or a full temp directory made `copyFileSync` throw, and the cached error left the read-only shell dead for the rest of the process. `stagedBroker` now falls back to the filter alone. After the change both cases report `degraded` and run the command (unreadable helper as `nobody`, and a 16 KB tmpfs temp directory).
+- Every process left its temp directory behind, now holding a 41 KB helper copy. The directory is removed at process exit.
+- A stale `check:netbroker` printed `Stale...` and then `Checked...`. It now exits non-zero without the success line.
+- Still open: nothing in CI or `prepack` runs `check:netbroker`, because it needs Zig 0.17.1. The committed binary's reproducibility is verified only when someone runs the check.
+- Held up: the committed binary matches a rebuild (sha256 `dee421f0...`), `npm pack` includes it at mode 755 and the mode survives a `umask 077` install, the default filters for every other architecture are byte-identical to before, and a noexec temp directory, a failing self-test, and a hanging helper all degrade.
