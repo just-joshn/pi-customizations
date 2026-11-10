@@ -131,3 +131,22 @@ A review of every claim against its evidence found these. Each was checked befor
 - Not saved: the 23 mutation variants and the ppc64le "before" run, which rest on a reviewer's report.
 - `ptrace_scope`: the committed binary was run on the s390x 6.12 kernel at scope 2 and 3 (`evidence/s390x-broker/vm4.log`). At scope 2 the profile is `brokered` and every probe passes. At scope 3 the self-test fails and the profile is `degraded`, and commands still run. The log records the helper's sha256 (`dee421f0...`), which matches the committed binary.
 - Still not checked here: kernels other than Debian 6.12.115, and the 988-test macOS figure from before these changes.
+
+## Update: distribution matrix
+
+Six workers each ran the sandbox test files (`linux-readonly-seccomp`, `linux-readonly-sandbox`, `linux-readonly-sandbox-missing`, `netbroker-build`) in a container on one distribution, using that distribution's own `bubblewrap`, at commit `99bdc1d0`. All six passed with the descriptor test run, not skipped. Every run was on the same host kernel, `Linux 7.2.12-orbstack aarch64`, with vitest 3.2.7.
+
+| Distribution | bubblewrap | Node | Result |
+| --- | --- | --- | --- |
+| Debian 12 bookworm | 0.8.0 | 22.23.4 (tarball; distro Node is 18.20.4) | 42 passed, 4 skipped |
+| Debian 13 trixie | 0.12.0 | 22.23.4 (tarball; distro Node is 20.19.2) | 42 passed, 4 skipped |
+| Ubuntu 22.04 | 0.6.1 | 22.23.4 (tarball; distro Node is 12.22.9) | 42 passed, 4 skipped |
+| Ubuntu 24.04 | 0.9.0 | 22.21.1 (tarball; distro Node is 18.19.1) | 42 passed, 4 skipped |
+| Alpine 3.22 (musl) | 0.12.0 | 22.23.4 (apk) | 42 passed, 4 skipped |
+| Fedora 41 | 0.10.0 | 22.21.1 (dnf) | 42 passed, 4 skipped |
+
+The 4 skips are the `socketcall` cases for the x64 and arm64 filters, skipped by design.
+
+- Not covered: any other architecture or kernel, SELinux or distribution AppArmor enforcement (the containers do not reproduce a host's policy), and a Node 22.21 floor met by the stock package on Debian and Ubuntu (it is not).
+- The first run of every worker failed `linux-readonly-sandbox-missing` at import because the copy list omitted `src/readonly-shell.ts`, `src/shell-state.ts` and their packages. That was a staging gap in the brief, not a code or distribution problem. The recorded runs include them.
+- The cached `ubuntu:24.04` image was `linux/s390x`, so that worker forced `--platform linux/arm64`.
