@@ -495,6 +495,28 @@ describe('subscribe_github_pr', () => {
     expect(wakes(fake)).toHaveLength(1);
     expect(wakes(fake)[0]).toContain('closed');
   });
+
+  test('a supervisor restart wakes once for a PR change that landed while it was stopped', async () => {
+    const prs = new Map([[7, pr(7)]]);
+    const { gh } = fakeGh(prs);
+    const fake = setup({ gh, pollIntervalMs: 1_000 });
+    await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7' });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(wakes(fake)).toEqual([]);
+
+    for (const controller of fake.controllers) controller.shutdown();
+    (prs.get(7) as Pr).state = 'CLOSED';
+    fake.emit('session_start');
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(wakes(fake)).toHaveLength(1);
+    expect(wakes(fake)[0]).toContain('closed');
+
+    for (const controller of fake.controllers) controller.shutdown();
+    fake.emit('session_start');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(wakes(fake)).toHaveLength(1);
+  });
 });
 
 describe('one-shot print and JSON runs', () => {
