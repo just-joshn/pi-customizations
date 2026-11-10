@@ -6,8 +6,14 @@ const EPERM = 0x0005_0001;
 const KILL = 0x8000_0000;
 const AF_UNIX = 1;
 const AF_INET = 2;
+const SOCK_STREAM = 1;
+const SOCK_DGRAM = 2;
+const SOCK_RAW = 3;
+const SOCK_SEQPACKET = 5;
+const SOCK_NONBLOCK_CLOEXEC = 0x80800;
 const SOCKETCALL = 102;
 const SYS_SOCKET = 1;
+const SYS_SOCKETPAIR = 8;
 const SYS_CONNECT = 3;
 const SYS_GETSOCKNAME = 6;
 
@@ -18,8 +24,10 @@ interface Kernel {
   endian: Endian;
   audit: number;
   socket: number;
+  socketpair: number;
   openat: number;
   socketcall: boolean;
+  socketcallPairRefused: boolean;
   refused: Record<string, number>;
   otherAbis: Record<string, number>;
 }
@@ -28,11 +36,11 @@ interface Kernel {
 // include/uapi/asm-generic/unistd.h, arch/arm/tools/syscall.tbl, arch/powerpc/kernel/syscalls/syscall.tbl, and
 // arch/s390/kernel/syscalls/syscall.tbl. Linux 5.14, 6.1, 6.8, and 6.12 agree on every value.
 const kernels: Kernel[] = [
-  { arch: 'x64', endian: 'LE', audit: 0xc000_003e, socket: 41, openat: 257, socketcall: false, refused: { io_uring_setup: 425 }, otherAbis: { i386: 0x4000_0003 } },
-  { arch: 'arm64', endian: 'LE', audit: 0xc000_00b7, socket: 198, openat: 56, socketcall: false, refused: { io_uring_setup: 425 }, otherAbis: { arm: 0x4000_0028 } },
-  { arch: 'arm', endian: 'LE', audit: 0x4000_0028, socket: 281, openat: 322, socketcall: true, refused: { io_uring_setup: 425, syscall: 113 }, otherAbis: { armeb: 0x0000_0028 } },
-  { arch: 'ppc64', endian: 'LE', audit: 0xc000_0015, socket: 326, openat: 286, socketcall: true, refused: { io_uring_setup: 425 }, otherAbis: { ppc: 0x0000_0014, ppc64: 0x8000_0015 } },
-  { arch: 's390x', endian: 'BE', audit: 0x8000_0016, socket: 359, openat: 288, socketcall: true, refused: { io_uring_setup: 425 }, otherAbis: { s390: 0x0000_0016 } },
+  { arch: 'x64', endian: 'LE', audit: 0xc000_003e, socket: 41, socketpair: 53, openat: 257, socketcall: false, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { i386: 0x4000_0003 } },
+  { arch: 'arm64', endian: 'LE', audit: 0xc000_00b7, socket: 198, socketpair: 199, openat: 56, socketcall: false, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { arm: 0x4000_0028 } },
+  { arch: 'arm', endian: 'LE', audit: 0x4000_0028, socket: 281, socketpair: 288, openat: 322, socketcall: true, socketcallPairRefused: true, refused: { io_uring_setup: 425, syscall: 113 }, otherAbis: { armeb: 0x0000_0028 } },
+  { arch: 'ppc64', endian: 'LE', audit: 0xc000_0015, socket: 326, socketpair: 333, openat: 286, socketcall: true, socketcallPairRefused: true, refused: { io_uring_setup: 425 }, otherAbis: { ppc: 0x0000_0014, ppc64: 0x8000_0015 } },
+  { arch: 's390x', endian: 'BE', audit: 0x8000_0016, socket: 359, socketpair: 360, openat: 288, socketcall: true, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { s390: 0x0000_0016 } },
 ];
 
 const X32_SYSCALL_BIT = 0x4000_0000;
@@ -73,6 +81,9 @@ function runFilter(program: Buffer, endian: Endian, data: Buffer): number {
       case 0x15:
         pc += accumulator === k ? jt : jf;
         break;
+      case 0x54:
+        accumulator = (accumulator & k) >>> 0;
+        break;
       case 0x35:
         pc += accumulator >= k ? jt : jf;
         break;
@@ -96,6 +107,20 @@ describe.for(kernels)('the $arch seccomp filter', (kernel) => {
     expect([decide(kernel.socket, [AF_INET, 1, 0]), decide(kernel.openat, [0, 0, 0])]).toEqual([ALLOW, ALLOW]);
   });
 
+  test('refuses a connectionless AF_UNIX socketpair, which can address a host socket, and keeps stream pairs and other domains', () => {
+    const decisions = {
+      dgram: decide(kernel.socketpair, [AF_UNIX, SOCK_DGRAM, 0]),
+      dgramFlags: decide(kernel.socketpair, [AF_UNIX, SOCK_DGRAM | SOCK_NONBLOCK_CLOEXEC, 0]),
+      raw: decide(kernel.socketpair, [AF_UNIX, SOCK_RAW, 0]),
+      seqpacket: decide(kernel.socketpair, [AF_UNIX, SOCK_SEQPACKET, 0]),
+      domainHighBits: decide(kernel.socketpair, [0x1_0000_0001, SOCK_DGRAM, 0]),
+      stream: decide(kernel.socketpair, [AF_UNIX, SOCK_STREAM, 0]),
+      streamFlags: decide(kernel.socketpair, [AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK_CLOEXEC, 0]),
+      inetDgram: decide(kernel.socketpair, [AF_INET, SOCK_DGRAM, 0]),
+    };
+    expect(decisions).toEqual({ dgram: EPERM, dgramFlags: EPERM, raw: EPERM, seqpacket: EPERM, domainHighBits: EPERM, stream: ALLOW, streamFlags: ALLOW, inetDgram: ALLOW });
+  });
+
   test('refuses io_uring_setup and the ARM indirect syscall with EPERM', () => {
     const decisions = Object.fromEntries(Object.entries(kernel.refused).map(([name, nr]) => [name, decide(nr, [AF_INET, 1, 0])]));
     expect(decisions).toEqual(Object.fromEntries(Object.keys(kernel.refused).map((name) => [name, EPERM])));
@@ -104,6 +129,10 @@ describe.for(kernels)('the $arch seccomp filter', (kernel) => {
   test.runIf(kernel.socketcall)('refuses socketcall(SYS_SOCKET) for every domain and allows its other calls', () => {
     const pointer = 0x1000;
     expect([decide(SOCKETCALL, [SYS_SOCKET, pointer]), decide(SOCKETCALL, [SYS_CONNECT, pointer]), decide(SOCKETCALL, [SYS_GETSOCKNAME, pointer])]).toEqual([EPERM, ALLOW, ALLOW]);
+  });
+
+  test.runIf(kernel.socketcall)('treats socketcall(SYS_SOCKETPAIR) as the direct socketpair: refused where glibc has a direct syscall, allowed on s390x whose glibc has none', () => {
+    expect(decide(SOCKETCALL, [SYS_SOCKETPAIR, 0x1000])).toBe(kernel.socketcallPairRefused ? EPERM : ALLOW);
   });
 
   test('kills a syscall made through another ABI', () => {

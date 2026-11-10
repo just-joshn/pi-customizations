@@ -1,6 +1,5 @@
-// The Linux read-only sandbox: bubblewrap with every namespace but the network unshared, the whole filesystem bound read-only, and a
-// seccomp filter that refuses Unix sockets. bubblewrap installs the filter itself, so this needs no nested user
-// namespace, which hosts with kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
+// bubblewrap installs the seccomp filter itself, so this needs no nested user namespace, which hosts with
+// kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
 import { spawnSync } from 'node:child_process';
 import { accessSync, closeSync, constants, existsSync, mkdtempSync, openSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -9,13 +8,17 @@ import { delimiter, join } from 'node:path';
 const LD_ABS_W = 0x20;
 const JEQ_K = 0x15;
 const JGE_K = 0x35;
+const AND_K = 0x54;
 const RET_K = 0x06;
 const SECCOMP_RET_ALLOW = 0x7fff_0000;
 const SECCOMP_RET_ERRNO_EPERM = 0x0005_0001;
 const SECCOMP_RET_KILL_PROCESS = 0x8000_0000;
 const X32_SYSCALL_BIT = 0x4000_0000;
 const AF_UNIX = 1;
+const SOCK_STREAM = 1;
+const SOCK_TYPE_MASK = 0xf;
 const SYS_SOCKET = 1;
+const SYS_SOCKETPAIR = 8;
 const IO_URING_SETUP = 425;
 const SOCKETCALL = 102;
 const ARM_OABI_SYSCALL = 113;
@@ -23,66 +26,121 @@ const ARM_OABI_SYSCALL = 113;
 interface Arch {
   audit: number;
   endian: 'LE' | 'BE';
-  /** Syscalls that fail with EPERM when their first argument is the given value. */
-  refusedWhen: [syscall: number, firstArgument: number][];
+  socketpair: number;
+  refusedWhen: [syscall: number, firstArguments: number[]][];
   refused: number[];
 }
 
 // AUDIT_ARCH_* from include/uapi/linux/audit.h and syscall numbers from each architecture's syscall table; Linux 5.14
-// through 6.12 agree. socketcall(SYS_SOCKET) hides socket's domain behind a pointer a classic BPF filter cannot read, so
-// it fails for every domain; its other calls only use descriptors the command already holds, as they do on x64. ARM's
-// OABI indirect syscall would run any syscall past the filter. ppc64 is little-endian: Node publishes no big-endian build.
-const SOCKETCALL_SOCKET: [number, number] = [SOCKETCALL, SYS_SOCKET];
+// through 6.12 agree. A multiplexed socketcall hides the domain and type of socket and socketpair behind a pointer a
+// classic BPF filter cannot read, so socketcall(SYS_SOCKET) fails for every domain. socketcall(SYS_SOCKETPAIR) is refused
+// only where glibc also has a direct socketpair syscall (arm, ppc64): s390x glibc has none, and refusing it there breaks
+// Node and Python pipes. socketcall's other calls only use descriptors the command already holds, as they
+// do on x64. ARM's OABI indirect syscall would run any syscall past the filter. ppc64 is little-endian: Node publishes
+// no big-endian build.
 const ARCHES: Record<string, Arch> = {
-  x64: { audit: 0xc000_003e, endian: 'LE', refusedWhen: [[41, AF_UNIX]], refused: [IO_URING_SETUP] },
-  arm64: { audit: 0xc000_00b7, endian: 'LE', refusedWhen: [[198, AF_UNIX]], refused: [IO_URING_SETUP] },
-  arm: { audit: 0x4000_0028, endian: 'LE', refusedWhen: [[281, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP, ARM_OABI_SYSCALL] },
-  ppc64: { audit: 0xc000_0015, endian: 'LE', refusedWhen: [[326, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
-  s390x: { audit: 0x8000_0016, endian: 'BE', refusedWhen: [[359, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
+  x64: { socketpair: 53, audit: 0xc000_003e, endian: 'LE', refusedWhen: [[41, [AF_UNIX]]], refused: [IO_URING_SETUP] },
+  arm64: { socketpair: 199, audit: 0xc000_00b7, endian: 'LE', refusedWhen: [[198, [AF_UNIX]]], refused: [IO_URING_SETUP] },
+  arm: {
+    socketpair: 288,
+    audit: 0x4000_0028,
+    endian: 'LE',
+    refusedWhen: [
+      [281, [AF_UNIX]],
+      [SOCKETCALL, [SYS_SOCKET, SYS_SOCKETPAIR]],
+    ],
+    refused: [IO_URING_SETUP, ARM_OABI_SYSCALL],
+  },
+  ppc64: {
+    socketpair: 333,
+    audit: 0xc000_0015,
+    endian: 'LE',
+    refusedWhen: [
+      [326, [AF_UNIX]],
+      [SOCKETCALL, [SYS_SOCKET, SYS_SOCKETPAIR]],
+    ],
+    refused: [IO_URING_SETUP],
+  },
+  s390x: {
+    socketpair: 360,
+    audit: 0x8000_0016,
+    endian: 'BE',
+    refusedWhen: [
+      [359, [AF_UNIX]],
+      [SOCKETCALL, [SYS_SOCKET]],
+    ],
+    refused: [IO_URING_SETUP],
+  },
 };
 
+type Label = 'allow' | 'errno' | 'kill' | `next${number}` | 'afterPair';
+type Step = { label: Label } | { code: number; k: number; jt?: Label | undefined; jf?: Label | undefined };
+
 /**
- * A classic BPF seccomp program in the architecture's byte order: the `refusedWhen` and `refused` syscalls fail with
- * EPERM, any other architecture or the x32 ABI kills the process, and everything else is allowed. Jumps are relative
- * to the next instruction.
+ * A classic BPF seccomp program in the architecture's byte order. Any other architecture or the x32 ABI kills the
+ * process. The `refusedWhen` syscalls fail with EPERM for the listed first-argument values, `socketpair` fails with
+ * EPERM for AF_UNIX unless its type is SOCK_STREAM, and the `refused` syscalls fail with EPERM outright. Everything
+ * else is allowed.
  */
 export function seccompFilter(arch: string): Buffer {
   const target = ARCHES[arch];
   if (target === undefined) throw new Error(`the read-only shell has no seccomp filter for ${arch}`);
   const le = target.endian === 'LE';
-  const instruction = (code: number, jt: number, jf: number, k: number): Buffer => {
-    const bytes = Buffer.alloc(8);
-    if (le) bytes.writeUInt16LE(code, 0);
-    else bytes.writeUInt16BE(code, 0);
-    bytes.writeUInt8(jt, 2);
-    bytes.writeUInt8(jf, 3);
-    if (le) bytes.writeUInt32LE(k >>> 0, 4);
-    else bytes.writeUInt32BE(k >>> 0, 4);
-    return bytes;
+  const loadArgument = (n: number) => ({ code: LD_ABS_W, k: 16 + 8 * n + (le ? 0 : 4) });
+  const equals = (k: number, jt?: Label, jf?: Label): Step => ({ code: JEQ_K, k, jt, jf });
+  const steps: Step[] = [
+    { code: LD_ABS_W, k: 4 },
+    equals(target.audit, undefined, 'kill'),
+    { code: LD_ABS_W, k: 0 },
+    { code: JGE_K, k: X32_SYSCALL_BIT, jt: 'kill' },
+    ...target.refusedWhen.flatMap(([nr, values], index): Step[] => [
+      equals(nr, undefined, `next${index}`),
+      loadArgument(0),
+      ...values.map((value, at) => equals(value, 'errno', at === values.length - 1 ? 'allow' : undefined)),
+      { label: `next${index}` },
+    ]),
+    equals(target.socketpair, undefined, 'afterPair'),
+    loadArgument(0),
+    equals(AF_UNIX, undefined, 'allow'),
+    loadArgument(1),
+    { code: AND_K, k: SOCK_TYPE_MASK },
+    equals(SOCK_STREAM, 'allow', 'errno'),
+    { label: 'afterPair' },
+    ...target.refused.map((nr) => equals(nr, 'errno')),
+    { label: 'allow' },
+    { code: RET_K, k: SECCOMP_RET_ALLOW },
+    { label: 'errno' },
+    { code: RET_K, k: SECCOMP_RET_ERRNO_EPERM },
+    { label: 'kill' },
+    { code: RET_K, k: SECCOMP_RET_KILL_PROCESS },
+  ];
+  const instructions = steps.filter((step) => 'code' in step);
+  const indexOf = (label: Label) => {
+    let index = 0;
+    for (const step of steps) {
+      if ('label' in step) {
+        if (step.label === label) return index;
+      } else index++;
+    }
+    throw new Error(`seccomp label ${label} is never defined`);
   };
-  const refusedAt = 4 + 3 * target.refusedWhen.length;
-  const allow = refusedAt + target.refused.length;
-  const errno = allow + 1;
-  const kill = allow + 2;
-  const to = (from: number, label: number) => label - from - 1;
-  return Buffer.concat([
-    instruction(LD_ABS_W, 0, 0, 4), // 0: architecture
-    instruction(JEQ_K, 0, to(1, kill), target.audit), // 1: native → 2, otherwise → kill
-    instruction(LD_ABS_W, 0, 0, 0), // 2: syscall number
-    instruction(JGE_K, to(3, kill), 0, X32_SYSCALL_BIT), // 3: x32 → kill
-    ...target.refusedWhen.flatMap(([nr, value], index) => {
-      const at = 4 + 3 * index;
-      return [
-        instruction(JEQ_K, 0, 2, nr), // this syscall → next, otherwise → the next rule
-        instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // the low word of the first argument
-        instruction(JEQ_K, to(at + 2, errno), to(at + 2, allow), value),
-      ];
+  return Buffer.concat(
+    instructions.map((step, index) => {
+      const jump = (label?: Label) => {
+        const offset = label === undefined ? 0 : indexOf(label) - index - 1;
+        if (offset < 0 || offset > 255) throw new Error(`seccomp jump to ${label} at instruction ${index} is out of range`);
+        return offset;
+      };
+      const bytes = Buffer.alloc(8);
+      if (le) bytes.writeUInt16LE(step.code, 0);
+      else bytes.writeUInt16BE(step.code, 0);
+      bytes.writeUInt8(jump(step.jt), 2);
+      bytes.writeUInt8(jump(step.jf), 3);
+      if (le) bytes.writeUInt32LE(step.k >>> 0, 4);
+      else bytes.writeUInt32BE(step.k >>> 0, 4);
+      return bytes;
     }),
-    ...target.refused.map((nr, index) => instruction(JEQ_K, to(refusedAt + index, errno), 0, nr)),
-    instruction(RET_K, 0, 0, SECCOMP_RET_ALLOW), // allow
-    instruction(RET_K, 0, 0, SECCOMP_RET_ERRNO_EPERM), // errno
-    instruction(RET_K, 0, 0, SECCOMP_RET_KILL_PROCESS), // kill
-  ]);
+  );
 }
 
 const quote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`;
