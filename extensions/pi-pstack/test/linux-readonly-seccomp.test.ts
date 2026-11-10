@@ -4,6 +4,7 @@ import { seccompFilter } from '../src/linux-readonly-sandbox.ts';
 const ALLOW = 0x7fff_0000;
 const EPERM = 0x0005_0001;
 const KILL = 0x8000_0000;
+const NOTIFY = 0x7fc0_0000;
 const AF_UNIX = 1;
 const AF_INET = 2;
 const SOCK_STREAM = 1;
@@ -144,4 +145,33 @@ describe.for(kernels)('the $arch seccomp filter', (kernel) => {
 test('the x64 filter kills an x32 syscall', () => {
   const x64 = kernels[0] as Kernel;
   expect(runFilter(seccompFilter('x64'), 'LE', seccompData('LE', x64.audit, X32_SYSCALL_BIT | x64.openat, []))).toBe(KILL);
+});
+
+describe('the s390x brokered seccomp filter', () => {
+  const s390x = kernels.find((kernel) => kernel.arch === 's390x') as Kernel;
+  const decide = (nr: number, args: number[] = [], brokered = true) => runFilter(seccompFilter('s390x', brokered), 'BE', seccompData('BE', s390x.audit, nr, args));
+  const pointer = 0x1000;
+
+  test('sends socketcall creation to the listener and keeps its other calls allowed', () => {
+    expect([decide(SOCKETCALL, [SYS_SOCKET, pointer]), decide(SOCKETCALL, [SYS_SOCKETPAIR, pointer]), decide(SOCKETCALL, [SYS_CONNECT, pointer])]).toEqual([NOTIFY, NOTIFY, ALLOW]);
+  });
+
+  test('decides every direct syscall as the unbrokered filter does', () => {
+    const syscalls = [s390x.socket, s390x.socketpair, s390x.openat, 425, 1, 2, 3];
+    const arguments_ = [
+      [AF_UNIX, SOCK_STREAM, 0],
+      [AF_UNIX, SOCK_DGRAM, 0],
+      [AF_INET, SOCK_DGRAM, 0],
+    ];
+    const differing = syscalls.flatMap((nr) => arguments_.filter((args) => decide(nr, args) !== decide(nr, args, false)).map((args) => [nr, args]));
+    expect(differing).toEqual([]);
+  });
+
+  test('still kills another ABI', () => {
+    expect(runFilter(seccompFilter('s390x', true), 'BE', seccompData('BE', 0x0000_0016, s390x.openat, []))).toBe(KILL);
+  });
+
+  test('is refused for an architecture whose glibc has direct socket syscalls', () => {
+    expect(() => seccompFilter('x64', true)).toThrow('the read-only shell has no socket broker for x64');
+  });
 });
