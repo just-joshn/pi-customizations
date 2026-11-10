@@ -192,6 +192,11 @@ export function planFileContent(sessionId: string, plan: string, todos: readonly
  * name by its conversation; Pi's session ids start with a timestamp, so the 8 characters come from a hash of the id.
  */
 export function savePlan(sessionId: string, plan: string, name: string | undefined, todos: readonly PlanTodo[], dir = plansDir(), project: PlanProject = {}): string {
+  const ids = new Set<string>();
+  for (const todo of [...todos, ...(project.is_project === true ? (project.phases ?? []) : []).flatMap((phase) => phase.todos ?? [])]) {
+    if (ids.has(todo.id)) throw new Error(`Plan todo id "${todo.id}" appears more than once.`);
+    ids.add(todo.id);
+  }
   mkdirSync(dir, { recursive: true, mode: 0o700 });
   const chatKey = createHash('sha256').update(sessionId).digest('hex');
   const path = join(dir, planFileName(name === undefined || name.trim() === '' ? planTitle(plan) : name, chatKey));
@@ -254,7 +259,13 @@ export function planTodos(file: string): PlanListTodo[] {
     if (typeof name !== 'string') throw new Error(`Each plan phase in ${file} must have a name.`);
     phased.push(...todos.map((todo) => ({ ...todo, phase: name })));
   }
-  return [...root, ...phased];
+  const todos = [...root, ...phased];
+  const ids = new Set<string>();
+  for (const todo of todos) {
+    if (ids.has(todo.id)) throw new Error(`Plan todo id "${todo.id}" appears more than once in ${file}.`);
+    ids.add(todo.id);
+  }
+  return todos;
 }
 
 function collectStatusEdits(field: unknown, statuses: ReadonlyMap<string, TodoItem['status']>, source: string, offset: number, api: NonNullable<typeof yaml>, edits: { start: number; end: number; text: string }[]) {

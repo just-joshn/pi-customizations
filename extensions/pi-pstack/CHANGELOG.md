@@ -3,7 +3,7 @@
 ## [0.15.36-pi.37] - 2026-11-10
 
 - Keep a GitHub pull request watch's last snapshot on disk. After the supervisor stops and starts, the next poll wakes the chat for a change that happened while it was down.
-- Building a project plan loads its unfinished phase todos into the session list, and each item keeps its phase name. A later status update writes that status back onto the phase todo in the plan file.
+- Building a project plan loads its unfinished phase todos into the session list. A later status update writes that status back onto the phase todo in the plan file.
 
 ## [0.15.36-pi.36] - 2026-11-10
 

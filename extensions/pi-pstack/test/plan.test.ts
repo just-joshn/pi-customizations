@@ -444,3 +444,17 @@ test('a stored plan path outside the plans folder never reaches a build', async 
   expect(planFromBranch([{ type: 'custom', customType: PLAN_ENTRY, data: { enabled: false, planFile: outside } }], join(dir, 'plans'))).toEqual({ enabled: false });
   expect(planFromBranch([{ type: 'custom', customType: PLAN_ENTRY, data: { enabled: false, planFile: inside } }], join(dir, 'plans'))).toEqual({ enabled: false, planFile: inside });
 });
+
+test('a todo id reused across the root list and a phase is rejected when the plan is saved', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plan-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  expect(() => savePlan('dup', '# Project', undefined, [{ id: 'a', content: 'Root' }], dir, { is_project: true, phases: [{ name: 'First', todos: [{ id: 'a', content: 'Phase' }] }] })).toThrow('Plan todo id "a" appears more than once.');
+});
+
+test('a saved plan file that reuses a todo id fails to load with the id and the file named', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'pstack-plan-'));
+  onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
+  const file = join(dir, 'dup.plan.md');
+  writeFileSync(file, '---\ntodos:\n  - id: a\n    content: Root\nphases:\n  - name: First\n    todos:\n      - id: a\n        content: Phase\n---\n# Project');
+  expect(() => planTodos(file)).toThrow(`Plan todo id "a" appears more than once in ${file}.`);
+});
