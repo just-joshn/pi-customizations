@@ -215,34 +215,51 @@ function planMetadata(file: string) {
   return { source, offset: comment.length + frontmatter[0].indexOf('\n') + 1, document, yaml };
 }
 
-export function planTodos(file: string): TodoItem[] {
-  const metadata = planMetadata(file);
-  if (metadata === undefined) return [];
-  const { isSeq, isMap, isScalar } = metadata.yaml;
-  const field = metadata.document.get('todos');
-  if (field === undefined || field === null) return [];
-  if (!isSeq(field)) throw new Error(`Plan todos in ${file} must be a list.`);
-  return field.items.map((todo) => {
-    if (!isMap(todo)) throw new Error(`Each plan todo in ${file} must have an id, content, and status.`);
-    const id = todo.get('id');
-    const content = todo.get('content');
-    const status = todo.get('status') ?? 'pending';
-    const dependencies = todo.get('dependencies');
-    if (typeof id !== 'string' || typeof content !== 'string' || !(status === 'pending' || status === 'in_progress' || status === 'completed' || status === 'cancelled')) throw new Error(`Invalid plan todo in ${file}.`);
-    if (dependencies !== undefined && (!isSeq(dependencies) || dependencies.items.some((dependency) => !isScalar(dependency) || typeof dependency.value !== 'string'))) throw new Error(`Invalid todo dependencies in ${file}.`);
-    return { id, content, status, ...(isSeq(dependencies) ? { dependencies: dependencies.toJSON() as string[] } : {}) };
-  });
+type PlanListTodo = TodoItem & { phase?: string };
+
+function todoFromNode(file: string, todo: unknown, api: NonNullable<typeof yaml>): TodoItem {
+  const { isMap, isSeq, isScalar } = api;
+  if (!isMap(todo)) throw new Error(`Each plan todo in ${file} must have an id, content, and status.`);
+  const id = todo.get('id');
+  const content = todo.get('content');
+  const status = todo.get('status') ?? 'pending';
+  const dependencies = todo.get('dependencies');
+  if (typeof id !== 'string' || typeof content !== 'string' || !(status === 'pending' || status === 'in_progress' || status === 'completed' || status === 'cancelled')) throw new Error(`Invalid plan todo in ${file}.`);
+  if (dependencies !== undefined && (!isSeq(dependencies) || dependencies.items.some((dependency) => !isScalar(dependency) || typeof dependency.value !== 'string'))) throw new Error(`Invalid todo dependencies in ${file}.`);
+  return { id, content, status, ...(isSeq(dependencies) ? { dependencies: dependencies.toJSON() as string[] } : {}) };
 }
 
-export function syncPlanTodoStatuses(file: string, todos: readonly TodoItem[]): void {
+function todosFromField(file: string, field: unknown, api: NonNullable<typeof yaml>): TodoItem[] {
+  const { isSeq } = api;
+  if (field === undefined || field === null) return [];
+  if (!isSeq(field)) throw new Error(`Plan todos in ${file} must be a list.`);
+  return field.items.map((todo) => todoFromNode(file, todo, api));
+}
+
+/** Root todos, then each phase's todos. A phase todo keeps that phase's name. */
+export function planTodos(file: string): PlanListTodo[] {
   const metadata = planMetadata(file);
-  if (metadata === undefined) return;
-  const { source, offset, document, yaml: parser } = metadata;
-  const { isSeq, isMap, isScalar } = parser;
-  const field = document.get('todos');
+  if (metadata === undefined) return [];
+  const { isMap, isSeq } = metadata.yaml;
+  const root = todosFromField(file, metadata.document.get('todos'), metadata.yaml);
+  const phases = metadata.document.get('phases');
+  if (phases === undefined || phases === null) return root;
+  if (!isSeq(phases)) throw new Error(`Plan phases in ${file} must be a list.`);
+  const phased: PlanListTodo[] = [];
+  for (const phase of phases.items) {
+    if (!isMap(phase)) throw new Error(`Each plan phase in ${file} must have a name.`);
+    const name = phase.get('name');
+    const todos = todosFromField(file, phase.get('todos'), metadata.yaml);
+    if (todos.length === 0) continue;
+    if (typeof name !== 'string') throw new Error(`Each plan phase in ${file} must have a name.`);
+    phased.push(...todos.map((todo) => ({ ...todo, phase: name })));
+  }
+  return [...root, ...phased];
+}
+
+function collectStatusEdits(field: unknown, statuses: ReadonlyMap<string, TodoItem['status']>, source: string, offset: number, api: NonNullable<typeof yaml>, edits: { start: number; end: number; text: string }[]) {
+  const { isSeq, isMap, isScalar } = api;
   if (!isSeq(field)) return;
-  const statuses = new Map(todos.map((todo) => [todo.id, todo.status]));
-  const edits: { start: number; end: number; text: string }[] = [];
   for (const todo of field.items) {
     if (!isMap(todo)) continue;
     const status = statuses.get(String(todo.get('id')));
@@ -259,6 +276,23 @@ export function syncPlanTodoStatuses(file: string, todos: readonly TodoItem[]): 
     if (!isScalar(node) || node.range == null || node.value === status) continue;
     const value = node.type === 'QUOTE_DOUBLE' ? JSON.stringify(status) : node.type === 'QUOTE_SINGLE' ? `'${status}'` : status;
     edits.push({ start: offset + node.range[0], end: offset + node.range[1], text: value });
+  }
+}
+
+export function syncPlanTodoStatuses(file: string, todos: readonly PlanListTodo[]): void {
+  const metadata = planMetadata(file);
+  if (metadata === undefined) return;
+  const { source, offset, document, yaml: parser } = metadata;
+  const { isMap, isSeq } = parser;
+  const statuses = new Map(todos.map((todo) => [todo.id, todo.status]));
+  const edits: { start: number; end: number; text: string }[] = [];
+  collectStatusEdits(document.get('todos'), statuses, source, offset, parser, edits);
+  const phases = document.get('phases');
+  if (isSeq(phases)) {
+    for (const phase of phases.items) {
+      if (!isMap(phase)) continue;
+      collectStatusEdits(phase.get('todos'), statuses, source, offset, parser, edits);
+    }
   }
   if (edits.length === 0) return;
   let updated = source;
