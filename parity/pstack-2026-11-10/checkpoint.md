@@ -174,3 +174,13 @@ Deferred on purpose, to a follow-up with an independent reviewer:
 - Removing the `--policy` string by using the header constants in C. The self-test already catches any disagreement.
 - Moving the broker staging into its own module.
 - The reasons: those edit security-sensitive native code that has had no independent review, they need the binary rebuilt, and none of them changes behavior.
+
+## Update: regression and release gates
+
+Two runs compared the branch with `main` at the same commits in the same environment. The runs were at `448f38e3`, before the structure refactor in `09e7d370`, which was checked separately (byte-identical filters, tests, real s390x run).
+
+- Full pi-pstack suite on Linux arm64: the same 9 tests fail on both trees, and no test fails only on the branch. The branch adds 17 tests, all passing or skipped.
+- Release gates: toolchain, types policy, typecheck, Pi mechanisms, helpers, the OAuth packages, statechart and the TLC test pass on both. `check:netbroker` passes on the branch and does not exist on `main`. The packed tarball installs into a clean prefix with `dist/netbroker-s390x` present, executable, and byte-identical to the committed file.
+- Failing on both trees, so not caused by the branch: `bun run ci` and `check` (12 errors from 6 identical diagnostics in files the branch does not touch), `check:tests` (one `real-wait` error), the 20 Docker-dependent cloud-machine tests, and `node scripts/verify-fresh-install.mjs`.
+- `verify-fresh-install.mjs` fails as written on `main` with `spawnSync git ENOBUFS`, because `git ls-files` output is over the default 1 MB buffer (1,063,761 bytes on the branch, 1,058,978 on `main`). With a larger `maxBuffer` it passes on both. This is a pre-existing bug and is not fixed here.
+- Not run: the macOS 15 CI matrix and the live and parity scripts that need a real Pi or external services.
