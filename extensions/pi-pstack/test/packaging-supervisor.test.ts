@@ -61,13 +61,13 @@ test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('dry-
 });
 
 test.for([
-  ['spaces', 'bad name'],
-  ['an ampersand', 'bad&name'],
-  ['a less-than', 'bad<name'],
-  ['a greater-than', 'bad>name'],
-])('rejects a workspace path that contains $name', ([, name]) => {
+  { name: 'spaces', segment: 'bad name' },
+  { name: 'an ampersand', segment: 'bad&name' },
+  { name: 'a less-than', segment: 'bad<name' },
+  { name: 'a greater-than', segment: 'bad>name' },
+])('rejects a workspace path that contains $name', ({ segment }) => {
   const parent = tempDir('pstack-unit-bad-');
-  const workspace = join(parent, name);
+  const workspace = join(parent, segment);
   mkdirSync(workspace);
   const outdir = tempDir('pstack-unit-bad-out-');
   const result = spawnSync(script, ['--workspace', workspace, '--dry-run', outdir], { encoding: 'utf8' });
