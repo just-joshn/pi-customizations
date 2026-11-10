@@ -59,3 +59,30 @@ test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('dry-
   expect(existsSync(join(home, 'Library', 'LaunchAgents'))).toBe(false);
   expect(existsSync(join(home, '.config', 'systemd', 'user'))).toBe(false);
 });
+
+test.for([
+  ['spaces', 'bad name'],
+  ['an ampersand', 'bad&name'],
+  ['a less-than', 'bad<name'],
+  ['a greater-than', 'bad>name'],
+])('rejects a workspace path that contains $name', ([, name]) => {
+  const parent = tempDir('pstack-unit-bad-');
+  const workspace = join(parent, name);
+  mkdirSync(workspace);
+  const outdir = tempDir('pstack-unit-bad-out-');
+  const result = spawnSync(script, ['--workspace', workspace, '--dry-run', outdir], { encoding: 'utf8' });
+  expect(result.status, result.stderr).toBe(2);
+});
+
+test('rejects a supervisor bin path that contains a space', () => {
+  const parent = tempDir('pstack-unit-bin-');
+  const binDir = join(parent, 'bin dir');
+  mkdirSync(binDir);
+  const bin = join(binDir, 'pstack-routines-supervisor');
+  writeFileSync(bin, '#!/bin/sh\nexit 0\n');
+  chmodSync(bin, 0o755);
+  const workspace = tempDir('pstack-unit-ws2-');
+  const outdir = tempDir('pstack-unit-out2-');
+  const result = spawnSync(script, ['--workspace', workspace, '--bin', bin, '--dry-run', outdir], { encoding: 'utf8' });
+  expect(result.status, result.stderr).toBe(2);
+});

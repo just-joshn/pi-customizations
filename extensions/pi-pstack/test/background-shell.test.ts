@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -146,17 +147,59 @@ describe('background jobs', () => {
     mkdirSync(next);
     const away = realpathSync(next);
     const seen = session.epoch();
+    const reported: string[] = [];
     const job = jobs.start(ctx, {
       command: `printf 'NOT-A-DIRECTORY\\n' >&3; cd ${away} && pwd`,
       cwd: dir,
       title: 'fd3 junk',
       toolCallId: 'call-1',
-      onCwd: (cwd) => session.adoptCwd(seen, cwd),
+      onCwd: (cwd) => {
+        reported.push(cwd);
+        session.adoptCwd(seen, cwd);
+      },
     });
 
     await job.done;
     expect(jobs.output(job).trim()).toBe(away);
+    expect(reported).toContain(away);
+    expect(reported).not.toContain('NOT-A-DIRECTORY');
     expect(session.cwd()).toBe(away);
+  });
+
+  shell('a bash job with no fd 3 reports its directory on stdout and leaves that line out of the output file', async ({ dir }) => {
+    const jobs = createShellJobs(
+      {
+        terminalsDir: () => join(dir, 'remote-terminals'),
+        shellPath: () => '/bin/bash',
+        spawner: {
+          spawn: (command, cwd) => {
+            const child = spawn('/bin/bash', ['-lc', command], { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+            return { child, end: () => child.kill('SIGTERM') };
+          },
+        },
+      },
+      () => undefined,
+    );
+    try {
+      const next = join(dir, 'remote-away');
+      mkdirSync(next);
+      const away = realpathSync(next);
+      const reported: string[] = [];
+      const job = jobs.start(ctx, {
+        command: `echo VISIBLE; cd ${away}; pwd`,
+        cwd: dir,
+        title: 'remote cwd',
+        toolCallId: 'call-1',
+        onCwd: (cwd) => reported.push(cwd),
+      });
+      await job.done;
+      expect(jobs.output(job)).toContain('VISIBLE');
+      expect(jobs.output(job)).toContain(away);
+      expect(jobs.output(job)).not.toContain('cwd:');
+      expect(reported).toContain(away);
+    } finally {
+      jobs.shutdown();
+    }
   });
 
   shell('session shutdown stops a running job and records it aborted without notifying', async ({ dir, jobs, notices }) => {

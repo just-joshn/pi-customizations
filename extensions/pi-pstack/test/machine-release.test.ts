@@ -145,3 +145,38 @@ test('a failed fork leaves a machine running when another live run still uses it
     restoreDockerMocks();
   }
 });
+
+test('a fork whose machine inspect fails before start does not stop the container', async () => {
+  const machine = { ...ownerMachine(), start: 'serve' };
+  writeAgent(owner, machine.cwd, { machine });
+  let inspects = 0;
+  vi.mocked(containerState).mockImplementation(async () => {
+    inspects += 1;
+    if (inspects === 1) throw new Error('inspect failed');
+    return 'running';
+  });
+  try {
+    await expect(forkTask()('call', { description: 'fork it', prompt: 'next task', fork: owner }, undefined, undefined, ctx())).rejects.toThrow('inspect failed');
+    expect(dockerCalls().filter((call) => call[0][0] === 'stop')).toEqual([]);
+    expect(dockerCalls().filter((call) => call[0][0] === 'start')).toEqual([]);
+    expect(lockFiles()).toEqual([]);
+  } finally {
+    restoreDockerMocks();
+  }
+});
+
+test('a failed fork keeps the machine when another lock in this process still names it', async () => {
+  const machine = { ...ownerMachine(), start: 'serve' };
+  writeAgent(owner, machine.cwd, { machine });
+  const other = '44444444-2222-4333-8444-555555555555';
+  const otherLock = acquireRunLock(dir, other, machine.container);
+  onTestFinished(otherLock.release);
+  bootThenFailServices();
+  try {
+    await expect(forkTask()('call', { description: 'fork it', prompt: 'next task', fork: owner }, undefined, undefined, ctx())).rejects.toThrow('services failed');
+    expect(dockerCalls().filter((call) => call[0][0] === 'stop')).toEqual([]);
+    expect(lockFiles()).toContain(`${other}.lock`);
+  } finally {
+    restoreDockerMocks();
+  }
+});

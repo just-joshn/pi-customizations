@@ -149,6 +149,26 @@ test('an environment name with a hyphen still lets the next call see exports and
   await expect(run('echo "a=$PSTACK_A"; pstack_fn', { env })).resolves.toEqual({ exitCode: 0, output: 'a=1\nkept\n' });
 });
 
+test('a cd function does not stop the next command from restoring the directory', async ({ run }) => {
+  await run('cd /usr && cd() { echo hijacked; return 1; }');
+
+  await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: '/usr\n' });
+});
+
+test('a foreground command that stays put still accepts a directory captured before it', async ({ dir, shell, run }) => {
+  await run('pwd');
+  const seen = shell.epoch();
+  const next = join(dir, 'away');
+  mkdirSync(next);
+  const away = realpathSync(next);
+
+  await run('echo still');
+  shell.adoptCwd(seen, away);
+
+  expect(shell.cwd()).toBe(away);
+  await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${away}\n` });
+});
+
 test('a function defined in one call runs in the next, including quotes and newlines in its body', async ({ run }) => {
   await run(`pstack_fn() { printf '%s' "it's\nstill"; }`);
 
@@ -208,6 +228,28 @@ const alive = (pid: number) => {
 };
 
 const local = createLocalBashOperations({ shellPath: '/bin/bash' });
+
+test('a shell that does not read the host pid leaves the directory unchanged when a command moves to the background', async ({ dir }) => {
+  const shell = createSessionShell({ hostPidCwd: false });
+  const to = handover();
+  onTestFinished(() => {
+    const pid = to.moved[0]?.pid;
+    if (pid === undefined) return;
+    try {
+      process.kill(-pid, 'SIGKILL');
+    } catch {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        // The command already exited.
+      }
+    }
+  });
+  const moving = shell.operations(local, to.take).exec(shell.script('cd /usr; echo moved; sleep 30'), dir, { onData: () => {}, timeout: 0.4 });
+
+  await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+  expect(shell.cwd()).toBeUndefined();
+});
 
 describe('a timeout with somewhere to move the command', () => {
   test('hands over the still-running command with its process and output so far, keeps the directory it reached, and keeps none of its variables', async ({ dir, shell, run }) => {

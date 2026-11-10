@@ -142,6 +142,10 @@ describe('cloud machine path accuracy (C1)', () => {
     expect(host).toContain('/state/store/root');
     expect(host).toContain('- Skill folders: project `.pi/skills/` on this machine. Personal skills stay on the parent host; use <SKILLS> and attached <skill> blocks instead of reading a personal path.');
     expect(host).toContain('- The model rule content for this session is in <pstack_models>. The rule file itself stays on the parent host and is not on this machine.');
-    expect(host).toContain('Background shells: bash_background runs a command in the background');
+    expect(host).toContain('Pi session files and subagent transcripts for this workspace live on the parent host, not on this machine.');
+    expect(host).toContain("This chat has a transcript on the parent host (not a path on this machine).");
+    expect(host).toContain('"The current agent\'s store" stays on the parent host for this cloud session.');
+    expect(host).toContain('Files a tool makes for the user, such as visualize charts, stay on the parent host and are not on this machine.');
+    expect(host).toContain('Its output file stays on the parent host and is not on this machine.');
   });
 });
