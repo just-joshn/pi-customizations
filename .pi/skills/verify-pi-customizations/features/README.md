@@ -4,7 +4,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 
 ## Baseline preconditions
 
-- Ensure Node.js `>= 22.19.0` and `pi` CLI `1.5.0` are installed and available on `PATH`.
+- Ensure Node.js `>= 22.21.0` and `pi` CLI `1.5.0` are installed and available on `PATH`.
 - Run `./.pi/skills/verify-pi-customizations/bin/control-pi doctor` to verify environment readiness.
 - `control-pi` creates a disposable scratch directory and sets `PI_CODING_AGENT_DIR` for each Pi process it starts. Do not set it manually for driver runs.
 - Never drive an instance not started by the verification run.
@@ -35,6 +35,6 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 ## Features
 
-- [Pstack command surface](./pstack-commands.md) covers the `/mode`, `/loop`, `/plan`, and `/routines` commands, the pstack skill commands, and the bare `/mode` report.
+- [Pstack command surface](./pstack-commands.md) covers the `/mode`, `/loop`, `/plan`, `/routines`, `/automations`, `/project`, `/in-cloud`, and `/secret` commands, the pstack skill commands, and the bare `/mode` report.
 - [Poteto mode](./poteto-mode.md) covers `/mode` on/off changes, UI notifications, the footer status, and branch state entries.
-- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, and Grok Build, and the `/antigravity` account command.
+- [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, Grok Build, and Cursor, and the `/antigravity` and `/usage` commands.

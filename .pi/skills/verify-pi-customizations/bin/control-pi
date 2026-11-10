@@ -34,10 +34,10 @@ function parseArgs(args) {
   return options;
 }
 
-function createRpcSession(packagePath, cwd) {
+function createRpcSession(packagePath, cwd, env = process.env) {
   const child = spawn('pi', ['--mode', 'rpc', '--no-session', '--no-extensions', '-e', packagePath], {
     cwd,
-    env: { ...process.env, PI_CODING_AGENT_DIR: cwd },
+    env: { ...env, PI_CODING_AGENT_DIR: cwd },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
@@ -172,9 +172,9 @@ async function runDoctor() {
   // 1. Check Node.js engine
   const nodeVersion = process.versions.node;
   const [major, minor] = nodeVersion.split('.').map(Number);
-  const nodeOk = major > 22 || (major === 22 && minor >= 19);
-  assert.ok(nodeOk, `Node.js >= 22.19.0 required, current is ${nodeVersion}`);
-  process.stdout.write(`✓ Node.js ${nodeVersion} (>= 22.19.0)\n`);
+  const nodeOk = major > 22 || (major === 22 && minor >= 21);
+  assert.ok(nodeOk, `Node.js >= 22.21.0 required, current is ${nodeVersion}`);
+  process.stdout.write(`✓ Node.js ${nodeVersion} (>= 22.21.0)\n`);
 
   // 2. Check pi executable on PATH
   let piVersion = '';
@@ -223,7 +223,7 @@ async function drivePstackCommands(artifactDir) {
       // 1. Extension surface: /mode, /loop, /plan, and /routines are registered, pstack skills are loadable.
       const res = await session.send({ type: 'get_commands' });
       const names = res.commands.map((c) => c.name);
-      for (const expected of ['mode', 'loop', 'plan', 'routines']) {
+      for (const expected of ['mode', 'loop', 'plan', 'routines', 'automations', 'project', 'in-cloud', 'secret']) {
         assert.ok(names.includes(expected), `Expected extension command /${expected} not registered`);
       }
       for (const expected of ['skill:poteto-mode', 'skill:setup-pstack', 'skill:poteto-help']) {
@@ -308,40 +308,59 @@ async function driveOauthProviders(artifactDir) {
       'claude-subscription': credential,
       'google-antigravity': { ...credential, projectId: 'fixture-project', email: 'fixture@example.com' },
       'grok-build': credential,
+      cursor: credential,
     };
     await writeFile(join(scratchDir, 'auth.json'), JSON.stringify(auth), { mode: 0o600 });
 
+    const env = Object.fromEntries(
+      ['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL', 'SSL_CERT_FILE', 'SSL_CERT_DIR']
+        .filter((key) => process.env[key] !== undefined)
+        .map((key) => [key, process.env[key]]),
+    );
     const claudePkg = join(REPO_ROOT, 'extensions/pi-anthropic-oauth');
+    await runDoctor();
     const claudeOutput = execFileSync('pi', ['--no-extensions', '-e', claudePkg, '--list-models', 'claude-subscription'], {
       cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
+      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
       encoding: 'utf8',
     });
     assert.match(claudeOutput, /claude-subscription\s+claude-opus/, 'Expected claude-subscription models not found');
 
     const antigravityPkg = join(REPO_ROOT, 'extensions/pi-antigravity-oauth');
+    await runDoctor();
     const antigravityOutput = execFileSync('pi', ['--no-extensions', '-e', antigravityPkg, '--list-models', 'google-antigravity'], {
       cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
+      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
       encoding: 'utf8',
     });
     assert.match(antigravityOutput, /google-antigravity\s+gemini-/, 'Expected google-antigravity models not found');
 
     const grokPkg = join(REPO_ROOT, 'extensions/pi-x-subscription-oauth');
+    await runDoctor();
     const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
       cwd: scratchDir,
-      env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },
+      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
       encoding: 'utf8',
     });
     assert.match(grokOutput, /grok-build\s+grok-4\.7-build-fast/, 'Expected grok-build models not found');
 
+    await runDoctor();
+    const cursorOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'cursor'], {
+      cwd: scratchDir,
+      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
+      encoding: 'utf8',
+    });
+    assert.match(cursorOutput, /cursor\s+composer-2\.5/, 'Expected Cursor models not found');
+
+    await writeFile(join(outDir, 'cursor-models.txt'), cursorOutput, 'utf8');
     await writeFile(join(outDir, 'claude-models.txt'), claudeOutput, 'utf8');
     await writeFile(join(outDir, 'antigravity-models.txt'), antigravityOutput, 'utf8');
     await writeFile(join(outDir, 'grok-build-models.txt'), grokOutput, 'utf8');
 
     const loggedOutDir = join(scratchDir, 'logged-out');
     await mkdir(loggedOutDir);
-    const session = createRpcSession(antigravityPkg, loggedOutDir);
+    await runDoctor();
+    const session = createRpcSession(antigravityPkg, loggedOutDir, env);
     try {
       const res = await session.send({ type: 'get_commands' });
       assert.ok(res.commands.some((c) => c.name === 'antigravity'), 'Expected extension command /antigravity not registered');
@@ -353,6 +372,20 @@ async function driveOauthProviders(artifactDir) {
       await writeFile(join(outDir, 'antigravity-command.json'), `${JSON.stringify({ notifications: session.notifications }, null, 2)}\n`, 'utf8');
     } finally {
       await session.close();
+    }
+    await runDoctor();
+    const usageSession = createRpcSession(grokPkg, loggedOutDir, env);
+    try {
+      const res = await usageSession.send({ type: 'get_commands' });
+      assert.ok(res.commands.some((c) => c.name === 'usage'), 'Expected extension command /usage not registered');
+      await usageSession.send({ type: 'prompt', message: '/usage' });
+      assert.ok(
+        usageSession.notifications.some((n) => n.notifyType === 'error' && n.message === 'Grok Build is not logged in. Run /login and choose Grok Build.'),
+        'Expected /usage logged-out error notification not observed',
+      );
+      await writeFile(join(outDir, 'usage-command.json'), `${JSON.stringify({ notifications: usageSession.notifications }, null, 2)}\n`, 'utf8');
+    } finally {
+      await usageSession.close();
     }
     process.stdout.write(`✓ Captured OAuth provider model registration evidence in ${outDir}\n`);
   } finally {
