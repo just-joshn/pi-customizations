@@ -53,10 +53,11 @@ publish).
 
 ### Bootstrap a new package name
 
-1. Create a repository secret `NPM_TOKEN` that is an npm **Automation**
-   token (or a granular token that can publish without a one-time password)
-   with publish rights for the `@justjoshn` scope. A classic publish token
-   that still requires 2FA fails CI with `EOTP`. See Token fallback below.
+1. Create a repository secret `NPM_TOKEN` from an npm **granular access
+   token** with **Bypass two-factor authentication** checked and **Read and
+   write (publish and stage)** on the `@justjoshn` scope (or the new
+   package). Classic "Automation" tokens were removed in November 2025. A
+   token without Bypass 2FA fails CI with `EOTP`. See Token fallback below.
 2. Re-run `release.yml` on `main` (`workflow_dispatch`, or re-run the failed
    job). The current `package.json` version publishes and gets its git tag.
    Intermediate versions that never got a tag are skipped.
@@ -83,10 +84,10 @@ lists the failures.
 ## Token fallback
 
 If you would rather use a token, create a repository secret named
-`NPM_TOKEN`. Use an npm **Automation** token, or a granular token that is
-allowed to publish without interactive 2FA. The workflow then appends the
-documented auth line to the npm userconfig and publishes with
-`npm publish --provenance --access public`
+`NPM_TOKEN` from a granular access token with Bypass 2FA enabled
+(<https://docs.npmjs.com/creating-and-viewing-access-tokens/>). The workflow
+then appends the documented auth line to the npm userconfig and publishes
+with `npm publish --provenance --access public`
 (<https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages>).
 A token that still demands a one-time password fails the runner with
 `EOTP`. Trusted publishing is still the recommended end state: tokens
@@ -110,9 +111,10 @@ already passed means the runner had no publishing identity. Common causes:
    copy into CI.
 
 **`npm error EOTP` / `requires a one-time password`** means `NPM_TOKEN` was
-present but cannot publish non-interactively. Replace it with an Automation
-token (or finish Trusted Publishing and delete the secret so the workflow
-uses OIDC). Re-running with the same 2FA-bound token fails the same way.
+present but cannot publish non-interactively. Replace it with a granular
+token that has **Bypass two-factor authentication** checked (or finish
+Trusted Publishing and delete the secret so the workflow uses OIDC).
+Re-running with the same 2FA-bound token fails the same way.
 
 **`npm error 404 Not Found - PUT https://registry.npmjs.org/...`** is the
 same class of failure when the registry rejects the publish as unauthorized.
