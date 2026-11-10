@@ -1,0 +1,106 @@
+{"cursor-team-kit:absent":2,"cursor-team-kit:changed":5,"cursor-team-kit:identical":22,"pstack:absent":4,"pstack:changed":70,"pstack:identical":499}
+absent	0	cursor-team-kit/.cursor-plugin/plugin.json
+changed	2	cursor-team-kit/LICENSE
+changed	123	cursor-team-kit/README.md
+changed	4	cursor-team-kit/agents/thermo-nuclear-code-quality-review.md
+absent	0	cursor-team-kit/assets/avatar.png
+changed	2	cursor-team-kit/skills/pr-review-canvas/SKILL.md
+changed	2	cursor-team-kit/skills/workflow-from-chats/SKILL.md
+absent	0	pstack/.cursor-plugin/plugin.json
+absent	0	pstack/.gitignore
+changed	2	pstack/LICENSE
+changed	333	pstack/README.md
+changed	2	pstack/agents/poteto-agent.md
+changed	28	pstack/automations/benny/FOR_AGENTS.md
+changed	18	pstack/automations/benny/README.md
+changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md
+changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md
+changed	2	pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md
+changed	64	pstack/automations/benny/skills/setup-benny/SKILL.md
+changed	2	pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md
+changed	6	pstack/automations/benny/templates/configuration.example.yaml
+changed	4	pstack/automations/benny/templates/reproduce-automation-prompt.md
+changed	4	pstack/automations/benny/templates/triage-automation-prompt.md
+changed	25	pstack/docs/guide/01-setup.md
+changed	4	pstack/docs/guide/02-poteto-mode.md
+changed	2	pstack/docs/guide/05-build-and-clean.md
+changed	2	pstack/docs/guide/06-verify-and-ship.md
+changed	8	pstack/docs/guide/07-overnight.md
+changed	8	pstack/docs/guide/09-make-it-yours.md
+changed	2	pstack/docs/guide/10-recipes-and-pitfalls.md
+changed	2	pstack/docs/guide/README.md
+absent	0	pstack/docs/harness/claude-code.md
+absent	0	pstack/plugin.json
+changed	2	pstack/skills/architect/SKILL.md
+changed	4	pstack/skills/arena/SKILL.md
+changed	10	pstack/skills/automate-me/SKILL.md
+changed	6	pstack/skills/create-verification-skill/SKILL.md
+changed	0	pstack/skills/figure-it-out/SKILL.md
+changed	2	pstack/skills/how/SKILL.md
+changed	2	pstack/skills/how/references/explainer-prompt.md
+changed	4	pstack/skills/ketchup-video/SKILL.md
+changed	4	pstack/skills/ketchup/SKILL.md
+changed	2	pstack/skills/maintain-verification-skill/SKILL.md
+changed	45	pstack/skills/make-bot-ui/SKILL.md
+changed	2	pstack/skills/no-comments/SKILL.md
+changed	28	pstack/skills/poteto-help/SKILL.md
+changed	9	pstack/skills/poteto-mode/SKILL.md
+changed	2	pstack/skills/poteto-mode/playbooks/authoring-a-skill.md
+changed	2	pstack/skills/poteto-mode/playbooks/autonomous-run.md
+changed	8	pstack/skills/poteto-mode/playbooks/autopilot-full.md
+changed	2	pstack/skills/poteto-mode/playbooks/babysit.md
+changed	6	pstack/skills/poteto-mode/playbooks/bug-fix.md
+changed	4	pstack/skills/poteto-mode/playbooks/eval.md
+changed	2	pstack/skills/poteto-mode/playbooks/feature.md
+changed	2	pstack/skills/poteto-mode/playbooks/hillclimb.md
+changed	24	pstack/skills/poteto-mode/playbooks/multi-phase-plan.md
+changed	2	pstack/skills/poteto-mode/playbooks/opening-a-pr.md
+changed	2	pstack/skills/poteto-mode/playbooks/orchestrate.md
+changed	2	pstack/skills/poteto-mode/playbooks/perf-issue.md
+changed	2	pstack/skills/poteto-mode/playbooks/refactoring.md
+changed	2	pstack/skills/poteto-mode/playbooks/runtime-forensics.md
+changed	2	pstack/skills/poteto-mode/playbooks/session-pickup.md
+changed	2	pstack/skills/poteto-mode/playbooks/shipping.md
+changed	2	pstack/skills/poteto-mode/playbooks/trace-forensics.md
+changed	8	pstack/skills/poteto-mode/playbooks/worktree-cleanup.md
+changed	0	pstack/skills/poteto-mode/scripts/bun.lock
+changed	2	pstack/skills/poteto-mode/scripts/package.json
+changed	32	pstack/skills/poteto-mode/scripts/worktree-audit.sh
+changed	4	pstack/skills/recall/SKILL.md
+changed	20	pstack/skills/reflect/SKILL.md
+changed	2	pstack/skills/reflect/references/divergent-reviewer.md
+changed	2	pstack/skills/reflect/references/judgment-reviewer.md
+changed	2	pstack/skills/reflect/references/tooling-reviewer.md
+changed	56	pstack/skills/setup-pstack/SKILL.md
+changed	4	pstack/skills/show-me-your-work/SKILL.md
+changed	2	pstack/skills/statechart/scripts/package.json
+changed	2	pstack/skills/statechart/scripts/statechart
+changed	7	pstack/skills/statechart/scripts/statechart.ts
+changed	17	pstack/skills/statechart/scripts/test/cli.test.ts
+changed	2	pstack/skills/swarm/SKILL.md
+changed	3	pstack/skills/typescript-best-practices/SKILL.md
+changed	10	pstack/skills/why/SKILL.md
+extra (23):
+  CHANGELOG.md
+  bin/pstack-routines-supervisor
+  bin/pstack-routines-supervisor.mjs
+  dist/release-machine.js
+  dist/supervisor-main.js
+  docs/native-gaps.md
+  docs/parity-reverse-engineering.md
+  docs/parity-status.md
+  licenses/cursor-team-kit.LICENSE
+  licenses/pstack.LICENSE
+  package.json
+  packaging/install-supervisor-unit.sh
+  packaging/launchd/com.pstack.routines-supervisor.plist.example
+  packaging/systemd/pstack-routines-supervisor.service.example
+  scripts/build-helpers.mjs
+  scripts/live-e2e.mjs
+  skills/.npmignore
+  skills/automate/SKILL.md
+  skills/create-skill/SKILL.md
+  skills/statechart/scripts/statechart.js
+  skills/statechart/scripts/worker.js
+  tsconfig.json
+  vitest.config.ts

@@ -61,6 +61,43 @@ test("a subagent's shell starts fresh, not where the parent's shell is", async (
   expect(toolEnds(run.events, 'Task')[0]?.text).toContain(`RESULTS:\n[bash] ${box.workDir}\nprobe=\n`);
 });
 
+test('a function defined in one bash call runs in the next', async () => {
+  const run = await runJson(sandbox(), script([{ tool: 'bash', args: { command: `pstack_fn() { printf '%s' "it's"; }` } }, { tool: 'bash', args: { command: 'pstack_fn' } }]), ['--no-session']);
+
+  expect(toolEnds(run.events, 'bash').map((end) => [end.isError, end.text])).toEqual([
+    [false, '(no output)'],
+    [false, "it's"],
+  ]);
+});
+
+test('a background command that changes directory leaves that directory for the next bash call', async () => {
+  const run = await runJson(
+    sandbox(),
+    script([
+      { tool: 'bash', args: { command: 'cd /tmp' } },
+      { tool: 'bash_background', args: { command: 'cd /usr', block_until_ms: 10_000 } },
+      { tool: 'bash', args: { command: 'pwd' } },
+    ]),
+    ['--no-session'],
+  );
+
+  expect(toolEnds(run.events, 'bash').map((end) => end.text)).toEqual(['(no output)', '/usr\n']);
+});
+
+test('a bash command moved to the background keeps the directory it reached', async () => {
+  const run = await runJson(
+    sandbox(),
+    script([
+      { tool: 'bash', args: { command: 'cd /tmp' } },
+      { tool: 'bash', args: { command: 'cd /usr && sleep 30', timeout: 1 } },
+      { tool: 'bash', args: { command: 'pwd' } },
+    ]),
+    ['--no-session'],
+  );
+
+  expect(toolEnds(run.events, 'bash').at(-1)?.text).toBe('/usr\n');
+});
+
 test('bash_background starts where the shell is, with its exported variables', async () => {
   const run = await runJson(sandbox(), script([SET, { tool: 'bash_background', args: { command: 'pwd; echo "probe=$PSTACK_PROBE"', block_until_ms: 10_000 } }]), ['--no-session']);
 

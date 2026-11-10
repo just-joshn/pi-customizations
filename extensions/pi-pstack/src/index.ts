@@ -69,9 +69,10 @@ async function hostSections(pi: ExtensionAPI, ctx: ExtensionContext, agents: rea
       questionsAvailable: canAsk(ctx),
       activeTools,
       cloud,
+      onCloudMachine: childIdentity.machine !== undefined,
     }),
     ...(activeTools.includes('Task') ? { pstack_subagents: subagentsSection(agents, availableModels(ctx), parentModel(ctx)) } : {}),
-    ...(rule.inScope ? { pstack_models: modelsSection(rule.text, rulePath()) } : {}),
+    ...(rule.inScope ? { pstack_models: modelsSection(rule.text, childIdentity.machine !== undefined ? '<pstack_models>' : rulePath()) } : {}),
     ...agentSection(agents),
   };
 }
@@ -113,7 +114,7 @@ export default function piPstack(pi: ExtensionAPI): void {
   // A cloud agent on a container machine runs every tool there; its own Pi process stays on the host.
   const machine = childIdentity.machine === undefined ? undefined : parseMachine(childIdentity.machine);
   // One shell per session: Pi builds a new runtime, and so a new shell, on a new, resumed, or forked session.
-  const shell = createSessionShell();
+  const shell = createSessionShell({ hostPidCwd: machine === undefined });
   // A bash call whose timeout elapses moves to the background shells. The read-only shells of a local readonly agent
   // and of plan mode have none to move to, so their commands still stop.
   const background: Background = (ctx, call, moved) => shells?.adopt(ctx, call, moved);

@@ -25,6 +25,7 @@ const facts = (activeTools: readonly string[], extra: Partial<HostFacts> = {}): 
   questionsAvailable: true,
   activeTools,
   cloud: { driver: 'container', reason: 'container engine 29.8.2' },
+  onCloudMachine: false,
   ...extra,
 });
 
@@ -107,5 +108,44 @@ describe("today's date", () => {
   test("states the local date the way Cursor's user info does", () => {
     expect(todayText(new Date(2026, 10, 4, 23, 59))).toBe('Wednesday Nov 4, 2026');
     expect(hostSection(facts(ALL_TOOLS)).split('\n')[0]).toBe("pstack runs here through the pi-pstack package at /pkg. Today's date: Wednesday Nov 4, 2026.");
+  });
+});
+
+describe('cloud machine path accuracy (C1)', () => {
+  test('a local session still names personal skills and the model rule file', () => {
+    const host = hostSection(facts(ALL_TOOLS));
+    expect(host).toContain('- Skill folders: project `.pi/skills/`, personal `/agent/skills/`.');
+    expect(host).toContain('- The model rule is /agent/pstack/pstack-models.md. The content this session started with is in <pstack_models>.');
+  });
+
+  test('a cloud-machine session does not name host-only personal skills or the model rule path as readable files', () => {
+    const host = hostSection(
+      facts([...ALL_TOOLS, 'bash_background'], {
+        onCloudMachine: true,
+        sessionFile: '/agent/sessions/w/chat.jsonl',
+        sessionDir: '/agent/sessions/w',
+        subagentDir: '/host-only/subagents',
+        storeDir: '/host-only/store/child',
+        rootStoreDir: '/state/store/root',
+        artifactsDir: '/host-only/artifacts/s',
+        terminalsDir: '/host-only/terminals',
+      }),
+    );
+    expect(host).not.toContain('/agent/skills/');
+    expect(host).not.toContain('/agent/pstack/pstack-models.md');
+    expect(host).not.toContain('/agent/sessions/w');
+    expect(host).not.toContain('/host-only/subagents');
+    expect(host).not.toContain('/host-only/store/child');
+    expect(host).not.toContain('/host-only/artifacts/s');
+    expect(host).not.toContain('/host-only/terminals');
+    expect(host).toContain('/state/projects');
+    expect(host).toContain('/state/store/root');
+    expect(host).toContain('- Skill folders: project `.pi/skills/` on this machine. Personal skills stay on the parent host; use <SKILLS> and attached <skill> blocks instead of reading a personal path.');
+    expect(host).toContain('- The model rule content for this session is in <pstack_models>. The rule file itself stays on the parent host and is not on this machine.');
+    expect(host).toContain('Pi session files and subagent transcripts for this workspace live on the parent host, not on this machine.');
+    expect(host).toContain("This chat has a transcript on the parent host (not a path on this machine).");
+    expect(host).toContain('"The current agent\'s store" stays on the parent host for this cloud session.');
+    expect(host).toContain('Files a tool makes for the user, such as visualize charts, stay on the parent host and are not on this machine.');
+    expect(host).toContain('Its output file stays on the parent host and is not on this machine.');
   });
 });

@@ -4,7 +4,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { closeSync, existsSync, fstatSync, mkdirSync, openSync, readSync, statSync, writeSync } from 'node:fs';
 import { constants } from 'node:os';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { StringDecoder } from 'node:string_decoder';
 
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
@@ -181,16 +181,18 @@ function signalGroupId(pid: number, signal: NodeJS.Signals): void {
   }
 }
 
+/** Resolves `full` when the timer fires, `early` when the signal aborts. Do not infer that from Date.now(); timers can wake a few ms early. */
 const sleep = (ms: number, signal: AbortSignal | undefined) =>
-  new Promise<void>((done) => {
-    if (signal?.aborted === true) return done();
-    const timer = setTimeout(finish, ms);
-    function finish() {
+  new Promise<'full' | 'early'>((done) => {
+    if (signal?.aborted === true) return done('early');
+    const timer = setTimeout(() => finish('full'), ms);
+    function finish(reason: 'full' | 'early') {
       clearTimeout(timer);
-      signal?.removeEventListener('abort', finish);
-      done();
+      signal?.removeEventListener('abort', onAbort);
+      done(reason);
     }
-    signal?.addEventListener('abort', finish, { once: true });
+    const onAbort = () => finish('early');
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 
 /** Runs a job somewhere other than this host: the child is the local process that carries its output, and `end` stops the job where it runs. */
@@ -216,6 +218,33 @@ interface JobRequest {
 export interface StartRequest extends JobRequest {
   /** Shell lines that run before the command, such as the session shell's exports; the job header shows only the command. */
   setup?: string;
+  /** Called with the job's working directory as it changes, and again when the job exits. Bash jobs only. */
+  onCwd?: (cwd: string) => void;
+}
+
+function bashCwdScript(setup: string, command: string): string {
+  return [
+    `__pstack_note_cwd() { if { true >&3; } 2>/dev/null; then builtin printf 'cwd:%s\\n' "$PWD" >&3; else builtin printf 'cwd:%s\\n' "$PWD"; fi; }`,
+    `trap '__pstack_note_cwd' DEBUG`,
+    setup,
+    command,
+    '{ __pstack_status=$?; set +eux; trap - DEBUG; } 2>/dev/null',
+    `__pstack_note_cwd`,
+    'builtin exit $__pstack_status',
+  ].join('\n');
+}
+
+/** Pulls harness `cwd:` lines out of a chunk for onCwd and returns the rest for the job log. */
+function takeCwdLines(pending: string, chunk: string, onCwd: ((cwd: string) => void) | undefined): { pending: string; text: string } {
+  let held = pending + chunk;
+  let text = '';
+  for (let at = held.indexOf('\n'); at !== -1; at = held.indexOf('\n')) {
+    const line = held.slice(0, at);
+    held = held.slice(at + 1);
+    if (line.startsWith('cwd:')) onCwd?.(line.slice(4));
+    else text += `${line}\n`;
+  }
+  return { pending: held, text };
 }
 
 /** A job's title when the call gives no description: the command's first line. */
@@ -351,9 +380,11 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
   const start = (ctx: ExtensionContext, request: StartRequest): ShellJob => {
     if (options.spawner === undefined && (!existsSync(request.cwd) || !statSync(request.cwd).isDirectory())) throw new Error(`Working directory ${request.cwd} does not exist.`);
     const prepared = prepare(ctx, request);
-    const run = `${request.setup ?? ''}${request.command}`;
-    const remote = options.spawner?.spawn(run, request.cwd);
     const config = getShellConfig(options.shellPath());
+    const reportCwd = /^bash(\.exe)?$/i.test(basename(config.shell));
+    const cwdOnFd3 = reportCwd && options.spawner === undefined;
+    const run = reportCwd ? bashCwdScript(request.setup ?? '', request.command) : `${request.setup ?? ''}${request.command}`;
+    const remote = options.spawner?.spawn(run, request.cwd);
     const viaStdin = remote === undefined && config.commandTransport === 'stdin';
     const child =
       remote?.child ??
@@ -361,9 +392,22 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
         cwd: request.cwd,
         env: sessionEnv(ctx),
         detached: process.platform !== 'win32',
-        stdio: [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
+        stdio: cwdOnFd3 ? [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe', 'pipe'] : [viaStdin ? 'pipe' : 'ignore', 'pipe', 'pipe'],
         windowsHide: true,
       });
+    const cwdStream = cwdOnFd3 ? child.stdio[3] : undefined;
+    if (cwdStream !== undefined && cwdStream !== null && 'setEncoding' in cwdStream) {
+      let pending = '';
+      cwdStream.setEncoding('utf8');
+      cwdStream.on('data', (chunk: string) => {
+        pending += chunk;
+        for (let at = pending.indexOf('\n'); at !== -1; at = pending.indexOf('\n')) {
+          const line = pending.slice(0, at);
+          pending = pending.slice(at + 1);
+          if (line.startsWith('cwd:')) request.onCwd?.(line.slice(4));
+        }
+      });
+    }
     let spawnError: Error | undefined;
     child.once('error', (error) => {
       spawnError = error;
@@ -376,11 +420,28 @@ export function createShellJobs(options: ShellJobsOptions, deliver: (notice: She
       signalGroupId(pid, signal);
     };
     const job = track(request, prepared, { pid, startedAt: Date.now(), end });
+    let cwdPending = '';
     for (const stream of [child.stdout, child.stderr]) {
       if (stream === null) continue;
       const decoder = new StringDecoder('utf8');
-      stream.on('data', (chunk: Buffer) => receive(job, decoder.write(chunk)));
-      stream.on('end', () => receive(job, decoder.end()));
+      // The docker child has no fd 3, so bash prints `cwd:` on stdout. Stderr stays intact.
+      const stripCwd = reportCwd && !cwdOnFd3 && stream === child.stdout;
+      stream.on('data', (chunk: Buffer) => {
+        const text = decoder.write(chunk);
+        if (!stripCwd) return receive(job, text);
+        const taken = takeCwdLines(cwdPending, text, request.onCwd);
+        cwdPending = taken.pending;
+        if (taken.text !== '') receive(job, taken.text);
+      });
+      stream.on('end', () => {
+        const rest = decoder.end();
+        if (!stripCwd) return receive(job, rest);
+        const taken = takeCwdLines(cwdPending, rest, request.onCwd);
+        cwdPending = '';
+        if (taken.pending.startsWith('cwd:')) request.onCwd?.(taken.pending.slice(4));
+        else if (taken.pending !== '') receive(job, taken.pending);
+        if (taken.text !== '') receive(job, taken.text);
+      });
     }
     child.on('error', (error) => {
       if (job.status === 'running') append(job, `${error.message}\n`);
@@ -666,12 +727,14 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       const cwd = params.working_directory === undefined || params.working_directory.trim() === '' ? base : resolve(base, params.working_directory);
       const title = titleOf(params.command, params.description);
       const watch = params.notify_on_output;
+      const seen = options.shell.epoch();
       const job = jobs.start(ctx, {
         command: params.command,
         setup: options.shell.exports(),
         cwd,
         title,
         toolCallId,
+        onCwd: (next) => options.shell.adoptCwd(seen, next),
         ...(watch === undefined ? {} : { watch: { pattern: watch.pattern, reason: watch.reason, ...(watch.debounce_ms === undefined ? {} : { debounceMs: watch.debounce_ms }) } }),
       });
       const blockMs = clampWait(params.block_until_ms, 0);
@@ -705,8 +768,9 @@ export function registerBackgroundShell(pi: ExtensionAPI, options: BackgroundShe
       if (shellId === undefined || shellId === '') {
         if (waitMs === 0) throw new Error('Invalid arguments:\nshell_id: Required when block_until_ms is 0. Without shell_id there is nothing to check: pass the shell_id to check, or a nonzero block_until_ms to sleep.');
         const started = Date.now();
-        await sleep(waitMs, signal);
-        return { content: [{ type: 'text', text: `Slept for ${seconds(Date.now() - started >= waitMs ? waitMs : Date.now() - started)}.` }], details: { sleptMs: Date.now() - started } };
+        const finished = await sleep(waitMs, signal);
+        const sleptMs = finished === 'full' ? waitMs : Date.now() - started;
+        return { content: [{ type: 'text', text: `Slept for ${seconds(sleptMs)}.` }], details: { sleptMs } };
       }
       const text = await jobs.awaitJob(shellId, waitMs, params.pattern, signal);
       return { content: [{ type: 'text', text }], details: { shellId } };

@@ -142,6 +142,48 @@ test('a state record split across output chunks is still read and hidden', async
   expect(output).toBe('before\n/usr\n');
 });
 
+test('an environment name with a hyphen still lets the next call see exports and functions', async ({ run }) => {
+  const env = { PATH: process.env['PATH'] ?? '/usr/bin:/bin', 'npm_package_bin_pstack-routines-supervisor': '/tmp/bin' };
+
+  await expect(run('export PSTACK_A=1; pstack_fn() { echo kept; }', { env })).resolves.toEqual({ exitCode: 0, output: '' });
+  await expect(run('echo "a=$PSTACK_A"; pstack_fn', { env })).resolves.toEqual({ exitCode: 0, output: 'a=1\nkept\n' });
+});
+
+test('a cd function does not stop the next command from restoring the directory', async ({ run }) => {
+  await run('cd /usr && cd() { echo hijacked; return 1; }');
+
+  await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: '/usr\n' });
+});
+
+test('a foreground command that stays put still accepts a directory captured before it', async ({ dir, shell, run }) => {
+  await run('pwd');
+  const seen = shell.epoch();
+  const next = join(dir, 'away');
+  mkdirSync(next);
+  const away = realpathSync(next);
+
+  await run('echo still');
+  shell.adoptCwd(seen, away);
+
+  expect(shell.cwd()).toBe(away);
+  await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${away}\n` });
+});
+
+test('a function defined in one call runs in the next, including quotes and newlines in its body', async ({ run }) => {
+  await run(`pstack_fn() { printf '%s' "it's\nstill"; }`);
+
+  await expect(run('pstack_fn')).resolves.toEqual({ exitCode: 0, output: "it's\nstill" });
+});
+
+test('unset -f drops the function, and exit keeps a function defined in that command from replacing the previous one', async ({ run }) => {
+  await run('pstack_fn() { echo kept; }');
+  await expect(run('pstack_fn() { echo replaced; }; exit 3')).resolves.toEqual({ exitCode: 3, output: '' });
+  await expect(run('pstack_fn')).resolves.toEqual({ exitCode: 0, output: 'kept\n' });
+
+  await run('unset -f pstack_fn');
+  await expect(run('pstack_fn')).resolves.toMatchObject({ exitCode: 127 });
+});
+
 test('two shells keep separate state', async ({ dir, run }) => {
   const other = createSessionShell();
   await run('cd /usr && export PSTACK_A=1');
@@ -187,8 +229,30 @@ const alive = (pid: number) => {
 
 const local = createLocalBashOperations({ shellPath: '/bin/bash' });
 
+test('a shell that does not read the host pid leaves the directory unchanged when a command moves to the background', async ({ dir }) => {
+  const shell = createSessionShell({ hostPidCwd: false });
+  const to = handover();
+  onTestFinished(() => {
+    const pid = to.moved[0]?.pid;
+    if (pid === undefined) return;
+    try {
+      process.kill(-pid, 'SIGKILL');
+    } catch {
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch {
+        // The command already exited.
+      }
+    }
+  });
+  const moving = shell.operations(local, to.take).exec(shell.script('cd /usr; echo moved; sleep 30'), dir, { onData: () => {}, timeout: 0.4 });
+
+  await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+  expect(shell.cwd()).toBeUndefined();
+});
+
 describe('a timeout with somewhere to move the command', () => {
-  test('hands over the still-running command with its process and output so far, and keeps none of its state', async ({ dir, shell, run }) => {
+  test('hands over the still-running command with its process and output so far, keeps the directory it reached, and keeps none of its variables', async ({ dir, shell, run }) => {
     const to = handover();
     let output = '';
 
@@ -203,9 +267,36 @@ describe('a timeout with somewhere to move the command', () => {
     expect(to.moved).toEqual([expect.objectContaining({ waitedMs: 500, output: Buffer.from('first\n') })]);
     expect(alive(to.moved[0]?.pid ?? 0)).toBe(true);
     expect(output).toBe('first\n');
-    await expect.poll(() => to.exits).toEqual([0]);
+    await expect(run('pwd; echo "a=$PSTACK_A"')).resolves.toEqual({ exitCode: 0, output: '/usr\na=\n' });
+    await expect.poll(() => to.exits, { timeout: 5_000 }).toEqual([0]);
     expect(to.later).toBe('second\n');
-    await expect(run('pwd; echo "a=$PSTACK_A"')).resolves.toEqual({ exitCode: 0, output: `${dir}\na=\n` });
+  });
+
+  test('a foreground cd after the move stays when the background command later exits in another directory', async ({ dir, shell, run }) => {
+    // Use sibling dirs under the fixture. /bin and /usr collide on Linux usrmerge (/bin → /usr/bin).
+    const away = join(dir, 'away');
+    const stay = join(dir, 'stay');
+    mkdirSync(away);
+    mkdirSync(stay);
+    const to = handover();
+    const moving = shell.operations(local, to.take).exec(shell.script(`cd ${away}; sleep 1`), dir, { onData: () => {}, timeout: 0.3 });
+
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+    await expect(run(`cd ${stay} && pwd`)).resolves.toEqual({ exitCode: 0, output: `${stay}\n` });
+    await expect.poll(() => to.exits, { timeout: 5_000 }).toEqual([0]);
+    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${stay}\n` });
+  });
+
+  test('a foreground command that does not change directory still lets a later background cd apply', async ({ dir, shell, run }) => {
+    const away = join(dir, 'away');
+    mkdirSync(away);
+    const to = handover();
+    const moving = shell.operations(local, to.take).exec(shell.script(`cd ${away}; sleep 1`), dir, { onData: () => {}, timeout: 0.3 });
+
+    await expect(moving).rejects.toMatchObject({ command: { text: 'moved' } });
+    await expect(run('echo hi')).resolves.toEqual({ exitCode: 0, output: 'hi\n' });
+    await expect.poll(() => to.exits, { timeout: 5_000 }).toEqual([0]);
+    await expect(run('pwd')).resolves.toEqual({ exitCode: 0, output: `${away}\n` });
   });
 
   test('a command whose state report has arrived when the timeout elapses finishes in the foreground and keeps its state', async ({ dir, shell, run }) => {
@@ -340,5 +431,80 @@ describe('a bash call that sets no timeout', () => {
     vi.useRealTimers();
 
     await expect(running.then(textOf)).resolves.toBe('first\nsecond\n');
+  });
+});
+
+describe('a bash timeout copied from a millisecond wait', () => {
+  const ctx = (dir: string) =>
+    ({
+      cwd: dir,
+      model: undefined,
+      sessionManager: { getSessionId: () => 'session', getSessionFile: () => undefined },
+    }) as unknown as ExtensionToolContext;
+
+  test('refuses timeout 30000 instead of waiting 30000 seconds', async ({ dir, shell }) => {
+    const controller = new AbortController();
+    onTestFinished(() => controller.abort());
+    const seen = { started: false };
+    const ops: BashOperations = {
+      exec: (command, cwd, options) =>
+        local.exec(command, cwd, {
+          ...options,
+          onData: (bytes) => {
+            seen.started = true;
+            options.onData(bytes);
+          },
+        }),
+    };
+    const bash = sessionBashDefinition(shell, dir, ops, { background: () => undefined });
+
+    const running = bash.execute('call', { command: 'sleep 30', timeout: 30000 }, controller.signal, undefined, ctx(dir));
+    const outcome = await Promise.race([
+      running.then(
+        () => 'resolved' as const,
+        (error: unknown) => error,
+      ),
+      new Promise<'pending'>((resolve) => setTimeout(() => resolve('pending'), 200)),
+    ]);
+
+    expect(outcome).toBeInstanceOf(Error);
+    expect((outcome as Error).message).toContain('30000');
+    expect((outcome as Error).message).toContain('seconds');
+    expect((outcome as Error).message).toContain('milliseconds');
+    expect(seen.started).toBe(false);
+    const timeoutSchema = bash.parameters.properties.timeout as { description?: string };
+    expect(timeoutSchema.description).toContain('seconds');
+    expect(timeoutSchema.description).toContain('30000');
+  });
+
+  test('a timeout of 60 waits 60 seconds', async ({ dir, shell }) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    onTestFinished(() => {
+      vi.useRealTimers();
+    });
+    const to = handover();
+    const seen = { started: false };
+    const ops: BashOperations = {
+      exec: (command, cwd, options) =>
+        local.exec(command, cwd, {
+          ...options,
+          onData: (bytes) => {
+            seen.started = true;
+            options.onData(bytes);
+          },
+        }),
+    };
+    const bash = sessionBashDefinition(shell, dir, ops, { background: (_ctx, _call, moved) => to.take(moved) });
+
+    const running = bash.execute('call', { command: 'echo first; sleep 3; echo second', timeout: 60 }, undefined, undefined, ctx(dir));
+    await vi.waitFor(() => expect(seen.started).toBe(true));
+    await vi.advanceTimersByTimeAsync(59_000);
+    expect(to.moved).toEqual([]);
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    await expect(running.then((result: { content: { type: string; text?: string }[] }) => result.content.map((part) => part.text ?? '').join(''))).resolves.toBe('moved');
+    vi.useRealTimers();
+    expect(to.moved).toEqual([expect.objectContaining({ waitedMs: 60_000 })]);
+    await expect.poll(() => to.exits, { timeout: 10_000 }).toEqual([0]);
   });
 });

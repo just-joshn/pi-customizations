@@ -30,6 +30,7 @@ export interface HostFacts {
   activeTools: readonly string[];
   /** Where new cloud agents run: a container machine, a local worktree, or an error that stops them. */
   cloud: { driver: 'container' | 'worktree'; reason: string } | { error: string };
+  onCloudMachine: boolean;
 }
 
 /** What a cloud agent is on this host, so the model treats it as the machine it really is. */
@@ -88,28 +89,49 @@ function agentToolsLine(tools: readonly string[]): string[] {
 
 /** The paths and host behavior pstack's skills rely on, the way a host's system prompt names its own paths. */
 export function hostSection(facts: HostFacts): string {
-  const transcript = facts.sessionFile === undefined ? 'This chat is not persisted (--no-session), so it has no transcript file.' : `This chat's transcript is ${facts.sessionFile}.`;
+  const transcript =
+    facts.sessionFile === undefined
+      ? 'This chat is not persisted (--no-session), so it has no transcript file.'
+      : facts.onCloudMachine
+        ? 'This chat has a transcript on the parent host (not a path on this machine).'
+        : `This chat's transcript is ${facts.sessionFile}.`;
   return [
     `pstack runs here through the pi-pstack package at ${facts.packageRoot}. Today's date: ${facts.today}.`,
     `- <SKILLS> = ${facts.skillsDir}. "the X skill", "/X", and "principle-X" mean <SKILLS>/X/SKILL.md, even for skills hidden from automatic invocation; a delegate that needs poteto-mode reads <SKILLS>/poteto-mode/SKILL.md. Installed skills (${facts.skillNames.length}): ${facts.skillNames.join(', ')}.`,
     '- A <skill> block in a user message means the user attached that skill to this request. Follow its workflow from its first step, including the steps it says to take before answering, instead of answering directly.',
-    `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
-    facts.ruleInContext ? `- The model rule is ${facts.rulePath}. The content this session started with is in <pstack_models>.` : `- The model rule is ${facts.rulePath}.`,
+    facts.onCloudMachine
+      ? '- Skill folders: project `.pi/skills/` on this machine. Personal skills stay on the parent host; use <SKILLS> and attached <skill> blocks instead of reading a personal path.'
+      : `- Skill folders: project \`.pi/skills/\`, personal \`${join(facts.agentDir, 'skills')}/\`.`,
+    facts.onCloudMachine
+      ? facts.ruleInContext
+        ? '- The model rule content for this session is in <pstack_models>. The rule file itself stays on the parent host and is not on this machine.'
+        : '- This session has no model rule in context. The rule file stays on the parent host and is not on this machine.'
+      : facts.ruleInContext
+        ? `- The model rule is ${facts.rulePath}. The content this session started with is in <pstack_models>.`
+        : `- The model rule is ${facts.rulePath}.`,
     ...(facts.activeTools.includes('Task')
       ? [`- Subagents: call the Task tool as the skills describe (${TASK_PARAMS}). Types and model slugs are in <pstack_subagents>. A background agent notifies you after your turn ends; do not poll it.`]
       : []),
     todoLine(facts),
-    `- Transcripts: this workspace's Pi session files are in ${facts.sessionDir}. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). ${transcript} Subagent transcripts for this workspace: ${facts.subagentDir}/*_<agent id>.jsonl. A subagent is still running while ${facts.subagentDir}/<agent id>.lock exists and names a live pid.`,
+    facts.onCloudMachine
+      ? `- Transcripts: Pi session files and subagent transcripts for this workspace live on the parent host, not on this machine. ${transcript} A subagent is still running while its lock on the parent host names a live pid.`
+      : `- Transcripts: this workspace's Pi session files are in ${facts.sessionDir}. Each line is an entry: the first is a session header, and conversation turns have type "message" (the opening prompt is the first user message). ${transcript} Subagent transcripts for this workspace: ${facts.subagentDir}/*_<agent id>.jsonl. A subagent is still running while ${facts.subagentDir}/<agent id>.lock exists and names a live pid.`,
     '- In a Pi transcript a tool call is a toolCall part of an assistant message (tool name plus arguments), and an attached skill is a <skill name="..." location="..."> block in a user message.',
-    `- "The current agent's store" is ${facts.storeDir}. Create it when a playbook needs it. "The root agent's store" is ${facts.rootStoreDir}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`,
+    facts.onCloudMachine
+      ? `- "The current agent's store" stays on the parent host for this cloud session. Create durable notes in the Projects folder instead when a playbook needs a store. "The root agent's store" is ${facts.rootStoreDir}, shared with the main chat that started this tree.`
+      : `- "The current agent's store" is ${facts.storeDir}. Create it when a playbook needs it. "The root agent's store" is ${facts.rootStoreDir}, the store of the main chat that started this subagent tree; in the main chat it is the current agent's store.`,
     `- Projects: a program's Project is ${facts.projectsDir}/<project-slug>/, with notes.md as its Project tracker and store/ as its Project store. Every agent in this workspace sees the same folder.`,
-    `- Files a tool makes for the user, such as visualize charts, go in ${facts.artifactsDir}.`,
+    facts.onCloudMachine
+      ? '- Files a tool makes for the user, such as visualize charts, stay on the parent host and are not on this machine.'
+      : `- Files a tool makes for the user, such as visualize charts, go in ${facts.artifactsDir}.`,
     facts.loopAvailable ? SUBSCRIPTIONS_LINE : NO_SUBSCRIPTIONS_LINE,
     ...agentToolsLine(facts.activeTools),
     facts.loopAvailable ? `${LOOP_LINE}${facts.activeTools.includes('bash_background') ? EVENT_LOOP_SENTENCE : ''}` : NO_LOOP_LINE,
     ...(facts.activeTools.includes('bash_background')
       ? [
-          `- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to ${facts.terminalsDir}/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (\`head -n 10 *.txt\` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with \`kill <pid>\`. bash waits for its command up to its timeout, 30 seconds when the call sets none, and then moves a command still running to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.`,
+          facts.onCloudMachine
+            ? '- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms. Its output file stays on the parent host and is not on this machine. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms, and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with `kill <pid>`. bash waits for its command up to its timeout, 30 seconds when the call sets none, and then moves a command still running to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.'
+            : `- Background shells: bash_background runs a command in the background, or moves it there after block_until_ms, and writes its output to ${facts.terminalsDir}/<shell id>.txt. The first lines of that file hold pid, cwd, command, title, status, and running_for_ms (\`head -n 10 *.txt\` there lists every job), and a footer with exit_code appears when the command ends. A notification wakes you after your turn when a job finishes and on each notify_on_output match; AwaitShell polls or waits. Stop a job with \`kill <pid>\`. bash waits for its command up to its timeout, 30 seconds when the call sets none, and then moves a command still running to the background, so start anything that can run for minutes (a watcher, a polling script such as watch-pr without --status-only, a dev server) with bash_background.`,
         ]
       : []),
     facts.activeTools.includes('GenerateImage')
