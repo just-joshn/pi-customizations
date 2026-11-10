@@ -19,7 +19,7 @@ A claimant that crashes before it sends leaves its claim. After `staleMs` a wait
 
 ## Coverage record and sync point
 
-- **Sync point:** the commit that last changed this skill's files (`git log -1 -- .pi/skills/verify-oauth-refresh-lock`). PRs squash-merge, so a branch hash recorded here would not exist on `main`. Change this skill in the same PR as the covered code it was checked against.
+- **Sync point:** `2cfe846e46edda287bd613fe9fa9708757bd53a9`. Compare covered code and other writers of the guarded state from this commit to the current checkout. Update this point after checking them.
 - **Covered files and functions:**
   - `extensions/pi-anthropic-oauth/src/refresh-claim.ts`: `rotateRefreshToken` (follow the log, claim, follow again, refresh with its own timeout, release on failure, record the successor, retry and `ELOCKED`), `rotationChain` and `followChain` (recorded successors and the legacy share file), `tryClaim` (latest generation, `ENOENT`, mtime staleness, exclusive create), `writeSuccessor`.
   - `extensions/pi-anthropic-oauth/src/auth.ts`: the `subscriptionAuth` refresh hook, the only caller of the raw OAuth refresh when a rotation directory is bound.
@@ -35,7 +35,7 @@ From the repository root:
 ./.pi/skills/verify-oauth-refresh-lock/bin/verify-oauth-refresh-lock
 ```
 
-The script needs Java and `tla2tools.jar` 1.7.4. `mise install` provides Temurin 25 and the jar from `mise.toml`, so run it as `mise exec -- ./.pi/skills/verify-oauth-refresh-lock/bin/verify-oauth-refresh-lock` unless `mise activate` is on. Without mise, put `java` on `PATH` (or set `JAVA_HOME`) and set `TLA2TOOLS_JAR`.
+The script needs Java and `tla2tools.jar` 1.7.4. Put `java` on `PATH` (or set `JAVA_HOME`) and set `TLA2TOOLS_JAR` if the jar is not in a location found by the script. The script also searches the mise install paths directly; this avoids `mise exec`, which can uninstall other installed tool versions depending on local mise settings.
 
 The script runs TLC on `specs/OAuthRefreshClaim.tla` with `specs/OAuthRefreshClaim.cfg`. It exits `0` when every property holds and `1` with the counterexample trace when one fails.
 
@@ -46,13 +46,13 @@ To render the state graph or read a counterexample as steps, use the pstack `/st
 1. **`NoRefreshTokenReuse`.** No process sends a refresh token that the server has already rotated. This is the property the protocol exists for.
 2. **`SingleClaimant`.** At most one process is between creating a claim and finishing with it (`reuse_after_claim`, `calling_refresh`, `publish`, `releasing`).
 3. **`UpdatedTokenOnSuccess`.** A process that finishes recovery holds a token newer than the one that failed.
-4. **Deadlock freedom.** Every behavior reaches an end state, including when a claimant crashes and waiters take over.
+4. **Deadlock freedom.** No reachable nonterminal state lacks a transition, including after a claimant crashes. This does not prove that every behavior eventually terminates.
 
 ## Bounds and assumptions
 
 - **Bound:** 3 processes (`Processes = {p1, p2, p3}`), `MaxRetries = 2`, `MaxGen = 4`. TLC explores 92966 states, 42062 distinct. A run with 4 processes also passes (11076022 states, 4144539 distinct). Keep at least 3 processes, because a takeover race needs a crashed claimant and two contenders.
 - **Exclusive create:** `open(path, 'wx')` fails with `EEXIST` when the name exists, on every process that shares the directory.
-- **Timing:** a live claimant finishes within `staleMs` (30s), which is above `REFRESH_TIMEOUT_MS` (15s). A process paused longer than `staleMs`, such as a suspended laptop, breaks this assumption.
+- **Timing:** a live claimant finishes its claim within `staleMs` (30s), including log reads, refresh, and successor publication. `REFRESH_TIMEOUT_MS` (15s) bounds the refresh call, not the entire claim. A sufficiently long pause or slow filesystem breaks this assumption.
 - **Crash point:** a claimant crashes before it sends the refresh request. A crash after the server rotates the token and before `writeSuccessor` loses the new token. No client protocol can recover it, so the model leaves it out. If writing the successor fails after a successful refresh, `rotateRefreshToken` still returns the new credential, which is the same loss for other holders of the old token.
 - **Failure point:** a failed refresh never reached the server. A request that rotated the token and then lost its response is out of scope for the same reason.
 - **Successor chains:** the model has one token. A successor that is about to expire starts a new rotation keyed by the successor's token, which is the same protocol on a different key, so the model covers it by symmetry.
