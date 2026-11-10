@@ -4,7 +4,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 
 ## Baseline preconditions
 
-- Ensure Node.js `>= 22.21.0` and `pi` CLI `1.5.0` are installed and available on `PATH`.
+- Ensure Node.js `>= 22.21.0` and a `pi` 1.5.x CLI are installed and available on `PATH`. The mapped drives pass on `pi` 1.5.2.
 - Run `./.pi/skills/verify-pi-customizations/bin/control-pi doctor` to verify environment readiness.
 - `control-pi` creates a disposable scratch directory and sets `PI_CODING_AGENT_DIR` for each Pi process it starts. Do not set it manually for driver runs.
 - Never drive an instance not started by the verification run.

@@ -7,7 +7,7 @@ Poteto mode implements a Cursor-like custom mode: `/mode poteto-mode` keeps the 
 - `mode-on` turns the mode on with `/mode poteto-mode` and notifies `Mode on: poteto-mode. /mode off exits.`
 - `mode-entry` appends a `pstack/mode` custom entry with `data.skill: "poteto-mode"` when the mode turns on.
 - `mode-off` turns the mode off with `/mode off`, notifies `Mode off.`, and appends a `pstack/mode` entry with `data: null`.
-- `mode-status` shows `♛ mode: poteto-mode` in the footer status under the key `pstack-mode` and clears it on `/mode off`.
+- `mode-status` shows `♛ mode: poteto-mode` in the footer status under the key `pstack-mode` and clears it on `/mode off`. Over RPC the status text is ANSI-colored, and the status history in `mode.json` starts with a clear (`null`) from session start, then the badge, then a clear.
 
 ## How to get to it (user POV)
 
