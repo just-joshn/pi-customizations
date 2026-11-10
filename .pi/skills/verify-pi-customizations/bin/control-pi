@@ -327,7 +327,7 @@ async function driveOauthProviders(artifactDir) {
     });
     assert.match(antigravityOutput, /google-antigravity\s+gemini-/, 'Expected google-antigravity models not found');
 
-    const grokPkg = join(REPO_ROOT, 'extensions/pi-xai-oauth');
+    const grokPkg = join(REPO_ROOT, 'extensions/pi-x-subscription-oauth');
     const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
       cwd: scratchDir,
       env: { ...process.env, PI_CODING_AGENT_DIR: scratchDir },

@@ -73,7 +73,7 @@ test('native streaming returns the server text', ({ exchange }) => {
 });
 
 test('models.json still wins over the headers the package sends', async ({ server, onTestFinished }) => {
-  const dir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-wire-'));
+  const dir = await mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-wire-'));
   onTestFinished(() => rm(dir, { recursive: true, force: true }));
   const authPath = join(dir, 'auth.json');
   const modelsPath = join(dir, 'models.json');

@@ -122,9 +122,9 @@
         "typebox": "*",
       },
     },
-    "extensions/pi-xai-oauth": {
-      "name": "@justjoshn/pi-xai-oauth",
-      "version": "0.1.5",
+    "extensions/pi-x-subscription-oauth": {
+      "name": "@justjoshn/pi-x-subscription-oauth",
+      "version": "0.1.6",
       "devDependencies": {
         "@earendil-works/pi-ai": "1.5.0",
         "@earendil-works/pi-coding-agent": "1.5.0",
@@ -250,7 +250,7 @@
 
     "@justjoshn/pi-rea": ["@justjoshn/pi-rea@workspace:extensions/pi-rea"],
 
-    "@justjoshn/pi-xai-oauth": ["@justjoshn/pi-xai-oauth@workspace:extensions/pi-xai-oauth"],
+    "@justjoshn/pi-x-subscription-oauth": ["@justjoshn/pi-x-subscription-oauth@workspace:extensions/pi-x-subscription-oauth"],
 
     "@oxc-project/types": ["@oxc-project/types@0.151.0", "", {}, "sha512-J1yXrIlNDZVzE3ada310xeAw7nH8yCAyLPuUIsjKatFPmfn5bS1oW+cM+QsGOtVWd5nhSpbwZWx/rue+r5Z+PA=="],
 

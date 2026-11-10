@@ -26,7 +26,7 @@ function pi(args: readonly string[], agentDir: string): Promise<Run> {
 
 // Pi lists only models whose provider has auth, so an isolated agent dir with a fixture
 // credential shows the catalog without touching any real login.
-const agentDir = await mkdtemp(join(tmpdir(), 'pi-xai-oauth-'));
+const agentDir = await mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-'));
 const accessToken = randomUUID();
 try {
   const credential = { type: 'oauth', access: accessToken, refresh: randomUUID(), expires: Date.UTC(2100, 0, 1) };

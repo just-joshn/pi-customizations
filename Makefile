@@ -1,4 +1,4 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-sources verify-xai-oauth-live
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-sources verify-x-subscription-oauth-live
 
 verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-install
 
@@ -34,13 +34,13 @@ verify-oauth:
 	bun run --filter @justjoshn/pi-antigravity-oauth check:native-gap
 	bun run --filter @justjoshn/pi-antigravity-oauth typecheck
 	bun run --filter @justjoshn/pi-antigravity-oauth test:coverage
-	bun run --filter @justjoshn/pi-xai-oauth typecheck
-	bun run --filter @justjoshn/pi-xai-oauth test:coverage
-	bun run --filter @justjoshn/pi-xai-oauth prove:list
+	bun run --filter @justjoshn/pi-x-subscription-oauth typecheck
+	bun run --filter @justjoshn/pi-x-subscription-oauth test:coverage
+	bun run --filter @justjoshn/pi-x-subscription-oauth prove:list
 
 # Needs a real `pi` binary and may contact Grok Build, so it stays out of `verify`.
-verify-xai-oauth-live:
-	bun run --filter @justjoshn/pi-xai-oauth prove
+verify-x-subscription-oauth-live:
+	bun run --filter @justjoshn/pi-x-subscription-oauth prove
 
 verify-install:
 	node scripts/verify-fresh-install.mjs

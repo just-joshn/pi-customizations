@@ -1,5 +1,5 @@
 {
-  "name": "@justjoshn/pi-xai-oauth",
+  "name": "@justjoshn/pi-x-subscription-oauth",
   "version": "0.1.6",
   "description": "Use The X Subscription in Pi with Grok Build models, including grok-4.7-build-fast, and check plan usage with /usage.",
   "type": "module",
@@ -7,9 +7,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/just-joshn/pi-customizations.git",
-    "directory": "extensions/pi-xai-oauth"
+    "directory": "extensions/pi-x-subscription-oauth"
   },
-  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-xai-oauth#readme",
+  "homepage": "https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-x-subscription-oauth#readme",
   "bugs": {
     "url": "https://github.com/just-joshn/pi-customizations/issues"
   },

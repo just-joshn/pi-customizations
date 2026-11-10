@@ -16,7 +16,7 @@
       "./extensions/pi-maintainer/src/index.ts",
       "./extensions/pi-pstack/src/index.ts",
       "./extensions/pi-rea/src/index.ts",
-      "./extensions/pi-xai-oauth/src/index.ts"
+      "./extensions/pi-x-subscription-oauth/src/index.ts"
     ],
     "skills": [
       "./extensions/pi-pstack/skills",

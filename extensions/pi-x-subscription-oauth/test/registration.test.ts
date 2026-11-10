@@ -21,7 +21,7 @@ test('the default export is a Pi extension factory', () => {
 // files npm would publish. Pi falls back to scanning subdirectories when the manifest names a
 // missing file, so the test also requires the loaded path to be the one the manifest declares.
 test('Pi loads the manifest extension with one native provider', async ({ onTestFinished }) => {
-  const [cwd, agentDir, packageDir] = await Promise.all([mkdtemp(join(tmpdir(), 'pi-xai-cwd-')), mkdtemp(join(tmpdir(), 'pi-xai-agent-')), mkdtemp(join(tmpdir(), 'pi-xai-package-'))]);
+  const [cwd, agentDir, packageDir] = await Promise.all([mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-cwd-')), mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-agent-')), mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-package-'))]);
   onTestFinished(async () => {
     await Promise.all([cwd, agentDir, packageDir].map((dir) => rm(dir, { recursive: true, force: true })));
   });

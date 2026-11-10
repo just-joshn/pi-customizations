@@ -1,6 +1,6 @@
 # OAuth providers
 
-OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`), Antigravity (`google-antigravity` via `pi-antigravity-oauth`), and Grok Build (`grok-build` via `pi-xai-oauth`) providers when they load, and Antigravity also registers the `/antigravity` account command. Pi lists models when native auth resolution reports the provider configured. Claude supports stored credentials and ambient subscription tokens. The harness below checks fixture-backed CLI model visibility.
+OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`), Antigravity (`google-antigravity` via `pi-antigravity-oauth`), and Grok Build (`grok-build` via `pi-x-subscription-oauth`) providers when they load, and Antigravity also registers the `/antigravity` account command. Pi lists models when native auth resolution reports the provider configured. Claude supports stored credentials and ambient subscription tokens. The harness below checks fixture-backed CLI model visibility.
 
 ## Sub-features
 
@@ -14,7 +14,7 @@ OAuth extensions register Claude (`claude-subscription` via `pi-anthropic-oauth`
 
 - Run `pi --list-models claude-subscription` with `pi-anthropic-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
 - Run `pi --list-models google-antigravity` with `pi-antigravity-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
-- Run `pi --list-models grok-build` with `pi-xai-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
+- Run `pi --list-models grok-build` with `pi-x-subscription-oauth` loaded and a matching OAuth credential record in the `auth.json` for your normal Pi data directory.
 - Select provider models in Pi interactive model picker (`/model`).
 - Run `/antigravity` in Pi interactive chat or over RPC with `pi-antigravity-oauth` loaded.
 - Run `/login` and choose Claude subscription, Google Antigravity, or Grok Build. This drive does not cover login.
@@ -28,7 +28,7 @@ Preconditions:
 
 - **List Claude models manually.** Execute `pi --no-extensions -e extensions/pi-anthropic-oauth --list-models claude-subscription`. The model list includes Claude Opus and Sonnet models from the installed Pi Anthropic catalog. Exact model IDs depend on the Pi version.
 - **List Antigravity models manually.** Execute `pi --no-extensions -e extensions/pi-antigravity-oauth --list-models google-antigravity`. The model list includes `gemini-3.8-flash`, `claude-opus-5-5`, and other Antigravity catalog models.
-- **List Grok Build models manually.** Execute `pi --no-extensions -e extensions/pi-xai-oauth --list-models grok-build`. The model list includes `grok-4.7`, `grok-4.7-build-fast`, `grok-4.6`, `grok-4.5`, and the reasoning tier aliases `grok-4.7-low-fast`, `grok-4.7-medium-fast`, `grok-4.7-high-fast`, and `grok-4.7-xhigh-fast`.
+- **List Grok Build models manually.** Execute `pi --no-extensions -e extensions/pi-x-subscription-oauth --list-models grok-build`. The model list includes `grok-4.7`, `grok-4.7-build-fast`, `grok-4.6`, `grok-4.5`, and the reasoning tier aliases `grok-4.7-low-fast`, `grok-4.7-medium-fast`, `grok-4.7-high-fast`, and `grok-4.7-xhigh-fast`.
 - **Run verification.** Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive oauth-providers`. Besides the three listings, the driver starts a logged-out RPC session, asserts `/antigravity` is registered, and asserts its not-logged-in error notification.
 - **Proof.** Verify that artifacts exist at `artifacts/verify-pi-customizations/oauth-providers/claude-models.txt`, `antigravity-models.txt`, `grok-build-models.txt`, and `antigravity-command.json`. The fixture drive proves model listing and the logged-out `/antigravity` report only. It does not prove login, token validity, token refresh, or a successful model response.
 
