@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.2.0] - 2026-11-10
 
 - Register the `cursor` provider beside `grok-build`. Model refresh calls Cursor `GetUsableModels`. Asks run through `cursor-agent` in ask mode.
 - Keep a prompt that starts with `-` from being parsed as a `cursor-agent` flag, report a quiet non-zero exit as a process failure, and read camelCase usage from the CLI JSON.
