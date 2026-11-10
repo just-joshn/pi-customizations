@@ -44,9 +44,26 @@ silent publish failures in release run 41527084422; see Troubleshooting.
 ## One-time setup per package
 
 `pi-anthropic-oauth`, `pi-antigravity-oauth`, `pi-maintainer`, `pi-pstack`,
-and `pi-rea` already exist on npmjs.com. npm has no
-`@justjoshn/pi-x-subscription-oauth` package yet. For each package that
-already exists:
+and `pi-rea` already exist on npmjs.com. `@justjoshn/pi-x-subscription-oauth`
+is the rename of `@justjoshn/pi-xai-oauth`. A rename is a new npm package.
+The Trusted Publisher on `pi-xai-oauth` does not cover the new name. Release
+runs after that rename fail with `ENEEDAUTH` until the new package exists and
+has its own Trusted Publisher (or until `NPM_TOKEN` is set for a bootstrap
+publish).
+
+### Bootstrap a new package name
+
+1. Create a repository secret `NPM_TOKEN` with publish rights for the
+   `@justjoshn` scope (see Token fallback below).
+2. Re-run `release.yml` on `main` (`workflow_dispatch`, or re-run the failed
+   job). The current `package.json` version publishes and gets its git tag.
+   Intermediate versions that never got a tag are skipped.
+3. On the new package's npm Settings page, add a GitHub Actions Trusted
+   Publisher for `just-joshn/pi-customizations` / `release.yml`.
+4. Remove `NPM_TOKEN` once Trusted Publishing works, so later releases stay
+   on OIDC.
+
+### Trusted Publisher for a package that already exists
 
 1. Open the package page on npmjs.com and go to Settings.
 2. Find the "Trusted Publisher" section and choose the GitHub Actions button.
@@ -56,9 +73,10 @@ already exists:
    - Environment: leave empty (the workflow does not use one)
 4. Save.
 
-Until a package's trusted publisher is configured, its publish fails with an
-authentication error by design. Nothing publishes halfway: the tag is
-created only after a successful publish, and the run lists the failures.
+Until a package's trusted publisher is configured (and the package exists),
+its publish fails with an authentication error by design. Nothing publishes
+halfway: the tag is created only after a successful publish, and the run
+lists the failures.
 
 ## Token fallback
 
@@ -72,16 +90,23 @@ and need rotation; the OIDC identity is workflow-bound and short-lived.
 
 ## Troubleshooting
 
-**`npm error 404 Not Found - PUT https://registry.npmjs.org/...`** means the
-registry rejected the publish as unauthorized. Two known causes:
+**`npm error ENEEDAUTH` / `need auth`** on a package that typecheck and tests
+already passed means the runner had no publishing identity. Common causes:
 
-1. The package's trusted publisher is not configured on npmjs.com yet (see
-   One-time setup), so the workflow has no publishing identity for it.
-2. An `.npmrc` auth token is preempting OIDC. setup-node's `registry-url`
+1. The package does not exist on npmjs.com yet (a rename creates this state).
+   Use the bootstrap path above with `NPM_TOKEN`, then attach Trusted
+   Publishing.
+2. The package exists but has no Trusted Publisher for `release.yml`, and
+   `NPM_TOKEN` is unset.
+3. An `.npmrc` auth token is preempting OIDC. setup-node's `registry-url`
    input exports a placeholder `NODE_AUTH_TOKEN` that npm treats as a real
    token. This release workflow no longer sets `registry-url` for exactly
    this reason; do not add it back, and check any local `.npmrc` you might
    copy into CI.
+
+**`npm error 404 Not Found - PUT https://registry.npmjs.org/...`** is the
+same class of failure when the registry rejects the publish as unauthorized.
+Treat it like `ENEEDAUTH` and walk the list above.
 
 **A run is green but versions did not change on npm.** This happened in
 release run 41527084422: a bash `set -e` inside a subshell used as an `if`
