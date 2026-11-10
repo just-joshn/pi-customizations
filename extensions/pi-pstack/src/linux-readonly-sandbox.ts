@@ -205,8 +205,11 @@ function checkSandbox(): Sandbox {
   return { bwrap, filterPath, shell };
 }
 
+/** Closes every descriptor above the filter's fd 3, so a socket the caller left open cannot carry a datagram to a host service. */
+const CLOSE_INHERITED_DESCRIPTORS = `for f in /proc/self/fd/*; do n=\${f##*/}; if [ "$n" -gt 3 ]; then eval "exec $n>&-"; fi; done; `;
+
 /** The shell command that runs `command` inside the read-only sandbox, or an error when no sandbox can start. */
 export function linuxReadonlyCommand(command: string, cwd: string): string {
   const { bwrap, filterPath, shell } = verifiedSandbox();
-  return `exec ${quote(bwrap)} ${bwrapArgs(cwd).map(quote).join(' ')} -- ${quote(shell)} -c ${quote(command)} 3< ${quote(filterPath)}`;
+  return `${CLOSE_INHERITED_DESCRIPTORS}exec ${quote(bwrap)} ${bwrapArgs(cwd).map(quote).join(' ')} -- ${quote(shell)} -c ${quote(command)} 3< ${quote(filterPath)}`;
 }

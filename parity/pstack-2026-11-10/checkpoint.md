@@ -84,3 +84,11 @@ Applied the strict code-quality audit. `refusedWhen` now groups first-argument v
 - Checks: typecheck clean, biome applied to the two files, the five related test files pass (41 passed, 6 skipped), and the arm64 kernel run still passes Node pipes and loopback TCP with the datagram pair refused.
 - Not rerun after the refactor: the s390x, ppc64le and armv7 kernel runs. The differential covers the decisions, but the new byte layout was loaded by a real kernel only on arm64.
 - File length went from 169 to 217 lines, so the assembler is larger than the audit's estimate. It is still well under any size limit.
+
+## Update: inherited descriptors (unit 1 of `open-items-plan.md`)
+
+- Failing before: with a datagram socket left open as descriptor 11, the sandboxed process sent on it and the host service received `LEAK` (`test/linux-readonly-sandbox.test.ts`, run on a Linux kernel against the committed source).
+- Fix: `linuxReadonlyCommand` closes every descriptor above 3 before `exec bwrap`, keeping the filter on fd 3. It relies on bash, which is how Pi runs the command.
+- After: the same test passes on Linux, the datagram socketpair is still refused, and Node child pipes and loopback TCP still work.
+- Not covered: a descriptor received over an allowed stream socket with `SCM_RIGHTS`. That needs the sandboxed command to cooperate with a peer that already holds a host socket, which the shell does not hand it. Still open as a documented limit.
+- The test skips on macOS and when `python3` is missing. It was run in a Linux container, not on a developer Linux host.
