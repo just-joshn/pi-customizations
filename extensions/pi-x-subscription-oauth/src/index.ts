@@ -2,6 +2,7 @@ import { createProvider, getSupportedThinkingLevels, type Provider, type Refresh
 import { builtinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { BASELINE, catalogFailure, type EffortAlias, effortAliases, listPrices, PROVIDER_ID, PROXY_BASE_URL, parseCatalog, toPiModel } from './catalog.ts';
+import { createCursorProvider } from './cursor/provider.ts';
 import { loginGrokBuild } from './login.ts';
 import { withGrokHeaders } from './request.ts';
 import { createUsageCommand } from './usage.ts';
@@ -52,6 +53,7 @@ export default function (pi: Pick<ExtensionAPI, 'registerProvider' | 'registerVi
   const xai = builtinProviders().find((provider) => provider.id === 'xai');
   if (!xai) throw new Error(XAI_MISSING);
   pi.registerProvider(createGrokBuildProvider(xai));
+  pi.registerProvider(createCursorProvider());
   pi.registerCommand('usage', createUsageCommand());
   for (const alias of effortAliases(BASELINE)) {
     pi.registerVirtualModel({

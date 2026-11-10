@@ -6,10 +6,10 @@ import extension, { createGrokBuildProvider } from '../src/index.ts';
 import { loginGrokBuild } from '../src/login.ts';
 import { test } from './network-guard.ts';
 import { builtinXai } from './support/builtin-xai.ts';
-import { contextFinding, onlyProvider, register } from './support/fake-pi.ts';
+import { contextFinding, providerNamed, register } from './support/fake-pi.ts';
 
 const registrations = register(extension);
-const provider = onlyProvider(registrations);
+const provider = providerNamed(registrations, 'grok-build');
 const xai = builtinXai();
 
 function fastModel(): Model<'openai-responses'> {

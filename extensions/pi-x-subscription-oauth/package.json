@@ -1,7 +1,7 @@
 {
   "name": "@justjoshn/pi-x-subscription-oauth",
-  "version": "0.1.6",
-  "description": "Use The X Subscription in Pi with Grok Build models, including grok-4.7-build-fast, and check plan usage with /usage.",
+  "version": "0.2.0",
+  "description": "Use The X Subscription in Pi with Grok Build models and Cursor CLI models, and check plan usage with /usage.",
   "type": "module",
   "license": "MIT",
   "repository": {

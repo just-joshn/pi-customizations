@@ -1,0 +1,31 @@
+{
+  "models": [
+    {
+      "modelId": "composer-2.5",
+      "displayModelId": "composer-2.5",
+      "displayName": "Composer 2.5",
+      "displayNameShort": "Composer 2.5",
+      "maxMode": false
+    },
+    {
+      "modelId": "default",
+      "displayName": "Auto",
+      "maxMode": false
+    },
+    {
+      "modelId": "composer-2.5",
+      "displayName": "duplicate"
+    },
+    {
+      "modelId": "bad id",
+      "displayName": "dropped"
+    },
+    {
+      "displayName": "missing id"
+    },
+    {
+      "modelId": "claude-sonnet-5",
+      "displayName": "Sonnet"
+    }
+  ]
+}

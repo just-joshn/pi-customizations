@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0] - 2026-11-10
+
+- Register the `cursor` provider beside `grok-build`. Model refresh calls Cursor `GetUsableModels`. Asks run through `cursor-agent` in ask mode.
+- Keep a prompt that starts with `-` from being parsed as a `cursor-agent` flag, report a quiet non-zero exit as a process failure, and read camelCase usage from the CLI JSON.
+- Refresh the catalog JWT by posting the keychain `cursor-api-key` to `/auth/exchange_user_api_key`. The stored refresh item is that same one-hour JWT, so a failed exchange asks for `/login` instead of reusing it.
+
 ## [0.1.6] - 2026-11-09
 
 - Add `/usage`. It reads `GET /v1/billing?format=credits` and prints the weekly plan meter, the reset time, and the GrokBuild and Cursor product split when billing is unified.

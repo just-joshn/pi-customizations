@@ -20,7 +20,7 @@ test('the default export is a Pi extension factory', () => {
 // of src/index.ts under the same path and corrupt its coverage, so Pi discovers a copy of the
 // files npm would publish. Pi falls back to scanning subdirectories when the manifest names a
 // missing file, so the test also requires the loaded path to be the one the manifest declares.
-test('Pi loads the manifest extension with one native provider', async ({ onTestFinished }) => {
+test('Pi loads the manifest extension with grok-build and cursor', async ({ onTestFinished }) => {
   const [cwd, agentDir, packageDir] = await Promise.all([mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-cwd-')), mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-agent-')), mkdtemp(join(tmpdir(), 'pi-x-subscription-oauth-package-'))]);
   onTestFinished(async () => {
     await Promise.all([cwd, agentDir, packageDir].map((dir) => rm(dir, { recursive: true, force: true })));
@@ -33,8 +33,12 @@ test('Pi loads the manifest extension with one native provider', async ({ onTest
   expect(extensions).toHaveLength(1);
   expect([...(extensions[0]?.commands.keys() ?? [])]).toStrictEqual(['usage']);
   const registrations = runtime.pendingNativeProviderRegistrations;
-  expect(registrations).toHaveLength(1);
-  const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ provider: provider.id, owner: model.provider })));
-  expect(models).toHaveLength(4);
-  expect(models.filter(({ provider, owner }) => provider !== 'grok-build' || owner !== 'grok-build')).toStrictEqual([]);
+  expect(registrations.map(({ provider }) => provider.id).sort()).toStrictEqual(['cursor', 'grok-build']);
+  const models = registrations.flatMap(({ provider }) => provider.getModels().map((model) => ({ id: model.id, provider: provider.id, owner: model.provider })));
+  const grok = models.filter((model) => model.provider === 'grok-build');
+  const cursor = models.filter((model) => model.provider === 'cursor');
+  expect(grok.map((model) => model.id)).toStrictEqual(['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5']);
+  expect(grok.filter((model) => model.owner !== 'grok-build')).toStrictEqual([]);
+  expect(cursor.map((model) => model.id)).toContain('composer-2.5');
+  expect(cursor.filter((model) => model.owner !== 'cursor')).toStrictEqual([]);
 });
