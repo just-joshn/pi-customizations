@@ -92,3 +92,17 @@ Applied the strict code-quality audit. `refusedWhen` now groups first-argument v
 - After: the same test passes on Linux, the datagram socketpair is still refused, and Node child pipes and loopback TCP still work.
 - Not covered: a descriptor received over an allowed stream socket with `SCM_RIGHTS`. That needs the sandboxed command to cooperate with a peer that already holds a host socket, which the shell does not hand it. Still open as a documented limit.
 - The test skips on macOS and when `python3` is missing. It was run in a Linux container, not on a developer Linux host.
+
+## Update: s390x socket broker (unit 4)
+
+- Built `native/netbroker.c` (about 150 lines, static, `-Werror` clean) and `dist/netbroker-s390x` (41,448 bytes, sha256 `dee421f0...`). Two builds with Zig 0.17.1 are byte-identical. `node scripts/build-netbroker.mjs --check` compares the bytes.
+- The three defects from the candidate's scratch code are fixed: the parent-pid check no longer assumes pid 1, the filter-size error no longer reports a stale `errno`, and a failed second descriptor install no longer pretends to be atomic.
+- `seccompFilter(arch, brokered)` sends the s390x `socketcall` creation calls to the listener. The broker policy string comes from the same constants. `linuxReadonlyCommand` launches the broker, bubblewrap, then the command. The sandbox verifies the whole chain with the helper's self-test and falls back to the filter alone when it fails. `linuxReadonlyProfile()` reports which one is active.
+- Real s390x 6.12 kernel under QEMU, production TypeScript and the committed binary (`evidence/s390x-broker/vm3.log`): glibc TCP to the host loopback works, glibc AF_UNIX sockets and datagram or seqpacket socketpairs are refused while stream pairs work, Python asyncio, Node child pipes, fork IPC, `fetch` and the stdout `Socket` work, writes stay refused, 20,000 argument-flip races each for `socket` and `socketpair` produced no escape, abort leaves no broker, bwrap or command behind, and the host Unix datagram service received nothing. With the binary removed the profile is `degraded` and commands still run.
+- x64: the new descriptor test ran and passed on the CI x64 runner, so the filter and the closing prefix are verified on a real x64 kernel.
+
+Still open or not measured:
+
+- The broker ran on one kernel (Debian 6.12.115). Not run: RHEL, SLES or Ubuntu s390x kernels, SELinux or AppArmor policies, `ptrace_scope` 2 or 3 (the sandbox is designed to degrade, but that path was only tested by removing the binary), and per-call overhead on native hardware.
+- Stacking with a setuid bubblewrap was not tested.
+- The stream-socket `SCM_RIGHTS` path and the Cursor parity comparison are unchanged.
