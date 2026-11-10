@@ -40,3 +40,7 @@ ts	phase	decision	why	evidence	result
 2026-11-10T06:25:00Z	c10	wrote USAGE_BLOCKED receipts for corpus Slack Benny image reboot	Never Block on the Human for reversible docs; credentials stay operator-only	parity/pi-native-parity-2026-11-09/usage-blocked.md	USAGE_BLOCKED locked
 2026-11-10T06:30:00Z	license	root LICENSE keeps Lauren Tan Cursor and Josh copyright lines	MIT requires upstream notices; autonomy default for the NEEDS_JUDGMENT fork from drift triage	extensions/pi-pstack/LICENSE	PACKAGING
 2026-11-10T06:30:30Z	harness	classifier CONTENT_DRIFT 0 PACKAGING 2 HOST_TRANSLATION 72 NO_DIFF_FILE 1	frame predicate item 2 met after PACKAGING class and LICENSE default	parity/pi-native-parity-2026-11-09/classify-summary.txt	tests pending
+2026-11-10T06:35:00Z	ship	opened PR 198 for 0.15.36-pi.36 LICENSE and zero CONTENT_DRIFT	follow-up on drift triage NEEDS_JUDGMENT; MIT-preserving default	https://github.com/just-joshn/pi-customizations/pull/198	open
+2026-11-10T06:40:00Z	inventory	mechanism explorer found closable G1 PR snapshot and G2 phase todos	not host-limits; not credential-blocked; sequence before declaring predicate met	Task e4edc51c	open
+2026-11-10T06:45:00Z	g1	reviewed and kept PR snapshot persist from agent 5df6ff08	subscriptions 55 green; wake across restart asserted	73f3e4c0	tests green
+2026-11-10T06:45:30Z	g2	reviewed and kept phase todo import from commit 38710936	plan.test phase import green with G1 subscriptions suite	38710936	tests green
