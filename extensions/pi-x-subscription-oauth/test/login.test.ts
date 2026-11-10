@@ -1,4 +1,6 @@
+import { getEventListeners } from 'node:events';
 import { readFileSync } from 'node:fs';
+import { Server } from 'node:http';
 
 import type { AuthEvent, ProviderAuthInteraction } from '@earendil-works/pi-ai';
 import { expect, vi } from 'vitest';
@@ -119,6 +121,48 @@ test.for([
   const error = await failure;
   expect(error).toBeInstanceOf(Error);
   expect((error as Error).message).toBe(message);
+});
+
+test('a rejected callback cancels the manual prompt and removes abort listeners', async () => {
+  const { login, events, controller } = interaction('browser');
+  let promptSignal: AbortSignal | undefined;
+  login.prompt = async (prompt) => {
+    if (prompt.type === 'select') return 'browser';
+    promptSignal = prompt.signal;
+    return new Promise<string>(() => undefined);
+  };
+  const pending = loginGrokBuild(login);
+  const failure = expect(pending).rejects.toThrow('xAI OAuth callback was rejected');
+  const authorize = new URL(await waitForUrl(events));
+  const redirect = new URL(authorize.searchParams.get('redirect_uri') ?? '');
+  redirect.searchParams.set('state', 'wrong');
+  redirect.searchParams.set('code', 'code');
+  await fetch(redirect);
+  await failure;
+  expect(promptSignal?.aborted).toBe(true);
+  expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+});
+
+test('a rejected manual prompt removes abort listeners', async () => {
+  const { login, controller } = interaction('browser');
+  login.prompt = async (prompt) => {
+    if (prompt.type === 'select') return 'browser';
+    throw new Error('prompt failed');
+  };
+  await expect(loginGrokBuild(login)).rejects.toThrow('prompt failed');
+  expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+});
+
+test('a callback bind failure clears its timeout and abort listener', async () => {
+  const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+  vi.spyOn(Server.prototype, 'listen').mockImplementation(function (this: Server) {
+    queueMicrotask(() => this.emit('error', new Error('bind failed')));
+    return this;
+  } as typeof Server.prototype.listen);
+  const { login, controller } = interaction('browser');
+  await expect(loginGrokBuild(login)).rejects.toThrow('bind failed');
+  expect(clearTimeoutSpy).toHaveBeenCalled();
+  expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
 });
 
 test('a pasted redirect URL completes browser login', async () => {

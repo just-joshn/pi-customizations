@@ -24,7 +24,7 @@ export type UnknownResolution =
 
 export const RESOLUTION_DISPOSITIONS = ['verified', 'withdrawn', 'out-of-scope'] as const;
 
-const isResolution = (value: unknown): value is UnknownResolution => {
+export const isResolution = (value: unknown): value is UnknownResolution => {
   if (value === null) return false;
   if (!isObject(value)) return false;
   const { disposition, rationale, evidence_ids } = value;

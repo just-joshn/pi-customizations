@@ -283,10 +283,6 @@ const readMachODep = (
     const cmd = readU32(offset);
     const cmdsize = readU32(offset + 4);
     if (cmd === 0x1 || cmd === 0x19) {
-      const segname = bytes
-        .subarray(offset + 8, offset + 24)
-        .toString('utf8')
-        .replace(/\0+$/, '');
       const nsectsField = thin.bits === 64 ? offset + 64 : offset + 48;
       const nsects = readU32(nsectsField);
       let sect = thin.bits === 64 ? offset + 72 : offset + 56;
@@ -297,7 +293,7 @@ const readMachODep = (
           .replace(/\0+$/, '');
         const size = thin.bits === 64 ? Number(little ? bytes.readBigUInt64LE(sect + 40) : bytes.readBigUInt64BE(sect + 40)) : readU32(sect + 36);
         const fileOffset = thin.bits === 64 ? readU32(sect + 48) : readU32(sect + 40);
-        if (sectname === '.dep-v0' || (segname === '__DATA' && sectname === '.dep-v0')) {
+        if (sectname === '.dep-v0') {
           metadata = decodeAuditable(bytes.subarray(fileOffset, fileOffset + size), '__DATA,.dep-v0', fileOffset, absolutePath);
         }
         sect += thin.bits === 64 ? 80 : 68;

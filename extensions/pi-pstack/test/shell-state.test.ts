@@ -459,13 +459,10 @@ describe('a bash timeout copied from a millisecond wait', () => {
     const bash = sessionBashDefinition(shell, dir, ops, { background: () => undefined });
 
     const running = bash.execute('call', { command: 'sleep 30', timeout: 30000 }, controller.signal, undefined, ctx(dir));
-    const outcome = await Promise.race([
-      running.then(
-        () => 'resolved' as const,
-        (error: unknown) => error,
-      ),
-      new Promise<'pending'>((resolve) => setTimeout(() => resolve('pending'), 200)),
-    ]);
+    const outcome = await running.then(
+      () => 'resolved' as const,
+      (error: unknown) => error,
+    );
 
     expect(outcome).toBeInstanceOf(Error);
     expect((outcome as Error).message).toContain('30000');

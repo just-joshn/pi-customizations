@@ -71,18 +71,20 @@ async function browserLogin(interaction: ProviderAuthInteraction): Promise<OAuth
     const promptAbort = new AbortController();
     const stopPrompt = () => promptAbort.abort();
     interaction.signal.addEventListener('abort', stopPrompt, { once: true });
-    const pasted = interaction
-      .prompt({ type: 'manual_code', message: 'Paste the redirect URL', signal: promptAbort.signal })
-      .then((value) => parsePastedCode(value, state))
-      .catch((error: unknown) => {
-        if (promptAbort.signal.aborted || interaction.signal.aborted) return undefined;
-        throw error;
-      });
-    void callback.code.catch(() => undefined);
-    void pasted.catch(() => undefined);
-    const code = await Promise.race([callback.code, pasted]);
-    promptAbort.abort();
-    interaction.signal.removeEventListener('abort', stopPrompt);
+    let code: string | undefined;
+    try {
+      const pasted = interaction
+        .prompt({ type: 'manual_code', message: 'Paste the redirect URL', signal: promptAbort.signal })
+        .then((value) => parsePastedCode(value, state))
+        .catch((error: unknown) => {
+          if (promptAbort.signal.aborted || interaction.signal.aborted) return undefined;
+          throw error;
+        });
+      code = await Promise.race([callback.code, pasted]);
+    } finally {
+      promptAbort.abort();
+      interaction.signal.removeEventListener('abort', stopPrompt);
+    }
     if (!code) throw new Error('Login cancelled');
     return credentialFrom(await exchangeCode(code, callback.redirectUri, verifier, interaction.signal));
   } finally {
@@ -181,7 +183,7 @@ async function postForm(url: string, fields: Record<string, string>, signal: Abo
   return { ok: response.ok, status: response.status, body };
 }
 
-function listenForCallback(expectedState: string, signal: AbortSignal): Promise<{ redirectUri: string; code: Promise<string>; close: () => Promise<void> }> {
+async function listenForCallback(expectedState: string, signal: AbortSignal): Promise<{ redirectUri: string; code: Promise<string>; close: () => Promise<void> }> {
   throwIfCancelled(signal);
   const server = createServer();
   let settle: (code: string) => void = () => undefined;
@@ -190,25 +192,31 @@ function listenForCallback(expectedState: string, signal: AbortSignal): Promise<
     settle = resolve;
     fail = reject;
   });
+  void code.catch(() => undefined);
   const timeout = setTimeout(() => fail(new Error('Login cancelled')), BROWSER_LIMIT_MS);
   const onAbort = () => fail(new Error('Login cancelled'));
   signal.addEventListener('abort', onAbort, { once: true });
   server.on('request', (request, response) => handleCallback(request, response, expectedState, settle, fail));
-  return new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address();
-      if (address === null || typeof address === 'string') {
-        reject(new Error('Login callback could not bind'));
-        return;
-      }
-      resolve({
-        redirectUri: `http://127.0.0.1:${address.port}${CALLBACK_PATH}`,
-        code,
-        close: () => closeServer(server, timeout, signal, onAbort),
+  try {
+    return await new Promise((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(0, '127.0.0.1', () => {
+        const address = server.address();
+        if (address === null || typeof address === 'string') {
+          reject(new Error('Login callback could not bind'));
+          return;
+        }
+        resolve({
+          redirectUri: `http://127.0.0.1:${address.port}${CALLBACK_PATH}`,
+          code,
+          close: () => closeServer(server, timeout, signal, onAbort),
+        });
       });
     });
-  });
+  } catch (error) {
+    await closeServer(server, timeout, signal, onAbort);
+    throw error;
+  }
 }
 
 function handleCallback(request: IncomingMessage, response: ServerResponse, expectedState: string, settle: (code: string) => void, fail: (error: Error) => void): void {

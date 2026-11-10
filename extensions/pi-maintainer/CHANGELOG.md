@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.4] - 2026-11-10
+
+- Keep shell suggestions separate from file edits in the edit pipeline, without changing file authorization or suggestion handling.
+
 ## [0.1.3] - 2026-11-03
 
 - Follow the repository Vitest rules in the test suite. No runtime change.

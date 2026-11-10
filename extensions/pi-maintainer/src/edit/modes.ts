@@ -1,5 +1,5 @@
 import { type EditContext, type EditFormatName, registerEditFormat } from '../feature.ts';
-import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type ParsedBlock, pathEditsFromReply } from './editblock.ts';
+import { applyEdits as applyEditBlocks, applyEditsDryRun as applyEditBlocksDryRun, type EditBlock, getEdits as getEditBlocks } from './editblock.ts';
 import { applyEdits as applyWholeEdits, getEdits as getWholeEdits, type WholeFileEdit } from './wholefile.ts';
 
 /** Empty edit tuple for modes that never write files (`ask`, `architect`, `context`). */
@@ -23,10 +23,10 @@ function editBlockContext(context: EditContext) {
 }
 
 const editBlockMethods = {
-  editIntent: (edit: ParsedBlock) => (edit[0] === null ? null : { kind: 'upsert' as const, path: edit[0] }),
-  getEdits: (content: string, context: EditContext) => pathEditsFromReply(content, editBlockContext(context)),
-  applyEditsDryRun: (edits: readonly ParsedBlock[], context: EditContext) => applyEditBlocksDryRun(edits, editBlockContext(context)),
-  applyEdits: (edits: readonly ParsedBlock[], context: EditContext) => applyEditBlocks(edits, editBlockContext(context)),
+  editIntent: (edit: EditBlock) => ({ kind: 'upsert' as const, path: edit[0] }),
+  getEdits: (content: string, context: EditContext) => getEditBlocks(content, editBlockContext(context)),
+  applyEditsDryRun: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocksDryRun(edits, editBlockContext(context)),
+  applyEdits: (edits: readonly EditBlock[], context: EditContext) => applyEditBlocks(edits, editBlockContext(context)),
 };
 
 /** Ask mode. Base no-op edits; questions only. */
@@ -50,13 +50,13 @@ export const contextFormat = registerEditFormat<NoWriteEdit>({
   ...noWriteFormat,
 });
 
-export const editorDiffFormat = registerEditFormat<ParsedBlock>({
+export const editorDiffFormat = registerEditFormat<EditBlock>({
   name: 'editor-diff',
   prompts: 'editor-diff',
   ...editBlockMethods,
 });
 
-export const editorDiffFencedFormat = registerEditFormat<ParsedBlock>({
+export const editorDiffFencedFormat = registerEditFormat<EditBlock>({
   name: 'editor-diff-fenced',
   prompts: 'editor-diff-fenced',
   ...editBlockMethods,

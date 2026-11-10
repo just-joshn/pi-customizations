@@ -10,7 +10,7 @@ import { acquireLease, type Lease } from '../process-lock.ts';
 import { re2Test } from '../shell-output-watch.ts';
 import { NOT_CONNECTED, slackToken } from '../slack/client.ts';
 import { parseCron } from './cron.ts';
-import { cancelDesired, canonicalPath, createDesired, deliverOwner, finishFresh, isDesired, isSupervisorLive, ownerLockPath, readArm, readRegistry, runsDetached, startFresh, visibleSubscriptions } from './durable-store.ts';
+import { cancelDesired, canonicalPath, createDesired, deliverOwner, finishFresh, isDesired, isSupervisorLive, ownerLockPath, readArm, readRegistry, runsDetached, startFresh, updatePrompt, visibleSubscriptions } from './durable-store.ts';
 import type { StoredSubscription } from './durable-types.ts';
 import { defaultEnsureSupervisor, waitForArm, waitForSupervisor } from './ensure-supervisor.ts';
 import { type GhRunner, targetText } from './github.ts';
@@ -515,13 +515,21 @@ export function createSubscriptions(pi: ExtensionAPI, options: SubscriptionOptio
   };
 
   /** The automation editor: change a subscription's prompt, keeping its trigger, strategy, and model. */
-  const editPrompt = async (ctx: ExtensionContext, key: string, prompt: string) => {
+  const editPrompt = async (key: string, prompt: string) => {
     const sub = visibleSubscriptions(readRegistry(workspaceCwd)).find((entry) => entry.id === key || entry.name === key);
     if (sub === undefined) throw new Error(`No subscription has the id or name "${key}".`);
     if (sub.config.kind === 'github') throw new Error('A GitHub PR watch has no prompt to edit.');
-    const hours = sub.expiresAt === 0 ? undefined : Math.max(1, Math.ceil((sub.expiresAt - Date.now()) / HOUR_MS));
-    await unsubscribe(sub.id);
-    return create(ctx, 'automations', sub.name, { ...(sub.config as Config), prompt } as Config, hours);
+    const updated = updatePrompt(workspaceCwd, sub.id, prompt);
+    persist();
+    const session = owner;
+    try {
+      await ensureEngine();
+      if (session === undefined || owner !== session) throw new Error(`Subscription ${sub.id} owner session changed while arming.`);
+      await waitForArm(workspaceCwd, updated, options.supervisorReadyMs ?? 2_000);
+      if (owner !== session) throw new Error(`Subscription ${sub.id} owner session changed while arming.`);
+    } catch (cause) {
+      throw new Error(`Subscription ${sub.id} prompt was saved, but arming failed. ${errorText(cause)}`, { cause });
+    }
   };
 
   const automationsText = () => {
@@ -711,7 +719,7 @@ export function registerSubscriptions(pi: ExtensionAPI, options: SubscriptionOpt
           if (sub === undefined || sub.config.kind === 'github') throw new Error(`No automation with a prompt is named "${name}".`);
           const edited = await ctx.ui.editor(`Prompt of "${sub.name}"`, sub.config.prompt);
           if (edited === undefined || edited.trim() === '' || edited === sub.config.prompt) return ctx.ui.notify('Prompt unchanged.', 'info');
-          await subs.editPrompt(ctx, sub.id, edited);
+          await subs.editPrompt(sub.id, edited);
           return ctx.ui.notify(`Updated the prompt of "${sub.name}".`, 'info');
         }
         return ctx.ui.notify('Usage: /automations, /automations edit <name>, /automations disable <name>', 'warning');

@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { expect, test } from 'vitest';
+import { generateHandlerTypes } from '../scripts/generate-handler-types.ts';
 import { catalogDigest, loadCatalog } from '../src/contract/catalog.ts';
 import { ERROR_CATEGORIES, ERROR_CODES } from '../src/contract/errors.ts';
 import { isDirect, KERNEL_TOOL_NAMES } from '../src/registry.ts';
@@ -48,6 +49,10 @@ test('KERN-001: the implemented set matches kernel-manifest', () => {
       .map((tool) => tool.name)
       .toSorted(),
   ).toStrictEqual(kernelNames);
+});
+
+test('generated handler parameters match the catalog', () => {
+  expect(readFileSync(new URL('../src/contract/handler-parameters.generated.ts', import.meta.url), 'utf8')).toBe(generateHandlerTypes());
 });
 
 test('KERN-001: kernel-manifest matches the registered handler table', () => {

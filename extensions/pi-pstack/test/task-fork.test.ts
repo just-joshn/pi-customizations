@@ -219,6 +219,14 @@ describe('prepareFork: run locks', () => {
     lock.release();
   });
 
+  test('revalidates the source under both locks before copying', () => {
+    writeSource();
+    let checks = 0;
+    const isRunning = () => ++checks === 2;
+    expect(() => prepareFork(params(), ctx(), { agents, depth: 0, canSpawn: true }, isRunning)).toThrow(`Agent ${source} is still running. Wait for its completion notification before forking it.`);
+    expect(readdirSync(dir).filter((name) => name.endsWith('.jsonl') || name.endsWith('.lock'))).toEqual([`2026-10-28T10-00-00-000Z_${source}.jsonl`]);
+  });
+
   test('refuses while another process holds the source run lock, copying nothing', () => {
     writeSource();
     const held = acquireRunLock(dir, source);

@@ -12,8 +12,8 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, onTestFinished, test, vi } from 'vitest';
 import { durableRuntimeDir } from '../src/paths.ts';
 import { acceptEvent, acquireSupervisorLock, createDesired, isSupervisorLive, readRegistry, releaseSupervisorLock, visibleSubscriptions } from '../src/subscriptions/durable-store.ts';
-import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
 import { snapshotFile } from '../src/subscriptions/github.ts';
+import { registerSubscriptions, SUBSCRIPTIONS_ENTRY, type SubscriptionOptions, WAKE_TYPE } from '../src/subscriptions/index.ts';
 import { createSupervisor, type FreshMeta } from '../src/subscriptions/supervisor.ts';
 import { RoutineServer, routineSlug } from '../src/subscriptions/webhook.ts';
 
@@ -33,6 +33,7 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
   const sent: Sent[] = [];
   const notices: string[] = [];
   let sessionFile: string | undefined = join(cwd, 'session.jsonl');
+  let editorText: string | undefined;
   const pi = {
     on: (name: string, handler: Handler) => handlers.set(name, [...(handlers.get(name) ?? []), handler]),
     registerTool: (tool: Tool & { name: string }) => tools.set(tool.name, tool),
@@ -47,7 +48,7 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
     model: { provider: 'test', id: 'model' },
     thinkingLevel: 'high',
     isProjectTrusted: () => true,
-    ui: { notify: (text: string) => notices.push(text), setStatus: () => undefined, confirm: async () => true },
+    ui: { notify: (text: string) => notices.push(text), setStatus: () => undefined, confirm: async () => true, editor: async () => editorText },
     sessionManager: { getBranch: () => entries.filter((entry) => entry.offBranch !== true), getEntries: () => entries, getSessionFile: () => sessionFile, getSessionId: () => sessionId },
   });
   const emit = (name: string, mode = 'rpc') => {
@@ -57,8 +58,8 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
     const result = await (tools.get(name) as Tool).execute('call', params, undefined, undefined, ctx(mode));
     return { text: result.content[0]?.text ?? '', details: result.details as Record<string, unknown> };
   };
-  const command = async (name: string, hasUI = true) => {
-    await commands.get(name)?.handler('', ctx('rpc', hasUI));
+  const command = async (name: string, hasUI = true, args = '') => {
+    await commands.get(name)?.handler(args, ctx('rpc', hasUI));
     return notices.at(-1) ?? '';
   };
   return {
@@ -70,6 +71,9 @@ function fakePi(entries: { type: string; customType?: string; data?: unknown; de
     call,
     command,
     cwd,
+    setEditorText: (text: string) => {
+      editorText = text;
+    },
     forgetSessionFile: () => {
       sessionFile = undefined;
     },
@@ -109,12 +113,67 @@ function setup(options: Partial<SubscriptionOptions> = {}, entries?: Fake['entri
   return { ...fake, fresh, agentDir, controllers };
 }
 
+test('editing a prompt preserves subscription identity, expiry, owner and pending content', async () => {
+  const fake = setup();
+  const { details } = await fake.call('subscribe_timer', { name: 'edit-me', prompt: 'old prompt', delaySeconds: 3600, expiresInHours: 2 });
+  const before = readRegistry(fake.cwd).subscriptions[0];
+  if (before === undefined) throw new Error('Missing subscription');
+  expect(acceptEvent(fake.cwd, before.id, 'pending-edit', 'already rendered old prompt')).toBe('accepted');
+  fake.setEditorText('new prompt');
+  expect(await fake.command('automations', true, 'edit edit-me')).toContain('Updated');
+  const registry = readRegistry(fake.cwd);
+  expect(registry.subscriptions).toHaveLength(1);
+  expect(registry.subscriptions[0]).toMatchObject({ id: details['id'], expiresAt: before.expiresAt, ownerSessionId: before.ownerSessionId, ownerSessionFile: before.ownerSessionFile, config: { prompt: 'new prompt' } });
+  expect(registry.subscriptions[0]?.revision).toBeGreaterThan(before.revision);
+  expect(registry.pending).toMatchObject([{ subscriptionId: before.id, content: 'already rendered old prompt' }]);
+});
+
+test('an edit rejects a subscription cancelled while its editor is open', async () => {
+  const fake = setup();
+  await fake.call('subscribe_timer', { name: 'edit-race', prompt: 'old', delaySeconds: 3600 });
+  const sub = readRegistry(fake.cwd).subscriptions[0];
+  if (!sub) throw new Error('Expected subscription');
+  await fake.call('unsubscribe', { subscription: sub.id });
+  const before = readRegistry(fake.cwd);
+  const { updatePrompt } = await import('../src/subscriptions/durable-store.ts');
+  expect(() => updatePrompt(fake.cwd, sub.id, 'new')).toThrow('no longer exists');
+  expect(readRegistry(fake.cwd)).toEqual(before);
+});
+
+test('a failed re-arm retains the updated subscription and pending events', async () => {
+  const occupied = createServer();
+  onTestFinished(() => {
+    occupied.close();
+  });
+  await new Promise<void>((resolve) => occupied.listen(0, '127.0.0.1', resolve));
+  const address = occupied.address();
+  if (address === null || typeof address === 'string') throw new Error('Missing listener port.');
+  const fake = setup({ routinesPort: address.port });
+  createDesired(fake.cwd, { id: 'sub-blocked', name: 'blocked-edit', createdAt: Date.now(), expiresAt: 0, ownerSessionId: 'owner', config: { kind: 'webhook', slug: 'blocked-edit', prompt: 'old' } });
+  acceptEvent(fake.cwd, 'sub-blocked', 'pending-blocked', 'old rendered event');
+  fake.setEditorText('new');
+  const message = await fake.command('automations', true, 'edit blocked-edit');
+  expect(message).toContain('prompt was saved');
+  expect(message).toContain('arming failed');
+  expect(message).toContain('is in use');
+  expect(readRegistry(fake.cwd)).toMatchObject({ subscriptions: [{ id: 'sub-blocked', lifecycle: 'active', config: { prompt: 'new' } }], pending: [{ id: 'pending-blocked', content: 'old rendered event' }] });
+});
+
 describe('subscribe_timer', () => {
   beforeEach(() => {
     // Monday 2026-01-05 08:59:30 local time.
     vi.useFakeTimers({ now: new Date(2026, 0, 5, 8, 59, 30) });
   });
   afterEach(() => vi.useRealTimers());
+
+  test('a re-armed timer fires with the edited prompt', async () => {
+    const fake = setup();
+    await fake.call('subscribe_timer', { name: 'edited-timer', prompt: 'old', delaySeconds: 60 });
+    fake.setEditorText('new');
+    expect(await fake.command('automations', true, 'edit edited-timer')).toContain('Updated');
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(wakes(fake)).toEqual(['[timer] edited-timer\n\nnew']);
+  });
 
   test('a once delay wakes this session once with the prompt, then ends', async () => {
     const fake = setup();
@@ -307,7 +366,10 @@ describe('subscribe_github_pr', () => {
   });
 
   test('expiresInHours 0 creates a GitHub watch that never expires, and a positive value sets that expiry', async () => {
-    const prs = new Map([[7, pr(7)], [8, pr(8)]]);
+    const prs = new Map([
+      [7, pr(7)],
+      [8, pr(8)],
+    ]);
     const { gh } = fakeGh(prs);
     const fake = setup({ gh });
     const none = await fake.call('subscribe_github_pr', { scope: 'pr', prUrl: 'https://github.com/o/r/pull/7', expiresInHours: 0 });

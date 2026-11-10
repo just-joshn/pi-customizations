@@ -15,8 +15,8 @@ import type { ToolCallContext } from './session-tools.ts';
 export interface InspectWebNetworkCaptureParams {
   readonly capture_path: string;
   readonly format: 'har' | 'mitmproxy';
-  readonly record_ordinals?: readonly number[];
-  readonly sensitive_values?: readonly string[];
+  readonly record_ordinals?: readonly unknown[];
+  readonly sensitive_values?: readonly unknown[];
 }
 
 const resolvePath = (path: string, cwd: string | undefined): string => (isAbsolute(path) ? path : resolve(cwd ?? process.cwd(), path));

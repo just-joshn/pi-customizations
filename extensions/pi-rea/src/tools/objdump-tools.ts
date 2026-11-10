@@ -6,7 +6,7 @@ import { createEvidence } from '../session/evidence.ts';
 import type { ToolCallContext } from './session-tools.ts';
 
 export interface InspectWithObjdumpParams {
-  readonly path: string;
+  readonly path?: string;
   readonly operation?: string;
   readonly follow_debug_links?: boolean;
   readonly provider_executable?: string;

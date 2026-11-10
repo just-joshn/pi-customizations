@@ -10,7 +10,7 @@ export interface InspectSqliteDatabaseParams {
   readonly path: string;
   readonly worker_timeout_ms?: number;
   readonly table?: string;
-  readonly columns?: readonly string[];
+  readonly columns?: readonly unknown[];
   readonly schema_scope?: string;
   readonly row_limit?: number;
 }

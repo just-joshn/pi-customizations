@@ -4,9 +4,9 @@ import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
-const { missingWorkspaceDeps } = await import(pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), 'check-workspace-deps.mjs')).href);
+import { missingWorkspaceDeps } from './check-workspace-deps.mjs';
 
 async function fixture(packages) {
   const directory = await mkdtemp(join(tmpdir(), 'workspace-deps-'));

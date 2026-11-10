@@ -150,6 +150,56 @@ test('N1: an unknown update is replayed after its record entry', async () => {
   expect(items[0]?.status).toBe('resolved');
 });
 
+test('replay preserves updates to records whose question or domain normalizes to empty', async () => {
+  for (const overrides of [{ question: '   ' }, { domain: '   ' }]) {
+    const source = load([]);
+    const recorded = await run(toolNamed(source.tools, 'record_unknown'), { ...draft, ...overrides });
+    expect(recorded.isError).toBeUndefined();
+    const unknownId = (recorded.structuredContent as { result: { unknown_id: string } }).result.unknown_id;
+    const updated = await run(toolNamed(source.tools, 'update_unknown'), {
+      unknown_id: unknownId,
+      expected_revision: 1,
+      status: 'investigating',
+      resolution: null,
+      severity: 'high',
+    });
+    expect(updated.isError).toBeUndefined();
+    const listed = await run(toolNamed(load(source.persisted).tools, 'list_unknowns'), {});
+    const items = (listed.structuredContent as { result: { items: unknown[] } }).result.items;
+    expect(items).toStrictEqual([(updated.structuredContent as { result: unknown }).result]);
+  }
+});
+
+test('replay skips malformed records and stale or invalid updates without losing later valid mutations', async () => {
+  const source = load([]);
+  const recorded = await run(toolNamed(source.tools, 'record_unknown'), draft);
+  const unknownId = (recorded.structuredContent as { result: { unknown_id: string } }).result.unknown_id;
+  await run(toolNamed(source.tools, 'update_unknown'), {
+    unknown_id: unknownId,
+    expected_revision: 1,
+    status: 'resolved',
+    resolution: { disposition: 'out-of-scope', rationale: 'No longer relevant.', evidence_ids: [] },
+  });
+  const unknownEntries = source.persisted.filter((entry) => entry.customType === UNKNOWN_ENTRY);
+  const record = unknownEntries[0];
+  const update = unknownEntries[1];
+  if (record === undefined || update === undefined) throw new Error('expected recorded mutations');
+  const entry = (data: unknown): Persisted => ({ customType: UNKNOWN_ENTRY, data });
+  const branch = [
+    entry({ action: 'record', draft: { question: 42 }, mutation_evidence_id: 'ev_bad' }),
+    record,
+    entry({ action: 'update', unknown_id: unknownId, expected_revision: 99, changes: {}, mutation_evidence_id: 'ev_stale' }),
+    entry({ action: 'update', unknown_id: unknownId, expected_revision: 1, changes: { resolution: { disposition: 'verified', rationale: '', evidence_ids: [] } }, mutation_evidence_id: 'ev_bad' }),
+    entry({ action: 'update', unknown_id: unknownId, expected_revision: 1, changes: { severity: 42 }, mutation_evidence_id: 'ev_bad' }),
+    update,
+  ];
+  const restored = load(branch);
+  const listed = await run(toolNamed(restored.tools, 'list_unknowns'), {});
+  const items = (listed.structuredContent as { result: { items: { revision: number; status: string; resolution: unknown }[] } }).result.items;
+  expect(items).toHaveLength(1);
+  expect(items[0]).toMatchObject({ revision: 2, status: 'resolved', resolution: { disposition: 'out-of-scope', rationale: 'No longer relevant.', evidence_ids: [] } });
+});
+
 test('N7: a tool called before session_start reports the missing session instead of guessing a cwd', async () => {
   const tools: ToolDefinition[] = [];
   const api = {

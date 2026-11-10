@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2026-11-10
+
+- Clean up the manual prompt, abort listeners, and callback server when browser login fails or is cancelled, including callback listener setup failures.
+
 ## [0.3.0] - 2026-11-10
 
 - Send a Cursor ask with native HTTPS `POST /agent.v1.AgentService/Run`. That path is the default.
