@@ -88,7 +88,12 @@ test('a tenth of a percent and a non-weekly type are printed as given', () => {
     },
     NOW,
   );
-  expect(text).toBe(['USAGE_PERIOD_TYPE_MONTHLY: 17.3% used, 82.8% left', 'GrokBuild: 17.2%', 'Prepaid: 3', 'Unified: no'].join('\n'));
+  expect(text).toBe(['USAGE_PERIOD_TYPE_MONTHLY: 17.3% used, 82.7% left', 'GrokBuild: 17.2%', 'Prepaid: 3', 'Unified: no'].join('\n'));
+});
+
+test('0.05% used prints 0.1% used and 99.9% left', () => {
+  const text = formatPlanUsage({ usedPercent: 0.05, period: { type: 'USAGE_PERIOD_TYPE_WEEKLY' }, products: [] }, NOW);
+  expect(text).toBe(['Weekly: 0.1% used, 99.9% left', 'Products: none', 'Prepaid: unknown', 'Unified: unknown'].join('\n'));
 });
 
 test('an unreadable end is omitted and a bad product row is skipped', () => {
@@ -108,13 +113,42 @@ test.for([
   { name: 'a null body', body: null },
   { name: 'a body without config', body: {} },
   { name: 'a missing creditUsagePercent', body: { config: {} } },
-  { name: 'a string creditUsagePercent', body: { config: { creditUsagePercent: '17' } } },
+  { name: 'a non-numeric creditUsagePercent', body: { config: { creditUsagePercent: '17%' } } },
+  { name: 'a blank creditUsagePercent', body: { config: { creditUsagePercent: ' ' } } },
   { name: 'a creditUsagePercent below 0', body: { config: { creditUsagePercent: -0.1 } } },
   { name: 'a creditUsagePercent above 100', body: { config: { creditUsagePercent: 100.1 } } },
   { name: 'a non-finite creditUsagePercent', body: { config: { creditUsagePercent: Number.NaN } } },
   { name: 'a productUsage that is not a list', body: { config: { creditUsagePercent: 1, productUsage: {} } } },
 ])('parseBillingCredits rejects $name', ({ body }) => {
   expect(parseBillingCredits(body)).toStrictEqual({ kind: 'unreadable' });
+});
+
+test('numeric strings for the pool, product split, and prepaid are percents and a balance', () => {
+  const usage = parsedUsage({
+    config: {
+      creditUsagePercent: '17.5',
+      currentPeriod: { type: 'USAGE_PERIOD_TYPE_WEEKLY' },
+      productUsage: [
+        { product: 'GrokBuild', usagePercent: '15' },
+        { product: 'Cursor', usagePercent: '2' },
+      ],
+      prepaidBalance: { val: '0' },
+      isUnifiedBillingUser: true,
+    },
+  });
+  expect(usage.usedPercent).toBe(17.5);
+  expect(usage.products).toStrictEqual([
+    { product: 'GrokBuild', usagePercent: 15 },
+    { product: 'Cursor', usagePercent: 2 },
+  ]);
+  expect(usage.prepaid).toBe(0);
+  expect(formatPlanUsage(usage, NOW)).toBe(['Weekly: 17.5% used, 82.5% left', 'GrokBuild: 15%', 'Cursor: 2%', 'Prepaid: 0', 'Unified: yes'].join('\n'));
+});
+
+test('a non-numeric prepaid balance stays unknown', () => {
+  const usage = parsedUsage({ config: { creditUsagePercent: 17, prepaidBalance: { val: 'none' } } });
+  expect(usage.prepaid).toBeUndefined();
+  expect(formatPlanUsage(usage, NOW)).toBe(['Plan: 17% used, 83% left', 'Products: none', 'Prepaid: unknown', 'Unified: unknown'].join('\n'));
 });
 
 test('fetchPlanUsage requests credits with the Grok Build headers', async () => {
@@ -171,12 +205,18 @@ test('fetchPlanUsage rejects a credits body it cannot read', async () => {
   await expect(attempt).rejects.toThrow('Grok Build returned usage Pi cannot read.');
 });
 
-function commandContext(apiKey: string | undefined, hasUI: boolean) {
+function commandContext(apiKey: string | undefined, hasUI: boolean, authError?: unknown) {
   const notes: [string, string | undefined][] = [];
   const ctx = {
     hasUI,
     ui: { notify: (message: string, level?: string) => notes.push([message, level]) },
-    modelRegistry: { getApiKeyForProvider: async (provider: string) => (provider === 'grok-build' ? apiKey : undefined) },
+    modelRegistry: {
+      getProviderAuth: async (provider: string) => {
+        if (provider !== 'grok-build') return undefined;
+        if (authError !== undefined) throw authError;
+        return apiKey === undefined ? undefined : { auth: { apiKey } };
+      },
+    },
   } as unknown as ExtensionCommandContext;
   return { ctx, notes };
 }
@@ -185,6 +225,15 @@ test('the usage command tells a logged-out user to log in', async () => {
   const { ctx, notes } = commandContext(undefined, true);
   await createUsageCommand().handler('', ctx);
   expect(notes).toEqual([['Grok Build is not logged in. Run /login and choose Grok Build.', 'error']]);
+});
+
+test.for([
+  { name: 'an Error', authError: new Error('OAuth refresh failed for grok-build'), message: 'OAuth refresh failed for grok-build' },
+  { name: 'a string', authError: 'OAuth refresh failed for grok-build', message: 'OAuth refresh failed for grok-build' },
+])('the usage command reports $name from a failed credential refresh', async ({ authError, message }) => {
+  const { ctx, notes } = commandContext(undefined, true, authError);
+  await createUsageCommand().handler('', ctx);
+  expect(notes).toEqual([[message, 'error']]);
 });
 
 test('the usage command prints the plan panel', async () => {

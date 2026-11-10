@@ -41,9 +41,19 @@ function text(value: unknown): string | undefined {
   return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
 
+function finiteNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : undefined;
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return undefined;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function percent(value: unknown): number | undefined {
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100) return undefined;
-  return value;
+  const parsed = finiteNumber(value);
+  if (parsed === undefined || parsed < 0 || parsed > 100) return undefined;
+  return parsed;
 }
 
 function productsOf(value: unknown): readonly ProductShare[] | undefined {
@@ -74,7 +84,7 @@ export function parseBillingCredits(body: unknown): BillingParse {
   const products = productsOf(config['productUsage']);
   if (!products) return { kind: 'unreadable' };
   const prepaidRecord = record(config['prepaidBalance']);
-  const prepaid = prepaidRecord && typeof prepaidRecord['val'] === 'number' && Number.isFinite(prepaidRecord['val']) ? prepaidRecord['val'] : undefined;
+  const prepaid = prepaidRecord ? finiteNumber(prepaidRecord['val']) : undefined;
   const unified = typeof config['isUnifiedBillingUser'] === 'boolean' ? config['isUnifiedBillingUser'] : undefined;
   return {
     kind: 'ok',
@@ -88,9 +98,13 @@ export function parseBillingCredits(body: unknown): BillingParse {
   };
 }
 
+function formatTenths(tenths: number): string {
+  const scaled = tenths / 10;
+  return `${Number.isInteger(scaled) ? String(scaled) : scaled.toFixed(1)}%`;
+}
+
 function formatPercent(value: number): string {
-  const tenths = Math.round(value * 10) / 10;
-  return `${Number.isInteger(tenths) ? String(tenths) : tenths.toFixed(1)}%`;
+  return formatTenths(Math.round(value * 10));
 }
 
 function resetsIn(end: string, now: number): string | undefined {
@@ -115,7 +129,8 @@ export function formatPlanUsage(usage: PlanUsage, now = Date.now()): string {
   const relative = end ? resetsIn(end, now) : undefined;
   const window = usage.period.start && end ? ` ${usage.period.start} to ${end}` : end ? ` ending ${end}` : '';
   const reset = relative ? `, resets in ${relative}` : '';
-  const lines = [`${periodWord(usage.period.type)}${window}: ${formatPercent(usage.usedPercent)} used, ${formatPercent(100 - usage.usedPercent)} left${reset}`];
+  const usedTenths = Math.round(usage.usedPercent * 10);
+  const lines = [`${periodWord(usage.period.type)}${window}: ${formatTenths(usedTenths)} used, ${formatTenths((100 * 10) - usedTenths)} left${reset}`];
   if (usage.products.length === 0) lines.push('Products: none');
   for (const product of usage.products) lines.push(`${product.product}: ${formatPercent(product.usagePercent)}`);
   lines.push(`Prepaid: ${usage.prepaid === undefined ? 'unknown' : String(usage.prepaid)}`);
@@ -154,12 +169,12 @@ export function createUsageCommand(): UsageCommand {
   return {
     description: 'Show The X Subscription plan usage for Grok Build',
     handler: async (_args, ctx) => {
-      const apiKey = await ctx.modelRegistry.getApiKeyForProvider(PROVIDER_ID);
-      if (!apiKey) {
-        report(ctx, NOT_LOGGED_IN, 'error');
-        return;
-      }
       try {
+        const apiKey = (await ctx.modelRegistry.getProviderAuth(PROVIDER_ID))?.auth.apiKey;
+        if (!apiKey) {
+          report(ctx, NOT_LOGGED_IN, 'error');
+          return;
+        }
         report(ctx, formatPlanUsage(await fetchPlanUsage(apiKey)), 'info');
       } catch (error) {
         report(ctx, error instanceof Error ? error.message : String(error), 'error');
