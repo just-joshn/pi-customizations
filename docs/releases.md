@@ -43,9 +43,10 @@ silent publish failures in release run 41527084422; see Troubleshooting.
 
 ## One-time setup per package
 
-All six packages (`pi-anthropic-oauth`, `pi-antigravity-oauth`,
-`pi-maintainer`, `pi-pstack`, `pi-rea`, `pi-x-subscription-oauth`) already exist on
-npmjs.com. For each one:
+`pi-anthropic-oauth`, `pi-antigravity-oauth`, `pi-maintainer`, `pi-pstack`,
+and `pi-rea` already exist on npmjs.com. npm has no
+`@justjoshn/pi-x-subscription-oauth` package yet. For each package that
+already exists:
 
 1. Open the package page on npmjs.com and go to Settings.
 2. Find the "Trusted Publisher" section and choose the GitHub Actions button.
