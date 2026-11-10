@@ -1,0 +1,9 @@
+socketpair(DGRAM) -> connect host DGRAM: path=CONNECTED abstract=CONNECTED
+socketpair(DGRAM) -> connect host STREAM: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(DGRAM) -> connect host SEQPACKET: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(STREAM) -> connect host DGRAM: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(STREAM) -> connect host STREAM: path=EISCONN abstract=EISCONN
+socketpair(STREAM) -> connect host SEQPACKET: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(SEQPACKET) -> connect host DGRAM: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(SEQPACKET) -> connect host STREAM: path=EPROTOTYPE abstract=ECONNREFUSED
+socketpair(SEQPACKET) -> connect host SEQPACKET: path=EISCONN abstract=EISCONN

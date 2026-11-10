@@ -1,0 +1,30 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+--- filter=allow-all: bash connect to closed loopback port 1 (no listener needed)
+/bin/bash: connect: Connection refused|/bin/bash: line 1: /dev/tcp/127.0.0.1/1: Connection refused|
+exit=1
+--- filter=eperm-socket: bash connect to closed loopback port 1 (no listener needed)
+/bin/bash: socket: Operation not permitted|/bin/bash: line 1: /dev/tcp/127.0.0.1/1: Operation not permitted|
+exit=1
+--- filter=beta-no-addressing: bash connect to closed loopback port 1 (no listener needed)
+/bin/bash: socket: Operation not permitted|/bin/bash: line 1: /dev/tcp/127.0.0.1/1: Operation not permitted|
+exit=1
+--- filter=enosys-all-socketcall: bash connect to closed loopback port 1 (no listener needed)
+/bin/bash: socket: Function not implemented|/bin/bash: line 1: /dev/tcp/127.0.0.1/1: Function not implemented|
+exit=1
+=== done

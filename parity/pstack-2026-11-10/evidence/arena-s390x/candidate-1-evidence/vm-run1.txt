@@ -1,0 +1,72 @@
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+=== bwrap: bubblewrap 0.12.0
+=== yama: 0
+=== lsm: cat: /sys/kernel/security/lsm: No such file or directory
+##### selftest (raw socketcall inside the full chain)
+socketcall socket(AF_INET,STREAM): ok
+socketcall socket(AF_UNIX,STREAM): Operation not permitted
+socketcall socketpair(AF_UNIX,DGRAM): Operation not permitted
+socketcall socketpair(AF_UNIX,STREAM): ok
+exit=0
+##### glibc python probe
+socket(AF_UNIX,STREAM): EPERM
+socketpair(DGRAM)+sendto(pathname)+reply: EPERM
+socketpair(DGRAM)+sendto(abstract)+reply: EPERM
+socketpair(DGRAM)+connect(pathname): EPERM
+socketpair(SEQPACKET)+sendto(pathname): EPERM
+socketpair(STREAM)+connect(pathname): connect->EPROTOTYPE
+socketpair(STREAM) alone: ok
+tcp connect 127.0.0.1:53317: ok
+socketpair(DGRAM)+disconnect(AF_UNSPEC)+sendto+reply: EPERM
+--- server log:
+##### node
+stdout is WriteStream
+node spawn(pipe): ok
+node tcp: ok
+##### python subprocess + asyncio
+subprocess pipe: b'ok'
+asyncio: ok
+##### fds visible to the command
+4
+0  1  2  3
+##### cannot see supervisor
+4
+bwrap --new-session --die-with-parent --unshare-all --share-net --ro-bind / / --dev /dev --proc /proc --cap-drop ALL -- sh -c ls /proc | grep -c "^[0-9]"; cat /proc/1/cmdline | tr "\0" " "; echo 
+##### inherited stdout socket (outer node spawns the sandbox with pipes)
+stdout is Socket
+##### concurrency: 8 threads x 300 (socket+close, socketpair+close); wall time
+# unsandboxed
+load done: 1.14s for 2400 sockets+2400 pairs
+# brokered
+load done: 2.93s for 2400 sockets+2400 pairs
+##### cancellation
+before:
+sh: 2: ps: not found
+sh: 2: pkill: not found
+after SIGTERM to helper:
+sh: 2: ps: not found
+(end)
+sh: 2: pkill: not found
+after SIGKILL to helper:
+sh: 2: ps: not found
+(end)
+##### exit status passthrough
+exit=7
+exit=137
+##### fail closed: bad filter / no listener support
+pstack-netbroker: filter: No error information
+exit=125
+##### ptrace_scope
+# scope=1
+socket(AF_UNIX,STREAM): EPERM
+socketpair(STREAM) alone: ok
+tcp connect 127.0.0.1:53317: ok
+# scope=2
+socket(AF_UNIX,STREAM): EPERM
+socketpair(STREAM) alone: ok
+tcp connect 127.0.0.1:53317: ok
+# scope=3
+socket(AF_UNIX,STREAM): EPERM
+socketpair(STREAM) alone: EPERM
+tcp connect 127.0.0.1:53317: EPERM
+=== done

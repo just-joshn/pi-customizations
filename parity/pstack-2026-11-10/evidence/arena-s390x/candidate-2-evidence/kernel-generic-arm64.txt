@@ -1,0 +1,30 @@
+== no sandbox
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: b'HELLO'
+  tcp loopback connect: b'HELLO'
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+== bwrap --unshare-all --share-net (current ns shape, no seccomp)
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: b'HELLO'
+  tcp loopback connect: b'HELLO'
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+== bwrap --unshare-all (own netns, no seccomp)
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: ConnectionRefusedError ECONNREFUSED
+  tcp loopback connect: ConnectionRefusedError ECONNREFUSED
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+== bwrap --unshare-all --share-net --uid 4242 --gid 4242
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: b'HELLO'
+  tcp loopback connect: b'HELLO'
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+== share-net + mask unix path sockets with /dev/null
+  unix path stream connect: ConnectionRefusedError ECONNREFUSED
+  unix abstract stream connect: b'HELLO'
+  tcp loopback connect: b'HELLO'
+  unix path dgram sendto: ConnectionRefusedError ECONNREFUSED
+  socketpair(DGRAM) -> connect host path: ConnectionRefusedError ECONNREFUSED

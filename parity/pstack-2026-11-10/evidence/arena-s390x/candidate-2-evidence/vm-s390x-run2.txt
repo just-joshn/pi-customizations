@@ -1,0 +1,51 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+ready
+mask args: --ro-bind /dev/null /tmp/uhost/u/dg
+=== A. exact current profile (socketcall SOCKET=EPERM, SOCKETPAIR allowed): what unix sockets are reachable
+  unix path stream connect: PermissionError EPERM
+  unix abstract stream connect: PermissionError EPERM
+  tcp loopback connect: PermissionError EPERM
+  unix path dgram sendto: PermissionError EPERM
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+  socketpair(DGRAM) -> connect host abstract dgram: dgram socketpair reconnect+send to ABSTRACT dgram ok
+=== B. SOCKET and SOCKETPAIR both refused
+  unix path stream connect: PermissionError EPERM
+  unix abstract stream connect: PermissionError EPERM
+  tcp loopback connect: PermissionError EPERM
+  unix path dgram sendto: PermissionError EPERM
+  socketpair(DGRAM) -> connect host path: PermissionError EPERM
+  socketpair(DGRAM) -> connect host abstract dgram: PermissionError EPERM
+node child_process pipe: undefined EPERM
+node stdout stream= WriteStream
+python asyncio: PermissionError errno=1(EPERM)
+=== C. current profile + /proc/net/unix datagram-path masks
+  unix path stream connect: PermissionError EPERM
+  unix abstract stream connect: PermissionError EPERM
+  tcp loopback connect: PermissionError EPERM
+  unix path dgram sendto: PermissionError EPERM
+  socketpair(DGRAM) -> connect host path: ConnectionRefusedError ECONNREFUSED
+  socketpair(DGRAM) -> connect host abstract dgram: dgram socketpair reconnect+send to ABSTRACT dgram ok
+=== D. capability probe with only bash: connect to a listener in the exact profile
+-- eperm-socket
+/bin/bash: socket: Operation not permitted
+/bin/bash: line 1: /dev/tcp/127.0.0.1/34567: Operation not permitted
+ bash-tcp-exit=1
+-- allow-all
+HELLO bash-tcp-exit=0
+=== done

@@ -1,0 +1,41 @@
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+=== bwrap: bubblewrap 0.12.0
+=== yama: 0
+=== lsm: cat: /sys/kernel/security/lsm: No such file or directory
+##### TOCTOU race (argument block flipped by a second thread)
+socket race: n=20000 ok=9813 eperm=10187 other=0 ESCAPES(AF_UNIX returned)=0
+socketpair race: n=20000 ok=10029 eperm=9971 other=0 ESCAPES(non-stream AF_UNIX pair)=0
+##### glibc after the listener is gone (supervisor dead)
+listener fd 3
+glibc socket(AF_INET) -> ENOSYS
+glibc socketpair(AF_UNIX,STREAM) -> ENOSYS
+direct socket syscall(AF_INET) -> 3
+##### cancellation: SIGTERM to helper
+before:
+  pid 242 netbroker-s390x
+  pid 243 bwrap
+  pid 244 bwrap
+  pid 245 sleep
+after SIGTERM:
+(end)
+##### cancellation: SIGKILL to helper
+after SIGKILL:
+(end)
+##### supervisor stopped (SIGSTOP) then continued
+socket() took 0.0s
+stopped 4s, command should be blocked in socket():
+exit=0
+##### startup cost (20 runs of true; seconds)
+/ro-check/checks.sh: 26: Syntax error: word unexpected (expecting ")")
+[   43.642373] sysrq: Power Off
+[   43.643719] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+[   43.644118] CPU: 1 UID: 0 PID: 1 Comm: guest-init.sh Not tainted 6.12.115+deb13.1-s390x #1  Debian 6.12.115-2
+[   43.644222] Hardware name: QEMU 8561 QEMU (KVM/Linux)
+[   43.644323] Call Trace:
+[   43.644622]  [<000003ffff402f56>] dump_stack_lvl+0x76/0xa0 
+[   43.644922]  [<000003ffff3f66e8>] panic+0x118/0x318 
+[   43.644960]  [<000003fffe94458e>] do_exit+0xb86/0xb90 
+[   43.645000]  [<000003fffe9447bc>] do_group_exit+0x44/0xc0 
+[   43.645051]  [<000003fffe944896>] __s390x_sys_exit_group+0x2e/0x30 
+[   43.645089]  [<000003ffff4034ec>] __do_syscall+0x254/0x328 
+[   43.645126]  [<000003ffff40f1c8>] system_call+0x78/0xa0 

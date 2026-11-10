@@ -1,0 +1,70 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+ready
+=== filter=eperm-socket
+direct connect(362) path: OK
+direct sendto(369) path: OK
+direct sendmsg(370) path: OK
+direct sendmmsg(358) path: OK
+direct connect(362) abstract: OK
+direct sendto(369) abstract: OK
+direct sendmsg(370) abstract: OK
+direct sendmmsg(358) abstract: OK
+musl-style direct socket+connect TCP loopback: OK
+  read: b'HELLO'
+=== filter=eperm-socket-and-addressing
+direct connect(362) path: OK
+direct sendto(369) path: OK
+direct sendmsg(370) path: OK
+direct sendmmsg(358) path: OK
+direct connect(362) abstract: OK
+direct sendto(369) abstract: OK
+direct sendmsg(370) abstract: OK
+direct sendmmsg(358) abstract: OK
+musl-style direct socket+connect TCP loopback: OK
+  read: b'HELLO'
+=== filter=beta-no-addressing
+direct connect(362) path: EPERM
+direct sendto(369) path: EPERM
+direct sendmsg(370) path: EPERM
+direct sendmmsg(358) path: EPERM
+direct connect(362) abstract: EPERM
+direct sendto(369) abstract: EPERM
+direct sendmsg(370) abstract: EPERM
+direct sendmmsg(358) abstract: EPERM
+musl-style direct socket+connect TCP loopback: EPERM
+=== regression battery under beta-no-addressing
+  unix path stream connect: PermissionError EPERM
+  unix abstract stream connect: PermissionError EPERM
+  tcp loopback connect: PermissionError EPERM
+  unix path dgram sendto: PermissionError EPERM
+  socketpair(DGRAM) -> connect host path: PermissionError EPERM
+  socketpair(DGRAM) -> connect host abstract dgram: PermissionError EPERM
+node spawnSync stdio pipes: piped stdin-data 
+node spawn async: async-child
+node fork IPC: {"echo":{"hi":1}}
+python asyncio subprocess: asyncio-sub
+python socketpair stream send/recv: b'x'
+python socketpair sendall: b'y'
+python subprocess: b'sp'
+python multiprocessing queue: mp-ok
+python multiprocessing Pipe: pipe-ok
+inherited stdout is socket: pipe Socket | stderr ok
+git version 2.47.3
+basic-ok
+=== done
