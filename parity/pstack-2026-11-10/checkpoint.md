@@ -150,3 +150,10 @@ The 4 skips are the `socketcall` cases for the x64 and arm64 filters, skipped by
 - Not covered: any other architecture or kernel, SELinux or distribution AppArmor enforcement (the containers do not reproduce a host's policy), and a Node 22.21 floor met by the stock package on Debian and Ubuntu (it is not).
 - The first run of every worker failed `linux-readonly-sandbox-missing` at import because the copy list omitted `src/readonly-shell.ts`, `src/shell-state.ts` and their packages. That was a staging gap in the brief, not a code or distribution problem. The recorded runs include them.
 - The cached `ubuntu:24.04` image was `linux/s390x`, so that worker forced `--platform linux/arm64`.
+
+## Update: descriptor loop under dash (blast-radius check)
+
+- The loop that closes inherited descriptors above 3 only acts on descriptors that are actually open, so a normal launch has nothing to close. On dash (Debian `sh`) a normal launch runs, and a leaked single-digit descriptor closes. Only a leaked two-digit descriptor makes the command exit (`exec: 11: not found`, status 127), because dash parses only single-digit descriptors in a redirection. busybox ash closes both.
+- This is a refusal to run with a descriptor the shell cannot close, not a silent hole, so the code is unchanged. Pi uses bash unless none exists on the host, and Debian and Ubuntu always have bash.
+- Corrects an earlier note that said the read-only shell breaks on a dash-only host. That test left two-digit descriptors open on purpose.
+- Verified: the shell-state and sandbox tests (`readonly-shell`, `readonly-shell-security`, `linux-readonly-sandbox`) pass through the real Linux launch path on an aarch64 7.2.12 kernel with bubblewrap 0.8.0. The shell-state descriptor, fd 9, is created inside the script after the loop (`shell-state.ts:158`).
