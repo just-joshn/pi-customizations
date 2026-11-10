@@ -1,0 +1,46 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/skills/statechart/scripts/test/cli.test.ts	2026-11-04 15:30:17
++++ extensions/pi-pstack/skills/statechart/scripts/test/cli.test.ts	2026-11-06 21:58:44
+@@ -113,7 +113,7 @@
+ };
+ 
+ const linkedLauncher = () => {
+-  const links = fs.mkdtempSync(path.join(os.tmpdir(), "statechart-links-"));
++  const links = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "statechart-links-")));
+   const [first, second] = [path.join(links, "a"), path.join(links, "b")];
+   fs.mkdirSync(first);
+   fs.mkdirSync(second);
+@@ -158,14 +158,14 @@
+   return bin;
+ };
+ 
+-test("the launcher runs statechart.ts on Bun 1.1.5 when PATH has no Node", () => {
++test("the launcher runs statechart.js on Bun 1.1.5 when PATH has no Node", () => {
+   const r = run(path.join(corpus, "Login"), {
+     command: [launcher],
+     env: { PATH: fakeBun("1.1.5")() },
+   });
+   assert.equal(r.stderr, "");
+   assert.equal(r.status, 0);
+-  assert.equal(r.stdout, `${path.join(here, "../statechart.ts")}\n`);
++  assert.equal(r.stdout, `${path.join(here, "../statechart.js")}\n`);
+ });
+ 
+ for (const [what, bin] of [
+@@ -454,7 +454,16 @@
+       signalWhile(signal, () => ({
+         dir: gridCase(150),
+         reached: (parent) => {
+-          for (const f of fs.readdirSync(parent, { recursive: true, encoding: "utf8" }))
++          // The command creates and replaces draft trees while it writes. A recursive
++          // readdir can see a draft entry that is gone before Node descends into it.
++          let files: string[];
++          try {
++            files = fs.readdirSync(parent, { recursive: true, encoding: "utf8" });
++          } catch (error) {
++            if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
++            throw error;
++          }
++          for (const f of files)
+             if (
+               path.basename(f) === "chart.mmd" &&
+               fs.statSync(path.join(parent, f), { throwIfNoEntry: false })?.size

@@ -216,9 +216,15 @@ These observations update earlier open notes. They do not make the package VERIF
 - Benny operational skills now resolve `SOURCE_THREAD_TS` from `thread_ts`, then `message_ts`, then `ts`, so the documented webhook payload works when `thread_ts` is empty. Upstream Cursor skills still name only `trigger.ts`. Completeness audit: `parity/pstack-reconstruction-2026-11-04/session-2026-11-04T19-completeness.json`.
 - The sibling `cursor-sdk` plugin remains out of scope. No pstack skill or agent references it.
 
+## Tree parity (2026-11-10)
+
+Against `experiments/plugins` at `236e548` (pin `ae5650fe` still an ancestor; pstack and cursor-team-kit content unchanged), `tree-map.mjs` reports 521 identical content files, 75 changed, and 6 allowed absents (Cursor packaging plus the Claude Code harness). `classify-diffs.mjs` reports `HOST_TRANSLATION` 72, `PACKAGING` 2 (root `LICENSE` keeps Lauren Tan, Cursor, and Josh), `NO_DIFF_FILE` 1 (`bun.lock`), and `CONTENT_DRIFT` 0. Triage: `parity/pi-native-parity-2026-11-09/drift-triage.tsv`.
+
+Live proofs that need Cursor quota, Slack, image models, or a real reboot stay USAGE_BLOCKED with named unlocks in `parity/pi-native-parity-2026-11-09/usage-blocked.md`. Host differences stay in [Host limits](host-limits.md).
+
 ## Open evidence
 
-The following were not observed end to end and are not claimed.
+The following were not observed end to end and are not claimed. Items that need operator credentials are listed in the USAGE_BLOCKED receipt file above.
 
 - A real model following every ported skill on both hosts.
 - Cursor's project-phase execution UI and per-phase build behavior. Pi preserves phase metadata but does not reproduce that UI.

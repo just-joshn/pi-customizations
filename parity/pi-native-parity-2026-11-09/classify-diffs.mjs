@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Classify each changed text file from tree-map as HOST_TRANSLATION, CONTENT_DRIFT,
- * or MIXED by scoring known host-substitution patterns vs other hunks.
- * Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
+ * MIXED, or PACKAGING by scoring known host-substitution patterns vs other hunks.
+ * Root LICENSE files are PACKAGING: one shipped notice holds every upstream copyright
+ * plus the port author. Usage: node classify-diffs.mjs <tree-map-dir> <out.json>
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
@@ -116,6 +117,18 @@ function classifyDiff(diffText) {
 
 const results = [];
 for (const row of map.rows.filter((r) => r.status === 'changed')) {
+  if (row.file === 'LICENSE') {
+    results.push({
+      plugin: row.plugin,
+      file: row.file,
+      diffLines: row.diffLines,
+      klass: 'PACKAGING',
+      hostHunks: 0,
+      otherHunks: 0,
+      otherSamples: [],
+    });
+    continue;
+  }
   const diffPath = join(mapDir, 'diffs', row.plugin, `${row.file}.diff`);
   if (!existsSync(diffPath)) {
     results.push({ ...row, klass: 'NO_DIFF_FILE' });

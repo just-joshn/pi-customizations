@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.15.36-pi.36] - 2026-11-10
+
+- Keep Lauren Tan, Cursor, and Josh copyright lines in the root MIT `LICENSE` so both vendored upstream notices stay with the port author.
+- Record tree-map classification with zero unexplained `CONTENT_DRIFT`, a `PACKAGING` class for that LICENSE, and USAGE_BLOCKED receipts for live corpus, Slack, Benny, image, and reboot proofs.
+
 ## [0.15.36-pi.35] - 2026-11-10
 
 - Refuse a foreground `bash` `timeout` of 1000 or more so a copied Cursor `block_until_ms` cannot wait thousands of seconds.

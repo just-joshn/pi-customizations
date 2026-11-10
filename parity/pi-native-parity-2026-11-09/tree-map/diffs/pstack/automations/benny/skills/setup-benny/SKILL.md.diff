@@ -1,0 +1,216 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/automations/benny/skills/setup-benny/SKILL.md	2026-09-23 19:32:33
++++ extensions/pi-pstack/automations/benny/skills/setup-benny/SKILL.md	2026-11-09 22:13:01
+@@ -6,19 +6,19 @@
+ 
+ # Set up Benny
+ 
+-Benny ships as a dormant automation pack inside pstack. The plugin manifest exposes only pstack's normal skill root; this file and the two operational files are not slash skills.
++Benny ships as a dormant automation pack inside pstack. The pi-pstack package exposes only its normal skill root; this file and the two operational files are not slash skills.
+ 
+-The human enters setup by pointing Cursor at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.cursor/automations/benny/skills/setup-benny/SKILL.md`.
++The human enters setup by pointing Pi at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.pi/automations/benny/skills/setup-benny/SKILL.md`.
+ 
+-Benny needs external configuration and two live Cursor automations.
++Benny needs external configuration and two live pi-pstack automations.
+ 
+-Do not create or update an automation until the user explicitly asks. Never put a secret value in plugin files, prompts, or committed configuration.
++Do not create or update an automation until the user explicitly asks. Never put a secret value in package files, prompts, or committed configuration.
+ 
+ ## 1. Copy the pack and enable shared pstack skills
+ 
+-Do this before asking for Benny configuration and before invoking the built-in `/automate` skill.
++Do this before asking for Benny configuration and before invoking the `automate` skill pi-pstack ships (`/automate`).
+ 
+-Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.cursor/automations/benny/`.
++Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.pi/automations/benny/`.
+ 
+ Merge the entire source pack into the destination:
+ 
+@@ -31,19 +31,17 @@
+ 
+ If this file is already being read from the target destination, treat the copy as complete and run the same verification before continuing.
+ 
+-Add pstack to the target repository's `.cursor/settings.json`. If the file or `.cursor` directory does not exist, create it.
++Add pi-pstack to the target repository's `.pi/settings.json` (what `pi install -l npm:@justjoshn/pi-pstack` writes). If the file or `.pi` directory does not exist, create it.
+ 
+ Merge this entry into the existing JSON or JSONC:
+ 
+ ```json
+ {
+-	"plugins": {
+-		"pstack": { "enabled": true }
+-	}
++	"packages": ["npm:@justjoshn/pi-pstack"]
+ }
+ ```
+ 
+-Preserve every unrelated top-level setting and every other plugin entry. If `plugins.pstack` already exists, change only its `enabled` value. Preserve comments and valid JSONC syntax when the file uses JSONC. Validate the file after editing it.
++Preserve every unrelated top-level setting and every other package entry. If `packages` already lists pi-pstack (by npm name, git URL, or path), leave that entry as it is. Preserve comments and valid JSONC syntax when the file uses JSONC. Validate the file after editing it.
+ 
+ Reload the target project or start a fresh agent rooted there. Verify that these shared pstack skills resolve from project scope:
+ 
+@@ -58,15 +56,15 @@
+ - `principle-fix-root-causes`
+ - `principle-prove-it-works`
+ 
+-Do not count a skill loaded from the current session or a user-scoped plugin. The check must show that a fresh agent in the target repository receives pstack through project settings.
++Do not count a skill loaded from the current session or a user-scoped install. The check must show that a fresh agent in the target repository receives pstack through project settings.
+ 
+-If project-scoped plugin installation is unavailable or any shared dependency does not resolve, stop and explain the failure.
++If project-scoped package installation is unavailable or any shared dependency does not resolve, stop and explain the failure.
+ 
+-The Benny files are read directly from `.cursor/automations/benny/`. Do not add that directory to a plugin manifest or expect its `SKILL.md` files to appear in the slash-skill list.
++The Benny files are read directly from `.pi/automations/benny/`. Do not add that directory to a skill path or a manifest or expect its `SKILL.md` files to appear in the slash-skill list.
+ 
+-Tell the user that `.cursor/settings.json`, `.cursor/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. Do not commit them unless the user asks.
++Tell the user that `.pi/settings.json`, `.pi/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. Do not commit them unless the user asks.
+ 
+-Once this check passes, live automation prompts may read the committed operational files by their stable repository-relative paths. They must not embed a plugin cache path or copy the file contents.
++Once this check passes, live automation prompts may read the committed operational files by their stable repository-relative paths. They must not embed a pi-pstack package path or copy the file contents.
+ 
+ ## 2. Adapt the configuration
+ 
+@@ -75,11 +73,11 @@
+ - `../../templates/configuration.example.yaml`
+ - `../reproduce-and-fix-issues/references/feature-map.example.md`
+ 
+-Create user-owned copies outside `.cursor/automations/benny/`. These are configuration files, not pack files. Example locations:
++Create user-owned copies outside `.pi/automations/benny/`. These are configuration files, not pack files. Example locations:
+ 
+-- Project config, such as `.cursor/benny/configuration.yaml`
+-- Project feature map, such as `.cursor/benny/feature-map.md`
+-- Project routing map, such as `.cursor/benny/routing.md`
++- Project config, such as `.pi/benny/configuration.yaml`
++- Project feature map, such as `.pi/benny/feature-map.md`
++- Project routing map, such as `.pi/benny/routing.md`
+ - User config, such as `~/.config/benny/configuration.yaml`
+ - User feature map, such as `~/.config/benny/feature-map.md`
+ 
+@@ -87,9 +85,9 @@
+ 
+ Do not edit the copied examples. Pack refreshes may update source-managed files after conflict review, but they must never touch the user-owned copies.
+ 
+-Prefer committed, secret-free files in the target repository when a fresh automation checkout must read them. Otherwise paraphrase the required values into the live prompt. Reference a repository file only after the built-in `/automate` skill confirms that the file is committed in the repository where the automation runs.
++Prefer committed, secret-free files in the target repository when a fresh automation checkout must read them. Otherwise paraphrase the required values into the live prompt. Reference a repository file only after the `automate` skill confirms that the file is committed in the repository where the automation runs.
+ 
+-Use stable repository-relative paths for committed pack and configuration files. Never reference the plugin source directory or a plugin cache path from a live automation.
++Use stable repository-relative paths for committed pack and configuration files. Never reference the pi-pstack package directory from a live automation.
+ 
+ ## 3. Fill the required choices
+ 
+@@ -109,7 +107,7 @@
+ - Polling and effort budgets
+ - Model slug for triage, repro, code work, and media review
+ 
+-Use only model slugs shown as available in the user's Cursor model picker or supported model list. Do not guess a slug and do not carry over a private default.
++Use only models listed as available in `<pstack_subagents>` or `pi --list-models`. Do not guess a slug and do not carry over a private default.
+ 
+ The source channel, triage identity, repository, tracker adapter, control skill, and feature map must be explicit. Fail setup if any required value stays ambiguous.
+ 
+@@ -133,7 +131,7 @@
+ - A pull request action that can open a draft pull request
+ - The configured control-adapter skill
+ 
+-Prefer configured Cursor Slack actions for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.
++Prefer pi-pstack's Slack tools (`slack_read_thread`, `slack_send`, `slack_react`, `slack_update`) for reads and posts; they work once the Slack bot token is stored with `request_secret` (connector `slack`, field `token`). The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.
+ 
+ Do not use undocumented integration endpoints.
+ 
+@@ -141,7 +139,7 @@
+ 
+ If the user wants reroutes or owner pings:
+ 
+-1. Copy `../triage-issue-reports/references/routing.example.md` outside `.cursor/automations/benny/`.
++1. Copy `../triage-issue-reports/references/routing.example.md` outside `.pi/automations/benny/`.
+ 2. Replace every placeholder with public or organization-local values.
+ 3. Keep owner pings off by default.
+ 4. Allow a ping only for a configured feature owner or a confirmed likely regression author.
+@@ -178,18 +176,18 @@
+ 
+ 1. Read the matching copied prompt template as secondary internal source material.
+ 2. Turn `FOR_AGENTS.md`, the finished Benny configuration, and the template intent into a complete natural-language request.
+-3. Tell the live prompt to read and follow its exact committed operational file under `.cursor/automations/benny/`.
+-4. Use the stable repository-relative path, not a plugin source or cache path. Do not copy the operational file contents into the live prompt.
+-5. Read and follow the built-in `automate` skill.
+-6. Let `automate` discover Slack channels, the repository, and connected integrations.
++3. Tell the live prompt to read and follow its exact committed operational file under `.pi/automations/benny/`.
++4. Use the stable repository-relative path, not a pi-pstack package path. Do not copy the operational file contents into the live prompt.
++5. Read and follow the `automate` skill pi-pstack ships (`/automate`). Create each automation with `sessionStrategy: "new_session"` and `environment: "cloud"`, so every run starts on its own cloud machine with a fresh clone of the configured repository and branch.
++6. Let `automate` discover the Slack channel (with `slack_read_channel`), the repository, and connected integrations.
+ 7. Let `automate` confirm that the copied pack and any referenced configuration files are committed in the same repository where the automation will run.
+-8. Let `automate` show its draft table, obtain approval, ask readiness, and open the Automations editor.
+-9. Finish the editor handoff for this automation before starting the next one.
++8. Let `automate` show its draft table, obtain approval, ask readiness, create the automation, and hand it to `/automations`.
++9. Finish the `/automations` handoff for this automation before starting the next one.
+ 
+ Give `automate` this complete triage intent, filled from configuration:
+ 
+ - Name `benny-triage`.
+-- Read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
++- Read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
+ - Trigger on each new top-level report in the configured source Slack channel.
+ - Read the triggering thread and reply only inside it.
+ - Use the configured issue-tracker integration.
+@@ -197,10 +195,10 @@
+ - End one thread-only verdict with the configured `[benny:bug]`, `[benny:performance]`, or `[benny:other]` marker and optional tracker URL.
+ - Never post a source-channel root message.
+ 
+-After the triage editor handoff is complete, give `automate` this complete repro and fix intent:
++After the triage `/automations` handoff is complete, give `automate` this complete repro and fix intent:
+ 
+ - Name `benny-reproduce`.
+-- Read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.
++- Read and follow `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.
+ - Trigger on the same new top-level reports in the configured source Slack channel.
+ - Use the configured repository and default branch.
+ - Read the source thread and reply only inside it.
+@@ -215,14 +213,14 @@
+ 
+ ### Existing automations
+ 
+-The built-in `automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations.
++The `automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations.
+ 
+ Finish configuration, routing, control-adapter, and feature-map validation. Then give the user this concise editor checklist.
+ 
+ For the existing triage automation, update:
+ 
+ - Name and description
+-- Direct instruction to read `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md`
++- Direct instruction to read `.pi/automations/benny/skills/triage-issue-reports/SKILL.md`
+ - New top-level Slack report trigger and source channel
+ - Slack thread read and reply capabilities
+ - Issue-tracker integration
+@@ -231,7 +229,7 @@
+ For the existing repro automation, update:
+ 
+ - Name and description
+-- Direct instruction to read `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`
++- Direct instruction to read `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`
+ - Matching Slack trigger and source channel
+ - Repository and default branch
+ - Slack thread read and reply capabilities
+@@ -239,19 +237,19 @@
+ - Tracker, control-adapter, and feature-map requirements
+ - Paraphrased marker wait, evidence, verification, and bounded-fix instructions
+ 
+-Ask the user to update each existing automation directly in its Automations editor. Do not create replacements or duplicates.
++Ask the user to update each existing automation with `/automations edit <name>`. Do not create replacements or duplicates.
+ 
+ ### Creation boundary
+ 
+-Never call a direct automation backend service or backend automation tool. Never use a browser URL that carries draft fields. Never build or open a Cursor protocol deep link. For new automations, the only finish path is the built-in `automate` skill's reviewed Automations editor handoff.
++Never write the subscription registry, a supervisor file, or a credential file by hand, and never create an automation with a raw `subscribe_*` call that skipped the review. For new automations, the only finish path is the `automate` skill's reviewed draft, approval, and `/automations` handoff.
+ 
+-Do not enable either automation until the thread-safety test passes after the editor save.
++Do not enable either automation until the thread-safety test passes after the `/automations` create or edit handoff.
+ 
+ ## 8. Test thread safety
+ 
+ Use a test channel or a harmless test report.
+ 
+-Before testing, confirm that the target repository's `.cursor/settings.json`, `.cursor/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.
++Before testing, confirm that the target repository's `.pi/settings.json`, `.pi/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.
+ 
+ Verify:
+ 

@@ -50,6 +50,7 @@ Cursor cloud VMs do not get the laptop's personal skill tree. Mounting `$HOME` p
 | C7 | done |
 | C8 | done |
 | C9 | done |
-| C10 | blocked on credentials / Cursor usage |
+| C10 | USAGE_BLOCKED; receipts in `usage-blocked.md` |
 | worktree-cleanup | done |
-| Phase E | suite green (`npm test` 969 passed, `tsc --noEmit`); PR for `0.15.36-pi.35` |
+| content drift | classifier `CONTENT_DRIFT: 0`; remaining changed files are `HOST_TRANSLATION` (72), `PACKAGING` LICENSE (2), `NO_DIFF_FILE` bun.lock (1); triage in `drift-triage.tsv` |
+| Phase E | suite green on pi.35 (`npm test` 969 passed); pi.36 is LICENSE attribution + parity harness docs |

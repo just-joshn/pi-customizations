@@ -1,6 +1,6 @@
 {
   "summary": {
-    "CONTENT_DRIFT": 2,
+    "PACKAGING": 2,
     "HOST_TRANSLATION": 72,
     "NO_DIFF_FILE": 1
   },
@@ -9,12 +9,10 @@
       "plugin": "cursor-team-kit",
       "file": "LICENSE",
       "diffLines": 2,
-      "klass": "CONTENT_DRIFT",
+      "klass": "PACKAGING",
       "hostHunks": 0,
-      "otherHunks": 1,
-      "otherSamples": [
-        "-Copyright (c) 2026 Cursor\n+Copyright (c) 2026 Josh"
-      ]
+      "otherHunks": 0,
+      "otherSamples": []
     },
     {
       "plugin": "cursor-team-kit",
@@ -56,12 +54,10 @@
       "plugin": "pstack",
       "file": "LICENSE",
       "diffLines": 2,
-      "klass": "CONTENT_DRIFT",
+      "klass": "PACKAGING",
       "hostHunks": 0,
-      "otherHunks": 1,
-      "otherSamples": [
-        "-Copyright (c) 2026 Lauren Tan\n+Copyright (c) 2026 Josh"
-      ]
+      "otherHunks": 0,
+      "otherSamples": []
     },
     {
       "plugin": "pstack",

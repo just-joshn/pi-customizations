@@ -1,0 +1,13 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/skills/typescript-best-practices/SKILL.md	2026-11-04 15:30:17
++++ extensions/pi-pstack/skills/typescript-best-practices/SKILL.md	2026-11-04 15:14:14
+@@ -1,8 +1,9 @@
+ ---
+ name: typescript-best-practices
+ description: TypeScript best practices. Use when reading or editing any .ts or .tsx file.
+-paths: ["**/*.ts", "**/*.tsx"]
+ disable-model-invocation: true
++metadata:
++  paths: ["**/*.ts", "**/*.tsx"]
+ ---
+ 
+ # TypeScript best practices

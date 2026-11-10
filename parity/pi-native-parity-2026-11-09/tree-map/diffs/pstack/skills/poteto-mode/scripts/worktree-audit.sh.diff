@@ -1,0 +1,48 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/skills/poteto-mode/scripts/worktree-audit.sh	2026-11-04 15:30:17
++++ extensions/pi-pstack/skills/poteto-mode/scripts/worktree-audit.sh	2026-11-04 15:14:14
+@@ -69,9 +69,29 @@
+ fi
+ [ -s "$prs" ] || echo "[]" > "$prs"
+ 
+-# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.
+-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
+-transcripts="$HOME/.cursor/projects/$slug/agent-transcripts"
++# Transcripts: Pi session files and pi-pstack subagent transcripts. Pi keeps one session folder per working
++# directory under ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions, unless PI_CODING_AGENT_SESSION_DIR or a sessionDir
++# setting (the working directory's .pi/settings.json over the agent's settings.json) names one custom folder, with
++# ~ expanded (also in PI_CODING_AGENT_DIR) and a relative path resolved from that working directory. Subagent transcripts live under
++# <agent dir>/pstack/workspaces/<folder>/subagents.
++pi_expand() { case "$1" in "~") printf '%s' "$HOME" ;; "~/"*) printf '%s' "$HOME/${1#"~/"}" ;; *) printf '%s' "$1" ;; esac; }
++pi_agent_dir=$(pi_expand "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
++pi_slug() { printf -- '--%s--' "$(printf '%s' "$1" | sed 's#^/##; s#[/\\:]#-#g')"; }
++pi_session_dir() {
++	local dir="${PI_CODING_AGENT_SESSION_DIR:-}"
++	[ -n "$dir" ] || dir=$(jq -r '.sessionDir // empty' "$1/.pi/settings.json" 2>/dev/null)
++	[ -n "$dir" ] || dir=$(jq -r '.sessionDir // empty' "$pi_agent_dir/settings.json" 2>/dev/null)
++	dir=$(pi_expand "$dir")
++	case "$dir" in
++	"") printf '%s\n' "$pi_agent_dir/sessions/$(pi_slug "$1")" ;;
++	/*) printf '%s\n' "$dir" ;;
++	*) printf '%s\n' "$1/$dir" ;;
++	esac
++}
++pi_chat_dirs() {
++	pi_session_dir "$1"
++	printf '%s\n' "$pi_agent_dir/pstack/workspaces/$(pi_slug "$1")/subagents"
++}
+ now=$(date +%s)
+ 
+ echo "# base: $base"
+@@ -111,8 +131,10 @@
+ 	# Most recent chat whose transcript operated in this worktree. Match path
+ 	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
+ 	last="-"; last_ts=0
+-	if [ -d "$transcripts" ]; then
+-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
++	chat_dirs=()
++	while IFS= read -r d; do [ -d "$d" ] && chat_dirs+=("$d"); done < <({ pi_chat_dirs "$main_wt"; pi_chat_dirs "$wt"; } | sort -u)
++	if [ ${#chat_dirs[@]} -gt 0 ]; then
++		f=$(rg -l -e "${wt}/" -e "${wt}\"" "${chat_dirs[@]}" 2>/dev/null \
+ 			| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
+ 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
+ 			last=$(fmt_day "$last_ts" 2>/dev/null); fi

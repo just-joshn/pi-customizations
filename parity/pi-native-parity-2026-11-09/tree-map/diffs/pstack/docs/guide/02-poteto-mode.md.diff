@@ -1,0 +1,20 @@
+--- /Users/josh-desktop/src/experiments/plugins/pstack/docs/guide/02-poteto-mode.md	2026-11-04 15:30:17
++++ extensions/pi-pstack/docs/guide/02-poteto-mode.md	2026-11-05 07:07:39
+@@ -90,7 +90,7 @@
+ keep going until done
+ ```
+ 
+-Short works because the playbook holds the structure, and a Custom Mode keeps `/poteto-mode` in context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) shows how to start one. Your words carry the intent, and the skill carries the rigor.
++Short works because the playbook holds the structure, and `/mode poteto-mode` keeps the skill in context on every turn. [Set up pstack](./01-setup.md#run-your-first-task) shows how to start one. Your words carry the intent, and the skill carries the rigor.
+ 
+ ## Switch tasks with "new task"
+ 
+@@ -104,7 +104,7 @@
+ 
+ ## Give parallel work its own machine
+ 
+-If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a [cloud subagent](https://cursor.com/docs/subagents#cloud-subagents). Each one gets its own VM and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.
++If you run several agents against one repository on one computer, they will fight over the working tree, the ports, and the build output. The cleanest isolation is a [cloud subagent](../../README.md#cloud-agents). Each one gets its own machine and branch, so it can install dependencies, run your app, and record video of the result without touching your machine. Type `/in-cloud` before the task, or ask the parent chat to hand work to cloud subagents.
+ 
+ When the work has to stay local, ask for a worktree up front:
+ 
