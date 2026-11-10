@@ -257,6 +257,17 @@ export function createDesired(cwd: string, sub: DurableSubscription): { created:
   });
 }
 
+export function updatePrompt(cwd: string, id: string, prompt: string): StoredSubscription {
+  return transaction(cwd, (registry) => {
+    const sub = registry.subscriptions.find((entry) => entry.id === id && isDesired(entry));
+    if (sub === undefined) throw new Error(`Active subscription ${id} no longer exists.`);
+    if (sub.config.kind === 'github') throw new Error('A GitHub PR watch has no prompt to edit.');
+    sub.config = { ...sub.config, prompt };
+    sub.revision = registry.revision + 1;
+    return sub;
+  });
+}
+
 export function cancelDesired(cwd: string, key: string): StoredSubscription | undefined {
   return transaction(cwd, (registry) => {
     const candidates = visibleSubscriptions(registry);

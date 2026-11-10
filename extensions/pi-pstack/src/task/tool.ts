@@ -113,11 +113,8 @@ export function effectiveReadonly(agentReadonly: boolean, requested: boolean | u
   return agentReadonly || requested === true;
 }
 
-export interface Launch {
-  /** fresh: a new agent; resume: an earlier agent continued; fork: a new agent started from a copy of `forkedFrom`. */
-  kind: 'fresh' | 'resume' | 'fork';
+export type Launch = ({ kind: 'fresh' | 'resume'; forkedFrom?: never } | { kind: 'fork'; forkedFrom: string }) & {
   agentId: string;
-  forkedFrom?: string;
   agent: AgentDefinition;
   model: ModelSpec | undefined;
   /** What the agent's record keeps. */
@@ -154,7 +151,7 @@ export interface Launch {
   notes: string[];
   description: string;
   buildPlan?: string;
-}
+};
 
 const runsReadonly = (plan: Launch) => plan.readonly || plan.planMode;
 
@@ -249,21 +246,25 @@ function recordedAgent(agents: readonly AgentDefinition[], agentId: string, type
   return agent;
 }
 
-function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], isRunning: (agentId: string) => boolean, depth: number, planMode: boolean): Launch {
-  const agentId = validateAgentId(params.resume ?? '');
-  if (isRunning(agentId)) throw new Error(SUBAGENT_RUNNING);
+function validateRecordedAgent(id: string | undefined, operation: 'resume' | 'fork', ctx: ExtensionContext, isRunning: (agentId: string) => boolean): { agentId: string; record: AgentRecord; parentMachine: ContainerMachine | undefined } {
+  const agentId = validateAgentId(id ?? '');
+  if (isRunning(agentId)) throw new Error(operation === 'resume' ? SUBAGENT_RUNNING : `Agent ${agentId} is still running. Wait for its completion notification before forking it.`);
   const dir = subagentDir(ctx.cwd);
   const record = readRecord(dir, agentId);
-  if (record === undefined) throw new Error(`Unknown agent ID ${agentId}. Resume needs an agent ID returned by an earlier Task call in this workspace.`);
-  // Two directories can share a workspace folder name (as they share Pi's session folder); trust and files belong to this one.
+  if (record === undefined) throw new Error(`Unknown agent ID ${agentId}. ${operation === 'resume' ? 'Resume' : 'Fork'} needs an agent ID returned by an earlier Task call in this workspace.`);
+  // Two directories can share a workspace folder name; trust and files belong to this one.
   if (!recordBelongsToWorkspace(record, ctx.cwd)) throw new Error(`Agent ${agentId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
-  // Without its transcript, --session-id would start an empty session under the old ID.
-  if (transcriptFor(dir, agentId) === undefined) throw new Error(`Agent ${agentId} has no transcript to resume, so its earlier context is gone. Start a new agent instead.`);
-  const { machine } = record;
+  if (transcriptFor(dir, agentId) === undefined) throw new Error(`Agent ${agentId} has no transcript to ${operation}, so its ${operation === 'resume' ? 'earlier context' : 'context'} is gone. Start a new agent instead.`);
   const parentMachine = parentMachineOf(record, ctx.cwd);
-  const checkout = machine ?? parentMachine;
+  const checkout = record.machine ?? parentMachine;
   if (checkout !== undefined && !existsSync(checkout.cwd))
     throw new Error(`Agent ${agentId} ran in ${checkout.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${checkout.path}, which no longer exists. Start a new agent instead.`);
+  return { agentId, record, parentMachine };
+}
+
+function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], isRunning: (agentId: string) => boolean, depth: number, planMode: boolean): Launch {
+  const { agentId, record, parentMachine } = validateRecordedAgent(params.resume, 'resume', ctx, isRunning);
+  const { machine } = record;
   const agent = recordedAgent(agents, agentId, record.type);
   if (params.subagent_type !== undefined && normalizedType(params.subagent_type) !== normalizedType(record.type))
     throw new Error(
@@ -303,19 +304,9 @@ function planResume(params: TaskInput, ctx: ExtensionContext, agents: readonly A
  * tightens), its directory or worktree, and its depth rule. `agentId` is the new agent's ID, fixed across the
  * plan made before and after the locks.
  */
-export function planFork(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], isRunning: (agentId: string) => boolean, depth: number, agentId: string, planMode = false): Launch {
-  const sourceId = validateAgentId(params.fork ?? '');
-  if (isRunning(sourceId)) throw new Error(`Agent ${sourceId} is still running. Wait for its completion notification before forking it.`);
-  const dir = subagentDir(ctx.cwd);
-  const record = readRecord(dir, sourceId);
-  if (record === undefined) throw new Error(`Unknown agent ID ${sourceId}. Fork needs an agent ID returned by an earlier Task call in this workspace.`);
-  if (!recordBelongsToWorkspace(record, ctx.cwd)) throw new Error(`Agent ${sourceId} belongs to ${record.cwd}, not this workspace. Start a new agent instead.`);
-  if (transcriptFor(dir, sourceId) === undefined) throw new Error(`Agent ${sourceId} has no transcript to fork, so its context is gone. Start a new agent instead.`);
+export function planFork(params: TaskInput, ctx: ExtensionContext, agents: readonly AgentDefinition[], isRunning: (agentId: string) => boolean, depth: number, agentId: string, planMode = false): Extract<Launch, { kind: 'fork' }> {
+  const { agentId: sourceId, record, parentMachine } = validateRecordedAgent(params.fork, 'fork', ctx, isRunning);
   const { machine } = record;
-  const parentMachine = parentMachineOf(record, ctx.cwd);
-  const checkout = machine ?? parentMachine;
-  if (checkout !== undefined && !existsSync(checkout.cwd))
-    throw new Error(`Agent ${sourceId} ran in ${checkout.driver === 'worktree' ? 'the git worktree' : 'the cloud machine checkout'} ${checkout.path}, which no longer exists. Start a new agent instead.`);
   const sourceType = agents.find((candidate) => candidate.type === record.type);
   const agent = params.subagent_type === undefined ? recordedAgent(agents, sourceId, record.type) : findAgent(agents, params.subagent_type);
   const model = params.model === undefined ? record.model : resolveSubagentModel(params.model, availableModels(ctx), parentModel(ctx));
@@ -591,7 +582,7 @@ export function prepareFork(params: TaskInput, ctx: ExtensionContext, options: T
   const dir = subagentDir(initialPlan.workspace);
   const lock = acquireRunLock(dir, initialPlan.agentId, lockedMachine(initialPlan));
   try {
-    const sourceId = initialPlan.forkedFrom ?? '';
+    const sourceId = initialPlan.forkedFrom;
     let sourceLock: RunLock;
     try {
       sourceLock = acquireRunLock(dir, sourceId);
