@@ -36,12 +36,14 @@ interface Kernel {
 // AUDIT_ARCH_* from include/uapi/linux/audit.h and elf-em.h; syscall numbers from arch/x86/entry/syscalls/syscall_64.tbl,
 // include/uapi/asm-generic/unistd.h, arch/arm/tools/syscall.tbl, arch/powerpc/kernel/syscalls/syscall.tbl, and
 // arch/s390/kernel/syscalls/syscall.tbl. Linux 5.14, 6.1, 6.8, and 6.12 agree on every value.
+const s390xKernel: Kernel = { arch: 's390x', endian: 'BE', audit: 0x8000_0016, socket: 359, socketpair: 360, openat: 288, socketcall: true, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { s390: 0x0000_0016 } };
+
 const kernels: Kernel[] = [
   { arch: 'x64', endian: 'LE', audit: 0xc000_003e, socket: 41, socketpair: 53, openat: 257, socketcall: false, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { i386: 0x4000_0003 } },
   { arch: 'arm64', endian: 'LE', audit: 0xc000_00b7, socket: 198, socketpair: 199, openat: 56, socketcall: false, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { arm: 0x4000_0028 } },
   { arch: 'arm', endian: 'LE', audit: 0x4000_0028, socket: 281, socketpair: 288, openat: 322, socketcall: true, socketcallPairRefused: true, refused: { io_uring_setup: 425, syscall: 113 }, otherAbis: { armeb: 0x0000_0028 } },
   { arch: 'ppc64', endian: 'LE', audit: 0xc000_0015, socket: 326, socketpair: 333, openat: 286, socketcall: true, socketcallPairRefused: true, refused: { io_uring_setup: 425 }, otherAbis: { ppc: 0x0000_0014, ppc64: 0x8000_0015 } },
-  { arch: 's390x', endian: 'BE', audit: 0x8000_0016, socket: 359, socketpair: 360, openat: 288, socketcall: true, socketcallPairRefused: false, refused: { io_uring_setup: 425 }, otherAbis: { s390: 0x0000_0016 } },
+  s390xKernel,
 ];
 
 const X32_SYSCALL_BIT = 0x4000_0000;
@@ -148,7 +150,7 @@ test('the x64 filter kills an x32 syscall', () => {
 });
 
 describe('the s390x brokered seccomp filter', () => {
-  const s390x = kernels.find((kernel) => kernel.arch === 's390x') as Kernel;
+  const s390x = s390xKernel;
   const decide = (nr: number, args: number[] = [], brokered = true) => runFilter(seccompFilter('s390x', brokered), 'BE', seccompData('BE', s390x.audit, nr, args));
   const pointer = 0x1000;
 

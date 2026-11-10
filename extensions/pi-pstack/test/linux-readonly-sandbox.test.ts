@@ -95,7 +95,7 @@ try:
         received.append(service.recv(100).decode())
 except socket.timeout:
     pass
-print(json.dumps({'sandboxed': result.stdout.strip(), 'received': received}))
+print(json.dumps({'sandboxed': json.loads(result.stdout), 'received': received}))
 `;
 
 const probe = (path: string) => `
@@ -118,7 +118,5 @@ test.skipIf(!hasPython)('a datagram socketpair and an inherited descriptor canno
   const path = join(dir, 'host.sock');
   const command = linuxReadonlyCommand(`python3 -c '${probe(path).replaceAll("'", "'\\''")}'`, dir);
   const { stdout } = await run('python3', ['-c', HOST, path, command], { cwd: dir, encoding: 'utf8', signal });
-  const outcome = JSON.parse(stdout) as { sandboxed: string; received: string[] };
-  expect(outcome.received).toEqual([]);
-  expect(JSON.parse(outcome.sandboxed)).toEqual({ pair: 'Operation not permitted', leaked: 'Bad file descriptor' });
+  expect(JSON.parse(stdout)).toEqual({ sandboxed: { pair: 'Operation not permitted', leaked: 'Bad file descriptor' }, received: [] });
 });
