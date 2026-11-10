@@ -1,4 +1,6 @@
 import { execFile } from 'node:child_process';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export type GithubTarget = { scope: 'pr'; prUrl: string } | { scope: 'repo'; repo: string } | { scope: 'author'; author: string; repo: string };
 
@@ -146,4 +148,63 @@ export async function pollChanges(gh: GhRunner, target: GithubTarget, before: Re
     }
   }
   return blocks;
+}
+
+export function snapshotFile(runtimeDir: string, subscriptionId: string): string {
+  return join(runtimeDir, `github-${subscriptionId}.json`);
+}
+
+const stringRecord = (value: unknown): Record<string, string> | undefined => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  const record: Record<string, string> = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item !== 'string') return undefined;
+    record[key] = item;
+  }
+  return record;
+};
+
+function parseSnapshot(value: unknown): PrSnapshot | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const item = value as Record<string, unknown>;
+  const reviews = stringRecord(item['reviews']);
+  const comments = stringRecord(item['comments']);
+  const checks = stringRecord(item['checks']);
+  if (typeof item['number'] !== 'number' || !Number.isInteger(item['number'])) return undefined;
+  if (typeof item['title'] !== 'string' || typeof item['url'] !== 'string' || typeof item['state'] !== 'string') return undefined;
+  if (typeof item['headRefOid'] !== 'string' || typeof item['mergeable'] !== 'string' || typeof item['reviewDecision'] !== 'string') return undefined;
+  if (reviews === undefined || comments === undefined || checks === undefined) return undefined;
+  return {
+    number: item['number'],
+    title: item['title'],
+    url: item['url'],
+    state: item['state'],
+    headRefOid: item['headRefOid'],
+    mergeable: item['mergeable'],
+    reviewDecision: item['reviewDecision'],
+    reviews,
+    comments,
+    checks,
+  };
+}
+
+/** A missing file means there is no baseline yet. Any other contents must be a snapshot list. */
+export function readSnapshots(file: string): Map<number, PrSnapshot> | undefined {
+  if (!existsSync(file)) return undefined;
+  const value: unknown = JSON.parse(readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new Error('GitHub snapshot file is not a list of pull requests.');
+  const snapshots = new Map<number, PrSnapshot>();
+  for (const item of value) {
+    const snapshot = parseSnapshot(item);
+    if (snapshot === undefined) throw new Error('GitHub snapshot file has a pull request that is not a snapshot.');
+    snapshots.set(snapshot.number, snapshot);
+  }
+  return snapshots;
+}
+
+export function writeSnapshots(file: string, snapshots: ReadonlyMap<number, PrSnapshot>): void {
+  mkdirSync(join(file, '..'), { recursive: true, mode: 0o700 });
+  const temporary = `${file}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify([...snapshots.values()]), { mode: 0o600 });
+  renameSync(temporary, file);
 }

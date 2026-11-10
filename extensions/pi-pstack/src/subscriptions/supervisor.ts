@@ -23,7 +23,7 @@ import {
   writeRoutinesPort,
 } from './durable-store.ts';
 import type { DurableSubscription, EventAdmission, RunModel, StoredSubscription } from './durable-types.ts';
-import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges } from './github.ts';
+import { defaultGhRunner, fetchPrs, type GhRunner, type PrSnapshot, pollChanges, readSnapshots, snapshotFile, writeSnapshots } from './github.ts';
 import { withMemory } from './memories.ts';
 import { credentialFile, DEFAULT_ROUTINES_PORT, ensureCredentials, RoutineServer, type WebhookEvent, webhookEventBlock } from './webhook.ts';
 
@@ -204,9 +204,11 @@ export function createSupervisor(options: SupervisorOptions) {
     try {
       const after = await fetchPrs(gh, target);
       if (!owns(entry)) return;
+      const file = snapshotFile(durableRuntimeDir(cwd), entry.sub.id);
+      const before = entry.baseline ?? readSnapshots(file);
       let blocked = false;
-      if (entry.baseline !== undefined) {
-        const blocks = await pollChanges(gh, target, entry.baseline, after);
+      if (before !== undefined) {
+        const blocks = await pollChanges(gh, target, before, after);
         if (!owns(entry)) return;
         if (blocks.length > 0) {
           const admission = acceptEvent(cwd, entry.sub.id, randomUUID(), [`[github] ${entry.sub.name}`, ...blocks].join('\n\n'), now());
@@ -217,6 +219,7 @@ export function createSupervisor(options: SupervisorOptions) {
         }
       }
       if (!blocked) {
+        writeSnapshots(file, after);
         entry.baseline = after;
         clearError(cwd, entry.sub.id);
       }

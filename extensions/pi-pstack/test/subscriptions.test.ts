@@ -512,6 +512,7 @@ describe('subscribe_github_pr', () => {
     expect(wakes(fake)).toHaveLength(1);
     expect(wakes(fake)[0]).toContain('closed');
 
+    persistSent(fake);
     for (const controller of fake.controllers) controller.shutdown();
     fake.emit('session_start');
     await vi.advanceTimersByTimeAsync(0);

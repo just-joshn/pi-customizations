@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.15.36-pi.37] - 2026-11-10
+
+- Keep a GitHub pull request watch's last snapshot on disk. After the supervisor stops and starts, the next poll wakes the chat for a change that happened while it was down.
+
 ## [0.15.36-pi.36] - 2026-11-10
 
 - Keep Lauren Tan, Cursor, and Josh copyright lines in the root MIT `LICENSE` so both vendored upstream notices stay with the port author.
