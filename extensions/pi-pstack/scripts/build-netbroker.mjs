@@ -20,7 +20,7 @@ const generated = readFileSync(built);
 rmSync(built);
 if (check) {
   if (!existsSync(output) || !readFileSync(output).equals(generated)) {
-    console.error('Stale dist/netbroker-s390x. Run bun run build:netbroker with Zig ' + ZIG_VERSION + '.');
+    console.error(`Stale dist/netbroker-s390x. Run bun run build:netbroker with Zig ${ZIG_VERSION}.`);
     process.exitCode = 1;
   }
 } else writeFileSync(output, generated, { mode: 0o755 });
