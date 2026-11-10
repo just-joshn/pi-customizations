@@ -28,16 +28,16 @@ function request(thinkingLevel: 'low' | 'xhigh') {
   return { model: fastModel(), thinkingLevel, reason: 'user' as const, messages: [] };
 }
 
-test('the registered provider is Grok Build', () => {
-  expect([provider.id, provider.name]).toStrictEqual(['grok-build', 'Grok Build']);
+test('the login list names the provider Grok Build (The X Subscription)', () => {
+  expect([provider.id, provider.name]).toStrictEqual(['grok-build', 'Grok Build (The X Subscription)']);
 });
 
 test('the only login method is OAuth', () => {
   expect(Object.keys(provider.auth)).toStrictEqual(['oauth']);
 });
 
-test('the login is labeled as a Grok Build subscription', () => {
-  expect(provider.auth.oauth?.name).toBe('Grok Build (The X Subscription)');
+test('the login search text matches the provider name', () => {
+  expect(provider.auth.oauth?.name).toBe(provider.name);
   expect(provider.auth.oauth?.isSubscription).toBe(true);
   expect(provider.auth.oauth?.loginLabel).toBe('Sign in with The X Subscription');
 });

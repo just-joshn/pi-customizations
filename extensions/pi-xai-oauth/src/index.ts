@@ -8,6 +8,7 @@ import { createUsageCommand } from './usage.ts';
 
 const XAI_MISSING = "Pi's built-in xai provider with SuperGrok / X Premium OAuth is not available.";
 const NOT_LOGGED_IN = 'Grok Build is not logged in. Run /login and choose Grok Build.';
+const PROVIDER_NAME = 'Grok Build (The X Subscription)';
 
 export function createGrokBuildProvider(xai: Provider): Provider {
   const oauth = xai.auth.oauth;
@@ -28,9 +29,9 @@ export function createGrokBuildProvider(xai: Provider): Provider {
 
   return createProvider({
     id: PROVIDER_ID,
-    name: 'Grok Build',
+    name: PROVIDER_NAME,
     baseUrl: PROXY_BASE_URL,
-    auth: { oauth: { ...oauth, name: 'Grok Build (The X Subscription)', loginLabel: 'Sign in with The X Subscription', login: loginGrokBuild } },
+    auth: { oauth: { ...oauth, name: PROVIDER_NAME, loginLabel: 'Sign in with The X Subscription', login: loginGrokBuild } },
     models: BASELINE.map((model) => toPiModel(model, prices)),
     fetchModels,
     api: withGrokHeaders(xai),
