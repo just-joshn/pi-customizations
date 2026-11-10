@@ -1,0 +1,27 @@
+---
+pid: 40071
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "set -eu; work=$(mktemp -d /tmp/pstack-linux-current.XXXXXX); (cd extensions/pi-pstack && npm pack --silent --pack-destination \"$work\"); cp parity/evidence/installed-helpers-2026-11-06/rpc.mjs \"$work\"/; docker run --rm --platform linux/arm64 -v \"$work:/in\" node:22.22.2-bookworm sh -euc 'npm install -g --silent @earendil-works/pi-coding-agent@1.5.2; export HOME=/root PI_CODING_AGENT_DIR=/root/agent TERM=dumb; cd /tmp; pi --version; pi install \"npm:@justjoshn/pi-pstack@file:$(ls /in/*.tgz)\"; PI_BIN=pi node /in/rpc.mjs /in/rpc.json; node -e '\\''const r=require(\"/in/rpc.json\");for(const n of [\"mode\",\"poteto-mode\"])if(!r.names.some(x=>x.endsWith(\":\"+n)))throw Error(\"missing \"+n);if(r.stderr)console.log(\"stderr:\",r.stderr);console.log(\"required commands present\")'\\'''; cp \"$work/rpc.json\" parity/pstack-2026-11-10/evidence/linux-arm64-rpc.json"
+title: "Linux installed package RPC check"
+status: succeeded
+started_at: 2026-11-10T14:44:04.680Z
+running_for_ms: 10211    
+---
+Checked dist/supervisor-main.js
+Checked dist/release-machine.js
+Checked skills/statechart/scripts/statechart.js
+Checked skills/statechart/scripts/worker.js
+justjoshn-pi-pstack-0.15.36-pi.37.tgz
+1.5.2
+Installing npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.37.tgz...
+
+added 8 packages in 1s
+Installed npm:@justjoshn/pi-pstack@file:/in/justjoshn-pi-pstack-0.15.36-pi.37.tgz
+88 commands
+required commands present
+
+---
+exit_code: 0
+elapsed_ms: 10211
+ended_at: 2026-11-10T14:44:14.891Z
+---

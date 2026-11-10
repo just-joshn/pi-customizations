@@ -1,0 +1,16 @@
+---
+pid: 7844
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "cursor-agent --print --model gpt-5.6-sol-medium 'Reply with exactly the word READY.'"
+title: "Cursor model access probe"
+status: failed   
+started_at: 2026-11-10T14:40:09.587Z
+running_for_ms: 4330     
+---
+ActionRequiredError: GPT-5.6 Sol is not included in your weekly usage Buy credits or switch to a Grok model to continue.
+
+---
+exit_code: 1
+elapsed_ms: 4330
+ended_at: 2026-11-10T14:40:13.917Z
+---

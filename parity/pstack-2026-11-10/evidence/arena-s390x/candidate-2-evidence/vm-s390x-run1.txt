@@ -1,0 +1,106 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x  glibc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41  bwrap: bubblewrap 0.12.0
+ready
+--- filter=eperm-socket
+python glibc tcp: PermissionError errno=1(EPERM)
+direct syscall 359 socket(AF_INET): 3
+direct syscall 359 socket(AF_UNIX): errno=EPERM
+raw socketcall(SOCKET,AF_UNIX): EPERM
+raw socketcall(SOCKET,AF_INET): EPERM
+curl glibc http: 000 exit=7
+go tcp: dial tcp 127.0.0.1:34567: socket: operation not permitted
+node tcp: EPERM
+node child_process pipe: hi 
+node stdout stream= WriteStream
+python asyncio: asyncio ok
+--- filter=enosys-socket
+python glibc tcp: OSError errno=38(ENOSYS)
+direct syscall 359 socket(AF_INET): 3
+direct syscall 359 socket(AF_UNIX): errno=EPERM
+raw socketcall(SOCKET,AF_UNIX): ENOSYS
+raw socketcall(SOCKET,AF_INET): ENOSYS
+curl glibc http: 000 exit=7
+go tcp: dial tcp 127.0.0.1:34567: socket: function not implemented
+node tcp: ENOSYS
+node child_process pipe: hi 
+node stdout stream= WriteStream
+python asyncio: asyncio ok
+--- filter=eafnosupport-socket
+python glibc tcp: OSError errno=97(EAFNOSUPPORT)
+direct syscall 359 socket(AF_INET): 3
+direct syscall 359 socket(AF_UNIX): errno=EPERM
+raw socketcall(SOCKET,AF_UNIX): EAFNOSUPPORT
+raw socketcall(SOCKET,AF_INET): EAFNOSUPPORT
+curl glibc http: 000 exit=7
+go tcp: dial tcp 127.0.0.1:34567: socket: address family not supported by protocol
+node tcp: EAFNOSUPPORT
+node child_process pipe: hi 
+node stdout stream= WriteStream
+python asyncio: asyncio ok
+--- filter=enosys-all-socketcall
+python glibc tcp: OSError errno=38(ENOSYS)
+direct syscall 359 socket(AF_INET): 3
+direct syscall 359 socket(AF_UNIX): errno=EPERM
+raw socketcall(SOCKET,AF_UNIX): ENOSYS
+raw socketcall(SOCKET,AF_INET): ENOSYS
+curl glibc http: 000 exit=7
+go tcp: dial tcp 127.0.0.1:34567: socket: function not implemented
+node tcp: ENOSYS
+node child_process pipe: undefined ENOSYS
+node stdout stream= WriteStream
+Exception ignored in: <function BaseEventLoop.__del__ at 0x3ff97ec9e40>
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/asyncio/base_events.py", line 766, in __del__
+    self.close()
+  File "/usr/lib/python3.13/asyncio/unix_events.py", line 70, in close
+    super().close()
+  File "/usr/lib/python3.13/asyncio/selector_events.py", line 104, in close
+    self._close_self_pipe()
+  File "/usr/lib/python3.13/asyncio/selector_events.py", line 111, in _close_self_pipe
+    self._remove_reader(self._ssock.fileno())
+AttributeError: '_UnixSelectorEventLoop' object has no attribute '_ssock'
+/ro-check/probes.py:4: RuntimeWarning: coroutine 'm' was never awaited
+  except Exception as e: return f"{type(e).__name__} errno={getattr(e,'errno',None)}({errno.errorcode.get(getattr(e,'errno',0) or 0)})"
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+python asyncio: OSError errno=38(ENOSYS)
+--- filter=allow-all
+python glibc tcp: b'HELLO'
+direct syscall 359 socket(AF_INET): 3
+direct syscall 359 socket(AF_UNIX): 4
+raw socketcall(SOCKET,AF_UNIX): 3
+raw socketcall(SOCKET,AF_INET): 4
+curl glibc http: 200 exit=0
+go tcp: HELLO
+node tcp: HELLO
+node child_process pipe: hi 
+node stdout stream= WriteStream
+python asyncio: asyncio ok
+=== unix reachability on s390x kernel, no seccomp
+-- share-net
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: b'HELLO'
+  tcp loopback connect: b'HELLO'
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+-- own netns
+  unix path stream connect: b'HELLO'
+  unix abstract stream connect: ConnectionRefusedError ECONNREFUSED
+  tcp loopback connect: ConnectionRefusedError ECONNREFUSED
+  unix path dgram sendto: sendto ok
+  socketpair(DGRAM) -> connect host path: dgram socketpair reconnect+send ok
+=== done

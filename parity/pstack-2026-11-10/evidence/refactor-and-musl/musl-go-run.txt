@@ -1,0 +1,7 @@
+libc: /lib/ld-musl-aarch64.so.1 arch: aarch64 bwrap: bubblewrap 0.12.0
+static go: socketpair, tcp           status 0 "socketpair dgram: operation not permitted\nsocketpair stream: ok true\ntcp loopback: true"
+musl node: child pipe                status 0 "pipe-ok Socket"
+musl python: dgram socketpair        status 0 "refused Operation not permitted"
+musl python: stream pair + asyncio   status 0 "ok"
+musl curl loopback                   status 0 "000 rc=7"
+musl git                             status 0 "git version 2.52.0"

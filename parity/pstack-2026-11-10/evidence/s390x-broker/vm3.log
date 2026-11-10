@@ -1,0 +1,193 @@
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/s390x) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinuz-6.12.115+deb13.1-s390x; initrd /work/boot/initrd.img-6.12.115+deb13.1-s390x
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+KASLR disabled: CPU has no PRNG
+[    0.428396] Linux version 6.12.115+deb13.1-s390x (debian-kernel@lists.debian.org) (s390x-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP Debian 6.12.115-2 (2026-11-01)
+[    0.429065] setup: Linux is running under KVM in 64-bit mode
+[    0.435250] setup: The maximum memory size is 2048MB
+[    0.435495] setup: Relocating AMODE31 section of size 0x00003000
+[    0.436612] cpu: 2 configured CPUs, 0 standby CPUs
+[    0.469579] Write protected kernel read-only data: 19744k
+[    0.471237] Zone ranges:
+[    0.471251]   DMA      [mem 0x0000000000000000-0x000000007fffffff]
+[    0.471569]   Normal   empty
+[    0.471589] Movable zone start for each node
+[    0.471605] Early memory node ranges
+[    0.471616]   node   0: [mem 0x0000000000000000-0x000000007fffffff]
+[    0.471782] Initmem setup node 0 [mem 0x0000000000000000-0x000000007fffffff]
+[    0.477922] percpu: Embedded 31 pages/cpu s86272 r8192 d32512 u126976
+[    0.478951] Kernel command line: root=/dev/vda ro init=/ro-check/guest-init.sh panic=-1 console=ttysclp0
+[    0.479902] random: crng init done
+[    0.480518] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes, linear)
+[    0.480966] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.481588] Built 1 zonelists, mobility grouping on.  Total pages: 524288
+[    0.481792] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.491506] SLUB: HWalign=256, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.541111] ftrace: allocating 33713 entries in 132 pages
+[    0.541280] ftrace: allocated 132 pages with 2 groups
+[    0.548089] rcu: Hierarchical RCU implementation.
+[    0.548128] rcu: 	RCU restricting CPUs from NR_CPUS=256 to nr_cpu_ids=2.
+[    0.548233] 	Rude variant of Tasks RCU enabled.
+[    0.548241] 	Tracing variant of Tasks RCU enabled.
+[    0.548306] rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+[    0.548325] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.549040] RCU Tasks Rude: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.549073] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.571876] NR_IRQS: 3, nr_irqs: 3, preallocated irqs: 3
+[    0.573656] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.574332] clocksource: tod: mask: 0xffffffffffffffff max_cycles: 0x3b0a9be803b, max_idle_ns: 440795202126 ns
+[    0.577182] Console: colour dummy device 80x25
+[    0.581757] printk: legacy console [ttysclp0] enabled
+[    0.583569] pid_max: default: 32768 minimum: 301
+[    0.584568] LSM: initializing lsm=capability,landlock,lockdown,yama,apparmor,tomoyo,ipe,ima,evm
+[    0.585061] landlock: Up and running.
+[    0.585092] Yama: disabled by default; enable with sysctl kernel.yama.*
+[    0.586463] AppArmor: AppArmor initialized
+[    0.586543] TOMOYO Linux initialized
+[    0.587722] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.587755] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.610955] rcu: Hierarchical SRCU implementation.
+[    0.611019] rcu: 	Max phase no-delay instances is 1000.
+[    0.614647] smp: Bringing up secondary CPUs ...
+[    0.620399] smp: Brought up 1 node, 2 CPUs
+[    0.649119] node 0 deferred pages initialised in 24ms
+[    0.649613] Memory: 2003232K/2097152K available (12184K kernel code, 1944K rwdata, 7560K rodata, 1160K init, 768K bss, 90428K reserved, 0K cma-reserved)
+[    0.659344] devtmpfs: initialized
+[    0.664114] futex hash table entries: 512 (order: 5, 131072 bytes, linear)
+[    0.669106] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.670637] audit: initializing netlink subsys (disabled)
+[    0.671902] audit: type=2000 audit(1794331353.449:1): state=initialized audit_enabled=0 res=1
+[    0.674267] thermal_sys: Registered thermal governor 'fair_share'
+[    0.674332] thermal_sys: Registered thermal governor 'bang_bang'
+[    0.674366] thermal_sys: Registered thermal governor 'step_wise'
+[    0.674378] thermal_sys: Registered thermal governor 'user_space'
+[    0.696874] iommu: Default domain type: Translated
+[    0.696954] iommu: DMA domain TLB invalidation policy: lazy mode
+[    0.697943] pps_core: LinuxPPS API ver. 1 registered
+[    0.698134] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.698184] PTP clock support registered
+[    0.707760] NetLabel: Initializing
+[    0.707832] NetLabel:  domain hash size = 128
+[    0.707848] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.708612] NetLabel:  unlabeled traffic allowed by default
+[    0.761184] VFS: Disk quotas dquot_6.6.0
+[    0.761304] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.763549] hugetlbfs: disabling because there are no supported hugepage sizes
+[    0.764937] AppArmor: AppArmor Filesystem Enabled
+[    0.786099] NET: Registered PF_INET protocol family
+[    0.786914] IP idents hash table entries: 32768 (order: 6, 262144 bytes, linear)
+[    0.819761] tcp_listen_portaddr_hash hash table entries: 1024 (order: 2, 16384 bytes, linear)
+[    0.819878] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.819938] TCP established hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.820195] TCP bind hash table entries: 16384 (order: 7, 524288 bytes, linear)
+[    0.820477] TCP: Hash tables configured (established 16384 bind 16384)
+[    0.821371] MPTCP token hash table entries: 2048 (order: 4, 49152 bytes, linear)
+[    0.821668] UDP hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.821867] UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.822801] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.823078] NET: Registered PF_XDP protocol family
+[    0.827008] Trying to unpack rootfs image as initramfs...
+[    0.829484] hypfs: The hardware system does not support hypfs
+[    0.832618] Initialise system trusted keyrings
+[    0.834101] Key type blacklist registered
+[    0.834873] workingset: timestamp_bits=46 max_order=19 bucket_order=0
+[    0.834973] zbud: loaded
+[    0.836326] fuse: init (API version 7.41)
+[    0.837991] integrity: Platform Keyring initialized
+[    1.126232] Key type asymmetric registered
+[    1.126335] Asymmetric key parser 'x509' registered
+[    1.303708] Freeing initrd memory: 25676K
+[    1.409388] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 249)
+[    1.409888] io scheduler mq-deadline registered
+[    1.418923] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.419818] hvc_iucv: The z/VM IUCV HVC device driver cannot be used without z/VM
+[    1.421596] mousedev: PS/2 mouse device common for all mice
+[    1.422486] cio: Channel measurement facility initialized using format extended (mode autodetected)
+[    1.424042] ap: The hardware system does not support AP instructions
+[    1.426603] NET: Registered PF_INET6 protocol family
+[    1.490475] Segment Routing with IPv6
+[    1.490661] In-situ OAM (IOAM) with IPv6
+[    1.490945] mip6: Mobile IPv6
+[    1.491077] NET: Registered PF_PACKET protocol family
+[    1.491426] mpls_gso: MPLS GSO support
+[    1.500909] registered taskstats version 1
+[    1.501876] Loading compiled-in X.509 certificates
+[    1.639116] Loaded X.509 cert 'Build time autogenerated kernel key: dc92233baac2120e950e67f36f4c31eacc038d7d'
+[    1.648380] Key type .fscrypt registered
+[    1.648410] Key type fscrypt-provisioning registered
+[    1.962196] Key type encrypted registered
+[    1.962328] AppArmor: AppArmor sha256 policy hashing enabled
+[    1.962758] ima: No TPM chip found, activating TPM-bypass!
+[    1.962818] ima: Allocated hash algorithm: sha256
+[    1.963789] ima: No architecture policies found
+[    1.964161] evm: Initialising EVM extended attributes:
+[    1.964179] evm: security.selinux
+[    1.964207] evm: security.SMACK64 (disabled)
+[    1.964216] evm: security.SMACK64EXEC (disabled)
+[    1.964224] evm: security.SMACK64TRANSMUTE (disabled)
+[    1.964232] evm: security.SMACK64MMAP (disabled)
+[    1.964240] evm: security.apparmor
+[    1.964247] evm: security.ima
+[    1.964253] evm: security.capability
+[    1.964267] evm: HMAC attrs: 0x1
+[    2.257216] Freeing unused kernel image (initmem) memory: 1160K
+[    2.273464] Write protected read-only-after-init data: 228k
+[    2.273603] Run /init as init process
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+[    3.485335] virtio_blk virtio0: 1/0/0 default/read/poll queues
+[    3.493508] virtio_blk virtio0: [vda] 6291456 512-byte logical blocks (3.22 GB/3.00 GiB)
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+[    4.194193] EXT4-fs (vda): mounted filesystem 58b75073-8c79-4711-ac98-d9fa907d2709 ro with ordered data mode. Quota mode: none.
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-s390x s390x
+=== node: s390x v22.23.4
+=== libc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41
+=== bwrap: bubblewrap 0.12.0
+=== yama: 0
+chmod: changing permissions of '/ro-check/dist/netbroker-s390x': Read-only file system
+chmod: changing permissions of '/ro-check/race': Read-only file system
+##### production chain, broker present
+PASS profile is brokered | brokered
+PASS glibc TCP to host loopback | glibc-tcp b'HTTP/1.1 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\nHEL
+PASS glibc AF_UNIX socket refused | unix-stream Operation not permitted
+unix-dgram Operation not permitted
+PASS glibc socketpair: stream ok, dgram and seqpacket refused | dgram Operation not permitted
+seqpacket Operation not permitted
+stream ok
+PASS python asyncio works | asyncio-ok
+PASS node child_process, stdout Socket, fetch loopback | pipe-ok Socket
+fetch HELLO
+PASS node fork IPC | ipc 1
+PASS writes still refused | touch: cannot touch '/tmp/should-not-exist': Read-only file system
+done
+PASS 20,000 argument-flip races each for socket and socketpair produced no escape | socket race: n=20000 ok=10042 eperm=9958 other=0 ESCAPES(AF_UNIX returned)=0 | socketpair race: n=20000 ok=10016 eperm=9984 other=0 ESCAPES(non-stream AF_UNIX pair)=0
+PASS abort leaves no broker, bwrap or command behind | clean
+PASS host Unix datagram service received nothing | ""
+RESULT: PASS
+##### broker missing: degraded profile still runs
+PASS profile is degraded | degraded
+PASS command runs without the broker | degraded-ok
+git version 2.47.3
+PASS AF_UNIX socket still refused without the broker | Operation not permitted
+RESULT: PASS
+[   40.492942] sysrq: Power Off
+[   40.493573] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+[   40.493752] CPU: 1 UID: 0 PID: 1 Comm: guest-init.sh Not tainted 6.12.115+deb13.1-s390x #1  Debian 6.12.115-2
+[   40.493805] Hardware name: QEMU 8561 QEMU (KVM/Linux)
+[   40.493857] Call Trace:
+[   40.494015]  [<000003ffff402f56>] dump_stack_lvl+0x76/0xa0 
+[   40.494168]  [<000003ffff3f66e8>] panic+0x118/0x318 
+[   40.494184]  [<000003fffe94458e>] do_exit+0xb86/0xb90 
+[   40.494202]  [<000003fffe9447bc>] do_group_exit+0x44/0xc0 
+[   40.494218]  [<000003fffe944896>] __s390x_sys_exit_group+0x2e/0x30 
+[   40.494234]  [<000003ffff4034ec>] __do_syscall+0x254/0x328 
+[   40.494250]  [<000003ffff40f1c8>] system_call+0x78/0xa0 

@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack",
-  "version": "0.15.36-pi.37",
+  "version": "0.15.36-pi.38",
   "description": "pstack 0.15.36 for Pi with its soft-dependency team-kit skills vendored in: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, SwitchMode, image generation, and visualize",
   "type": "module",
   "license": "MIT",
@@ -62,6 +62,8 @@
   "scripts": {
     "build:helpers": "bun scripts/build-helpers.mjs",
     "check:helpers": "bun scripts/build-helpers.mjs --check",
+    "build:netbroker": "node scripts/build-netbroker.mjs",
+    "check:netbroker": "node scripts/build-netbroker.mjs --check",
     "prepack": "bun scripts/build-helpers.mjs --check",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",

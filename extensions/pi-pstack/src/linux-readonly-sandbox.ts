@@ -1,101 +1,27 @@
-// The Linux read-only sandbox: bubblewrap with every namespace but the network unshared, the whole filesystem bound read-only, and a
-// seccomp filter that refuses Unix sockets. bubblewrap installs the filter itself, so this needs no nested user
-// namespace, which hosts with kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
+// bubblewrap loads the seccomp filter itself, or the s390x broker does, so this needs no nested user namespace, which hosts with
+// kernel.apparmor_restrict_unprivileged_userns=1 (Ubuntu 24.04 and later) refuse.
 import { spawnSync } from 'node:child_process';
-import { accessSync, closeSync, constants, existsSync, mkdtempSync, openSync, writeFileSync } from 'node:fs';
+import { accessSync, chmodSync, closeSync, constants, copyFileSync, existsSync, mkdtempSync, openSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const LD_ABS_W = 0x20;
-const JEQ_K = 0x15;
-const JGE_K = 0x35;
-const RET_K = 0x06;
-const SECCOMP_RET_ALLOW = 0x7fff_0000;
-const SECCOMP_RET_ERRNO_EPERM = 0x0005_0001;
-const SECCOMP_RET_KILL_PROCESS = 0x8000_0000;
-const X32_SYSCALL_BIT = 0x4000_0000;
-const AF_UNIX = 1;
-const SYS_SOCKET = 1;
-const IO_URING_SETUP = 425;
-const SOCKETCALL = 102;
-const ARM_OABI_SYSCALL = 113;
+import { BROKER_POLICY, brokeredSeccompFilter, seccompFilter } from './seccomp-filter.ts';
 
-interface Arch {
-  audit: number;
-  endian: 'LE' | 'BE';
-  /** Syscalls that fail with EPERM when their first argument is the given value. */
-  refusedWhen: [syscall: number, firstArgument: number][];
-  refused: number[];
-}
-
-// AUDIT_ARCH_* from include/uapi/linux/audit.h and syscall numbers from each architecture's syscall table; Linux 5.14
-// through 6.12 agree. socketcall(SYS_SOCKET) hides socket's domain behind a pointer a classic BPF filter cannot read, so
-// it fails for every domain; its other calls only use descriptors the command already holds, as they do on x64. ARM's
-// OABI indirect syscall would run any syscall past the filter. ppc64 is little-endian: Node publishes no big-endian build.
-const SOCKETCALL_SOCKET: [number, number] = [SOCKETCALL, SYS_SOCKET];
-const ARCHES: Record<string, Arch> = {
-  x64: { audit: 0xc000_003e, endian: 'LE', refusedWhen: [[41, AF_UNIX]], refused: [IO_URING_SETUP] },
-  arm64: { audit: 0xc000_00b7, endian: 'LE', refusedWhen: [[198, AF_UNIX]], refused: [IO_URING_SETUP] },
-  arm: { audit: 0x4000_0028, endian: 'LE', refusedWhen: [[281, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP, ARM_OABI_SYSCALL] },
-  ppc64: { audit: 0xc000_0015, endian: 'LE', refusedWhen: [[326, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
-  s390x: { audit: 0x8000_0016, endian: 'BE', refusedWhen: [[359, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
-};
-
-/**
- * A classic BPF seccomp program in the architecture's byte order: the `refusedWhen` and `refused` syscalls fail with
- * EPERM, any other architecture or the x32 ABI kills the process, and everything else is allowed. Jumps are relative
- * to the next instruction.
- */
-export function seccompFilter(arch: string): Buffer {
-  const target = ARCHES[arch];
-  if (target === undefined) throw new Error(`the read-only shell has no seccomp filter for ${arch}`);
-  const le = target.endian === 'LE';
-  const instruction = (code: number, jt: number, jf: number, k: number): Buffer => {
-    const bytes = Buffer.alloc(8);
-    if (le) bytes.writeUInt16LE(code, 0);
-    else bytes.writeUInt16BE(code, 0);
-    bytes.writeUInt8(jt, 2);
-    bytes.writeUInt8(jf, 3);
-    if (le) bytes.writeUInt32LE(k >>> 0, 4);
-    else bytes.writeUInt32BE(k >>> 0, 4);
-    return bytes;
-  };
-  const refusedAt = 4 + 3 * target.refusedWhen.length;
-  const allow = refusedAt + target.refused.length;
-  const errno = allow + 1;
-  const kill = allow + 2;
-  const to = (from: number, label: number) => label - from - 1;
-  return Buffer.concat([
-    instruction(LD_ABS_W, 0, 0, 4), // 0: architecture
-    instruction(JEQ_K, 0, to(1, kill), target.audit), // 1: native → 2, otherwise → kill
-    instruction(LD_ABS_W, 0, 0, 0), // 2: syscall number
-    instruction(JGE_K, to(3, kill), 0, X32_SYSCALL_BIT), // 3: x32 → kill
-    ...target.refusedWhen.flatMap(([nr, value], index) => {
-      const at = 4 + 3 * index;
-      return [
-        instruction(JEQ_K, 0, 2, nr), // this syscall → next, otherwise → the next rule
-        instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // the low word of the first argument
-        instruction(JEQ_K, to(at + 2, errno), to(at + 2, allow), value),
-      ];
-    }),
-    ...target.refused.map((nr, index) => instruction(JEQ_K, to(refusedAt + index, errno), 0, nr)),
-    instruction(RET_K, 0, 0, SECCOMP_RET_ALLOW), // allow
-    instruction(RET_K, 0, 0, SECCOMP_RET_ERRNO_EPERM), // errno
-    instruction(RET_K, 0, 0, SECCOMP_RET_KILL_PROCESS), // kill
-  ]);
-}
-
+const FILTER_FD = 3;
 const quote = (value: string) => `'${value.replace(/'/g, `'\\''`)}'`;
 
+type Sandbox = { kind: 'filter'; bwrap: string; shell: string; filterPath: string } | { kind: 'broker'; bwrap: string; shell: string; filterPath: string; helper: string };
+
 /** bubblewrap's arguments before the command: nothing is writable, and only the network is shared with the host. */
-export function bwrapArgs(cwd: string): string[] {
-  return ['--new-session', '--die-with-parent', '--unshare-all', '--share-net', '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--cap-drop', 'ALL', '--chdir', cwd, '--seccomp', '3'];
+function bwrapArgs(cwd: string): string[] {
+  return ['--new-session', '--die-with-parent', '--unshare-all', '--share-net', '--ro-bind', '/', '/', '--dev', '/dev', '--proc', '/proc', '--cap-drop', 'ALL', '--chdir', cwd];
 }
 
-interface Sandbox {
-  bwrap: string;
-  filterPath: string;
-  shell: string;
+/** The one chain a command, and the check that vouches for it, both run: the broker (when there is one) starts bubblewrap, which starts `inner`. */
+function launchArgv(sandbox: Sandbox, cwd: string, inner: string[]): string[] {
+  const bubblewrap = [sandbox.bwrap, ...bwrapArgs(cwd), ...(sandbox.kind === 'broker' ? [] : ['--seccomp', String(FILTER_FD)]), '--', ...inner];
+  return sandbox.kind === 'broker' ? [sandbox.helper, '--policy', BROKER_POLICY, '--filter-fd', String(FILTER_FD), '--', ...bubblewrap] : bubblewrap;
 }
 
 /** The first executable `name` on PATH, so every command runs the bubblewrap the check ran. */
@@ -127,28 +53,57 @@ function verifiedSandbox(): Sandbox {
   return verified.sandbox;
 }
 
-/** Writes the filter into a private directory and checks that bubblewrap can load it here. */
-function checkSandbox(): Sandbox {
-  const filter = seccompFilter(process.arch);
-  const bwrap = onPath('bwrap');
-  if (bwrap === undefined) throw new Error('bubblewrap (bwrap) is not available: no bwrap on PATH');
-  const dir = mkdtempSync(join(tmpdir(), 'pi-pstack-ro-'));
-  const filterPath = join(dir, 'unix-block.bpf');
-  writeFileSync(filterPath, filter, { mode: 0o400 });
-  const shell = existsSync('/bin/bash') ? '/bin/bash' : '/bin/sh';
+/** Copies the packaged broker somewhere executable, or returns undefined when there is none or it cannot be copied. */
+function stageBroker(dir: string): string | undefined {
+  const staged = join(dir, 'netbroker');
+  try {
+    copyFileSync(fileURLToPath(new URL(`../dist/netbroker-${process.arch}`, import.meta.url)), staged);
+    chmodSync(staged, 0o700);
+  } catch {
+    return undefined;
+  }
+  return staged;
+}
+
+/** Runs `argv` with `filterPath` open as fd 3, and returns why it did not exit 0 within the timeout, or undefined when it did. */
+function failureOf(argv: string[], filterPath: string): string | undefined {
+  const [command = '', ...args] = argv;
   const fd = openSync(filterPath, 'r');
   try {
-    const probe = spawnSync(bwrap, [...bwrapArgs('/'), '--', shell, '-c', 'exit 0'], { stdio: ['ignore', 'ignore', 'pipe', fd], encoding: 'utf8', timeout: 15_000 });
-    if (probe.error !== undefined) throw new Error(`bubblewrap (bwrap) could not run: ${probe.error.message}`);
-    if (probe.status !== 0) throw new Error(`bubblewrap could not start the read-only sandbox: ${probe.stderr.trim() || `exit ${probe.status}`}`);
+    const probe = spawnSync(command, args, { stdio: ['ignore', 'ignore', 'pipe', fd], encoding: 'utf8', timeout: 15_000 });
+    if (probe.error !== undefined) return probe.error.message;
+    return probe.status === 0 ? undefined : probe.stderr.trim() || `exit ${probe.status}`;
   } finally {
     closeSync(fd);
   }
-  return { bwrap, filterPath, shell };
 }
+
+/** Checks, in the exact chain a command will run, that this host can load the filter, and the broker where this architecture has one. */
+function checkSandbox(): Sandbox {
+  const bwrap = onPath('bwrap');
+  if (bwrap === undefined) throw new Error('bubblewrap (bwrap) is not available: no bwrap on PATH');
+  const dir = mkdtempSync(join(tmpdir(), 'pi-pstack-ro-'));
+  process.once('exit', () => rmSync(dir, { recursive: true, force: true }));
+  const shell = existsSync('/bin/bash') ? '/bin/bash' : '/bin/sh';
+  const filterPath = join(dir, 'unix-block.bpf');
+  writeFileSync(filterPath, seccompFilter(process.arch), { mode: 0o400 });
+  const filter: Sandbox = { kind: 'filter', bwrap, shell, filterPath };
+  const failure = failureOf(launchArgv(filter, '/', [shell, '-c', 'exit 0']), filterPath);
+  if (failure !== undefined) throw new Error(`bubblewrap could not start the read-only sandbox: ${failure}`);
+  const brokered = brokeredSeccompFilter(process.arch);
+  const helper = brokered === undefined ? undefined : stageBroker(dir);
+  if (brokered === undefined || helper === undefined) return filter;
+  const brokerFilterPath = join(dir, 'broker.bpf');
+  writeFileSync(brokerFilterPath, brokered, { mode: 0o400 });
+  const broker: Sandbox = { kind: 'broker', bwrap, shell, filterPath: brokerFilterPath, helper };
+  return failureOf(launchArgv(broker, '/', [helper, '--policy', BROKER_POLICY, '--selftest']), brokerFilterPath) === undefined ? broker : filter;
+}
+
+const CLOSE_INHERITED_DESCRIPTORS = `for f in /proc/self/fd/*; do n=\${f##*/}; if [ "$n" -gt ${FILTER_FD} ]; then eval "exec $n>&-"; fi; done; `;
 
 /** The shell command that runs `command` inside the read-only sandbox, or an error when no sandbox can start. */
 export function linuxReadonlyCommand(command: string, cwd: string): string {
-  const { bwrap, filterPath, shell } = verifiedSandbox();
-  return `exec ${quote(bwrap)} ${bwrapArgs(cwd).map(quote).join(' ')} -- ${quote(shell)} -c ${quote(command)} 3< ${quote(filterPath)}`;
+  const sandbox = verifiedSandbox();
+  const argv = launchArgv(sandbox, cwd, [sandbox.shell, '-c', command]);
+  return `${CLOSE_INHERITED_DESCRIPTORS}exec ${argv.map(quote).join(' ')} ${FILTER_FD}< ${quote(sandbox.filterPath)}`;
 }

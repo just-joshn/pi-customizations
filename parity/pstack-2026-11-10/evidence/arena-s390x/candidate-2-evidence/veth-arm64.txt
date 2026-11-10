@@ -1,0 +1,5 @@
+debconf: delaying package configuration, since apt-utils is not installed
+inner-uid=0 caps
+veth-in-own-ns:ok
+peer-into-host-netns:RTNETLINK answers: Operation not permitted
+peer-into-host-netns-b:RTNETLINK answers: Operation not permitted

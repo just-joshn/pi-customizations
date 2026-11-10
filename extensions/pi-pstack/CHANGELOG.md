@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.36-pi.38] - 2026-11-10
+
+- The Linux read-only shell refuses a datagram `AF_UNIX` `socketpair`, which could `sendto` or `connect` to host pathname and abstract Unix sockets. Stream pairs stay allowed, so Node child pipes and the inherited stdout socket still work. arm and ppc64 also refuse `socketcall(SYS_SOCKETPAIR)`.
+- The read-only shell closes every inherited descriptor above 3 before it starts the sandbox, so a socket a parent left open cannot carry a datagram to a host service.
+- On s390x a small static broker, `dist/netbroker-s390x`, answers `socketcall` socket creation, so glibc TCP works while Unix sockets and datagram socketpairs stay refused. The sandbox checks it in its real launch chain and falls back to the filter alone when it cannot run. `bun run build:netbroker` rebuilds it with Zig 0.17.1, and `check:netbroker` compares the bytes.
+- A descriptor passed to the shell over an allowed stream socket can still reach a host socket. `docs/host-limits.md` records the s390x fallback.
+
 ## [0.15.36-pi.37] - 2026-11-10
 
 - Keep a GitHub pull request watch's last snapshot on disk. After the supervisor stops and starts, the next poll wakes the chat for a change that happened while it was down.

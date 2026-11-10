@@ -1,0 +1,749 @@
+WARNING: The requested image's platform (linux/ppc64le) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+WARNING: The requested image's platform (linux/ppc64le) does not match the detected host platform (linux/arm64/v8) and no specific platform was requested
+=== qemu: QEMU emulator version 10.0.13 (Debian 1:10.0.13+ds-0+deb13u1); kernel /work/boot/vmlinux-6.12.115+deb13.1-powerpc64le; initrd /work/boot/initrd.img-6.12.115+deb13.1-powerpc64le
+qemu-system-ppc64: warning: TCG doesn't support requested feature, cap-cfpc=workaround
+qemu-system-ppc64: warning: TCG doesn't support requested feature, cap-ibs=workaround
+qemu-system-ppc64: warning: TCG doesn't support requested feature, cap-ccf-assist=on
+
+
+SLOF[0m[?25l **********************************************************************
+[1mQEMU Starting
+[0m Build Date = Aug 29 2026 17:55:40
+ FW Version = release 20230918
+ Press "s" to enter Open Firmware.
+
+[0m[?25hC0000C0100C0120C0140C0200C0240C0260C02E0C0300C0320C0340C0360C0370C0380C0371C0373C0374C03F0C0400C0480C04C0C04D0C0500Populating /vdevice methods
+Populating /vdevice/vty@71000000
+Populating /vdevice/nvram@71000001
+Populating /vdevice/v-scsi@71000002
+       SCSI: Looking for devices
+          8200000000000000 CD-ROM   : "QEMU     QEMU CD-ROM      2.5+"
+C05A0Populating /pci@800000020000000
+                     00 0000 (D) : 1af4 1001    virtio [ block ]
+C0600C06C0C0700C0800C0880No NVRAM common partition, re-initializing...
+C0890C08A0C08A8C08B0Scanning USB 
+C08C0C08D0Using default console: /vdevice/vty@71000000
+C08E0C08E8Detected RAM kernel at 400000 (287e750 bytes) 
+C08FF     
+  Welcome to Open Firmware
+
+  Copyright (c) 2004, 2017 IBM Corporation All rights reserved.
+  This program and the accompanying materials are made available
+  under the terms of the BSD License available at
+  http://www.opensource.org/licenses/bsd-license.php
+
+Booting from memory...
+OF stdout device is: /vdevice/vty@71000000
+Preparing to boot Linux version 6.12.115+deb13.1-powerpc64le (debian-kernel@lists.debian.org) (powerpc64le-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP Debian 6.12.115-2 (2026-11-01)
+Detected machine type: 0000000000000101
+command line: root=/dev/vda ro init=/ro-check/guest-init.sh panic=-1 console=hvc0
+Max number of cores passed to firmware: 2048 (NR_CPUS = 2048)
+Calling ibm,client-architecture-support... done
+memory layout at init:
+  memory_limit : 0000000000000000 (16 MB aligned)
+  alloc_bottom : 00000000049ef000
+  alloc_top    : 0000000030000000
+  alloc_top_hi : 0000000080000000
+  rmo_top      : 0000000030000000
+  ram_top      : 0000000080000000
+instantiating rtas at 0x000000002ffff000... done
+prom_hold_cpus: skipped
+copying OF device tree...
+Building dt strings...
+Building dt structure...
+Device tree strings 0x00000000049f0000 -> 0x00000000049f0ba6
+Device tree struct  0x00000000049f1000 -> 0x00000000049f5000
+Quiescing Open Firmware ...
+Booting Linux via __start() @ 0x0000000000400000 ...
+[    0.000000] random: crng init done
+[    0.000000] radix-mmu: Page sizes from device-tree:
+[    0.000000] radix-mmu: Page size shift = 12 AP=0x0
+[    0.000000] radix-mmu: Page size shift = 16 AP=0x5
+[    0.000000] radix-mmu: Page size shift = 21 AP=0x1
+[    0.000000] radix-mmu: Page size shift = 30 AP=0x2
+[    0.000000] Activating Kernel Userspace Access Prevention
+[    0.000000] Activating Kernel Userspace Execution Prevention
+[    0.000000] radix-mmu: Mapped 0x0000000000000000-0x0000000002600000 with 2.00 MiB pages (exec)
+[    0.000000] radix-mmu: Mapped 0x0000000002600000-0x0000000040000000 with 2.00 MiB pages
+[    0.000000] radix-mmu: Mapped 0x0000000040000000-0x0000000080000000 with 1.00 GiB pages
+[    0.000000] lpar: Using radix MMU under hypervisor
+[    0.000000] Linux version 6.12.115+deb13.1-powerpc64le (debian-kernel@lists.debian.org) (powerpc64le-linux-gnu-gcc-14 (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP Debian 6.12.115-2 (2026-11-01)
+[    0.000000] OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+[    0.000000] Found initrd at 0xc000000002c90000:0xc0000000049eec66
+[    0.000000] Hardware name: IBM pSeries (emulated by qemu) POWER9 (architected) 0x4e1202 0xf000005 of:SLOF,HEAD pSeries
+[    0.000000] printk: legacy bootconsole [udbg0] enabled
+[    0.000000] Partition configured for 2 cpus.
+[    0.000000] CPU maps initialized for 1 thread per core
+[    0.000000] numa: Partition configured for 1 NUMA nodes.
+[    0.000000] -----------------------------------------------------
+[    0.000000] phys_mem_size     = 0x80000000
+[    0.000000] dcache_bsize      = 0x80
+[    0.000000] icache_bsize      = 0x80
+[    0.000000] cpu_features      = 0x0001c06b8f4f9187
+[    0.000000]   possible        = 0x001ffbebcf5fb187
+[    0.000000]   always          = 0x0000000380008181
+[    0.000000] cpu_user_features = 0xdc0065c2 0xaef00000
+[    0.000000] mmu_features      = 0x3c007641
+[    0.000000] firmware_features = 0x00000a85455a445f
+[    0.000000] vmalloc start     = 0xc008000000000000
+[    0.000000] IO start          = 0xc00a000000000000
+[    0.000000] vmemmap start     = 0xc00c000000000000
+[    0.000000] -----------------------------------------------------
+[    0.000000] NODE_DATA(0) allocated [mem 0x7ff8fe00-0x7ff97fff]
+[    0.000000] rfi-flush: fallback displacement flush available
+[    0.000000] rfi-flush: ori type flush available
+[    0.000000] rfi-flush: mttrig type flush available
+[    0.000000] count-cache-flush: hardware flush enabled.
+[    0.000000] link-stack-flush: software flush enabled.
+[    0.000000] stf-barrier: eieio barrier available
+[    0.000000] PPC64 nvram contains 65536 bytes
+[    0.000000] barrier-nospec: using ORI speculation barrier
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x0000000000000000-0x000000007fffffff]
+[    0.000000]   Device   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x000000007fffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x000000007fffffff]
+[    0.000000] percpu: Embedded 39 pages/cpu s120472 r0 d39272 u159744
+[    0.000000] Kernel command line: root=/dev/vda ro init=/ro-check/guest-init.sh panic=-1 console=hvc0
+[    0.000000] Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.000000] Fallback order for Node 0: 0 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 524288
+[    0.000000] Policy zone: Normal
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.000000] SLUB: HWalign=128, Order=0-3, MinObjects=0, CPUs=2, Nodes=1
+[    0.000000] ftrace: allocating 38875 entries in 228 pages
+[    0.000000] ftrace: allocated 228 pages with 4 groups
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=2048 to nr_cpu_ids=2.
+[    0.000000] 	Rude variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 25 jiffies.
+[    0.000000] rcu: Adjusting geometry for rcu_fanout_leaf=16, nr_cpu_ids=2
+[    0.000000] RCU Tasks Rude: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.000000] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1 rcu_task_cpu_ids=2.
+[    0.000000] NR_IRQS: 512, nr_irqs: 512, preallocated irqs: 16
+[    0.000000] xive: Using IRQ range [0-1]
+[    0.000000] xive: Interrupt handling initialized with spapr backend
+[    0.000000] xive: Using priority 6 for all interrupts
+[    0.000000] xive: Using 64kB queues
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+[    0.000035] time_init: 56 bit decrementer (max: 7fffffffffffff)
+[    0.000300] clocksource: timebase: mask: 0xffffffffffffffff max_cycles: 0x761537d007, max_idle_ns: 440795202126 ns
+[    0.000644] clocksource: timebase mult[1f40000] shift[24] registered
+[    0.004737] Console: colour dummy device 80x25
+[    0.008288] printk: legacy console [hvc0] enabled
+[    0.008288] printk: legacy console [hvc0] enabled
+[    0.008669] printk: legacy bootconsole [udbg0] disabled
+[    0.008669] printk: legacy bootconsole [udbg0] disabled
+[    0.010765] pid_max: default: 32768 minimum: 301
+[    0.011839] LSM: initializing lsm=capability,landlock,lockdown,yama,apparmor,tomoyo,bpf,ipe,ima,evm
+[    0.012908] landlock: Up and running.
+[    0.012981] Yama: disabled by default; enable with sysctl kernel.yama.*
+[    0.017235] AppArmor: AppArmor initialized
+[    0.017919] TOMOYO Linux initialized
+[    0.022284] LSM support for eBPF active
+[    0.024311] Mount-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.024379] Mountpoint-cache hash table entries: 4096 (order: 3, 32768 bytes, linear)
+[    0.050645] POWER9 performance monitor hardware support registered
+[    0.051511] rcu: Hierarchical SRCU implementation.
+[    0.051573] rcu: 	Max phase no-delay instances is 1000.
+[    0.052382] Timer migration: 1 hierarchy levels; 8 children per group; 1 crossnode level
+[    0.060670] smp: Bringing up secondary CPUs ...
+[    0.076788] smp: Brought up 1 node, 2 CPUs
+[    0.077012] numa: Node 0 CPUs: 0-1
+[    0.107772] node 0 deferred pages initialised in 20ms
+[    0.110438] Memory: 1959720K/2097152K available (16512K kernel code, 2292K rwdata, 16256K rodata, 5092K init, 1313K bss, 133140K reserved, 0K cma-reserved)
+[    0.116895] devtmpfs: initialized
+[    0.123730] PCI host bridge /pci@800000020000000  ranges:
+[    0.124395]   IO 0x0000200000000000..0x000020000000ffff -> 0x0000000000000000
+[    0.124585]  MEM 0x0000200080000000..0x00002000ffffffff -> 0x0000000080000000 
+[    0.124729]  MEM 0x0000210000000000..0x000021ffffffffff -> 0x0000210000000000 
+[    0.126059] futex hash table entries: 512 (order: 4, 65536 bytes, linear)
+[    0.143404] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    0.145999] audit: initializing netlink subsys (disabled)
+[    0.147542] audit: type=2000 audit(1794328563.128:1): state=initialized audit_enabled=0 res=1
+[    0.150577] thermal_sys: Registered thermal governor 'fair_share'
+[    0.150610] thermal_sys: Registered thermal governor 'bang_bang'
+[    0.150669] thermal_sys: Registered thermal governor 'step_wise'
+[    0.150691] thermal_sys: Registered thermal governor 'user_space'
+[    0.150711] thermal_sys: Registered thermal governor 'power_allocator'
+[    0.151438] cpuidle: using governor ladder
+[    0.151572] cpuidle: using governor menu
+Linux ppc64le
+#1 SMP Debian 6.[    0.155814] EEH: pSeries platform initialized
+[    0.164058] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+[    0.215408] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    0.215521] HugeTLB: 0 KiB vmemmap can be freed for a 2.00 MiB page
+[    0.215553] HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+[    0.215574] HugeTLB: 0 KiB vmemmap can be freed for a 1.00 GiB page
+[    0.226022] iommu: Default domain type: Translated
+[    0.226263] iommu: DMA domain TLB invalidation policy: strict mode
+[    0.230957] SCSI subsystem initialized
+[    0.232538] pps_core: LinuxPPS API ver. 1 registered
+[    0.232686] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    0.232744] PTP clock support registered
+[    0.240471] NetLabel: Initializing
+[    0.240645] NetLabel:  domain hash size = 128
+[    0.240685] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    0.242383] NetLabel:  unlabeled traffic allowed by default
+[    0.242694] PCI: Probing PCI hardware
+[    0.251039] PCI host bridge to bus 0000:00
+[    0.251600] pci_bus 0000:00: root bus resource [io  0x10000-0x1ffff] (bus address [0x0000-0xffff])
+[    0.252007] pci_bus 0000:00: root bus resource [mem 0x200080000000-0x2000ffffffff] (bus address [0x80000000-0xffffffff])
+[    0.252132] pci_bus 0000:00: root bus resource [mem 0x210000000000-0x21ffffffffff 64bit]
+[    0.252285] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    0.253895] pci 0000:00:00.0: No hypervisor support for SR-IOV on this device, IOV BARs disabled.
+[    0.258972] IOMMU table initialized, virtual merging enabled
+[    0.260879] pci_bus 0000:00: resource 4 [io  0x10000-0x1ffff]
+[    0.260979] pci_bus 0000:00: resource 5 [mem 0x200080000000-0x2000ffffffff]
+[    0.261012] pci_bus 0000:00: resource 6 [mem 0x210000000000-0x21ffffffffff 64bit]
+[    0.261358] pci 0000:00:00.0: ibm,query-pe-dma-windows(2026) 0 8000000 20000000 returned 0, lb=2000000000 ps=107 wn=1
+[    0.261667] pci 0000:00:00.0: Adding to iommu group 0
+[    0.264164] EEH: No capable adapters found: recovery disabled.
+[    0.267078] vgaarb: loaded
+[    0.268717] clocksource: Switched to clocksource timebase
+[    0.276159] VFS: Disk quotas dquot_6.6.0
+[    0.276355] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    0.280950] AppArmor: AppArmor Filesystem Enabled
+[    0.321450] NET: Registered PF_INET protocol family
+[    0.323770] IP idents hash table entries: 32768 (order: 6, 262144 bytes, linear)
+[    0.356486] tcp_listen_portaddr_hash hash table entries: 1024 (order: 2, 16384 bytes, linear)
+[    0.356733] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.357648] TCP established hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    0.358306] TCP bind hash table entries: 16384 (order: 7, 524288 bytes, linear)
+[    0.358803] TCP: Hash tables configured (established 16384 bind 16384)
+[    0.360884] MPTCP token hash table entries: 2048 (order: 4, 49152 bytes, linear)
+[    0.361295] UDP hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.361492] UDP-Lite hash table entries: 1024 (order: 3, 32768 bytes, linear)
+[    0.362545] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    0.363179] NET: Registered PF_XDP protocol family
+[    0.363638] PCI: CLS 0 bytes, default 128
+[    0.370359] Trying to unpack rootfs image as initramfs...
+[    0.372385] Initialise system trusted keyrings
+[    0.374015] Key type blacklist registered
+[    0.375245] workingset: timestamp_bits=38 max_order=19 bucket_order=0
+[    0.375453] zbud: loaded
+[    0.377064] fuse: init (API version 7.41)
+[    0.378871] integrity: Platform Keyring initialized
+[    0.469550] Key type asymmetric registered
+[    0.469989] Asymmetric key parser 'x509' registered
+[    0.863518] Freeing initrd memory: 30072K
+[    1.013274] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 247)
+[    1.017133] io scheduler mq-deadline registered
+[    1.030692] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.036216] virtio-pci 0000:00:00.0: enabling device (0100 -> 0103)
+[    1.039109] virtio-pci 0000:00:00.0: ibm,query-pe-dma-windows(2026) 0 8000000 20000000 returned 0, lb=2000000000 ps=107 wn=1
+[    1.039583] virtio-pci 0000:00:00.0: ibm,create-pe-dma-window(2027) 0 8000000 20000000 18 1f returned 0 (liobn = 0x80000001 starting addr = 8000000 0)
+[    1.040623] virtio-pci 0000:00:00.0: lsa_required: 0, lsa_enabled: 0, direct mapping: 1
+[    1.041077] virtio-pci 0000:00:00.0: lsa_required: 0, lsa_enabled: 0, direct mapping: 1
+[    1.063021] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    1.074361] Non-volatile memory driver v1.3
+[    1.074923] Linux agpgart interface v0.103
+[    1.079290] mousedev: PS/2 mouse device common for all mice
+[    1.080768] rtc-generic rtc-generic: registered as rtc0
+[    1.082654] rtc-generic rtc-generic: setting system clock to 2026-11-10T16:36:04 UTC (1794328564)
+[    1.087553] NET: Registered PF_INET6 protocol family
+[    1.180366] Segment Routing with IPv6
+[    1.181344] In-situ OAM (IOAM) with IPv6
+[    1.181760] mip6: Mobile IPv6
+[    1.181950] NET: Registered PF_PACKET protocol family
+[    1.182702] mpls_gso: MPLS GSO support
+[    1.196306] registered taskstats version 1
+[    1.198236] Loading compiled-in X.509 certificates
+[    1.295728] Loaded X.509 cert 'Build time autogenerated kernel key: fcd1c5b484fd5864d0d1c4d1528cdc20289718fe'
+[    1.304671] Demotion targets for Node 0: null
+[    1.307377] Key type .fscrypt registered
+[    1.307820] Key type fscrypt-provisioning registered
+[    1.746685] Key type encrypted registered
+[    1.747037] AppArmor: AppArmor sha256 policy hashing enabled
+[    1.747863] ima: No TPM chip found, activating TPM-bypass!
+[    1.748000] ima: Allocated hash algorithm: sha256
+[    1.748994] ima: No architecture policies found
+[    1.749664] evm: Initialising EVM extended attributes:
+[    1.749701] evm: security.selinux
+[    1.749737] evm: security.SMACK64 (disabled)
+[    1.749760] evm: security.SMACK64EXEC (disabled)
+[    1.749777] evm: security.SMACK64TRANSMUTE (disabled)
+[    1.749794] evm: security.SMACK64MMAP (disabled)
+[    1.749814] evm: security.apparmor
+[    1.749825] evm: security.ima
+[    1.749849] evm: security.capability
+[    1.749869] evm: HMAC attrs: 0x1
+[    1.905020] SED: plpks not available
+[    2.035838] Freeing unused kernel image (initmem) memory: 5092K
+[    2.036721] Run /init as init process
+Loading, please wait...
+Starting systemd-udevd version 257.13-1~deb13u1
+[    2.885999] virtio_blk virtio0: 2/0/0 default/read/poll queues
+[    2.929753] virtio_blk virtio0: [vda] 6291456 512-byte logical blocks (3.22 GB/3.00 GiB)
+[    3.017409] ibmvscsi 71000002: SRP_VERSION: 16.a
+[    3.018631] ibmvscsi 71000002: Maximum ID: 64 Maximum LUN: 32 Maximum Channel: 3
+[    3.018783] scsi host0: IBM POWER Virtual SCSI Adapter 1.5.9
+[    3.043156] ibmvscsi 71000002: partner initialization complete
+[    3.044098] ibmvscsi 71000002: host srp version: 16.a, host partition qemu (0), OS 2, max io 2097152
+[    3.044267] ibmvscsi 71000002: sent SRP login
+[    3.044383] ibmvscsi 71000002: SRP_LOGIN succeeded
+[    3.077248] scsi 0:0:2:0: CD-ROM            QEMU     QEMU CD-ROM      2.5+ PQ: 0 ANSI: 5
+[    3.476277] sr 0:0:2:0: Power-on or device reset occurred
+[    3.477492] sr 0:0:2:0: [sr0] scsi3-mmc drive: 16x/50x cd/rw xa/form2 cdda tray
+[    3.478204] cdrom: Uniform CD-ROM driver Revision: 3.20
+Begin: Loading essential drivers ... done.
+Begin: Running /scripts/init-premount ... done.
+Begin: Mounting root file system ... Begin: Running /scripts/local-top ... done.
+Begin: Running /scripts/local-premount ... done.
+Warning: fsck not present, so skipping root file system
+[    4.895059] EXT4-fs (vda): mounted filesystem 4be86879-603d-4477-b226-c634edbc5ce8 ro with ordered data mode. Quota mode: none.
+done.
+Begin: Running /scripts/local-bottom ... done.
+Begin: Running /scripts/init-bottom ... done.
+=== kernel: Linux 6.12.115+deb13.1-powerpc64le ppc64le
+=== node: ppc64 v22.23.4
+=== libc: ldd (Debian GLIBC 2.41-12+deb13u4) 2.41; python Python 3.13.5; git version 2.47.3; curl 8.14.1 (powerpc64le-unknown-linux-gnu) libcurl/8.14.1 OpenSSL/3.5.7 zlib/1.3.1 brotli/1.1.0 zstd/1.5.7 libidn2/2.3.8 libpsl/0.21.2 libssh2/1.11.1 nghttp2/1.64.0 nghttp3/1.8.0 librtmp/2.3 OpenLDAP/2.6.10
+=== bwrap: bubblewrap 0.12.0
+=== after: stock check.ts
+sandbox command: exec '/usr/bin/bwrap' '--new-session' '--die-with-parent' '--unshare-all' '--share-net' '--ro-bind' '/' '/' '--dev' '/dev' '--proc' '/proc' '--cap-drop' 'ALL' '--chdir' '/tmp/ro-check-AQgyHY' '--seccomp' '3' -- '/bin/bash' -c 'true' 3< '/tmp/pi-pstack-ro-tSxSpf/unix-block.bpf'
+PASS cat
+  host:      13.7
+  sandboxed: 13.7
+PASS ls
+  host:      node | node-v22.23.4-linux-ppc64le
+  sandboxed: node | node-v22.23.4-linux-ppc64le
+PASS git log
+  host:      20958ff RO-MARK
+  sandboxed: 20958ff RO-MARK
+PASS touch
+  host:      WROTE
+  sandboxed: WRITE-REFUSED | touch: cannot touch 'made.txt': Read-only file system
+PASS node unix connect
+  host:      SOCKET-CONNECTED | node exit 0
+  sandboxed: SOCKET-EPERM | node exit 0
+PASS node stdout on an inherited socket
+  host:      stdout socket=true stream=Socket
+  sandboxed: stdout socket=true stream=Socket
+PASS python socket(AF_UNIX)
+  host:      socket-unix: ok
+  sandboxed: socket-unix: EPERM
+PASS direct socket syscall
+  host:      direct-socket-unix: ok | direct-socket-inet: ok
+  sandboxed: direct-socket-unix: EPERM | direct-socket-inet: ok
+PASS io_uring_setup
+  host:      io_uring_setup: ok
+  sandboxed: io_uring_setup: EPERM
+PASS node fetch loopback
+  host:      HTTP-BODY-OK | node exit 0
+  sandboxed: HTTP-BODY-OK | node exit 0
+PASS curl loopback
+  host:      HTTP-BODY-OK
+  sandboxed: HTTP-BODY-OK
+PASS socketcall(SYS_SOCKET, AF_UNIX)
+  host:      socketcall-socket-unix: ok
+  sandboxed: socketcall-socket-unix: EPERM
+RESULT: PASS 12/12 on ppc64 v22.23.4
+=== stock exit 0
+=== after: probe.ts
+##### node spawn/fork/ipc/cluster/execFile
+$ "/opt/node-v22.23.4-linux-ppc64le/bin/node" /ro-check/ipc.js
+--- host:
+fork-ipc: "ping"
+fork-ipc: "bye"
+fork-ipc exit 0
+fork-advanced: {"n":1}
+fork-advanced: "bye"
+fork-advanced exit 0
+spawn-pipe: "hello" "err\n" exit 0
+spawn-ipc-fd: 42
+spawn-ipc-fd exit 0
+execFileSync: sync
+execSync: viashell
+execFile: null async
+cluster: worker listening
+--- sandboxed (uid 1000):
+fork-ipc: "ping"
+fork-ipc: "bye"
+fork-ipc exit 0
+fork-advanced: {"n":1}
+fork-advanced: "bye"
+fork-advanced exit 0
+spawn-pipe: "hello" "err\n" exit 0
+spawn-ipc-fd: 42
+spawn-ipc-fd exit 0
+execFileSync: sync
+execSync: viashell
+execFile: null async
+cluster: worker listening
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### python asyncio
+$ python3 /ro-check/asyncio_probe.py
+--- host:
+asyncio-subprocess: sub 0
+asyncio-subprocess-stdin: via-stdin
+executor: 42
+to_thread: thr
+asyncio-tcp: pong:ping
+socketpair-default: AF_UNIX
+asyncio-done
+--- sandboxed (uid 1000):
+asyncio-subprocess: sub 0
+asyncio-subprocess-stdin: via-stdin
+executor: 42
+to_thread: thr
+asyncio-tcp: pong:ping
+socketpair-default: AF_UNIX
+asyncio-done
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### python multiprocessing
+$ python3 /ro-check/mp_probe.py
+--- host:
+default start method: fork
+Pool[fork]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Process+Queue+Pipe[fork]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Pool[spawn]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Process+Queue+Pipe[spawn]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Pool[forkserver]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Process+Queue+Pipe[forkserver]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+ProcessPoolExecutor[fork]: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+SimpleQueue: FAILED FileNotFoundError 2 [Errno 2] No such file or directory
+Manager (AF_UNIX listener): {'a': 1}
+mp.Pipe(duplex=False): ok
+mp.Pipe(duplex=True): ok
+--- sandboxed (uid 1000):
+default start method: fork
+Pool[fork]: [0, 1, 4, 9, 16]
+Process+Queue+Pipe[fork]: (('queued:True', 'via-pipe'), 0)
+Pool[spawn]: [0, 1, 4, 9, 16]
+Process+Queue+Pipe[spawn]: (('queued:True', 'via-pipe'), 0)
+Pool[forkserver]: FAILED PermissionError 1 [Errno 1] Operation not permitted
+Process+Queue+Pipe[forkserver]: FAILED PermissionError 1 [Errno 1] Operation not permitted
+ProcessPoolExecutor[fork]: [0, 1, 4, 9]
+SimpleQueue: 1
+Manager (AF_UNIX listener): FAILED EOFError  
+mp.Pipe(duplex=False): ok
+mp.Pipe(duplex=True): ok
+Process SyncManager-11:
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/multiprocessing/process.py", line 313, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/usr/lib/python3.13/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/multiprocessing/managers.py", line 594, in _run_server
+    server = cls._Server(registry, address, authkey, serializer)
+  File "/usr/lib/python3.13/multiprocessing/managers.py", line 159, in __init__
+    self.listener = Listener(address=address, backlog=128)
+                    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/multiprocessing/connection.py", line 458, in __init__
+    address = address or arbitrary_address(family)
+                         ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/usr/lib/python3.13/multiprocessing/connection.py", line 77, in arbitrary_address
+    return tempfile.mktemp(prefix='listener-', dir=util.get_temp_dir())
+                                                   ~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/multiprocessing/util.py", line 138, in get_temp_dir
+    tempdir = tempfile.mkdtemp(prefix='pymp-')
+  File "/usr/lib/python3.13/tempfile.py", line 564, in mkdtemp
+    prefix, suffix, dir, output_type = _sanitize_params(prefix, suffix, dir)
+                                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/tempfile.py", line 317, in _sanitize_params
+    dir = gettempdir()
+  File "/usr/lib/python3.13/tempfile.py", line 506, in gettempdir
+    return _os.fsdecode(_gettempdir())
+                        ~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/tempfile.py", line 499, in _gettempdir
+    tempdir = _get_default_tempdir()
+  File "/usr/lib/python3.13/tempfile.py", line 414, in _get_default_tempdir
+    raise FileNotFoundError(_errno.ENOENT,
+                            "No usable temporary directory found in %s" %
+                            dirlist)
+FileNotFoundError: [Errno 2] No usable temporary directory found in ['/tmp', '/var/tmp', '/usr/tmp', '/tmp/ro-probe-kGhYOy']
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### git log/status/diff/ls-files/grep
+$ git log --oneline && git status --short && git diff --stat && git ls-files && git grep -n dirty
+--- host:
+d53cbd6 second
+253a6d8 RO-MARK
+ M f.txt
+?? srv.git/
+ f.txt | 1 +
+ 1 file changed, 1 insertion(+)
+f.txt
+f.txt:2:dirty
+--- sandboxed (uid 1000):
+d53cbd6 second
+253a6d8 RO-MARK
+ M f.txt
+?? srv.git/
+ f.txt | 1 +
+ 1 file changed, 1 insertion(+)
+f.txt
+f.txt:2:dirty
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### git ls-remote (file path, spawns upload-pack)
+$ git ls-remote /tmp/ro-probe-kGhYOy/srv.git HEAD
+--- host:
+d53cbd680056f9ad0b2dd6ab1f2afbdfbe7cf407	HEAD
+--- sandboxed (uid 1000):
+d53cbd680056f9ad0b2dd6ab1f2afbdfbe7cf407	HEAD
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### git ls-remote (loopback http, dumb)
+$ git ls-remote http://127.0.0.1:43361/srv.git HEAD
+--- host:
+d53cbd680056f9ad0b2dd6ab1f2afbdfbe7cf407	HEAD
+--- sandboxed (uid 1000):
+d53cbd680056f9ad0b2dd6ab1f2afbdfbe7cf407	HEAD
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### curl loopback
+$ curl -sS http://127.0.0.1:45599/ && curl -sS http://localhost:45599/
+--- host:
+HTTP-BODY-OKHTTP-BODY-OK
+--- sandboxed (uid 1000):
+HTTP-BODY-OKHTTP-BODY-OK
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### node fetch loopback
+$ "/opt/node-v22.23.4-linux-ppc64le/bin/node" -e 'fetch("http://127.0.0.1:45599/").then((r) => r.text()).then(console.log, (e) => console.log("FETCH-FAILED", e.cause?.code ?? e))'
+--- host:
+HTTP-BODY-OK
+--- sandboxed (uid 1000):
+HTTP-BODY-OK
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### python urllib + getaddrinfo loopback
+$ python3 -c 'import urllib.request,socket;print(urllib.request.urlopen("http://localhost:45599/").read());print(socket.getaddrinfo("localhost",45599)[0][0].name)'
+--- host:
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/urllib/request.py", line 1319, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1367, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1413, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1362, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1122, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1066, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/client.py", line 1032, in connect
+    self.sock = self._create_connection(
+                ~~~~~~~~~~~~~~~~~~~~~~~^
+        (self.host,self.port), self.timeout, self.source_address)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 840, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import urllib.request,socket;print(urllib.request.urlopen("http://localhost:45599/").read());print(socket.getaddrinfo("localhost",45599)[0][0].name)
+                                       ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 489, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.13/urllib/request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/usr/lib/python3.13/urllib/request.py", line 466, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.13/urllib/request.py", line 1348, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 1322, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution> [exit 1]
+--- sandboxed (uid 1000):
+Traceback (most recent call last):
+  File "/usr/lib/python3.13/urllib/request.py", line 1319, in do_open
+    h.request(req.get_method(), req.selector, req.data, headers,
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+              encode_chunked=req.has_header('Transfer-encoding'))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1367, in request
+    self._send_request(method, url, body, headers, encode_chunked)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1413, in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1362, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1122, in _send_output
+    self.send(msg)
+    ~~~~~~~~~^^^^^
+  File "/usr/lib/python3.13/http/client.py", line 1066, in send
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "/usr/lib/python3.13/http/client.py", line 1032, in connect
+    self.sock = self._create_connection(
+                ~~~~~~~~~~~~~~~~~~~~~~~^
+        (self.host,self.port), self.timeout, self.source_address)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 840, in create_connection
+    for res in getaddrinfo(host, port, 0, SOCK_STREAM):
+               ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/socket.py", line 977, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import urllib.request,socket;print(urllib.request.urlopen("http://localhost:45599/").read());print(socket.getaddrinfo("localhost",45599)[0][0].name)
+                                       ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 489, in open
+    response = self._open(req, data)
+  File "/usr/lib/python3.13/urllib/request.py", line 506, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+                              '_open', req)
+  File "/usr/lib/python3.13/urllib/request.py", line 466, in _call_chain
+    result = func(*args)
+  File "/usr/lib/python3.13/urllib/request.py", line 1348, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.13/urllib/request.py", line 1322, in do_open
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution> [exit 1]
+--- MISMATCH; host unix stream conns during probe pair: 0
+##### socketpair bypass matrix (direct + raw socketcall)
+$ python3 /ro-check/pair.py 333 /tmp/ro-probe-kGhYOy/host-stream.sock /tmp/ro-probe-kGhYOy/host-dgram.sock
+--- host:
+direct socketpair(AF_UNIX SOCK_DGRAM): ok
+direct socketpair(AF_UNIX SOCK_DGRAM|NONBLOCK|CLOEXEC): ok
+direct socketpair(AF_UNIX SOCK_RAW): ok
+direct socketpair(AF_UNIX SOCK_SEQPACKET): ok
+direct socketpair(domain 2^32+1 SOCK_DGRAM): ok
+direct socketpair(AF_UNIX type 2^32+2 (dgram, high bit)): ok
+direct socketpair(AF_UNIX SOCK_STREAM): ok
+direct socketpair(AF_UNIX SOCK_STREAM|NONBLOCK|CLOEXEC): ok
+direct socketpair(AF_UNIX type 2^32+1 (stream, high bit)): ok
+direct socketpair(AF_UNIX type 0x11 (invalid)): EINVAL
+direct socketpair(AF_INET SOCK_DGRAM): ENOTSUP
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_DGRAM): ok
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_DGRAM|NONBLOCK|CLOEXEC): ok
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_RAW): ok
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_SEQPACKET): ok
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_STREAM): ok
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_STREAM|NONBLOCK|CLOEXEC): ok
+python socketpair(AF_UNIX, SOCK_DGRAM): ok
+python socketpair(AF_UNIX, SOCK_SEQPACKET): ok
+python socketpair(): ok
+pairs obtained: 15
+stream pair: sendto(host dgram path): EISCONN
+stream pair: connect(host stream path): EISCONN
+stream pair: connect(host dgram path): EPROTOTYPE
+stream pair: connect(AF_UNSPEC): -1 EINVAL
+stream pair after AF_UNSPEC: connect(host stream path): EISCONN
+stream pair after AF_UNSPEC: sendto(host dgram path): EISCONN
+obtained pair 0: sendto(host dgram path): SENT/CONNECTED
+obtained pair 1: sendto(host dgram path): SENT/CONNECTED
+obtained pair 2: sendto(host dgram path): SENT/CONNECTED
+obtained pair 3: sendto(host dgram path): SENT/CONNECTED
+obtained pair 4: sendto(host dgram path): SENT/CONNECTED
+obtained pair 5: sendto(host dgram path): SENT/CONNECTED
+obtained pair 6: sendto(host dgram path): EISCONN
+obtained pair 7: sendto(host dgram path): EISCONN
+obtained pair 8: sendto(host dgram path): EISCONN
+obtained pair 9: sendto(host dgram path): SENT/CONNECTED
+obtained pair 10: sendto(host dgram path): SENT/CONNECTED
+obtained pair 11: sendto(host dgram path): SENT/CONNECTED
+obtained pair 12: sendto(host dgram path): SENT/CONNECTED
+obtained pair 13: sendto(host dgram path): EISCONN
+obtained pair 14: sendto(host dgram path): EISCONN
+--- sandboxed (uid 1000):
+direct socketpair(AF_UNIX SOCK_DGRAM): EPERM
+direct socketpair(AF_UNIX SOCK_DGRAM|NONBLOCK|CLOEXEC): EPERM
+direct socketpair(AF_UNIX SOCK_RAW): EPERM
+direct socketpair(AF_UNIX SOCK_SEQPACKET): EPERM
+direct socketpair(domain 2^32+1 SOCK_DGRAM): EPERM
+direct socketpair(AF_UNIX type 2^32+2 (dgram, high bit)): EPERM
+direct socketpair(AF_UNIX SOCK_STREAM): ok
+direct socketpair(AF_UNIX SOCK_STREAM|NONBLOCK|CLOEXEC): ok
+direct socketpair(AF_UNIX type 2^32+1 (stream, high bit)): ok
+direct socketpair(AF_UNIX type 0x11 (invalid)): EINVAL
+direct socketpair(AF_INET SOCK_DGRAM): ENOTSUP
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_DGRAM): EPERM
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_DGRAM|NONBLOCK|CLOEXEC): EPERM
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_RAW): EPERM
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_SEQPACKET): EPERM
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_STREAM): EPERM
+socketcall(SYS_SOCKETPAIR, AF_UNIX SOCK_STREAM|NONBLOCK|CLOEXEC): EPERM
+python socketpair(AF_UNIX, SOCK_DGRAM): EPERM
+python socketpair(AF_UNIX, SOCK_SEQPACKET): EPERM
+python socketpair(): ok
+pairs obtained: 3
+stream pair: sendto(host dgram path): EISCONN
+stream pair: connect(host stream path): EISCONN
+stream pair: connect(host dgram path): EPROTOTYPE
+stream pair: connect(AF_UNSPEC): -1 EINVAL
+stream pair after AF_UNSPEC: connect(host stream path): EISCONN
+stream pair after AF_UNSPEC: sendto(host dgram path): EISCONN
+obtained pair 0: sendto(host dgram path): EISCONN
+obtained pair 1: sendto(host dgram path): EISCONN
+obtained pair 2: sendto(host dgram path): EISCONN
+--- MATCHES-EXPECTED; host unix stream conns during probe pair: 0
+##### host dgram server received:
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+BYPASS-DGRAM-PAIR
+
+=== probe exit 0
+[   38.361945] sysrq: Power Off
+[   38.364029] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000000
+[   38.364317] CPU: 1 UID: 0 PID: 1 Comm: guest-init.sh Not tainted 6.12.115+deb13.1-powerpc64le #1  Debian 6.12.115-2
+[   38.364475] Hardware name: IBM pSeries (emulated by qemu) POWER9 (architected) 0x4e1202 0xf000005 of:SLOF,HEAD pSeries
+[   38.364610] Call Trace:
+[   38.364693] [c0000000058cfa10] [c000000000fdb514] dump_stack_lvl+0x88/0xc4 (unreliable)
+[   38.365386] [c0000000058cfa40] [c000000000141a24] panic+0x164/0x460
+[   38.365423] [c0000000058cfae0] [c00000000014b134] do_exit+0xc04/0xc10
+[   38.365439] [c0000000058cfbb0] [c00000000014b3ac] do_group_exit+0x4c/0xc0
+[   38.365490] [c0000000058cfbf0] [c00000000014b448] sys_exit_group+0x28/0x30
+[   38.365517] [c0000000058cfc10] [c00000000002c9a8] system_call_exception+0x118/0x230
+[   38.365549] [c0000000058cfe50] [c00000000000cfdc] system_call_vectored_common+0x15c/0x2ec
+[   38.365587] --- interrupt: 3000 at 0x3fffad050e14
+[   38.365747] NIP:  00003fffad050e14 LR: 00003fffad050e14 CTR: 0000000000000000
+[   38.365790] REGS: c0000000058cfe80 TRAP: 3000   Not tainted  (6.12.115+deb13.1-powerpc64le Debian 6.12.115-2)
+[   38.365840] MSR:  800000000280f033 <SF,VEC,VSX,EE,PR,FP,ME,IR,DR,RI,LE>  CR: 48002882  XER: 00000000
+[   38.365949] IRQMASK: 0 
+[   38.365949] GPR00: 00000000000000ea 00003ffff9b4b550 00003fffad1a6d00 0000000000000000 
+[   38.365949] GPR04: 0000000000000000 00003ffff9b4b750 00003ffff9b4b760 000000012c2b03a8 
+[   38.365949] GPR08: 000000012c2b03b8 0000000000000000 0000000000000000 0000000000000000 
+[   38.365949] GPR12: 0000000000000000 00003fffad2257c0 0000000000000000 0000000000000000 
+[   38.365949] GPR16: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 
+[   38.365949] GPR20: 0000000000000000 0000000000000000 0000000000000000 00003fffad225480 
+[   38.365949] GPR24: 000000012c274100 00003fffad226000 00003ffff9b4bce0 0000000000000002 
+[   38.365949] GPR28: 00003ffff9b4bd20 00003fffad21e7f0 fffffffffffff000 0000000000000000 
+[   38.366247] NIP [00003fffad050e14] 0x3fffad050e14
+[   38.366271] LR [00003fffad050e14] 0x3fffad050e14
+[   38.366302] --- interrupt: 3000
+qemu-system-ppc64: OS terminated: 
+
+real	1m10.112s
+user	0m0.669s
+sys	0m1.726s

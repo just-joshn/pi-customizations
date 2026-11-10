@@ -1,0 +1,32 @@
+---
+pid: 50524
+cwd: "/Users/josh-desktop/src/personal/pi-customizations"
+command: "docker run --rm -v \"$PWD/extensions/pi-pstack/src/linux-readonly-sandbox.ts:/probe/linux-readonly-sandbox.ts:ro\" node:24-bookworm sh -euc 'apt-get update -qq && apt-get install -y -qq bubblewrap >/dev/null; node --input-type=module -e '\\''import {linuxReadonlyCommand} from \"/probe/linux-readonly-sandbox.ts\"; import {spawnSync} from \"node:child_process\"; const c=linuxReadonlyCommand(\"echo SANDBOX_OK\", \"/tmp\"); let r=spawnSync(\"/bin/sh\",[\"-c\",c],{encoding:\"utf8\"}); console.log(\"status\",r.status,\"stdout\",r.stdout,\"stderr\",r.stderr); if(r.status!==0)process.exit(1)'\\'''"
+title: "Linux sandbox feasibility probe"
+status: failed   
+started_at: 2026-11-10T14:55:40.180Z
+running_for_ms: 2045     
+---
+debconf: delaying package configuration, since apt-utils is not installed
+file:///probe/linux-readonly-sandbox.ts:143
+    if (probe.status !== 0) throw new Error(`bubblewrap could not start the read-only sandbox: ${probe.stderr.trim() || `exit ${probe.status}`}`);
+                                  ^
+
+Error: bubblewrap could not start the read-only sandbox: bwrap: No permissions to create new namespace, likely because the kernel does not allow non-privileged user namespaces. See <https://deb.li/bubblewrap> or <file:///usr/share/doc/bubblewrap/README.Debian.gz>.
+    at checkSandbox (file:///probe/linux-readonly-sandbox.ts:143:35)
+    at file:///probe/linux-readonly-sandbox.ts:121:25
+    at verifiedSandbox (file:///probe/linux-readonly-sandbox.ts:125:5)
+    at linuxReadonlyCommand (file:///probe/linux-readonly-sandbox.ts:152:40)
+    at file:////[eval1]:1:126
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:223:26
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:220:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.22.2
+
+---
+exit_code: 1
+elapsed_ms: 2045
+ended_at: 2026-11-10T14:55:42.225Z
+---

@@ -1,0 +1,52 @@
+--- /Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/src/linux-readonly-sandbox.ts	2026-11-10 07:43:39
++++ ts/sandbox.ts	2026-11-10 08:01:35
+@@ -43,7 +43,7 @@
+   arm64: { socketpair: 199, audit: 0xc000_00b7, endian: 'LE', refusedWhen: [[198, AF_UNIX]], refused: [IO_URING_SETUP] },
+   arm: { socketpair: 288, audit: 0x4000_0028, endian: 'LE', refusedWhen: [[281, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP, ARM_OABI_SYSCALL] },
+   ppc64: { socketpair: 333, audit: 0xc000_0015, endian: 'LE', refusedWhen: [[326, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
+-  s390x: { socketpair: 360, audit: 0x8000_0016, endian: 'BE', refusedWhen: [[359, AF_UNIX], SOCKETCALL_SOCKET], refused: [IO_URING_SETUP] },
++  s390x: { socketpair: 360, audit: 0x8000_0016, endian: 'BE', refusedWhen: [[359, AF_UNIX], [SOCKETCALL, 1], [SOCKETCALL, 3], [SOCKETCALL, 11], [SOCKETCALL, 16], [SOCKETCALL, 20]], refused: [IO_URING_SETUP, 362, 369, 370, 358] },
+ };
+ 
+ /**
+@@ -65,8 +65,8 @@
+     else bytes.writeUInt32BE(k >>> 0, 4);
+     return bytes;
+   };
+-  const pairAt = 4 + 3 * target.refusedWhen.length;
+-  const refusedAt = pairAt + 6;
++  const pairAt = 4 + 4 * target.refusedWhen.length;
++  const refusedAt = pairAt + 7;
+   const allow = refusedAt + target.refused.length;
+   const errno = allow + 1;
+   const kill = allow + 2;
+@@ -77,19 +77,21 @@
+     instruction(LD_ABS_W, 0, 0, 0), // 2: syscall number
+     instruction(JGE_K, to(3, kill), 0, X32_SYSCALL_BIT), // 3: x32 → kill
+     ...target.refusedWhen.flatMap(([nr, value], index) => {
+-      const at = 4 + 3 * index;
++      const at = 4 + 4 * index;
+       return [
++        instruction(LD_ABS_W, 0, 0, 0), // the syscall number, so a rule that did not match leaves the next one a fresh start
+         instruction(JEQ_K, 0, 2, nr), // this syscall → next, otherwise → the next rule
+         instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // the low word of the first argument
+-        instruction(JEQ_K, to(at + 2, errno), to(at + 2, allow), value),
++        instruction(JEQ_K, to(at + 3, errno), 0, value), // this value → errno, otherwise → the next rule
+       ];
+     }),
+-    instruction(JEQ_K, 0, 5, target.socketpair), // 0: socketpair → next, otherwise → past this rule
+-    instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // 1: the low word of the domain
+-    instruction(JEQ_K, 0, to(pairAt + 2, allow), AF_UNIX), // 2: AF_UNIX → next, otherwise → allow
+-    instruction(LD_ABS_W, 0, 0, le ? 24 : 28), // 3: the low word of the type
+-    instruction(AND_K, 0, 0, SOCK_TYPE_MASK), // 4: without SOCK_NONBLOCK and SOCK_CLOEXEC
+-    instruction(JEQ_K, to(pairAt + 5, allow), to(pairAt + 5, errno), SOCK_STREAM), // 5: stream → allow, otherwise → errno
++    instruction(LD_ABS_W, 0, 0, 0), // 0: syscall number
++    instruction(JEQ_K, 0, 5, target.socketpair), // 1: socketpair → next, otherwise → past this rule
++    instruction(LD_ABS_W, 0, 0, le ? 16 : 20), // 2: the low word of the domain
++    instruction(JEQ_K, 0, to(pairAt + 3, allow), AF_UNIX), // 3: AF_UNIX → next, otherwise → allow
++    instruction(LD_ABS_W, 0, 0, le ? 24 : 28), // 4: the low word of the type
++    instruction(AND_K, 0, 0, SOCK_TYPE_MASK), // 5: without SOCK_NONBLOCK and SOCK_CLOEXEC
++    instruction(JEQ_K, to(pairAt + 6, allow), to(pairAt + 6, errno), SOCK_STREAM), // 6: stream → allow, otherwise → errno
+     ...target.refused.map((nr, index) => instruction(JEQ_K, to(refusedAt + index, errno), 0, nr)),
+     instruction(RET_K, 0, 0, SECCOMP_RET_ALLOW), // allow
+     instruction(RET_K, 0, 0, SECCOMP_RET_ERRNO_EPERM), // errno

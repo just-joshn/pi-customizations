@@ -1,0 +1,5 @@
+x64 old insns 17 new insns 19 cases 88512 differences 0 [] []
+arm64 old insns 17 new insns 19 cases 88512 differences 0 [] []
+arm old insns 21 new insns 24 cases 88512 differences 0 [] []
+ppc64 old insns 20 new insns 23 cases 88512 differences 0 [] []
+s390x old insns 20 new insns 43 cases 88512 differences 408 [102, 358, 362, 369, 370] [3, 11, 16, 20]
