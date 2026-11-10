@@ -1,0 +1,686 @@
+{
+  "summary": {
+    "CONTENT_DRIFT": 2,
+    "HOST_TRANSLATION": 72,
+    "NO_DIFF_FILE": 1
+  },
+  "results": [
+    {
+      "plugin": "cursor-team-kit",
+      "file": "LICENSE",
+      "diffLines": 2,
+      "klass": "CONTENT_DRIFT",
+      "hostHunks": 0,
+      "otherHunks": 1,
+      "otherSamples": [
+        "-Copyright (c) 2026 Cursor\n+Copyright (c) 2026 Josh"
+      ]
+    },
+    {
+      "plugin": "cursor-team-kit",
+      "file": "README.md",
+      "diffLines": 123,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "cursor-team-kit",
+      "file": "agents/thermo-nuclear-code-quality-review.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "cursor-team-kit",
+      "file": "skills/pr-review-canvas/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "cursor-team-kit",
+      "file": "skills/workflow-from-chats/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "LICENSE",
+      "diffLines": 2,
+      "klass": "CONTENT_DRIFT",
+      "hostHunks": 0,
+      "otherHunks": 1,
+      "otherSamples": [
+        "-Copyright (c) 2026 Lauren Tan\n+Copyright (c) 2026 Josh"
+      ]
+    },
+    {
+      "plugin": "pstack",
+      "file": "README.md",
+      "diffLines": 333,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "agents/poteto-agent.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/FOR_AGENTS.md",
+      "diffLines": 28,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/README.md",
+      "diffLines": 18,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/skills/setup-benny/SKILL.md",
+      "diffLines": 66,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 13,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/skills/triage-issue-reports/references/routing.example.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/templates/configuration.example.yaml",
+      "diffLines": 6,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/templates/reproduce-automation-prompt.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "automations/benny/templates/triage-automation-prompt.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/01-setup.md",
+      "diffLines": 25,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/02-poteto-mode.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/05-build-and-clean.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/06-verify-and-ship.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/07-overnight.md",
+      "diffLines": 8,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/09-make-it-yours.md",
+      "diffLines": 8,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 4,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/10-recipes-and-pitfalls.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "docs/guide/README.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/architect/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/arena/SKILL.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/automate-me/SKILL.md",
+      "diffLines": 10,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/create-verification-skill/SKILL.md",
+      "diffLines": 6,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/figure-it-out/SKILL.md",
+      "diffLines": 0,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/how/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/how/references/explainer-prompt.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/ketchup-video/SKILL.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/ketchup/SKILL.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/maintain-verification-skill/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/make-bot-ui/SKILL.md",
+      "diffLines": 45,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/no-comments/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-help/SKILL.md",
+      "diffLines": 28,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 8,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/SKILL.md",
+      "diffLines": 9,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 4,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/autonomous-run.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/autopilot-full.md",
+      "diffLines": 8,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/babysit.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/bug-fix.md",
+      "diffLines": 6,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/eval.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/feature.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/hillclimb.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "diffLines": 24,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 5,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/opening-a-pr.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/orchestrate.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/perf-issue.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/refactoring.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/runtime-forensics.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/session-pickup.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/shipping.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/trace-forensics.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "diffLines": 12,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/scripts/bun.lock",
+      "status": "changed",
+      "diffLines": 0,
+      "klass": "NO_DIFF_FILE"
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/scripts/package.json",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/poteto-mode/scripts/worktree-audit.sh",
+      "diffLines": 32,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/recall/SKILL.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/reflect/SKILL.md",
+      "diffLines": 20,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/reflect/references/divergent-reviewer.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/reflect/references/judgment-reviewer.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/reflect/references/tooling-reviewer.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/setup-pstack/SKILL.md",
+      "diffLines": 56,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/show-me-your-work/SKILL.md",
+      "diffLines": 4,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 2,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/statechart/scripts/package.json",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/statechart/scripts/statechart",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/statechart/scripts/statechart.ts",
+      "diffLines": 7,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/statechart/scripts/test/cli.test.ts",
+      "diffLines": 17,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 3,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/swarm/SKILL.md",
+      "diffLines": 2,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/typescript-best-practices/SKILL.md",
+      "diffLines": 3,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 1,
+      "otherHunks": 0,
+      "otherSamples": []
+    },
+    {
+      "plugin": "pstack",
+      "file": "skills/why/SKILL.md",
+      "diffLines": 10,
+      "klass": "HOST_TRANSLATION",
+      "hostHunks": 4,
+      "otherHunks": 0,
+      "otherSamples": []
+    }
+  ]
+}
