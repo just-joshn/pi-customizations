@@ -3,7 +3,7 @@
 // src/subscriptions/supervisor-main.ts
 import { spawn } from "node:child_process";
 import { randomUUID as randomUUID5 } from "node:crypto";
-import { join as join12, resolve as resolve4 } from "node:path";
+import { join as join13, resolve as resolve4 } from "node:path";
 import { StringDecoder } from "node:string_decoder";
 
 // src/child-env.ts
@@ -1556,6 +1556,8 @@ function slackEventText(name, prompt, channel, message) {
 
 // src/subscriptions/github.ts
 import { execFile as execFile4 } from "node:child_process";
+import { existsSync as existsSync7, mkdirSync as mkdirSync8, readFileSync as readFileSync8, renameSync as renameSync5, writeFileSync as writeFileSync7 } from "node:fs";
+import { join as join12 } from "node:path";
 var PR_FIELDS = "state,headRefOid,mergeable,reviewDecision,reviews,comments,statusCheckRollup,url,number,title";
 var GH_TIMEOUT_MS = 30000;
 var defaultGhRunner = (args) => new Promise((resolve, reject) => {
@@ -1670,6 +1672,69 @@ async function pollChanges(gh, target, before, after) {
     }
   }
   return blocks;
+}
+function snapshotFile(runtimeDir, subscriptionId) {
+  return join12(runtimeDir, `github-${subscriptionId}.json`);
+}
+var stringRecord = (value) => {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return;
+  const record = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item !== "string")
+      return;
+    record[key] = item;
+  }
+  return record;
+};
+function parseSnapshot(value) {
+  if (typeof value !== "object" || value === null)
+    return;
+  const item = value;
+  const reviews = stringRecord(item["reviews"]);
+  const comments = stringRecord(item["comments"]);
+  const checks = stringRecord(item["checks"]);
+  if (typeof item["number"] !== "number" || !Number.isInteger(item["number"]))
+    return;
+  if (typeof item["title"] !== "string" || typeof item["url"] !== "string" || typeof item["state"] !== "string")
+    return;
+  if (typeof item["headRefOid"] !== "string" || typeof item["mergeable"] !== "string" || typeof item["reviewDecision"] !== "string")
+    return;
+  if (reviews === undefined || comments === undefined || checks === undefined)
+    return;
+  return {
+    number: item["number"],
+    title: item["title"],
+    url: item["url"],
+    state: item["state"],
+    headRefOid: item["headRefOid"],
+    mergeable: item["mergeable"],
+    reviewDecision: item["reviewDecision"],
+    reviews,
+    comments,
+    checks
+  };
+}
+function readSnapshots(file) {
+  if (!existsSync7(file))
+    return;
+  const value = JSON.parse(readFileSync8(file, "utf8"));
+  if (!Array.isArray(value))
+    throw new Error("GitHub snapshot file is not a list of pull requests.");
+  const snapshots = new Map;
+  for (const item of value) {
+    const snapshot = parseSnapshot(item);
+    if (snapshot === undefined)
+      throw new Error("GitHub snapshot file has a pull request that is not a snapshot.");
+    snapshots.set(snapshot.number, snapshot);
+  }
+  return snapshots;
+}
+function writeSnapshots(file, snapshots) {
+  mkdirSync8(join12(file, ".."), { recursive: true, mode: 448 });
+  const temporary = `${file}.${process.pid}.tmp`;
+  writeFileSync7(temporary, JSON.stringify([...snapshots.values()]), { mode: 384 });
+  renameSync5(temporary, file);
 }
 
 // src/subscriptions/supervisor.ts
@@ -1830,9 +1895,11 @@ ${config.prompt}` : config.prompt;
       const after = await fetchPrs(gh, target);
       if (!owns(entry))
         return;
+      const file = snapshotFile(durableRuntimeDir(cwd), entry.sub.id);
+      const before = entry.baseline ?? readSnapshots(file);
       let blocked = false;
-      if (entry.baseline !== undefined) {
-        const blocks = await pollChanges(gh, target, entry.baseline, after);
+      if (before !== undefined) {
+        const blocks = await pollChanges(gh, target, before, after);
         if (!owns(entry))
           return;
         if (blocks.length > 0) {
@@ -1847,6 +1914,7 @@ ${config.prompt}` : config.prompt;
         }
       }
       if (!blocked) {
+        writeSnapshots(file, after);
         entry.baseline = after;
         clearError(cwd, entry.sub.id);
       }
@@ -2051,7 +2119,7 @@ async function cloudMachine(name, meta) {
   const agentId = randomUUID5();
   const { driver } = await selectDriver();
   if (driver === "container")
-    return provisionMachine({ driver, agentId, cwd: meta.cwd, home: join12(machinesDir(meta.cwd), agentId), baseBranch: undefined, readonly: false, shared: [projectsDir(meta.cwd), memoryDir(name)] });
+    return provisionMachine({ driver, agentId, cwd: meta.cwd, home: join13(machinesDir(meta.cwd), agentId), baseBranch: undefined, readonly: false, shared: [projectsDir(meta.cwd), memoryDir(name)] });
   const worktree = planWorktree(meta.cwd, worktreesDir(meta.cwd), agentId);
   await addWorktree(meta.cwd, worktree, undefined);
   return worktree;
