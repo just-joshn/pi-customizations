@@ -1,0 +1,5 @@
+x64    cases 225504 decision differences 0 instructions 18 -> 17
+arm64  cases 225504 decision differences 0 instructions 18 -> 17
+arm    cases 225504 decision differences 0 instructions 27 -> 22
+ppc64  cases 225504 decision differences 0 instructions 26 -> 21
+s390x  cases 225504 decision differences 0 instructions 22 -> 20

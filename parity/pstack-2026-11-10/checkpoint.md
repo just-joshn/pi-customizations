@@ -28,7 +28,7 @@ The existing baseline and limitations are in `parity/status-2026-11-07.md`, `par
 - Package typecheck and generated-helper freshness checks passed locally on 2026-11-10. The package regression suite passed 988 tests; 25 were skipped across 79 files. The package's development dependencies resolve Pi APIs at 1.5.0, not the installed CLI's 1.5.2. This is a macOS source-tree run, not proof of Pi 1.5.2 compatibility, installed-package behavior, or cross-platform parity.
 - Direct Cursor CLI probes of `gpt-5.6-sol-medium` and `claude-sonnet-5-5-high` failed with weekly-usage errors. This does not establish that other models or paired tests are impossible.
 - The initial Docker probe found its configured OrbStack socket unavailable. Starting OrbStack succeeded and Docker reports server 29.8.2. A clean Linux arm64 container installed the packed package with Pi 1.5.2; RPC returned 88 commands and assertions found `mode` and `poteto-mode` (`evidence/661211.txt`, `evidence/linux-arm64-rpc.json`). This does not verify their full behavior or the platform matrix.
-- Source inspection indicates that the s390x read-only sandbox denies `socketcall(SYS_SOCKET)` for every domain because classic BPF cannot inspect its pointer arguments (`extensions/pi-pstack/src/linux-readonly-sandbox.ts`). Allowing that syscall without another enforcement mechanism would also allow Unix sockets. This run did not execute an s390x test; a replacement remains unproven.
+- Source inspection indicates that the s390x read-only sandbox denies `socketcall(SYS_SOCKET)` for every domain because classic BPF cannot inspect its pointer arguments (`extensions/pi-pstack/src/linux-readonly-sandbox.ts`). Allowing that syscall without another enforcement mechanism would also allow Unix sockets. This run had not yet executed an s390x test (superseded: see the s390x broker update); a replacement remains unproven.
 - Full parity remains **INCONCLUSIVE**. Existing unverified live integrations and platform cells remain open.
 
 ## Restart queue
@@ -44,7 +44,7 @@ The run stopped after preliminary checks; no runtime implementation changes were
 ## Update: datagram socketpair bypass (Stage 1)
 
 - Verified on a real arm64 kernel with bubblewrap, against the unmodified shipped module: a datagram `socketpair` could `sendto` and `connect` to host pathname and abstract Unix sockets (`evidence/interrogate/run1.mjs`).
-- Fix: `extensions/pi-pstack/src/linux-readonly-sandbox.ts` now refuses `socketpair(AF_UNIX, type)` unless `type & 0xf` is `SOCK_STREAM`, for the direct syscall on all five architectures. `socketcall(SYS_SOCKETPAIR)` is still allowed on arm, ppc64 and s390x, so the fix is complete only on x64 and arm64. `test/linux-readonly-seccomp.test.ts` covers DGRAM, DGRAM with flags, RAW, SEQPACKET, a high-bit domain, STREAM, and AF_INET. It failed on all five before the change and passes after.
+- Fix: `extensions/pi-pstack/src/linux-readonly-sandbox.ts` now refuses `socketpair(AF_UNIX, type)` unless `type & 0xf` is `SOCK_STREAM`, for the direct syscall on all five architectures. `socketcall(SYS_SOCKETPAIR)` is still allowed on arm, ppc64 and s390x, so the fix is complete only on x64 and arm64 (superseded: the s390x broker and the arm and ppc64 refusal came later). `test/linux-readonly-seccomp.test.ts` covers DGRAM, DGRAM with flags, RAW, SEQPACKET, a high-bit domain, STREAM, and AF_INET. It failed on all five before the change and passes after.
 - Real kernel after the fix: the datagram pair fails with EPERM and the host log is never created. Node child pipes (`stdout` still a `Socket`) and loopback TCP still work (`evidence/interrogate/pipes.mjs`).
 - Package typecheck is clean. The full suite shows the same 20 `cloud-machine.e2e` failures with and without this change; they need a LAN address and Docker setup.
 
@@ -73,8 +73,8 @@ Still open:
 - armv7 EABI has no `socketcall`: on real armv7 and armv7-on-arm64 kernels `syscall(102, 8, ...)` returns `ENOSYS`, so the arm `socketcall(SYS_SOCKETPAIR)` rule is a filter-level guard for OABI compat, not a demonstrated bypass. The bypass through `socketcall(8)` is demonstrated on ppc64le (`ok` before, `EPERM` after) and s390x.
 - The earlier line saying no real arm or ppc64le kernel had run is stale. armv7, armv7-on-arm64 and ppc64le kernels ran with the new filter, and Node, Python asyncio, git and loopback TCP worked.
 - SEQPACKET `AF_UNIX` pairs are refused. On the old filter a SEQPACKET pair did not reach a host socket on arm64, so this is stricter than needed. It is kept on purpose: its safety depends on kernel behavior not verified across versions, and nothing measured needs it. Reconsider if a real program fails.
-- Mutation checks (23 variants) all failed the seccomp tests except widening the type mask to 0xff, which is behaviorally equivalent because the kernel rejects type bits 4 to 7.
-- Not run: a real x64 kernel (Docker `linux/amd64` here runs under Rosetta on an arm64 kernel), the x32 guard on a real kernel, `SCM_RIGHTS` and descriptor leaks, armeb, 31-bit s390, and 32-bit ppc.
+- Mutation checks (23 variants, reported by a reviewer, no artifact saved) all failed the seccomp tests except widening the type mask to 0xff, which is behaviorally equivalent because the kernel rejects type bits 4 to 7.
+- Not run: the x32 guard on a real kernel, `SCM_RIGHTS`, armeb, 31-bit s390, and 32-bit ppc. Superseded since: the x64 kernel is covered by the CI runner, descriptor leaks by unit 1, and musl and Go on arm64 by `evidence/refactor-and-musl/`.
 
 ## Update: quality refactor of the filter builder
 
@@ -120,3 +120,14 @@ A review of how the helper ships found three problems in the failure path. Each 
 - A stale `check:netbroker` printed `Stale...` and then `Checked...`. It now exits non-zero without the success line.
 - Still open: nothing in CI or `prepack` runs `check:netbroker`, because it needs Zig 0.17.1. The committed binary's reproducibility is verified only when someone runs the check.
 - Held up: the committed binary matches a rebuild (sha256 `dee421f0...`), `npm pack` includes it at mode 755 and the mode survives a `umask 077` install, the default filters for every other architecture are byte-identical to before, and a noexec temp directory, a failing self-test, and a hanging helper all degrade.
+
+## Update: claims review
+
+A review of every claim against its evidence found these. Each was checked before changing anything.
+
+- README said the shell never falls back to permitting Unix sockets. That is false on s390x when the broker cannot run, because the filter alone allows a glibc datagram pair through `socketcall`. The README now states the exception, and the PR's "Not fixed" list names it.
+- The synthesis described a fallback that refuses address-taking calls. The code uses the filter alone. The synthesis now says so.
+- Saved now: the 225,504-case comparison of the pre-refactor and current filters with its instruction counts (`evidence/refactor-and-musl/differential.ts`, `differential.txt`, `pre-refactor-filter.ts`), and the musl and static Go run (`musl-probe.mjs`, `go/main.go`, `musl-go-run.txt`, on Alpine arm64 with bubblewrap 0.12.0). Previously they were numbers without a receipt.
+- Not saved: the 23 mutation variants and the ppc64le "before" run, which rest on a reviewer's report.
+- `ptrace_scope`: the committed binary was run on the s390x 6.12 kernel at scope 2 and 3 (`evidence/s390x-broker/vm4.log`). At scope 2 the profile is `brokered` and every probe passes. At scope 3 the self-test fails and the profile is `degraded`, and commands still run. The log records the helper's sha256 (`dee421f0...`), which matches the committed binary.
+- Still not checked here: kernels other than Debian 6.12.115, and the 988-test macOS figure from before these changes.

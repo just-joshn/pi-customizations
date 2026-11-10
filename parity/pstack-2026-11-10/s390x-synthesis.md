@@ -14,7 +14,7 @@ Candidate 2 shows that no mechanism without a helper gives parity: ENOSYS or err
 
 ## Grafts from candidate 2
 
-- **Fallback profile.** When the broker cannot run, degrade to candidate 2's profile that refuses the address-taking calls (`connect`, `sendto`, `sendmsg`, `sendmmsg`) on both the `socketcall` and direct paths. Candidate 1's fallback was the current filter, which leaves the datagram path open on s390x.
+- **Fallback profile (not implemented).** The synthesis chose to degrade, when the broker cannot run, to candidate 2's profile that refuses the address-taking calls (`connect`, `sendto`, `sendmsg`, `sendmmsg`). The code instead falls back to the filter alone, which is candidate 1's fallback and leaves the datagram path open on s390x. That choice was made to keep today's behavior and avoid breaking pipes; it is recorded in `docs/host-limits.md`.
 - **Filter fix.** Reload the syscall number at the start of each rule. Today a second rule for the same syscall, such as a second `socketcall` call value, is unreachable. A differential check over 88,512 cases per architecture showed the other four architectures unchanged (`candidate-2-evidence/filter-differential.txt`, `proposed-sandbox.diff`).
 - **Capability probe.** Report the measured network capability from a probe inside the exact profile, not from the architecture.
 
@@ -26,7 +26,7 @@ The Python supervisor (policy duplicated in a second language), any claim of par
 
 - Candidate 1's scratch C has three listed defects, including a `getppid() == 1` check that wrongly aborts when Pi runs as pid 1 of a container.
 - Not run: any kernel other than 6.12 (RHEL 9, Ubuntu 24.04, Debian 12), SELinux, AppArmor, the arm, ppc64le, x64, and arm64 helper binaries, and the real Pi abort path through `exec`. Setuid-only bubblewrap would lose privilege under no-new-privs, which is inferred, not tested.
-- None of the TypeScript has been written or run.
+- Superseded: the broker, its TypeScript, and a real-kernel run now exist (see `checkpoint.md`, unit 4).
 
 ## Decisions for you
 
@@ -36,7 +36,7 @@ The Python supervisor (policy duplicated in a second language), any claim of par
 
 ## Next step
 
-Fix the filter's per-rule syscall reload with its own failing test, then write the helper's TypeScript policy generator and run the production chain on the s390x QEMU harness.
+Done: the per-rule reload was removed, the policy generator and brokered mode were written, and the production chain ran on the s390x QEMU harness.
 
 
 ## Interrogation of the Stage 1 change (verified by rerun)
