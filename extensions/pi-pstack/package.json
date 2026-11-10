@@ -62,6 +62,8 @@
   "scripts": {
     "build:helpers": "bun scripts/build-helpers.mjs",
     "check:helpers": "bun scripts/build-helpers.mjs --check",
+    "build:netbroker": "node scripts/build-netbroker.mjs",
+    "check:netbroker": "node scripts/build-netbroker.mjs --check",
     "prepack": "bun scripts/build-helpers.mjs --check",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
