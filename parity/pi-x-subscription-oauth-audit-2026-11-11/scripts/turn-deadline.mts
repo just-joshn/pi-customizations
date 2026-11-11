@@ -1,20 +1,23 @@
 import { type NativeSession, readAssistantText } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/turn.ts';
 import { encodeTextFrame, encodeTurnEndFrame } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/wire.ts';
 
-// The server streams text every 100 ms for 600 ms, then ends the turn. A 300 ms deadline stands in for the 120 s FIRST_BYTE_MS.
+const CHUNK_INTERVAL_MS = 100;
+const CHUNK_COUNT = 6;
+const STAND_IN_FIRST_BYTE_MS = 300;
+
 const session = {
   write() {},
   close() {},
   async *frames() {
-    for (let i = 0; i < 6; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    for (let i = 0; i < CHUNK_COUNT; i++) {
+      await new Promise((resolve) => setTimeout(resolve, CHUNK_INTERVAL_MS));
       yield encodeTextFrame(`chunk${i} `);
     }
     yield encodeTurnEndFrame();
   },
 } satisfies NativeSession;
 try {
-  console.log('OK', await readAssistantText(session, { prompt: 'x', modelId: 'm' }, undefined, 300));
+  console.log('OK', await readAssistantText(session, { prompt: 'x', modelId: 'm' }, undefined, STAND_IN_FIRST_BYTE_MS));
 } catch (error) {
   console.log('THREW after text was streaming:', error instanceof Error ? error.message : String(error));
 }

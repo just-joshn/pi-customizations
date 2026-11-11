@@ -1,6 +1,5 @@
 import { promptFrom } from '../../../extensions/pi-x-subscription-oauth/src/cursor/stream.ts';
 
-// A four-message Pi transcript, flattened the way the Cursor adapter sends it.
 const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 const messages = [
   { role: 'user', content: 'What is 2+2?', timestamp: 1 },
