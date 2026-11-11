@@ -21,7 +21,12 @@ type RefreshContext = Parameters<NonNullable<ReturnType<typeof createCursorProvi
 type StoredOAuth = Extract<NonNullable<RefreshContext['credential']>, { type: 'oauth' }>;
 
 export function storedCredential(provider: 'grok-build' | 'cursor'): StoredOAuth {
-  const file: unknown = JSON.parse(readFileSync(`${ISOLATED_AUTH_DIR}/auth.json`, 'utf8'));
+  let file: unknown;
+  try {
+    file = JSON.parse(readFileSync(`${ISOLATED_AUTH_DIR}/auth.json`, 'utf8'));
+  } catch (error) {
+    throw new Error(`${ISOLATED_AUTH_DIR}/auth.json is not readable JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
   if (!Check(AuthFile, file)) throw new Error(`${ISOLATED_AUTH_DIR}/auth.json is not a JSON object.`);
   const entry = file[provider];
   if (!Check(StoredCredential, entry)) throw new Error(`No valid ${provider} OAuth credential in ${ISOLATED_AUTH_DIR}/auth.json. Seed it first (see report.md, method disclosure).`);
