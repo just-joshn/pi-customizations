@@ -1,0 +1,19 @@
+{
+  "name": "compose-robolectric-best-practices-skill",
+  "private": true,
+  "type": "module",
+  "description": "Checks for the compose-robolectric-best-practices skill: compiles every Kotlin example against the pinned Compose, Robolectric, and AGP versions and runs every example test under Robolectric.",
+  "scripts": {
+    "check": "node tests/check.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "marked": "18.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "5.1.0",
+    "yaml": "2.9.1"
+  }
+}
