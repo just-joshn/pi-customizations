@@ -7,16 +7,13 @@ import { type CodeBlock, type ParsedMarkdown, parseMarkdown } from './markdown.t
 
 const NOT_SKILL_CONTENT = new Set(['tests', 'harness', 'node_modules']);
 
-// Fence languages a reference file may use. `kotlin` blocks are compiled; the rest are shown as written.
 const LANGS = new Set(['kotlin', 'kts', 'toml', 'bash', 'properties', 'xml', 'yaml', 'text', '']);
 const SNIPPET_MAX_LINES = 12;
 
-// Coordinates the harness does not use but the skill may name. Every other coordinate must match the harness pin.
-const EXTRA_PINS: Record<string, string> = {
+const PINS_NOT_IN_HARNESS: Record<string, string> = {
   'org.jetbrains.kotlinx.kover': '0.9.11',
 };
 
-// Only the skill root's tests/, harness/, and node_modules/ are not skill content; a nested core/tests/ is.
 function walk(dir: string, atRoot: boolean): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
@@ -72,17 +69,13 @@ export function checkSkill(skillDir: string): string[] {
   return problems;
 }
 
-// A version a build snippet declares for a dependency or plugin: a literal the gate compares with the pin, or
-// an expression it cannot resolve, kept as the snippet wrote it.
 type Declared = { kind: 'literal'; coordinate: string; version: string } | { kind: 'unresolved'; coordinate: string; raw: string };
 
 function declared(coordinate: string, version: string | undefined, raw: string): Declared {
   return version === undefined ? { kind: 'unresolved', coordinate, raw } : { kind: 'literal', coordinate, version };
 }
 
-// "group:artifact:version" strings; the version may be a `$name` or `${name}` template.
 const COORDINATE = /["']([\w.-]+:[\w.-]+):([^"'\s]+)["']/g;
-// id("x") version "v", id("x").version("v"), kotlin("x") version "v".
 const PLUGIN = /\b(id|kotlin)\(\s*["']([\w.-]+)["']\s*\)\s*(?:\.version\(\s*|\s+version\s+)["']([^"']+)["']/g;
 const FIELD = (name: string): RegExp => new RegExp(`\\b${name}\\s*=\\s*"([^"]+)"`);
 const VERSION_TABLE = /\bversion\s*=\s*\{([^}]*)\}/;
@@ -97,7 +90,6 @@ function resolveVersion(raw: string, vars: ReadonlyMap<string, string>): string 
   return /^\d/.test(raw) ? raw : undefined;
 }
 
-// Version-carrying named fields, as in a version catalog entry or Gradle's named-argument dependency form.
 function fieldDeclaration(line: string, vars: ReadonlyMap<string, string>): Declared | undefined {
   const module = line.match(FIELD('module'))?.[1];
   const group = line.match(FIELD('group'))?.[1];
@@ -123,7 +115,6 @@ function declarations(line: string, vars: ReadonlyMap<string, string> = new Map(
   return [...strings, ...plugins, ...(field ? [field] : [])];
 }
 
-// Names a block can refer to: `val x = "..."` in Gradle scripts, the [versions] table in a version catalog.
 function blockVariables(block: CodeBlock): Map<string, string> {
   const toml = block.lang === 'toml';
   const source = toml ? (block.code.split(/^\[/m).find((section) => section.startsWith('versions]')) ?? '') : block.code;
@@ -141,7 +132,7 @@ function pinsOf(text: string): Array<[string, string]> {
 
 let pins: Map<string, string> | undefined;
 function harnessPins(): Map<string, string> {
-  pins ??= new Map([...pinsOf(readFileSync(join(HARNESS_DIR, 'build.gradle.kts'), 'utf8')), ...pinsOf(readFileSync(join(HARNESS_DIR, 'blocks/build.gradle.kts'), 'utf8')), ...Object.entries(EXTRA_PINS)]);
+  pins ??= new Map([...pinsOf(readFileSync(join(HARNESS_DIR, 'build.gradle.kts'), 'utf8')), ...pinsOf(readFileSync(join(HARNESS_DIR, 'blocks/build.gradle.kts'), 'utf8')), ...Object.entries(PINS_NOT_IN_HARNESS)]);
   return pins;
 }
 
@@ -155,11 +146,9 @@ function blockMode(block: CodeBlock): Mode | 'snippet' | undefined {
 
 interface SkillFile {
   skillDir: string;
-  // The file's path relative to skillDir, as problems report it.
   rel: string;
 }
 
-// Problems a file has on its own, without compiling: links, fence languages, snippet length, versions.
 export function staticProblems({ skillDir, rel }: SkillFile): string[] {
   const markdown = read(skillDir, rel);
   const problems = localTargets(skillDir, rel, markdown)
@@ -177,7 +166,7 @@ export function staticProblems({ skillDir, rel }: SkillFile): string[] {
           continue;
         }
         const pinned = harnessPins().get(d.coordinate);
-        if (pinned === undefined) problems.push(`${where} ${d.coordinate}:${d.version} is not pinned in the harness or EXTRA_PINS`);
+        if (pinned === undefined) problems.push(`${where} ${d.coordinate}:${d.version} is not pinned in the harness or PINS_NOT_IN_HARNESS`);
         else if (pinned !== d.version) problems.push(`${where} ${d.coordinate}:${d.version} does not match the pinned ${pinned}`);
       }
     });
@@ -192,7 +181,6 @@ export function kotlinBlocks({ skillDir, rel }: SkillFile): KotlinBlock[] {
   });
 }
 
-// Static problems of every file plus one Gradle build that compiles all their Kotlin blocks and runs their tests.
 export function checkFiles({ skillDir, rels, label }: { skillDir: string; rels: readonly string[]; label: string }): string[] {
   const problems = rels.flatMap((rel) => staticProblems({ skillDir, rel }));
   const blocks = rels.flatMap((rel) => kotlinBlocks({ skillDir, rel }));

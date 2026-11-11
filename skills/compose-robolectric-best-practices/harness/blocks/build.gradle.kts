@@ -4,7 +4,6 @@ plugins {
     id("io.github.takahirom.roborazzi")
 }
 
-// The TypeScript gate writes one Kotlin file per skill code block into this directory.
 val blocksDir = providers.gradleProperty("blocksDir").orElse(layout.buildDirectory.dir("blocks").map { it.asFile.path })
 
 android {
@@ -21,7 +20,6 @@ android {
         unitTests.all {
             // Robolectric 4.17 on JDK 24+ needs this (robolectric/robolectric#11434).
             it.jvmArgs("--add-opens=java.base/jdk.internal.access=ALL-UNNAMED")
-            // Blocks fenced as `kotlin compile-only` show code that compiles but must not run (anti-patterns).
             it.filter.excludeTestsMatching("skill.compileonly.*")
             it.filter.isFailOnNoMatchingTests = false
         }
@@ -31,7 +29,6 @@ android {
 
 kotlin {
     compilerOptions {
-        // A deprecated API in an example is a bug in the skill.
         allWarningsAsErrors = true
     }
 }

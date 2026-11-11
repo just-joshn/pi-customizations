@@ -8,7 +8,6 @@ import type { CodeBlock } from './markdown.ts';
 
 export const HARNESS_DIR = resolve(import.meta.dirname, '../../harness');
 
-// `kotlin` blocks compile and their tests run. `kotlin compile-only` blocks compile but never run (anti-patterns).
 export type Mode = 'run' | 'compileonly';
 
 export interface KotlinBlock {
@@ -20,21 +19,25 @@ export interface KotlinBlock {
 interface Placed extends KotlinBlock {
   pkg: string;
   file: string;
-  // Whether the block declares its own package (renamed in place) or the gate inserts one at Kotlin line `at`.
   packageLine: { kind: 'own' } | { kind: 'inserted'; at: number };
 }
 
 const PACKAGE_LINE = /^package[ \t]+[\w.]+[ \t]*$/m;
-// Kotlin allows file annotations, comments, and blank lines above the package line.
 const PREAMBLE_LINE = /^\s*(@file:.*|\/\/.*)?$/;
 
-function place(entry: KotlinBlock): Placed {
-  // The slug keeps generated names readable; the hash keeps them unique when two paths slug alike (a-b.md, a_b.md).
-  const slug = entry.rel
+function readableSlug(rel: string): string {
+  return rel
     .replace(/\.md$/, '')
     .replace(/[^A-Za-z0-9]+/g, '_')
     .toLowerCase();
-  const id = `${slug}_${createHash('sha256').update(entry.rel).digest('hex').slice(0, 6)}`;
+}
+
+function uniqueBlockId(rel: string): string {
+  return `${readableSlug(rel)}_${createHash('sha256').update(rel).digest('hex').slice(0, 6)}`;
+}
+
+function place(entry: KotlinBlock): Placed {
+  const id = uniqueBlockId(entry.rel);
   const lines = entry.block.code.split('\n');
   const lastAnnotation = lines.findLastIndex((line, i) => line.trim().startsWith('@file:') && lines.slice(0, i).every((above) => PREAMBLE_LINE.test(above)));
   return {
@@ -53,7 +56,6 @@ function source(placed: Placed): string {
   return [...lines.slice(0, at - 1), `package ${placed.pkg}`, ...lines.slice(at - 1), ''].join('\n');
 }
 
-// Markdown line of a Kotlin line: the fence is on block.line, so Kotlin line 1 of the block is block.line + 1.
 function markdownLine(placed: Placed, kotlinLine: number): number {
   const shifted = placed.packageLine.kind === 'inserted' && kotlinLine > placed.packageLine.at;
   return placed.block.line + kotlinLine - (shifted ? 1 : 0);
@@ -113,9 +115,6 @@ function gradleFailure(output: string): string {
 
 const DECLARES_TEST = /@Test\b/;
 
-// Compiles every block and runs the `run` blocks' tests in one Gradle build. Roborazzi runs in record mode,
-// so screenshot examples render and write images instead of silently doing nothing. `label` names a reusable
-// copy of the harness under the temp dir, so concurrent callers with different labels never share a build.
 export function compileAndRun({ label, blocks }: { label: string; blocks: readonly KotlinBlock[] }): string[] {
   const workDir = join(tmpdir(), 'compose-robolectric-skill', label);
   const projectDir = join(workDir, 'harness');
@@ -129,6 +128,7 @@ export function compileAndRun({ label, blocks }: { label: string; blocks: readon
   const byFile = new Map(placed.map((p) => [p.file, p]));
   for (const p of placed) writeFileSync(join(blocksDir, p.file), source(p));
 
+  // Roborazzi captures nothing unless record mode is on, so screenshot examples would silently do nothing.
   const run = spawnSync(join(projectDir, 'gradlew'), ['-p', projectDir, ':blocks:testDebugUnitTest', `-PblocksDir=${blocksDir}`, '-Proborazzi.test.record=true', '--console=plain', '--continue'], {
     encoding: 'utf8',
     maxBuffer: 256 * 1024 * 1024,

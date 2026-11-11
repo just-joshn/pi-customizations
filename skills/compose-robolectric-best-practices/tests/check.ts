@@ -1,5 +1,3 @@
-// Checks reference files while writing them: `node tests/check.ts core/finders.md [more.md ...]`.
-// With no arguments it checks the whole skill. Prints one problem per line and exits 1 when there are any.
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 

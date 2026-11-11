@@ -2,7 +2,6 @@ import { marked, type Token } from 'marked';
 
 export interface CodeBlock {
   lang: string;
-  // The whole fence info string, such as `kotlin compile-only`.
   info: string;
   code: string;
   line: number;
