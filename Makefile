@@ -1,6 +1,6 @@
-.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-test-conventions verify-install verify-sources verify-x-subscription-oauth-live
+.PHONY: verify verify-lint verify-mechanisms verify-toolchain verify-extension verify-maintainer verify-rea verify-oauth verify-skills verify-test-conventions verify-install verify-sources verify-x-subscription-oauth-live
 
-verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-install
+verify: verify-lint verify-mechanisms verify-toolchain verify-test-conventions verify-extension verify-maintainer verify-rea verify-oauth verify-skills verify-install
 
 verify-lint:
 	bun run ci
@@ -25,6 +25,10 @@ verify-maintainer:
 verify-rea:
 	bun run --filter @justjoshn/pi-rea typecheck
 	bun run --filter @justjoshn/pi-rea test:coverage
+
+verify-skills:
+	bun run --filter './skills/*' typecheck
+	bun run --filter './skills/*' test
 
 verify-oauth:
 	bun run --filter @justjoshn/pi-anthropic-oauth typecheck

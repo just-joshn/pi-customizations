@@ -7,7 +7,8 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "extensions/*"
+    "extensions/*",
+    "skills/*"
   ],
   "pi": {
     "extensions": [
@@ -20,7 +21,8 @@
     ],
     "skills": [
       "./extensions/pi-pstack/skills",
-      "./extensions/pi-rea/skills"
+      "./extensions/pi-rea/skills",
+      "./skills"
     ],
     "prompts": [
       "./extensions/pi-rea/prompts"
