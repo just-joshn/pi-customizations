@@ -24,7 +24,7 @@ Preconditions:
 - Environment passes `./.pi/skills/verify-pi-customizations/bin/control-pi doctor`.
 - `extensions/pi-pstack` is present and unchanged.
 
-- **Turn the mode on, then off.** Send `/mode poteto-mode` and then `/mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. The driver asserts both notifications, exactly two `pstack/mode` entries (the on entry's `data.skill` and the off entry's `data: null`), and the `pstack-mode` status set on and cleared off.
+- **Turn the mode on, then off.** Send `/mode poteto-mode` and then `/mode off` to the RPC session. Run `./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode`. The driver asserts both notifications, exactly two `pstack/mode` entries (the on entry's `data.skill` and the off entry's `data: null`), and the `pstack-mode` status set to the ANSI-colored `♛ mode: poteto-mode` badge, then cleared.
 - **Proof.** Verify that the artifact exists at `artifacts/verify-pi-customizations/poteto-mode/mode.json`. The JSON file captures every notification, appended entry, and `setStatus` update from the drive.
 
 ## Gotchas
@@ -34,4 +34,6 @@ Preconditions:
 - The extension restores the mode from the active branch when a session opens or the branch changes; this `--no-session` drive does not cover restoration across restarts.
 - `/mode <skill>` only accepts loaded skills. The driver uses `poteto-mode` because the package ships it.
 - Turning the mode on with a task argument (`/mode poteto-mode <task>`) sends the task as a user message; the drive uses no task, so no model runs.
+- `/mode off` with no mode on still notifies `Mode off.` and appends a `pstack/mode` entry with `data: null`.
+- The extension clears the status by passing `undefined`, so Pi's RPC `setStatus` message omits `statusText`; `control-pi` records that as `null`.
 - The entry type and status key are spelled `pstack/mode` and `pstack-mode`, matching the package name `pi-pstack`.
