@@ -1,0 +1,75 @@
+---
+pid: 2792
+cwd: "/Users/josh-desktop/.grok"
+command: "cd /Users/josh-desktop/src/personal/pi-x-subscription-oauth-audit && (bun install >/dev/null 2>&1; echo \"== typecheck\"; bun run --filter @justjoshn/pi-x-subscription-oauth typecheck; echo \"exit $?\"; echo \"== coverage\"; bun run --filter @justjoshn/pi-x-subscription-oauth test:coverage; echo \"exit $?\"; echo \"== prove:list\"; bun run --filter @justjoshn/pi-x-subscription-oauth prove:list; echo \"exit $?\"; echo \"== biome\"; bunx biome ci extensions/pi-x-subscription-oauth --error-on-warnings --max-diagnostics=none; echo \"exit $?\") 2>&1 | tail -150"
+title: "x-subscription repo gates"
+status: succeeded
+started_at: 2026-11-11T12:06:54.484Z
+running_for_ms: 8108     
+---
+== typecheck
+@justjoshn/pi-x-subscription-oauth typecheck: Exited with code 0
+exit 0
+== coverage
+@justjoshn/pi-x-subscription-oauth test:coverage: 
+@justjoshn/pi-x-subscription-oauth test:coverage:  RUN  v5.0.2 /Users/josh-desktop/src/personal/pi-x-subscription-oauth-audit/extensions/pi-x-subscription-oauth
+@justjoshn/pi-x-subscription-oauth test:coverage:       Coverage enabled with v8
+@justjoshn/pi-x-subscription-oauth test:coverage: 
+@justjoshn/pi-x-subscription-oauth test:coverage: 
+@justjoshn/pi-x-subscription-oauth test:coverage:  Test Files  14 passed (14)
+@justjoshn/pi-x-subscription-oauth test:coverage:       Tests  215 passed (215)
+@justjoshn/pi-x-subscription-oauth test:coverage:    Start at  04:06:56
+@justjoshn/pi-x-subscription-oauth test:coverage:    Duration  3.90s (tests 56%, import 38%, transform 4%, worker 2%)
+@justjoshn/pi-x-subscription-oauth test:coverage: 
+@justjoshn/pi-x-subscription-oauth test:coverage:  % Coverage report from v8
+@justjoshn/pi-x-subscription-oauth test:coverage: -------------------|---------|----------|---------|---------|----------------------------
+@justjoshn/pi-x-subscription-oauth test:coverage: File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s          
+@justjoshn/pi-x-subscription-oauth test:coverage: -------------------|---------|----------|---------|---------|----------------------------
+@justjoshn/pi-x-subscription-oauth test:coverage: All files          |   89.74 |    81.63 |   88.83 |   92.83 |                            
+@justjoshn/pi-x-subscription-oauth test:coverage:  src               |   97.05 |    96.45 |   94.68 |   98.17 |                            
+@justjoshn/pi-x-subscription-oauth test:coverage:   index.ts         |   97.61 |    88.88 |     100 |     100 | 23,54                      
+@justjoshn/pi-x-subscription-oauth test:coverage:   login.ts         |   94.73 |    93.06 |   88.63 |   96.61 | 117,136,206-207,319-320    
+@justjoshn/pi-x-subscription-oauth test:coverage:  src/cursor        |   81.49 |    72.03 |   77.58 |   86.34 |                            
+@justjoshn/pi-x-subscription-oauth test:coverage:   auth.ts          |    79.2 |    79.01 |   71.42 |   83.75 | 39,48-55,79,83-85,105      
+@justjoshn/pi-x-subscription-oauth test:coverage:   catalog.ts       |   94.11 |    88.46 |     100 |    93.1 | 46,81                      
+@justjoshn/pi-x-subscription-oauth test:coverage:   provider.ts      |      75 |       80 |   45.45 |    91.3 | 28-29                      
+@justjoshn/pi-x-subscription-oauth test:coverage:   stream.ts        |   81.57 |    60.57 |   94.73 |   85.26 | 35-41,58,75-77,105-109,120 
+@justjoshn/pi-x-subscription-oauth test:coverage:  src/cursor/native |   87.54 |    72.78 |   90.74 |   91.66 |                            
+@justjoshn/pi-x-subscription-oauth test:coverage:   http2.ts         |   91.39 |    64.28 |    90.9 |    93.5 | 79,98,137-139              
+@justjoshn/pi-x-subscription-oauth test:coverage:   turn.ts          |      80 |    64.86 |   66.66 |    90.9 | 18-19,70-71                
+@justjoshn/pi-x-subscription-oauth test:coverage:   wire.ts          |   88.19 |       80 |     100 |   90.75 | 101-103,128-136            
+@justjoshn/pi-x-subscription-oauth test:coverage: -------------------|---------|----------|---------|---------|----------------------------
+@justjoshn/pi-x-subscription-oauth test:coverage: 
+@justjoshn/pi-x-subscription-oauth test:coverage: =============================== Coverage summary ===============================
+@justjoshn/pi-x-subscription-oauth test:coverage: Statements   : 89.74% ( 884/985 )
+@justjoshn/pi-x-subscription-oauth test:coverage: Branches     : 81.63% ( 538/659 )
+@justjoshn/pi-x-subscription-oauth test:coverage: Functions    : 88.83% ( 183/206 )
+@justjoshn/pi-x-subscription-oauth test:coverage: Lines        : 92.83% ( 738/795 )
+@justjoshn/pi-x-subscription-oauth test:coverage: ================================================================================
+@justjoshn/pi-x-subscription-oauth test:coverage: Exited with code 0
+exit 0
+== prove:list
+@justjoshn/pi-x-subscription-oauth prove:list: pi --list-models lists 8 grok-build models: grok-4.5, grok-4.6, grok-4.7, grok-4.7-build-fast, grok-4.7-high-fast, grok-4.7-low-fast, grok-4.7-medium-fast, grok-4.7-xhigh-fast
+@justjoshn/pi-x-subscription-oauth prove:list: prove-pi --list-only: skipped live print resolution check
+@justjoshn/pi-x-subscription-oauth prove:list: Exited with code 0
+exit 0
+== biome
+extensions/pi-x-subscription-oauth/src/usage.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✖ File content differs from formatting output
+  
+
+Checked 47 files in 576ms. No fixes applied.
+Found 1 error.
+ci ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ✖ Some errors were emitted while running checks.
+  
+
+exit 1
+
+---
+exit_code: 0
+elapsed_ms: 8108
+ended_at: 2026-11-11T12:07:02.592Z
+---
