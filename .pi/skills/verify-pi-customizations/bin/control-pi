@@ -342,7 +342,9 @@ async function driveOauthProviders(artifactDir) {
       env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
       encoding: 'utf8',
     });
-    assert.match(grokOutput, /grok-build\s+grok-4\.7-build-fast/, 'Expected grok-build models not found');
+    for (const id of ['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5', 'grok-4.7-low-fast', 'grok-4.7-medium-fast', 'grok-4.7-high-fast', 'grok-4.7-xhigh-fast']) {
+      assert.match(grokOutput, new RegExp(`^grok-build\\s+${id.replaceAll('.', '\\.')}\\s`, 'm'), `Expected grok-build model ${id} not found`);
+    }
 
     await runDoctor();
     const cursorOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'cursor'], {

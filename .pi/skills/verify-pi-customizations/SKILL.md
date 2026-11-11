@@ -9,7 +9,7 @@ Drive `pi-customizations` packages and extensions through the real Pi CLI and RP
 
 ## Launch
 
-For verification, Pi runs in RPC mode with `--no-session` and `--no-extensions`, loading the target package explicitly via `-e <package-dir>` inside an isolated temporary directory (`PI_CODING_AGENT_DIR` set to a disposable scratch directory).
+For verification, Pi runs with `--no-extensions`, loading the target package explicitly via `-e <package-dir>` inside an isolated temporary directory (`PI_CODING_AGENT_DIR` set to a disposable scratch directory). Command and notification checks use RPC mode with `--no-session`. Model listings use one-shot `pi --list-models` processes.
 
 Exact launch command:
 ```bash
@@ -70,7 +70,7 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.
-  - `grok-build-models.txt`: table of registered `grok-build` models.
+  - `grok-build-models.txt`: table of registered `grok-build` models. The drive asserts all eight ids: four baseline models and four `-fast` effort aliases.
   - `cursor-models.txt`: table of registered `cursor` models.
   - `antigravity-command.json`: the logged-out `/antigravity` error notification.
   - `usage-command.json`: the logged-out Grok Build `/usage` error notification.
@@ -86,7 +86,7 @@ Proof standards:
 
 Cleanup is strictly scoped to test instances:
 - The harness tracks the child PID started for verification and terminates only that process. It never runs blanket process-killing commands like `pkill pi`.
-- The temporary scratch directory (`/tmp/control-pi-*`) is completely removed in process exit hooks.
+- The temporary scratch directory (`/tmp/control-pi-*`) is removed in each drive's `finally` block, including after a failed assertion.
 - Proof artifacts in `artifacts/verify-pi-customizations/` are preserved for review.
 
 ## Helpers
