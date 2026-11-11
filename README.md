@@ -11,7 +11,7 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-x-subscription-oauth`](extensions/pi-x-subscription-oauth/README.md) | Lets The X Subscription answer in Pi through the `grok-build` and `cursor` providers, and check plan usage with `/usage`. |
 | [`extensions/pi-maintainer`](extensions/pi-maintainer/README.md) | Aider's edit formats, git integration, repository map, and lint and test loop, rebuilt on Pi's extension API. Declares runtime npm dependencies (`yaml`, `ignore`, `diff-match-patch`), so a local-path install needs the workspace install below before Pi can load it. |
-| [`skills/vitest-best-practices`](skills/vitest-best-practices/SKILL.md) | A Vitest 5.1 best-practices skill: an activity router and 35 reference files. Loads with the repository root; it is not a separate npm package. |
+| [`skills/vitest-best-practices`](skills/vitest-best-practices/SKILL.md) | A Vitest 5.1 best-practices skill: an activity router and 35 reference files. Its tests type-check every code example against Vitest 5.1 and the libraries the examples import (`bun run --filter vitest-best-practices-skill test`). Loads with the repository root; it is not a separate npm package. |
 | [`extensions/pi-rea`](extensions/pi-rea/README.md) | REA (Reverse Engineer Anything) for Pi: REA's tool contract, its Evidence and session kernel, its workflow skill, and its prompt templates. Declares a runtime npm dependency (`@babel/parser`). |
 
 ## Install
