@@ -5,6 +5,7 @@ import { scrubText } from './auth.ts';
 import { CURSOR_BIN_HINT, CURSOR_LOGIN_HINT } from './catalog.ts';
 import { type NativeOpener, NativeTransportError } from './native/http2.ts';
 import { readAssistantText } from './native/turn.ts';
+import type { TurnUsage } from './native/wire.ts';
 
 export type AgentRun = {
   readonly code: number;
@@ -30,24 +31,61 @@ export function cursorAgentArgs(modelId: string, prompt: string): readonly strin
   return ['--trust', '--print', '--output-format', 'json', '--mode', 'ask', '--model', modelId, '--', prompt];
 }
 
-function textFrom(content: unknown): string {
-  if (typeof content === 'string') return content;
-  if (!Array.isArray(content)) return '';
-  return content
-    .map((part) => {
-      if (!part || typeof part !== 'object') return '';
-      if ('text' in part && typeof part.text === 'string') return part.text;
-      if ('thinking' in part && typeof part.thinking === 'string') return part.thinking;
+type TranscriptMessage = TranscriptContext['messages'][number];
+type ContentPart = Exclude<TranscriptMessage['content'], string>[number];
+
+function partText(part: ContentPart): string {
+  switch (part.type) {
+    case 'text':
+      return part.text;
+    case 'image':
+      return '[image not sent]';
+    case 'thinking':
       return '';
-    })
-    .join('');
+    case 'toolCall':
+      return `[called tool ${part.name}]`;
+    default: {
+      const _exhaustive: never = part;
+      return _exhaustive;
+    }
+  }
+}
+
+function contentText(content: TranscriptMessage['content']): string {
+  if (typeof content === 'string') return content;
+  return content
+    .map(partText)
+    .filter((text) => text.length > 0)
+    .join('\n');
+}
+
+function turnOf(message: TranscriptMessage): { readonly speaker: string; readonly text: string } {
+  switch (message.role) {
+    case 'system':
+      return { speaker: 'System', text: [contentText(message.content), ...Object.values(message.sections ?? {}).filter((section) => section !== null)].filter((text) => text.length > 0).join('\n\n') };
+    case 'user':
+      return { speaker: 'User', text: contentText(message.content) };
+    case 'assistant':
+      return { speaker: 'Assistant', text: contentText(message.content) };
+    case 'toolResult':
+      return { speaker: `Tool result (${message.toolName})`, text: contentText(message.content) };
+    default: {
+      const _exhaustive: never = message;
+      return _exhaustive;
+    }
+  }
 }
 
 export function promptFrom(messages: TranscriptContext['messages']): string {
   return messages
-    .map((message) => textFrom(message.content).trim())
-    .filter((text) => text.length > 0)
+    .map(turnOf)
+    .filter((turn) => turn.text.trim().length > 0)
+    .map((turn) => `${turn.speaker}:\n${turn.text.trim()}`)
     .join('\n\n');
+}
+
+function usageOf(counts: TurnUsage): Usage {
+  return { ...counts, totalTokens: counts.input + counts.output + counts.cacheRead + counts.cacheWrite, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
 }
 
 function usageNumber(record: Record<string, unknown>, keys: readonly string[]): number {
@@ -96,7 +134,7 @@ export function readAgentResult(stdout: string): AgentReply {
 
 export function runCursorAgent(args: readonly string[], signal: AbortSignal | undefined): Promise<AgentRun> {
   return new Promise((resolve, reject) => {
-    execFile('cursor-agent', args, { signal, maxBuffer: 10 * 1024 * 1024, timeout: 120_000 }, (error, stdout, stderr) => {
+    execFile('cursor-agent', args, { signal, maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
       const errno = error as NodeJS.ErrnoException | null;
       if (errno?.code === 'ENOENT') {
         reject(new Error(CURSOR_BIN_HINT));
@@ -159,8 +197,8 @@ async function run(model: Model<Api>, context: TranscriptContext, options: Simpl
       try {
         const session = await openNative({ token: options.apiKey, signal: options.signal });
         opened = true;
-        const text = await readAssistantText(session, { prompt, modelId: model.id }, options.signal);
-        publish(output, stream, text, ZERO_USAGE);
+        const reply = await readAssistantText(session, { prompt, modelId: model.id }, options.signal);
+        publish(output, stream, reply.text, usageOf(reply.usage));
         return;
       } catch (error) {
         if (opened || !(error instanceof NativeTransportError)) throw error;

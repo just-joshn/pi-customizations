@@ -227,7 +227,7 @@ function contextRequest(id: number): Buffer {
 }
 
 test('later text still joins the reply', async () => {
-  const text = await readAssistantText(
+  const reply = await readAssistantText(
     {
       write() {},
       async *frames() {
@@ -240,7 +240,7 @@ test('later text still joins the reply', async () => {
     },
     { prompt: 'ping', modelId: 'composer-2.5' },
   );
-  expect(text).toBe('hello world');
+  expect(reply.text).toBe('hello world');
 });
 
 test('a credits error after the first text still fails the ask', async () => {
@@ -403,4 +403,75 @@ test('a broken native connection falls back to cursor-agent', async () => {
   const message = await models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }).result();
   expect(message.stopReason).toBe('stop');
   expect(message.content).toEqual([{ type: 'text', text: 'pong' }]);
+});
+
+test('a usage-limit refusal shows the title and detail Cursor sends', () => {
+  const refusal = {
+    error: {
+      code: 'resource_exhausted',
+      message: 'Error',
+      details: [
+        {
+          type: 'aiserver.v1.ErrorDetails',
+          debug: { error: 'ERROR_USAGE_PRICING_REQUIRED', details: { title: 'Weekly usage limit reached. It resets in 4 days.', detail: 'Buy credits to keep going now, or upgrade your plan for more weekly usage.' } },
+        },
+      ],
+    },
+  };
+  expect(decodeFrame(flagged(2, Buffer.from(JSON.stringify(refusal))))).toEqual([{ type: 'error', message: 'Weekly usage limit reached. It resets in 4 days. Buy credits to keep going now, or upgrade your plan for more weekly usage.' }]);
+});
+
+test('a reply that keeps streaming past the deadline still completes', async () => {
+  const reply = await readAssistantText(
+    {
+      write() {},
+      async *frames() {
+        for (let i = 0; i < 6; i++) {
+          await pause(100);
+          yield encodeTextFrame(`chunk${i} `);
+        }
+        yield encodeTurnEndFrame();
+      },
+      close() {},
+    },
+    { prompt: 'ping', modelId: 'composer-2.5' },
+    undefined,
+    300,
+  );
+  expect(reply.text).toBe('chunk0 chunk1 chunk2 chunk3 chunk4 chunk5 ');
+});
+
+test('a reply that goes silent after its first text times out', async () => {
+  await expect(
+    readAssistantText(
+      {
+        write() {},
+        async *frames() {
+          yield encodeTextFrame('hello');
+          await pause(600);
+          yield encodeTextFrame(' world');
+        },
+        close() {},
+      },
+      { prompt: 'ping', modelId: 'composer-2.5' },
+      undefined,
+      300,
+    ),
+  ).rejects.toThrow('Cursor ask timed out.');
+});
+
+test('the token counts Cursor sends at turn end reach the Pi message', async () => {
+  const server = await listen((stream) => {
+    stream.respond({ ':status': 200, 'content-type': 'application/connect+proto' });
+    stream.write(encodeTextFrame('pong'));
+    stream.write(encodeTurnEndFrame({ input: 12, output: 3, cacheRead: 5, cacheWrite: 1 }));
+    stream.end();
+  });
+  try {
+    const { message } = await ask(server.url);
+    expect(message.stopReason).toBe('stop');
+    expect(message.usage).toMatchObject({ input: 12, output: 3, cacheRead: 5, cacheWrite: 1, totalTokens: 21 });
+  } finally {
+    await server.close();
+  }
 });

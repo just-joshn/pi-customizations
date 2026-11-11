@@ -6,7 +6,7 @@ import { expect, vi } from 'vitest';
 import { exchangeCursorApiKey, expiresAt, loginCursor, readKeychainCredential, refreshCursor, runCursorAgentLogin, scrubText } from '../src/cursor/auth.ts';
 import { CURSOR_LOGIN_HINT, parseUsableModels, usableModelsUrl } from '../src/cursor/catalog.ts';
 import { createCursorProvider } from '../src/cursor/provider.ts';
-import { cursorAgentArgs, readAgentResult, runCursorAgent } from '../src/cursor/stream.ts';
+import { cursorAgentArgs, promptFrom, readAgentResult, runCursorAgent } from '../src/cursor/stream.ts';
 import extension from '../src/index.ts';
 import { test } from './network-guard.ts';
 import { oauthCredential } from './support/credentials.ts';
@@ -143,7 +143,7 @@ test('a fake cursor-agent ask returns the result text', async () => {
   const message = await models.streamSimple(model, { messages: [{ role: 'user', content: 'ping', timestamp: 1 }] }).result();
   expect(message.stopReason).toBe('stop');
   expect(message.content).toEqual([{ type: 'text', text: 'pong' }]);
-  expect(seen[0]).toEqual(cursorAgentArgs('composer-2.5', 'ping'));
+  expect(seen[0]).toEqual(cursorAgentArgs('composer-2.5', 'User:\nping'));
   expect(JSON.stringify(seen)).not.toContain('cursor-access');
 });
 
@@ -336,4 +336,35 @@ test('HTTP 401 on the catalog names Cursor login and hides the token', async () 
   const result = await models.refresh({ allowNetwork: true, providers: ['cursor'] });
   expect(result.errors.get('cursor')?.message).toBe('Cursor rejected the session (HTTP 401). Run /login and choose Cursor.');
   expect(result.errors.get('cursor')?.message).not.toContain('cursor-secret');
+});
+
+test('a Cursor prompt keeps the system prompt and each speaker and leaves out thinking', () => {
+  const usage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0, cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 } };
+  const prompt = promptFrom([
+    { role: 'system', content: 'You are a test.', sections: { tools: '<tools>read</tools>', gone: null }, timestamp: 0 },
+    { role: 'user', content: 'What is 2+2?', timestamp: 1 },
+    {
+      role: 'assistant',
+      content: [
+        { type: 'thinking', thinking: 'secret chain of thought' },
+        { type: 'text', text: '4' },
+      ],
+      api: 'cursor-agent',
+      provider: 'cursor',
+      model: 'composer-2.5',
+      usage,
+      stopReason: 'stop',
+      timestamp: 2,
+    },
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Now read file.txt' },
+        { type: 'image', data: 'AAAA', mimeType: 'image/png' },
+      ],
+      timestamp: 3,
+    },
+    { role: 'toolResult', toolCallId: 't1', toolName: 'read', content: [{ type: 'text', text: 'FILE CONTENTS' }], isError: false, timestamp: 4 },
+  ]);
+  expect(prompt).toBe(['System:\nYou are a test.\n\n<tools>read</tools>', 'User:\nWhat is 2+2?', 'Assistant:\n4', 'User:\nNow read file.txt\n[image not sent]', 'Tool result (read):\nFILE CONTENTS'].join('\n\n'));
 });

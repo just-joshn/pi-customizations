@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 
+import { Type } from 'typebox';
+import { Check } from 'typebox/value';
 import { cursorRejectedSession } from '../catalog.ts';
 
 export const CURSOR_CLIENT_VERSION = 'cli-2026.11.05-86047df';
@@ -77,17 +79,26 @@ export function encodeTextFrame(text: string): Buffer {
   return envelope(delimited(1, delimited(1, textField(1, text))));
 }
 
-export function encodeTurnEndFrame(): Buffer {
-  return envelope(delimited(1, delimited(14, Buffer.alloc(0))));
+export type TurnUsage = { readonly input: number; readonly output: number; readonly cacheRead: number; readonly cacheWrite: number };
+
+const NO_TURN_USAGE: TurnUsage = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 };
+
+export function encodeTurnEndFrame(usage: TurnUsage = NO_TURN_USAGE): Buffer {
+  const counts = Buffer.concat([varintField(1, usage.input), varintField(2, usage.output), varintField(3, usage.cacheRead), varintField(4, usage.cacheWrite)]);
+  return envelope(delimited(1, delimited(14, counts)));
 }
 
 export function encodeErrorFrame(message: string): Buffer {
   return envelope(Buffer.from(JSON.stringify({ error: { code: 'resource_exhausted', message } })), 2);
 }
 
-export type ServerNotice = { readonly type: 'text'; readonly text: string } | { readonly type: 'context'; readonly execField?: Buffer } | { readonly type: 'turn_end' } | { readonly type: 'error'; readonly message: string };
+export type ServerNotice =
+  | { readonly type: 'text'; readonly text: string }
+  | { readonly type: 'context'; readonly execField?: Buffer }
+  | { readonly type: 'turn_end'; readonly usage: TurnUsage }
+  | { readonly type: 'error'; readonly message: string };
 
-type Field = { readonly field: number; readonly buf?: Buffer; readonly raw: Buffer };
+type Field = { readonly field: number; readonly buf?: Buffer; readonly raw: Buffer; readonly value?: bigint };
 
 function readVarint(buf: Buffer, offset: number): [bigint, number] {
   let value = 0n;
@@ -114,10 +125,10 @@ function readFields(buf: Buffer): Field[] {
     const field = Number(key >> 3n);
     const wire = Number(key & 7n);
     if (wire === 0) {
-      const [, after] = readVarint(buf, cursor);
+      const [value, after] = readVarint(buf, cursor);
       if (after <= cursor) break;
       cursor = after;
-      fields.push({ field, raw: buf.subarray(start, cursor) });
+      fields.push({ field, raw: buf.subarray(start, cursor), value });
     } else if (wire === 2) {
       const [length, after] = readVarint(buf, cursor);
       cursor = after;
@@ -145,6 +156,25 @@ function jsonMentions(value: unknown, needle: string): boolean {
   return false;
 }
 
+function turnUsage(payload: Buffer | undefined): TurnUsage {
+  const fields = payload ? readFields(payload) : [];
+  const count = (field: number) => Number(fields.find((entry) => entry.field === field)?.value ?? 0n);
+  return { input: count(1), output: count(2), cacheRead: count(3), cacheWrite: count(4) };
+}
+
+const Refusal = Type.Object({ debug: Type.Object({ details: Type.Object({ title: Type.Optional(Type.String()), detail: Type.Optional(Type.String()) }) }) });
+
+function refusalText(details: unknown): string | undefined {
+  if (!Array.isArray(details)) return undefined;
+  for (const entry of details) {
+    if (!Check(Refusal, entry)) continue;
+    const { title, detail } = entry.debug.details;
+    const shown = [title, detail].filter((part): part is string => part !== undefined && part.trim().length > 0);
+    if (shown.length > 0) return shown.join(' ');
+  }
+  return undefined;
+}
+
 function framePayload(frame: Buffer): { readonly flags: number; readonly payload: Buffer } | undefined {
   if (frame.length < 5) return undefined;
   const flags = frame[0] ?? 0;
@@ -170,6 +200,8 @@ export function decodeFrame(frame: Buffer): ServerNotice[] {
     try {
       const body = JSON.parse(raw) as { error?: { message?: unknown; details?: unknown } };
       if (jsonMentions(body.error?.details, 'ERROR_NOT_LOGGED_IN')) return [{ type: 'error', message: cursorRejectedSession(401) }];
+      const refusal = refusalText(body.error?.details);
+      if (refusal) return [{ type: 'error', message: refusal }];
       if (typeof body.error?.message === 'string' && body.error.message.length > 0) return [{ type: 'error', message: body.error.message }];
     } catch {
       return [{ type: 'error', message: raw }];
@@ -187,7 +219,7 @@ export function decodeFrame(frame: Buffer): ServerNotice[] {
     }
     if (top.field !== 1 || !top.buf) continue;
     for (const update of readFields(top.buf)) {
-      if (update.field === 14) notices.push({ type: 'turn_end' });
+      if (update.field === 14) notices.push({ type: 'turn_end', usage: turnUsage(update.buf) });
       if (update.field !== 1 || !update.buf) continue;
       const text = readFields(update.buf).find((field) => field.field === 1 && field.buf);
       if (text?.buf) notices.push({ type: 'text', text: text.buf.toString('utf8') });
