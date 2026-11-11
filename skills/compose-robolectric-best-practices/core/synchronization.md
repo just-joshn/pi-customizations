@@ -407,7 +407,7 @@ class IdlingResourceTest {
 }
 ```
 
-- A resource that is busy when `setContent` runs (or that never becomes idle) blocks synchronization until it times out after about 60s with `AppNotIdleException: Compose did not get idle`. Register after `setContent` if the resource can start busy, and make sure it always returns to idle.
+- A resource that is busy when `setContent` runs, or that never becomes idle, blocks synchronization indefinitely. With the pinned stack it did not time out: the test JVM ran out of heap after 20–60 s (`java.lang.OutOfMemoryError: Java heap space`), both when the resource was busy before `setContent` and when it stayed busy before `waitForIdle()`. Register after `setContent` if the resource can start busy, and make sure it always returns to idle.
 - Unregister in `@After` so a resource cannot leak into later tests.
 - On `ComposeUiTest` (`runComposeUiTest`), `registerIdlingResource` and `unregisterIdlingResource` are extension functions imported from `androidx.compose.ui.test`.
 - Espresso `IdlingResource`s registered with `IdlingRegistry` are a different API; Compose test rules also wait for Espresso's idling, which matters for View interop ([interop-views.md](../testing-patterns/interop-views.md)).
@@ -515,7 +515,7 @@ class SleepAntiPattern {
 | Default 1s timeout for real background work | Flaky on slow CI | `timeoutMillis` of a few seconds, or inject a dispatcher |
 | `runTest { advanceTimeBy(…) }` beside `createComposeRule()` | Separate scheduler; Compose time does not move | `runComposeUiTest`, or `mainClock` |
 | Reading a fake right after the test itself calls `scope.launch` | The launch is only queued under v2 | `waitForIdle()` or `runOnIdle { }` first |
-| An idling resource that starts busy before `setContent` | `setContent` blocks ~60s, then `AppNotIdleException` | Register after `setContent`; always return to idle |
+| An idling resource that starts busy before `setContent` | `setContent` blocks until the test JVM runs out of heap (`OutOfMemoryError`) | Register after `setContent`; always return to idle |
 | Forgetting to unregister an idling resource | Leaks into later tests | Unregister in `@After` |
 | `shadowOf(mainLooper).idle()` sprinkled after every action | Compose already idles the looper | Only for delayed non-Compose tasks |
 | `autoAdvance = false` without advancing | The UI never updates; assertions see stale state | Advance frames, or restore `autoAdvance = true` |

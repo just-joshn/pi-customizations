@@ -5,4 +5,4 @@ description: A planted skill whose blocks compile; one test fails, one is compil
 
 # Plant run
 
-[run](core/run.md)
+[run](core/run.md), [optin](core/optin.md)

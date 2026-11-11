@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -19,29 +20,42 @@ export interface KotlinBlock {
 interface Placed extends KotlinBlock {
   pkg: string;
   file: string;
-  // Lines added above the block's first line, to map Kotlin line numbers back to Markdown.
-  offset: number;
+  // Kotlin line of the package line the gate inserted, or undefined when the block declares its own package.
+  insertedAt: number | undefined;
 }
 
 const PACKAGE_LINE = /^package[ \t]+[\w.]+[ \t]*$/m;
+// Kotlin allows file annotations, comments, and blank lines above the package line.
+const PREAMBLE_LINE = /^\s*(@file:.*|\/\/.*)?$/;
 
 function place(entry: KotlinBlock): Placed {
+  // The slug keeps generated names readable; the hash keeps them unique when two paths slug alike (a-b.md, a_b.md).
   const slug = entry.rel
     .replace(/\.md$/, '')
     .replace(/[^A-Za-z0-9]+/g, '_')
     .toLowerCase();
-  const pkg = `skill.${entry.mode}.${slug}.l${entry.block.line}`;
-  return { ...entry, pkg, file: `${slug}_L${entry.block.line}.kt`, offset: PACKAGE_LINE.test(entry.block.code) ? 0 : 1 };
+  const id = `${slug}_${createHash('sha256').update(entry.rel).digest('hex').slice(0, 6)}`;
+  const lines = entry.block.code.split('\n');
+  const lastAnnotation = lines.findLastIndex((line, i) => line.trim().startsWith('@file:') && lines.slice(0, i).every((above) => PREAMBLE_LINE.test(above)));
+  return {
+    ...entry,
+    pkg: `skill.${entry.mode}.${id}.l${entry.block.line}`,
+    file: `${id}_L${entry.block.line}.kt`,
+    insertedAt: PACKAGE_LINE.test(entry.block.code) ? undefined : lastAnnotation + 2,
+  };
 }
 
 function source(placed: Placed): string {
   const { code } = placed.block;
-  return PACKAGE_LINE.test(code) ? code.replace(PACKAGE_LINE, `package ${placed.pkg}`) : `package ${placed.pkg}\n${code}\n`;
+  if (placed.insertedAt === undefined) return code.replace(PACKAGE_LINE, `package ${placed.pkg}`);
+  const lines = code.split('\n');
+  return [...lines.slice(0, placed.insertedAt - 1), `package ${placed.pkg}`, ...lines.slice(placed.insertedAt - 1), ''].join('\n');
 }
 
 // Markdown line of a Kotlin line: the fence is on block.line, so Kotlin line 1 of the block is block.line + 1.
 function markdownLine(placed: Placed, kotlinLine: number): number {
-  return placed.block.line + kotlinLine - placed.offset;
+  const shifted = placed.insertedAt !== undefined && kotlinLine > placed.insertedAt;
+  return placed.block.line + kotlinLine - (shifted ? 1 : 0);
 }
 
 const DIAGNOSTIC = /^([ew]): file:\/\/(.+?\.kt):(\d+):\d+ (.*)$/;

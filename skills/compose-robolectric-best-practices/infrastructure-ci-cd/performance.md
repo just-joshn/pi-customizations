@@ -125,7 +125,7 @@ Gradle's own docs call `forkEvery = 1` "very expensive". Fix the leak instead. I
 
 ## JVM Heap
 
-Gradle leaves `maxHeapSize` unset for test JVMs, so each fork gets the JVM default (a fraction of physical memory). Sandboxes are large (the SDK 36 framework jar alone is about 200 MB on disk), and each distinct sandbox in a fork adds to the heap. Set an explicit heap when forks hit `OutOfMemoryError` or when several forks share a CI runner:
+Do not assume a test fork gets the JVM default heap. With the pinned stack and no `maxHeapSize` set, `Runtime.getRuntime().maxMemory()` inside a test reported 536 MB (512 MiB), while the plain JVM default on the same 16 GB machine was 4 GiB. Sandboxes are large (the SDK 36 framework jar alone is about 200 MB on disk), and each distinct sandbox in a fork adds to the heap. Set an explicit heap when forks hit `OutOfMemoryError` or when several forks share a CI runner:
 
 ```kts
 android {

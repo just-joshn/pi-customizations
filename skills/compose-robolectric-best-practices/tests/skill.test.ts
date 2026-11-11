@@ -52,6 +52,33 @@ describe('gate catches planted mistakes', () => {
     expect(compileProblems).toContain(expected);
   });
 
+  test.for([
+    'core/pins.md:7 org.jetbrains.kotlin.plugin.compose:2.0.0 does not match the pinned 2.4.21',
+    'core/pins.md:8 com.android.application:8.0.0 does not match the pinned 9.5.1',
+    'core/pins.md:14 org.robolectric:robolectric:4.10 does not match the pinned 4.17',
+    'core/pins.md:15 org.robolectric:robolectric:4.11 does not match the pinned 4.17',
+    'core/pins.md:16 junit:junit version $junitVersion is not a literal the gate can check',
+    'core/pins.md:26 org.robolectric:robolectric:4.12 does not match the pinned 4.17',
+    'core/pins.md:27 junit:junit:4.12 does not match the pinned 4.13.2',
+    'core/pins.md:28 com.google.truth:truth:1.0 does not match the pinned 1.4.5',
+    'core/pins.md:29 org.jetbrains.kotlinx:kotlinx-coroutines-test:1.0 does not match the pinned 1.11.0',
+    'core/pins.md:32 com.android.application:8.0.0 does not match the pinned 9.5.1',
+  ])('version form %s', (expected) => {
+    expect(compileProblems).toContain(expected);
+  });
+
+  test('two files whose names differ only in punctuation are both compiled', () => {
+    expect(compileProblems).toContain("core/a-b.md:7 error: Unresolved reference 'thisDoesNotExist'");
+  });
+
+  test('a reference file inside a directory named tests is checked', () => {
+    expect(compileProblems).toContain('core/tests/hidden.md: broken link core/tests/gone.md');
+  });
+
+  test('a fence inside an HTML comment does not shift line numbers', () => {
+    expect(compileProblems).toContain("core/comment.md:13 error: Unresolved reference 'commentNope'");
+  });
+
   test('a deprecated API fails the build', () => {
     expect(warnProblems).toContain("warn.md:9 error: 'fun createComposeRule(");
   });
@@ -70,6 +97,10 @@ describe('gate catches planted mistakes', () => {
 
   test('a failing test in a compile-only block does not run', () => {
     expect(runProblems).not.toContain('core/run.md:30');
+  });
+
+  test('a block that starts with a file annotation passes', () => {
+    expect(runProblems).not.toContain('core/optin.md');
   });
 
   test('passing tests produce no problems', () => {

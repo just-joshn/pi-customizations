@@ -20,16 +20,17 @@ const EXTRA_PINS: Record<string, string> = {
   'com.google.dagger.hilt.android': '2.60.1',
 };
 
-function walk(dir: string): string[] {
+// Only the skill root's tests/, harness/, and node_modules/ are not skill content; a nested core/tests/ is.
+function walk(dir: string, atRoot: boolean): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const path = join(dir, entry);
-    if (statSync(path).isDirectory()) return NOT_SKILL_CONTENT.has(entry) ? [] : walk(path);
+    if (statSync(path).isDirectory()) return atRoot && NOT_SKILL_CONTENT.has(entry) ? [] : walk(path, false);
     return path.endsWith('.md') ? [path] : [];
   });
 }
 
 export function referenceFiles(skillDir: string): string[] {
-  return walk(skillDir)
+  return walk(skillDir, true)
     .map((file) => relative(skillDir, file))
     .sort();
 }
@@ -74,31 +75,79 @@ export function checkSkill(skillDir: string): string[] {
   return problems;
 }
 
-const COORDINATE = /["']([\w.-]+:[\w.-]+):(\d[\w.+-]*)["']/g;
-const PLUGIN = /id\(["']([\w.-]+)["']\)\s+version\s+["'](\d[\w.+-]*)["']/g;
-const TOML_ENTRY = /(?:module|id)\s*=\s*"([\w.:-]+)",\s*version(\.ref)?\s*=\s*"([\w.+-]+)"/g;
-const TOML_VERSION = /^\s*([\w-]+)\s*=\s*"(\d[\w.+-]*)"\s*$/;
-
-// `catalogVersions` holds the [versions] table of the version catalog block the line belongs to, if any.
-function coordinates(text: string, catalogVersions: ReadonlyMap<string, string> = new Map()): Array<[string, string]> {
-  const literal = [COORDINATE, PLUGIN].flatMap((pattern) => [...text.matchAll(pattern)].map((m): [string, string] => [m[1] ?? '', m[2] ?? '']));
-  const catalog = [...text.matchAll(TOML_ENTRY)].map((m): [string, string] => [m[1] ?? '', m[2] ? (catalogVersions.get(m[3] ?? '') ?? `unresolved version.ref ${m[3]}`) : (m[3] ?? '')]);
-  return [...literal, ...catalog];
+// A version a build snippet declares for a dependency or plugin. `version` is undefined when it is an
+// expression the gate cannot resolve; `raw` is what the snippet wrote.
+interface Declared {
+  coordinate: string;
+  version: string | undefined;
+  raw: string;
 }
 
-function versionsTable(code: string): Map<string, string> {
-  const table = code.split(/^\[/m).find((section) => section.startsWith('versions]')) ?? '';
+// "group:artifact:version" strings; the version may be a `$name` or `${name}` template.
+const COORDINATE = /["']([\w.-]+:[\w.-]+):([^"'\s]+)["']/g;
+// id("x") version "v", id("x").version("v"), kotlin("x") version "v".
+const PLUGIN = /\b(id|kotlin)\(\s*["']([\w.-]+)["']\s*\)\s*(?:\.version\(\s*|\s+version\s+)["']([^"']+)["']/g;
+const FIELD = (name: string): RegExp => new RegExp(`\\b${name}\\s*=\\s*"([^"]+)"`);
+const VERSION_TABLE = /\bversion\s*=\s*\{([^}]*)\}/;
+const VERSION_REF = /\bversion\.ref\s*=\s*"([^"]+)"/;
+const RICH_VERSION = /\b(ref|strictly|require|prefer)\s*=\s*"([^"]+)"/;
+const KTS_VAL = /^\s*val\s+(\w+)\s*=\s*"([^"]+)"\s*$/;
+const TOML_VERSION = /^\s*([\w-]+)\s*=\s*"([^"]+)"\s*$/;
+
+function resolveVersion(raw: string, vars: ReadonlyMap<string, string>): string | undefined {
+  const template = raw.match(/^\$\{?(\w+)\}?$/);
+  if (template) return vars.get(template[1] ?? '');
+  return /^\d/.test(raw) ? raw : undefined;
+}
+
+// Version-carrying named fields, as in a version catalog entry or Gradle's named-argument dependency form.
+function fieldDeclaration(line: string, vars: ReadonlyMap<string, string>): Declared | undefined {
+  const module = line.match(FIELD('module'))?.[1];
+  const group = line.match(FIELD('group'))?.[1];
+  const name = line.match(FIELD('name'))?.[1];
+  const id = line.match(FIELD('id'))?.[1];
+  const coordinate = module ?? (group && name ? `${group}:${name}` : id);
+  if (coordinate === undefined) return undefined;
+  const ref = line.match(VERSION_REF)?.[1];
+  if (ref !== undefined) return { coordinate, version: vars.get(ref), raw: `version.ref "${ref}"` };
+  const table = line.match(VERSION_TABLE)?.[1];
+  if (table !== undefined) {
+    const [, kind = '', value = ''] = table.match(RICH_VERSION) ?? [];
+    return kind === 'ref' ? { coordinate, version: vars.get(value), raw: `version.ref "${value}"` } : { coordinate, version: resolveVersion(value, vars), raw: `{ ${table.trim()} }` };
+  }
+  const literal = line.match(FIELD('version'))?.[1];
+  return literal === undefined ? undefined : { coordinate, version: resolveVersion(literal, vars), raw: literal };
+}
+
+function declarations(line: string, vars: ReadonlyMap<string, string> = new Map()): Declared[] {
+  const strings = [...line.matchAll(COORDINATE)].map((m): Declared => ({ coordinate: m[1] ?? '', version: resolveVersion(m[2] ?? '', vars), raw: m[2] ?? '' }));
+  const plugins = [...line.matchAll(PLUGIN)].map((m): Declared => {
+    const coordinate = m[1] === 'kotlin' ? `org.jetbrains.kotlin.${m[2]}` : (m[2] ?? '');
+    return { coordinate, version: resolveVersion(m[3] ?? '', vars), raw: m[3] ?? '' };
+  });
+  const field = strings.length === 0 && plugins.length === 0 ? fieldDeclaration(line, vars) : undefined;
+  return [...strings, ...plugins, ...(field ? [field] : [])];
+}
+
+// Names a block can refer to: `val x = "..."` in Gradle scripts, the [versions] table in a version catalog.
+function blockVariables(block: CodeBlock): Map<string, string> {
+  const toml = block.lang === 'toml';
+  const source = toml ? (block.code.split(/^\[/m).find((section) => section.startsWith('versions]')) ?? '') : block.code;
   return new Map(
-    table.split('\n').flatMap((line) => {
-      const m = line.match(TOML_VERSION);
+    source.split('\n').flatMap((line) => {
+      const m = line.match(toml ? TOML_VERSION : KTS_VAL);
       return m ? [[m[1] ?? '', m[2] ?? '']] : [];
     }),
   );
 }
 
+function pinsOf(text: string): Array<[string, string]> {
+  return text.split('\n').flatMap((line) => declarations(line).flatMap((d): Array<[string, string]> => (d.version === undefined ? [] : [[d.coordinate, d.version]])));
+}
+
 let pins: Map<string, string> | undefined;
 function harnessPins(): Map<string, string> {
-  pins ??= new Map([...coordinates(readFileSync(join(HARNESS_DIR, 'build.gradle.kts'), 'utf8')), ...coordinates(readFileSync(join(HARNESS_DIR, 'blocks/build.gradle.kts'), 'utf8')), ...Object.entries(EXTRA_PINS)]);
+  pins ??= new Map([...pinsOf(readFileSync(join(HARNESS_DIR, 'build.gradle.kts'), 'utf8')), ...pinsOf(readFileSync(join(HARNESS_DIR, 'blocks/build.gradle.kts'), 'utf8')), ...Object.entries(EXTRA_PINS)]);
   return pins;
 }
 
@@ -119,12 +168,13 @@ export function staticProblems(skillDir: string, rel: string): string[] {
   for (const block of markdown.blocks) {
     if (!LANGS.has(block.lang)) problems.push(`${rel}:${block.line} fence language "${block.lang}" is not one of ${[...LANGS].filter(Boolean).join(', ')}`);
     if (blockMode(block) === 'snippet' && block.code.split('\n').length > SNIPPET_MAX_LINES) problems.push(`${rel}:${block.line} snippet is longer than ${SNIPPET_MAX_LINES} lines; make it a compiled example`);
-    const catalogVersions = block.lang === 'toml' ? versionsTable(block.code) : new Map<string, string>();
+    const vars = blockVariables(block);
     block.code.split('\n').forEach((text, index) => {
-      for (const [coordinate, version] of coordinates(text, catalogVersions)) {
-        const where = `${rel}:${block.line + 1 + index}`;
+      const where = `${rel}:${block.line + 1 + index}`;
+      for (const { coordinate, version, raw } of declarations(text, vars)) {
         const pinned = harnessPins().get(coordinate);
-        if (pinned === undefined) problems.push(`${where} ${coordinate}:${version} is not pinned in the harness or EXTRA_PINS`);
+        if (version === undefined) problems.push(`${where} ${coordinate} version ${raw} is not a literal the gate can check`);
+        else if (pinned === undefined) problems.push(`${where} ${coordinate}:${version} is not pinned in the harness or EXTRA_PINS`);
         else if (pinned !== version) problems.push(`${where} ${coordinate}:${version} does not match the pinned ${pinned}`);
       }
     });

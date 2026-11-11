@@ -76,7 +76,7 @@ class ClickTest {
 
 | Action | Effect |
 | --- | --- |
-| `performTextInput("abc")` | Inserts text at the cursor (appends to existing text). Focuses the field first |
+| `performTextInput("abc")` | Inserts text at the cursor. Focuses the field first. Into a field prefilled through `TextField(value = …)` the cursor starts at 0, so the text goes **before** the existing value ([forms-text-input.md](../testing-patterns/forms-text-input.md)) |
 | `performTextReplacement("abc")` | Replaces the whole text |
 | `performTextClearance()` | Clears the text |
 | `performImeAction()` | Triggers the field's IME action (`Done`, `Search`, `Next`, …). Fails with "Failed to perform IME action" when the field's action is `ImeAction.Default` |
