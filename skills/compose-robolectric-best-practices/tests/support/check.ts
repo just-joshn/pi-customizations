@@ -14,10 +14,6 @@ const SNIPPET_MAX_LINES = 12;
 // Coordinates the harness does not use but the skill may name. Every other coordinate must match the harness pin.
 const EXTRA_PINS: Record<string, string> = {
   'org.jetbrains.kotlinx.kover': '0.9.11',
-  'org.jetbrains.kotlinx:kover-gradle-plugin': '0.9.11',
-  'com.google.dagger:hilt-android-testing': '2.60.1',
-  'com.google.dagger:hilt-android': '2.60.1',
-  'com.google.dagger.hilt.android': '2.60.1',
 };
 
 // Only the skill root's tests/, harness/, and node_modules/ are not skill content; a nested core/tests/ is.
