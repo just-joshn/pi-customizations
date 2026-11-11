@@ -86,7 +86,7 @@ Proof standards:
 
 Cleanup is strictly scoped to test instances:
 - The harness tracks the child PID started for verification and terminates only that process. It never runs blanket process-killing commands like `pkill pi`.
-- The temporary scratch directory (`/tmp/control-pi-*`) is removed in each drive's `finally` block, including after a failed assertion.
+- The temporary scratch directory (`control-pi-*` under the OS temp directory, `os.tmpdir()`, which is `$TMPDIR` on macOS) is removed in each drive's `finally` block, including after a failed assertion.
 - Proof artifacts in `artifacts/verify-pi-customizations/` are preserved for review.
 
 ## Helpers
