@@ -35,13 +35,15 @@ const VITEST_EXPORTS = new Set(Object.keys(vitest));
 // `vitest` import, including the ones inside other packages' declarations, to this package's copy.
 const VITEST_DIR = dirname(createRequire(import.meta.url).resolve('vitest/package.json'));
 
+const NODE_TYPES = ['node', 'vitest/globals', 'vitest/importMeta', 'vite/client'];
+
 const OPTIONS: ts.CompilerOptions = {
   paths: { vitest: [VITEST_DIR] },
   target: ts.ScriptTarget.ES2022,
   module: ts.ModuleKind.ESNext,
   moduleResolution: ts.ModuleResolutionKind.Bundler,
   lib: ['lib.es2022.d.ts', 'lib.esnext.disposable.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
-  types: ['node', 'vitest/globals', 'vitest/importMeta', 'vite/client'],
+  types: NODE_TYPES,
   // React is the default JSX runtime; Solid blocks switch with a pragma.
   jsx: ts.JsxEmit.ReactJSX,
   jsxImportSource: 'react',
@@ -74,7 +76,7 @@ export interface BlockProblem {
 const BROWSER_CODE = /from ['"](vitest\/browser|@vitest\/browser[^'"]*|vitest-browser-[^'"]*)['"]|\bexpect\.element\(/;
 const SOLID_CODE = /from ['"](solid-js[^'"]*|@solidjs\/[^'"]*)['"]/;
 
-const BROWSER_OPTIONS: ts.CompilerOptions = { ...OPTIONS, types: [...(OPTIONS.types ?? []), 'vitest/browser'] };
+const BROWSER_OPTIONS: ts.CompilerOptions = { ...OPTIONS, types: [...NODE_TYPES, 'vitest/browser'] };
 
 /** Module resolution walks up from here, so examples resolve the packages in this skill's package.json. */
 const SKILL_ROOT = resolve(import.meta.dirname, '../..');

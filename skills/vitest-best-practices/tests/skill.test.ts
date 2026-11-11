@@ -22,7 +22,6 @@ describe('gate catches planted mistakes', () => {
   let skillProblems = '';
   let fileProblems = '';
   beforeAll(() => {
-    // ROUTER.md, not SKILL.md, so Pi never discovers the fixture as a second skill.
     const missingFileException = { file: 'core/renamed.md', blockContains: 'x', codes: [2349], reason: 'plant' };
     skillProblems = checkSkill(PLANT_DIR, 'ROUTER.md', [missingFileException]).join('\n');
     const plantException = { file: 'core/more.md', blockContains: "from './pick'", codes: [2578, 2349], reason: 'plant' };
