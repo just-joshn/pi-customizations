@@ -1,13 +1,11 @@
 #!/bin/sh
-# Counts headers only grok sends and only Pi sends in the header table of evidence/grok-wire.md.
-# Table rows look like: | `header` | grok value | pi value |, with — for a header that side did not send.
-awk -F'|' '
+awk -F'|' -v absent='—' '
   /^## Body/ { exit }
   /^\| `/ {
     header = $2; grokValue = $3; piValue = $4
     gsub(/ /, "", grokValue); gsub(/ /, "", piValue)
-    if (grokValue != "—" && piValue == "—") grokOnly = grokOnly " " header
-    if (grokValue == "—" && piValue != "—") piOnly = piOnly " " header
+    if (grokValue != absent && piValue == absent) grokOnly = grokOnly " " header
+    if (grokValue == absent && piValue != absent) piOnly = piOnly " " header
   }
   END {
     print "grok-only", split(grokOnly, a, " "), grokOnly
