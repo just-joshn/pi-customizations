@@ -7,10 +7,9 @@ export type FrameRecord =
   | { readonly kind: 'undecodable'; readonly ms: number; readonly flags: number; readonly len: number; readonly error: string }
   | { readonly kind: 'error'; readonly ms: number; readonly error: string };
 
-/** One Connect envelope as the probe records it: flags, declared length, payload head, and what the extension's decodeFrame reads. */
 export function recordFrame(frame: Buffer, ms: number): FrameRecord {
   const flags = frame[0] ?? 0;
-  const len = frame.length >= 5 ? frame.readUInt32BE(1) : 0;
+  const len = frame.readUInt32BE(1);
   const body = frame.subarray(5, 5 + len);
   let payload: Buffer;
   try {
