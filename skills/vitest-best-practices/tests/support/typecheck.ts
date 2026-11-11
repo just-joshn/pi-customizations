@@ -30,7 +30,13 @@ const FRAGMENT_NOISE = new Set([
 
 const VITEST_EXPORTS = new Set(Object.keys(vitest));
 
+// Bun installs one copy of vitest per peer-dependency set, so @vitest/browser can link a different vitest copy
+// than this package does, and its `declare module 'vitest'` augmentation would land on the other copy. Map every
+// `vitest` import, including the ones inside other packages' declarations, to this package's copy.
+const VITEST_DIR = dirname(createRequire(import.meta.url).resolve('vitest/package.json'));
+
 const OPTIONS: ts.CompilerOptions = {
+  paths: { vitest: [VITEST_DIR] },
   target: ts.ScriptTarget.ES2022,
   module: ts.ModuleKind.ESNext,
   moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -40,7 +46,6 @@ const OPTIONS: ts.CompilerOptions = {
   jsx: ts.JsxEmit.ReactJSX,
   jsxImportSource: 'react',
   strict: false,
-  noImplicitAny: false,
   strictNullChecks: true,
   skipLibCheck: true,
   allowJs: true,
@@ -52,25 +57,6 @@ const OPTIONS: ts.CompilerOptions = {
 };
 
 const registry = ts.createDocumentRegistry();
-
-// Bun installs one copy of vitest per peer-dependency set, so @vitest/browser can link a different vitest copy
-// than this package does, and its `declare module 'vitest'` augmentation would land on the other copy. Every
-// resolution into any vitest copy is redirected to this package's copy.
-const VITEST_DIR = dirname(createRequire(import.meta.url).resolve('vitest/package.json'));
-const canonical = (file: string): string => file.replace(/^.*\/node_modules\/vitest\//, `${VITEST_DIR}/`);
-
-function resolveModule(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedModuleWithFailedLookupLocations {
-  const result = ts.resolveModuleName(name, containingFile, options, ts.sys);
-  const resolved = result.resolvedModule;
-  return resolved ? { ...result, resolvedModule: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } } : result;
-}
-
-function resolveTypeReference(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedTypeReferenceDirectiveWithFailedLookupLocations {
-  const result = ts.resolveTypeReferenceDirective(name, containingFile, options, ts.sys);
-  const resolved = result.resolvedTypeReferenceDirective;
-  if (!resolved?.resolvedFileName) return result;
-  return { ...result, resolvedTypeReferenceDirective: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } };
-}
 
 function isNoise(d: ts.Diagnostic): boolean {
   const message = ts.flattenDiagnosticMessageText(d.messageText, '\n');
@@ -98,9 +84,11 @@ const SKILL_ROOT = resolve(import.meta.dirname, '../..');
  * matcher and locator types can't leak into Node examples, and no file's declarations leak into another.
  */
 export function typecheckBlocks(id: string, blocks: CodeBlock[]): BlockProblem[] {
-  const checked = blocks.filter((block) => EXTENSION[block.lang]);
-  const browser = checked.filter((block) => BROWSER_CODE.test(block.code));
-  const node = checked.filter((block) => !BROWSER_CODE.test(block.code));
+  const node: CodeBlock[] = [];
+  const browser: CodeBlock[] = [];
+  for (const block of blocks) {
+    if (EXTENSION[block.lang]) (BROWSER_CODE.test(block.code) ? browser : node).push(block);
+  }
   return [...typecheckGroup(id, node, OPTIONS), ...typecheckGroup(id, browser, BROWSER_OPTIONS)];
 }
 
@@ -131,9 +119,8 @@ function typecheckGroup(id: string, blocks: CodeBlock[], options: ts.CompilerOpt
       readDirectory: ts.sys.readDirectory,
       directoryExists: ts.sys.directoryExists,
       getDirectories: ts.sys.getDirectories,
-      resolveModuleNameLiterals: (literals, containingFile, _redirected, compilerOptions) => literals.map((literal) => resolveModule(literal.text, containingFile, compilerOptions)),
-      resolveTypeReferenceDirectiveReferences: (references, containingFile, _redirected, compilerOptions) =>
-        references.map((reference) => resolveTypeReference(typeof reference === 'string' ? reference : reference.fileName.toLowerCase(), containingFile, compilerOptions)),
+      // Bun links packages through symlinks; without realpath each link loads as a separate copy of a package.
+      realpath: (path) => ts.sys.realpath?.(path) ?? path,
     },
     registry,
   );

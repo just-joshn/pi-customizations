@@ -66,7 +66,7 @@ describe('gate catches planted mistakes', () => {
 
 describe('gate accepts valid examples', () => {
   test('browser, Solid, React examples type-check', () => {
-    expect(checkFile(CLEAN_DIR, 'valid.md')).toEqual([]);
+    expect(checkFile(CLEAN_DIR, 'valid.md', [])).toEqual([]);
   });
 
   test('an exception whose error no longer occurs is reported', () => {
