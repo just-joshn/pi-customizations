@@ -363,10 +363,14 @@ function checkConfigText(path, config, manifest, relativePackage) {
 }
 
 async function main() {
-  const files = [...(await testFiles()), ...(await testFiles(skillsRoot))];
+  const extensionFiles = await testFiles();
+  const skillFiles = await testFiles(skillsRoot);
   const results = [];
-  for (const file of files) results.push(...analyzeSource(file.text, relative(root, file.path)));
-  results.push(...(await configViolations()), ...(await configViolations(skillsRoot)));
+  for (const file of extensionFiles) results.push(...analyzeSource(file.text, relative(root, file.path)));
+  results.push(...(await configViolations()));
+  // Skill findings are labelled from the repository root so they don't read like extension paths.
+  for (const file of skillFiles) results.push(...analyzeSource(file.text, `skills/${relative(skillsRoot, file.path)}`));
+  results.push(...(await configViolations(skillsRoot)).map((item) => ({ ...item, path: `skills/${item.path}` })));
 
   const groups = new Map();
   for (const item of results) {
@@ -381,7 +385,7 @@ async function main() {
   const violations = results.filter((item) => item.severity === 'violation');
   const counts = new Map();
   for (const item of violations) counts.set(item.rule, (counts.get(item.rule) ?? 0) + 1);
-  process.stdout.write(`\n${files.length} vitest files scanned. ${violations.length} violations, ${results.length - violations.length} review items.\n`);
+  process.stdout.write(`\n${extensionFiles.length + skillFiles.length} vitest files scanned. ${violations.length} violations, ${results.length - violations.length} review items.\n`);
   for (const [rule, count] of [...counts].sort((left, right) => right[1] - left[1])) process.stdout.write(`  ${rule}: ${count}\n`);
   process.exitCode = violations.length ? 1 : 0;
 }
