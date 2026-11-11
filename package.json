@@ -20,7 +20,8 @@
     ],
     "skills": [
       "./extensions/pi-pstack/skills",
-      "./extensions/pi-rea/skills"
+      "./extensions/pi-rea/skills",
+      "./skills"
     ],
     "prompts": [
       "./extensions/pi-rea/prompts"
