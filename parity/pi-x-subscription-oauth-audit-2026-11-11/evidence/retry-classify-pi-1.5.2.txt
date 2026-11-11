@@ -1,0 +1,4 @@
+1.5.2 "Cursor ask timed out." true
+1.5.2 "Error" false
+1.5.2 "cursor-agent exited 1." false
+1.5.2 "grok-build API error (402): 402 \"Grok Build usage balance exhausted\"" false
