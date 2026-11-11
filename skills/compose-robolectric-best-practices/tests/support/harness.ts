@@ -20,8 +20,8 @@ export interface KotlinBlock {
 interface Placed extends KotlinBlock {
   pkg: string;
   file: string;
-  // Kotlin line of the package line the gate inserted, or undefined when the block declares its own package.
-  insertedAt: number | undefined;
+  // Whether the block declares its own package (renamed in place) or the gate inserts one at Kotlin line `at`.
+  packageLine: { kind: 'own' } | { kind: 'inserted'; at: number };
 }
 
 const PACKAGE_LINE = /^package[ \t]+[\w.]+[ \t]*$/m;
@@ -41,20 +41,21 @@ function place(entry: KotlinBlock): Placed {
     ...entry,
     pkg: `skill.${entry.mode}.${id}.l${entry.block.line}`,
     file: `${id}_L${entry.block.line}.kt`,
-    insertedAt: PACKAGE_LINE.test(entry.block.code) ? undefined : lastAnnotation + 2,
+    packageLine: PACKAGE_LINE.test(entry.block.code) ? { kind: 'own' } : { kind: 'inserted', at: lastAnnotation + 2 },
   };
 }
 
 function source(placed: Placed): string {
   const { code } = placed.block;
-  if (placed.insertedAt === undefined) return code.replace(PACKAGE_LINE, `package ${placed.pkg}`);
+  if (placed.packageLine.kind === 'own') return code.replace(PACKAGE_LINE, `package ${placed.pkg}`);
+  const { at } = placed.packageLine;
   const lines = code.split('\n');
-  return [...lines.slice(0, placed.insertedAt - 1), `package ${placed.pkg}`, ...lines.slice(placed.insertedAt - 1), ''].join('\n');
+  return [...lines.slice(0, at - 1), `package ${placed.pkg}`, ...lines.slice(at - 1), ''].join('\n');
 }
 
 // Markdown line of a Kotlin line: the fence is on block.line, so Kotlin line 1 of the block is block.line + 1.
 function markdownLine(placed: Placed, kotlinLine: number): number {
-  const shifted = placed.insertedAt !== undefined && kotlinLine > placed.insertedAt;
+  const shifted = placed.packageLine.kind === 'inserted' && kotlinLine > placed.packageLine.at;
   return placed.block.line + kotlinLine - (shifted ? 1 : 0);
 }
 
@@ -76,8 +77,13 @@ function compileProblems(output: string, byFile: Map<string, Placed>): string[] 
 interface TestCase {
   className: string;
   name: string;
-  failure: string | undefined;
-  skipped: boolean;
+  outcome: { kind: 'passed' } | { kind: 'skipped' } | { kind: 'failed'; message: string };
+}
+
+function outcome(body: string): TestCase['outcome'] {
+  const failure = body.match(/<(?:failure|error) message="([^"]*)"/);
+  if (failure) return { kind: 'failed', message: unescapeXml(failure[1] ?? '').split('\n')[0] ?? '' };
+  return body.includes('<skipped') ? { kind: 'skipped' } : { kind: 'passed' };
 }
 
 function testCases(resultsDir: string): TestCase[] {
@@ -86,10 +92,7 @@ function testCases(resultsDir: string): TestCase[] {
     .filter((name) => name.endsWith('.xml'))
     .flatMap((name) => {
       const xml = readFileSync(join(resultsDir, name), 'utf8');
-      return [...xml.matchAll(/<testcase name="([^"]*)" classname="([^"]*)"[^>]*?(\/>|>([\s\S]*?)<\/testcase>)/g)].map((match) => {
-        const failure = (match[4] ?? '').match(/<(?:failure|error) message="([^"]*)"/);
-        return { name: match[1] ?? '', className: match[2] ?? '', failure: failure ? unescapeXml(failure[1] ?? '').split('\n')[0] : undefined, skipped: (match[4] ?? '').includes('<skipped') };
-      });
+      return [...xml.matchAll(/<testcase name="([^"]*)" classname="([^"]*)"[^>]*?(\/>|>([\s\S]*?)<\/testcase>)/g)].map((match) => ({ name: match[1] ?? '', className: match[2] ?? '', outcome: outcome(match[4] ?? '') }));
     });
 }
 
@@ -113,7 +116,7 @@ const DECLARES_TEST = /@Test\b/;
 // Compiles every block and runs the `run` blocks' tests in one Gradle build. Roborazzi runs in record mode,
 // so screenshot examples render and write images instead of silently doing nothing. `label` names a reusable
 // copy of the harness under the temp dir, so concurrent callers with different labels never share a build.
-export function compileAndRun(label: string, blocks: readonly KotlinBlock[]): string[] {
+export function compileAndRun({ label, blocks }: { label: string; blocks: readonly KotlinBlock[] }): string[] {
   const workDir = join(tmpdir(), 'compose-robolectric-skill', label);
   const projectDir = join(workDir, 'harness');
   const blocksDir = join(workDir, 'blocks');
@@ -139,9 +142,9 @@ export function compileAndRun(label: string, blocks: readonly KotlinBlock[]): st
   for (const p of placed) {
     const own = cases.filter((c) => c.className.startsWith(`${p.pkg}.`));
     for (const c of own) {
-      if (c.failure !== undefined) problems.push(`${p.rel}:${p.block.line} test ${c.className.slice(p.pkg.length + 1)}.${c.name} failed: ${c.failure}`);
+      if (c.outcome.kind === 'failed') problems.push(`${p.rel}:${p.block.line} test ${c.className.slice(p.pkg.length + 1)}.${c.name} failed: ${c.outcome.message}`);
     }
-    if (p.mode === 'run' && DECLARES_TEST.test(p.block.code) && own.every((c) => c.skipped)) problems.push(`${p.rel}:${p.block.line} declares @Test but no test ran`);
+    if (p.mode === 'run' && DECLARES_TEST.test(p.block.code) && own.every((c) => c.outcome.kind === 'skipped')) problems.push(`${p.rel}:${p.block.line} declares @Test but no test ran`);
   }
   if (run.status !== 0 && problems.length === 0) problems.push(`gradle failed: ${gradleFailure(output)}`);
   return problems;

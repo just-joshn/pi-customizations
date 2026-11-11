@@ -11,7 +11,7 @@ const PLANT_WARN = join(import.meta.dirname, 'fixtures/plant-warn');
 describe('skill', () => {
   let problems: string[] = [];
   beforeAll(() => {
-    problems = checkFiles(SKILL_DIR, referenceFiles(SKILL_DIR), 'skill');
+    problems = checkFiles({ skillDir: SKILL_DIR, rels: referenceFiles(SKILL_DIR), label: 'skill' });
   });
 
   test('frontmatter, orphans, decision tree', () => {
@@ -29,10 +29,10 @@ describe('gate catches planted mistakes', () => {
   let runProblems = '';
   let warnProblems = '';
   beforeAll(() => {
-    warnProblems = checkFiles(PLANT_WARN, ['warn.md'], 'plant-warn').join('\n');
+    warnProblems = checkFiles({ skillDir: PLANT_WARN, rels: ['warn.md'], label: 'plant-warn' }).join('\n');
     skillProblems = checkSkill(PLANT_COMPILE).join('\n');
-    compileProblems = checkFiles(PLANT_COMPILE, referenceFiles(PLANT_COMPILE), 'plant-compile').join('\n');
-    runProblems = checkFiles(PLANT_RUN, referenceFiles(PLANT_RUN), 'plant-run').join('\n');
+    compileProblems = checkFiles({ skillDir: PLANT_COMPILE, rels: referenceFiles(PLANT_COMPILE), label: 'plant-compile' }).join('\n');
+    runProblems = checkFiles({ skillDir: PLANT_RUN, rels: referenceFiles(PLANT_RUN), label: 'plant-run' }).join('\n');
   });
 
   test.for(['frontmatter name nope does not match', 'core/orphan.md is not linked', 'decision tree path does not exist: core/missing.md'])('%s', (expected) => {

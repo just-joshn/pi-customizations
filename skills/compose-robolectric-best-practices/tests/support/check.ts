@@ -48,15 +48,16 @@ function decisionTreeFencePaths(markdown: ParsedMarkdown): string[] {
 }
 
 function frontmatterProblems(skillDir: string, markdown: ParsedMarkdown): string[] {
-  let frontmatter: Record<string, unknown> | undefined;
+  let parsed: unknown;
   try {
-    frontmatter = parseYaml(markdown.frontmatter ?? '');
+    parsed = parseYaml(markdown.frontmatter ?? '');
   } catch (error) {
     return [`frontmatter is not valid YAML: ${String(error).split('\n')[0]}`];
   }
+  if (typeof parsed !== 'object' || parsed === null) return ['frontmatter is not a YAML mapping'];
   const problems: string[] = [];
-  const name = frontmatter?.['name'];
-  const description = frontmatter?.['description'];
+  const name = 'name' in parsed ? parsed.name : undefined;
+  const description = 'description' in parsed ? parsed.description : undefined;
   if (name !== basename(skillDir)) problems.push(`frontmatter name ${String(name)} does not match the directory ${basename(skillDir)}`);
   if (typeof description !== 'string' || description.length < 50) problems.push('frontmatter description is missing or too short');
   return problems;
@@ -75,12 +76,12 @@ export function checkSkill(skillDir: string): string[] {
   return problems;
 }
 
-// A version a build snippet declares for a dependency or plugin. `version` is undefined when it is an
-// expression the gate cannot resolve; `raw` is what the snippet wrote.
-interface Declared {
-  coordinate: string;
-  version: string | undefined;
-  raw: string;
+// A version a build snippet declares for a dependency or plugin: a literal the gate compares with the pin, or
+// an expression it cannot resolve, kept as the snippet wrote it.
+type Declared = { kind: 'literal'; coordinate: string; version: string } | { kind: 'unresolved'; coordinate: string; raw: string };
+
+function declared(coordinate: string, version: string | undefined, raw: string): Declared {
+  return version === undefined ? { kind: 'unresolved', coordinate, raw } : { kind: 'literal', coordinate, version };
 }
 
 // "group:artifact:version" strings; the version may be a `$name` or `${name}` template.
@@ -109,22 +110,19 @@ function fieldDeclaration(line: string, vars: ReadonlyMap<string, string>): Decl
   const coordinate = module ?? (group && name ? `${group}:${name}` : id);
   if (coordinate === undefined) return undefined;
   const ref = line.match(VERSION_REF)?.[1];
-  if (ref !== undefined) return { coordinate, version: vars.get(ref), raw: `version.ref "${ref}"` };
+  if (ref !== undefined) return declared(coordinate, vars.get(ref), `version.ref "${ref}"`);
   const table = line.match(VERSION_TABLE)?.[1];
   if (table !== undefined) {
     const [, kind = '', value = ''] = table.match(RICH_VERSION) ?? [];
-    return kind === 'ref' ? { coordinate, version: vars.get(value), raw: `version.ref "${value}"` } : { coordinate, version: resolveVersion(value, vars), raw: `{ ${table.trim()} }` };
+    return kind === 'ref' ? declared(coordinate, vars.get(value), `version.ref "${value}"`) : declared(coordinate, resolveVersion(value, vars), `{ ${table.trim()} }`);
   }
   const literal = line.match(FIELD('version'))?.[1];
-  return literal === undefined ? undefined : { coordinate, version: resolveVersion(literal, vars), raw: literal };
+  return literal === undefined ? undefined : declared(coordinate, resolveVersion(literal, vars), literal);
 }
 
 function declarations(line: string, vars: ReadonlyMap<string, string> = new Map()): Declared[] {
-  const strings = [...line.matchAll(COORDINATE)].map((m): Declared => ({ coordinate: m[1] ?? '', version: resolveVersion(m[2] ?? '', vars), raw: m[2] ?? '' }));
-  const plugins = [...line.matchAll(PLUGIN)].map((m): Declared => {
-    const coordinate = m[1] === 'kotlin' ? `org.jetbrains.kotlin.${m[2]}` : (m[2] ?? '');
-    return { coordinate, version: resolveVersion(m[3] ?? '', vars), raw: m[3] ?? '' };
-  });
+  const strings = [...line.matchAll(COORDINATE)].map((m) => declared(m[1] ?? '', resolveVersion(m[2] ?? '', vars), m[2] ?? ''));
+  const plugins = [...line.matchAll(PLUGIN)].map((m) => declared(m[1] === 'kotlin' ? `org.jetbrains.kotlin.${m[2]}` : (m[2] ?? ''), resolveVersion(m[3] ?? '', vars), m[3] ?? ''));
   const field = strings.length === 0 && plugins.length === 0 ? fieldDeclaration(line, vars) : undefined;
   return [...strings, ...plugins, ...(field ? [field] : [])];
 }
@@ -142,7 +140,7 @@ function blockVariables(block: CodeBlock): Map<string, string> {
 }
 
 function pinsOf(text: string): Array<[string, string]> {
-  return text.split('\n').flatMap((line) => declarations(line).flatMap((d): Array<[string, string]> => (d.version === undefined ? [] : [[d.coordinate, d.version]])));
+  return text.split('\n').flatMap((line) => declarations(line).flatMap((d): Array<[string, string]> => (d.kind === 'literal' ? [[d.coordinate, d.version]] : [])));
 }
 
 let pins: Map<string, string> | undefined;
@@ -159,8 +157,14 @@ function blockMode(block: CodeBlock): Mode | 'snippet' | undefined {
   return 'run';
 }
 
+interface SkillFile {
+  skillDir: string;
+  // The file's path relative to skillDir, as problems report it.
+  rel: string;
+}
+
 // Problems a file has on its own, without compiling: links, fence languages, snippet length, versions.
-export function staticProblems(skillDir: string, rel: string): string[] {
+export function staticProblems({ skillDir, rel }: SkillFile): string[] {
   const markdown = read(skillDir, rel);
   const problems = localTargets(skillDir, rel, markdown)
     .filter((target) => !existsSync(join(skillDir, target)))
@@ -171,18 +175,21 @@ export function staticProblems(skillDir: string, rel: string): string[] {
     const vars = blockVariables(block);
     block.code.split('\n').forEach((text, index) => {
       const where = `${rel}:${block.line + 1 + index}`;
-      for (const { coordinate, version, raw } of declarations(text, vars)) {
-        const pinned = harnessPins().get(coordinate);
-        if (version === undefined) problems.push(`${where} ${coordinate} version ${raw} is not a literal the gate can check`);
-        else if (pinned === undefined) problems.push(`${where} ${coordinate}:${version} is not pinned in the harness or EXTRA_PINS`);
-        else if (pinned !== version) problems.push(`${where} ${coordinate}:${version} does not match the pinned ${pinned}`);
+      for (const d of declarations(text, vars)) {
+        if (d.kind === 'unresolved') {
+          problems.push(`${where} ${d.coordinate} version ${d.raw} is not a literal the gate can check`);
+          continue;
+        }
+        const pinned = harnessPins().get(d.coordinate);
+        if (pinned === undefined) problems.push(`${where} ${d.coordinate}:${d.version} is not pinned in the harness or EXTRA_PINS`);
+        else if (pinned !== d.version) problems.push(`${where} ${d.coordinate}:${d.version} does not match the pinned ${pinned}`);
       }
     });
   }
   return problems;
 }
 
-export function kotlinBlocks(skillDir: string, rel: string): KotlinBlock[] {
+export function kotlinBlocks({ skillDir, rel }: SkillFile): KotlinBlock[] {
   return read(skillDir, rel).blocks.flatMap((block) => {
     const mode = blockMode(block);
     return mode === 'run' || mode === 'compileonly' ? [{ rel, block, mode }] : [];
@@ -190,8 +197,8 @@ export function kotlinBlocks(skillDir: string, rel: string): KotlinBlock[] {
 }
 
 // Static problems of every file plus one Gradle build that compiles all their Kotlin blocks and runs their tests.
-export function checkFiles(skillDir: string, rels: readonly string[], label: string): string[] {
-  const problems = rels.flatMap((rel) => staticProblems(skillDir, rel));
-  const blocks = rels.flatMap((rel) => kotlinBlocks(skillDir, rel));
-  return blocks.length === 0 ? problems : [...problems, ...compileAndRun(label, blocks)];
+export function checkFiles({ skillDir, rels, label }: { skillDir: string; rels: readonly string[]; label: string }): string[] {
+  const problems = rels.flatMap((rel) => staticProblems({ skillDir, rel }));
+  const blocks = rels.flatMap((rel) => kotlinBlocks({ skillDir, rel }));
+  return blocks.length === 0 ? problems : [...problems, ...compileAndRun({ label, blocks })];
 }
