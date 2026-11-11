@@ -1,0 +1,5 @@
+{
+  "extends": "../../../extensions/pi-x-subscription-oauth/tsconfig.json",
+  "include": ["*.mts"],
+  "exclude": []
+}
