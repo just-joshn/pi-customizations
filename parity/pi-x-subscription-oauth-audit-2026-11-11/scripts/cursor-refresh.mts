@@ -30,5 +30,6 @@ const keychainFresh = keychain !== undefined && keychain.expires > Date.now() + 
 console.log('login: keychain session', keychainFresh ? 'fresh' : 'stale', '- returned session expires in min', minutesLeft(login.expires));
 
 const rejectingOauth = createCursorProvider({ runLogin: neverLogin, readApiKey: async () => 'crsr_invalid_audit_key' }).auth.oauth;
-const rejected = await rejectingOauth?.refresh(unused, signal).catch((error: unknown) => (error instanceof Error ? error.message : String(error)));
+if (!rejectingOauth) throw new Error('The cursor provider has no OAuth auth.');
+const rejected = await rejectingOauth.refresh(unused, signal).catch((error: unknown) => (error instanceof Error ? error.message : String(error)));
 console.log('refresh with bad key:', rejected);
