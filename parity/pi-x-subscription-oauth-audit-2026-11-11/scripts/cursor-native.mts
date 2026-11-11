@@ -11,7 +11,9 @@ const started = Date.now();
 const session = await openCursorRun({ token: storedCredential('cursor').access, signal: AbortSignal.timeout(60_000), baseUrl });
 session.write(encodeRunFrame({ prompt, modelId }));
 
-type FrameRecord = { ms: number; flags?: number; len?: number; hex?: string; text?: string; notices?: unknown[]; error?: string };
+type FrameRecord =
+  | { readonly kind: 'frame'; readonly ms: number; readonly flags: number; readonly len: number; readonly hex: string; readonly text?: string; readonly notices: readonly unknown[] }
+  | { readonly kind: 'error'; readonly ms: number; readonly error: string };
 const frames: FrameRecord[] = [];
 let contextSent = false;
 try {
@@ -20,6 +22,7 @@ try {
     const payload = flags & 1 ? gunzipSync(frame.subarray(5)) : frame.subarray(5);
     const notices = decodeFrame(frame);
     frames.push({
+      kind: 'frame',
       ms: Date.now() - started,
       flags,
       len: payload.length,
@@ -36,7 +39,7 @@ try {
     if (notices.some((notice) => notice.type === 'turn_end')) break;
   }
 } catch (error) {
-  frames.push({ ms: Date.now() - started, error: error instanceof Error ? error.message : String(error) });
+  frames.push({ kind: 'error', ms: Date.now() - started, error: error instanceof Error ? error.message : String(error) });
 }
 session.close();
 writeFileSync(`${OUT_DIR}/cursor-native-frames.json`, JSON.stringify(frames, null, 1));

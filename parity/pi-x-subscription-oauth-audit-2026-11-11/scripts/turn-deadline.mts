@@ -1,4 +1,4 @@
-import { readAssistantText } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/turn.ts';
+import { type NativeSession, readAssistantText } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/turn.ts';
 import { encodeTextFrame, encodeTurnEndFrame } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/wire.ts';
 
 // The server streams text every 100 ms for 600 ms, then ends the turn. A 300 ms deadline stands in for the 120 s FIRST_BYTE_MS.
@@ -12,9 +12,9 @@ const session = {
     }
     yield encodeTurnEndFrame();
   },
-};
+} satisfies NativeSession;
 try {
   console.log('OK', await readAssistantText(session, { prompt: 'x', modelId: 'm' }, undefined, 300));
 } catch (error) {
-  console.log('THREW after text was streaming:', error instanceof Error ? error.message : error);
+  console.log('THREW after text was streaming:', error instanceof Error ? error.message : String(error));
 }

@@ -20,5 +20,5 @@ const login = await loginCursor(
 const keychainFresh = keychain !== undefined && keychain.expires > Date.now() + 300_000;
 console.log('login: keychain session', keychainFresh ? 'fresh' : 'stale', '- returned session expires in min', minutesLeft(login.expires));
 
-const rejected = await refreshCursor(signal, async () => 'crsr_invalid_audit_key').catch((error: Error) => error.message);
+const rejected = await refreshCursor(signal, async () => 'crsr_invalid_audit_key').catch((error: unknown) => (error instanceof Error ? error.message : String(error)));
 console.log('refresh with bad key:', rejected);

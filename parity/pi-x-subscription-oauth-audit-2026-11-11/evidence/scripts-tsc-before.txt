@@ -1,0 +1,2 @@
+extensions/pi-x-subscription-oauth/src/catalog.ts(96,45): error TS7006: Parameter 'tier' implicitly has an 'any' type.
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/fallback-cap.mts(11,3): error TS2741: Property '[transcriptContextBrand]' is missing in type '{ messages: { role: "user"; content: string; timestamp: number; }[]; }' but required in type 'TranscriptContext'.
