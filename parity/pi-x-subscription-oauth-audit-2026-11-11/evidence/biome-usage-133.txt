@@ -1,0 +1,2 @@
+extensions/pi-x-subscription-oauth/src/usage.ts format ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    133 │ ··const·lines·=·[`${periodWord(usage.period.type)}${window}:·${formatTenths(usedTenths)}·used,·${formatTenths((100·*·10)·-·usedTenths)}·left${reset}`];

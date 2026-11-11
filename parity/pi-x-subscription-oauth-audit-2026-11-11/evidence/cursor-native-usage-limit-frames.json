@@ -1,0 +1,40 @@
+[
+ {
+  "ms": 465,
+  "flags": 0,
+  "len": 4,
+  "hex": "0a026a00",
+  "notices": []
+ },
+ {
+  "ms": 465,
+  "flags": 0,
+  "len": 42,
+  "hex": "12285226122433353434343365382d333061302d346166612d396433642d626563376332303638626538",
+  "notices": [
+   {
+    "type": "context"
+   }
+  ]
+ },
+ {
+  "ms": 746,
+  "flags": 0,
+  "len": 4,
+  "hex": "2a020a00",
+  "notices": []
+ },
+ {
+  "ms": 748,
+  "flags": 3,
+  "len": 1742,
+  "hex": "7b226572726f72223a7b22636f6465223a227265736f757263655f657868617573746564222c226d657373616765223a224572726f72222c2264657461696c73223a5b7b2274797065223a2261697365727665722e76312e4572726f7244657461696c73222c226465627567223a7b226572726f72223a22",
+  "text": "{\"error\":{\"code\":\"resource_exhausted\",\"message\":\"Error\",\"details\":[{\"type\":\"aiserver.v1.ErrorDetails\",\"debug\":{\"error\":\"ERROR_USAGE_PRICING_REQUIRED\",\"details\":{\"title\":\"Weekly usage limit reached. It resets in 4 days.\",\"detail\":\"Buy credits to keep going now, or upgrade your plan for more weekly usage.\",\"isRetryable\":false,\"showRequestId\":false,\"additionalInfo\":{\"rateLimitReason\":\"prepaid_balance_exhausted\",\"prepaidWallet\":\"personal\",\"unifiedSkuWeeklyLimit\":\"true\",\"unifiedSkuWeeklyLimitResetDays\":\"4\",\"chatMessage\":\"*Weekly usage limit reached. It resets in 4 days.*\"},\"buttons\":[{\"label\":\"Buy Credits\",\"clientAction\":{\"commandId\":\"cursor.unifiedSkuBilling.openBuyCredits\",\"args\":{\"entrypoint\":\"weekly_limit\"}}},{\"label\":\"Upgrade Plan\",\"upgrade\":{\"membershipToUpgradeTo\":\"unified_ultra\",\"allowTrial\":false,\"dashboardAction\":{\"action\":\"xaiCommercePaywall\",\"args\":{\"tier\":\"unified_ultra\",\"entrypoint\":\"weekly_limit\"}}}}],\"analyticsMetadata\":{\"actionRequired\":\"payment\"}},\"isExpected\":true},\"value\":\"<base64 omitted>\"}]}}",
+  "notices": [
+   {
+    "type": "error",
+    "message": "Error"
+   }
+  ]
+ }
+]
