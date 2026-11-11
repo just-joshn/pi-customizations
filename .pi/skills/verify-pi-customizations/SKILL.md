@@ -31,7 +31,7 @@ Run the read-only doctor command before any verification run to confirm the host
 ```
 
 The doctor check verifies:
-1. Node.js version satisfies engine requirements (`>= 22.21.0`).
+1. Node.js version satisfies engine requirements (`>= 22.19.0`, the `engines` range of Pi 1.5.2 and of this repository).
 2. The `pi` CLI binary is on `PATH` and executable (`pi --version`).
 3. The repository root contains a `package.json`.
 4. Pi RPC starts with `extensions/pi-pstack` loaded and returns its registered commands.
@@ -64,7 +64,7 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
 
 - **pstack-commands:**
   - `commands.json`: the registered command list, including the extension commands `mode`, `loop`, `plan`, `routines`, `automations`, `project`, `in-cloud`, and `secret` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
-  - `mode-status.txt`: the `/mode` report when no mode is on (`No mode is on.`).
+  - `mode-status.json`: the `/mode` notification observed when no mode is on (`No mode is on.`, `notifyType: "info"`).
 - **poteto-mode:**
   - `mode.json`: the on notification (`"Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Mode off."`), the closing entry with `data: null`, and the `pstack-mode` `setStatus` updates.
 - **oauth-providers:**
