@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2] - 2026-11-11
+
+- Show the reason Cursor gives when it refuses an ask, such as the weekly usage limit, instead of `Error`.
+- Stop a native Cursor ask only after 120 seconds with no new text, so a long reply that keeps streaming completes.
+- Report the input, output, and cache token counts Cursor sends at the end of a native turn.
+- Send Cursor the system prompt and label each turn by speaker. Leave model thinking out and mark images that are not sent.
+- Let the `cursor-agent` fallback run until it finishes or Pi cancels it, without a 120 second cap.
+- Remove redundant parentheses in the `/usage` formatter so the package passes `biome ci`.
+
 ## [0.3.1] - 2026-11-10
 
 - Clean up the manual prompt, abort listeners, and callback server when browser login fails or is cancelled, including callback listener setup failures.

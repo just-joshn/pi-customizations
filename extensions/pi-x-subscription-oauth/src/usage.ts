@@ -130,7 +130,7 @@ export function formatPlanUsage(usage: PlanUsage, now = Date.now()): string {
   const window = usage.period.start && end ? ` ${usage.period.start} to ${end}` : end ? ` ending ${end}` : '';
   const reset = relative ? `, resets in ${relative}` : '';
   const usedTenths = Math.round(usage.usedPercent * 10);
-  const lines = [`${periodWord(usage.period.type)}${window}: ${formatTenths(usedTenths)} used, ${formatTenths((100 * 10) - usedTenths)} left${reset}`];
+  const lines = [`${periodWord(usage.period.type)}${window}: ${formatTenths(usedTenths)} used, ${formatTenths(1000 - usedTenths)} left${reset}`];
   if (usage.products.length === 0) lines.push('Products: none');
   for (const product of usage.products) lines.push(`${product.product}: ${formatPercent(product.usagePercent)}`);
   lines.push(`Prepaid: ${usage.prepaid === undefined ? 'unknown' : String(usage.prepaid)}`);
