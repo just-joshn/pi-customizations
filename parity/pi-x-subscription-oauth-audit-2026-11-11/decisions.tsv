@@ -37,3 +37,4 @@ ts	phase	decision	why	evidence	result
 2026-11-11T20:08:01Z	fix	changed the 401 live row from MATCH on message to NOT VERIFIED, behavior MISMATCH	finding 10: grok never showed a 401 message to compare	parity/pi-x-subscription-oauth-audit-2026-11-11/evidence/live-results.md	row corrected
 2026-11-11T20:08:01Z	harness	found my earlier exported HTTPS_PROXY and PI_CODING_AGENT_DIR still set in the shell after mitmdump stopped, which made grok's refresh fail as network unreachable; unset them	exported env carries across bash calls in this harness	grok debug log 'transient refresh failure (network unreachable)'	fixed, no state changed
 2026-11-11T20:08:01Z	cleanup	deleted the re-borrowed tokens and raw outputs from /tmp/xaudit	no credentials left on disk	ls /tmp/xaudit	clean
+2026-11-11T20:08:06Z	fix	supersedes the start row above: these later turns are the same run, so they needed no start row	show-me-your-work reserves start for a new run	this chat	log corrected
