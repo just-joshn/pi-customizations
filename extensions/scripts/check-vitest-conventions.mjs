@@ -366,7 +366,7 @@ async function main() {
   const files = [...(await testFiles()), ...(await testFiles(skillsRoot))];
   const results = [];
   for (const file of files) results.push(...analyzeSource(file.text, relative(root, file.path)));
-  results.push(...(await configViolations()));
+  results.push(...(await configViolations()), ...(await configViolations(skillsRoot)));
 
   const groups = new Map();
   for (const item of results) {

@@ -17,6 +17,7 @@
     "@vitejs/plugin-react": "6.3.0",
     "@vitejs/plugin-vue": "6.0.10",
     "@vitest/browser-playwright": "5.1.0",
+    "@vitest/coverage-v8": "5.1.0",
     "graphql": "17.1.0",
     "marked": "18.2.0",
     "memfs": "4.80.0",
