@@ -1,6 +1,10 @@
 import { readKeychainCredential } from '../../../extensions/pi-x-subscription-oauth/src/cursor/auth.ts';
 import { createCursorProvider } from '../../../extensions/pi-x-subscription-oauth/src/cursor/provider.ts';
 
+if (process.env['XAUDIT_USE_KEYCHAIN'] !== '1') {
+  throw new Error('cursor-refresh reads the real macOS Keychain items cursor-access-token and cursor-api-key, not PI_CODING_AGENT_DIR. Set XAUDIT_USE_KEYCHAIN=1 to run it.');
+}
+
 const signal = AbortSignal.timeout(30_000);
 const minutesLeft = (expires: number) => Math.round((expires - Date.now()) / 60_000);
 const neverLogin = async () => {

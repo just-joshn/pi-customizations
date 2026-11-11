@@ -18,12 +18,9 @@ if (!provider?.refreshModels) throw new Error('The extension registered no refre
 await provider.refreshModels(refreshContext(storedCredential('grok-build')));
 const rows = provider.getModels().map((model) => ({
   id: model.id,
-  name: model.name,
   contextWindow: model.contextWindow,
-  maxTokens: model.maxTokens,
   thinking: Object.entries(model.thinkingLevelMap ?? {})
     .filter(([, level]) => level)
     .map(([name]) => name),
-  cost: model.cost,
 }));
 console.log(JSON.stringify(rows, null, 1));
