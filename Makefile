@@ -27,8 +27,8 @@ verify-rea:
 	bun run --filter @justjoshn/pi-rea test:coverage
 
 verify-skills:
-	bun run --filter vitest-best-practices-skill typecheck
-	bun run --filter vitest-best-practices-skill test
+	bun run --filter './skills/*' typecheck
+	bun run --filter './skills/*' test
 
 verify-oauth:
 	bun run --filter @justjoshn/pi-anthropic-oauth typecheck

@@ -8,6 +8,8 @@ import * as ts from 'typescript/unstable/ast';
 import { closeTypeScriptSources, withTypeScriptSource } from '../../scripts/typescript-source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
+// Skills in the repository's skills/ directory can carry their own tests; their test files follow the same rules.
+const skillsRoot = fileURLToPath(new URL('../../skills', import.meta.url));
 
 const skipDirectories = new Set(['node_modules', 'coverage', 'dist', '.git']);
 const weakMatchers = new Set(['toBeDefined', 'toBeTruthy', 'toBeFalsy']);
@@ -361,7 +363,7 @@ function checkConfigText(path, config, manifest, relativePackage) {
 }
 
 async function main() {
-  const files = await testFiles();
+  const files = [...(await testFiles()), ...(await testFiles(skillsRoot))];
   const results = [];
   for (const file of files) results.push(...analyzeSource(file.text, relative(root, file.path)));
   results.push(...(await configViolations()));
