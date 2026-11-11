@@ -16,3 +16,4 @@ description: Use when: planted fixture whose frontmatter is not valid YAML becau
 ```
 [n](core/node-only.md)
 [m](core/more.md)
+[nested](core/nested.md)

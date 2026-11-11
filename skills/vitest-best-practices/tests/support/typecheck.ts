@@ -1,4 +1,5 @@
-import { join, resolve } from 'node:path';
+import { createRequire } from 'node:module';
+import { dirname, join, resolve } from 'node:path';
 
 import ts from 'typescript-api';
 import * as vitest from 'vitest';
@@ -35,7 +36,9 @@ const OPTIONS: ts.CompilerOptions = {
   moduleResolution: ts.ModuleResolutionKind.Bundler,
   lib: ['lib.es2022.d.ts', 'lib.esnext.disposable.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
   types: ['node', 'vitest/globals', 'vitest/importMeta', 'vite/client'],
-  jsx: ts.JsxEmit.Preserve,
+  // React is the default JSX runtime; Solid blocks switch with a pragma.
+  jsx: ts.JsxEmit.ReactJSX,
+  jsxImportSource: 'react',
   strict: false,
   noImplicitAny: false,
   strictNullChecks: true,
@@ -49,6 +52,25 @@ const OPTIONS: ts.CompilerOptions = {
 };
 
 const registry = ts.createDocumentRegistry();
+
+// Bun installs one copy of vitest per peer-dependency set, so @vitest/browser can link a different vitest copy
+// than this package does, and its `declare module 'vitest'` augmentation would land on the other copy. Every
+// resolution into any vitest copy is redirected to this package's copy.
+const VITEST_DIR = dirname(createRequire(import.meta.url).resolve('vitest/package.json'));
+const canonical = (file: string): string => file.replace(/^.*\/node_modules\/vitest\//, `${VITEST_DIR}/`);
+
+function resolveModule(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedModuleWithFailedLookupLocations {
+  const result = ts.resolveModuleName(name, containingFile, options, ts.sys);
+  const resolved = result.resolvedModule;
+  return resolved ? { ...result, resolvedModule: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } } : result;
+}
+
+function resolveTypeReference(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedTypeReferenceDirectiveWithFailedLookupLocations {
+  const result = ts.resolveTypeReferenceDirective(name, containingFile, options, ts.sys);
+  const resolved = result.resolvedTypeReferenceDirective;
+  if (!resolved?.resolvedFileName) return result;
+  return { ...result, resolvedTypeReferenceDirective: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } };
+}
 
 function isNoise(d: ts.Diagnostic): boolean {
   const message = ts.flattenDiagnosticMessageText(d.messageText, '\n');
@@ -109,9 +131,9 @@ function typecheckGroup(id: string, blocks: CodeBlock[], options: ts.CompilerOpt
       readDirectory: ts.sys.readDirectory,
       directoryExists: ts.sys.directoryExists,
       getDirectories: ts.sys.getDirectories,
-      // Bun links packages through symlinks; without realpath each link is a separate copy of a package,
-      // and `vitest/browser`'s augmentation of 'vitest' lands on a different copy than the examples import.
-      realpath: (path) => ts.sys.realpath?.(path) ?? path,
+      resolveModuleNameLiterals: (literals, containingFile, _redirected, compilerOptions) => literals.map((literal) => resolveModule(literal.text, containingFile, compilerOptions)),
+      resolveTypeReferenceDirectiveReferences: (references, containingFile, _redirected, compilerOptions) =>
+        references.map((reference) => resolveTypeReference(typeof reference === 'string' ? reference : reference.fileName.toLowerCase(), containingFile, compilerOptions)),
     },
     registry,
   );

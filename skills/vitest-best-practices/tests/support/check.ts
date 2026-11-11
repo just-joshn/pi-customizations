@@ -60,8 +60,12 @@ function frontmatterProblems(skillDir: string, entry: string): string[] {
 }
 
 /** `entry` is the router file; the test fixture uses another name so Pi never discovers it as a skill. */
-export function checkSkill(skillDir: string, entry = 'SKILL.md'): string[] {
+export function checkSkill(skillDir: string, entry = 'SKILL.md', exceptions: readonly TypecheckException[] = []): string[] {
   const problems = frontmatterProblems(skillDir, entry);
+  const files = new Set(referenceFiles(skillDir));
+  for (const exception of exceptions) {
+    if (!files.has(exception.file)) problems.push(`exception names a file that does not exist: ${exception.file}`);
+  }
   const linked = new Set(localTargets(skillDir, entry));
   for (const rel of referenceFiles(skillDir)) {
     if (rel !== entry && !linked.has(rel)) problems.push(`${rel} is not linked from ${entry}`);
