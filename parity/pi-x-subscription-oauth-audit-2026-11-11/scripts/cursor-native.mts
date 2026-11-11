@@ -1,31 +1,43 @@
-import { readFileSync, writeFileSync } from 'node:fs';
-const EXT = '/Users/josh-desktop/src/personal/pi-x-subscription-oauth-audit/extensions/pi-x-subscription-oauth/src/cursor';
-const { openCursorRun } = await import(`${EXT}/native/http2.ts`);
-const { encodeRunFrame, decodeFrame, encodeContextFrame } = await import(`${EXT}/native/wire.ts`);
-const { gunzipSync } = await import('node:zlib');
-const token = JSON.parse(readFileSync('/tmp/xaudit/piagent/auth.json', 'utf8')).cursor.access;
-const baseUrl = process.argv[2] ?? 'https://api2.cursor.sh';
-const prompt = process.argv[3] ?? 'Reply with exactly the word pong and nothing else.';
-const model = process.argv[4] ?? 'composer-2.5';
-const t0 = Date.now();
-const session = await openCursorRun({ token, signal: AbortSignal.timeout(60000), baseUrl });
-console.log('opened', Date.now() - t0, 'ms');
-session.write(encodeRunFrame({ prompt, modelId: model }));
-const log: any[] = [];
-let ctx = false;
+import { writeFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
+
+import { openCursorRun } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/http2.ts';
+import { decodeFrame, encodeContextFrame, encodeRunFrame } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/wire.ts';
+import { OUT_DIR, storedCredential } from './audit-env.mts';
+
+// Opens the extension's own native Run and records every server frame, so a reviewer sees what decodeFrame reads.
+const [baseUrl = 'https://api2.cursor.sh', prompt = 'Reply with exactly the word pong and nothing else.', modelId = 'composer-2.5'] = process.argv.slice(2);
+const started = Date.now();
+const session = await openCursorRun({ token: storedCredential('cursor').access, signal: AbortSignal.timeout(60_000), baseUrl });
+session.write(encodeRunFrame({ prompt, modelId }));
+
+type FrameRecord = { ms: number; flags?: number; len?: number; hex?: string; text?: string; notices?: unknown[]; error?: string };
+const frames: FrameRecord[] = [];
+let contextSent = false;
 try {
   for await (const frame of session.frames()) {
-    const flags = frame[0];
-    let payload = frame.subarray(5);
-    if (flags & 1) payload = gunzipSync(payload);
+    const flags = frame[0] ?? 0;
+    const payload = flags & 1 ? gunzipSync(frame.subarray(5)) : frame.subarray(5);
     const notices = decodeFrame(frame);
-    log.push({ ms: Date.now() - t0, flags, len: payload.length, hex: payload.subarray(0, 120).toString('hex'), text: flags & 2 ? payload.toString('utf8').slice(0, 2000) : undefined, notices: notices.map((n: any) => ({ ...n, execField: n.execField ? n.execField.toString('hex') : undefined })) });
-    for (const n of notices) {
-      if (n.type === 'context' && !ctx) { ctx = true; session.write(encodeContextFrame(n.execField)); }
+    frames.push({
+      ms: Date.now() - started,
+      flags,
+      len: payload.length,
+      hex: payload.subarray(0, 120).toString('hex'),
+      ...(flags & 2 ? { text: payload.toString('utf8').slice(0, 2000) } : {}),
+      notices: notices.map((notice) => (notice.type === 'context' ? { type: 'context', execField: notice.execField?.toString('hex') } : notice)),
+    });
+    for (const notice of notices) {
+      if (notice.type === 'context' && !contextSent) {
+        contextSent = true;
+        session.write(encodeContextFrame(notice.execField));
+      }
     }
-    if (notices.some((n: any) => n.type === 'turn_end')) break;
+    if (notices.some((notice) => notice.type === 'turn_end')) break;
   }
-} catch (e: any) { log.push({ error: String(e?.message ?? e) }); }
+} catch (error) {
+  frames.push({ ms: Date.now() - started, error: error instanceof Error ? error.message : String(error) });
+}
 session.close();
-writeFileSync('/tmp/xaudit/cursor-native-frames.json', JSON.stringify(log, null, 1));
-console.log(JSON.stringify(log, null, 1).slice(0, 6000));
+writeFileSync(`${OUT_DIR}/cursor-native-frames.json`, JSON.stringify(frames, null, 1));
+console.log(JSON.stringify(frames, null, 1));

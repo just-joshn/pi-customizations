@@ -1,0 +1,16 @@
+== biome
+Found 10 errors.
+Found 12 warnings.
+== hardcoded paths
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/cursor-catalog.mts:1
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/cursor-native.mts:1
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/cursor-refresh.mts:1
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/cursor-usable-raw.mts:1
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/grok-catalog.mts:2
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/prompt-from.mts:1
+parity/pi-x-subscription-oauth-audit-2026-11-11/scripts/turn-deadline.mts:1
+== evidence
+billing-credits-raw.json MISSING
+grok-catalog-ids.json MISSING
+cursor-catalog-ids.json MISSING
+cursor-agent-list-models.txt MISSING

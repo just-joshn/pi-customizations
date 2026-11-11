@@ -1,0 +1,2 @@
+after 120 s code 1 stdout "" parsed {"kind":"error","message":"Cursor returned a reply Pi cannot read."}
+Pi error: cursor-agent exited 1.
