@@ -1,0 +1,22 @@
+== A4 log.py
+QUERYSECRET redacted
+BASICSECRET redacted
+PROXYSECRET redacted
+bearer len recorded: Bearer <redacted len=44> (real token length 51 incl. "Bearer ", JWT 44)
+== A1 grok-catalog fake host: 0
+== A2 audit-env depends on cursor provider: 0
+== A3 side output: 0
+== A5 packed pairs: 0 | frames account-state note: 1
+== A6 frame decode with corrupt gzip frame
+frame-record records: [{"kind":"undecodable","ms":0,"flags":1,"len":4,"error":"incorrect header check"},{"kind":"frame","ms":1,"flags":0,"len":11,"hex":"0a090a070a0568656c6c6f","notices":[{"type":"text","text":"hello"}]}]
+== A7 billing-raw on HTML 401
+{
+ "status": 401,
+ "body": "<html><body>401 Unauthorized</body></html>"
+}
+== A8 cursor-refresh optional chain: 0 | count-headers lines: 16 output: grok-only 14   pi-only 13   ` 
+expected-ids patched: 1
+[control-pi error] Expected grok-build models not found: grok-9.9-missing, grok-9.8-missing
++   'grok-9.9-missing',
++   'grok-9.8-missing'
+artifacts saved on failure: antigravity-models.txt claude-models.txt grok-build-models.txt 
