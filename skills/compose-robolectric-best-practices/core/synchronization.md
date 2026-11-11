@@ -69,7 +69,7 @@ Idle means "Compose has no frame to produce and the main looper has nothing due 
 | Source | Why it is not awaited | Wait with |
 | --- | --- | --- |
 | `delay(…)` in `LaunchedEffect` or a launched coroutine | A suspended timer is not pending work; `waitForIdle()` does not advance to it | `mainClock.advanceTimeBy(ms)` (exact), or `waitUntil…` for short delays |
-| `Handler.postDelayed` / `View.postDelayed` | Not due yet on Robolectric's paused looper | `waitUntil…`, or `shadowOf(Looper.getMainLooper()).idleFor(…)` |
+| `Handler.postDelayed` / `View.postDelayed` | Not due yet on Robolectric's paused looper; `waitUntil…` does not make it due | `shadowOf(Looper.getMainLooper()).idleFor(…)` |
 | Work on another thread (`Dispatchers.IO`, executors, OkHttp) | Compose cannot see it | Inject a test dispatcher (best), `waitUntil…`, or an idling resource |
 | `Flow`s or ViewModels on `Dispatchers.Main` / `viewModelScope` | Run on Robolectric's main looper, not the Compose test dispatcher | See [viewmodel-state.md](../testing-patterns/viewmodel-state.md) |
 
@@ -151,7 +151,7 @@ composeTestRule.runOnIdle { assertThat(fakeRepository.saved).containsExactly(dra
 
 ## waitUntil Helpers
 
-`waitUntil(timeoutMillis = 1_000) { condition }` re-checks `condition` while advancing the virtual clock and idling the main looper, until it is true or the timeout elapses. The timeout is **wall-clock** time, and the virtual clock advances at roughly the same rate, so a 1s default timeout covers about 1s of virtual time. The node helpers wrap common conditions and are `@ExperimentalTestApi`:
+`waitUntil(timeoutMillis = 1_000) { condition }` re-checks `condition` while advancing the Compose virtual clock, until it is true or the timeout elapses. The timeout is **wall-clock** time, and the virtual clock advances at roughly the same rate, so a 1s default timeout covers about 1s of virtual time. The node helpers wrap common conditions and are `@ExperimentalTestApi`: It does not advance Robolectric's looper clock, so `Handler.postDelayed` work never becomes due inside a `waitUntil` (with the pinned stack a 500 ms `postDelayed` still had not run after `waitUntil(3_000)`); use `idleFor` for that ([Robolectric Paused Looper](#robolectric-paused-looper)).
 
 | Helper | Waits until |
 | --- | --- |
@@ -309,35 +309,7 @@ The v2 entry points (`junit4.v2.createComposeRule`, `v2.runComposeUiTest`, …) 
 | `delay` | Advanced by the clock | Advanced by the clock |
 | Tests that read non-Compose state right after an action | Often passed by accident | Need `waitForIdle()` / `runOnIdle` first |
 
-The typical migration failure is reading state directly after triggering work:
-
-```kotlin compile-only
-import androidx.compose.ui.test.junit4.v2.createComposeRule
-import org.junit.Assert.assertEquals
-import org.junit.Rule
-import org.junit.Test
-
-class Counter { var value = 0 }
-
-class V2MigrationExample {
-    @get:Rule
-    val composeTestRule = createComposeRule()
-
-    private val counter = Counter()
-
-    @Test
-    fun readsTooEarly() {
-        // ❌ Under v2 a coroutine launched by the click has only been queued here.
-        assertEquals(1, counter.value)
-    }
-
-    @Test
-    fun readsAfterIdle() {
-        // ✅ runOnIdle runs queued work first.
-        composeTestRule.runOnIdle { assertEquals(1, counter.value) }
-    }
-}
-```
+The typical migration failure is reading state right after the test launches work itself: under v2 the coroutine is only queued until the next synchronization. `QueuedCoroutineTest` in [migration.md](../architecture/migration.md) shows it. Work launched from a click is different: `performClick()` synchronizes after dispatching, so a delay-free `scope.launch` in `onClick` has already run when it returns.
 
 `createComposeRule()` plus a separate `runTest { }` creates **two** schedulers: advancing the `runTest` one does not move Compose. Use `runComposeUiTest`, whose body runs in `runTest` on the same scheduler ([test-structure.md](test-structure.md#runcomposeuitest)), or pass `composeTestRule.mainClock.scheduler` to the code that needs it. Migration steps are in [migration.md](../architecture/migration.md).
 
@@ -348,7 +320,8 @@ Both use the composition's coroutine context, so they run on the test dispatcher
 | Code | Behavior in a v2 test |
 | --- | --- |
 | `LaunchedEffect(key) { state = load() }` with no delay | Runs during the next synchronization |
-| `scope.launch { … }` in `onClick` with no delay | Runs during the synchronization of the next action or assertion |
+| `scope.launch { … }` in `onClick` with no delay | Has already run when `performClick()` returns, because the action synchronizes after dispatching the click |
+| `scope.launch { … }` called by the test itself | Queued until the next synchronization (`waitForIdle()`, a finder, an assertion) |
 | `delay(ms)` in either | Resumes only when the clock passes it: `advanceTimeBy`, `waitUntil…`, or `advanceTimeUntil` |
 | `withContext(Dispatchers.IO) { … }` in either | The block runs on a real thread; wait with `waitUntil…` |
 | An endless loop of `withFrameNanos` (infinite transitions are paused by the test rule and do not block) | Never idle; actions hang about 60s, then fail with `AppNotIdleException: Compose did not get idle` ([animations-clock.md](../testing-patterns/animations-clock.md)) |
@@ -497,7 +470,7 @@ class PausedLooperTest {
 | Non-Compose code posts **delayed** work to the main looper (`Handler.postDelayed`, `View.postDelayed`, `Choreographer` callbacks from Views) and you want it to run at an exact time | Recomposition, state changes, clicks, `LaunchedEffect`, Compose animations: the rule handles them |
 | Robolectric-only code with no Compose rule in the test | `Handler.post` without a delay: synchronization idles the looper |
 
-`idle()` runs everything due now; `idleFor(duration)` advances the Robolectric clock and runs what becomes due; `runToEndOfTasks()` runs everything queued, advancing the clock as needed. If a `waitUntil…` would do, prefer it: it also idles the looper.
+`idle()` runs everything due now; `idleFor(duration)` advances the Robolectric clock and runs what becomes due; `runToEndOfTasks()` runs everything queued, advancing the clock as needed. A `waitUntil…` does not replace `idleFor`: it advances the Compose clock, not the looper clock.
 
 ## Never Thread.sleep
 
@@ -541,7 +514,7 @@ class SleepAntiPattern {
 | `waitUntil` for a long virtual delay | Advances about as fast as wall time; times out | `advanceTimeBy` |
 | Default 1s timeout for real background work | Flaky on slow CI | `timeoutMillis` of a few seconds, or inject a dispatcher |
 | `runTest { advanceTimeBy(…) }` beside `createComposeRule()` | Separate scheduler; Compose time does not move | `runComposeUiTest`, or `mainClock` |
-| Reading a fake right after `performClick()` | Launched work is only queued under v2 | `runOnIdle { }` |
+| Reading a fake right after the test itself calls `scope.launch` | The launch is only queued under v2 | `waitForIdle()` or `runOnIdle { }` first |
 | An idling resource that starts busy before `setContent` | `setContent` blocks ~60s, then `AppNotIdleException` | Register after `setContent`; always return to idle |
 | Forgetting to unregister an idling resource | Leaks into later tests | Unregister in `@After` |
 | `shadowOf(mainLooper).idle()` sprinkled after every action | Compose already idles the looper | Only for delayed non-Compose tasks |

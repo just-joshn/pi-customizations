@@ -63,6 +63,7 @@ interface TestCase {
   className: string;
   name: string;
   failure: string | undefined;
+  skipped: boolean;
 }
 
 function testCases(resultsDir: string): TestCase[] {
@@ -73,7 +74,7 @@ function testCases(resultsDir: string): TestCase[] {
       const xml = readFileSync(join(resultsDir, name), 'utf8');
       return [...xml.matchAll(/<testcase name="([^"]*)" classname="([^"]*)"[^>]*?(\/>|>([\s\S]*?)<\/testcase>)/g)].map((match) => {
         const failure = (match[4] ?? '').match(/<(?:failure|error) message="([^"]*)"/);
-        return { name: match[1] ?? '', className: match[2] ?? '', failure: failure ? unescapeXml(failure[1] ?? '').split('\n')[0] : undefined };
+        return { name: match[1] ?? '', className: match[2] ?? '', failure: failure ? unescapeXml(failure[1] ?? '').split('\n')[0] : undefined, skipped: (match[4] ?? '').includes('<skipped') };
       });
     });
 }
@@ -95,7 +96,8 @@ function gradleFailure(output: string): string {
 
 const DECLARES_TEST = /@Test\b/;
 
-// Compiles every block and runs the `run` blocks' tests in one Gradle build. `label` names a reusable
+// Compiles every block and runs the `run` blocks' tests in one Gradle build. Roborazzi runs in record mode,
+// so screenshot examples render and write images instead of silently doing nothing. `label` names a reusable
 // copy of the harness under the temp dir, so concurrent callers with different labels never share a build.
 export function compileAndRun(label: string, blocks: readonly KotlinBlock[]): string[] {
   const workDir = join(tmpdir(), 'compose-robolectric-skill', label);
@@ -110,7 +112,7 @@ export function compileAndRun(label: string, blocks: readonly KotlinBlock[]): st
   const byFile = new Map(placed.map((p) => [p.file, p]));
   for (const p of placed) writeFileSync(join(blocksDir, p.file), source(p));
 
-  const run = spawnSync(join(projectDir, 'gradlew'), ['-p', projectDir, ':blocks:testDebugUnitTest', `-PblocksDir=${blocksDir}`, '--console=plain', '--continue'], {
+  const run = spawnSync(join(projectDir, 'gradlew'), ['-p', projectDir, ':blocks:testDebugUnitTest', `-PblocksDir=${blocksDir}`, '-Proborazzi.test.record=true', '--console=plain', '--continue'], {
     encoding: 'utf8',
     maxBuffer: 256 * 1024 * 1024,
   });
@@ -125,7 +127,7 @@ export function compileAndRun(label: string, blocks: readonly KotlinBlock[]): st
     for (const c of own) {
       if (c.failure !== undefined) problems.push(`${p.rel}:${p.block.line} test ${c.className.slice(p.pkg.length + 1)}.${c.name} failed: ${c.failure}`);
     }
-    if (p.mode === 'run' && DECLARES_TEST.test(p.block.code) && own.length === 0) problems.push(`${p.rel}:${p.block.line} declares @Test but no test ran`);
+    if (p.mode === 'run' && DECLARES_TEST.test(p.block.code) && own.every((c) => c.skipped)) problems.push(`${p.rel}:${p.block.line} declares @Test but no test ran`);
   }
   if (run.status !== 0 && problems.length === 0) problems.push(`gradle failed: ${gradleFailure(output)}`);
   return problems;

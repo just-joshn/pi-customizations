@@ -76,10 +76,24 @@ export function checkSkill(skillDir: string): string[] {
 
 const COORDINATE = /["']([\w.-]+:[\w.-]+):(\d[\w.+-]*)["']/g;
 const PLUGIN = /id\(["']([\w.-]+)["']\)\s+version\s+["'](\d[\w.+-]*)["']/g;
-const TOML_MODULE = /module\s*=\s*"([\w.-]+:[\w.-]+)",\s*version\s*=\s*"(\d[\w.+-]*)"/g;
+const TOML_ENTRY = /(?:module|id)\s*=\s*"([\w.:-]+)",\s*version(\.ref)?\s*=\s*"([\w.+-]+)"/g;
+const TOML_VERSION = /^\s*([\w-]+)\s*=\s*"(\d[\w.+-]*)"\s*$/;
 
-function coordinates(text: string): Array<[string, string]> {
-  return [COORDINATE, PLUGIN, TOML_MODULE].flatMap((pattern) => [...text.matchAll(pattern)].map((m): [string, string] => [m[1] ?? '', m[2] ?? '']));
+// `catalogVersions` holds the [versions] table of the version catalog block the line belongs to, if any.
+function coordinates(text: string, catalogVersions: ReadonlyMap<string, string> = new Map()): Array<[string, string]> {
+  const literal = [COORDINATE, PLUGIN].flatMap((pattern) => [...text.matchAll(pattern)].map((m): [string, string] => [m[1] ?? '', m[2] ?? '']));
+  const catalog = [...text.matchAll(TOML_ENTRY)].map((m): [string, string] => [m[1] ?? '', m[2] ? (catalogVersions.get(m[3] ?? '') ?? `unresolved version.ref ${m[3]}`) : (m[3] ?? '')]);
+  return [...literal, ...catalog];
+}
+
+function versionsTable(code: string): Map<string, string> {
+  const table = code.split(/^\[/m).find((section) => section.startsWith('versions]')) ?? '';
+  return new Map(
+    table.split('\n').flatMap((line) => {
+      const m = line.match(TOML_VERSION);
+      return m ? [[m[1] ?? '', m[2] ?? '']] : [];
+    }),
+  );
 }
 
 let pins: Map<string, string> | undefined;
@@ -105,8 +119,9 @@ export function staticProblems(skillDir: string, rel: string): string[] {
   for (const block of markdown.blocks) {
     if (!LANGS.has(block.lang)) problems.push(`${rel}:${block.line} fence language "${block.lang}" is not one of ${[...LANGS].filter(Boolean).join(', ')}`);
     if (blockMode(block) === 'snippet' && block.code.split('\n').length > SNIPPET_MAX_LINES) problems.push(`${rel}:${block.line} snippet is longer than ${SNIPPET_MAX_LINES} lines; make it a compiled example`);
+    const catalogVersions = block.lang === 'toml' ? versionsTable(block.code) : new Map<string, string>();
     block.code.split('\n').forEach((text, index) => {
-      for (const [coordinate, version] of coordinates(text)) {
+      for (const [coordinate, version] of coordinates(text, catalogVersions)) {
         const where = `${rel}:${block.line + 1 + index}`;
         const pinned = harnessPins().get(coordinate);
         if (pinned === undefined) problems.push(`${where} ${coordinate}:${version} is not pinned in the harness or EXTRA_PINS`);

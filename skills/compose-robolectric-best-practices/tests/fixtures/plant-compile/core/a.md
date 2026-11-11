@@ -54,3 +54,11 @@ class MadeUpAssertionTest {
 }
 ```
 
+
+```toml
+[versions]
+agp = "9.0.0"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+```

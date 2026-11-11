@@ -33,6 +33,7 @@ Every message below was reproduced with the pinned stack (Compose BOM 2026.09.00
 | `This testing API is experimental` | Missing `@OptIn(ExperimentalTestApi::class)` | [link](#opt-in-required-for-experimental-test-apis) |
 | `ComposeTimeoutException: … still not satisfied after N ms` | `waitUntil` condition never true | [link](#composetimeoutexception) |
 | `AppNotIdleException: Compose did not get idle after N attempts in 60 SECONDS` | Compose or an idling resource never becomes idle | [link](#appnotidleexception-the-test-never-goes-idle) |
+| `OutOfMemoryError: Java heap space` during synchronization | A registered idling resource never becomes idle | [link](#appnotidleexception-the-test-never-goes-idle) |
 | `Failed to parse qualifier string` | Qualifiers out of order | [link](#failed-to-parse-qualifier-string) |
 | `NoMatchingViewException` for Compose text | Espresso used on a composable | [link](#espresso-cannot-see-compose-and-vice-versa) |
 | `issues were found when checking AAR metadata` / `Manifest merger failed : uses-sdk:minSdkVersion` | `compileSdk` or `minSdk` below what the BOM's libraries need | [link](#aar-metadata-and-manifest-merger-failures) |
@@ -222,14 +223,15 @@ androidx.test.espresso.AppNotIdleException: Compose did not get idle after 24748
 1. Check your measure/layout lambdas for infinite composition loops.
 ```
 
-When Compose or an idling resource never becomes idle, the first synchronizing call (a finder, an assertion, `waitForIdle()`, or `setContent` itself) keeps retrying for 60 seconds and then fails with this message:
+When Compose or an idling resource never becomes idle, the first synchronizing call (a finder, an assertion, `waitForIdle()`, or `setContent` itself) keeps retrying. With the pinned stack it usually fails with this message after 60 seconds, but a registered resource that never goes idle ran the test JVM out of heap first:
 
 | Cause | Observed |
 | --- | --- |
 | A `LaunchedEffect` looping on `withFrameNanos` forever, then any finder | `AppNotIdleException` after about 60 s |
-| A registered `IdlingResource` that is busy when `setContent` runs, or never reports idle | `AppNotIdleException` after about 60 s |
+| A registered `IdlingResource` that is busy when `setContent` runs | `setContent` blocks, then `AppNotIdleException` after about 60 s |
+| A registered `IdlingResource` whose `isIdleNow` stays `false`, then `waitForIdle()` | `java.lang.OutOfMemoryError: Java heap space` after about 20–40 s, not a timeout |
 
-Infinite animations from `rememberInfiniteTransition` and indeterminate progress indicators do not cause this: the test rule pauses them. Fix the frame loop as in [animations-clock.md](../testing-patterns/animations-clock.md#infinite-animations); make idling resources report idle once their work ends and unregister them in `@After` ([synchronization.md](../core/synchronization.md#idling-resources)). A test that takes just over a minute and then fails is a strong hint.
+Infinite animations from `rememberInfiniteTransition` and indeterminate progress indicators do not cause this: the test rule pauses them. Fix the frame loop as in [animations-clock.md](../testing-patterns/animations-clock.md#infinite-animations); make idling resources report idle once their work ends and unregister them in `@After` ([synchronization.md](../core/synchronization.md#idling-resources)). A test that takes tens of seconds and then fails with this timeout or a heap error is a strong hint.
 
 ## Failed to parse qualifier string
 

@@ -47,6 +47,7 @@ describe('gate catches planted mistakes', () => {
     'core/a.md:32 com.example:unknown:1.0 is not pinned',
     "core/a.md:52 error: Unresolved reference 'assertIsShownNow'",
     "core/b.md:13 error: Unresolved reference 'onNodeWithTxt'",
+    'core/a.md:63 com.android.application:9.0.0 does not match the pinned 9.5.1',
   ])('%s', (expected) => {
     expect(compileProblems).toContain(expected);
   });
@@ -63,11 +64,15 @@ describe('gate catches planted mistakes', () => {
     expect(runProblems).toContain('core/run.md:50 declares @Test but no test ran');
   });
 
+  test('a block whose every test is skipped is reported', () => {
+    expect(runProblems).toContain('core/run.md:58 declares @Test but no test ran');
+  });
+
   test('a failing test in a compile-only block does not run', () => {
     expect(runProblems).not.toContain('core/run.md:30');
   });
 
   test('passing tests produce no problems', () => {
-    expect(runProblems.split('\n')).toHaveLength(2);
+    expect(runProblems.split('\n')).toHaveLength(3);
   });
 });

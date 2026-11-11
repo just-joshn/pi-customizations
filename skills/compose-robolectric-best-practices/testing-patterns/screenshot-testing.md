@@ -91,7 +91,7 @@ Outputs:
 | Path | Contents |
 | --- | --- |
 | `build/outputs/roborazzi/` | Reference images (default), plus `_actual` / `_compare` images |
-| `build/reports/roborazzi/index.html` | HTML report |
+| `build/reports/roborazzi/debug/index.html` | HTML report (one directory per variant; the README shows `build/reports/roborazzi/index.html`) |
 | `build/test-results/roborazzi/` | JSON diff results |
 
 References under `build/` are lost on `clean`. To commit them, point the plugin at a source directory:
@@ -344,7 +344,7 @@ With `autoAdvance` on, an infinite animation keeps the composition busy; with it
 
 ## Reviewing Diffs
 
-1. Run `compareRoborazziDebug` locally (or download the CI artifacts) and open `build/reports/roborazzi/index.html`.
+1. Run `compareRoborazziDebug` locally (or download the CI artifacts) and open `build/reports/roborazzi/debug/index.html`.
 2. For each `_compare.png`, decide: intended change, regression, or noise.
 3. Re-record only after every diff is explained: `recordRoborazziDebug`, then commit the new references with the code change that caused them.
 4. Delete references for removed tests. Roborazzi does not clean up old screenshots unless `roborazzi.cleanupOldScreenshots=true`, because it can't tell a filtered run from a removed test.

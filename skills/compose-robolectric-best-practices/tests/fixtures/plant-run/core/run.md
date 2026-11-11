@@ -54,3 +54,12 @@ abstract class NeverRuns {
     @Test fun nothing() = Unit
 }
 ```
+
+```kotlin
+import org.junit.Ignore
+import org.junit.Test
+
+class AllIgnored {
+    @Ignore("planted") @Test fun ignored() = Unit
+}
+```
