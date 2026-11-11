@@ -1,0 +1,23 @@
+{
+  "name": "skill-gate",
+  "private": true,
+  "type": "module",
+  "description": "Shared checks for the skills' example gates: Markdown parsing, reference-file discovery, links, frontmatter, and the decision tree.",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "marked": "18.2.0",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "typescript": "^7.0.2",
+    "vitest": "5.1.0"
+  }
+}
