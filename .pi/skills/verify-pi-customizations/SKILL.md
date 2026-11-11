@@ -9,7 +9,7 @@ Drive `pi-customizations` packages and extensions through the real Pi CLI and RP
 
 ## Launch
 
-For verification, Pi runs in RPC mode with `--no-session` and `--no-extensions`, loading the target package explicitly via `-e <package-dir>` inside an isolated temporary directory (`PI_CODING_AGENT_DIR` set to a disposable scratch directory).
+For verification, Pi runs with `--no-extensions`, loading the target package explicitly via `-e <package-dir>` inside an isolated temporary directory (`PI_CODING_AGENT_DIR` set to a disposable scratch directory). Command and notification checks use RPC mode with `--no-session`. Model listings use one-shot `pi --list-models` processes.
 
 Exact launch command:
 ```bash
@@ -31,7 +31,7 @@ Run the read-only doctor command before any verification run to confirm the host
 ```
 
 The doctor check verifies:
-1. Node.js version satisfies engine requirements (`>= 22.21.0`).
+1. Node.js version satisfies engine requirements (`>= 22.19.0`, the `engines` range of Pi 1.5.2 and of this repository).
 2. The `pi` CLI binary is on `PATH` and executable (`pi --version`).
 3. The repository root contains a `package.json`.
 4. Pi RPC starts with `extensions/pi-pstack` loaded and returns its registered commands.
@@ -64,13 +64,13 @@ Every drive captures user-observable evidence written directly to `artifacts/ver
 
 - **pstack-commands:**
   - `commands.json`: the registered command list, including the extension commands `mode`, `loop`, `plan`, `routines`, `automations`, `project`, `in-cloud`, and `secret` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
-  - `mode-status.txt`: the `/mode` report when no mode is on (`No mode is on.`).
+  - `mode-status.json`: the `/mode` notification observed when no mode is on (`No mode is on.`, `notifyType: "info"`).
 - **poteto-mode:**
   - `mode.json`: the on notification (`"Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Mode off."`), the closing entry with `data: null`, and the `pstack-mode` `setStatus` updates.
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.
-  - `grok-build-models.txt`: table of registered `grok-build` models.
+  - `grok-build-models.txt`: table of registered `grok-build` models. The drive asserts all eight ids: four baseline models and four `-fast` effort aliases.
   - `cursor-models.txt`: table of registered `cursor` models.
   - `antigravity-command.json`: the logged-out `/antigravity` error notification.
   - `usage-command.json`: the logged-out Grok Build `/usage` error notification.
@@ -86,7 +86,7 @@ Proof standards:
 
 Cleanup is strictly scoped to test instances:
 - The harness tracks the child PID started for verification and terminates only that process. It never runs blanket process-killing commands like `pkill pi`.
-- The temporary scratch directory (`/tmp/control-pi-*`) is completely removed in process exit hooks.
+- The temporary scratch directory (`control-pi-*` under the OS temp directory, `os.tmpdir()`, which is `$TMPDIR` on macOS) is removed in each drive's `finally` block, including after a failed assertion.
 - Proof artifacts in `artifacts/verify-pi-customizations/` are preserved for review.
 
 ## Helpers

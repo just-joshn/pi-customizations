@@ -19,3 +19,13 @@ Steps:
 ```tsx
 const n: number = <p classNam="x">Hi</p>
 ```
+
+<!--
+```ts
+-->
+
+A fence inside an HTML comment is not a fence.
+
+```ts
+vi.afterCommentNotReal()
+```

@@ -58,6 +58,7 @@ describe('gate catches planted mistakes', () => {
     "core/nested.md:14 TS2339 Property 'quoteNotReal' does not exist",
     'core/nested.md: broken link core/img/missing.png',
     "core/nested.md:20 TS2322 Type 'Element' is not assignable to type 'number'",
+    "core/nested.md:30 TS2339 Property 'afterCommentNotReal' does not exist",
   ])('%s', (expected) => {
     expect(fileProblems).toContain(expected);
   });

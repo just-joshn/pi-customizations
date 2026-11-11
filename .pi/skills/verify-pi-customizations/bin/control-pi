@@ -172,9 +172,9 @@ async function runDoctor() {
   // 1. Check Node.js engine
   const nodeVersion = process.versions.node;
   const [major, minor] = nodeVersion.split('.').map(Number);
-  const nodeOk = major > 22 || (major === 22 && minor >= 21);
-  assert.ok(nodeOk, `Node.js >= 22.21.0 required, current is ${nodeVersion}`);
-  process.stdout.write(`✓ Node.js ${nodeVersion} (>= 22.21.0)\n`);
+  const nodeOk = major > 22 || (major === 22 && minor >= 19);
+  assert.ok(nodeOk, `Node.js >= 22.19.0 required, current is ${nodeVersion}`);
+  process.stdout.write(`✓ Node.js ${nodeVersion} (>= 22.19.0)\n`);
 
   // 2. Check pi executable on PATH
   let piVersion = '';
@@ -233,11 +233,10 @@ async function drivePstackCommands(artifactDir) {
 
       // 2. /mode with no mode on reports through a UI notification.
       await session.send({ type: 'prompt', message: '/mode' });
-      assert.ok(
-        session.notifications.some((n) => n.message === 'No mode is on.'),
-        'Expected UI notification "No mode is on." not observed',
-      );
-      await writeFile(join(outDir, 'mode-status.txt'), 'No mode is on.\n', 'utf8');
+      const modeReport = session.notifications.find((n) => n.message === 'No mode is on.');
+      assert.ok(modeReport, 'Expected UI notification "No mode is on." not observed');
+      assert.equal(modeReport.notifyType, 'info', 'Expected the /mode report as an info notification');
+      await writeFile(join(outDir, 'mode-status.json'), `${JSON.stringify(modeReport, null, 2)}\n`, 'utf8');
       process.stdout.write(`✓ Captured pstack command-surface evidence in ${outDir}\n`);
     } finally {
       await session.close();
@@ -268,7 +267,7 @@ async function drivePotetoMode(artifactDir) {
       assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
       assert.equal(onEntry.data?.skill, 'poteto-mode', 'On entry did not record the poteto-mode skill');
       const modeStatus = () => session.statuses.filter((s) => s.statusKey === 'pstack-mode').at(-1);
-      assert.match(modeStatus()?.statusText ?? '', /mode: poteto-mode/, 'Expected pstack-mode footer status showing poteto-mode');
+      assert.match(modeStatus()?.statusText ?? '', /^\u001b\[[\d;]*m♛ mode: poteto-mode\u001b\[[\d;]*m$/, 'Expected the colored ♛ mode: poteto-mode footer status');
 
       // 2. Turn the mode off.
       const beforeOff = session.notifications.length;
@@ -296,6 +295,18 @@ async function drivePotetoMode(artifactDir) {
   }
 }
 
+const GROK_BUILD_IDS = ['grok-4.7', 'grok-4.7-build-fast', 'grok-4.6', 'grok-4.5', 'grok-4.7-low-fast', 'grok-4.7-medium-fast', 'grok-4.7-high-fast', 'grok-4.7-xhigh-fast'];
+
+function listedIds(output, provider) {
+  return new Set(
+    output
+      .split('\n')
+      .map((line) => line.trim().split(/\s+/))
+      .filter(([rowProvider]) => rowProvider === provider)
+      .map(([, id]) => id),
+  );
+}
+
 async function driveOauthProviders(artifactDir) {
   process.stdout.write('[drive:oauth-providers] Starting verification...\n');
   const outDir = artifactDir ?? join(REPO_ROOT, 'artifacts/verify-pi-customizations/oauth-providers');
@@ -317,45 +328,32 @@ async function driveOauthProviders(artifactDir) {
         .filter((key) => process.env[key] !== undefined)
         .map((key) => [key, process.env[key]]),
     );
+    const listModels = async (pkg, provider, artifact) => {
+      await runDoctor();
+      const output = execFileSync('pi', ['--no-extensions', '-e', pkg, '--list-models', provider], {
+        cwd: scratchDir,
+        env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
+        encoding: 'utf8',
+      });
+      await writeFile(join(outDir, artifact), output, 'utf8');
+      return listedIds(output, provider);
+    };
+
     const claudePkg = join(REPO_ROOT, 'extensions/pi-anthropic-oauth');
-    await runDoctor();
-    const claudeOutput = execFileSync('pi', ['--no-extensions', '-e', claudePkg, '--list-models', 'claude-subscription'], {
-      cwd: scratchDir,
-      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(claudeOutput, /claude-subscription\s+claude-opus/, 'Expected claude-subscription models not found');
+    const claudeIds = await listModels(claudePkg, 'claude-subscription', 'claude-models.txt');
+    assert.ok([...claudeIds].some((id) => id.startsWith('claude-opus')), 'Expected claude-subscription models not found');
 
     const antigravityPkg = join(REPO_ROOT, 'extensions/pi-antigravity-oauth');
-    await runDoctor();
-    const antigravityOutput = execFileSync('pi', ['--no-extensions', '-e', antigravityPkg, '--list-models', 'google-antigravity'], {
-      cwd: scratchDir,
-      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(antigravityOutput, /google-antigravity\s+gemini-/, 'Expected google-antigravity models not found');
+    const antigravityIds = await listModels(antigravityPkg, 'google-antigravity', 'antigravity-models.txt');
+    assert.ok([...antigravityIds].some((id) => id.startsWith('gemini-')), 'Expected google-antigravity models not found');
 
     const grokPkg = join(REPO_ROOT, 'extensions/pi-x-subscription-oauth');
-    await runDoctor();
-    const grokOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'grok-build'], {
-      cwd: scratchDir,
-      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(grokOutput, /grok-build\s+grok-4\.7-build-fast/, 'Expected grok-build models not found');
+    const grokIds = await listModels(grokPkg, 'grok-build', 'grok-build-models.txt');
+    const missingGrok = GROK_BUILD_IDS.filter((id) => !grokIds.has(id));
+    assert.deepEqual(missingGrok, [], `Expected grok-build models not found: ${missingGrok.join(', ')}`);
 
-    await runDoctor();
-    const cursorOutput = execFileSync('pi', ['--no-extensions', '-e', grokPkg, '--list-models', 'cursor'], {
-      cwd: scratchDir,
-      env: { ...env, PI_CODING_AGENT_DIR: scratchDir },
-      encoding: 'utf8',
-    });
-    assert.match(cursorOutput, /cursor\s+composer-2\.5/, 'Expected Cursor models not found');
-
-    await writeFile(join(outDir, 'cursor-models.txt'), cursorOutput, 'utf8');
-    await writeFile(join(outDir, 'claude-models.txt'), claudeOutput, 'utf8');
-    await writeFile(join(outDir, 'antigravity-models.txt'), antigravityOutput, 'utf8');
-    await writeFile(join(outDir, 'grok-build-models.txt'), grokOutput, 'utf8');
+    const cursorIds = await listModels(grokPkg, 'cursor', 'cursor-models.txt');
+    assert.ok(cursorIds.has('composer-2.5'), 'Expected Cursor models not found');
 
     const loggedOutDir = join(scratchDir, 'logged-out');
     await mkdir(loggedOutDir);
