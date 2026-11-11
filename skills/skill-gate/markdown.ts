@@ -2,6 +2,7 @@ import { marked, type Token } from 'marked';
 
 export interface CodeBlock {
   lang: string;
+  info: string;
   code: string;
   line: number;
 }
@@ -10,6 +11,7 @@ export interface ParsedMarkdown {
   frontmatter: string | undefined;
   links: string[];
   blocks: CodeBlock[];
+  indentedBlocks: number;
 }
 
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
@@ -51,6 +53,7 @@ export function parseMarkdown(source: string): ParsedMarkdown {
   const lines = body.split('\n');
   const links: string[] = [];
   const blocks: CodeBlock[] = [];
+  let indentedBlocks = 0;
   const commented = htmlCommentLines(lines);
   let nextLine = 0;
 
@@ -63,8 +66,8 @@ export function parseMarkdown(source: string): ParsedMarkdown {
   const visit = (tokens: readonly Token[]): void => {
     for (const token of tokens) {
       if (token.type === 'code') {
-        const line = token.codeBlockStyle === 'indented' ? 0 : fenceLine(token.raw);
-        blocks.push({ lang: (token.lang ?? '').split(/\s/)[0] ?? '', code: token.text, line });
+        if (token.codeBlockStyle === 'indented') indentedBlocks++;
+        else blocks.push({ lang: (token.lang ?? '').split(/\s/)[0] ?? '', info: token.lang ?? '', code: token.text, line: fenceLine(token.raw) });
         continue;
       }
       if (token.type === 'link' || token.type === 'image') links.push(token.href);
@@ -77,5 +80,5 @@ export function parseMarkdown(source: string): ParsedMarkdown {
   };
   visit(marked.lexer(body));
 
-  return { frontmatter: fm?.[1], links, blocks };
+  return { frontmatter: fm?.[1], links, blocks, indentedBlocks };
 }

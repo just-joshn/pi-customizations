@@ -28,7 +28,7 @@ verify-rea:
 
 verify-skills:
 	bun run --filter './skills/*' typecheck
-	bun run --filter './skills/*' test
+	REQUIRE_ANDROID_SDK=1 bun run --filter './skills/*' test
 
 verify-oauth:
 	bun run --filter @justjoshn/pi-anthropic-oauth typecheck

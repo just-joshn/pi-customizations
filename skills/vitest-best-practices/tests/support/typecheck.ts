@@ -1,9 +1,9 @@
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 
+import type { CodeBlock } from 'skill-gate';
 import ts from 'typescript-api';
 import * as vitest from 'vitest';
-import type { CodeBlock } from './markdown.ts';
 
 const EXTENSION: Record<string, string> = {
   ts: 'ts',
