@@ -10,7 +10,7 @@ const CLEAN_DIR = join(import.meta.dirname, 'fixtures/clean');
 
 describe('skill', () => {
   test('frontmatter, orphans, decision tree', () => {
-    expect(checkSkill(SKILL_DIR, 'SKILL.md', exceptions)).toEqual([]);
+    expect(checkSkill(SKILL_DIR, exceptions)).toEqual([]);
   });
 
   test.for(referenceFiles(SKILL_DIR))('%s', (rel) => {
@@ -23,7 +23,7 @@ describe('gate catches planted mistakes', () => {
   let fileProblems = '';
   beforeAll(() => {
     const missingFileException = { file: 'core/renamed.md', blockContains: 'x', codes: [2349], reason: 'plant' };
-    skillProblems = checkSkill(PLANT_DIR, 'ROUTER.md', [missingFileException]).join('\n');
+    skillProblems = checkSkill(PLANT_DIR, [missingFileException]).join('\n');
     const plantException = { file: 'core/more.md', blockContains: "from './pick'", codes: [2578, 2349], reason: 'plant' };
     fileProblems = referenceFiles(PLANT_DIR)
       .flatMap((rel) => checkFile(PLANT_DIR, rel, [plantException]))

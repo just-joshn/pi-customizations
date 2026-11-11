@@ -8,7 +8,6 @@ import * as ts from 'typescript/unstable/ast';
 import { closeTypeScriptSources, withTypeScriptSource } from '../../scripts/typescript-source.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-// Skills in the repository's skills/ directory can carry their own tests; their test files follow the same rules.
 const skillsRoot = fileURLToPath(new URL('../../skills', import.meta.url));
 
 const skipDirectories = new Set(['node_modules', 'coverage', 'dist', '.git']);
@@ -368,7 +367,6 @@ async function main() {
   const results = [];
   for (const file of extensionFiles) results.push(...analyzeSource(file.text, relative(root, file.path)));
   results.push(...(await configViolations()));
-  // Skill findings are labelled from the repository root so they don't read like extension paths.
   for (const file of skillFiles) results.push(...analyzeSource(file.text, `skills/${relative(skillsRoot, file.path)}`));
   results.push(...(await configViolations(skillsRoot)).map((item) => ({ ...item, path: `skills/${item.path}` })));
 

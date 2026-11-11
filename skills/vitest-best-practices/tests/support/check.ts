@@ -30,8 +30,7 @@ function localTargets(skillDir: string, rel: string, markdown: ParsedMarkdown): 
   return markdown.links.filter((href) => !/^[a-z]+:/i.test(href) && !href.startsWith('#')).map((href) => relative(skillDir, resolve(dirname(join(skillDir, rel)), decodeURI(href.split('#')[0] ?? ''))));
 }
 
-/** Paths in SKILL.md's decision tree. The tree is a plain code fence, as in the Playwright skill it mirrors, so the link check can't see them. */
-function treePaths(markdown: ParsedMarkdown): string[] {
+function decisionTreeFencePaths(markdown: ParsedMarkdown): string[] {
   return markdown.blocks.filter((block) => block.lang === '').flatMap((block) => [...block.code.matchAll(/[\w-]+\/[\w*-]+\.md/g)].map((match) => match[0]));
 }
 
@@ -50,19 +49,18 @@ function frontmatterProblems(skillDir: string, markdown: ParsedMarkdown): string
   return problems;
 }
 
-/** `entry` is the router file; the test fixture uses another name so Pi never discovers it as a skill. */
-export function checkSkill(skillDir: string, entry: string, exceptions: readonly TypecheckException[]): string[] {
-  const router = read(skillDir, entry);
+export function checkSkill(skillDir: string, exceptions: readonly TypecheckException[]): string[] {
+  const router = read(skillDir, 'SKILL.md');
   const problems = frontmatterProblems(skillDir, router);
   const files = referenceFiles(skillDir);
   for (const exception of exceptions) {
     if (!files.includes(exception.file)) problems.push(`exception names a file that does not exist: ${exception.file}`);
   }
-  const linked = new Set(localTargets(skillDir, entry, router));
+  const linked = new Set(localTargets(skillDir, 'SKILL.md', router));
   for (const rel of files) {
-    if (rel !== entry && !linked.has(rel)) problems.push(`${rel} is not linked from ${entry}`);
+    if (rel !== 'SKILL.md' && !linked.has(rel)) problems.push(`${rel} is not linked from SKILL.md`);
   }
-  for (const path of treePaths(router)) {
+  for (const path of decisionTreeFencePaths(router)) {
     if (!existsSync(join(skillDir, path))) problems.push(`decision tree path does not exist: ${path}`);
   }
   return problems;

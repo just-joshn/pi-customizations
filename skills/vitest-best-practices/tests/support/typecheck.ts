@@ -17,16 +17,13 @@ const EXTENSION: Record<string, string> = {
   mjs: 'mjs',
 };
 
-// Examples are fragments: they call app code they never define and import files that don't exist.
 const CANNOT_FIND_NAME = 2304;
 const CANNOT_FIND_NAME_DID_YOU_MEAN = 2552;
 const CANNOT_FIND_MODULE = [2307, 2792];
-const FRAGMENT_NOISE = new Set([
-  CANNOT_FIND_NAME,
-  2503, // Cannot find namespace
-  2709, // Cannot use namespace as a type
-  18004, // No value exists in scope for the shorthand property
-]);
+const CANNOT_FIND_NAMESPACE = 2503;
+const NAMESPACE_USED_AS_TYPE = 2709;
+const NO_VALUE_FOR_SHORTHAND_PROPERTY = 18004;
+const FRAGMENT_NOISE = new Set([CANNOT_FIND_NAME, CANNOT_FIND_NAMESPACE, NAMESPACE_USED_AS_TYPE, NO_VALUE_FOR_SHORTHAND_PROPERTY]);
 
 const VITEST_EXPORTS = new Set(Object.keys(vitest));
 
@@ -44,7 +41,6 @@ const OPTIONS: ts.CompilerOptions = {
   moduleResolution: ts.ModuleResolutionKind.Bundler,
   lib: ['lib.es2022.d.ts', 'lib.esnext.disposable.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
   types: NODE_TYPES,
-  // React is the default JSX runtime; Solid blocks switch with a pragma.
   jsx: ts.JsxEmit.ReactJSX,
   jsxImportSource: 'react',
   strict: false,
@@ -78,13 +74,8 @@ const SOLID_CODE = /from ['"](solid-js[^'"]*|@solidjs\/[^'"]*)['"]/;
 
 const BROWSER_OPTIONS: ts.CompilerOptions = { ...OPTIONS, types: [...NODE_TYPES, 'vitest/browser'] };
 
-/** Module resolution walks up from here, so examples resolve the packages in this skill's package.json. */
 const SKILL_ROOT = resolve(import.meta.dirname, '../..');
 
-/**
- * One program per markdown file and environment: browser examples get their own program so their
- * matcher and locator types can't leak into Node examples, and no file's declarations leak into another.
- */
 export function typecheckBlocks(id: string, blocks: CodeBlock[]): BlockProblem[] {
   const node: CodeBlock[] = [];
   const browser: CodeBlock[] = [];
@@ -94,13 +85,15 @@ export function typecheckBlocks(id: string, blocks: CodeBlock[]): BlockProblem[]
   return [...typecheckGroup(id, node, OPTIONS), ...typecheckGroup(id, browser, BROWSER_OPTIONS)];
 }
 
+function prependSolidPragmaOnFirstLine(code: string): string {
+  return SOLID_CODE.test(code) ? `/** @jsxImportSource solid-js */ ${code}` : code;
+}
+
 function typecheckGroup(id: string, blocks: CodeBlock[], options: ts.CompilerOptions): BlockProblem[] {
   const files = new Map<string, { block: CodeBlock; text: string }>();
   for (const block of blocks) {
     const name = join(SKILL_ROOT, '__blocks__', id.replace(/[^\w]/g, '_'), `L${block.line}.${EXTENSION[block.lang]}`);
-    // The pragma shares the first line, so diagnostic line numbers stay aligned with the markdown.
-    const pragma = SOLID_CODE.test(block.code) ? '/** @jsxImportSource solid-js */ ' : '';
-    files.set(name, { block, text: `${pragma}${block.code}\nexport {}\n` });
+    files.set(name, { block, text: `${prependSolidPragmaOnFirstLine(block.code)}\nexport {}\n` });
   }
   if (files.size === 0) return [];
   const readFile = (path: string) => files.get(path)?.text ?? ts.sys.readFile(path);

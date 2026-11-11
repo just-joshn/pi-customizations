@@ -1,5 +1,5 @@
 ---
-name: vitest-best-practices
+name: plant
 description: Use when: planted fixture whose frontmatter is not valid YAML because of the second colon.
 ---
 

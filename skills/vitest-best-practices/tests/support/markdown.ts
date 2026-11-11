@@ -13,7 +13,6 @@ export interface ParsedMarkdown {
 }
 
 const FRONTMATTER = /^---\n([\s\S]*?)\n---\n/;
-// An opening fence, possibly indented inside a list item or prefixed by blockquote markers.
 const FENCE = /^[ \t>]*(`{3,}|~{3,})/;
 
 export function parseMarkdown(source: string): ParsedMarkdown {
@@ -25,7 +24,6 @@ export function parseMarkdown(source: string): ParsedMarkdown {
   const blocks: CodeBlock[] = [];
   let nextLine = 0;
 
-  /** Fenced blocks appear in document order, so each one is the next opening fence after the previous block. */
   const fenceLine = (raw: string): number => {
     const at = lines.findIndex((text, index) => index >= nextLine && FENCE.test(text));
     nextLine = at + raw.replace(/\n+$/, '').split('\n').length;

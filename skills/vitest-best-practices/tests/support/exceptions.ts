@@ -1,4 +1,3 @@
-/** A known, explained type error in one block. `checkFile` reports the exception if the error stops occurring. */
 export interface TypecheckException {
   file: string;
   blockContains: string;
