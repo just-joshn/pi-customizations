@@ -1,21 +1,11 @@
-import type { createCursorProvider } from '../../../extensions/pi-x-subscription-oauth/src/cursor/provider.ts';
-import extension from '../../../extensions/pi-x-subscription-oauth/src/index.ts';
+import { builtinProviders } from '../../../extensions/pi-x-subscription-oauth/node_modules/@earendil-works/pi-ai/dist/providers/all.js';
+import { createGrokBuildProvider } from '../../../extensions/pi-x-subscription-oauth/src/index.ts';
 import { refreshContext, storedCredential } from './audit-env.mts';
 
-type PiApi = Parameters<typeof extension>[0];
-type RegisteredProvider = ReturnType<typeof createCursorProvider>;
-
-const providers: RegisteredProvider[] = [];
-extension({
-  registerProvider: (provider: RegisteredProvider | string) => {
-    if (typeof provider !== 'string') providers.push(provider);
-  },
-  registerVirtualModel: () => {},
-  registerCommand: () => {},
-} satisfies PiApi);
-const provider = providers.find((candidate) => candidate.id === 'grok-build');
-if (!provider?.refreshModels) throw new Error('The extension registered no refreshable grok-build provider.');
-await provider.refreshModels(refreshContext(storedCredential('grok-build')));
+const xai = builtinProviders().find((provider) => provider.id === 'xai');
+if (!xai) throw new Error('pi-ai has no built-in xai provider.');
+const provider = createGrokBuildProvider(xai);
+await provider.refreshModels?.(refreshContext(storedCredential('grok-build')));
 const rows = provider.getModels().map((model) => ({
   id: model.id,
   contextWindow: model.contextWindow,

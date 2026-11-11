@@ -1,0 +1,20 @@
+== A4 log.py
+QUERYSECRET LEAKED
+BASICSECRET LEAKED
+PROXYSECRET LEAKED
+bearer len recorded: Bearer <redacted len=12> (real token length 51 incl. "Bearer ", JWT 44)
+== A1 grok-catalog fake host: 1
+== A2 type detour in audit-env: 1
+== A3 side output: 3
+== A5 packed pairs: 1 | frames account-state note: 0
+== A6 frame decode with corrupt gzip frame
+inline decode records: [{"error":"incorrect header check"}]
+== A7 billing-raw on HTML 401
+<anonymous_script>:1
+<html><body>401 Unauthorized</body></html>
+^
+
+== A8 cursor-refresh optional chain: 1 | count-headers lines: 2 output: grok-only 14   pi-only 13   ` 
+expected-ids patched: 1
+[control-pi error] Expected grok-build model grok-9.9-missing not found
+artifacts saved on failure: 

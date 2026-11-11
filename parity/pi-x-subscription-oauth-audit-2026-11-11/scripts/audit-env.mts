@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Type } from '../../../extensions/pi-x-subscription-oauth/node_modules/typebox/build/index.mjs';
 import { Check } from '../../../extensions/pi-x-subscription-oauth/node_modules/typebox/build/value/index.mjs';
-import type { createCursorProvider } from '../../../extensions/pi-x-subscription-oauth/src/cursor/provider.ts';
+import type { createGrokBuildProvider } from '../../../extensions/pi-x-subscription-oauth/src/index.ts';
 
 function sameDirectory(left: string, right: string): boolean {
   try {
@@ -22,15 +22,14 @@ function isolatedAuthDir(dir: string): string {
 }
 
 export const ISOLATED_AUTH_DIR = isolatedAuthDir(process.env['PI_CODING_AGENT_DIR'] ?? '/tmp/xaudit/piagent');
-export const RAW_OUT_DIR = process.env['XAUDIT_OUT'] ?? '/tmp/xaudit';
 
 const StoredCredential = Type.Object({ type: Type.Literal('oauth'), access: Type.String({ minLength: 1 }), refresh: Type.String(), expires: Type.Number() });
 const AuthFile = Type.Record(Type.String(), Type.Unknown());
 
-type RefreshContext = Parameters<NonNullable<ReturnType<typeof createCursorProvider>['refreshModels']>>[0];
-type StoredOAuth = Extract<NonNullable<RefreshContext['credential']>, { type: 'oauth' }>;
+type RefreshModelsContext = Parameters<NonNullable<ReturnType<typeof createGrokBuildProvider>['refreshModels']>>[0];
+type OAuthCredential = Extract<NonNullable<RefreshModelsContext['credential']>, { type: 'oauth' }>;
 
-export function storedCredential(provider: 'grok-build' | 'cursor'): StoredOAuth {
+export function storedCredential(provider: 'grok-build' | 'cursor'): OAuthCredential {
   let file: unknown;
   try {
     file = JSON.parse(readFileSync(`${ISOLATED_AUTH_DIR}/auth.json`, 'utf8'));
@@ -43,7 +42,7 @@ export function storedCredential(provider: 'grok-build' | 'cursor'): StoredOAuth
   return entry;
 }
 
-export function refreshContext(credential: StoredOAuth): RefreshContext {
+export function refreshContext(credential: OAuthCredential): RefreshModelsContext {
   return {
     credential,
     allowNetwork: true,
