@@ -1,0 +1,23 @@
+== 1 guard
+~/.pi/agent -> REFUSED
+~/.PI/agent -> REFUSED
+~/.pi/Agent -> REFUSED
+/tmp/xaudit/fix3/agent-link -> REFUSED
+/tmp/xaudit/fix3/empty -> ACCEPTED
+== 2 keychain
+security calls without opt-in: 0
+== 3 log.py
+SECRETVERIFIER redacted
+SECRETCOOKIE redacted
+SECRET-access redacted
+SECRETSETCOOKIE redacted
+SECRETTOKEN redacted
+SECRETKEY redacted
+redact-me redacted
+== 4 PR 208 RPC sentence
+0
+== 5 evidence shape
+cursor probe prints ids only: True | evidence is id list: True
+grok probe keys: ['contextWindow', 'id', 'thinking'] | evidence keys: ['contextWindow', 'id', 'thinking']
+billing probe prints parsed: False | evidence keys: ['body', 'status']
+frames evidence has kind: True

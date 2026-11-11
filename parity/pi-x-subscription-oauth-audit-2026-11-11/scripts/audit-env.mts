@@ -1,13 +1,23 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { Type } from '../../../extensions/pi-x-subscription-oauth/node_modules/typebox/build/index.mjs';
 import { Check } from '../../../extensions/pi-x-subscription-oauth/node_modules/typebox/build/value/index.mjs';
 import type { createCursorProvider } from '../../../extensions/pi-x-subscription-oauth/src/cursor/provider.ts';
 
+function sameDirectory(left: string, right: string): boolean {
+  try {
+    const a = statSync(left);
+    const b = statSync(right);
+    return a.dev === b.dev && a.ino === b.ino;
+  } catch {
+    return false;
+  }
+}
+
 function isolatedAuthDir(dir: string): string {
-  if (resolve(dir) === resolve(homedir(), '.pi/agent')) throw new Error('Refusing the real Pi agent dir. Seed an isolated PI_CODING_AGENT_DIR with borrowed access tokens.');
+  if (sameDirectory(dir, join(homedir(), '.pi/agent'))) throw new Error('Refusing the real Pi agent dir. Seed an isolated PI_CODING_AGENT_DIR with borrowed access tokens.');
   return dir;
 }
 
