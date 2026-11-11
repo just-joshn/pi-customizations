@@ -1,0 +1,5 @@
+Weekly 2026-11-08T10:21:35.220+00:00 to 2026-11-15T10:21:35.220+00:00: 100% used, 0% left, resets in 3d 14h 17m
+Cursor: 78%
+GrokBuild: 22%
+Prepaid: 0
+Unified: yes

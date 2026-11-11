@@ -1,9 +1,19 @@
-import { readFileSync } from 'node:fs';
-const EXT = '/Users/josh-desktop/src/personal/pi-x-subscription-oauth-audit/extensions/pi-x-subscription-oauth/src';
-const { createGrokBuildProvider } = await import(`${EXT}/index.ts`);
-const { builtinProviders } = await import('/Users/josh-desktop/src/personal/pi-x-subscription-oauth-audit/extensions/pi-x-subscription-oauth/node_modules/@earendil-works/pi-ai/dist/providers/all.js');
-const xai = builtinProviders().find((p: any) => p.id === 'xai');
+import { builtinProviders } from '../../../extensions/pi-x-subscription-oauth/node_modules/@earendil-works/pi-ai/dist/providers/all.js';
+import { createGrokBuildProvider } from '../../../extensions/pi-x-subscription-oauth/src/index.ts';
+import { refreshContext, storedCredential } from './audit-env.mts';
+
+const xai = builtinProviders().find((provider) => provider.id === 'xai');
+if (!xai) throw new Error('Pi has no built-in xai provider.');
 const provider = createGrokBuildProvider(xai);
-const cred = JSON.parse(readFileSync('/tmp/xaudit/piagent/auth.json', 'utf8'))['grok-build'];
-await provider.refreshModels({ credential: cred, allowNetwork: true, force: true, publish: async (p: any) => { p.update?.(); return true; }, signal: AbortSignal.timeout(30000) }); const models = provider.getModels();
-console.log(JSON.stringify(models.map((m: any) => ({ id: m.id, name: m.name, contextWindow: m.contextWindow, maxTokens: m.maxTokens, thinking: Object.entries(m.thinkingLevelMap ?? {}).filter(([, v]) => v).map(([k]) => k), cost: m.cost })), null, 1));
+await provider.refreshModels?.(refreshContext(storedCredential('grok-build')));
+const rows = provider.getModels().map((model) => ({
+  id: model.id,
+  name: model.name,
+  contextWindow: model.contextWindow,
+  maxTokens: model.maxTokens,
+  thinking: Object.entries(model.thinkingLevelMap ?? {})
+    .filter(([, level]) => level)
+    .map(([name]) => name),
+  cost: model.cost,
+}));
+console.log(JSON.stringify(rows, null, 1));
