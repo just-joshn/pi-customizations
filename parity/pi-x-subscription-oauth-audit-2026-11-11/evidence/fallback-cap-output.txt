@@ -1,0 +1,2 @@
+after 120 s code 1 stdout "" stderr "" parsed {"kind":"error","message":"Cursor returned a reply Pi cannot read."}
+Pi error (adapter mapping, test/cursor.test.ts "a quiet non-zero exit reports the process failure"): cursor-agent exited 1.

@@ -1,0 +1,44 @@
+[
+ {
+  "kind": "frame",
+  "ms": 280,
+  "flags": 0,
+  "len": 4,
+  "hex": "0a026a00",
+  "notices": []
+ },
+ {
+  "kind": "frame",
+  "ms": 335,
+  "flags": 0,
+  "len": 42,
+  "hex": "12285226122461346333313639632d343562392d343133342d616135332d666265316638616465653265",
+  "notices": [
+   {
+    "type": "context"
+   }
+  ]
+ },
+ {
+  "kind": "frame",
+  "ms": 439,
+  "flags": 0,
+  "len": 4,
+  "hex": "2a020a00",
+  "notices": []
+ },
+ {
+  "kind": "frame",
+  "ms": 441,
+  "flags": 3,
+  "len": 1742,
+  "hex": "7b226572726f72223a7b22636f6465223a227265736f757263655f657868617573746564222c226d657373616765223a224572726f72222c2264657461696c73223a5b7b2274797065223a2261697365727665722e76312e4572726f7244657461696c73222c226465627567223a7b226572726f72223a22",
+  "text": "{\"error\":{\"code\":\"resource_exhausted\",\"message\":\"Error\",\"details\":[{\"type\":\"aiserver.v1.ErrorDetails\",\"debug\":{\"error\":\"ERROR_USAGE_PRICING_REQUIRED\",\"details\":{\"title\":\"Weekly usage limit reached. It resets in 4 days.\",\"detail\":\"Buy credits to keep going now, or upgrade your plan for more weekly usage.\",\"isRetryable\":false,\"showRequestId\":false,\"additionalInfo\":{\"rateLimitReason\":\"prepaid_balance_exhausted\",\"prepaidWallet\":\"personal\",\"unifiedSkuWeeklyLimit\":\"true\",\"unifiedSkuWeeklyLimitResetDays\":\"4\",\"chatMessage\":\"*Weekly usage limit reached. It resets in 4 days.*\"},\"buttons\":[{\"label\":\"Buy Credits\",\"clientAction\":{\"commandId\":\"cursor.unifiedSkuBilling.openBuyCredits\",\"args\":{\"entrypoint\":\"weekly_limit\"}}},{\"label\":\"Upgrade Plan\",\"upgrade\":{\"membershipToUpgradeTo\":\"unified_ultra\",\"allowTrial\":false,\"dashboardAction\":{\"action\":\"xaiCommercePaywall\",\"args\":{\"tier\":\"unified_ultra\",\"entrypoint\":\"weekly_limit\"}}}}],\"analyticsMetadata\":{\"actionRequired\":\"payment\"}},\"isExpected\":true},\"value\":\"CCwSnwQKMFdlZWtseSB1c2FnZSBsaW1pdCByZWFjaGVkLiBJdCByZXNldHMgaW4gNCBkYXlzLhJKQnV5IGNyZWRpdHMgdG8ga2VlcCBnb2luZyBub3csIG9yIHVwZ3JhZGUgeW91ciBwbGFuIGZvciBtb3JlIHdlZWtseSB1c2FnZS4gACgAOiwKD3JhdGVMaW1pdFJlYXNvbhIZcHJlcGFpZF9iYWxhbmNlX2V4aGF1c3RlZDoZCg1wcmVwYWlkV2FsbGV0EghwZXJzb25hbDodChV1bmlmaWVkU2t1V2Vla2x5TGltaXQSBHRydWU6IwoedW5pZmllZFNrdVdlZWtseUxpbWl0UmVzZXREYXlzEgE0OkEKC2NoYXRNZXNzYWdlEjIqV2Vla2x5IHVzYWdlIGxpbWl0IHJlYWNoZWQuIEl0IHJlc2V0cyBpbiA0IGRheXMuKkJUCgtCdXkgQ3JlZGl0c0pFCidjdXJzb3IudW5pZmllZFNrdUJpbGxpbmcub3BlbkJ1eUNyZWRpdHMSGgoKZW50cnlwb2ludBIMd2Vla2x5X2xpbWl0QmoKDFVwZ3JhZGUgUGxhbhJaCg11bmlmaWVkX3VsdHJhGAAiRwoSeGFpQ29tbWVyY2VQYXl3YWxsEhUKBHRpZXISDXVuaWZpZWRfdWx0cmESGgoKZW50cnlwb2ludBIMd2Vla2x5X2xpbWl0UgkKB3BheW1lbnQYAQ\"}]}}",
+  "notices": [
+   {
+    "type": "error",
+    "message": "Error"
+   }
+  ]
+ }
+]
