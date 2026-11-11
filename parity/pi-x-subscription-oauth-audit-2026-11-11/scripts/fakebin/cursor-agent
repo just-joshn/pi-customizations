@@ -1,0 +1,4 @@
+#!/bin/sh
+# Stand-in for a cursor-agent ask that succeeds after 130 s.
+sleep 130
+echo '{"type":"result","subtype":"success","is_error":false,"result":"late answer"}'
