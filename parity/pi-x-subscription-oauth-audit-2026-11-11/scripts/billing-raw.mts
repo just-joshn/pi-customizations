@@ -1,16 +1,12 @@
-import { PROXY_BASE_URL } from '../../../extensions/pi-x-subscription-oauth/src/catalog.ts';
-import { GROK_CLIENT_VERSION } from '../../../extensions/pi-x-subscription-oauth/src/request.ts';
+import { fetchPlanUsage } from '../../../extensions/pi-x-subscription-oauth/src/usage.ts';
 import { storedCredential } from './audit-env.mts';
 
-// Same request usage.ts sends. Prints the raw JSON so /usage output can be checked against it.
-const response = await fetch(`${PROXY_BASE_URL}/billing?format=credits`, {
-  headers: {
-    Authorization: `Bearer ${storedCredential('grok-build').access}`,
-    'X-XAI-Token-Auth': 'xai-grok-cli',
-    Accept: 'application/json',
-    'x-grok-client-version': GROK_CLIENT_VERSION,
+let raw: { status: number; body: unknown } | undefined;
+const usage = await fetchPlanUsage(storedCredential('grok-build').access, {
+  fetch: async (input, init) => {
+    const response = await fetch(input, init);
+    raw = { status: response.status, body: await response.clone().json() };
+    return response;
   },
-  redirect: 'error',
-  signal: AbortSignal.timeout(30_000),
 });
-console.log(JSON.stringify({ status: response.status, body: await response.json() }, null, 1));
+console.log(JSON.stringify({ ...raw, parsed: usage }, null, 1));

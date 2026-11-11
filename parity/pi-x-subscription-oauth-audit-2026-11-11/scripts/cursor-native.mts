@@ -3,9 +3,8 @@ import { gunzipSync } from 'node:zlib';
 
 import { openCursorRun } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/http2.ts';
 import { decodeFrame, encodeContextFrame, encodeRunFrame } from '../../../extensions/pi-x-subscription-oauth/src/cursor/native/wire.ts';
-import { OUT_DIR, storedCredential } from './audit-env.mts';
+import { RAW_OUT_DIR, storedCredential } from './audit-env.mts';
 
-// Opens the extension's own native Run and records every server frame, so a reviewer sees what decodeFrame reads.
 const [baseUrl = 'https://api2.cursor.sh', prompt = 'Reply with exactly the word pong and nothing else.', modelId = 'composer-2.5'] = process.argv.slice(2);
 const started = Date.now();
 const session = await openCursorRun({ token: storedCredential('cursor').access, signal: AbortSignal.timeout(60_000), baseUrl });
@@ -42,5 +41,5 @@ try {
   frames.push({ kind: 'error', ms: Date.now() - started, error: error instanceof Error ? error.message : String(error) });
 }
 session.close();
-writeFileSync(`${OUT_DIR}/cursor-native-frames.json`, JSON.stringify(frames, null, 1));
+writeFileSync(`${RAW_OUT_DIR}/cursor-native-frames.json`, JSON.stringify(frames, null, 1));
 console.log(JSON.stringify(frames, null, 1));

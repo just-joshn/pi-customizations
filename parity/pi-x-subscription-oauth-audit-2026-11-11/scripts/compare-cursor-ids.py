@@ -1,4 +1,3 @@
-# Compares the committed Pi catalog ids with the committed cursor-agent --list-models output.
 import json, pathlib
 evidence = pathlib.Path(__file__).resolve().parent.parent / 'evidence'
 pi = json.loads((evidence / 'cursor-catalog-ids.json').read_text())
