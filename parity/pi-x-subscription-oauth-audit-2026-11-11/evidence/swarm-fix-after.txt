@@ -1,0 +1,6 @@
+A1 contradiction hits: 0
+D3 still says true but incomplete: 1
+A2 quote='resets in 3d 14h 17m' file='resets in 3d 14h 17m' match=yes
+retry citation old wording: 0
+malformed auth.json: Error: <tmp>/auth.j
+C1 /tmp path hits on PR head ad4f9408: 0

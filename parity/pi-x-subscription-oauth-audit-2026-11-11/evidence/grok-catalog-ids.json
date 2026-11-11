@@ -1,0 +1,41 @@
+[
+ {
+  "id": "grok-4.7",
+  "contextWindow": 256000,
+  "thinking": [
+   "low",
+   "medium",
+   "high",
+   "xhigh"
+  ]
+ },
+ {
+  "id": "grok-4.7-build-fast",
+  "contextWindow": 256000,
+  "thinking": [
+   "low",
+   "medium",
+   "high",
+   "xhigh"
+  ]
+ },
+ {
+  "id": "grok-4.6",
+  "contextWindow": 256000,
+  "thinking": [
+   "low",
+   "medium",
+   "high",
+   "xhigh"
+  ]
+ },
+ {
+  "id": "grok-4.5",
+  "contextWindow": 256000,
+  "thinking": [
+   "low",
+   "medium",
+   "high"
+  ]
+ }
+]

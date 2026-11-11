@@ -1,0 +1,20 @@
+== biome audit dir
+Checked 10 files in 352ms. No fixes applied.
+== repo-wide
+Found 10 errors.
+Found 3 warnings.
+== hardcoded checkout paths
+none
+== evidence
+billing-credits-raw.json present
+grok-catalog-ids.json present
+cursor-catalog-ids.json present
+cursor-agent-list-models.txt present
+pi-usage-output.txt present
+fallback-cap-output.txt present
+== recounts
+grok-only 14  
+pi-only 13   `
+pi 276 cli 276 only cli ['auto'] only pi ['default']
+== secrets
+none
