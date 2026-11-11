@@ -16,6 +16,8 @@ await fetchPlanUsage(storedCredential('grok-build').access, {
     raw = { status: response.status, body: parsed(await response.clone().text()) };
     return response;
   },
-}).catch(() => {});
+}).catch((error: unknown) => {
+  if (!raw) throw error;
+});
 if (!raw) throw new Error('fetchPlanUsage sent no request.');
 console.log(JSON.stringify(raw, null, 1));
