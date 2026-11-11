@@ -1,18 +1,14 @@
-import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
-import { describe, expect, test } from 'vitest';
-import { checkFile, checkSkill, referenceFiles, staleExceptions } from './support/check.ts';
+import { beforeAll, describe, expect, test } from 'vitest';
+import { checkFile, checkSkill, referenceFiles } from './support/check.ts';
 import { exceptions } from './support/exceptions.ts';
 
 const SKILL_DIR = resolve(import.meta.dirname, '..');
 const PLANT_DIR = join(import.meta.dirname, 'fixtures/plant');
+const CLEAN_DIR = join(import.meta.dirname, 'fixtures/clean');
 
 describe('skill', () => {
-  test('exists', () => {
-    expect(existsSync(join(SKILL_DIR, 'SKILL.md'))).toBe(true);
-  });
-
   test('frontmatter, orphans, decision tree', () => {
     expect(checkSkill(SKILL_DIR)).toEqual([]);
   });
@@ -20,18 +16,19 @@ describe('skill', () => {
   test.for(referenceFiles(SKILL_DIR))('%s', (rel) => {
     expect(checkFile(SKILL_DIR, rel, exceptions)).toEqual([]);
   });
-
-  test('every typecheck exception still fails', () => {
-    expect(staleExceptions(SKILL_DIR, exceptions)).toEqual([]);
-  });
 });
 
 describe('gate catches planted mistakes', () => {
-  const skillProblems = checkSkill(PLANT_DIR, 'ROUTER.md').join('\n');
-  const plantException = { file: 'core/more.md', blockContains: "from './pick'", codes: [2578, 2349], reason: 'plant' };
-  const fileProblems = referenceFiles(PLANT_DIR)
-    .flatMap((rel) => checkFile(PLANT_DIR, rel, [plantException]))
-    .join('\n');
+  let skillProblems = '';
+  let fileProblems = '';
+  beforeAll(() => {
+    // ROUTER.md, not SKILL.md, so Pi never discovers the fixture as a second skill.
+    skillProblems = checkSkill(PLANT_DIR, 'ROUTER.md').join('\n');
+    const plantException = { file: 'core/more.md', blockContains: "from './pick'", codes: [2578, 2349], reason: 'plant' };
+    fileProblems = referenceFiles(PLANT_DIR)
+      .flatMap((rel) => checkFile(PLANT_DIR, rel, [plantException]))
+      .join('\n');
+  });
 
   test.for(['frontmatter is not valid YAML', 'core/orphan.md is not linked', 'decision tree path does not exist: core/nope.md'])('%s', (expected) => {
     expect(skillProblems).toContain(expected);
@@ -59,5 +56,16 @@ describe('gate catches planted mistakes', () => {
     "Property 'notInTheException' does not exist",
   ])('%s', (expected) => {
     expect(fileProblems).toContain(expected);
+  });
+});
+
+describe('gate accepts valid examples', () => {
+  test('browser, Solid, React examples type-check', () => {
+    expect(checkFile(CLEAN_DIR, 'valid.md')).toEqual([]);
+  });
+
+  test('an exception whose error no longer occurs is reported', () => {
+    const stale = { file: 'valid.md', blockContains: 'react element', codes: [2349], reason: 'stale on purpose' };
+    expect(checkFile(CLEAN_DIR, 'valid.md', [stale])).toEqual(['valid.md: stale exception "react element" TS2349']);
   });
 });

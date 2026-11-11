@@ -1,5 +1,4 @@
-import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import ts from 'typescript-api';
 import * as vitest from 'vitest';
@@ -30,33 +29,12 @@ const FRAGMENT_NOISE = new Set([
 
 const VITEST_EXPORTS = new Set(Object.keys(vitest));
 
-// Bun installs one copy of vitest per peer set, so @vitest/browser's `declare module 'vitest'` would augment a
-// different copy than the examples import. Every resolution into any vitest copy is redirected to this one.
-const VITEST_DIR = dirname(createRequire(import.meta.url).resolve('vitest/package.json'));
-const canonical = (file: string): string => file.replace(/^.*\/node_modules\/vitest\//, `${VITEST_DIR}/`);
-
-function resolveModule(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedModuleWithFailedLookupLocations {
-  const result = ts.resolveModuleName(name, containingFile, options, ts.sys);
-  const resolved = result.resolvedModule;
-  return resolved ? { ...result, resolvedModule: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } } : result;
-}
-
-function resolveTypeReference(name: string, containingFile: string, options: ts.CompilerOptions): ts.ResolvedTypeReferenceDirectiveWithFailedLookupLocations {
-  const result = ts.resolveTypeReferenceDirective(name, containingFile, options, ts.sys);
-  const resolved = result.resolvedTypeReferenceDirective;
-  if (!resolved?.resolvedFileName) return result;
-  return { ...result, resolvedTypeReferenceDirective: { ...resolved, resolvedFileName: canonical(resolved.resolvedFileName) } };
-}
-
-const NODE_TYPES = ['node', 'vitest/globals', 'vitest/importMeta', 'vite/client'];
-const BROWSER_TYPES = [...NODE_TYPES, 'vitest/browser'];
-
 const OPTIONS: ts.CompilerOptions = {
   target: ts.ScriptTarget.ES2022,
   module: ts.ModuleKind.ESNext,
   moduleResolution: ts.ModuleResolutionKind.Bundler,
   lib: ['lib.es2022.d.ts', 'lib.esnext.disposable.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
-  types: NODE_TYPES,
+  types: ['node', 'vitest/globals', 'vitest/importMeta', 'vite/client'],
   jsx: ts.JsxEmit.Preserve,
   strict: false,
   noImplicitAny: false,
@@ -88,38 +66,31 @@ export interface BlockProblem {
 const BROWSER_CODE = /from ['"](vitest\/browser|@vitest\/browser[^'"]*|vitest-browser-[^'"]*)['"]|\bexpect\.element\(/;
 const SOLID_CODE = /from ['"](solid-js[^'"]*|@solidjs\/[^'"]*)['"]/;
 
-const ENVIRONMENTS = {
-  node: OPTIONS,
-  browser: { ...OPTIONS, types: BROWSER_TYPES },
-  'node-solid': { ...OPTIONS, jsxImportSource: 'solid-js' },
-  'browser-solid': { ...OPTIONS, types: BROWSER_TYPES, jsxImportSource: 'solid-js' },
-} satisfies Record<string, ts.CompilerOptions>;
+const BROWSER_OPTIONS: ts.CompilerOptions = { ...OPTIONS, types: [...(OPTIONS.types ?? []), 'vitest/browser'] };
 
-function environment(code: string): keyof typeof ENVIRONMENTS {
-  const base = BROWSER_CODE.test(code) ? 'browser' : 'node';
-  return SOLID_CODE.test(code) ? `${base}-solid` : base;
-}
+/** Module resolution walks up from here, so examples resolve the packages in this skill's package.json. */
+const SKILL_ROOT = resolve(import.meta.dirname, '../..');
 
 /**
  * One program per markdown file and environment: browser examples get their own program so their
  * matcher and locator types can't leak into Node examples, and no file's declarations leak into another.
  */
-export function typecheckBlocks(root: string, id: string, blocks: CodeBlock[]): BlockProblem[] {
-  const groups = new Map<keyof typeof ENVIRONMENTS, CodeBlock[]>();
-  for (const block of blocks) {
-    if (!EXTENSION[block.lang]) continue;
-    const env = environment(block.code);
-    groups.set(env, [...(groups.get(env) ?? []), block]);
-  }
-  return [...groups].flatMap(([env, group]) => typecheckGroup(root, id, group, ENVIRONMENTS[env]));
+export function typecheckBlocks(id: string, blocks: CodeBlock[]): BlockProblem[] {
+  const checked = blocks.filter((block) => EXTENSION[block.lang]);
+  const browser = checked.filter((block) => BROWSER_CODE.test(block.code));
+  const node = checked.filter((block) => !BROWSER_CODE.test(block.code));
+  return [...typecheckGroup(id, node, OPTIONS), ...typecheckGroup(id, browser, BROWSER_OPTIONS)];
 }
 
-function typecheckGroup(root: string, id: string, blocks: CodeBlock[], options: ts.CompilerOptions): BlockProblem[] {
+function typecheckGroup(id: string, blocks: CodeBlock[], options: ts.CompilerOptions): BlockProblem[] {
   const files = new Map<string, { block: CodeBlock; text: string }>();
   for (const block of blocks) {
-    const name = join(root, '__blocks__', id.replace(/[^\w]/g, '_'), `L${block.line}.${EXTENSION[block.lang]}`);
-    files.set(name, { block, text: `${block.code}\nexport {}\n` });
+    const name = join(SKILL_ROOT, '__blocks__', id.replace(/[^\w]/g, '_'), `L${block.line}.${EXTENSION[block.lang]}`);
+    // The pragma shares the first line, so diagnostic line numbers stay aligned with the markdown.
+    const pragma = SOLID_CODE.test(block.code) ? '/** @jsxImportSource solid-js */ ' : '';
+    files.set(name, { block, text: `${pragma}${block.code}\nexport {}\n` });
   }
+  if (files.size === 0) return [];
   const readFile = (path: string) => files.get(path)?.text ?? ts.sys.readFile(path);
 
   const service = ts.createLanguageService(
@@ -131,16 +102,16 @@ function typecheckGroup(root: string, id: string, blocks: CodeBlock[], options: 
         const content = readFile(path);
         return content === undefined ? undefined : ts.ScriptSnapshot.fromString(content);
       },
-      getCurrentDirectory: () => root,
+      getCurrentDirectory: () => SKILL_ROOT,
       getDefaultLibFileName: ts.getDefaultLibFilePath,
       fileExists: (path) => files.has(path) || ts.sys.fileExists(path),
       readFile,
       readDirectory: ts.sys.readDirectory,
       directoryExists: ts.sys.directoryExists,
       getDirectories: ts.sys.getDirectories,
-      resolveModuleNameLiterals: (literals, containingFile, _redirected, compilerOptions) => literals.map((literal) => resolveModule(literal.text, containingFile, compilerOptions)),
-      resolveTypeReferenceDirectiveReferences: (references, containingFile, _redirected, compilerOptions) =>
-        references.map((reference) => resolveTypeReference(typeof reference === 'string' ? reference : reference.fileName.toLowerCase(), containingFile, compilerOptions)),
+      // Bun links packages through symlinks; without realpath each link is a separate copy of a package,
+      // and `vitest/browser`'s augmentation of 'vitest' lands on a different copy than the examples import.
+      realpath: (path) => ts.sys.realpath?.(path) ?? path,
     },
     registry,
   );

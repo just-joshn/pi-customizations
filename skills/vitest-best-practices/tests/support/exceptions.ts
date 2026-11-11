@@ -1,4 +1,10 @@
-import type { TypecheckException } from './check.ts';
+/** A known, explained type error in one block. `checkFile` reports the exception if the error stops occurring. */
+export interface TypecheckException {
+  file: string;
+  blockContains: string;
+  codes: number[];
+  reason: string;
+}
 
 const ANY_SUBJECT = 'type assertions on a subject imported from a file the example does not include, so it is `any`';
 const UNUSED_EXPECT_ERROR = 2578;

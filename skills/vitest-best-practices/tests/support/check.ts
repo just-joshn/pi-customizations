@@ -1,18 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 
 import { parse as parseYaml } from 'yaml';
+import type { TypecheckException } from './exceptions.ts';
 import { type ParsedMarkdown, parseMarkdown } from './markdown.ts';
 import { typecheckBlocks } from './typecheck.ts';
-
-export interface TypecheckException {
-  file: string;
-  blockContains: string;
-  codes: number[];
-  reason: string;
-}
-
-const SKILL_ROOT = resolve(import.meta.dirname, '../..');
 
 const NOT_SKILL_CONTENT = new Set(['tests', 'node_modules']);
 
@@ -45,7 +37,7 @@ function localTargets(skillDir: string, rel: string): string[] {
     .map((href) => relative(skillDir, resolve(dirname(join(skillDir, rel)), decodeURI(href.split('#')[0] ?? ''))));
 }
 
-/** Paths written in SKILL.md's decision tree, which lives in a plain code fence. */
+/** Paths in SKILL.md's decision tree. The tree is a plain code fence, as in the Playwright skill it mirrors, so the link check can't see them. */
 function treePaths(skillDir: string, entry: string): string[] {
   return parse(join(skillDir, entry))
     .blocks.filter((block) => block.lang === '')
@@ -62,7 +54,7 @@ function frontmatterProblems(skillDir: string, entry: string): string[] {
   const problems: string[] = [];
   const name = frontmatter?.['name'];
   const description = frontmatter?.['description'];
-  if (name !== 'vitest-best-practices') problems.push(`frontmatter name is ${String(name)}`);
+  if (name !== basename(skillDir)) problems.push(`frontmatter name ${String(name)} does not match the directory ${basename(skillDir)}`);
   if (typeof description !== 'string' || description.length < 50) problems.push('frontmatter description is missing or too short');
   return problems;
 }
@@ -84,16 +76,17 @@ export function checkFile(skillDir: string, rel: string, exceptions: readonly Ty
   const problems = localTargets(skillDir, rel)
     .filter((target) => !existsSync(join(skillDir, target)))
     .map((target) => `${rel}: broken link ${target}`);
-  for (const problem of typecheckBlocks(SKILL_ROOT, rel, parse(join(skillDir, rel)).blocks)) {
-    const excused = exceptions.some((e) => e.file === rel && problem.block.code.includes(e.blockContains) && e.codes.includes(problem.code));
-    if (!excused) problems.push(problem.message);
+  const own = exceptions.filter((e) => e.file === rel);
+  const excusedCodes = new Map(own.map((e) => [e, new Set<number>()]));
+  for (const problem of typecheckBlocks(rel, parse(join(skillDir, rel)).blocks)) {
+    const exception = own.find((e) => problem.block.code.includes(e.blockContains) && e.codes.includes(problem.code));
+    if (exception) excusedCodes.get(exception)?.add(problem.code);
+    else problems.push(problem.message);
+  }
+  for (const [exception, seen] of excusedCodes) {
+    for (const code of exception.codes) {
+      if (!seen.has(code)) problems.push(`${rel}: stale exception "${exception.blockContains}" TS${code}`);
+    }
   }
   return problems;
-}
-
-export function staleExceptions(skillDir: string, exceptions: readonly TypecheckException[]): TypecheckException[] {
-  return exceptions.filter((e) => {
-    const inBlock = typecheckBlocks(SKILL_ROOT, e.file, parse(join(skillDir, e.file)).blocks).filter((problem) => problem.block.code.includes(e.blockContains));
-    return !e.codes.every((code) => inBlock.some((problem) => problem.code === code));
-  });
 }
