@@ -217,6 +217,20 @@ export function squashBranch(sandbox: string, branch: string): void {
   refreshGit(sandbox);
 }
 
+/** Collapses a worker branch into one commit on the base that leaves out `file`: one focused commit, with no pin of the delegate's own. */
+export function squashBranchWithout(sandbox: string, branch: string, file: string): void {
+  const repo = join(sandbox, 'repo');
+  const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { base: string };
+  const index = join(sandbox, 'squash.index');
+  const run = (command: string) => spawnSync('sh', ['-c', command], { cwd: repo, encoding: 'utf8', env: { ...process.env, GIT_INDEX_FILE: index } }).stdout.trim();
+  run(`git read-tree ${JSON.stringify(branch)} && git update-index --force-remove ${JSON.stringify(file)}`);
+  const tree = run('git write-tree');
+  const squashed = run(`git -c user.name=m -c user.email=m@x commit-tree ${tree} -p ${meta.base} -m squashed`);
+  rmSync(index, { force: true });
+  run(`git update-ref ${JSON.stringify(`refs/heads/${branch}`)} ${squashed}`);
+  refreshGit(sandbox);
+}
+
 /** Collapses the main checkout's commits since the base into one. */
 export function squashMain(sandbox: string): void {
   const repo = join(sandbox, 'repo');

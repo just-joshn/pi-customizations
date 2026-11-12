@@ -720,8 +720,9 @@ export function delegateCommits(view: RunView): string[] {
 
 /** Commits the parent made on the checkout before it spawned the delegate, oldest first: the delegate's input commit beyond the base. */
 export function parentSpawnCommits(view: RunView): string[] {
-  const input = assignmentOf(delegateOf(view) as WorkerView).workspace?.inputCommit;
-  if (delegateOf(view) === undefined || typeof input !== 'string') return [];
+  const delegate = delegateOf(view);
+  const input = delegate === undefined ? undefined : assignmentOf(delegate).workspace?.inputCommit;
+  if (typeof input !== 'string') return [];
   const listed = spawnSync('git', ['-C', view.repo, 'rev-list', '--reverse', `${view.base}..${input}`], { encoding: 'utf8' });
   return listed.status === 0 ? listed.stdout.split('\n').filter(Boolean) : [];
 }
@@ -853,6 +854,73 @@ export function runAtCommit(view: RunView, sha: string, command: string): { stat
 }
 
 export const isTestFile = (file: string): boolean => file.startsWith('test/') || /\.(test|spec)\.[jt]sx?$/.test(file);
+
+// ---- the refactoring pin
+
+const PIN_RUN = 'node --test --experimental-test-coverage --test-reporter=tap --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=.pin.lcov; status=$?; echo @@LCOV; cat .pin.lcov 2>/dev/null; exit $status';
+
+/** The test suite run for real at a commit: whether it passed, how many tests passed, and which source files those tests executed. */
+function pinAt(view: RunView, sha: string): { green: boolean; passed: number; executed: string[]; tail: string } {
+  const run = runAtCommit(view, sha, PIN_RUN);
+  const [tap = '', lcov = ''] = run.output.split('@@LCOV');
+  const executed = lcov
+    .split('end_of_record')
+    .filter((record) => Number(/^LH:(\d+)/m.exec(record)?.[1] ?? 0) > 0)
+    .flatMap((record) => /^SF:(.+)$/m.exec(record)?.[1] ?? []);
+  return { green: run.status === 0, passed: Number(/^# pass (\d+)/m.exec(tap)?.[1] ?? 0), executed, tail: tap.trim().split('\n').slice(-6).join(' | ') };
+}
+
+/** Existing source files a commit modifies or deletes: the code whose behavior a pin has to hold. */
+function changedSource(view: RunView, sha: string): string[] {
+  const listed = spawnSync('git', ['-C', view.repo, 'diff-tree', '--no-commit-id', '--name-status', '-r', '--root', sha], { encoding: 'utf8' });
+  return listed.stdout
+    .split('\n')
+    .map((line) => line.split('\t'))
+    .flatMap(([status, file]) => (file !== undefined && (status === 'M' || status === 'D') && !isTestFile(file) ? [file] : []));
+}
+
+/**
+ * Refactoring step 1: before any structure moved, a pin existed and was green, shown by running it on the code that precedes each structural
+ * commit. A pin the parent committed before the spawn, one the delegate committed first, or an existing test that already executes the code
+ * all count; one focused delegate commit is valid. A commit that adds the characterization together with the structural change proves no
+ * before-change pin. Each structural commit is judged on its own pin, so independent changes each need one, and a later commit may not edit
+ * the pin commits. Only a delegate-less workflow, or one with no structural commit, has nothing to judge, and it fails by name.
+ */
+export function pinBeforeChange(view: RunView): Outcome {
+  if (delegateOf(view) === undefined) return fail('no poteto worker in a worktree, so no delegate made a structural change to pin');
+  const commits = workflowCommits(view);
+  const structural = commits.filter((sha) => filesChanged(view, sha).some((file) => !isTestFile(file)));
+  const first = structural[0];
+  if (first === undefined) return fail(`${commits.length} workflow commit(s) and none changes production source: there is no structural change`);
+  const short = (sha: string) => sha.slice(0, 8);
+  const problems: string[] = [];
+  const together = filesChanged(view, first).filter(isTestFile);
+  if (together.length > 0) problems.push(`${short(first)} changes production source and ${together.join(', ')} in one commit, so no pin was shown green before the structure moved`);
+  const pinFiles = commits.slice(0, commits.indexOf(first)).flatMap((sha) => filesChanged(view, sha));
+  for (const sha of commits.slice(commits.indexOf(first) + 1)) {
+    const edited = filesChanged(view, sha).filter((file) => pinFiles.includes(file));
+    if (edited.length > 0) problems.push(`${short(sha)} edits the pin ${edited.join(', ')}`);
+  }
+  let unproven = 0;
+  for (const sha of structural.filter((candidate) => candidate !== first || together.length === 0)) {
+    const parent = spawnSync('git', ['-C', view.repo, 'rev-parse', `${sha}^`], { encoding: 'utf8' }).stdout.trim();
+    if (parent === '') {
+      problems.push(`${short(sha)} has no earlier code to have pinned`);
+      continue;
+    }
+    const pin = pinAt(view, parent);
+    if (!pin.green) problems.push(`the pin is red on the code before ${short(sha)}: ${pin.tail}`);
+    else if (pin.passed < 1) problems.push(`no test ran on the code before ${short(sha)}, so nothing pinned it`);
+    else {
+      const missed = changedSource(view, sha).filter((file) => !pin.executed.some((seen) => seen === file || seen.endsWith(`/${file}`)));
+      if (missed.length > 0 && pin.executed.length === 0) unproven += 1;
+      else if (missed.length > 0) problems.push(`the ${pin.passed} passing test(s) before ${short(sha)} never execute ${missed.join(', ')}, which it changes`);
+    }
+  }
+  if (problems.length > 0) return fail(problems.join('; '));
+  if (unproven > 0) return { inconclusive: 'the pin passed but the test run reported no coverage, so it is not shown to execute the changed code' };
+  return pass(`${structural.length} structural commit(s), each preceded by a green pin that executes the code it changes${pinFiles.length > 0 ? `; pin committed first: ${[...new Set(pinFiles)].join(', ')}` : '; an existing test served as the pin'}`);
+}
 
 /**
  * Every commit of the worker's branch, run on its own: each unit ends in a check that passes. A commit that only adds tests and fails is
