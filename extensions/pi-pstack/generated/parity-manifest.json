@@ -6,14 +6,14 @@
   },
   "requirementsDigest": "7ff52c6b5bceec4cb9a89b9ea5af2c653af9b1a3fd8a2ef3616004dc25820cc7",
   "run": {
-    "startedAt": "2026-11-12T10:47:07.102Z",
-    "generatedAt": "2026-11-12T10:51:41.020Z",
-    "commit": "e8b90b5c1a4e92f1f7044b2275f1aa759dbc5169",
+    "startedAt": "2026-11-12T11:25:36.115Z",
+    "generatedAt": "2026-11-12T11:27:35.268Z",
+    "commit": "480d98adc0f09ac54fcc31b9232037e370c05be6",
     "dirty": false,
     "resultsSource": "vitest run",
     "totalTests": 1785,
-    "passedTests": 1718,
-    "failedTests": 2,
+    "passedTests": 1720,
+    "failedTests": 0,
     "skippedTests": 65
   },
   "counts": {
@@ -25,8 +25,8 @@
     },
     "behavioral": {
       "PASS": 42,
-      "FAIL": 1,
-      "INCONCLUSIVE": 42,
+      "FAIL": 0,
+      "INCONCLUSIVE": 43,
       "N/A": 0
     }
   },
@@ -24897,7 +24897,7 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/provider-auth.test.ts",
@@ -25010,8 +25010,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
     },
     {
       "id": "WF-HOW-READONLY",
