@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { bareOf, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeEvent, type ForgeHandle, type ForgeState, patchIdOf, readForge, revParse, setupForge, WATCH_PR } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, src, type Src, when } from '../lib/check.ts';
+import { check, checkAbsence, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks, verifyReceipt } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { deleteStep, dropWakes, parentSession, patchAssignment, rewriteFinalReply, setStep } from '../lib/mutate.ts';
@@ -544,7 +544,7 @@ function blockedFamily(kind: BlockedKind): Family {
         const local = allWorkers(view).filter((worker) => assignmentOf(worker).workspace?.mode !== 'container');
         return when(spawns.length === 1 && local.length === 0, 'one spawn attempt, container only', `${spawns.length} spawn attempts; non-container workers ${local.map((worker) => worker.id).join(', ') || 'none'}`);
       }),
-      check('ship.blocked.lands-nothing', 'the forge saw reads only: no verdict, no merge, no queue entry, no ref update, and every PR is still open', SH('Report it blocked and land nothing'), (view) => {
+      checkAbsence('ship.blocked.lands-nothing', 'the forge saw reads only: no verdict, no merge, no queue entry, no ref update, and every PR is still open', SH('Report it blocked and land nothing'), (view) => {
         const { state, actions } = readForge(view);
         const writes = actions.filter((action) => !['read'].includes(action.kind));
         return when(writes.length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN'), `${actions.length} forge actions, all reads; every PR open`, `forge writes ${writes.map((action) => action.kind).join(', ')}; states ${Object.values(state.prs).map((pr) => pr.state).join(', ')}`);

@@ -105,7 +105,7 @@ function byPath(id: string, title: string, sources: Src[], simple: (view: RunVie
   return check(id, title, sources, (view) => {
     const path = howPath(view);
     const outcome = path === 'simple' ? simple(view) : complex(view);
-    return 'skip' in outcome ? outcome : { ...outcome, evidence: `${path} path: ${outcome.evidence}` };
+    return 'skip' in outcome || 'inconclusive' in outcome ? outcome : { ...outcome, evidence: `${path} path: ${outcome.evidence}` };
   });
 }
 

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, scenario } from '../fixtures/dsl.ts';
 import { forgeEnv, type ForgeHandle, readForge, setupForge, watchVerdict, WATCH_PR, type ChaosStep } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
-import { check, src, when } from '../lib/check.ts';
+import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
@@ -243,7 +243,7 @@ const noWatcher = (id: string, source: ReturnType<typeof BS>) =>
   });
 
 const onlyReads = (id: string, title: string, source: ReturnType<typeof BS>, allowed: string[] = []) =>
-  check(id, title, source, (view) => {
+  checkAbsence(id, title, source, (view) => {
     const { actions } = readForge(view);
     const bad = actions.filter((action) => action.kind !== 'read' && action.kind !== 'log-view' && !allowed.includes(action.kind));
     return when(actions.length > 0 && bad.length === 0, `${actions.length} forge actions, ${allowed.length === 0 ? 'every one a read' : `reads plus ${allowed.join(', ')} only`}`, `forge writes: ${bad.map((action) => `${action.kind}${action.pr === undefined ? '' : ` #${action.pr}`}`).join(', ') || 'no actions at all'}`);

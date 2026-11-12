@@ -27,6 +27,7 @@ export function defineFamilyTests(list: Family[]): void {
 
       test('scripted run: every check passes', () => {
         const results = run?.results ?? [];
+        expect(run?.inconclusive, 'the run is not evidence').toBeUndefined();
         expect(run?.timedOut, `pi stderr: ${run?.piStderr}`).toBe(false);
         const known = new Set((family.knownDefects ?? []).map((entry) => entry.checkId));
         expect(results.filter((result) => result.verdict !== 'PASS' && !known.has(result.id)).map((result) => `${result.verdict} ${result.id}: ${result.evidence}`)).toEqual([]);
@@ -57,6 +58,7 @@ export function defineFamilyTests(list: Family[]): void {
           console.log(report(real));
           writeEvidence(real);
           try {
+            expect(real.inconclusive, 'INCONCLUSIVE: the run is not evidence').toBeUndefined();
             expect(real.timedOut, `pi stderr: ${real.piStderr}`).toBe(false);
             expect(real.results.filter((result) => result.verdict === 'FAIL').map((result) => `${result.id}: ${result.evidence}`)).toEqual([]);
           } finally {

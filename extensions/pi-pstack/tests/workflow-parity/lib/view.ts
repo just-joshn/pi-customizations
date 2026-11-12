@@ -30,6 +30,8 @@ export interface Session {
   toolCalls: ToolCall[];
   /** The model that answered, as provider/id, from the assistant messages. */
   models: string[];
+  /** The text of every assistant message the provider ended with an error (stopReason "error" or an errorMessage), except a turn the harness itself aborted: a 429, an auth failure, an unknown model. */
+  errors: string[];
 }
 
 const textOf = (content: unknown): string => {
@@ -54,6 +56,7 @@ export function loadSession(file: string): Session {
   const calls = new Map<string, ToolCall>();
   const toolCalls: ToolCall[] = [];
   const models = new Set<string>();
+  const errors: string[] = [];
   let cwd: string | null = null;
   let order = 0;
   for (const entry of entries) {
@@ -70,6 +73,7 @@ export function loadSession(file: string): Session {
     const role = String(message['role']);
     messages.push({ order: order++, role, text: textOf(message['content']) });
     if (role === 'assistant') {
+      if (message['stopReason'] !== 'aborted' && (message['stopReason'] === 'error' || typeof message['errorMessage'] === 'string')) errors.push(typeof message['errorMessage'] === 'string' && message['errorMessage'] !== '' ? message['errorMessage'] : 'assistant message ended with stopReason error');
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
       for (const part of message['content'] as Json[]) {
         if (part['type'] !== 'toolCall') continue;
@@ -86,7 +90,7 @@ export function loadSession(file: string): Session {
       }
     }
   }
-  return { file, cwd, messages, toolCalls, models: [...models] };
+  return { file, cwd, messages, toolCalls, models: [...models], errors };
 }
 
 export interface Receipt {

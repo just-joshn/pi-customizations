@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // A stand-in for the pi binary that fails the ways a real one can. FAKE_PI_MODE: crash | silent | no-session | sandbox-removed | busy | stalled.
+// FAKE_PI_SESSION: a session file the busy mode copies in when it goes idle, in place of a bare header.
 // busy: streams an event every 100 ms for FAKE_PI_BUSY_MS, then goes idle and writes its session. stalled: streams once, then never finishes and never writes again.
-import { rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -26,7 +27,9 @@ createInterface({ input: process.stdin }).on('line', (line) => {
         console.log(JSON.stringify({ type: 'message_update', at: Date.now() }));
         if (Date.now() < until) return;
         clearInterval(timer);
-        writeFileSync(`${sandbox}/sessions/never-written.jsonl`, `${JSON.stringify({ type: 'session', id: 'x', cwd: process.cwd() })}\n`);
+        const target = `${sandbox}/sessions/never-written.jsonl`;
+        if (process.env.FAKE_PI_SESSION) copyFileSync(process.env.FAKE_PI_SESSION, target);
+        else writeFileSync(target, `${JSON.stringify({ type: 'session', id: 'x', cwd: process.cwd() })}\n`);
         streaming = false;
       }, 100);
     }

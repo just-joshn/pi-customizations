@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 
-import { type Check, check, fail, type Outcome, pass, type Src, src, when } from './check.ts';
+import { type Check, check, checkAbsence, fail, type Outcome, pass, type Src, src, when } from './check.ts';
 import { PKG } from './driver.ts';
 import { type Receipt, type RunDir, type RunView, type Session, STEP_LINE, type ToolCall, type WorkerView } from './view.ts';
 
@@ -364,7 +364,7 @@ export function commitsNotFromWorkers(view: RunView): string[] {
 }
 
 export function repoUntouched(id: string, title: string, source: Src | Src[]): Check {
-  return check(id, title, source, (view) => {
+  return checkAbsence(id, title, source, (view) => {
     const dirty = view.git.dirty;
     const moved = view.git.commitsSinceBase;
     const parentWrites = parentProductionWrites(view);
@@ -513,7 +513,7 @@ export function decisionLog(id: string, source: Src | Src[], options: { run?: st
 const RAN_AND_EXITED_NONZERO = /\n\nCommand exited with code [1-9]\d*\s*$/;
 
 export function noToolErrors(id: string, source: Src | Src[], allow: RegExp[] = []): Check {
-  return check(id, 'no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure', source, (view) => {
+  return checkAbsence(id, 'no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure', source, (view) => {
     const errors = view.parent.toolCalls.filter((call: ToolCall) => call.isError && !(call.name === 'bash' && RAN_AND_EXITED_NONZERO.test(call.resultText)) && !allow.some((pattern) => pattern.test(call.resultText) || pattern.test(JSON.stringify(call.args))));
     return when(errors.length === 0, `${view.parent.toolCalls.length} tool calls, none failed`, errors.map((call) => `${call.name}: ${call.resultText.slice(0, 120)}`).join(' | '));
   });
@@ -592,14 +592,14 @@ export function parentRanBeforeSpawn(id: string, title: string, source: Src | Sr
 }
 
 export function parentNeverOpened(id: string, title: string, source: Src | Src[], names: string[]): Check {
-  return check(id, title, source, (view) => {
+  return checkAbsence(id, title, source, (view) => {
     const opened = names.filter((name) => openedAt(view.parent, skillFile(name)) !== -1);
     return when(opened.length === 0, `parent opened none of ${names.join(', ')}`, `parent opened ${opened.join(', ')}`);
   });
 }
 
 export function replyLacks(id: string, title: string, source: Src | Src[], patterns: RegExp[]): Check {
-  return check(id, title, source, (view) => {
+  return checkAbsence(id, title, source, (view) => {
     const reply = finalReply(view);
     const hit = patterns.filter((pattern) => pattern.test(reply));
     return when(reply !== '' && hit.length === 0, 'the reply contains none of the banned forms', `the reply contains ${hit.map(String).join(', ')}`);
@@ -714,7 +714,7 @@ export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: 
 
 /** The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. */
 export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[]): Check {
-  return check(id, title, source, (view) => {
+  return checkAbsence(id, title, source, (view) => {
     const production = parentProductionWrites(view);
     const own = commitsNotFromWorkers(view);
     return when(production.length === 0 && view.git.dirty.length === 0 && own.length === 0, 'the parent wrote nothing into production source, the main checkout is clean, and every commit on it is a worker\'s', `parent wrote ${production.join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits the parent made itself ${own.length}`);
