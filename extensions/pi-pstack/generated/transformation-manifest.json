@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 167,
-    "spans": 232
+    "rules": 171,
+    "spans": 236
   },
   "skills": [
     "architect",
@@ -1055,6 +1055,24 @@
       }
     },
     {
+      "id": "architect.runner-template-path",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/architect/references/runner-prompt.md": 1
+      }
+    },
+    {
+      "id": "why.synthesizer-epistemics-path",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/why/references/synthesizer-prompt.md": 1
+      }
+    },
+    {
       "id": "interrogate.adversary-role",
       "primitives": [
         "subagent-type"
@@ -1165,7 +1183,7 @@
       }
     },
     {
-      "id": "poteto-help.installed-plugin",
+      "id": "poteto-help.public-copy",
       "primitives": [
         "cursor-host"
       ],
@@ -1558,6 +1576,24 @@
       }
     },
     {
+      "id": "setup-pstack.confirm-detected",
+      "primitives": [
+        "cursor-model-slug"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.validate",
+      "primitives": [
+        "cursor-model-slug"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
       "id": "setup-pstack.confirm",
       "primitives": [
         "cursor-model-rule"
@@ -1774,6 +1810,21 @@
       "output": "generated/skills/architect/SKILL.md"
     },
     {
+      "file": "vendor/upstream-pstack/skills/architect/references/runner-prompt.md",
+      "rule": "architect.runner-template-path",
+      "offset": [
+        689,
+        749
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "shaped per [`rationale-template.md`](rationale-template.md).",
+      "replacement": "shaped per [`<pi-pstack>/generated/skills/architect/references/rationale-template.md`](rationale-template.md).",
+      "output": "generated/skills/architect/references/runner-prompt.md"
+    },
+    {
       "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
       "rule": "arena.todolist",
       "offset": [
@@ -1905,7 +1956,7 @@
         28
       ],
       "original": "Spawn one readonly judge subagent.",
-      "replacement": "Spawn one judge worker with `role: \"judge\"` and `workspace.mode: \"readonly\"`.",
+      "replacement": "Spawn one judge worker with `role: \"judge\"` and `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }`.",
       "output": "generated/skills/arena/SKILL.md"
     },
     {
@@ -2280,7 +2331,7 @@
         11
       ],
       "original": "Every spawn is a Task subagent with `subagent_type: generalPurpose` and `readonly: true`.",
-      "replacement": "Every spawn is a `pstack_worker` worker with `workspace.mode: \"readonly\"`, `role: \"explorer\"` for explorers and `role: \"general\"` for explainers.",
+      "replacement": "Every spawn is a `pstack_worker` worker with `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }`, `role: \"explorer\"` for explorers and `role: \"general\"` for explainers.",
       "output": "generated/skills/how/SKILL.md"
     },
     {
@@ -2555,17 +2606,17 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
-      "rule": "poteto-help.installed-plugin",
+      "rule": "poteto-help.public-copy",
       "offset": [
-        900,
-        932
+        885,
+        1089
       ],
       "lines": [
         13,
         13
       ],
-      "original": "point into the installed plugin,",
-      "replacement": "point into the installed pi-pstack package,",
+      "original": "The links here point into the installed plugin, which the user may not be able to open, so give the user the file's public copy: `https://github.com/cursor/plugins/blob/main/pstack/` followed by its path.",
+      "replacement": "The links here point into the installed pi-pstack package, which the user may not be able to open, so give the user the file's public copy. For a file the compiler changed, which `generated/transformation-manifest.json` in the package names as a span `output`, or a file pi-pstack added, the public copy is `https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-pstack/generated/skills/` followed by its path under `skills/`. For any other skill file, which the compiler copied unchanged, it is the pinned upstream copy, `https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/skills/` followed by the same path.",
       "output": "generated/skills/poteto-help/SKILL.md"
     },
     {
@@ -4425,7 +4476,7 @@
         21
       ],
       "original": "That covers the legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`) layouts. For each candidate, read the first JSONL line.",
-      "replacement": "That covers this workspace's sessions and the pstack worker sessions under the project's run root. For each candidate, read its first entry of type `message`.",
+      "replacement": "That covers this workspace's sessions and the pstack worker sessions under the project's run root. For each candidate, read its first entry of type `message` whose `message.role` is `user`, because a Pi session file opens with a `system` message.",
       "output": "generated/skills/reflect/SKILL.md"
     },
     {
@@ -4440,7 +4491,7 @@
         25
       ],
       "original": "One message, three `Task` calls, `subagent_type: generalPurpose`, agent mode (`readonly: false`). Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references, and readonly strips MCPs.",
-      "replacement": "Three `pstack_worker` spawns, one after another without waiting, each with `role: \"reviewer\"`, `workspace.mode: \"readonly\"`, and `capabilities.mcp: \"inherit\"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references. A readonly Pi worker keeps its MCP tools, and `capabilities.mcp: \"none\"` would strip them.",
+      "replacement": "Three `pstack_worker` spawns, one after another without waiting, each with `role: \"reviewer\"`, `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }`, and `capabilities.mcp: \"inherit\"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references. A readonly Pi worker keeps its MCP tools, and `capabilities.mcp: \"none\"` would strip them.",
       "output": "generated/skills/reflect/SKILL.md"
     },
     {
@@ -4530,7 +4581,7 @@
         39
       ],
       "original": ", agent mode (`readonly: false`). It spot-verifies citations through MCP, and readonly strips MCPs.",
-      "replacement": ", `workspace.mode: \"readonly\"`, `capabilities.mcp: \"inherit\"`. It spot-verifies citations through MCP, which a readonly Pi worker keeps.",
+      "replacement": ", `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }`, `capabilities.mcp: \"inherit\"`. It spot-verifies citations through MCP, which a readonly Pi worker keeps.",
       "output": "generated/skills/reflect/SKILL.md"
     },
     {
@@ -4770,7 +4821,7 @@
         14
       ],
       "original": "Enumerate the model slugs you can pass to a `Task` subagent in this session. That is the dependable source. If Cursor also exposes a models API or CLI that lists the user's entitled models, prefer it for completeness.",
-      "replacement": "Enumerate the models you can pass to a `pstack_worker` spawn in this session with `pi --list-models`. That is the dependable source. A model spec is `<provider>/<id>`, with an optional `:<level>` from the thinking levels that model lists.",
+      "replacement": "Enumerate the models you can pass to a `pstack_worker` spawn in this session with `pi --list-models`. That is the dependable source. It prints each model's provider, model id, context window, maximum output, whether it supports thinking (`yes` or `no`), and whether it takes images. It lists no thinking levels per model. A model spec is `<provider>/<id>`, with an optional `:<level>` on Pi's ladder (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). Pi clamps a level the model does not support down to the highest level it supports.",
       "output": "generated/skills/setup-pstack/SKILL.md"
     },
     {
@@ -4830,7 +4881,22 @@
         29
       ],
       "original": "`unlimited`, `large`, `medium`, and `small` set the effort token of every real slug, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The effort token is the last token, or the one before a trailing `fast`, on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the result is not a detected slug, use the same family's detected slug with the highest effort at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `claude-opus-5-5-xhigh` into `claude-opus-5-5-max`. Grok slugs top out at `xhigh`, so under `unlimited` the fallback puts Grok at `xhigh` and keeps `grok-4.7-xhigh-fast` as it is. `large` keeps both defaults. `small` turns them into `claude-opus-5-5-medium` and `grok-4.7-medium-fast`.",
-      "replacement": "`unlimited`, `large`, `medium`, and `small` set the thinking level of every real model spec, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The level is the `:<level>` suffix, on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the model does not list that level, use its highest listed level at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `<provider>/claude-opus-5-5:xhigh` into `<provider>/claude-opus-5-5:max`. A model whose levels top out at `xhigh` stays at `xhigh` under `unlimited`. `large` keeps both defaults. `small` sets both to `:medium`.",
+      "replacement": "`unlimited`, `large`, `medium`, and `small` set the thinking level of every real model spec, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The level is the `:<level>` suffix, on Pi's ladder (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). Write the target level even when the model may not support it, because `pi --list-models` lists no levels per model and Pi clamps an unsupported level down to the highest one the model supports. A model whose `thinking` column reads `no` takes `:off` under every budget. `inherit-parent` and `auto` do not change. So `unlimited` turns `<provider>/claude-opus-5-5:xhigh` into `<provider>/claude-opus-5-5:max`, and a model whose highest level is `xhigh` runs at `xhigh`. `large` keeps both defaults. `small` sets both to `:medium`.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.confirm-detected",
+      "offset": [
+        2703,
+        2769
+      ],
+      "lines": [
+        31,
+        31
+      ],
+      "original": "marking any real slug not in the detected set as needing a choice.",
+      "replacement": "marking as needing a choice any real spec whose `<provider>/<id>` is not in the detected set or whose `:<level>` is not on Pi's ladder.",
       "output": "generated/skills/setup-pstack/SKILL.md"
     },
     {
@@ -4846,6 +4912,21 @@
       ],
       "original": "Prefer AskQuestion over free text.",
       "replacement": "Prefer a multiple-choice question in the conversation over free text.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.validate",
+      "offset": [
+        3601,
+        3754
+      ],
+      "lines": [
+        35,
+        35
+      ],
+      "original": "Every real slug written must be in the detected set. `inherit-parent` and `auto` always pass. If a chosen real slug is not available, stop and ask again.",
+      "replacement": "Every real spec written must have its `<provider>/<id>` in the detected set, and its `:<level>`, when present, on Pi's ladder (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). Do not reject a level because the model may not support it, since Pi clamps it. `inherit-parent` and `auto` always pass. If a chosen real spec fails either check, stop and ask again.",
       "output": "generated/skills/setup-pstack/SKILL.md"
     },
     {
@@ -5115,7 +5196,7 @@
         13
       ],
       "original": "Every spawn is `generalPurpose` with `readonly: false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.",
-      "replacement": "Every spawn is a `pstack_worker` worker with `workspace.mode: \"readonly\"` at the repository root and `capabilities.mcp: \"inherit\"`, `role: \"investigator\"` for investigators and `role: \"general\"` for the synthesizer. A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files. **Do not set `capabilities.mcp: \"none\"`.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.",
+      "replacement": "Every spawn is a `pstack_worker` worker with `workspace: { mode: \"readonly\", path: \"<absolute repository root>\" }` and `capabilities.mcp: \"inherit\"`, `role: \"investigator\"` for investigators and `role: \"general\"` for the synthesizer. A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files. **Do not set `capabilities.mcp: \"none\"`.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.",
       "output": "generated/skills/why/SKILL.md"
     },
     {
@@ -5132,6 +5213,21 @@
       "original": "list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.",
       "replacement": "list the available MCP servers in this Pi session. Use the `mcp_servers` section of the system prompt and the `mcp__<server>__<tool>` tools when present. Otherwise run `pi mcp list` for enabled MCP servers.",
       "output": "generated/skills/why/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/references/synthesizer-prompt.md",
+      "rule": "why.synthesizer-epistemics-path",
+      "offset": [
+        807,
+        850
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "You MUST follow `references/epistemics.md`.",
+      "replacement": "You MUST follow `<pi-pstack>/generated/skills/why/references/epistemics.md`.",
+      "output": "generated/skills/why/references/synthesizer-prompt.md"
     }
   ]
 }

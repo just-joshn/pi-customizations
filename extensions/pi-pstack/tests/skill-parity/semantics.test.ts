@@ -14,7 +14,7 @@ const line = (path: string, n: number) => gen(path).split('\n')[n - 1] ?? '';
 describe('readonly investigators and reviewers (defect 1)', () => {
   test('why spawns every worker readonly with MCP kept and git/gh through bash_readonly', () => {
     const text = line('skills/why/SKILL.md', 13);
-    expect(text).toContain('`workspace.mode: "readonly"`');
+    expect(text).toContain('`workspace: { mode: "readonly", path: "<absolute repository root>" }`');
     expect(text).toContain('`capabilities.mcp: "inherit"`');
     expect(text).toContain('`bash_readonly`');
     expect(text).not.toContain('"worktree"');
@@ -28,8 +28,8 @@ describe('readonly investigators and reviewers (defect 1)', () => {
   });
 
   test('how explorers and reflect reviewers stay readonly', () => {
-    expect(gen('skills/how/SKILL.md')).toContain('`workspace.mode: "readonly"`');
-    expect(gen('skills/reflect/SKILL.md')).toMatch(/`role: "reviewer"`, `workspace.mode: "readonly"`, and `capabilities.mcp: "inherit"`/);
+    expect(gen('skills/how/SKILL.md')).toContain('`workspace: { mode: "readonly", path: "<absolute repository root>" }`');
+    expect(gen('skills/reflect/SKILL.md')).toContain('`role: "reviewer"`, `workspace: { mode: "readonly", path: "<absolute repository root>" }`, and `capabilities.mcp: "inherit"`');
   });
 });
 

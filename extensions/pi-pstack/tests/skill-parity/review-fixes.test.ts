@@ -114,6 +114,20 @@ describe('A: poteto-mode workers and watches', () => {
   });
 });
 
+describe('re-scan: templates copied into a worker brief', () => {
+  test.for([
+    'skills/architect/references/runner-prompt.md',
+    'skills/why/references/synthesizer-prompt.md',
+    'skills/reflect/references/judgment-reviewer.md',
+    'skills/reflect/references/tooling-reviewer.md',
+    'skills/reflect/references/divergent-reviewer.md',
+    'skills/reflect/references/synthesizer.md',
+  ])('%s names every file it tells the worker to read by an absolute package path', (file) => {
+    const visible = gen(file).replace(/\]\([^)]*\)/g, ']');
+    expect([...visible.matchAll(/`(\.{0,2}\/?[\w-]+(?:\/[\w-]+)*\.(?:md|sh|mjs|ts|tsv))`/g)].map((m) => m[1]).filter((path) => path !== 'SKILL.md')).toEqual([]);
+  });
+});
+
 describe('B: make-bot-ui maps to the U08 adapter', () => {
   const skill = gen('skills/make-bot-ui/SKILL.md');
 
@@ -164,5 +178,68 @@ describe('B: make-bot-ui maps to the U08 adapter', () => {
     const prompt = frontmatter(gen(`prompts/${name}.md`))['description'];
     const description = String(frontmatter(gen(`skills/${name}/SKILL.md`))['description']).replace(/\s+/g, ' ').trim();
     expect(prompt).toBe(description);
+  });
+});
+
+describe('C: setup-pstack, reflect, poteto-help', () => {
+  const LADDER = `(${THINKING_LEVELS.map((level) => `\`${level}\``).join(', ')})`;
+
+  test('C2: setup-pstack describes pi --list-models as it is and validates specs against the detected set and the ladder', () => {
+    const detect = line('skills/setup-pstack/SKILL.md', 14);
+    expect(detect).toContain('whether it supports thinking (`yes` or `no`)');
+    expect(detect).toContain('It lists no thinking levels per model.');
+    expect(detect).toContain(`optional \`:<level>\` on Pi's ladder ${LADDER}`);
+    expect(detect).toContain('Pi clamps a level the model does not support');
+    const setup = gen('skills/setup-pstack/SKILL.md');
+    expect(setup).not.toMatch(/levels? (?:that )?(?:model|it) lists|does not list that level|highest listed level/);
+    expect(line('skills/setup-pstack/SKILL.md', 29)).toContain("Pi clamps an unsupported level down to the highest one the model supports. A model whose `thinking` column reads `no` takes `:off`");
+    expect(line('skills/setup-pstack/SKILL.md', 31)).toContain("any real spec whose `<provider>/<id>` is not in the detected set or whose `:<level>` is not on Pi's ladder");
+    expect(line('skills/setup-pstack/SKILL.md', 35)).toContain(`its \`<provider>/<id>\` in the detected set, and its \`:<level>\`, when present, on Pi's ladder ${LADDER}`);
+  });
+
+  test('C2: src/models.ts agrees: any ladder level parses, an unsupported one clamps down, and a non-thinking model runs at off', () => {
+    for (const level of THINKING_LEVELS) expect(() => parseModelsConfig({ schemaVersion: 1, budget: 'large', roles: { 'bug-fix': `p/m:${level}` } })).not.toThrow();
+    expect(() => parseModelsConfig({ schemaVersion: 1, budget: 'large', roles: { 'bug-fix': 'p/m:ultra' } })).toThrow(/thinking level/);
+    const model = (id: string, reasoning: boolean): Model<Api> => ({ provider: 'p', id, name: id, api: 'openai-responses', baseUrl: 'https://example.invalid', reasoning, input: ['text'], cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, contextWindow: 1000, maxTokens: 100 });
+    const registry = { getAvailable: () => [model('thinker', true), model('plain', false)] };
+    const parent = { provider: 'p', id: 'thinker', thinkingLevel: 'low' as const };
+    const config = (spec: string) => parseModelsConfig({ schemaVersion: 1, budget: 'large', roles: { 'bug-fix': spec } });
+    expect(resolveRole('bug-fix', registry, parent, config('p/thinker:max')).models).toEqual([{ provider: 'p', id: 'thinker', thinkingLevel: 'high' }]);
+    expect(resolveRole('bug-fix', registry, parent, config('p/plain:off')).models).toEqual([{ provider: 'p', id: 'plain', thinkingLevel: 'off' }]);
+  });
+
+  test('C3: every readonly spawn names an absolute path', () => {
+    const offenders = allLines.filter(({ text }) => /`workspace\.mode: "readonly"`|`workspace: \{ mode: "readonly"(?!, path: "<absolute)/.test(text)).map(({ at }) => at);
+    expect(offenders).toEqual([]);
+    for (const n of [25, 39]) expect(line('skills/reflect/SKILL.md', n)).toContain('`workspace: { mode: "readonly", path: "<absolute repository root>" }`');
+  });
+
+  test('C4: reflect matches the opening prompt against the first user message, not the system message', () => {
+    expect(line('skills/reflect/SKILL.md', 21)).toContain('read its first entry of type `message` whose `message.role` is `user`');
+  });
+
+  const sessionDir = join(homedir(), '.pi/agent/sessions');
+  const session = existsSync(sessionDir)
+    ? readdirSync(sessionDir, { recursive: true, encoding: 'utf8' })
+        .filter((f) => f.endsWith('.jsonl'))
+        .map((f) => join(sessionDir, f))
+        .find((f) => readFileSync(f, 'utf8').includes('"role":"user"'))
+    : undefined;
+  test.skipIf(session === undefined)('C4: a real Pi session file opens with a system message and carries the prompt in the first user message', () => {
+    const messages = readFileSync(session ?? '', 'utf8')
+      .split('\n')
+      .filter(Boolean)
+      .map((l) => JSON.parse(l) as { type: string; message?: { role: string; content: unknown } })
+      .filter((e) => e.type === 'message');
+    const user = messages.find((e) => e.message?.role === 'user');
+    expect(messages[0]?.message?.role).not.toBe('user');
+    expect(typeof (user?.message?.content as { text?: unknown }[])[0]?.text).toBe('string');
+  });
+
+  test('C5: poteto-help sends changed files to the pi-pstack copy and only unchanged files upstream', () => {
+    const text = line('skills/poteto-help/SKILL.md', 13);
+    expect(text).not.toContain('blob/main/pstack/');
+    expect(text).toMatch(/For a file the compiler changed, [^.]*`generated\/transformation-manifest\.json`[^.]*, the public copy is `https:\/\/github\.com\/just-joshn\/pi-customizations\/tree\/main\/extensions\/pi-pstack\/generated\/skills\/`/);
+    expect(text).toMatch(/For any other skill file, which the compiler copied unchanged, it is the pinned upstream copy, `https:\/\/github\.com\/cursor\/plugins\/blob\/5866df557357d005b3c0c9d3da0d9e739b4bdde3\/pstack\/skills\/`/);
   });
 });
