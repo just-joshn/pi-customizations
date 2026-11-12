@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// A stand-in for the pi binary that fails the ways a real one can. FAKE_PI_MODE: crash | silent | no-session | sandbox-removed | busy | stalled.
+// A stand-in for the pi binary that fails the ways a real one can. FAKE_PI_MODE: crash | silent | no-session | sandbox-removed | busy | stalled | dump-env (writes its environment to FAKE_PI_ENV_OUT, then exits).
 // FAKE_PI_SESSION: a session file the busy mode copies in when it goes idle, in place of a bare header.
 // busy: streams an event every 100 ms for FAKE_PI_BUSY_MS, then goes idle and writes its session. stalled: streams once, then never finishes and never writes again.
 import { copyFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -11,6 +11,10 @@ const sandbox = dirname(process.cwd());
 let streaming = false;
 if (mode === 'crash') {
   console.error('fatal: provider auth missing');
+  process.exit(3);
+}
+if (mode === 'dump-env') {
+  writeFileSync(process.env.FAKE_PI_ENV_OUT, JSON.stringify(process.env));
   process.exit(3);
 }
 createInterface({ input: process.stdin }).on('line', (line) => {
