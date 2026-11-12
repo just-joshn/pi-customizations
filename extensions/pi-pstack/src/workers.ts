@@ -95,6 +95,7 @@ export const literalModelResolver: ModelResolver = ({ model, thinkingLevel }, ct
     return { provider: ctx.model.provider, id: ctx.model.id, thinkingLevel: thinkingLevel ?? (ctx.thinkingLevel as ThinkingLevel | undefined) ?? null };
   }
   const slash = model.indexOf('/');
+  if (slash === -1) throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 
@@ -445,6 +446,7 @@ async function checkStart(exec: Exec, socket: string, session: string, workerDir
 const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel | null => {
   if (model === 'inherit-parent') return null;
   const slash = model.indexOf('/');
+  if (slash === -1) throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 

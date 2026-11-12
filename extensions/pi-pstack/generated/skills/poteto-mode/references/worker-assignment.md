@@ -156,7 +156,7 @@ A receipt is one JSON file for one check you ran. A writable worker saves it und
 
 To prove a check fails before the fix, run it and record a receipt with `expectedFail: true`, `verdict: "pass"`, the non-zero `exitCode`, and the failing output as the artifact, under its own target such as `<step>-before`. Record the passing run after the fix under the step's target. A receipt without `expectedFail` that says `pass` with a non-zero `exitCode` is rejected as contradicting itself.
 
-```json
+```json receipt
 {
   "schemaVersion": 1,
   "id": "repro-before",

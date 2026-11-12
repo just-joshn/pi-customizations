@@ -165,6 +165,22 @@ describe('roleModelResolver', () => {
     expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: null, role: 'general' }, ctx())).not.toHaveProperty('note');
   });
 
+  test('a family default resolves to the listed model at its level, preferring the parent provider and the fast variant', async () => {
+    const listed = [model('other', 'claude-opus-5-5'), model('openai', 'claude-opus-5-5'), model('openai', 'grok-4.7'), model('openai', 'grok-4.7-fast')];
+    const registry = { getAvailable: () => listed };
+    const withParent = { model: listed[1], thinkingLevel: 'medium', modelRegistry: registry } as unknown as ExtensionContext;
+    expect(await resolve({ model: 'claude-opus-5-5-high', thinkingLevel: null, role: 'general' }, withParent)).toEqual({ provider: 'openai', id: 'claude-opus-5-5', thinkingLevel: 'high' });
+    expect(await resolve({ model: 'grok-4.7-high-fast', thinkingLevel: null, role: 'general' }, withParent)).toEqual({ provider: 'openai', id: 'grok-4.7-fast', thinkingLevel: 'high' });
+    expect(await resolve({ model: 'grok-4.7-high', thinkingLevel: null, role: 'general' }, withParent)).toEqual({ provider: 'openai', id: 'grok-4.7', thinkingLevel: 'high' });
+  });
+
+  test('an unlisted family default falls to a listed family model with a note; with none listed the error lists what is', async () => {
+    const registry = { getAvailable: () => [model('openai', 'grok-4.6')] };
+    const c = { model: undefined, thinkingLevel: 'medium', modelRegistry: registry } as unknown as ExtensionContext;
+    expect(await resolve({ model: 'grok-4.7-high-fast', thinkingLevel: null, role: 'general' }, c)).toMatchObject({ provider: 'openai', id: 'grok-4.6', note: expect.stringContaining('grok-4.7 is not available; using openai/grok-4.6') });
+    expect(() => resolve({ model: 'claude-opus-5-5-high', thinkingLevel: null, role: 'general' }, c)).toThrow(/no claude model is listed\. Available: openai\/grok-4\.6/);
+  });
+
   test('a null level on a model that cannot turn thinking off stays on that model, not on a sibling that can', async () => {
     const flash = { ...model('zai', 'glm-5.3-flash'), thinkingLevelMap: { off: null, minimal: null, low: 'low', medium: null, high: 'high', max: 'max' } } as Model<Api>;
     const registry = { getAvailable: () => [model('zai', 'glm-4.7'), flash] };

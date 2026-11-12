@@ -7395,6 +7395,17 @@ var Edit = Union([Insert2, Update2, Delete]);
 import { createHash as createHash2, randomBytes } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, rmSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { basename, dirname as dirname2, isAbsolute as isAbsolute3, join as join3, relative as relative3, resolve as resolve4, sep as sep2 } from "node:path";
+
+// src/model-spec.ts
+var FAMILY_DEFAULT_LEVELS = ["minimal", "low", "medium", "high", "xhigh", "max"];
+var FAMILY_DEFAULT = new RegExp(`^([a-z][a-z0-9]*(?:[-.][a-z0-9]+)*?)-(${FAMILY_DEFAULT_LEVELS.join("|")})(-fast)?$`);
+function parseFamilyDefault(spec) {
+  const match = FAMILY_DEFAULT.exec(spec);
+  return match === null ? undefined : { id: match[1], level: match[2], fast: match[3] !== undefined };
+}
+var MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";
+
+// src/run-files.ts
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -7496,8 +7507,8 @@ function parseAssignment(raw, defaults) {
   if (typeof role !== "string" || !WORKER_ROLES.includes(role))
     throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(", ")}`);
   const model = raw["model"];
-  if (typeof model !== "string" || !MODEL_SPEC.test(model))
-    throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
+  if (typeof model !== "string" || !(MODEL_SPEC.test(model) || parseFamilyDefault(model) !== undefined))
+    throw new Error(`Assignment model must be ${MODEL_SPEC_FORMS}${typeof model === "string" ? `; got '${model}'` : ""}`);
   const thinkingLevel = raw["thinkingLevel"] ?? null;
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
@@ -7648,7 +7659,7 @@ ${RECEIPT_FIELDS.map((field) => `- \`${field}\`: ${RECEIPT_FIELD_HINTS[field]}.`
 
 To prove a check fails before the fix, run it and record a receipt with \`expectedFail: true\`, \`verdict: "pass"\`, the non-zero \`exitCode\`, and the failing output as the artifact, under its own target such as \`<step>-before\`. Record the passing run after the fix under the step's target. A receipt without \`expectedFail\` that says \`pass\` with a non-zero \`exitCode\` is rejected as contradicting itself.
 
-\`\`\`json
+\`\`\`json receipt
 {
   "schemaVersion": 1,
   "id": "repro-before",
@@ -7905,6 +7916,8 @@ var parentlessModel = ({ model, thinkingLevel }) => {
   if (model === "inherit-parent")
     return null;
   const slash = model.indexOf("/");
+  if (slash === -1)
+    throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 var MAX_DEPTH = 3;

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { getSupportedThinkingLevels, type ModelThinkingLevel } from '@earendil-works/pi-ai';
 import type { ModelRegistry } from '@earendil-works/pi-coding-agent';
 import { Type, type Static } from 'typebox';
+import type { FamilyDefault, FamilyDefaultLevel } from './model-spec.ts';
 import { Value } from 'typebox/value';
 
 export const ROLE_NAMES = [
@@ -49,6 +50,25 @@ export function loadModelsConfig(path = join(homedir(), '.pi/agent/pstack/models
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { schemaVersion: 1, budget: 'large', roles: {} };
     throw error;
   }
+}
+
+/**
+ * A family default (`claude-opus-5-5-xhigh`, `grok-4.7-xhigh-fast`) as a concrete `<provider>/<id>` the registry lists. The
+ * parent's provider wins among providers that list the model. The fast variant is preferred when asked for and listed. When
+ * the model itself is unlisted, another model of its family stands in and `note` says so; when no family model is listed
+ * the error names what is.
+ */
+export function resolveFamilyDefault(spec: string, family: FamilyDefault, registry: Registry, parent: ResolvedModel | undefined): { spec: string; level: FamilyDefaultLevel; note?: string } {
+  const available = registry.getAvailable();
+  const inParentProviderFirst = (models: typeof available) => models.find((entry) => entry.provider === parent?.provider) ?? models[0];
+  const ids = family.fast ? [`${family.id}-fast`, family.id] : [family.id];
+  for (const id of ids) {
+    const found = inParentProviderFirst(available.filter((entry) => entry.id === id));
+    if (found) return { spec: `${found.provider}/${found.id}`, level: family.level };
+  }
+  const sibling = inParentProviderFirst(available.filter((entry) => modelFamily(entry.id) === modelFamily(family.id)));
+  if (sibling) return { spec: `${sibling.provider}/${sibling.id}`, level: family.level, note: `${spec}: ${family.id} is not available; using ${sibling.provider}/${sibling.id}` };
+  throw new Error(`Model ${spec} is not available: no ${modelFamily(family.id)} model is listed. Available: ${available.map((entry) => `${entry.provider}/${entry.id}`).join(', ') || '(none)'}`);
 }
 
 export function modelFamily(id: string): string {

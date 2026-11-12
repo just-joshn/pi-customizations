@@ -139,3 +139,20 @@ describe('the worker-assignment reference', () => {
     expect(parseAssignment(stripped, defaults)).toStrictEqual(parseAssignment(example, defaults));
   });
 });
+
+describe('the model spec', () => {
+  const defaults = { capabilities: ENGINEERING_CAPABILITIES, projectRoot: '/p' };
+  const parse = (model: unknown) => parseAssignment({ ...minimal('m'), model }, defaults).model;
+
+  test.for(['inherit-parent', 'zai/glm-5.3-flash', 'claude-opus-5-5-xhigh', 'grok-4.7-xhigh-fast', 'claude-sonnet-5-5-high'])('accepts %s', (model) => {
+    expect(parse(model)).toBe(model);
+  });
+
+  test.for(['grok-4.7', 'grok-4.7-turbo', 'xhigh', 'Claude-xhigh', 'grok-4.7-xhigh-slow', 'a b/c', 42])('rejects %s and lists the accepted forms', (model) => {
+    expect(() => parse(model)).toThrow(/Assignment model must be 'inherit-parent', '<provider>\/<id>', or a family default '<model>-<level>\[-fast\]' such as 'claude-opus-5-5-xhigh' or 'grok-4\.7-xhigh-fast'/);
+  });
+
+  test('a rejection quotes the spec that failed', () => {
+    expect(() => parse('grok-4.7')).toThrow("got 'grok-4.7'");
+  });
+});
