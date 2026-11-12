@@ -15,6 +15,7 @@ import {
   delegateCommits,
   delegateOf,
   delegateOwnCommits,
+  workflowCommits,
   everyCommitGreen,
   isTestFile,
   namesCommit,
@@ -170,9 +171,9 @@ export const refactoringFamily: Family = {
     workersCheck('refactoring.contract-learned-with-how', 'step 1: how ran to learn the contract, a readonly explainer on the repository root', src('poteto-mode/playbooks/refactoring.md', 'Run the **how** skill over the affected subsystem to learn the contract'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /explainer/ }),
     workersCheck('refactoring.mechanical-edits-delegated', 'step 5: the mechanical edits go to a poteto worker in its own worktree on the "feature, refactoring" model line', src('poteto-mode/playbooks/refactoring.md', 'Delegate the mechanical edits to a subagent using your configured refactoring model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'feature, refactoring' }),
     check('refactoring.pin-lands-first-and-holds', 'step 1: the first commit is the characterization test alone, green on the unchanged code, and no later commit edits it', src('poteto-mode/playbooks/refactoring.md', 'write a characterization test, snapshot, or equivalence harness that captures current behavior before any structure moves'), (view) => {
-      // The pin may be committed by the parent on the checkout before it spawns the delegate, whose branch then starts there.
-      const commits = delegateCommits(view);
-      if (commits.length < 2) return fail(`${commits.length} commits on the delegate's branch`);
+      // Workflow level: the pin may be committed by the parent on the checkout before it spawns the delegate. It counts here and is not the delegate's own commit.
+      const commits = workflowCommits(view);
+      if (commits.length < 2) return fail(`${commits.length} commits in the workflow (the parent's before the spawn, then the delegate's)`);
       const first = commits[0] as string;
       const files = filesChanged(view, first);
       const green = runAtCommit(view, first, 'node --test');
