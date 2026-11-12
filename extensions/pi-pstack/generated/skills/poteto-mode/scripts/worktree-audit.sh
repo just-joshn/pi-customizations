@@ -69,8 +69,30 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Pi sessions are grouped by cwd, including each worktree cwd. Search all groups for references to the candidate.
-transcripts="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions"
+# Pi session storage, resolved the way Pi resolves it (docs/sessions.md, docs/environment-variables.md):
+# PI_CODING_AGENT_SESSION_DIR, else the sessionDir setting with the project's .pi/settings.json over the
+# agent directory's settings.json, else <agent directory>/sessions. A leading ~ is the home directory, and a
+# relative sessionDir resolves from the working directory. Sessions group by cwd, including each worktree
+# cwd, and every group is searched for references to the candidate.
+pi_home() {
+	case "$1" in
+	"~") printf '%s\n' "$HOME" ;;
+	"~"/*) printf '%s\n' "$HOME/${1#"~/"}" ;;
+	*) printf '%s\n' "$1" ;;
+	esac
+}
+agent_dir=$(pi_home "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
+if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
+	session_dir=$(pi_home "$PI_CODING_AGENT_SESSION_DIR")
+else
+	session_dir=""
+	for settings in "$PWD/.pi/settings.json" "$agent_dir/settings.json"; do
+		[ -z "$session_dir" ] && [ -f "$settings" ] \
+			&& session_dir=$(jq -r 'if (.sessionDir | type) == "string" then .sessionDir else "" end' "$settings" 2>/dev/null)
+	done
+	if [ -n "$session_dir" ]; then session_dir=$(pi_home "$session_dir"); else session_dir="$agent_dir/sessions"; fi
+fi
+case "$session_dir" in /*) transcripts="$session_dir" ;; *) transcripts="$PWD/$session_dir" ;; esac
 now=$(date +%s)
 
 echo "# base: $base"
