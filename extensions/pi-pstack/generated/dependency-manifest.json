@@ -3214,8 +3214,9 @@
         "cursor-path": 5,
         "cursor-team-kit": 10,
         "cursor-transcripts": 4,
+        "cursor-ui": 2,
         "loop": 9,
-        "project-tracker": 4,
+        "project-tracker": 5,
         "readonly": 2,
         "run-in-background": 1,
         "subagent-concept": 60,
@@ -3638,6 +3639,13 @@
           "offset": 5400,
           "id": "loop",
           "text": "/loop"
+        },
+        {
+          "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+          "line": 12,
+          "offset": 2058,
+          "id": "project-tracker",
+          "text": "agent's store"
         },
         {
           "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
@@ -4443,6 +4451,20 @@
           "offset": 415,
           "id": "cursor-path",
           "text": ".cursor"
+        },
+        {
+          "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+          "line": 4,
+          "offset": 824,
+          "id": "cursor-ui",
+          "text": "sidebar"
+        },
+        {
+          "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+          "line": 5,
+          "offset": 1372,
+          "id": "cursor-ui",
+          "text": "sidebar"
         },
         {
           "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
