@@ -17,7 +17,12 @@ function parseId<T extends string>(value: unknown, what: string): T {
 export const parseRunId = (value: unknown): RunId => parseId<RunId>(value, 'runId');
 export const parseWorkerId = (value: unknown): WorkerId => parseId<WorkerId>(value, 'workerId');
 
-export const tmuxSessionName = (runId: RunId, workerId: WorkerId): string => `pstack-${runId}-${workerId}`;
+/**
+ * `pstack_<runId>_<workerId>_<hash>`. Ids never contain `_`, so the parts cannot run together, and the hash of the
+ * project root keeps two projects' runs apart on the one `pstack` tmux server.
+ */
+export const tmuxSessionName = (project: string, runId: RunId, workerId: WorkerId): string => `pstack_${runId}_${workerId}_${createHash('sha256').update(`${project}\0${runId}\0${workerId}`).digest('hex').slice(0, 8)}`;
+export const TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
 
 /** The git toplevel of `cwd`, or `cwd` outside git; always a real path. */
 export function projectRoot(cwd: string): string {

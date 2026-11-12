@@ -22,6 +22,7 @@ import {
   type SettlePhase,
   THINKING_LEVELS,
   type ThinkingLevel,
+  TMUX_SESSION,
   writeJsonAtomic,
 } from './run-files.ts';
 
@@ -77,7 +78,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
   if (appendSystemPrompt !== null && !(typeof appendSystemPrompt === 'string' && isAbsolute(appendSystemPrompt))) throw new Error('Launch appendSystemPrompt must be an absolute path or null');
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name)))) throw new Error('Launch tools must be tool names or null');
-  if (typeof tmuxSession !== 'string' || !/^pstack-[a-z0-9-]+$/.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
+  if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
   if (!isRecord(env) || Object.values(env).some((value) => typeof value !== 'string')) throw new Error('Launch env must map names to strings');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');

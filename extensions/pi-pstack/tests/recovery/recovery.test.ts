@@ -1,4 +1,5 @@
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
 import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, tmux, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
 
 let project: Project;
@@ -112,7 +113,7 @@ describe('parent restart', () => {
     process.kill(hostPid, 'SIGKILL');
     await until(
       () => liveTmuxSessions(),
-      (sessions) => !sessions.includes('pstack-run1-w3'),
+      (sessions) => !sessions.includes(tmuxSessionName(project.dir, 'run1' as RunId, 'w3' as WorkerId)),
       5_000,
       'session gone',
     );

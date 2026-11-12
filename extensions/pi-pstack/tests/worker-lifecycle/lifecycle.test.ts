@@ -1,9 +1,9 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { controlSocketPath, loadAssignment, type WorkerId } from '../../src/run-files.ts';
+import { controlSocketPath, loadAssignment, type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
 import { type Entry, FIXTURE, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, TMUX, tmux, transcript, until, wakes, workerDir, writeAssignment } from './harness.ts';
 
 // The tmux server this file starts inherits it, so an inheriting worker sees it.
@@ -34,6 +34,7 @@ const phaseOf = async (workerId: string) => {
   const result = await inspect(workerId);
   return result.available ? result.state.phase : 'unavailable';
 };
+const sessionOf = (workerId: string) => tmuxSessionName(project.dir, 'run1' as RunId, workerId as WorkerId);
 const settleCount = async (workerId: string) => ((await inspect(workerId)).state?.settles ?? []).length;
 const spawn = (workerId: string, brief: string, fields: Record<string, unknown> = {}) => parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', workerId, brief, fields) });
 
@@ -41,12 +42,13 @@ describe('pstack_worker on real tmux and Pi', () => {
   test('spawn returns before the work finishes, with an attach command whose pane shows the output', async () => {
     const result = await spawn('w1', '@@sleep 1500 HELLO-PANE');
 
-    expect(result.details).toMatchObject({ workerId: 'w1', tmuxSession: 'pstack-run1-w1', attach: `tmux -L ${TMUX} attach -t pstack-run1-w1`, model: { provider: 'scripted', id: 'echo' } });
+    expect(result.details).toMatchObject({ workerId: 'w1', tmuxSession: expect.stringMatching(/^pstack_run1_w1_[0-9a-f]{8}$/), model: { provider: 'scripted', id: 'echo' } });
+    expect(result.details.attach).toBe(`tmux -L ${TMUX} attach -t ${result.details.tmuxSession}`);
     expect(result.details.sessionFile.startsWith(join(workerDir(project, 'run1', 'w1'), 'session'))).toBe(true);
     expect(await phaseOf('w1')).toBe('running');
 
     const pane = await until(
-      () => tmux('capture-pane', '-p', '-t', 'pstack-run1-w1', '-S', '-200'),
+      () => tmux('capture-pane', '-p', '-t', result.details.tmuxSession, '-S', '-200'),
       (text) => text.includes('[pi response] HELLO-PANE'),
       20_000,
       'pane output',
@@ -104,7 +106,7 @@ describe('pstack_worker on real tmux and Pi', () => {
     const texts = transcript(project, 'run1', 'w3');
     expect(texts).not.toContain('assistant:NEVER');
     expect(texts).not.toContain('assistant:QUEUED-NEVER');
-    expect(await liveTmuxSessions()).not.toContain('pstack-run1-w3');
+    expect(await liveTmuxSessions()).not.toContain(sessionOf('w3'));
     expect(readState(project, 'run1', 'w3').phase).toBe('stopped');
     await until(
       () => wakes(parent).map((wake) => wake?.phase),
@@ -195,6 +197,64 @@ describe('pstack_worker on real tmux and Pi', () => {
     }
   });
 
+  test("abort of a dead host never ends another session, even one with the worker's old or current session name", async () => {
+    const spawned = await spawn('a-b', '@@say UP');
+    await until(
+      () => settleCount('a-b'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('a-b')).state;
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(spawned.details.tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    // The old scheme named both run1/a-b and run1-a/b `pstack-run1-a-b`; an operator may also reuse the current name.
+    const foreign = [...new Set(['pstack-run1-a-b', spawned.details.tmuxSession])];
+    for (const name of foreign) await tmux('new-session', '-d', '-s', name, '--', 'sleep', '60');
+
+    const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'a-b' });
+    expect(receipt.details.disposition).not.toBe('session-ended');
+    expect(await liveTmuxSessions()).toEqual(expect.arrayContaining(foreign));
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Pi usually exits on its own once the host's pipe closes.
+    }
+  });
+
+  test('two workers whose ids join to the same text get distinct tmux sessions', async () => {
+    makeRun(project, 'run1-a');
+    const first = await spawn('a-b', '@@say ONE');
+    const second = await parent.call('pstack_worker', { action: 'spawn', runId: 'run1-a', assignmentPath: writeAssignment(project, 'run1-a', 'b', '@@say TWO', { runId: 'run1-a' }) }).catch((error: Error) => error);
+    expect(second).not.toBeInstanceOf(Error);
+    expect(first.details.tmuxSession).not.toBe((second as { details: { tmuxSession: string } }).details.tmuxSession);
+  });
+
+  test('abort of a host whose control socket is lost ends its own session after verifying the pane is that host', async () => {
+    const spawned = await spawn('w11', '@@say UP');
+    await until(
+      () => settleCount('w11'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('w11')).state;
+    rmSync(controlSocketPath(project.runRoot('run1'), 'w11' as WorkerId));
+    try {
+      const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'w11' });
+      expect(receipt.details.disposition).toBe('session-ended');
+      expect(await liveTmuxSessions()).not.toContain(spawned.details.tmuxSession);
+    } finally {
+      for (const pid of [hostPid, -childPid])
+        try {
+          process.kill(pid, 'SIGKILL');
+        } catch {
+          // Already gone.
+        }
+    }
+  });
+
   test('a readonly worker gets only read, grep, find, and ls', async () => {
     await spawn('w8', '@@tools-list');
     await until(
@@ -215,7 +275,7 @@ describe('pstack_worker on real tmux and Pi', () => {
     );
     expect(wakes(parent)[0]?.phase).toBe('exited');
     expect(readState(project, 'run1', 'w9')).toMatchObject({ phase: 'exited', exit: { code: 3 } });
-    expect(await tmux('capture-pane', '-p', '-t', 'pstack-run1-w9')).toContain('WATCHED');
+    expect(await tmux('capture-pane', '-p', '-t', sessionOf('w9'))).toContain('WATCHED');
   });
 
   test('the control socket is private and rejects a forged identity', async () => {

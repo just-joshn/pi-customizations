@@ -29,7 +29,7 @@ New tests live under `tests/`. Run them with `npx vitest run tests/<area>` from 
 
 `RunId` and `WorkerId` match `^[a-z0-9][a-z0-9-]{0,39}$`. Validate at every boundary.
 
-tmux uses its own server: always `tmux -L pstack`. Session name `pstack-<runId>-<workerId>`. Never call `kill-server` outside tests. Tests use `-L pstack-test-<random>` and may kill only that server.
+tmux uses its own server: always `tmux -L pstack`. Session name `pstack_<runId>_<workerId>_<hash>`, where `<hash>` is the first 8 hex digits of sha256 of `<project>\0<runId>\0<workerId>`. Ids never contain `_`, so the parts cannot run together, and the hash keeps two projects apart on the one server. When the host does not answer, abort ends the session only after `#{pane_pid}` of its single pane equals the `hostPid` in the worker's `claim/identity.json`; otherwise it reports `refused` and leaves the session running. Never call `kill-server` outside tests. Tests use `-L pstack-test-<random>` and may kill only that server.
 
 ## Run files (spec 7)
 
@@ -81,7 +81,7 @@ Exactly two model-facing tools, TypeBox-validated.
 
 `pstack_worker`:
 
-- `{ action: 'spawn', runId, assignmentPath }`. Validates the assignment and its path (must be `<runRoot>/workers/<workerId>/assignment.json`). Resolves the model. Creates the worktree. Starts `tmux -L pstack new-session -d -s pstack-<runId>-<workerId> -- node <pkg>/dist-or-src/worker-host entry <assignment>`. Waits for the host handshake. Sends the brief as the first prompt. Returns `{ workerId, tmuxSession, attach: 'tmux -L pstack attach -t <session>', sessionFile, model }` immediately. Refuses when `claim/` exists.
+- `{ action: 'spawn', runId, assignmentPath }`. Validates the assignment and its path (must be `<runRoot>/workers/<workerId>/assignment.json`). Resolves the model. Creates the worktree. Starts `tmux -L pstack new-session -d -s <session name> -- node <pkg>/dist-or-src/worker-host entry <assignment>`. Waits for the host handshake. Sends the brief as the first prompt. Returns `{ workerId, tmuxSession, attach: 'tmux -L pstack attach -t <session>', sessionFile, model }` immediately. Refuses when `claim/` exists.
 - `{ action: 'inspect', workerId, runId }`. Live host state, or `unavailable` with reason.
 - `{ action: 'steer', workerId, runId, message }`. RPC `steer` when running, `follow_up` when idle.
 - `{ action: 'abort', workerId, runId }`. clear_queue, abort, then orderly shutdown of that host only.
