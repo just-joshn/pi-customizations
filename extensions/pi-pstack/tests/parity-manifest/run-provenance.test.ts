@@ -61,7 +61,7 @@ exit ${fake.exit ?? 0}
 `,
   );
   chmodSync(join(fakeBin, 'npx'), 0o755);
-  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', ...extra], { encoding: 'utf8', env: { ...process.env, PATH: `${fakeBin}:${process.env.PATH}` } });
+  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', ...extra], { encoding: 'utf8', env: { ...process.env, PATH: `${fakeBin}:${process.env['PATH']}` } });
   return { status: r.status, stderr: r.stderr };
 }
 const gate = () => {
@@ -165,7 +165,6 @@ describe('a Vitest run is accepted only when it finished and reported completely
     ['a truncated report', { rawReport: JSON.stringify(complete(passing)).slice(0, 40) }, 'not valid JSON'],
     ['a report without numTotalTests', { report: { ...complete(passing), numTotalTests: undefined } }, 'incomplete'],
     ['a report with no tests', { report: complete({}) }, 'executed no tests'],
-    ['a report with fewer file results than files', { report: complete(passing, { numTotalTestSuites: 2 }) }, '1 file result(s) for 2 test file(s)'],
     ['a report listing fewer tests than it counts', { report: complete(passing, { numTotalTests: 3 }) }, 'lists 1 test(s) of 3'],
     ['success:false with exit 0', { report: complete(passing, { success: false }) }, 'exited 0 but its report records failures'],
     ['exit 0 with a failed test', { report: complete({ 'suite fails': 'failed' }) }, 'exited 0 but its report records failures'],
@@ -185,6 +184,12 @@ describe('a Vitest run is accepted only when it finished and reported completely
     expect(r.stderr).toContain(message);
     expect(existsSync(manifestPath())).toBe(false);
     expect(existsSync(saved())).toBe(false);
+  });
+
+  test('a report whose suite count includes describe blocks, as real Vitest reports do, is complete', () => {
+    repo();
+    const r = build({ report: complete(passing, { numTotalTestSuites: 3 }) });
+    expect(r.status, r.stderr).toBe(0);
   });
 
   test('exit 1 with a complete report counts its failures and closes the gate', () => {

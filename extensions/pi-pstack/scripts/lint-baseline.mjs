@@ -13,7 +13,8 @@ import { fileURLToPath } from 'node:url';
 
 export const SCOPE = 'extensions/pi-pstack';
 export const BASELINE = `${SCOPE}/lint-baseline.json`;
-const GENERATED = `${SCOPE}/parity-results/`;
+// Machine-written files: test results, and the commit stamp ci-linux.mjs writes into its snapshot.
+const GENERATED = [`${SCOPE}/parity-results/`, `${SCOPE}/ci-snapshot.json`];
 
 const sha = (text) => createHash('sha256').update(text).digest('hex').slice(0, 16);
 const normalize = (text) => text.replace(/\s+/g, ' ').trim();
@@ -32,7 +33,7 @@ export function identities(diagnostics, readSource) {
   const counts = new Map();
   for (const d of diagnostics) {
     const file = d.location?.path;
-    if (!file || file.startsWith(GENERATED)) continue;
+    if (!file || GENERATED.some((prefix) => file.startsWith(prefix))) continue;
     const text = flaggedText(readSource(file), d.location);
     const key = JSON.stringify([file, d.category, d.message, sha(text)]);
     const entry = counts.get(key) ?? { file, category: d.category, message: d.message, hash: sha(text), preview: text.slice(0, 80), count: 0, at: [] };

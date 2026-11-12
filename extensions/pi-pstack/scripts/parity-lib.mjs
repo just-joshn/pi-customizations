@@ -352,11 +352,10 @@ export function vitestRunOutcome({ status, signal, error }, reportText) {
   } catch (e) {
     return { problem: `the Vitest JSON report is not valid JSON (${e.message})` };
   }
-  const counts = ['numTotalTests', 'numPassedTests', 'numFailedTests', 'numTotalTestSuites'];
+  const counts = ['numTotalTests', 'numPassedTests', 'numFailedTests'];
   const bad = counts.filter((k) => !Number.isInteger(report?.[k]) || report[k] < 0);
   if (bad.length || !Array.isArray(report.testResults)) return { problem: `the Vitest JSON report is incomplete: ${[...bad, ...(Array.isArray(report?.testResults) ? [] : ['testResults'])].join(', ')} missing or invalid` };
   if (!report.numTotalTests) return { problem: 'the Vitest run executed no tests' };
-  if (report.testResults.length !== report.numTotalTestSuites) return { problem: `the Vitest JSON report has ${report.testResults.length} file result(s) for ${report.numTotalTestSuites} test file(s)` };
   const listed = report.testResults.reduce((n, f) => n + (f.assertionResults?.length ?? 0), 0);
   if (listed !== report.numTotalTests) return { problem: `the Vitest JSON report lists ${listed} test(s) of ${report.numTotalTests}` };
   const statuses = report.testResults.flatMap((f) => (f.assertionResults ?? []).map((a) => a.status));
