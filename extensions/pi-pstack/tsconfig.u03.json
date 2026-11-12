@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["adapters/cursor-to-pi.ts", "adapters/dependencies.ts", "adapters/provenance.ts", "adapters/skill-transforms.ts", "tests/skill-parity/**/*.ts"]
+}

@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -221,8 +222,11 @@ describe('shipped resources', () => {
     expect(readme).toContain('licenses/cursor-team-kit.LICENSE');
   });
 
-  test('nothing depends on a Cursor plugin checkout: no sync script, lock, or host adapter (RES-011)', () => {
-    for (const path of ['upstream.lock.json', 'scripts/sync-upstream.mjs', 'scripts/patches.json', 'docs/harness']) expect(existsSync(join(root, path)), path).toBe(false);
+  test('the runtime never depends on a Cursor plugin checkout: upstream sync is dev-time only, against a checked-in vendor tree (RES-011)', () => {
+    for (const path of ['upstream.lock.json', 'scripts/patches.json', 'docs/harness']) expect(existsSync(join(root, path)), path).toBe(false);
+    expect(existsSync(join(root, 'generated/upstream-lock.json'))).toBe(true);
+    const runtime = spawnSync('grep', ['-rlE', 'cursor/plugins|vendor/upstream|sync-upstream', join(root, 'src')], { encoding: 'utf8' });
+    expect(runtime.status, runtime.stdout).toBe(1);
     const scripts = (JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { scripts: Record<string, string> }).scripts;
     expect(Object.keys(scripts).filter((name) => name.includes('upstream'))).toEqual([]);
     for (const rel of ['package.json', 'skills/poteto-mode/scripts/package.json', 'skills/statechart/scripts/package.json']) {

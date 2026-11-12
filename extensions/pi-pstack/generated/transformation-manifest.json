@@ -1,0 +1,4858 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/cursor/plugins",
+    "revision": "5866df557357d005b3c0c9d3da0d9e739b4bdde3"
+  },
+  "counts": {
+    "skills": 62,
+    "agents": 3,
+    "prompts": 62,
+    "rules": 156,
+    "spans": 220
+  },
+  "skills": [
+    "architect",
+    "arena",
+    "automate-me",
+    "benchmark-checklist",
+    "blast-radius",
+    "bro",
+    "control-cli",
+    "control-ui",
+    "correct",
+    "create-formal-verification-skill",
+    "create-verification-skill",
+    "deslop",
+    "figure-it-out",
+    "how",
+    "in-your-own-words",
+    "interrogate",
+    "ketchup",
+    "ketchup-video",
+    "maintain-formal-verification-skill",
+    "maintain-verification-skill",
+    "make-bot-ui",
+    "no-comments",
+    "poteto-help",
+    "poteto-mode",
+    "principle-attack-the-premise",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-explain-the-number",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-outcome-oriented-execution",
+    "principle-prove-it-works",
+    "principle-redesign-from-first-principles",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-test-behavior-not-implementation",
+    "principle-type-system-discipline",
+    "recall",
+    "reflect",
+    "setup-pstack",
+    "sharpen",
+    "show-me-your-work",
+    "statechart",
+    "swarm",
+    "tdd",
+    "teach",
+    "technical-writing",
+    "typescript-best-practices",
+    "unslop",
+    "verify-this",
+    "why"
+  ],
+  "rules": [
+    {
+      "id": "shared.task-tool-rejects",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 2,
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 3,
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/how/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/why/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.model-unset",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/how/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/why/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.models-mdc-path",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 2,
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 3,
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.models-mdc-rule",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/architect/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/how/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/why/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.projects-glob",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md": 1,
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/eval.md": 1
+      }
+    },
+    {
+      "id": "shared.project-skills-path",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 4,
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/create-verification-skill/SKILL.md": 3,
+        "vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.user-skills-path",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 2,
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.deslop-plugin",
+      "primitives": [
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "shared.control-skill-plugin",
+      "primitives": [
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1,
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md": 1
+      }
+    },
+    {
+      "id": "shared.phase-todolist",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1,
+        "vendor/upstream-pstack/skills/architect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "shared.skill-used-evidence",
+      "primitives": [
+        "host-tool-names",
+        "cursor-path",
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/references/judgment-reviewer.md": 1,
+        "vendor/upstream-pstack/skills/reflect/references/tooling-reviewer.md": 1,
+        "vendor/upstream-pstack/skills/reflect/references/divergent-reviewer.md": 1
+      }
+    },
+    {
+      "id": "shared.prefer-askquestion",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 2
+      }
+    },
+    {
+      "id": "poteto-mode.frontmatter-metadata",
+      "primitives": [
+        "skill-frontmatter"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.agent-prompt",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.askquestion-fork",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.create-skill",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.control-plugin",
+      "primitives": [
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.builtin-babysit",
+      "primitives": [
+        "cursor-builtin-babysit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.loop-phrase",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 2
+      }
+    },
+    {
+      "id": "poteto-mode.subagent-role",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.subagent-overrides",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.task-defaults",
+      "primitives": [
+        "task-tool",
+        "run-in-background",
+        "task-resume",
+        "readonly",
+        "cloud-environment",
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.omit-model",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.task-error",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.parent-model-fallback",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.reuse",
+      "primitives": [
+        "task-resume"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.interrupt-chained",
+      "primitives": [
+        "task-resume"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.todolist",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.pickup-sources",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-mode.restart",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/SKILL.md": 1
+      }
+    },
+    {
+      "id": "authoring-a-skill.create-skill",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/authoring-a-skill.md": 1
+      }
+    },
+    {
+      "id": "autonomous-run.wake",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md": 1
+      }
+    },
+    {
+      "id": "autonomous-run.askquestion",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md": 1
+      }
+    },
+    {
+      "id": "autopilot-full.owner",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "autopilot-full.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "autopilot-full.tick-from-trunk",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "babysit.builtin-babysit",
+      "primitives": [
+        "cursor-builtin-babysit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md": 1
+      }
+    },
+    {
+      "id": "babysit.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md": 1
+      }
+    },
+    {
+      "id": "bug-fix.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/bug-fix.md": 1
+      }
+    },
+    {
+      "id": "eval.transcripts",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/eval.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.explore-role",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.plan-path",
+      "primitives": [
+        "plan-mode",
+        "project-tracker"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.repo-path",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 10
+      }
+    },
+    {
+      "id": "multi-phase-plan.git-show",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 5
+      }
+    },
+    {
+      "id": "multi-phase-plan.read-from-trunk",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.tick-from-trunk",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.control-plugin",
+      "primitives": [
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.pr-tool",
+      "primitives": [
+        "builtin-pr-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.lane-vm",
+      "primitives": [
+        "cloud-environment",
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.review-video",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.worktree",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.deslop",
+      "primitives": [
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.pr-tool",
+      "primitives": [
+        "builtin-pr-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.without-pr-tool",
+      "primitives": [
+        "builtin-pr-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.draft",
+      "primitives": [
+        "builtin-pr-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "opening-a-pr.mark-ready",
+      "primitives": [
+        "builtin-pr-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md": 1
+      }
+    },
+    {
+      "id": "orchestrate.tools",
+      "primitives": [
+        "task-tool",
+        "project-tracker"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md": 1
+      }
+    },
+    {
+      "id": "orchestrate.cloud-workers",
+      "primitives": [
+        "cloud-environment",
+        "cursor-team-kit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md": 1
+      }
+    },
+    {
+      "id": "orchestrate.fork",
+      "primitives": [
+        "task-resume"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md": 1
+      }
+    },
+    {
+      "id": "session-pickup.transcript",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md": 1
+      }
+    },
+    {
+      "id": "session-pickup.cloud-url",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md": 1
+      }
+    },
+    {
+      "id": "shipping.verifier",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md": 1
+      }
+    },
+    {
+      "id": "shipping.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md": 1
+      }
+    },
+    {
+      "id": "visual-parity.loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/visual-parity.md": 1
+      }
+    },
+    {
+      "id": "worktree-cleanup.worktree-path",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
+      }
+    },
+    {
+      "id": "worktree-cleanup.background",
+      "primitives": [
+        "await-shell"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
+      }
+    },
+    {
+      "id": "worktree-audit.transcripts",
+      "primitives": [
+        "cursor-path",
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh": 1
+      }
+    },
+    {
+      "id": "check-plan.loop-marker",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/check-plan.mjs": 1
+      }
+    },
+    {
+      "id": "check-plan.test-fixture",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/check-plan.test.ts": 1
+      }
+    },
+    {
+      "id": "poteto-agent.owner",
+      "primitives": [
+        "todolist",
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/agents/poteto-agent.md": 1
+      }
+    },
+    {
+      "id": "poteto-agent.locate",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/agents/poteto-agent.md": 1
+      }
+    },
+    {
+      "id": "poteto-agent.worker-contract",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/agents/poteto-agent.md": 1
+      }
+    },
+    {
+      "id": "comment-sicko.worker-contract",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/agents/comment-sicko.md": 1
+      }
+    },
+    {
+      "id": "arena.todolist",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 1
+      }
+    },
+    {
+      "id": "arena.alias-model",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 1
+      }
+    },
+    {
+      "id": "arena.added-runner-model",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 1
+      }
+    },
+    {
+      "id": "arena.fan-out",
+      "primitives": [
+        "run-in-background",
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 1
+      }
+    },
+    {
+      "id": "arena.judge",
+      "primitives": [
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/arena/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.description",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.orchestrates",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.confirm-intent",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.transcripts",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.ask-directly",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.allow-multiple",
+      "primitives": [
+        "ask-question"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.draft",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.yaml-rules",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.writing-guidelines",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.benchmark-loop",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "automate-me.task-skill",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/automate-me/SKILL.md": 1
+      }
+    },
+    {
+      "id": "figure-it-out.todolist",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/figure-it-out/SKILL.md": 1
+      }
+    },
+    {
+      "id": "figure-it-out.add-steps",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/figure-it-out/SKILL.md": 1
+      }
+    },
+    {
+      "id": "how.spawn",
+      "primitives": [
+        "task-tool",
+        "subagent-type",
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/how/SKILL.md": 1
+      }
+    },
+    {
+      "id": "how.explainer-tools",
+      "primitives": [
+        "host-tool-names"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/how/references/explainer-prompt.md": 1
+      }
+    },
+    {
+      "id": "interrogate.adversary-role",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/interrogate/SKILL.md": 1
+      }
+    },
+    {
+      "id": "ketchup.visual",
+      "primitives": [
+        "visualize"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/ketchup/SKILL.md": 1
+      }
+    },
+    {
+      "id": "ketchup.chart",
+      "primitives": [
+        "visualize"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/ketchup/SKILL.md": 1
+      }
+    },
+    {
+      "id": "make-bot-ui.grok-bot",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 2
+      }
+    },
+    {
+      "id": "make-bot-ui.create-routine",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
+      "id": "make-bot-ui.confirm",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
+      "id": "make-bot-ui.copy-url",
+      "primitives": [
+        "cursor-automations",
+        "cursor-ui"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
+      "id": "make-bot-ui.secret-request",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
+      "id": "make-bot-ui.wake",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
+      "id": "no-comments.spawn",
+      "primitives": [
+        "task-tool",
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/no-comments/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.custom-mode-mention",
+      "primitives": [
+        "custom-modes"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.installed-plugin",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.install",
+      "primitives": [
+        "cursor-ui"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.setup-writes",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.readme-link",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.guide-links",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 7
+      }
+    },
+    {
+      "id": "poteto-help.other-hosts",
+      "primitives": [
+        "cursor-host",
+        "cursor-ui",
+        "bugbot",
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.agent-skills-format",
+      "primitives": [
+        "cursor-host",
+        "custom-modes",
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.todo-list",
+      "primitives": [
+        "todolist"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.mode-stays-on",
+      "primitives": [
+        "custom-modes",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.skills-docs",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.own-subagent",
+      "primitives": [
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.swarm-row",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.bot-ui-row",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.not-in-pstack",
+      "primitives": [
+        "cursor-team-kit",
+        "loop",
+        "create-skill-builtin",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.own-babysit",
+      "primitives": [
+        "cursor-builtin-babysit"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.plan-mode",
+      "primitives": [
+        "plan-mode"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.symptom-mode",
+      "primitives": [
+        "custom-modes"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.symptom-model",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.symptom-overwrite",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.symptom-overnight",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/SKILL.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.prompting-loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/references/prompting.md": 1
+      }
+    },
+    {
+      "id": "poteto-help.recipe-loop",
+      "primitives": [
+        "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-help/references/recipes.md": 1
+      }
+    },
+    {
+      "id": "recall.transcripts",
+      "primitives": [
+        "cursor-path",
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/recall/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.locate",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.ls",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.layouts",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.reviewers",
+      "primitives": [
+        "task-tool",
+        "subagent-type",
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.response-body",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.synth-spawn",
+      "primitives": [
+        "task-tool",
+        "subagent-type"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.synth-mode",
+      "primitives": [
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.plugin-cache",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.substantive-edit",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.tune-description",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.new-skill",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reflect.synthesizer-new-skill",
+      "primitives": [
+        "create-skill-builtin"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/reflect/references/synthesizer.md": 3
+      }
+    },
+    {
+      "id": "setup-pstack.description",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.purpose",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.detect",
+      "primitives": [
+        "task-tool",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.current-state",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.apply-budget",
+      "primitives": [
+        "cursor-model-slug"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.write",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.shape",
+      "primitives": [
+        "cursor-model-rule",
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-pstack.confirm",
+      "primitives": [
+        "cursor-model-rule"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/setup-pstack/SKILL.md": 1
+      }
+    },
+    {
+      "id": "show-me-your-work.transcript",
+      "primitives": [
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md": 1
+      }
+    },
+    {
+      "id": "swarm.parent-model",
+      "primitives": [
+        "task-tool"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1
+      }
+    },
+    {
+      "id": "swarm.fan-out",
+      "primitives": [
+        "subagent-type",
+        "cloud-environment",
+        "run-in-background"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1
+      }
+    },
+    {
+      "id": "swarm.base-branch",
+      "primitives": [
+        "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/swarm/SKILL.md": 1
+      }
+    },
+    {
+      "id": "why.spawn-mode",
+      "primitives": [
+        "subagent-type",
+        "readonly"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/why/SKILL.md": 1
+      }
+    },
+    {
+      "id": "why.mcp-discovery",
+      "primitives": [
+        "cursor-host",
+        "cursor-mcp-discovery"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/why/SKILL.md": 1
+      }
+    },
+    {
+      "id": "typescript-best-practices.paths",
+      "primitives": [
+        "skill-frontmatter"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/typescript-best-practices/SKILL.md": 1
+      }
+    },
+    {
+      "id": "typescript-best-practices.paths-metadata",
+      "primitives": [
+        "skill-frontmatter"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/typescript-best-practices/SKILL.md": 1
+      }
+    }
+  ],
+  "keeps": [
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "text": "Cursor",
+      "count": 1,
+      "primitive": "cursor-host",
+      "reason": "names the Cursor app's cache folder as an optional disk reclaimer; the step works unchanged when the folder is absent"
+    }
+  ],
+  "spans": [
+    {
+      "file": "vendor/upstream-pstack/agents/comment-sicko.md",
+      "rule": "agent-frontmatter",
+      "offset": [
+        0,
+        118
+      ],
+      "lines": [
+        1,
+        5
+      ],
+      "original": "---\nname: comment-sicko\ndescription: A deranged comment-hater that savors deletion and condemns workaround code.\n---\n\n",
+      "replacement": "",
+      "output": "generated/agents/comment-sicko.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/comment-sicko.md",
+      "rule": "comment-sicko.worker-contract",
+      "offset": [
+        2132,
+        2230
+      ],
+      "lines": [
+        32,
+        32
+      ],
+      "original": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n",
+      "replacement": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool, so you cannot spawn workers. When the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
+      "output": "generated/agents/comment-sicko.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/poteto-agent.md",
+      "rule": "agent-frontmatter",
+      "offset": [
+        0,
+        511
+      ],
+      "lines": [
+        1,
+        6
+      ],
+      "original": "---\nname: poteto-agent\ndescription: Delegate subagent for code-writing and helper tasks spawned during a `/poteto-mode` run. Use for delegates, not as the runner for `/poteto-mode` itself. Spawn a fresh `poteto-agent` for each new task, and resume one only in the strict cases that poteto-mode's Subagents section names. Reads the `poteto-mode` skill's `SKILL.md` in full before any work, including its inline Principles index. Substituting `generalPurpose` skips that read and drifts.\nis_background: true\n---\n\n",
+      "replacement": "",
+      "output": "generated/agents/poteto.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/poteto-agent.md",
+      "rule": "poteto-agent.owner",
+      "offset": [
+        621,
+        676
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "owns the playbook, the todo list, and every Task spawn.",
+      "replacement": "owns the playbook, the run's `TODO.md`, and every `pstack_worker` spawn.",
+      "output": "generated/agents/poteto.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/poteto-agent.md",
+      "rule": "poteto-agent.locate",
+      "offset": [
+        900,
+        1094
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "search `~/.cursor/plugins/` for a file whose path ends in `skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`.",
+      "replacement": "search the installed Pi packages (`pi list` names them) for a file whose path ends in `generated/skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose package `package.json` has the highest `version`.",
+      "output": "generated/agents/poteto.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/agents/poteto-agent.md",
+      "rule": "poteto-agent.worker-contract",
+      "offset": [
+        1242,
+        1316
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n",
+      "replacement": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool, so you cannot spawn workers. When the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
+      "output": "generated/agents/poteto.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/architect/SKILL.md",
+      "rule": "shared.phase-todolist",
+      "offset": [
+        543,
+        590
+      ],
+      "lines": [
+        13,
+        13
+      ],
+      "original": "Open a todolist with one entry per phase before",
+      "replacement": "Add one `TODO.md` entry per phase (the Playbooks section of the **poteto-mode** skill) before",
+      "output": "generated/skills/architect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/architect/SKILL.md",
+      "rule": "shared.models-mdc-rule",
+      "offset": [
+        1360,
+        1388
+      ],
+      "lines": [
+        31,
+        31
+      ],
+      "original": "the `pstack-models.mdc` rule",
+      "replacement": "the model rule (`~/.pi/agent/pstack/models.json`)",
+      "output": "generated/skills/architect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "arena.todolist",
+      "offset": [
+        316,
+        434
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "Open a todolist with one entry per phase (Frame, Fan out, Cross-judge, Pick, Graft, Verify) before launching anything.",
+      "replacement": "Add one `TODO.md` entry per phase (Frame, Fan out, Cross-judge, Pick, Graft, Verify) before launching anything, per the Playbooks section of the **poteto-mode** skill.",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        794,
+        827
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "arena.alias-model",
+      "offset": [
+        1014,
+        1037
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "so omit `model` for it.",
+      "replacement": "so set `model: \"inherit-parent\"` for it.",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        1041,
+        1062
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        1313,
+        1334
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "arena.added-runner-model",
+      "offset": [
+        1636,
+        1699
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "or omit `model` so it runs on the parent model when none remain",
+      "replacement": "or set `model: \"inherit-parent\"` so it runs on the parent model when none remain",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "arena.fan-out",
+      "offset": [
+        2226,
+        2304
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "Spawn all N subagents in one message with `run_in_background: true`, each with",
+      "replacement": "Spawn all N workers one after another without waiting, each with `role: \"candidate\"` in its own worktree, and each with",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        2693,
+        2726
+      ],
+      "lines": [
+        28,
+        28
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "arena.judge",
+      "offset": [
+        2829,
+        2863
+      ],
+      "lines": [
+        28,
+        28
+      ],
+      "original": "Spawn one readonly judge subagent.",
+      "replacement": "Spawn one judge worker with `role: \"judge\"` and `workspace.mode: \"readonly\"`.",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        3216,
+        3237
+      ],
+      "lines": [
+        28,
+        28
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/arena/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.description",
+      "offset": [
+        255,
+        280
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "via create-skill + unslop",
+      "replacement": "via Pi's skill authoring docs + unslop",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.orchestrates",
+      "offset": [
+        640,
+        684
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "Cursor's built-in `create-skill` (authoring)",
+      "replacement": "Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package) with the Authoring a skill playbook (`../poteto-mode/playbooks/authoring-a-skill.md`) (authoring)",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        842,
+        858
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.user-skills-path",
+      "offset": [
+        882,
+        900
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "`~/.cursor/skills/",
+      "replacement": "`~/.pi/agent/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        1000,
+        1016
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.confirm-intent",
+      "offset": [
+        1071,
+        1112
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "confirm intent with `AskQuestion` (unless",
+      "replacement": "confirm intent with a multiple-choice question in the conversation (unless",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.transcripts",
+      "offset": [
+        1733,
+        1824
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "The system prompt names the workspace's `agent-transcripts/` directory. Use only that path.",
+      "replacement": "They are the Pi session files in this workspace's Pi session folder (the directory of `$PI_SESSION_FILE`, under `~/.pi/agent/sessions/`). Use only that path.",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.projects-glob",
+      "offset": [
+        1843,
+        1866
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "`~/.cursor/projects/*/`",
+      "replacement": "`~/.pi/agent/sessions/*/`",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.ask-directly",
+      "offset": [
+        3190,
+        3292
+      ],
+      "lines": [
+        44,
+        44
+      ],
+      "original": "Use the `AskQuestion` tool (structured multi-choice) rather than asking the user to type from scratch.",
+      "replacement": "Ask structured multiple-choice questions in the conversation, with numbered options, rather than asking the user to type from scratch.",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.allow-multiple",
+      "offset": [
+        3345,
+        3390
+      ],
+      "lines": [
+        46,
+        46
+      ],
+      "original": "`allow_multiple: true` for category questions",
+      "replacement": "several picks allowed for category questions",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.draft",
+      "offset": [
+        4455,
+        4518
+      ],
+      "lines": [
+        67,
+        67
+      ],
+      "original": "Use Cursor's built-in `create-skill` skill to author the skill.",
+      "replacement": "Author the skill with the Authoring a skill playbook (`../poteto-mode/playbooks/authoring-a-skill.md`) and Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package).",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        4603,
+        4619
+      ],
+      "lines": [
+        69,
+        69
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        4741,
+        4757
+      ],
+      "lines": [
+        69,
+        69
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "shared.user-skills-path",
+      "offset": [
+        4800,
+        4818
+      ],
+      "lines": [
+        69,
+        69
+      ],
+      "original": "`~/.cursor/skills/",
+      "replacement": "`~/.pi/agent/skills/",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.yaml-rules",
+      "offset": [
+        5106,
+        5140
+      ],
+      "lines": [
+        72,
+        72
+      ],
+      "original": "follow `create-skill`'s YAML rules",
+      "replacement": "follow the frontmatter rules in Pi's Agent Skills documentation",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.writing-guidelines",
+      "offset": [
+        5479,
+        5532
+      ],
+      "lines": [
+        77,
+        77
+      ],
+      "original": "and `create-skill`'s writing guidelines to every line",
+      "replacement": "and the Authoring a skill playbook's writing guidance to every line",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.benchmark-loop",
+      "offset": [
+        6781,
+        6850
+      ],
+      "lines": [
+        96,
+        96
+      ],
+      "original": "A `create-skill`-style test/iterate benchmark loop isn't useful here.",
+      "replacement": "A test/iterate benchmark loop, like the Authoring a skill playbook's test cases, isn't useful here.",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+      "rule": "automate-me.task-skill",
+      "offset": [
+        7130,
+        7171
+      ],
+      "lines": [
+        102,
+        102
+      ],
+      "original": "`create-skill` alone, no mining required.",
+      "replacement": "the Authoring a skill playbook alone, no mining required.",
+      "output": "generated/skills/automate-me/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/create-verification-skill/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        602,
+        618
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/create-verification-skill/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/create-verification-skill/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        2312,
+        2328
+      ],
+      "lines": [
+        25,
+        25
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/create-verification-skill/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/create-verification-skill/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        4619,
+        4635
+      ],
+      "lines": [
+        36,
+        36
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/create-verification-skill/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/figure-it-out/SKILL.md",
+      "rule": "figure-it-out.todolist",
+      "offset": [
+        618,
+        714
+      ],
+      "lines": [
+        13,
+        13
+      ],
+      "original": "Open a todolist whose first item is to read the Principles section of the **poteto-mode** skill.",
+      "replacement": "Open the run's `TODO.md` list (the Playbooks section of the **poteto-mode** skill) with a first item to read the Principles section of the **poteto-mode** skill.",
+      "output": "generated/skills/figure-it-out/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/figure-it-out/SKILL.md",
+      "rule": "figure-it-out.add-steps",
+      "offset": [
+        2408,
+        2455
+      ],
+      "lines": [
+        34,
+        34
+      ],
+      "original": "Add its steps to the todolist as concrete items",
+      "replacement": "Add its steps to `TODO.md` as concrete items",
+      "output": "generated/skills/figure-it-out/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/how/SKILL.md",
+      "rule": "how.spawn",
+      "offset": [
+        632,
+        721
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "Every spawn is a Task subagent with `subagent_type: generalPurpose` and `readonly: true`.",
+      "replacement": "Every spawn is a `pstack_worker` worker with `workspace.mode: \"readonly\"`, `role: \"explorer\"` for explorers and `role: \"general\"` for explainers.",
+      "output": "generated/skills/how/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/how/SKILL.md",
+      "rule": "shared.models-mdc-rule",
+      "offset": [
+        763,
+        791
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "the `pstack-models.mdc` rule",
+      "replacement": "the model rule (`~/.pi/agent/pstack/models.json`)",
+      "output": "generated/skills/how/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/how/SKILL.md",
+      "rule": "shared.model-unset",
+      "offset": [
+        998,
+        1063
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "Leave `model` unset when the value is `auto` or `inherit-parent`.",
+      "replacement": "Set `model` to `inherit-parent` when the value is `auto` or `inherit-parent`.",
+      "output": "generated/skills/how/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/how/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        1067,
+        1088
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/how/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/how/references/explainer-prompt.md",
+      "rule": "how.explainer-tools",
+      "offset": [
+        1061,
+        1096
+      ],
+      "lines": [
+        23,
+        23
+      ],
+      "original": "Use Read, Grep, and Glob as needed.",
+      "replacement": "Use `read`, `grep`, and `find` as needed.",
+      "output": "generated/skills/how/references/explainer-prompt.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/interrogate/SKILL.md",
+      "rule": "interrogate.adversary-role",
+      "offset": [
+        997,
+        1038
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "Spawn each adversary as `generalPurpose`.",
+      "replacement": "Spawn each adversary with `role: \"reviewer\"`.",
+      "output": "generated/skills/interrogate/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/ketchup/SKILL.md",
+      "rule": "ketchup.visual",
+      "offset": [
+        5253,
+        5290
+      ],
+      "lines": [
+        37,
+        37
+      ],
+      "original": "a chart or diagram from `/visualize`,",
+      "replacement": "a chart or diagram from a Mermaid block,",
+      "output": "generated/skills/ketchup/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/ketchup/SKILL.md",
+      "rule": "ketchup.chart",
+      "offset": [
+        6263,
+        6299
+      ],
+      "lines": [
+        43,
+        43
+      ],
+      "original": "and a `/visualize` chart for numbers",
+      "replacement": "and a Mermaid chart (such as `xychart-beta`) for numbers",
+      "output": "generated/skills/ketchup/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        1543,
+        1559
+      ],
+      "lines": [
+        25,
+        25
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/maintain-verification-skill/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.grok-bot",
+      "offset": [
+        118,
+        126
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "Grok Bot",
+      "replacement": "Pi agent session",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.create-routine",
+      "offset": [
+        547,
+        627
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "Call `update_state` with target `routine` and action `create`. Set these fields:",
+      "replacement": "Create the routine through the pstack automation event adapter (unit U08). If `/pstack doctor` does not report that adapter, stop and tell the user that webhook routines are not available in this install. Set these fields:",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.confirm",
+      "offset": [
+        830,
+        899
+      ],
+      "lines": [
+        20,
+        20
+      ],
+      "original": "If `update_state` shows a confirm card, wait for the user to confirm.",
+      "replacement": "If the adapter asks for confirmation, wait for the user to confirm.",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.copy-url",
+      "offset": [
+        1087,
+        1670
+      ],
+      "lines": [
+        27,
+        37
+      ],
+      "original": "The webhook URL and the sender key live on that routine's panel after the routine exists. Do not invent other clicks.\n\nTell the user to do this:\n\n1. Click this agent's name in the chat header, or press **Cmd+Shift+I**.\n2. Find the **Routines** list under the computer preview.\n3. Open this webhook routine.\n4. Copy the webhook URL. The user may paste the URL in chat.\n5. Copy the sender key. The user must not paste the sender key in chat.\n\nThe URL looks like `https://api2.cursor.sh/automations/webhook/<id>` with no query string. Copy the URL from the routine. Do not guess the id.",
+      "replacement": "The adapter's create result names the webhook URL and the credential file that holds the sender key. Do not invent other steps.\n\nThe user may paste the URL in chat. The user must not paste the sender key in chat.\n\nCopy the URL from the create result. Do not guess it.",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.secret-request",
+      "offset": [
+        1737,
+        1993
+      ],
+      "lines": [
+        41,
+        51
+      ],
+      "original": "Send a secret-request, then stop. That card is the whole turn.\n\n```\nSendToUser\ntype: secret-request\nsecret.label: webhook sender key\nsecret.connector: <routine folder slug>\nsecret.field: key\n```\n\nAfter the user submits the secret, you do not see the value.",
+      "replacement": "Ask the user to save it as the `key` field of `~/.pi/agent/pstack/credentials/<routine folder slug>.json` with mode `0600`, then stop. That request is the whole turn.\n\nAfter the user saves the file, you do not see the value.",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.grok-bot",
+      "offset": [
+        2295,
+        2303
+      ],
+      "lines": [
+        55,
+        55
+      ],
+      "original": "Grok Bot",
+      "replacement": "Pi agent session",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.wake",
+      "offset": [
+        4105,
+        4298
+      ],
+      "lines": [
+        107,
+        107
+      ],
+      "original": "The wake is a `[routine]` turn for that webhook routine. It includes a `<webhook_event>` block with `headers` (`content-type`, `user-agent`), `body_digest` (sha256), `body`, and `timestamp_ms`.",
+      "replacement": "The wake is the event message that the automation event adapter (unit U08) delivers for that webhook routine. It carries the request headers (`content-type`, `user-agent`), a sha256 digest of the body, `body`, and a timestamp.",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/no-comments/SKILL.md",
+      "rule": "no-comments.spawn",
+      "offset": [
+        423,
+        493
+      ],
+      "lines": [
+        19,
+        19
+      ],
+      "original": "1. Spawn `Task` with `subagent_type: \"comment-sicko\"`. Pass the scope.",
+      "replacement": "1. Spawn a `pstack_worker` worker with `role: \"comment-sicko\"` in its own worktree. Commit or copy the scope's uncommitted changes into that worktree first, and apply its diff back after `collect`. Pass the scope.",
+      "output": "generated/skills/no-comments/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.custom-mode-mention",
+      "offset": [
+        638,
+        682
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "mention once that a Custom Mode keeps it on.",
+      "replacement": "mention once that `/pstack on` keeps it on.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.installed-plugin",
+      "offset": [
+        900,
+        932
+      ],
+      "lines": [
+        13,
+        13
+      ],
+      "original": "point into the installed plugin,",
+      "replacement": "point into the installed pi-pstack package,",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        1594,
+        1627
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.install",
+      "offset": [
+        2874,
+        2953
+      ],
+      "lines": [
+        38,
+        38
+      ],
+      "original": "1. Install with `/add-plugin pstack` in chat, or from Customize in the sidebar.",
+      "replacement": "1. Install with `pi install npm:@justjoshn/pi-pstack`, then run `/reload` in an open session.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.setup-writes",
+      "offset": [
+        3065,
+        3114
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "and writes a rule. The rule applies to new chats.",
+      "replacement": "and writes `~/.pi/agent/pstack/models.json`. The file applies to every later worker spawn.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.readme-link",
+      "offset": [
+        3464,
+        3482
+      ],
+      "lines": [
+        42,
+        42
+      ],
+      "original": "](../../README.md)",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/README.md)",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        3500,
+        3519
+      ],
+      "lines": [
+        42,
+        42
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.other-hosts",
+      "offset": [
+        4093,
+        4519
+      ],
+      "lines": [
+        46,
+        46
+      ],
+      "original": "pstack is built for Cursor, and it also installs in Claude Code with `/plugin marketplace add cursor/plugins`, then `/plugin install pstack@cursor-plugins`. There, each command takes a `pstack:` prefix, such as `/pstack:poteto-mode`. The [Claude Code adapter](../../docs/harness/claude-code.md) maps the Cursor names, and a step that needs a Cursor-only feature, such as Bugbot or Automations, is skipped with a one-line note.",
+      "replacement": "pi-pstack compiles the pstack skills for Pi from a pinned upstream revision and maps each host feature to a Pi mechanism. `generated/transformation-manifest.json` in the package lists every changed span.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.agent-skills-format",
+      "offset": [
+        4678,
+        4807
+      ],
+      "lines": [
+        48,
+        48
+      ],
+      "original": "spawn Cursor subagents with per-role models, and Custom Modes and `/loop` are Cursor features, so those parts may not work there.",
+      "replacement": "spawn pstack workers through the pi-pstack extension with per-role models, and `/pstack on` and watch loops are pi-pstack features, so those parts may not work there.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.todo-list",
+      "offset": [
+        4893,
+        4940
+      ],
+      "lines": [
+        52,
+        52
+      ],
+      "original": "copies the playbook's steps into the todo list,",
+      "replacement": "copies the playbook's steps into the run's `TODO.md`,",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        5312,
+        5331
+      ],
+      "lines": [
+        52,
+        52
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.mode-stays-on",
+      "offset": [
+        5433,
+        5848
+      ],
+      "lines": [
+        56,
+        58
+      ],
+      "original": "- Enter on `/poteto-mode` attaches the skill to one message. It fades as the chat moves on.\n- Option+Enter on Mac or Alt+Enter on Windows, or Use as Mode from the skill entry, makes it a Custom Mode. It stays in context every turn until the user exits the mode, and it stays out of casual turns.\n- Cursor's docs list Custom Modes in the Agents Window and the CLI. Elsewhere, start each new task with `/poteto-mode`.",
+      "replacement": "- `/poteto-mode <task>` attaches the skill to one message. It fades as the chat moves on.\n- `/pstack on` keeps the pstack style on. It applies at each task boundary until `/pstack off`, and it stays out of casual turns.\n- Without the pi-pstack extension, start each new task with `/poteto-mode`.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.skills-docs",
+      "offset": [
+        5850,
+        5929
+      ],
+      "lines": [
+        60,
+        60
+      ],
+      "original": "Link [Cursor's skills docs](https://cursor.com/docs/skills) when this comes up.",
+      "replacement": "Link [Pi's skills docs](https://github.com/earendil-works/pi/blob/d78a75ecb26d730ad95c407f2e44ce205d5880ce/packages/coding-agent/docs/skills.md) when this comes up.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.own-subagent",
+      "offset": [
+        5990,
+        6174
+      ],
+      "lines": [
+        60,
+        60
+      ],
+      "original": "`/poteto-mode` already uses `poteto-agent` for the subagents its playbook steps spawn. To get the same style from a subagent of your own, spawn it with `subagent_type: \"poteto-agent\"`.",
+      "replacement": "`/poteto-mode` already uses the `poteto` worker role for the workers its playbook steps spawn. To get the same style from a worker of your own, spawn it with `role: \"poteto\"`.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.swarm-row",
+      "offset": [
+        8016,
+        8050
+      ],
+      "lines": [
+        80,
+        80
+      ],
+      "original": "or race workers, as cloud agents |",
+      "replacement": "or race workers, as container workers |",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.bot-ui-row",
+      "offset": [
+        10434,
+        10464
+      ],
+      "lines": [
+        100,
+        100
+      ],
+      "original": "wake a Grok Bot over a webhook",
+      "replacement": "wake a Pi agent session over a webhook",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.not-in-pstack",
+      "offset": [
+        11672,
+        11806
+      ],
+      "lines": [
+        116,
+        117
+      ],
+      "original": "- `/deslop`, `control-cli`, and `control-ui` ship in the `cursor-team-kit` plugin.\n- `/loop` and `/create-skill` are Cursor built-ins.",
+      "replacement": "- `/deslop`, `control-cli`, `control-ui`, and `verify-this` are team-kit skills that pi-pstack ships beside pstack.\n- Watch loops and `/pstack on` come from the pi-pstack extension, and skill authoring follows Pi's Agent Skills documentation.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.own-babysit",
+      "offset": [
+        12650,
+        12704
+      ],
+      "lines": [
+        131,
+        131
+      ],
+      "original": "can start Cursor's own skill for the same job instead.",
+      "replacement": "can start another installed skill for the same job instead.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        12826,
+        12845
+      ],
+      "lines": [
+        131,
+        131
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.plan-mode",
+      "offset": [
+        12916,
+        12984
+      ],
+      "lines": [
+        133,
+        133
+      ],
+      "original": "pstack has no planning skill. Cursor's Plan Mode works alongside it.",
+      "replacement": "pstack has no planning skill, and Pi has no plan mode. A plan is a Markdown file under `.pi/pstack/plans/`.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        13551,
+        13570
+      ],
+      "lines": [
+        135,
+        135
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.symptom-mode",
+      "offset": [
+        13705,
+        13802
+      ],
+      "lines": [
+        141,
+        141
+      ],
+      "original": "| It was started with Enter. Start it as a Custom Mode, or start each task with `/poteto-mode`. |",
+      "replacement": "| It was attached to one message. Turn it on with `/pstack on`, or start each task with `/poteto-mode`. |",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.symptom-model",
+      "offset": [
+        13956,
+        14022
+      ],
+      "lines": [
+        143,
+        143
+      ],
+      "original": "| The rule from `/setup-pstack` applies to new chats. Start one. |",
+      "replacement": "| `/setup-pstack` writes `~/.pi/agent/pstack/models.json`, which applies at the next worker spawn. Check that file. |",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.symptom-overwrite",
+      "offset": [
+        14368,
+        14430
+      ],
+      "lines": [
+        146,
+        146
+      ],
+      "original": "or run them as cloud agents, which each get their own machine.",
+      "replacement": "or run them as container workers, which each get their own filesystem.",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.symptom-overnight",
+      "offset": [
+        14479,
+        14524
+      ],
+      "lines": [
+        147,
+        147
+      ],
+      "original": "| `/loop` needs a check that can pass or fail",
+      "replacement": "| A watch loop needs a check that can pass or fail",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        14559,
+        14578
+      ],
+      "lines": [
+        147,
+        147
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        14855,
+        14874
+      ],
+      "lines": [
+        150,
+        150
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/SKILL.md",
+      "rule": "poteto-help.guide-links",
+      "offset": [
+        15441,
+        15460
+      ],
+      "lines": [
+        159,
+        159
+      ],
+      "original": "](../../docs/guide/",
+      "replacement": "](https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack/docs/guide/",
+      "output": "generated/skills/poteto-help/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/references/prompting.md",
+      "rule": "poteto-help.prompting-loop",
+      "offset": [
+        2577,
+        2604
+      ],
+      "lines": [
+        41,
+        41
+      ],
+      "original": "give `/loop` that predicate",
+      "replacement": "give the watch loop that predicate",
+      "output": "generated/skills/poteto-help/references/prompting.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-help/references/recipes.md",
+      "rule": "poteto-help.recipe-loop",
+      "offset": [
+        3057,
+        3074
+      ],
+      "lines": [
+        45,
+        45
+      ],
+      "original": "/loop until done.",
+      "replacement": "loop until done.",
+      "output": "generated/skills/poteto-help/references/recipes.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.frontmatter-metadata",
+      "offset": [
+        256,
+        282
+      ],
+      "lines": [
+        5,
+        6
+      ],
+      "original": "icon: crown\ncolor: yellow\n",
+      "replacement": "metadata:\n  icon: crown\n  color: yellow\n",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.agent-prompt",
+      "offset": [
+        395,
+        426
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "in every `poteto-agent` prompt.",
+      "replacement": "in every `role: \"poteto\"` worker brief.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.askquestion-fork",
+      "offset": [
+        1246,
+        1275
+      ],
+      "lines": [
+        21,
+        21
+      ],
+      "original": "- About to `AskQuestion` on a",
+      "replacement": "- About to ask the user a question in the conversation on a",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.create-skill",
+      "offset": [
+        3035,
+        3143
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "Agent-facing prose also follows the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).",
+      "replacement": "Agent-facing prose also follows Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package) for authoring SKILL.md files.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "shared.deslop-plugin",
+      "offset": [
+        3279,
+        3343
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "the `deslop` skill from the `cursor-team-kit` plugin (`/deslop`)",
+      "replacement": "the `deslop` skill shipped with pi-pstack (`/deslop`)",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.control-plugin",
+      "offset": [
+        3463,
+        3504
+      ],
+      "lines": [
+        31,
+        31
+      ],
+      "original": "`cursor-team-kit` publishes `control-cli`",
+      "replacement": "pi-pstack ships `control-cli`",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.builtin-babysit",
+      "offset": [
+        4074,
+        4151
+      ],
+      "lines": [
+        33,
+        33
+      ],
+      "original": "not Cursor's built-in babysit skill, whose description matches the same words",
+      "replacement": "not any other babysit skill whose description matches the same words",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.loop-phrase",
+      "offset": [
+        5106,
+        5121
+      ],
+      "lines": [
+        37,
+        37
+      ],
+      "original": "\"/loop until X\"",
+      "replacement": "\"loop until X\"",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.subagent-role",
+      "offset": [
+        10522,
+        10611
+      ],
+      "lines": [
+        94,
+        94
+      ],
+      "original": "**Use `subagent_type: \"poteto-agent\"` for any subagent you spawn inside a playbook step**",
+      "replacement": "**Use `role: \"poteto\"` in the assignment of any worker you spawn inside a playbook step**",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.subagent-overrides",
+      "offset": [
+        10711,
+        10965
+      ],
+      "lines": [
+        94,
+        94
+      ],
+      "original": "Never spawn a `poteto-agent` to run the playbook itself. Routed workflow skills (`how`, `why`, `interrogate`, `reflect`, `swarm`) set their own `subagent_type` for diverse-model review. Respect what the skill prescribes, don't override to `poteto-agent`.",
+      "replacement": "Never spawn a `role: \"poteto\"` worker to run the playbook itself. Routed workflow skills (`how`, `why`, `interrogate`, `reflect`, `swarm`) set their own `role` for diverse-model review. Respect what the skill prescribes, don't override to `poteto`.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.task-defaults",
+      "offset": [
+        10967,
+        11209
+      ],
+      "lines": [
+        96,
+        96
+      ],
+      "original": "**Defaults for every `Task` call.** `run_in_background: true` (a steer or resume of a running agent too, because a foreground call holds your turn while other reports wait), agent mode (readonly strips MCP), file pointers not inlined context,",
+      "replacement": "**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write `brief.md` and `assignment.json` under `.pi/pstack/runs/<runId>/workers/<workerId>/` and call `pstack_worker` with `{ action: \"spawn\", runId, assignmentPath }`. The assignment's `role` picks the role instruction: `poteto`, `explorer`, `investigator`, `candidate`, `judge`, `verifier`, `reviewer`, `owner`, `watcher`, `comment-sicko`, or `general`. Its `workspace` is `{ mode: \"worktree\", inputCommit }` for a writable worker or `{ mode: \"readonly\", path }` for a worker limited to `read`, `grep`, `find`, `ls`, and MCP tools. Its `model` is a model spec or `inherit-parent`. Its `capabilities` default to `{ mcp: \"inherit\", env: \"inherit\", externalWrite: false }`. A default written as a family and level, such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A `pstack-worker` wake message reports each worker that settles. Then call `collect` for its report. Use `inspect` for live state, `steer` to redirect a live worker, and `abort` to stop one. A worker has no `pstack_worker` tool, so it does delegated work itself. A container worker runs inside the configured container environment. Where none is configured, a step that requires a container worker refuses: say so and stop that step. A watch loop is a `pstack_worker` spawn with `kind: \"watch\"`. Its `watch.argv` runs in tmux, and its exit wakes you. A fixed interval uses `[\"sleep\", \"<seconds>\"]`, and an event uses the watcher's command. Spawn it again after each wake until the stop predicate holds. The model rule is `~/.pi/agent/pstack/models.json`, and each of its role keys is a line.\n\n**Defaults for every `pstack_worker` spawn.** Keep working after the spawn returns (a `steer` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use `workspace.mode: \"worktree\"` unless the step asks for a readonly worker, file pointers not inlined context,",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.omit-model",
+      "offset": [
+        12020,
+        12039
+      ],
+      "lines": [
+        96,
+        96
+      ],
+      "original": "(omit Task `model`)",
+      "replacement": "(assignment `model: \"inherit-parent\"`)",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        13178,
+        13199
+      ],
+      "lines": [
+        98,
+        98
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        13299,
+        13320
+      ],
+      "lines": [
+        98,
+        98
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.task-error",
+      "offset": [
+        13401,
+        13423
+      ],
+      "lines": [
+        98,
+        98
+      ],
+      "original": "once a Task error says",
+      "replacement": "once a `pstack_worker` error says",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.parent-model-fallback",
+      "offset": [
+        13712,
+        13894
+      ],
+      "lines": [
+        98,
+        98
+      ],
+      "original": "or omit `model` so the subagent runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, omit `model` too.",
+      "replacement": "or set `model: \"inherit-parent\"` so the worker runs on the parent model when the list has none. When the calling skill's fallback runs out of slugs without saying what to do next, set `model: \"inherit-parent\"` too.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.reuse",
+      "offset": [
+        14374,
+        14445
+      ],
+      "lines": [
+        102,
+        102
+      ],
+      "original": "Resume, message, or queue a follow-up on an existing subagent only when",
+      "replacement": "`steer` an existing worker only when",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.interrupt-chained",
+      "offset": [
+        14826,
+        14851
+      ],
+      "lines": [
+        102,
+        102
+      ],
+      "original": "Interrupt-chained resumes",
+      "replacement": "Interrupt-chained steers",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.todolist",
+      "offset": [
+        16908,
+        17107
+      ],
+      "lines": [
+        124,
+        124
+      ],
+      "original": "Open a todolist whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos. A step you choose not to do stays in the list with a one-line `skip: <reason>`.",
+      "replacement": "Start the run with `node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>`, where `<pi-pstack>` is the pi-pstack package root, three directories above this file. It writes the run's `TODO.md` under `.pi/pstack/runs/<runId>/`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under `## Task-specific work`. You are its only writer. Check a step as `- [x] N. <text> (evidence: <receipt id>)` once `pstack_evidence` `verify` passes for it. A step you choose not to do stays in the list as `- [~] N. <text> (skip: <reason>)`. A skill outside a playbook keeps its list under `## Task-specific work` in the active run's `TODO.md`. With no active run, it keeps the list in its reply and updates it at each phase.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.loop-phrase",
+      "offset": [
+        19853,
+        19868
+      ],
+      "lines": [
+        142,
+        142
+      ],
+      "original": "\"/loop until X\"",
+      "replacement": "\"loop until X\"",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.pickup-sources",
+      "offset": [
+        20909,
+        20962
+      ],
+      "lines": [
+        146,
+        146
+      ],
+      "original": "from a transcript, cloud-agent URL, or pushed branch.",
+      "replacement": "from a session transcript, a worker's run directory, or pushed branch.",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+      "rule": "poteto-mode.restart",
+      "offset": [
+        21076,
+        21092
+      ],
+      "lines": [
+        147,
+        147
+      ],
+      "original": "a Cursor restart",
+      "replacement": "a Pi restart",
+      "output": "generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/authoring-a-skill.md",
+      "rule": "authoring-a-skill.create-skill",
+      "offset": [
+        68,
+        151
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "1. Use the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).",
+      "replacement": "1. Follow Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package) for authoring SKILL.md files.",
+      "output": "generated/skills/poteto-mode/playbooks/authoring-a-skill.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "rule": "autonomous-run.wake",
+      "offset": [
+        247,
+        335
+      ],
+      "lines": [
+        6,
+        6
+      ],
+      "original": "Pick the wake mechanism using Cursor's `/loop` command (a built-in, not a pstack skill).",
+      "replacement": "Pick the wake mechanism as a watch loop (a `pstack_worker` spawn with `kind: \"watch\"`, per the Subagents section).",
+      "output": "generated/skills/poteto-mode/playbooks/autonomous-run.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+      "rule": "autonomous-run.askquestion",
+      "offset": [
+        1348,
+        1369
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "or use `AskQuestion`.",
+      "replacement": "or stop to ask the user a question.",
+      "output": "generated/skills/poteto-mode/playbooks/autonomous-run.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.owner",
+      "offset": [
+        998,
+        1044
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": "Each owner is a Cursor cloud agent that builds",
+      "replacement": "Each owner is a container worker (`role: \"owner\"`) that builds",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "shared.deslop-plugin",
+      "offset": [
+        1324,
+        1388
+      ],
+      "lines": [
+        10,
+        10
+      ],
+      "original": "the `deslop` skill from the `cursor-team-kit` plugin (`/deslop`)",
+      "replacement": "the `deslop` skill shipped with pi-pstack (`/deslop`)",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "shared.control-skill-plugin",
+      "offset": [
+        3078,
+        3140
+      ],
+      "lines": [
+        14,
+        14
+      ],
+      "original": "(such as `control-ui` or `control-cli` from `cursor-team-kit`)",
+      "replacement": "(such as `control-ui` or `control-cli`, shipped with pi-pstack)",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.loop",
+      "offset": [
+        5373,
+        5418
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "On the operator's go, arm `/loop 1h` to audit",
+      "replacement": "On the operator's go, arm an hourly watch loop (`watch.argv: [\"sleep\", \"3600\"]`) to audit",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.tick-from-trunk",
+      "offset": [
+        5503,
+        5546
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "Each tick re-reads this playbook from trunk",
+      "replacement": "Each tick re-reads this playbook from the installed pi-pstack package",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+      "rule": "babysit.builtin-babysit",
+      "offset": [
+        121,
+        194
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "This playbook replaces Cursor's built-in babysit skill for these requests",
+      "replacement": "This playbook replaces any other babysit skill for these requests",
+      "output": "generated/skills/poteto-mode/playbooks/babysit.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+      "rule": "babysit.loop",
+      "offset": [
+        3682,
+        3741
+      ],
+      "lines": [
+        12,
+        12
+      ],
+      "original": "Run `drive` and `background` under `/loop` in dynamic mode.",
+      "replacement": "Run `drive` and `background` under a watch loop whose `watch.argv` is the watcher command.",
+      "output": "generated/skills/poteto-mode/playbooks/babysit.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/bug-fix.md",
+      "rule": "bug-fix.loop",
+      "offset": [
+        1320,
+        1380
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": "Drive a long or stubborn hunt with Cursor's `/loop` command.",
+      "replacement": "Drive a long or stubborn hunt with a watch loop (the Subagents section).",
+      "output": "generated/skills/poteto-mode/playbooks/bug-fix.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/eval.md",
+      "rule": "eval.transcripts",
+      "offset": [
+        1878,
+        2013
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "Read each candidate's local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names this path).",
+      "replacement": "Read each candidate's Pi session file under its worker directory (`.pi/pstack/runs/<runId>/workers/<workerId>/session/`).",
+      "output": "generated/skills/poteto-mode/playbooks/eval.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/eval.md",
+      "rule": "shared.projects-glob",
+      "offset": [
+        2033,
+        2056
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "`~/.cursor/projects/*/`",
+      "replacement": "`~/.pi/agent/sessions/*/`",
+      "output": "generated/skills/poteto-mode/playbooks/eval.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.explore-role",
+      "offset": [
+        613,
+        674
+      ],
+      "lines": [
+        7,
+        7
+      ],
+      "original": "Explore in subagents with `subagent_type: \"poteto-agent\"` and",
+      "replacement": "Explore in workers with `role: \"poteto\"` and",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.plan-path",
+      "offset": [
+        1041,
+        1122
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": "Unless the operator names a path, write the file under the agent store's `docs/`.",
+      "replacement": "Unless the operator names a path, write the file to `.pi/pstack/plans/<slug>.md` in the project.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        1773,
+        1787
+      ],
+      "lines": [
+        10,
+        10
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.control-plugin",
+      "offset": [
+        3637,
+        3729
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "`control-ui` from `cursor-team-kit`. CLIs and TUIs use `control-cli` from `cursor-team-kit`.",
+      "replacement": "`control-ui`. CLIs and TUIs use `control-cli`. Both ship with pi-pstack.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        4410,
+        4424
+      ],
+      "lines": [
+        26,
+        26
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.read-from-trunk",
+      "offset": [
+        4844,
+        4883
+      ],
+      "lines": [
+        35,
+        35
+      ],
+      "original": "Read these from trunk at program start.",
+      "replacement": "Read these from the installed pi-pstack package at program start.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.git-show",
+      "offset": [
+        4921,
+        4942
+      ],
+      "lines": [
+        36,
+        36
+      ],
+      "original": "git show origin/main:",
+      "replacement": "cat ",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        4942,
+        4956
+      ],
+      "lines": [
+        36,
+        36
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.git-show",
+      "offset": [
+        5012,
+        5033
+      ],
+      "lines": [
+        37,
+        37
+      ],
+      "original": "git show origin/main:",
+      "replacement": "cat ",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        5033,
+        5047
+      ],
+      "lines": [
+        37,
+        37
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.git-show",
+      "offset": [
+        5072,
+        5093
+      ],
+      "lines": [
+        38,
+        38
+      ],
+      "original": "git show origin/main:",
+      "replacement": "cat ",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.git-show",
+      "offset": [
+        5124,
+        5145
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "git show origin/main:",
+      "replacement": "cat ",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        5145,
+        5159
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.git-show",
+      "offset": [
+        5207,
+        5228
+      ],
+      "lines": [
+        40,
+        40
+      ],
+      "original": "git show origin/main:",
+      "replacement": "cat ",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        5228,
+        5242
+      ],
+      "lines": [
+        40,
+        40
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.loop",
+      "offset": [
+        5312,
+        5349
+      ],
+      "lines": [
+        41,
+        41
+      ],
+      "original": "arm the audit tick as `/loop 1h` with",
+      "replacement": "arm the audit tick as an hourly watch loop (`watch.argv: [\"sleep\", \"3600\"]`) with",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.tick-from-trunk",
+      "offset": [
+        5447,
+        5489
+      ],
+      "lines": [
+        42,
+        42
+      ],
+      "original": "Re-read the execution playbook from trunk.",
+      "replacement": "Re-read the execution playbook from the installed pi-pstack package.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.pr-tool",
+      "offset": [
+        7248,
+        7300
+      ],
+      "lines": [
+        57,
+        57
+      ],
+      "original": "Use the run's built-in PR tool when it has one, else",
+      "replacement": "Use the MCP forge tool when there is one, else",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        8351,
+        8365
+      ],
+      "lines": [
+        65,
+        65
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.lane-vm",
+      "offset": [
+        9203,
+        9326
+      ],
+      "lines": [
+        71,
+        71
+      ],
+      "original": "Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli` from `cursor-team-kit`.",
+      "replacement": "Each live lane runs as its own container worker at the PR head. Drive through `control-ui` or `control-cli`.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.review-video",
+      "offset": [
+        12095,
+        12108
+      ],
+      "lines": [
+        123,
+        123
+      ],
+      "original": "on a lane VM.",
+      "replacement": "on a lane worker.",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        13112,
+        13126
+      ],
+      "lines": [
+        152,
+        152
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        13145,
+        13159
+      ],
+      "lines": [
+        152,
+        152
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.repo-path",
+      "offset": [
+        13197,
+        13211
+      ],
+      "lines": [
+        152,
+        152
+      ],
+      "original": "pstack/skills/",
+      "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.worktree",
+      "offset": [
+        112,
+        203
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "Subagents inherit it. Multiple `Task` calls on the same branch each get their own worktree,",
+      "replacement": "Each worker gets its own worktree at its assignment's `inputCommit`. Multiple workers on the same branch each get their own worktree,",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.deslop",
+      "offset": [
+        668,
+        718
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "Run `/deslop` from `cursor-team-kit` over the diff",
+      "replacement": "Run `/deslop` over the diff",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.pr-tool",
+      "offset": [
+        3357,
+        3662
+      ],
+      "lines": [
+        26,
+        26
+      ],
+      "original": "**Built-in PR tool.** When the run provides a built-in PR tool, create, edit, retarget, and mark ready through it, never through a forge CLI. A CLI-made PR misses what the tool tracks. Use the resolved forge for everything the tool does not cover, and for every PR operation when the run has no such tool.",
+      "replacement": "**PR tool.** When a Pi MCP forge tool for this repository is available, create, edit, retarget, and mark ready through it, never through a forge CLI. A CLI-made PR misses what that tool tracks. Use the resolved forge for everything the tool does not cover, and for every PR operation when there is no such tool.",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.without-pr-tool",
+      "offset": [
+        3958,
+        4008
+      ],
+      "lines": [
+        28,
+        28
+      ],
+      "original": "Without a built-in PR tool, per the resolved forge",
+      "replacement": "Without an MCP forge tool, per the resolved forge",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.draft",
+      "offset": [
+        4387,
+        4484
+      ],
+      "lines": [
+        30,
+        30
+      ],
+      "original": "A built-in PR tool can default to draft, so set `draft: false` on every creation call through it.",
+      "replacement": "An MCP forge tool can default to draft, so set `draft: false` on every creation call through it.",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/opening-a-pr.md",
+      "rule": "opening-a-pr.mark-ready",
+      "offset": [
+        4579,
+        4612
+      ],
+      "lines": [
+        30,
+        30
+      ],
+      "original": "mark it ready through the PR tool",
+      "replacement": "mark it ready through the MCP forge tool",
+      "output": "generated/skills/poteto-mode/playbooks/opening-a-pr.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "rule": "orchestrate.tools",
+      "offset": [
+        495,
+        682
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "Spawn workers with `Task`. Keep the program's state in the Project tracker (`notes.md`) and the Project store. Watch each PR with PR and CI event subscriptions when your harness has them.",
+      "replacement": "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you.",
+      "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "rule": "orchestrate.cloud-workers",
+      "offset": [
+        1321,
+        1502
+      ],
+      "lines": [
+        10,
+        10
+      ],
+      "original": "Run workers on a new cloud VM (`environment: \"cloud\"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts,",
+      "replacement": "Run workers as container workers unless the work needs this machine: a `control-ui` or `control-cli` runtime check, local session files,",
+      "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "rule": "orchestrate.fork",
+      "offset": [
+        2001,
+        2250
+      ],
+      "lines": [
+        12,
+        12
+      ],
+      "original": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. Message a worker only for a follow-up on the same work. Never message one to check on it, because a message restarts an idle agent.",
+      "replacement": "**Steer when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. Steer a worker only for a follow-up on the same work. Never steer one to check on it, because a steer starts a turn on an idle worker. Use `inspect` instead.",
+      "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "rule": "session-pickup.transcript",
+      "offset": [
+        115,
+        228
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "A local transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path.",
+      "replacement": "A local Pi session file in this workspace's session folder (the directory of `$PI_SESSION_FILE`.",
+      "output": "generated/skills/poteto-mode/playbooks/session-pickup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "rule": "shared.projects-glob",
+      "offset": [
+        248,
+        271
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "`~/.cursor/projects/*/`",
+      "replacement": "`~/.pi/agent/sessions/*/`",
+      "output": "generated/skills/poteto-mode/playbooks/session-pickup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "rule": "session-pickup.cloud-url",
+      "offset": [
+        355,
+        395
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": ", a cloud-agent URL, or a pushed branch.",
+      "replacement": ", a worker's run directory (`.pi/pstack/runs/<runId>/workers/<workerId>/`, with its `report.md` and `.pi/pstack/runs/<runId>/workers/<workerId>/session/`), or a pushed branch.",
+      "output": "generated/skills/poteto-mode/playbooks/session-pickup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+      "rule": "shipping.verifier",
+      "offset": [
+        448,
+        511
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "One verifier per PR, each a Cursor cloud agent, runs the change",
+      "replacement": "One verifier per PR, each a container worker (`role: \"verifier\"`), runs the change",
+      "output": "generated/skills/poteto-mode/playbooks/shipping.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+      "rule": "shared.control-skill-plugin",
+      "offset": [
+        565,
+        627
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "(such as `control-ui` or `control-cli` from `cursor-team-kit`)",
+      "replacement": "(such as `control-ui` or `control-cli`, shipped with pi-pstack)",
+      "output": "generated/skills/poteto-mode/playbooks/shipping.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+      "rule": "shipping.loop",
+      "offset": [
+        3777,
+        3807
+      ],
+      "lines": [
+        9,
+        9
+      ],
+      "original": "under `/loop` until it reports",
+      "replacement": "under a watch loop until it reports",
+      "output": "generated/skills/poteto-mode/playbooks/shipping.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/visual-parity.md",
+      "rule": "visual-parity.loop",
+      "offset": [
+        991,
+        1036
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": "`/loop` per component until the diff is zero.",
+      "replacement": "Loop per component until the diff is zero.",
+      "output": "generated/skills/poteto-mode/playbooks/visual-parity.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "rule": "worktree-cleanup.worktree-path",
+      "offset": [
+        389,
+        442
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "misses one that lives at `.cursor/worktrees/myrepo/x`",
+      "replacement": "misses one that lives at `.pi/pstack/runs/<runId>/workers/<workerId>/worktree`",
+      "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "rule": "worktree-cleanup.background",
+      "offset": [
+        628,
+        674
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "The transcript scan is slow, so background it.",
+      "replacement": "The transcript scan is slow, so run it in a watch loop (`kind: \"watch\"`) and keep working.",
+      "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/check-plan.mjs",
+      "rule": "check-plan.loop-marker",
+      "offset": [
+        540,
+        620
+      ],
+      "lines": [
+        20,
+        20
+      ],
+      "original": "const PROGRAM_MARKERS = [\"git show origin/main:\", \"/loop 1h\", \"status message\"];",
+      "replacement": "const PROGRAM_MARKERS = [\"<pi-pstack>/generated/skills/\", '[\"sleep\", \"3600\"]', \"status message\"];",
+      "output": "generated/skills/poteto-mode/scripts/check-plan.mjs"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/check-plan.test.ts",
+      "rule": "check-plan.test-fixture",
+      "offset": [
+        695,
+        744
+      ],
+      "lines": [
+        23,
+        23
+      ],
+      "original": "\\`git show origin/main:\\` /loop 1h status message",
+      "replacement": "\\`cat <pi-pstack>/generated/skills/\\` [\"sleep\", \"3600\"] status message",
+      "output": "generated/skills/poteto-mode/scripts/check-plan.test.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "rule": "worktree-audit.transcripts",
+      "offset": [
+        3436,
+        3630
+      ],
+      "lines": [
+        72,
+        74
+      ],
+      "original": "# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"$HOME/.cursor/projects/$slug/agent-transcripts\"",
+      "replacement": "# Transcripts dir: the Pi session folder for the repository, ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slugified-repo-path>--.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--\"",
+      "output": "generated/skills/poteto-mode/scripts/worktree-audit.sh"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/recall/SKILL.md",
+      "rule": "recall.transcripts",
+      "offset": [
+        1204,
+        1468
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "Transcripts live at `~/.cursor/projects/<slug>/agent-transcripts/<uuid>/<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each \"/\" turned into \"-\" (so `/Users/you/proj` becomes `Users-you-proj`). Every line is one chat message.",
+      "replacement": "Transcripts are Pi session files at `~/.pi/agent/sessions/--<slug>--/<timestamp>_<uuid>.jsonl`, where `<slug>` is the workspace path with the leading slash dropped and each \"/\" turned into \"-\" (so `/Users/you/proj` becomes `--Users-you-proj--`). Every line is one session entry, and chat messages have `type: \"message\"`. pstack workers keep theirs under `.pi/pstack/runs/<runId>/workers/<workerId>/session/` in the project.",
+      "output": "generated/skills/recall/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.locate",
+      "offset": [
+        596,
+        694
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "find this conversation's transcript in the `agent-transcripts/` directory the system prompt names.",
+      "replacement": "find this conversation's Pi session file. `$PI_SESSION_FILE` names it, in this workspace's session folder under `~/.pi/agent/sessions/`.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.projects-glob",
+      "offset": [
+        714,
+        737
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "`~/.cursor/projects/*/`",
+      "replacement": "`~/.pi/agent/sessions/*/`",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.ls",
+      "offset": [
+        831,
+        957
+      ],
+      "lines": [
+        18,
+        18
+      ],
+      "original": "ls -t <agent-transcripts>/*.jsonl <agent-transcripts>/*/*.jsonl <agent-transcripts>/*/subagents/*.jsonl 2>/dev/null | head -10",
+      "replacement": "ls -t \"$(dirname \"$PI_SESSION_FILE\")\"/*.jsonl .pi/pstack/runs/*/workers/*/session/*.jsonl 2>/dev/null | head -10",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.layouts",
+      "offset": [
+        963,
+        1148
+      ],
+      "lines": [
+        21,
+        21
+      ],
+      "original": "That covers the legacy flat (`<id>.jsonl`), current nested (`<id>/<id>.jsonl`), and subagent (`<parent>/subagents/<child>.jsonl`) layouts. For each candidate, read the first JSONL line.",
+      "replacement": "That covers this workspace's sessions and the pstack worker sessions under the project's run root. For each candidate, read its first entry of type `message`.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.reviewers",
+      "offset": [
+        1347,
+        1586
+      ],
+      "lines": [
+        25,
+        25
+      ],
+      "original": "One message, three `Task` calls, `subagent_type: generalPurpose`, agent mode (`readonly: false`). Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references, and readonly strips MCPs.",
+      "replacement": "Three `pstack_worker` spawns, one after another without waiting, each with `role: \"reviewer\"`, `workspace.mode: \"readonly\"`, and `capabilities.mcp: \"inherit\"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references. A readonly Pi worker keeps its MCP tools, and `capabilities.mcp: \"none\"` would strip them.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.models-mdc-rule",
+      "offset": [
+        1642,
+        1670
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "the `pstack-models.mdc` rule",
+      "replacement": "the model rule (`~/.pi/agent/pstack/models.json`)",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.model-unset",
+      "offset": [
+        1774,
+        1839
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "Leave `model` unset when the value is `auto` or `inherit-parent`.",
+      "replacement": "Set `model` to `inherit-parent` when the value is `auto` or `inherit-parent`.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        1843,
+        1864
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.response-body",
+      "offset": [
+        2627,
+        2681
+      ],
+      "lines": [
+        35,
+        35
+      ],
+      "original": "Reviewers return findings in the `Task` response body.",
+      "replacement": "Reviewers return findings in `report.md`, which `collect` returns.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.synth-spawn",
+      "offset": [
+        2701,
+        2758
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "One `Task` call, `subagent_type: generalPurpose`, `model`",
+      "replacement": "One `pstack_worker` spawn, `role: \"general\"`, `model`",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.synth-mode",
+      "offset": [
+        2849,
+        2948
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": ", agent mode (`readonly: false`). It spot-verifies citations through MCP, and readonly strips MCPs.",
+      "replacement": ", `workspace.mode: \"readonly\"`, `capabilities.mcp: \"inherit\"`. It spot-verifies citations through MCP, which a readonly Pi worker keeps.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.plugin-cache",
+      "offset": [
+        3709,
+        3751
+      ],
+      "lines": [
+        51,
+        51
+      ],
+      "original": "Never edit a skill under `plugins/cache/`.",
+      "replacement": "Never edit a skill inside an installed Pi package.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.project-skills-path",
+      "offset": [
+        3791,
+        3807
+      ],
+      "lines": [
+        51,
+        51
+      ],
+      "original": "`.cursor/skills/",
+      "replacement": "`.pi/skills/",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "shared.user-skills-path",
+      "offset": [
+        3820,
+        3838
+      ],
+      "lines": [
+        51,
+        51
+      ],
+      "original": "`~/.cursor/skills/",
+      "replacement": "`~/.pi/agent/skills/",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.substantive-edit",
+      "offset": [
+        4202,
+        4289
+      ],
+      "lines": [
+        56,
+        56
+      ],
+      "original": "hand to Cursor's built-in `create-skill` skill and run its draft / test / iterate loop.",
+      "replacement": "follow the Authoring a skill playbook (`../poteto-mode/playbooks/authoring-a-skill.md`), including its test cases.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.tune-description",
+      "offset": [
+        4384,
+        4449
+      ],
+      "lines": [
+        57,
+        57
+      ],
+      "original": "hand to `create-skill` and run its description-optimization loop.",
+      "replacement": "rewrite the skill's `description` per Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package), then check that it triggers on the request it missed.",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+      "rule": "reflect.new-skill",
+      "offset": [
+        4452,
+        4528
+      ],
+      "lines": [
+        58,
+        58
+      ],
+      "original": "`new skill via create-skill: <kebab-name>`: hand creation to `create-skill`.",
+      "replacement": "`new skill via authoring playbook: <kebab-name>`: create it with the Authoring a skill playbook (`../poteto-mode/playbooks/authoring-a-skill.md`).",
+      "output": "generated/skills/reflect/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/divergent-reviewer.md",
+      "rule": "shared.skill-used-evidence",
+      "offset": [
+        2097,
+        2269
+      ],
+      "lines": [
+        21,
+        21
+      ],
+      "original": "a `Read` of its `SKILL.md` (under `.cursor/skills/`, `~/.cursor/skills/`, or `~/.cursor/plugins/`), a `Task` prompt naming its path, or a tool call (Shell, Grep, MCP, etc.)",
+      "replacement": "a `read` of its `SKILL.md` (under `.pi/skills/`, `~/.pi/agent/skills/`, `.agents/skills/`, `~/.agents/skills/`, or an installed Pi package), a `pstack_worker` brief naming its path, or a tool call (bash, grep, MCP, etc.)",
+      "output": "generated/skills/reflect/references/divergent-reviewer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/judgment-reviewer.md",
+      "rule": "shared.skill-used-evidence",
+      "offset": [
+        1581,
+        1753
+      ],
+      "lines": [
+        20,
+        20
+      ],
+      "original": "a `Read` of its `SKILL.md` (under `.cursor/skills/`, `~/.cursor/skills/`, or `~/.cursor/plugins/`), a `Task` prompt naming its path, or a tool call (Shell, Grep, MCP, etc.)",
+      "replacement": "a `read` of its `SKILL.md` (under `.pi/skills/`, `~/.pi/agent/skills/`, `.agents/skills/`, `~/.agents/skills/`, or an installed Pi package), a `pstack_worker` brief naming its path, or a tool call (bash, grep, MCP, etc.)",
+      "output": "generated/skills/reflect/references/judgment-reviewer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/synthesizer.md",
+      "rule": "reflect.synthesizer-new-skill",
+      "offset": [
+        1298,
+        1324
+      ],
+      "lines": [
+        17,
+        17
+      ],
+      "original": "new skill via create-skill",
+      "replacement": "new skill via authoring playbook",
+      "output": "generated/skills/reflect/references/synthesizer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/synthesizer.md",
+      "rule": "reflect.synthesizer-new-skill",
+      "offset": [
+        3625,
+        3651
+      ],
+      "lines": [
+        44,
+        44
+      ],
+      "original": "new skill via create-skill",
+      "replacement": "new skill via authoring playbook",
+      "output": "generated/skills/reflect/references/synthesizer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/synthesizer.md",
+      "rule": "reflect.synthesizer-new-skill",
+      "offset": [
+        3656,
+        3682
+      ],
+      "lines": [
+        44,
+        44
+      ],
+      "original": "new skill via create-skill",
+      "replacement": "new skill via authoring playbook",
+      "output": "generated/skills/reflect/references/synthesizer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/reflect/references/tooling-reviewer.md",
+      "rule": "shared.skill-used-evidence",
+      "offset": [
+        2956,
+        3128
+      ],
+      "lines": [
+        31,
+        31
+      ],
+      "original": "a `Read` of its `SKILL.md` (under `.cursor/skills/`, `~/.cursor/skills/`, or `~/.cursor/plugins/`), a `Task` prompt naming its path, or a tool call (Shell, Grep, MCP, etc.)",
+      "replacement": "a `read` of its `SKILL.md` (under `.pi/skills/`, `~/.pi/agent/skills/`, `.agents/skills/`, `~/.agents/skills/`, or an installed Pi package), a `pstack_worker` brief naming its path, or a tool call (bash, grep, MCP, etc.)",
+      "output": "generated/skills/reflect/references/tooling-reviewer.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.description",
+      "offset": [
+        144,
+        208
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "writes an always-applied rule that overrides the skill defaults.",
+      "replacement": "writes `~/.pi/agent/pstack/models.json`, which overrides the skill defaults.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        340,
+        373
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.purpose",
+      "offset": [
+        374,
+        433
+      ],
+      "lines": [
+        8,
+        8
+      ],
+      "original": ", an always-applied rule that sets pstack's model per role.",
+      "replacement": ", the model configuration every pstack skill reads to set its model per role.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.detect",
+      "offset": [
+        477,
+        694
+      ],
+      "lines": [
+        14,
+        14
+      ],
+      "original": "Enumerate the model slugs you can pass to a `Task` subagent in this session. That is the dependable source. If Cursor also exposes a models API or CLI that lists the user's entitled models, prefer it for completeness.",
+      "replacement": "Enumerate the models you can pass to a `pstack_worker` spawn in this session with `pi --list-models`. That is the dependable source. A model spec is `<provider>/<id>`, with an optional `:<level>` from the thinking levels that model lists.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        1040,
+        1073
+      ],
+      "lines": [
+        18,
+        18
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.current-state",
+      "offset": [
+        1103,
+        1171
+      ],
+      "lines": [
+        18,
+        18
+      ],
+      "original": "treat its `# budget` line and its role values as the current choices",
+      "replacement": "treat its `budget` and its `roles` values as the current choices",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "shared.prefer-askquestion",
+      "offset": [
+        1362,
+        1396
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "Prefer AskQuestion over free text.",
+      "replacement": "Prefer a multiple-choice question in the conversation over free text.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.apply-budget",
+      "offset": [
+        1841,
+        2633
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "`unlimited`, `large`, `medium`, and `small` set the effort token of every real slug, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The effort token is the last token, or the one before a trailing `fast`, on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the result is not a detected slug, use the same family's detected slug with the highest effort at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `claude-opus-5-5-xhigh` into `claude-opus-5-5-max`. Grok slugs top out at `xhigh`, so under `unlimited` the fallback puts Grok at `xhigh` and keeps `grok-4.7-xhigh-fast` as it is. `large` keeps both defaults. `small` turns them into `claude-opus-5-5-medium` and `grok-4.7-medium-fast`.",
+      "replacement": "`unlimited`, `large`, `medium`, and `small` set the thinking level of every real model spec, panel entries included, to `max`, `xhigh`, `high`, or `medium`. The level is the `:<level>` suffix, on the ladder `max` > `xhigh` > `high` > `medium` > `low`. If the model does not list that level, use its highest listed level at or below the target, else mark the role as needing a choice. `inherit-parent` and `auto` do not change. So `unlimited` turns `<provider>/claude-opus-5-5:xhigh` into `<provider>/claude-opus-5-5:max`. A model whose levels top out at `xhigh` stays at `xhigh` under `unlimited`. `large` keeps both defaults. `small` sets both to `:medium`.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "shared.prefer-askquestion",
+      "offset": [
+        3029,
+        3063
+      ],
+      "lines": [
+        31,
+        31
+      ],
+      "original": "Prefer AskQuestion over free text.",
+      "replacement": "Prefer a multiple-choice question in the conversation over free text.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        3786,
+        3819
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.write",
+      "offset": [
+        3819,
+        4025
+      ],
+      "lines": [
+        39,
+        39
+      ],
+      "original": "` with `alwaysApply: true`, a `# budget` line with the chosen label and its target effort, and one line per role, using the same labels poteto-mode uses. Overwrite the whole file so re-runs stay idempotent.",
+      "replacement": "` with `schemaVersion: 1`, `budget` set to the chosen label, `budgetLine` naming the label and its target effort, and one `roles` key per role, using the same labels poteto-mode uses. Panel roles take a list. Overwrite the whole file atomically, through a temporary file and a rename, so re-runs stay idempotent.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.shape",
+      "offset": [
+        4038,
+        5169
+      ],
+      "lines": [
+        42,
+        65
+      ],
+      "original": "---\ndescription: pstack per-role model choices (overrides skill defaults)\nalwaysApply: true\n---\n# pstack model configuration. One line per role. Delete a line to fall back to the skill default.\n# `inherit-parent` or `auto` as a value: the role runs on the parent chat model (omit Task `model`). Alias entries in a panel list still count toward its fan-out.\n# budget: large (xhigh)\nfeature, refactoring: grok-4.7-xhigh-fast\nbug-fix: grok-4.7-xhigh-fast\nperf-issue: grok-4.7-xhigh-fast\nhillclimb: grok-4.7-xhigh-fast\njudgment and prose: claude-opus-5-5-xhigh\nhardest tasks: claude-opus-5-5-xhigh\nhow explorer: grok-4.7-xhigh-fast\nhow explainer: claude-opus-5-5-xhigh\nwhy investigators: grok-4.7-xhigh-fast\nwhy synthesizer: claude-opus-5-5-xhigh\nreflect tooling: grok-4.7-xhigh-fast\nreflect judgment, divergent, synthesizer: claude-opus-5-5-xhigh\narena runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast\narena cross-judge pool: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast\nswarm workers: grok-4.7-xhigh-fast\narchitect runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast\ninterrogate reviewers: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast",
+      "replacement": "{\n  \"schemaVersion\": 1,\n  \"budget\": \"large\",\n  \"budgetLine\": \"large (xhigh)\",\n  \"roles\": {\n    \"feature, refactoring\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"bug-fix\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"perf-issue\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"hillclimb\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"judgment and prose\": \"<provider>/claude-opus-5-5:xhigh\",\n    \"hardest tasks\": \"<provider>/claude-opus-5-5:xhigh\",\n    \"how explorer\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"how explainer\": \"<provider>/claude-opus-5-5:xhigh\",\n    \"why investigators\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"why synthesizer\": \"<provider>/claude-opus-5-5:xhigh\",\n    \"reflect tooling\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"reflect judgment, divergent, synthesizer\": \"<provider>/claude-opus-5-5:xhigh\",\n    \"arena runners\": [\"<provider>/claude-opus-5-5:xhigh\", \"<provider>/grok-4.7-fast:xhigh\"],\n    \"arena cross-judge pool\": [\"<provider>/claude-opus-5-5:xhigh\", \"<provider>/grok-4.7-fast:xhigh\"],\n    \"swarm workers\": \"<provider>/grok-4.7-fast:xhigh\",\n    \"architect runners\": [\"<provider>/claude-opus-5-5:xhigh\", \"<provider>/grok-4.7-fast:xhigh\"],\n    \"interrogate reviewers\": [\"<provider>/claude-opus-5-5:xhigh\", \"<provider>/grok-4.7-fast:xhigh\"]\n  }\n}",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+      "rule": "setup-pstack.confirm",
+      "offset": [
+        5191,
+        5262
+      ],
+      "lines": [
+        70,
+        70
+      ],
+      "original": "Tell the user the rule was written and that it applies to new sessions.",
+      "replacement": "Tell the user the file was written and that it applies to every later `pstack_worker` spawn.",
+      "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md",
+      "rule": "show-me-your-work.transcript",
+      "offset": [
+        4118,
+        4240
+      ],
+      "lines": [
+        57,
+        57
+      ],
+      "original": "Read this run's transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path).",
+      "replacement": "Read this run's Pi session file (`$PI_SESSION_FILE`) and its workers' sessions under `.pi/pstack/runs/<runId>/workers/<workerId>/session/`.",
+      "output": "generated/skills/show-me-your-work/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md",
+      "rule": "shared.projects-glob",
+      "offset": [
+        4259,
+        4282
+      ],
+      "lines": [
+        57,
+        57
+      ],
+      "original": "`~/.cursor/projects/*/`",
+      "replacement": "`~/.pi/agent/sessions/*/`",
+      "output": "generated/skills/show-me-your-work/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "shared.phase-todolist",
+      "offset": [
+        236,
+        283
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "Open a todolist with one entry per phase before",
+      "replacement": "Add one `TODO.md` entry per phase (the Playbooks section of the **poteto-mode** skill) before",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "shared.models-mdc-path",
+      "offset": [
+        689,
+        722
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "~/.cursor/rules/pstack-models.mdc",
+      "replacement": "~/.pi/agent/pstack/models.json",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "swarm.parent-model",
+      "offset": [
+        821,
+        873
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "omit `model` so the workers run on the parent model.",
+      "replacement": "set `model: \"inherit-parent\"` so the workers run on the parent model.",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        877,
+        898
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "swarm.fan-out",
+      "offset": [
+        1494,
+        1780
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: \"cloud\"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: \"local\"` only when the worker needs access to something on the user's computer.",
+      "replacement": "Spawn all N workers one after another without waiting, as container workers with `role: \"general\"` and the step 3 model, `inherit-parent` for `auto` or `inherit-parent`. Run a worker as a local worktree worker only when it needs access to something on the user's computer.",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+      "rule": "swarm.base-branch",
+      "offset": [
+        1841,
+        1866
+      ],
+      "lines": [
+        29,
+        29
+      ],
+      "original": "pass `cloud_base_branch`.",
+      "replacement": "set its `workspace.inputCommit` to that branch's head commit.",
+      "output": "generated/skills/swarm/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/typescript-best-practices/SKILL.md",
+      "rule": "typescript-best-practices.paths",
+      "offset": [
+        126,
+        157
+      ],
+      "lines": [
+        4,
+        4
+      ],
+      "original": "paths: [\"**/*.ts\", \"**/*.tsx\"]\n",
+      "replacement": "",
+      "output": "generated/skills/typescript-best-practices/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/typescript-best-practices/SKILL.md",
+      "rule": "typescript-best-practices.paths-metadata",
+      "offset": [
+        157,
+        192
+      ],
+      "lines": [
+        5,
+        6
+      ],
+      "original": "disable-model-invocation: true\n---\n",
+      "replacement": "disable-model-invocation: true\nmetadata:\n  paths: [\"**/*.ts\", \"**/*.tsx\"]\n---\n",
+      "output": "generated/skills/typescript-best-practices/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+      "rule": "shared.models-mdc-rule",
+      "offset": [
+        699,
+        727
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "the `pstack-models.mdc` rule",
+      "replacement": "the model rule (`~/.pi/agent/pstack/models.json`)",
+      "output": "generated/skills/why/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+      "rule": "shared.model-unset",
+      "offset": [
+        831,
+        896
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "Leave `model` unset when the value is `auto` or `inherit-parent`.",
+      "replacement": "Set `model` to `inherit-parent` when the value is `auto` or `inherit-parent`.",
+      "output": "generated/skills/why/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+      "rule": "shared.task-tool-rejects",
+      "offset": [
+        900,
+        921
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "the Task tool rejects",
+      "replacement": "`pstack_worker` spawn rejects",
+      "output": "generated/skills/why/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+      "rule": "why.spawn-mode",
+      "offset": [
+        1189,
+        1401
+      ],
+      "lines": [
+        13,
+        13
+      ],
+      "original": "Every spawn is `generalPurpose` with `readonly: false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access, which disables the MCP-backed investigators and the synthesizer's citation spot-checks.",
+      "replacement": "Every spawn is a `pstack_worker` worker with `workspace.mode: \"worktree\"` and `capabilities.mcp: \"inherit\"`, `role: \"investigator\"` for investigators and `role: \"general\"` for the synthesizer. **Do not use `workspace.mode: \"readonly\"`.** A readonly worker has no shell, which disables the `git` and `gh` history lookups the investigators and the synthesizer's citation spot-checks need. **Do not set `capabilities.mcp: \"none\"`.** It strips MCP access, which disables the MCP-backed investigators.",
+      "output": "generated/skills/why/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+      "rule": "why.mcp-discovery",
+      "offset": [
+        3356,
+        3530
+      ],
+      "lines": [
+        35,
+        35
+      ],
+      "original": "list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.",
+      "replacement": "list the available MCP servers in this Pi session. Use the `mcp_servers` section of the system prompt and the `mcp__<server>__<tool>` tools when present. Otherwise run `pi mcp list` for enabled MCP servers.",
+      "output": "generated/skills/why/SKILL.md"
+    }
+  ]
+}
