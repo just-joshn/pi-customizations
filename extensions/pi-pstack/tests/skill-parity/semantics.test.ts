@@ -109,3 +109,23 @@ describe('no-comments scope transfer (defect 4)', () => {
     expect(step).toContain('unrelated and uncommitted caller state untouched');
   });
 });
+
+describe('recurring watch loops (defect 5)', () => {
+  test.for([
+    ['skills/poteto-mode/playbooks/multi-phase-plan.md', 41, "until the plan's stop condition holds"],
+    ['skills/poteto-mode/playbooks/autopilot-full.md', 22, 'until no delegated work is left'],
+  ] as const)('%s:%i re-spawns the hourly sleep watch after each wake and re-arms after a restart', ([file, n, stop]) => {
+    const text = line(file, n);
+    expect(text).toContain('`watch.argv: ["sleep", "3600"]`');
+    expect(text).toMatch(/spawn a fresh one after each wake/);
+    expect(text).toContain(stop);
+    expect(text).toMatch(/After a parent restart, re-arm it from/);
+  });
+
+  test('poteto-mode states a watch fires once and is re-armed after a parent restart', () => {
+    const text = line('skills/poteto-mode/SKILL.md', 97);
+    expect(text).toContain('A watch fires once.');
+    expect(text).toContain('Spawn it again after each wake until the stop predicate holds.');
+    expect(text).toMatch(/After a parent restart, re-arm each open watch loop from the run's `TODO.md` or plan/);
+  });
+});
