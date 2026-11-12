@@ -133,6 +133,18 @@ describe('pstack_worker on real tmux and Pi', () => {
     expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('pstack-run/run1/w4');
   });
 
+  test.for([
+    ['a clone the operator made', (path: string) => execFileSync('git', ['clone', '--quiet', project.dir, path])],
+    ['a worktree of this repo on another branch', (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'operator-branch', path, project.commit])],
+  ] as const)('spawn refuses to reuse %s at the worktree path', async ([, makeCheckout]) => {
+    const path = join(workerDir(project, 'run1', 'w12'), 'worktree');
+    const assignmentPath = writeAssignment(project, 'run1', 'w12', '@@script [{"tool":"write","args":{"path":"OWNED.txt","content":"x"}}]', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    makeCheckout(path);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/not this worker's worktree/);
+    await sleep(1_000);
+    expect(existsSync(join(path, 'OWNED.txt'))).toBe(false);
+  });
+
   test('collect on a worker still running returns its live state, never a result', async () => {
     await spawn('w5', '@@sleep 3000 LATER');
     const result = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w5' });

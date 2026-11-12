@@ -199,27 +199,6 @@ function roleDocument(agentsDir: string, role: WorkerRole): string {
   return path;
 }
 
-async function git(pi: ExtensionAPI, cwd: string, args: string[]): Promise<string> {
-  const result = await pi.exec('git', ['-C', cwd, ...args], { timeout: 120_000 });
-  if (result.code !== 0) throw new Error(`git ${args.join(' ')} failed: ${(result.stderr || result.stdout).trim()}`);
-  return result.stdout.trim();
-}
-
-/** Creates `<workerDir>/worktree` at the input commit on its own branch, or reuses one an interrupted spawn left. */
-async function ensureWorktree(pi: ExtensionAPI, project: string, loaded: LoadedAssignment, inputCommit: string): Promise<void> {
-  const path = join(loaded.workerDir, 'worktree');
-  if (existsSync(path)) {
-    if ((await git(pi, path, ['rev-parse', '--show-toplevel'])) !== path) throw new Error(`${path} exists but is not a git worktree`);
-    return;
-  }
-  const commit = await git(pi, project, ['rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`]).catch(() => {
-    throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
-  });
-  const branch = `pstack-run/${loaded.assignment.runId}/${loaded.assignment.workerId}`;
-  const exists = (await pi.exec('git', ['-C', project, 'rev-parse', '--verify', '--quiet', `refs/heads/${branch}`])).code === 0;
-  await git(pi, project, exists ? ['worktree', 'add', '--quiet', path, branch] : ['worktree', 'add', '--quiet', '-b', branch, path, commit]);
-}
-
 // Credential sources pi-ai reads for these providers besides an API key variable (env-api-keys.js).
 const AMBIENT_CREDENTIALS: Record<string, string[]> = {
   'amazon-bedrock': [
@@ -388,8 +367,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       model = await resolveModel({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role }, ctx);
       roleDoc = roleDocument(agentsDir, assignment.role);
       readBrief(loaded.workerDir);
-      if (assignment.workspace.mode === 'worktree') await ensureWorktree(pi, project, loaded, assignment.workspace.inputCommit);
-      else if (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
+      if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
     } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
     const command = options.piCommand ?? runningPiCommand();
     const launch: HostLaunch = {

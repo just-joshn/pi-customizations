@@ -1,7 +1,7 @@
 // The tmux-hosted worker host (spec 9). It claims one assignment, runs `pi --mode rpc` (or a watch command) in the
 // worker's workspace, relays control requests from a private unix socket and from the operator's terminal, and keeps
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
-import { type ChildProcess, spawn } from 'node:child_process';
+import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { chmodSync, existsSync, lstatSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
@@ -19,6 +19,7 @@ import {
   loadAssignment,
   MAX_SETTLES,
   readBrief,
+  runRootOf,
   type SettlePhase,
   THINKING_LEVELS,
   type ThinkingLevel,
@@ -147,6 +148,42 @@ function claim(loaded: LoadedAssignment, instance: string): void {
   writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
 }
 
+/**
+ * Creates `<workerDir>/worktree` on branch pstack-run/<runId>/<workerId> at the input commit. It runs under this
+ * host's exclusive claim, and the path lies inside the claimed worker directory, so no other host can name it. A path
+ * that already exists is reused only when it is this repository's registered worktree on that branch.
+ */
+function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
+  const { runId, workerId } = loaded.assignment;
+  const project = resolve(loaded.runRoot, '..', '..', '..', '..');
+  if (runRootOf(project, runId) !== loaded.runRoot) throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
+  const path = join(loaded.workerDir, 'worktree');
+  const branch = `pstack-run/${runId}/${workerId}`;
+  const git = (...args: string[]) => execFileSync('git', ['-C', project, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120_000 }).trim();
+  const existing = lstatSync(path, { throwIfNoEntry: false });
+  if (existing !== undefined) {
+    const registered = git('worktree', 'list', '--porcelain')
+      .split('\n\n')
+      .map((block) => Object.fromEntries(block.split('\n').map((line) => [line.split(' ')[0], line.slice(line.indexOf(' ') + 1)])))
+      .find((entry) => entry['worktree'] === path);
+    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.['branch'] !== `refs/heads/${branch}`) throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
+    return;
+  }
+  let commit: string;
+  try {
+    commit = git('rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`);
+  } catch {
+    throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
+  }
+  let branchExists = true;
+  try {
+    git('rev-parse', '--verify', '--quiet', `refs/heads/${branch}`);
+  } catch {
+    branchExists = false;
+  }
+  git('worktree', 'add', '--quiet', ...(branchExists ? [path, branch] : ['-b', branch, path, commit]));
+}
+
 function prepareSocket(path: string): void {
   const directory = dirname(path);
   if (directory.startsWith('/tmp/pstack-')) {
@@ -174,6 +211,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let sessionFile: string | null = null;
   let briefSent = false;
   let settles: HostState['settles'] = [];
+  let childPid: number | null = null;
   let stderrTail = '';
   let requestNumber = 0;
   let runFailure: string | undefined;
@@ -194,7 +232,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     digest: loaded.digest,
     instance,
     hostPid: process.pid,
-    childPid: child.pid ?? null,
+    childPid,
     tmuxSession: launch.tmuxSession,
     socketPath,
     phase,
@@ -223,6 +261,19 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     display('host settled', { phase: settlePhase, reason: why });
   };
 
+  if (assignment.kind === 'pi' && assignment.workspace.mode === 'worktree') {
+    try {
+      prepareWorktree(loaded, assignment.workspace.inputCommit);
+    } catch (error) {
+      phase = 'failed';
+      reason = message(error);
+      display('host failure', reason);
+      settle('failed', reason);
+      event('failure', { reason });
+      process.exitCode = 1;
+      return;
+    }
+  }
   const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
@@ -231,6 +282,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     env,
     stdio: assignment.kind === 'watch' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
   });
+  childPid = child.pid ?? null;
 
   const rejectWaiting = (error: Error) => {
     for (const pending of waiting.values()) {

@@ -81,7 +81,7 @@ Exactly two model-facing tools, TypeBox-validated.
 
 `pstack_worker`:
 
-- `{ action: 'spawn', runId, assignmentPath }`. Validates the assignment and its path (must be `<runRoot>/workers/<workerId>/assignment.json`). Resolves the model. Creates the worktree. Starts `tmux -L pstack new-session -d -s <session name> -- node <pkg>/dist-or-src/worker-host entry <assignment>`. Waits for the host handshake. Sends the brief as the first prompt. Returns `{ workerId, tmuxSession, attach: 'tmux -L pstack attach -t <session>', sessionFile, model }` immediately. Refuses when `claim/` exists.
+- `{ action: 'spawn', runId, assignmentPath }`. Validates the assignment and its path (must be `<runRoot>/workers/<workerId>/assignment.json`). Resolves the model. Starts `tmux -L pstack new-session -d -s <session name> -- node <pkg>/dist-or-src/worker-host entry <assignment>`. The host creates the worktree after it takes `claim/`, so only the claim holder creates it. An existing `worktree/` is reused only when `git worktree list --porcelain` registers it in this repository on branch `pstack-run/<runId>/<workerId>`; anything else fails the host. Waits for the host handshake. Sends the brief as the first prompt. Returns `{ workerId, tmuxSession, attach: 'tmux -L pstack attach -t <session>', sessionFile, model }` immediately. Refuses when `claim/` exists.
 - `{ action: 'inspect', workerId, runId }`. Live host state, or `unavailable` with reason.
 - `{ action: 'steer', workerId, runId, message }`. RPC `steer` when running, `follow_up` when idle.
 - `{ action: 'abort', workerId, runId }`. clear_queue, abort, then orderly shutdown of that host only.
