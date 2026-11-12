@@ -10,20 +10,22 @@ import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-a
 import { type Static, Type } from 'typebox';
 import { Value } from 'typebox/value';
 import { isInside, parseRunId, parseWorkerId, projectRoot, type RunId, readJson, runRootOf, workerDirOf } from './run-files.ts';
+import { RECEIPT_FIELD_HINTS, RECEIPT_FIELDS, RECEIPT_KINDS, RECEIPT_TOOL_SUMMARY, RECEIPT_VERDICTS } from './receipt-reference.ts';
 import { readFileBelow } from './untrusted-output.ts';
 
-const ReceiptSchema = Type.Object(
+export const ReceiptSchema = Type.Object(
   {
     schemaVersion: Type.Literal(1),
     id: Type.String({ pattern: '^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$' }),
     runId: Type.String(),
     target: Type.String({ minLength: 1 }),
-    kind: Type.Union(['test', 'command', 'screenshot', 'trace', 'review', 'measurement', 'other'].map((kind) => Type.Literal(kind))),
-    verdict: Type.Union([Type.Literal('pass'), Type.Literal('fail'), Type.Literal('inconclusive')]),
+    kind: Type.Union(RECEIPT_KINDS.map((kind) => Type.Literal(kind))),
+    verdict: Type.Union(RECEIPT_VERDICTS.map((verdict) => Type.Literal(verdict))),
     commit: Type.Union([Type.String(), Type.Null()]),
     environment: Type.String(),
     command: Type.Optional(Type.Array(Type.String())),
     exitCode: Type.Optional(Type.Integer()),
+    expectedFail: Type.Optional(Type.Boolean()),
     artifacts: Type.Array(Type.Object({ path: Type.String({ minLength: 1 }), sha256: Type.String({ pattern: '^[0-9a-f]{64}$' }) }, { additionalProperties: false })),
     defects: Type.Optional(Type.Array(Type.String())),
     reason: Type.Optional(Type.String()),
@@ -43,14 +45,19 @@ export type EvidenceVerdict = { kind: 'pass'; receipts: string[] } | { kind: 'fa
 
 const COMMIT = /^[0-9a-f]{7,64}$/;
 
-/** The properties a receipt got wrong, each with what the schema said, so the author knows which field to fix. */
+/** The fields a receipt got wrong, one line each: what was wrong, and what the field must be. Each field is checked alone, so every bad field is named in one pass. */
 function describeSchemaErrors(raw: unknown): string {
-  const lines = Value.Errors(ReceiptSchema, raw).map((error) => {
-    const params = error.params as { requiredProperties?: string[]; additionalProperties?: string[] };
-    const property = error.instancePath !== '' ? error.instancePath.slice(1).replaceAll('/', '.') : (params.requiredProperties ?? params.additionalProperties ?? ['(receipt)']).join(', ');
-    return `${property}: ${error.message}`;
-  });
-  return [...new Set(lines)].slice(0, 4).join('; ');
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return `(receipt): must be a JSON object with the fields ${RECEIPT_FIELDS.join(', ')}`;
+  const lines: string[] = [];
+  const record = raw as Record<string, unknown>;
+  const hint = (field: string) => (RECEIPT_FIELD_HINTS[field] === undefined ? '' : ` (must be ${RECEIPT_FIELD_HINTS[field]})`);
+  for (const [field, schema] of Object.entries(ReceiptSchema.properties)) {
+    if (record[field] === undefined) {
+      if (ReceiptSchema.required.includes(field as never)) lines.push(`${field}: missing${hint(field)}`);
+    } else if (!Value.Check(schema, record[field])) lines.push(`${field}: invalid value ${JSON.stringify(record[field])?.slice(0, 60)}${hint(field)}`);
+  }
+  for (const field of Object.keys(record)) if (!(field in ReceiptSchema.properties)) lines.push(`${field}: unknown field (allowed fields: ${RECEIPT_FIELDS.join(', ')})`);
+  return lines.length > 0 ? lines.slice(0, 6).join('; ') : (Value.Errors(ReceiptSchema, raw)[0]?.message ?? 'does not match the receipt schema');
 }
 
 /** `source` is the file the receipt came from, named in every error so a malformed receipt can be found and fixed. */
@@ -243,9 +250,14 @@ export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, targ
     if (receipt.verdict === 'fail') {
       const listed = receipt.defects ?? [];
       defects.push(...(listed.length > 0 ? listed : [`recorded verdict fail${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`]).map((defect) => (defect.startsWith(`${receipt.id}:`) ? defect : `${receipt.id}: ${defect}`)));
-    } else if (receipt.verdict === 'pass' && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself`);
-    else if (receipt.verdict === 'inconclusive') unverifiable.push(`${receipt.id}: recorded verdict inconclusive${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`);
-    else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);
+    } else if (receipt.verdict === 'inconclusive') unverifiable.push(`${receipt.id}: recorded verdict inconclusive${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`);
+    else {
+      const expectedFail = receipt.expectedFail === true;
+      if (expectedFail && receipt.exitCode === undefined) unverifiable.push(`${receipt.id}: an expected-fail pass needs the failing command's exitCode`);
+      else if (expectedFail && receipt.exitCode === 0) defects.push(`${receipt.id}: expected the command to fail, but it exited 0`);
+      else if (!expectedFail && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself; for an intended failing-before proof set expectedFail: true`);
+      else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);
+    }
   }
   if (defects.length > 0) return { kind: 'fail', receipts: ids, defects };
   if (unverifiable.length > 0) return { kind: 'inconclusive', reason: unverifiable.join('; '), receipts: ids };
@@ -281,7 +293,7 @@ export function registerEvidenceTool(pi: ExtensionAPI): void {
     name: 'pstack_evidence',
     label: 'pstack evidence',
     description:
-      'Record and verify pstack evidence receipts for a run. record validates a receipt JSON file under .pi/pstack/runs/<runId>/ and stores it as verification/receipts/<id>.json (recording an identical receipt again is a no-op; a different receipt with a recorded id is an error). verify re-checks every receipt for a target (a TODO step id, worker id, or commit): files exist, sha256 matches, and the commit matches when the target is a commit. It returns pass, fail, or inconclusive; a missing receipt is inconclusive, never pass. list shows recorded receipts.',
+      `Record and verify pstack evidence receipts for a run. ${RECEIPT_TOOL_SUMMARY} Record validates a receipt JSON file under .pi/pstack/runs/<runId>/ and stores it as verification/receipts/<id>.json (recording an identical receipt again is a no-op; a different receipt with a recorded id is an error). verify re-checks every receipt for a target (a TODO step id, worker id, or commit): files exist, sha256 matches, and the commit matches when the target is a commit. It returns pass, fail, or inconclusive; a missing receipt is inconclusive, never pass. list shows recorded receipts.`,
     promptSnippet: 'Record and verify pstack evidence receipts (pass, fail, or inconclusive)',
     parameters: EvidenceParams,
     async execute(_toolCallId, params, _signal, _onUpdate, ctx: ExtensionContext) {

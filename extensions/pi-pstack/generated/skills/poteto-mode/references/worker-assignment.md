@@ -131,3 +131,45 @@ An event watch runs the watcher's command by absolute path. Here `<pi-pstack>`, 
   }
 }
 ```
+
+## Evidence receipt
+
+A receipt is one JSON file for one check you ran. A writable worker saves it under its worker directory's `evidence/` and registers it with `pstack_evidence` `record` (`{ action: "record", runId, receiptPath }`). The parent saves its own under the run directory. `record` rejects a field not listed here and names the field it rejects.
+
+- `schemaVersion`: the number 1.
+- `id`: letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters.
+- `runId`: the run's id, the folder name under .pi/pstack/runs.
+- `target`: a TODO step id, worker id, or commit; non-empty.
+- `kind`: one of test, command, screenshot, trace, review, measurement, other.
+- `verdict`: one of pass, fail, inconclusive.
+- `commit`: the commit SHA the check examined, or null.
+- `environment`: text saying where the check ran.
+- `command`: optional; the command as an array of strings.
+- `exitCode`: optional; the command exit status, an integer.
+- `artifacts`: an array of { path, sha256 }, [] when there is no file; path is relative to the run root or absolute inside it; sha256 is 64 lowercase hex characters of the file.
+- `defects`: optional; an array of strings.
+- `reason`: optional; text.
+- `expectedFail`: optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero.
+- `createdAt`: an ISO timestamp string.
+
+`pstack_evidence` `verify` takes a `target` and re-checks every receipt recorded for it. A missing receipt is `inconclusive`. A `pass` with no artifacts is `inconclusive`, because it is an assertion and not evidence. A `pass` whose `exitCode` is not 0 fails, unless `expectedFail` is `true`. A `fail` receipt makes the target fail. `verify` also fails a receipt whose artifact is missing or does not match its `sha256`, and, when the target is a commit, one whose `commit` differs.
+
+To prove a check fails before the fix, run it and record a receipt with `expectedFail: true`, `verdict: "pass"`, the non-zero `exitCode`, and the failing output as the artifact, under its own target such as `<step>-before`. Record the passing run after the fix under the step's target. A receipt without `expectedFail` that says `pass` with a non-zero `exitCode` is rejected as contradicting itself.
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "repro-before",
+  "runId": "fix-login-redirect",
+  "target": "4-before",
+  "kind": "test",
+  "verdict": "pass",
+  "expectedFail": true,
+  "commit": "4f2c1a9e0b7d3c5a8e6f1b2d4c9a7e3f5b1d8c6a",
+  "environment": "worker worktree, node 22",
+  "command": ["npx", "vitest", "run", "redirect.test.ts"],
+  "exitCode": 1,
+  "artifacts": [{ "path": "workers/fix/evidence/repro-before.txt", "sha256": "<64 hex characters of that file>" }],
+  "createdAt": "2026-11-12T10:00:00Z"
+}
+```

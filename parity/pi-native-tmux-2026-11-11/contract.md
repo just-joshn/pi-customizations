@@ -106,8 +106,10 @@ Receipt:
 ```ts
 { schemaVersion: 1, id: string, runId: RunId, target: string, kind: 'test'|'command'|'screenshot'|'trace'|'review'|'measurement'|'other',
   verdict: 'pass'|'fail'|'inconclusive', commit: string|null, environment: string,
-  command?: string[], exitCode?: number, artifacts: { path: string, sha256: string }[], defects?: string[], reason?: string, createdAt: string }
+  command?: string[], exitCode?: number, expectedFail?: boolean, artifacts: { path: string, sha256: string }[], defects?: string[], reason?: string, createdAt: string }
 ```
+
+`verify` fails a `pass` whose `exitCode` is non-zero as self-contradictory. `expectedFail: true` is the form for an intended failing-before proof (tdd step 4 and the bug-fix reply ask for the failing run): `verdict: 'pass'` then means the command failed as intended, an `exitCode` of 0 is a defect, and a missing `exitCode` is inconclusive. Validation errors name each bad field and the values it allows (`src/receipt-reference.ts` is the one text for the tool description, those errors, and the "Evidence receipt" section of `references/worker-assignment.md`).
 
 ## Wakeups (spec 9.1, 11.3)
 
