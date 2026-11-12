@@ -559,6 +559,13 @@ export const RULES: readonly Rule[] = [
     `, a worker's run directory (\`.pi/pstack/runs/<runId>/workers/<workerId>/\`, with its \`report.md\` and ${WORKER_SESSIONS}), or a pushed branch.`,
   ),
   rule(
+    'session-pickup.worker-branch',
+    'project-tracker',
+    PB('session-pickup'),
+    'The branch and worktree, what already landed',
+    "The branch and worktree (a pstack worker's commits sit on the branch `pstack-run/<runId>/<workerId>`, in the worktree `.pi/pstack/runs/<runId>/workers/<workerId>/worktree/`. List the branches with `git branch --list 'pstack-run/<runId>/*'`, because the branch you are on is not the worker's), what already landed",
+  ),
+  rule(
     'shipping.verifier',
     'cloud-environment',
     PB('shipping'),
@@ -1015,6 +1022,13 @@ A bot UI needs a routine with these fields:`,
     SK('show-me-your-work/SKILL.md'),
     "Read this run's transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path).",
     `Read this run's Pi session file (\`$PI_SESSION_FILE\`) and its workers' sessions under ${WORKER_SESSIONS}.`,
+  ),
+  rule(
+    'show-me-your-work.decisions-path',
+    'project-tracker',
+    SK('show-me-your-work/SKILL.md'),
+    'Keep it at `decisions.tsv` in the work dir, or',
+    'Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or',
   ),
   rule('swarm.parent-model', 'task-tool', SK('swarm/SKILL.md'), 'omit `model` so the workers run on the parent model.', 'set `model: "inherit-parent"` so the workers run on the parent model.'),
   rule(

@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 240,
-    "spans": 305
+    "rules": 242,
+    "spans": 307
   },
   "skills": [
     "architect",
@@ -806,6 +806,15 @@
       "id": "session-pickup.cloud-url",
       "primitives": [
         "cloud-environment"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md": 1
+      }
+    },
+    {
+      "id": "session-pickup.worker-branch",
+      "primitives": [
+        "project-tracker"
       ],
       "files": {
         "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md": 1
@@ -1729,6 +1738,15 @@
       "id": "show-me-your-work.transcript",
       "primitives": [
         "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md": 1
+      }
+    },
+    {
+      "id": "show-me-your-work.decisions-path",
+      "primitives": [
+        "project-tracker"
       ],
       "files": {
         "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md": 1
@@ -5746,6 +5764,21 @@
       "output": "generated/skills/poteto-mode/playbooks/session-pickup.md"
     },
     {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/session-pickup.md",
+      "rule": "session-pickup.worker-branch",
+      "offset": [
+        765,
+        809
+      ],
+      "lines": [
+        6,
+        6
+      ],
+      "original": "The branch and worktree, what already landed",
+      "replacement": "The branch and worktree (a pstack worker's commits sit on the branch `pstack-run/<runId>/<workerId>`, in the worktree `.pi/pstack/runs/<runId>/workers/<workerId>/worktree/`. List the branches with `git branch --list 'pstack-run/<runId>/*'`, because the branch you are on is not the worker's), what already landed",
+      "output": "generated/skills/poteto-mode/playbooks/session-pickup.md"
+    },
+    {
       "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
       "rule": "shipping.verifier",
       "offset": [
@@ -6584,6 +6617,21 @@
       "original": "Tell the user the rule was written and that it applies to new sessions.",
       "replacement": "Tell the user the file was written and that it applies to every later `pstack_worker` spawn.",
       "output": "generated/skills/setup-pstack/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md",
+      "rule": "show-me-your-work.decisions-path",
+      "offset": [
+        3537,
+        3583
+      ],
+      "lines": [
+        46,
+        46
+      ],
+      "original": "Keep it at `decisions.tsv` in the work dir, or",
+      "replacement": "Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or",
+      "output": "generated/skills/show-me-your-work/SKILL.md"
     },
     {
       "file": "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md",

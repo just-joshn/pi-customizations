@@ -242,3 +242,15 @@ describe('C: setup-pstack, reflect, poteto-help', () => {
     expect(text).toMatch(/For any other skill file, which the compiler copied unchanged, it is the pinned upstream copy, `https:\/\/github\.com\/cursor\/plugins\/blob\/a5539b15a3d56e04992565aafee2b37051329ce3\/pstack\/skills\/`/);
   });
 });
+
+describe('the compiled text names the paths a reader would otherwise guess', () => {
+  test('show-me-your-work puts the default decisions trail in the run directory, where the run view reads it', () => {
+    expect(gen('skills/show-me-your-work/SKILL.md')).toContain('Keep it at `.pi/pstack/runs/<runId>/decisions.tsv`');
+  });
+
+  test('session-pickup names the branch a worker commits to and how to list it', () => {
+    const playbook = gen('skills/poteto-mode/playbooks/session-pickup.md');
+    expect(playbook).toContain('`pstack-run/<runId>/<workerId>`');
+    expect(playbook).toContain("git branch --list 'pstack-run/<runId>/*'");
+  });
+});
