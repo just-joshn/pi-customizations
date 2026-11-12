@@ -12,6 +12,6 @@ log=$(mktemp)
 status=0
 npx vitest run --reporter=dot >"$log" 2>&1 || status=$?
 tail -6 "$log"
-grep -E "FAIL|×" "$log" | head -20 || true
+grep -E "FAIL|×" "$log" || true
 rm -f "$log"
 exit "$status"
