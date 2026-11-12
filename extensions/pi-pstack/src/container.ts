@@ -288,7 +288,7 @@ export async function resolveRemote(project: string, env: NodeJS.ProcessEnv): Pr
   const names = ((await tryGit(project, ['remote'], env)) ?? '').split('\n').filter(Boolean);
   const name = names.includes('origin') ? 'origin' : names.length === 1 ? names[0] : undefined;
   if (name === undefined)
-    throw new Error(
+    throw new ContainerUnavailableError(
       names.length === 0
         ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.`
         : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`,
@@ -304,7 +304,7 @@ export function assertRemoteOutsideCheckout(project: string, remote: Remote): vo
   const target = existsSync(remote.localPath) ? realpathSync(remote.localPath) : remote.localPath;
   const checkout = realpathSync(project);
   if (within(target, checkout) || within(checkout, target))
-    throw new Error(
+    throw new ContainerUnavailableError(
       `The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`,
     );
 }
@@ -318,14 +318,14 @@ export async function verifyPushed(project: string, remote: Remote, inputCommit:
   if (full === undefined) throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   // By name, so the checkout's own URL, userinfo and all, stays in git's configuration and out of argv.
   const listed = await git(project, ['ls-remote', '--heads', '--tags', remote.name], env).catch((error: unknown) => {
-    throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
+    throw new ContainerUnavailableError(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
   });
   const tips = [...new Set(listed.split('\n').flatMap((line) => (line === '' ? [] : [line.split('\t')[0] as string])))];
   for (const tip of tips) {
     if (tip === full) return full;
     if ((await tryGit(project, ['cat-file', '-e', `${tip}^{commit}`], env)) !== undefined && (await tryGit(project, ['merge-base', '--is-ancestor', full, tip], env)) !== undefined) return full;
   }
-  throw new Error(
+  throw new ContainerUnavailableError(
     `inputCommit ${full} is not on the remote ${remote.name} (${remote.url}). A container worker clones the pushed remote, so push the commit first (git push ${remote.name} <branch>), or fetch if the remote moved ahead of this checkout.`,
   );
 }
@@ -491,7 +491,7 @@ export interface PreparedContainer {
 
 /**
  * Everything the parent settles before it claims the worker: the engine answers, the commit is pushed, the image exists, and
- * Pi's install can be mounted. A refusal leaves nothing behind, so the assignment can be fixed and spawned again.
+ * Pi's install can be mounted. A refusal that means no container worker can run here is a ContainerUnavailableError. A refusal leaves nothing behind, so the assignment can be fixed and spawned again.
  */
 export async function prepareContainer(request: ContainerRequest): Promise<PreparedContainer> {
   const { project, runId, workerId, session, source, packageRoot } = request;
@@ -501,7 +501,9 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
   const forgeToken = request.forge ? await resolveForgeToken(source) : undefined;
-  const image = await ensureImage(engine, environment);
+  const image = await ensureImage(engine, environment).catch((error: unknown) => {
+    throw new ContainerUnavailableError(`the container image could not be prepared (${error instanceof Error ? error.message : String(error)})`);
+  });
   if (forgeToken !== undefined && environment.image.kind !== 'default') await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
   const mounts: ContainerMount[] = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];

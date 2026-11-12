@@ -269,7 +269,7 @@ The host takes the inbox into the run (`ingestContainerReceipts`, run by every h
 - `abort` also removes by label after the host's answer or its absence, so an unreachable host leaves nothing; an `abandoned` worker never had a container. It removes on the engine spawn recorded, not the one the environment names when abort runs: spawn writes `claim/engine.json` (0600, exclusive, before the host starts) with the docker client path and the client's `PATH`, `HOME`, and `DOCKER_*` snapshot, and abort reads it (`removeRecordedContainers`). A container worker with a claim but no record gets a `container_removal_failed` event saying the engine is unknown; it never guesses one from the current environment.
 - A settled worker is idle, and its container stays until `abort` or the host ends, as a worktree worker's Pi does. `collect` stops nothing.
 - Each removal is an event: `container_removed` or `container_removal_failed`. Removal is idempotent: it lists by label and removes what it finds.
-- `ContainerUnavailable` (the error text starts with that name) is raised in the parent before the claim when no `docker` answers `docker version`. The refusals for the remote, the commit, and the environment file also leave no claim.
+- `ContainerUnavailable` (the error text starts with that name) is raised in the parent before the claim for every refusal that means a container worker cannot run this assignment here: no `docker` answers `docker version`, the project has no usable remote (none, or several without `origin`, or a local remote that is or contains the checkout), `inputCommit` is not on the remote or the remote cannot be read, or the image cannot be pulled or built. A swarm step that names a worktree fallback takes it on any of these. A malformed assignment (an `inputCommit` that names no commit, a bad `.pi/environment.json`) keeps its own message, and `ForgeUnavailable` stays separate. All leave no claim.
 
 ## Webhook routines (spec 14.4)
 
@@ -299,7 +299,7 @@ The same-uid credential limitation above still applies. This is not OS credentia
 | Task `resume` of a finished agent | a fresh worker with consolidated brief (poteto-mode's own default); live-state reuse is `steer` |
 | `subagent_type: poteto-agent` / `generalPurpose` / `explore` / `shell` | assignment `role` |
 | `readonly: true` | `workspace.mode: 'readonly'` |
-| `environment: cloud` | `workspace: { mode: "container", inputCommit }`; `ContainerUnavailable` when no engine answers |
+| `environment: cloud` | `workspace: { mode: "container", inputCommit }`; `ContainerUnavailable` when no engine, remote, pushed commit, or image is available |
 | TodoWrite / todolist | `TODO.md` in the run root, created by `start-run.mjs` |
 | Plan mode / CreatePlan | a Markdown plan file under `.pi/pstack/plans/`, checked by `check-plan.mjs`, executed only after explicit go |
 | AskQuestion | ask in the conversation (`ctx.ui.select` where the extension has a UI) |

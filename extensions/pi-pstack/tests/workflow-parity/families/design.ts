@@ -395,12 +395,6 @@ Race rule: none, this was a coverage partition.`;
 export const swarmFamily: Family = {
   id: 'swarm',
   title: 'swarm: partitioned workers, container first with a worktree fallback, PASS/ISSUES/BLOCKED, invalid result respawned once (spec 12.2)',
-  knownDefects: [
-    {
-      checkId: 'swarm.container-refusal-is-ContainerUnavailable',
-      defect: 'pstack_worker spawn rejects workspace.mode "container" as an invalid assignment instead of ContainerUnavailable (src/run-files.ts:188-192, contract.md "Assignment" and "Container worker"); the container unit has not landed',
-    },
-  ],
   spec: {
     family: 'swarm',
     runId: 'swarm-rounding',

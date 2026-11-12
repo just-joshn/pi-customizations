@@ -6957,7 +6957,7 @@ import { join as join7 } from "node:path";
 
 // src/workers.ts
 import { execFile as execFile2 } from "node:child_process";
-import { existsSync as existsSync5, mkdirSync, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync as realpathSync4, rmSync, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
+import { existsSync as existsSync5, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync as realpathSync4, rmSync, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { basename as basename3, delimiter as delimiter3, isAbsolute as isAbsolute4, join as join5, relative as relative4 } from "node:path";
 import { promisify } from "node:util";
 
@@ -11231,7 +11231,7 @@ async function resolveRemote(project, env) {
 `).filter(Boolean);
   const name = names.includes("origin") ? "origin" : names.length === 1 ? names[0] : undefined;
   if (name === undefined)
-    throw new Error(names.length === 0 ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.` : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`);
+    throw new ContainerUnavailableError(names.length === 0 ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.` : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`);
   const url = await git(project, ["remote", "get-url", name], env);
   const localPath = localPathOf(url, project);
   return { name, url: localPath ?? stripUserinfo(url), localPath };
@@ -11242,14 +11242,14 @@ function assertRemoteOutsideCheckout(project, remote) {
   const target = existsSync2(remote.localPath) ? realpathSync2(remote.localPath) : remote.localPath;
   const checkout = realpathSync2(project);
   if (within(target, checkout) || within(checkout, target))
-    throw new Error(`The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`);
+    throw new ContainerUnavailableError(`The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`);
 }
 async function verifyPushed(project, remote, inputCommit, env) {
   const full = await tryGit(project, ["rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`], env);
   if (full === undefined)
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.name], env).catch((error) => {
-    throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
+    throw new ContainerUnavailableError(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
   });
   const tips = [...new Set(listed.split(`
 `).flatMap((line) => line === "" ? [] : [line.split("\t")[0]]))];
@@ -11259,7 +11259,7 @@ async function verifyPushed(project, remote, inputCommit, env) {
     if (await tryGit(project, ["cat-file", "-e", `${tip}^{commit}`], env) !== undefined && await tryGit(project, ["merge-base", "--is-ancestor", full, tip], env) !== undefined)
       return full;
   }
-  throw new Error(`inputCommit ${full} is not on the remote ${remote.name} (${remote.url}). A container worker clones the pushed remote, so push the commit first (git push ${remote.name} <branch>), or fetch if the remote moved ahead of this checkout.`);
+  throw new ContainerUnavailableError(`inputCommit ${full} is not on the remote ${remote.name} (${remote.url}). A container worker clones the pushed remote, so push the commit first (git push ${remote.name} <branch>), or fetch if the remote moved ahead of this checkout.`);
 }
 function resolvePiInstall(entry) {
   if (entry === undefined || !existsSync2(entry))
@@ -11315,7 +11315,9 @@ async function prepareContainer(request) {
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
   const forgeToken = request.forge ? await resolveForgeToken(source) : undefined;
-  const image = await ensureImage(engine, environment);
+  const image = await ensureImage(engine, environment).catch((error) => {
+    throw new ContainerUnavailableError(`the container image could not be prepared (${error instanceof Error ? error.message : String(error)})`);
+  });
   if (forgeToken !== undefined && environment.image.kind !== "default")
     await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
@@ -14326,7 +14328,7 @@ var Delete = _Object_({
 var Edit = Union([Insert2, Update2, Delete]);
 // src/run-files.ts
 import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, lstatSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, lstatSync, mkdirSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { basename, dirname as dirname2, isAbsolute as isAbsolute3, join as join3, relative as relative3, resolve as resolve4, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
@@ -14337,6 +14339,17 @@ function parseId(value, what) {
 var parseRunId = (value) => parseId(value, "runId");
 var parseWorkerId = (value) => parseId(value, "workerId");
 var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash2("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
+function ensureRunStateIgnored(project) {
+  const dir = join3(project, ".pi", "pstack");
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync2(join3(dir, ".gitignore"), `*
+`, { flag: "wx" });
+  } catch (error) {
+    if (error.code !== "EEXIST")
+      throw error;
+  }
+}
 var runsDir = (project) => join3(project, ".pi", "pstack", "runs");
 var runRootOf = (project, runId) => join3(runsDir(project), runId);
 var projectOfRunRoot = (runRoot) => resolve4(runRoot, "..", "..", "..", "..");
@@ -14798,6 +14811,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const attach = (session) => `tmux -L ${socket} attach -t ${session}`;
   const root = realpathSync4(project);
   const runRoot = runRootOf(root, runId);
+  ensureRunStateIgnored(root);
   let loaded = loadAssignment(assignmentPath);
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
@@ -14879,7 +14893,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     loaded = loadAssignment(loaded.file);
   }
   try {
-    mkdirSync(claimDir, { mode: 448 });
+    mkdirSync2(claimDir, { mode: 448 });
   } catch (error) {
     if (error.code === "EEXIST")
       throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
@@ -15060,7 +15074,7 @@ function eligibleTrackerAction(intent, policy) {
 }
 
 // src/automation/store.ts
-import { appendFileSync as appendFileSync2, existsSync as existsSync6, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync3, readFileSync as readFileSync5, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
+import { appendFileSync as appendFileSync2, existsSync as existsSync6, linkSync, mkdirSync as mkdirSync3, readdirSync as readdirSync3, readFileSync as readFileSync5, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
 import { dirname as dirname4, join as join6 } from "node:path";
 function automationStore(projectRoot, name) {
   const dir = join6(projectRoot, ".pi", "pstack", "automation", name);
@@ -15068,13 +15082,13 @@ function automationStore(projectRoot, name) {
 }
 var temporary = (path) => `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
 function writeAtomic(path, text) {
-  mkdirSync2(dirname4(path), { recursive: true, mode: 448 });
+  mkdirSync3(dirname4(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
   writeFileSync4(tmp, text, { mode: 384 });
   renameSync2(tmp, path);
 }
 function createExclusive(path, text) {
-  mkdirSync2(dirname4(path), { recursive: true, mode: 448 });
+  mkdirSync3(dirname4(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
   writeFileSync4(tmp, text, { mode: 384 });
   try {
@@ -15096,7 +15110,7 @@ function readJson2(path) {
   return JSON.parse(readFileSync5(path, "utf8"));
 }
 function appendLog(store, entry) {
-  mkdirSync2(store.dir, { recursive: true, mode: 448 });
+  mkdirSync3(store.dir, { recursive: true, mode: 448 });
   appendFileSync2(store.log, `${JSON.stringify(entry)}
 `, { mode: 384 });
 }
