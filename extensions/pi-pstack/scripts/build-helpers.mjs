@@ -6,10 +6,6 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const helpers = [
-  ['src/subscriptions/supervisor-main.ts', 'dist/supervisor-main.js'],
-  ['src/cloud/release-main.ts', 'dist/release-machine.js'],
-  ['generated/skills/statechart/scripts/statechart.ts', 'skills/statechart/scripts/statechart.js'],
-  ['generated/skills/statechart/scripts/worker.ts', 'skills/statechart/scripts/worker.js'],
   ['generated/skills/poteto-mode/scripts/watch-pr/cli.ts', 'dist/watch-pr.js'],
   ['src/worker-host.ts', 'dist/worker-host.js'],
   ['src/automation/routine-cli.mjs', 'dist/routine-setup.js'],

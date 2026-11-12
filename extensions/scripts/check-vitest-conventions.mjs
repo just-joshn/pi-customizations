@@ -299,7 +299,7 @@ function analyzeNativeSource(source, path) {
 }
 
 async function collectTestFiles(directory, base) {
-  const preserved = ['pi-pstack/skills/'];
+  const preserved = ['pi-pstack/vendor/', 'pi-pstack/generated/'];
   const local = `${relative(base, directory).replaceAll('\\', '/')}/`;
   if (preserved.some((prefix) => local.startsWith(prefix))) return [];
   const files = [];

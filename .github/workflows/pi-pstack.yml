@@ -117,11 +117,11 @@ jobs:
           ARGS: ${{ matrix.statechart-args }}
         run: |
           if [ "$FILES" = corpus ]; then
-            set -- skills/statechart/scripts/test/corpus.test.ts
+            set -- generated/skills/statechart/scripts/test/corpus.test.ts
           else
             set --
-            for file in skills/statechart/scripts/test/*.test.ts; do
-              [ "$file" = skills/statechart/scripts/test/corpus.test.ts ] || set -- "$@" "$file"
+            for file in generated/skills/statechart/scripts/test/*.test.ts; do
+              [ "$file" = generated/skills/statechart/scripts/test/corpus.test.ts ] || set -- "$@" "$file"
             done
           fi
           node --disable-warning=ExperimentalWarning --test "$ARGS" "$@"
@@ -185,11 +185,11 @@ jobs:
           FILES: ${{ matrix.statechart }}
         run: |
           if [ "$FILES" = corpus ]; then
-            set -- skills/statechart/scripts/test/corpus.test.ts
+            set -- generated/skills/statechart/scripts/test/corpus.test.ts
           else
             set --
-            for file in skills/statechart/scripts/test/*.test.ts; do
-              [ "$file" = skills/statechart/scripts/test/corpus.test.ts ] || set -- "$@" "$file"
+            for file in generated/skills/statechart/scripts/test/*.test.ts; do
+              [ "$file" = generated/skills/statechart/scripts/test/corpus.test.ts ] || set -- "$@" "$file"
             done
           fi
           node --disable-warning=ExperimentalWarning --test "$@"

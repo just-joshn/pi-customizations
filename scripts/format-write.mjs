@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const supported = /\.(?:[cm]?[jt]sx?|jsonc?|css|graphql|gql|html|vue|svelte|astro)$/;
 
 export function writableSources(paths) {
-  const preserved = ['extensions/pi-pstack/skills/'];
+  const preserved = ['extensions/pi-pstack/vendor/', 'extensions/pi-pstack/generated/'];
   return [...new Set(paths)].filter((path) => basename(path) !== 'vitest.config.ts' && !preserved.some((prefix) => path.replaceAll('\\', '/').startsWith(prefix)) && supported.test(path));
 }
 

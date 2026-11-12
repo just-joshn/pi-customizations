@@ -8,7 +8,7 @@ import { API } from 'typescript/unstable/sync';
 const artifacts = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 const sourcePattern = /\.(?:ts|tsx|mts|cts)$/;
 const configPattern = /^tsconfig(?:\.[^.]+)?\.json$/;
-const preservedRoots = ['extensions/pi-pstack/skills/', 'parity/reference/', 'parity/fixtures/', 'parity/evidence/', 'parity/private/', 'parity/artifacts/', 'parity/research/', 'parity/pi-rea/designs/'];
+const preservedRoots = ['extensions/pi-pstack/vendor/', 'extensions/pi-pstack/generated/', 'parity/reference/', 'parity/fixtures/', 'parity/evidence/', 'parity/private/', 'parity/artifacts/', 'parity/research/', 'parity/pi-rea/designs/'];
 const localPath = (root, path) => relative(root, path).replaceAll('\\', '/');
 const isPreserved = (root, path) => preservedRoots.some((prefix) => localPath(root, path).startsWith(prefix));
 

@@ -6,7 +6,7 @@ Extensions for [Pi](https://pi.dev), the coding agent by Earendil Works. This re
 
 | Package | What it does |
 | --- | --- |
-| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | pstack 0.15.36 for Pi: the `/poteto-mode` workflows and principle skills, plus the host features they call: `/mode`, `/plan`, `/loop`, the `Task` subagent tool with cloud agents on their own machines, `/in-cloud`, `TodoWrite`, `AskQuestion`, `GenerateImage`, `SwitchMode`, the model rule, subscriptions with Slack triggers and automations (`/automate`, `/automations`), Projects, `request_secret`, and `visualize`. |
+| [`extensions/pi-pstack`](extensions/pi-pstack/README.md) | pstack 0.15.36 for Pi: pstack's skills and playbooks compiled from the pinned upstream into native Pi skills and `/name` prompts, `/pstack` for the persistent style and run control, and workers that run as Pi processes in tmux through the `pstack_worker` and `pstack_evidence` tools. |
 | [`extensions/pi-anthropic-oauth`](extensions/pi-anthropic-oauth/README.md) | Lets a Claude Pro or Max subscription answer in Pi through a separate `claude-subscription` provider. |
 | [`extensions/pi-antigravity-oauth`](extensions/pi-antigravity-oauth/README.md) | Restores the `google-antigravity` provider. Signs in with Google OAuth and talks to the Cloud Code Assist API. |
 | [`extensions/pi-x-subscription-oauth`](extensions/pi-x-subscription-oauth/README.md) | Lets The X Subscription answer in Pi through the `grok-build` and `cursor` providers, and check plan usage with `/usage`. |
@@ -42,16 +42,16 @@ One source installs all six extensions, their skills, the skills in `skills/`, a
 pi install git:github.com/just-joshn/pi-customizations
 ```
 
-To load only part of the repository, replace the package entry in `~/.pi/agent/settings.json` with the object form and filter by resource type. This entry loads pi-pstack's extension and skills and nothing else:
+To load only part of the repository, replace the package entry in `~/.pi/agent/settings.json` with the object form and filter by resource type. This entry loads pi-pstack's extension, skills, and prompts and nothing else:
 
 ```json
 {
   "packages": [
     {
       "source": "git:github.com/just-joshn/pi-customizations",
-      "extensions": ["extensions/pi-pstack/src/index.ts"],
-      "skills": ["extensions/pi-pstack/skills/*"],
-      "prompts": []
+      "extensions": ["extensions/pi-pstack/src/extension.ts"],
+      "skills": ["extensions/pi-pstack/generated/skills/*"],
+      "prompts": ["extensions/pi-pstack/generated/prompts/*"]
     }
   ]
 }

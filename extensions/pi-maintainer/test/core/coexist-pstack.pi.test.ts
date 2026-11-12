@@ -1,6 +1,6 @@
 import { getCurrentSystemPrompt } from '@earendil-works/pi-ai';
-import { expect, test } from 'vitest';
-import pstack from '../../../pi-pstack/src/index.ts';
+import { expect, onTestFinished, test, vi } from 'vitest';
+import pstack from '../../../pi-pstack/src/extension.ts';
 import piMaintainer from '../../src/index.ts';
 import { textOf } from '../support/maintainer.ts';
 import { piSessionFixture, promptAndSettle } from '../support/pi-session.ts';
@@ -13,6 +13,10 @@ Use Task agents.
 hello from coexist`;
 
 test('with pstack loaded, session keeps skill delivery while maintainer strips it from the provider request', async () => {
+  vi.stubEnv('PSTACK_TMUX_SOCKET', `pstack-test-maintainer-${process.pid}`);
+  onTestFinished(() => {
+    vi.unstubAllEnvs();
+  });
   const f = await piSessionFixture({ extension: piMaintainer, before: [pstack] });
   f.replies.push({ text: '' });
   const session = await f.open();

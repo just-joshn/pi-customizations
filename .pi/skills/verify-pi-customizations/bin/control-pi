@@ -220,23 +220,24 @@ async function drivePstackCommands(artifactDir) {
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
     try {
-      // 1. Extension surface: /mode, /loop, /plan, and /routines are registered, pstack skills are loadable.
+      // 1. Extension surface: /pstack is the one extension command, and every pstack skill loads with its /name prompt.
       const res = await session.send({ type: 'get_commands' });
       const names = res.commands.map((c) => c.name);
-      for (const expected of ['mode', 'loop', 'plan', 'routines', 'automations', 'project', 'in-cloud', 'secret']) {
-        assert.ok(names.includes(expected), `Expected extension command /${expected} not registered`);
+      assert.ok(names.includes('pstack'), 'Expected extension command /pstack not registered');
+      for (const retired of ['mode', 'loop', 'plan', 'routines', 'automations', 'project', 'in-cloud', 'secret']) {
+        assert.ok(!names.includes(retired), `Retired command /${retired} is still registered`);
       }
-      for (const expected of ['skill:poteto-mode', 'skill:setup-pstack', 'skill:poteto-help']) {
-        assert.ok(names.includes(expected), `Expected pstack skill ${expected} not registered`);
+      for (const expected of ['skill:poteto-mode', 'skill:setup-pstack', 'skill:poteto-help', 'poteto-mode', 'setup-pstack', 'poteto-help']) {
+        assert.ok(names.includes(expected), `Expected pstack skill or prompt ${expected} not registered`);
       }
       await writeFile(join(outDir, 'commands.json'), `${JSON.stringify(res.commands, null, 2)}\n`, 'utf8');
 
-      // 2. /mode with no mode on reports through a UI notification.
-      await session.send({ type: 'prompt', message: '/mode' });
-      const modeReport = session.notifications.find((n) => n.message === 'No mode is on.');
-      assert.ok(modeReport, 'Expected UI notification "No mode is on." not observed');
-      assert.equal(modeReport.notifyType, 'info', 'Expected the /mode report as an info notification');
-      await writeFile(join(outDir, 'mode-status.json'), `${JSON.stringify(modeReport, null, 2)}\n`, 'utf8');
+      // 2. /pstack status reports the style through a UI notification.
+      await session.send({ type: 'prompt', message: '/pstack status' });
+      const statusReport = session.notifications.find((n) => n.message.startsWith('pstack style: off (poteto-mode from '));
+      assert.ok(statusReport, 'Expected UI notification "pstack style: off (poteto-mode from ...)" not observed');
+      assert.equal(statusReport.notifyType, 'info', 'Expected the /pstack status report as an info notification');
+      await writeFile(join(outDir, 'pstack-status.json'), `${JSON.stringify(statusReport, null, 2)}\n`, 'utf8');
       process.stdout.write(`✓ Captured pstack command-surface evidence in ${outDir}\n`);
     } finally {
       await session.close();
@@ -257,36 +258,32 @@ async function drivePotetoMode(artifactDir) {
   try {
     const session = createRpcSession(pstackPkg, scratchDir);
     try {
-      // 1. Turn the mode on.
-      await session.send({ type: 'prompt', message: '/mode poteto-mode' });
-      assert.ok(
-        session.notifications.some((n) => n.message === 'Mode on: poteto-mode. /mode off exits.'),
-        'Expected UI notification "Mode on: poteto-mode. /mode off exits." not observed',
-      );
-      const onEntry = session.entries.find((e) => e.type === 'custom' && e.customType === 'pstack/mode');
-      assert.ok(onEntry, 'Expected pstack/mode entry appended to branch');
-      assert.equal(onEntry.data?.skill, 'poteto-mode', 'On entry did not record the poteto-mode skill');
-      const modeStatus = () => session.statuses.filter((s) => s.statusKey === 'pstack-mode').at(-1);
-      assert.match(modeStatus()?.statusText ?? '', /^\u001b\[[\d;]*m♛ mode: poteto-mode\u001b\[[\d;]*m$/, 'Expected the colored ♛ mode: poteto-mode footer status');
+      // 1. Turn the pstack style on.
+      await session.send({ type: 'prompt', message: '/pstack on' });
+      const onText = 'pstack style on. Each new task gets the poteto-mode skill once; /pstack off ends it.';
+      assert.ok(session.notifications.some((n) => n.message === onText), `Expected UI notification "${onText}" not observed`);
+      const styleEntries = () => session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/style');
+      assert.deepEqual(styleEntries()[0]?.data, { on: true }, 'Expected a pstack/style entry with { on: true }');
+      const styleStatus = () => session.statuses.filter((s) => s.statusKey === 'pstack-style').at(-1);
+      assert.equal(styleStatus()?.statusText, 'pstack on', 'Expected the "pstack on" footer status');
 
-      // 2. Turn the mode off.
+      // 2. Turn the pstack style off.
       const beforeOff = session.notifications.length;
-      await session.send({ type: 'prompt', message: '/mode off' });
+      await session.send({ type: 'prompt', message: '/pstack off' });
       assert.ok(
-        session.notifications.slice(beforeOff).some((n) => n.message === 'Mode off.'),
-        'Expected UI notification "Mode off." not observed',
+        session.notifications.slice(beforeOff).some((n) => n.message === 'pstack style off.'),
+        'Expected UI notification "pstack style off." not observed',
       );
-      const modeEntries = session.entries.filter((e) => e.type === 'custom' && e.customType === 'pstack/mode');
-      assert.equal(modeEntries.length, 2, 'Expected exactly two pstack/mode entries (on, then off)');
-      assert.equal(modeEntries[1].data, null, 'Off entry did not record null mode data');
-      assert.equal(modeStatus()?.statusText, null, 'Expected pstack-mode footer status cleared after /mode off');
+      assert.equal(styleEntries().length, 2, 'Expected exactly two pstack/style entries (on, then off)');
+      assert.deepEqual(styleEntries()[1].data, { on: false }, 'Off entry did not record { on: false }');
+      assert.equal(styleStatus()?.statusText, null, 'Expected pstack-style footer status cleared after /pstack off');
 
       await writeFile(
-        join(outDir, 'mode.json'),
+        join(outDir, 'style.json'),
         `${JSON.stringify({ notifications: session.notifications, entries: session.entries, statuses: session.statuses }, null, 2)}\n`,
         'utf8',
       );
-      process.stdout.write(`✓ Captured poteto mode on/off evidence in ${outDir}\n`);
+      process.stdout.write(`✓ Captured pstack style on/off evidence in ${outDir}\n`);
     } finally {
       await session.close();
     }

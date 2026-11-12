@@ -1,13 +1,9 @@
 {
-  "inputs": "43f4145c3c891494383def83327a8610bfd92e1dca11fc7a4af84dc6dbb2fa9a",
+  "inputs": "21edb9c839d912c8313917ad63c41843304fe7b49b5ae278ea5f7351e5bbedf0",
   "outputs": {
-    "dist/supervisor-main.js": "86470134951c56a137998cc6f063fc36f0ad64005135516bf72dbaf17ff60777",
-    "dist/release-machine.js": "a60b21419591abb447c20ef474965167c2415b5362e322f38ecee827a4a0e35d",
-    "skills/statechart/scripts/statechart.js": "3b180b5ebabac82256f6538844fc6b5d1798e0bf406f875fc27032a633b38d4a",
-    "skills/statechart/scripts/worker.js": "df24c4d87f25024c57c3a2b8a0f36894f8aa5eaae51078402d1d6d37427c6fc7",
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
     "dist/worker-host.js": "fde7776dd32b63fdb9c0195692a38e2fc3df481c8c41b3ec97e55398346e3148",
-    "dist/routine-setup.js": "28396d251ca6274eb92b322ae1eb6041a8c990fcaee408cf2b4e6148ea113ba2",
-    "dist/automation-serve.js": "21bf705de6aed4f178b2479bfc982502f5c6478bf59c1c8aac3ff3e0492aebad"
+    "dist/routine-setup.js": "5c7c4421a46e6450b72c53f20d111490c496adb824ded0fa1a1fbfbd4a216fab",
+    "dist/automation-serve.js": "6930e8dfe371c29e12568a97412c015192f2d9e64ec37787e62d3f43a2dd7fa2"
   }
 }

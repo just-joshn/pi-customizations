@@ -3,7 +3,7 @@
 // src/automation/routine-cli.mjs
 import { randomBytes } from "node:crypto";
 import { chmodSync as chmodSync2, mkdirSync as mkdirSync4, readFileSync as readFileSync6, realpathSync as realpathSync3, writeFileSync as writeFileSync5 } from "node:fs";
-import { dirname as dirname5, join as join9, resolve as resolve4 } from "node:path";
+import { dirname as dirname5, join as join9, resolve as resolve3 } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -263,62 +263,9 @@ var EvidenceParams = Type.Object({
 });
 
 // src/paths.ts
-import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
+import { dirname as dirname2, join as join2 } from "node:path";
 import { fileURLToPath } from "node:url";
-
-// src/child-env.ts
-var DEPTH_ENV = "PI_PSTACK_DEPTH";
-var AGENT_ENV = "PI_PSTACK_AGENT";
-var PARENT_ENV = "PI_PSTACK_PARENT_PID";
-var READONLY_ENV = "PI_PSTACK_READONLY";
-var ROOT_STORE_ENV = "PI_PSTACK_ROOT_STORE";
-var WORKSPACE_ENV = "PI_PSTACK_WORKSPACE_STATE";
-var ROOT_WORKSPACE_ENV = "PI_PSTACK_ROOT_WORKSPACE";
-var BUILD_PLAN_ENV = "PI_PSTACK_BUILD_PLAN";
-var MACHINE_ENV = "PI_PSTACK_MACHINE";
-var PROJECT_ENV = "PI_PSTACK_PROJECT";
-var AUTOMATION_ENV = "PI_PSTACK_AUTOMATION";
-var ROOT_SESSION_ENV = "PI_PSTACK_ROOT_SESSION";
-var ROOT_PID_ENV = "PI_PSTACK_ROOT_PID";
-function read() {
-  const depth = Number(process.env[DEPTH_ENV] ?? "0");
-  const parentPid = Number(process.env[PARENT_ENV] ?? "");
-  const rootSession = process.env[ROOT_SESSION_ENV];
-  const rootPid = Number(process.env[ROOT_PID_ENV] ?? "");
-  return {
-    depth: Number.isInteger(depth) && depth > 0 ? depth : 0,
-    agentType: process.env[AGENT_ENV],
-    parentPid: Number.isInteger(parentPid) && parentPid > 1 ? parentPid : undefined,
-    readonly: process.env[READONLY_ENV] === "1",
-    rootStore: process.env[ROOT_STORE_ENV] || undefined,
-    workspaceState: process.env[WORKSPACE_ENV] || undefined,
-    rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
-    buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
-    machine: process.env[MACHINE_ENV] || undefined,
-    project: process.env[PROJECT_ENV] || undefined,
-    automation: process.env[AUTOMATION_ENV] === "1",
-    root: depth > 0 && rootSession !== undefined && rootSession !== "" && Number.isInteger(rootPid) && rootPid > 1 ? { sessionId: rootSession, pid: rootPid } : undefined
-  };
-}
-var childIdentity = read();
-delete process.env[DEPTH_ENV];
-delete process.env[AGENT_ENV];
-delete process.env[PARENT_ENV];
-delete process.env[READONLY_ENV];
-delete process.env[ROOT_STORE_ENV];
-delete process.env[WORKSPACE_ENV];
-delete process.env[ROOT_WORKSPACE_ENV];
-delete process.env[BUILD_PLAN_ENV];
-delete process.env[MACHINE_ENV];
-delete process.env[PROJECT_ENV];
-delete process.env[AUTOMATION_ENV];
-delete process.env[ROOT_SESSION_ENV];
-delete process.env[ROOT_PID_ENV];
-
-// src/paths.ts
 var PACKAGE_ROOT = join2(dirname2(fileURLToPath(import.meta.url)), "..");
-var SKILLS_DIR = join2(PACKAGE_ROOT, "skills");
-var AGENTS_DIR = join2(PACKAGE_ROOT, "agents");
 
 // src/pi-command.ts
 import { existsSync as existsSync2 } from "node:fs";
@@ -372,7 +319,7 @@ import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync3, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
-import { dirname as dirname3, isAbsolute as isAbsolute2, join as join3, resolve as resolve3 } from "node:path";
+import { dirname as dirname3, isAbsolute as isAbsolute2, join as join3, resolve as resolve2 } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 var MAX_CONTROL_BYTES = 65536;
@@ -500,7 +447,7 @@ function claim(loaded, instance) {
 }
 function prepareWorktree(loaded, inputCommit) {
   const { runId, workerId } = loaded.assignment;
-  const project = resolve3(loaded.runRoot, "..", "..", "..", "..");
+  const project = resolve2(loaded.runRoot, "..", "..", "..", "..");
   if (runRootOf(project, runId) !== loaded.runRoot)
     throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
   const path = join3(loaded.workerDir, "worktree");
@@ -1046,7 +993,7 @@ async function runHost(assignmentFile, launchText) {
     await fail(error);
   }
 }
-if (process.argv[1] !== undefined && resolve3(process.argv[1]) === fileURLToPath2(import.meta.url)) {
+if (process.argv[1] !== undefined && resolve2(process.argv[1]) === fileURLToPath2(import.meta.url)) {
   runHost(process.argv[2] ?? "", process.argv[3]).catch((error) => {
     console.error(`[host failure] ${message(error)}`);
     process.exitCode = 1;
@@ -1603,7 +1550,7 @@ async function startRoutineSource(routine, source) {
 var { values } = parseArgs({ options: { project: { type: "string" }, name: { type: "string" }, "prompt-file": { type: "string" }, model: { type: "string" }, serve: { type: "boolean" }, readonly: { type: "boolean" }, port: { type: "string", default: "47913" } } });
 if (!values.project || !values.name || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(values.name))
   throw new Error("usage: routine-setup.mjs --project <root> --name <slug> --prompt-file <file> [--serve] [--port <port>] [--model <provider/id>] [--readonly]");
-var projectRoot2 = realpathSync3(resolve4(values.project));
+var projectRoot2 = realpathSync3(resolve3(values.project));
 var dir = join9(projectRoot2, ".pi/pstack/automation", values.name);
 var configFile = join9(dir, "config.json");
 if (values["prompt-file"]) {

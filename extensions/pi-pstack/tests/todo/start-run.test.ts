@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, expect, test } from 'vitest';
 
 const script = fileURLToPath(new URL('../../scripts/start-run.mjs', import.meta.url));
-const playbooks = fileURLToPath(new URL('../../skills/poteto-mode/playbooks/', import.meta.url));
+const playbooks = fileURLToPath(new URL('../../generated/skills/poteto-mode/playbooks/', import.meta.url));
 const names = readdirSync(playbooks).filter((name) => name.endsWith('.md')).sort();
 const temporary: string[] = [];
 afterEach(() => { for (const dir of temporary.splice(0)) rmSync(dir, { recursive: true, force: true }); });
