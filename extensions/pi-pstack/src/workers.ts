@@ -261,7 +261,13 @@ function finalAssistantText(transcript: string | null): string | null {
   let text: string | null = null;
   for (const line of transcript.split('\n')) {
     if (line.trim() === '') continue;
-    const entry = JSON.parse(line) as { type?: string; message?: { role?: string; content?: unknown } };
+    let entry: { type?: string; message?: { role?: string; content?: unknown } };
+    try {
+      entry = JSON.parse(line);
+    } catch {
+      // A crash can tear the last line, and a container worker's file is its own to write.
+      continue;
+    }
     if (entry.type !== 'message' || entry.message?.role !== 'assistant') continue;
     const content = entry.message.content;
     const parts = typeof content === 'string' ? [content] : Array.isArray(content) ? content.flatMap((part: { type?: string; text?: string }) => (part.type === 'text' && typeof part.text === 'string' ? [part.text] : [])) : [];
@@ -273,26 +279,31 @@ function finalAssistantText(transcript: string | null): string | null {
 const readTranscript = (sessionFile: string | null): string | null => (sessionFile === null || !existsSync(sessionFile) ? null : readFileSync(sessionFile, 'utf8'));
 
 /**
- * What collect reads from a worker's directory. A container worker writes through `<workerDir>/out`, which it controls, so
- * its report, session file, and evidence are read from there without following a symlink (see untrusted-output.ts).
+ * A worker's final assistant message, read from its session file. A container worker's session file is under its output
+ * directory, which it controls, so it is read without following a symlink (see untrusted-output.ts). Automation settling
+ * and `collect` both read it here.
  */
+export function workerFinalText(loaded: LoadedAssignment, sessionFile: string | null): string | null {
+  const { workerDir, assignment } = loaded;
+  if (assignment.workspace.mode !== 'container') return finalAssistantText(readTranscript(sessionFile));
+  const sessionRel = sessionFile === null ? null : relative(workerDir, sessionFile);
+  if (sessionRel === null || sessionRel.startsWith('..') || sessionRel.split('/')[0] !== 'session') return null;
+  const file = readFileBelow(outDirOf(workerDir), sessionRel);
+  return finalAssistantText(file.kind === 'ok' ? file.bytes.toString('utf8') : null);
+}
+
 function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
   const { workerDir, assignment } = loaded;
+  const finalText = workerFinalText(loaded, sessionFile);
   if (assignment.workspace.mode !== 'container') {
     const report = join(workerDir, 'report.md');
-    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText: finalAssistantText(readTranscript(sessionFile)), evidence: listFiles(join(workerDir, 'evidence')) };
+    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText, evidence: listFiles(join(workerDir, 'evidence')) };
   }
   const out = outDirOf(workerDir);
-  const read = (rel: string): string | null | { refused: string } => {
-    const file = readFileBelow(out, rel);
-    return file.kind === 'ok' ? file.bytes.toString('utf8') : file.kind === 'missing' ? null : { refused: file.reason };
-  };
-  const report = read('report.md');
-  const sessionRel = sessionFile === null ? null : relative(workerDir, sessionFile);
-  const transcript = sessionRel === null || sessionRel.startsWith('..') || sessionRel.split('/')[0] !== 'session' ? null : read(sessionRel);
+  const report = readFileBelow(out, 'report.md');
   return {
-    report: report === null || typeof report === 'string' ? report : '(refused: report.md leaves the worker output directory)',
-    finalText: finalAssistantText(typeof transcript === 'string' ? transcript : null),
+    report: report.kind === 'ok' ? report.bytes.toString('utf8') : report.kind === 'missing' ? null : '(refused: report.md leaves the worker output directory)',
+    finalText,
     evidence: listFilesBelow(out, 'evidence'),
   };
 }

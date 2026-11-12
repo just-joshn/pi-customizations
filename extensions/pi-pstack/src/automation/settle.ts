@@ -1,33 +1,18 @@
 // Completion of Benny cases. The event source is a plain Node process, not a Pi session, so no wake message reaches it.
 // It learns that a worker settled by reading the worker's host state, the same state `pstack_worker collect` reads,
 // and which runs still owe a reply comes from the event log alone, so a restart never completes a run twice.
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import type { Automation } from '../../adapters/automation-events.ts';
 import { hostTarget, inspectHost } from '../rpc-client.ts';
 import { type HostState, isTerminal, loadAssignment, readHostState } from '../run-files.ts';
 import { abortRun, type AbortRun } from './abort.ts';
+import { workerFinalText } from '../workers.ts';
 import { workerDir } from './dispatch.ts';
 import { failureReply, isOpsStatus, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
 import { appendLog } from './store.ts';
 
 export type CollectedRun = { settled: false } | { settled: true; failure: string | null; finalText: string | null };
-
-/** Mirrors the final-text read of the `collect` action in src/workers.ts, which does not export it. */
-function finalAssistantText(sessionFile: string | null): string | null {
-  if (sessionFile === null || !existsSync(sessionFile)) return null;
-  let text: string | null = null;
-  for (const line of readFileSync(sessionFile, 'utf8').split('\n')) {
-    if (line.trim() === '') continue;
-    const entry = JSON.parse(line) as { type?: string; message?: { role?: string; content?: unknown } };
-    if (entry.type !== 'message' || entry.message?.role !== 'assistant') continue;
-    const content = entry.message.content;
-    const parts = typeof content === 'string' ? [content] : Array.isArray(content) ? content.flatMap((part: { type?: string; text?: string }) => (part.type === 'text' && typeof part.text === 'string' ? [part.text] : [])) : [];
-    if (parts.length > 0) text = parts.join('');
-  }
-  return text;
-}
 
 const alive = (pid: number) => {
   try {
@@ -58,7 +43,7 @@ export async function collectRun(projectRoot: string, runId: RunId, inspect: typ
     return gone ? { settled: true, failure: `the worker host ended in phase ${state.phase} without finishing its work`, finalText: null } : { settled: false };
   }
   if (last.phase === 'failed' || last.phase === 'aborted' || last.phase === 'exited') return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? '' : `: ${oneLine(last.reason)}`}`, finalText: null };
-  const finalText = finalAssistantText(state.sessionFile);
+  const finalText = workerFinalText(loaded, state.sessionFile);
   if (finalText === null || finalText.trim() === '') return { settled: true, failure: 'the worker produced no final message', finalText: null };
   return { settled: true, failure: null, finalText };
 }
