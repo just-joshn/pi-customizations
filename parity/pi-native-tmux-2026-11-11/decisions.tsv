@@ -81,3 +81,5 @@ ts	phase	decision	why	evidence	result
 2026-11-12T07:51:03Z	operator	No Cursor-side differential runs; spec 16.3 rows stay INCONCLUSIVE with the reason	operator has no Cursor usage	AskQuestion answer	decided
 2026-11-12T07:51:03Z	operator	Workflow e2e: scripted model for every family plus one real run per family on deepseek-flash	operator choice	AskQuestion answer	decided
 2026-11-12T07:51:03Z	delegate	Launched U13 (sonnet-5-5 high), U14 and U15 (sonnet-5-5 medium), U17 judge (haiku-5-5 medium)	separate seams: workers/host/run-files, src/automation+benny pack, scripts+manifest+docs; judge is read-only	worktrees u10-container u08e-benny u15-manifest u12-judge at 0091593c	running
+2026-11-12T07:52:28Z	judge	U12 judge: ACCEPT WITH FIXES, no blocker	bundles run Pi-free; byte-identical rebuild	agent e8e24802: shim lacks qwen-token-plan-individual-cn vs Pi 1.5.2; providers/all inlined (claim false); yaml license missing; worktree-audit reads settings from repo not session cwd	fix round U17f
+2026-11-12T07:58:22Z	merge	U17f merged: 4 judge findings fixed red-first	close U12 review	regen clean; merge-gate exit 0, 598 pass 8 skipped; agent 6076b55b	VERIFIED
