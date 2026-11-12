@@ -625,14 +625,15 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return result;
   };
 
-  /**
-   * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
-   * when the claimed session id still names the session created then, on the same server; anything else is left running.
-   */
   const sessions = async () => {
     const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
     return listed.code === 0 ? listed.stdout.split('\n') : [];
   };
+
+  /**
+   * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
+   * when the claimed session id still names the session created then, on the same server; anything else is left running.
+   */
   const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
     const owned = readTmuxIdentity(loaded.workerDir);
     if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
