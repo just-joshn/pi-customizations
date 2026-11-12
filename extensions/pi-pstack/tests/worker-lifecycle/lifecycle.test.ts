@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -166,6 +166,23 @@ describe('pstack_worker on real tmux and Pi', () => {
     const worktree = join(workerDir(project, 'run1', 'w4'), 'worktree');
     expect(execFileSync('git', ['-C', worktree, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()).toBe(project.commit);
     expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('pstack-run/run1/w4');
+  });
+
+  test('a worktree is added only after the project-wide worktree lock is free, and a lock left by a dead host is taken over', async () => {
+    const lock = join(project.dir, '.pi', 'pstack', 'worktree-add.lock');
+    mkdirSync(lock);
+    const spawned = spawn('l1', '@@say UP', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    await sleep(1_500);
+    expect(existsSync(join(workerDir(project, 'run1', 'l1'), 'worktree'))).toBe(false);
+    rmSync(lock, { recursive: true });
+    await spawned;
+    expect(existsSync(join(workerDir(project, 'run1', 'l1'), 'worktree'))).toBe(true);
+
+    const abandoned = new Date(Date.now() - 10 * 60_000);
+    mkdirSync(lock);
+    utimesSync(lock, abandoned, abandoned);
+    await spawn('l2', '@@say UP', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    expect(existsSync(join(workerDir(project, 'run1', 'l2'), 'worktree'))).toBe(true);
   });
 
   test.for([

@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, symlinkSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, rmSync as rmSync2, statSync, symlinkSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute3, join as join3, resolve as resolve3 } from "node:path";
 import { createInterface } from "node:readline";
@@ -545,7 +545,7 @@ function claim(loaded, instance) {
   writeFileSync2(join3(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify(identity)}
 `, { mode: 384, flag: "wx" });
 }
-function prepareWorktree(loaded, inputCommit) {
+async function prepareWorktree(loaded, inputCommit) {
   const { runId, workerId } = loaded.assignment;
   const project = resolve3(loaded.runRoot, "..", "..", "..", "..");
   if (runRootOf(project, runId) !== loaded.runRoot)
@@ -561,10 +561,30 @@ function prepareWorktree(loaded, inputCommit) {
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
+  const release = await takeWorktreeLock(project);
   try {
     git("worktree", "add", "--quiet", "-b", branch, path, commit);
   } catch (error) {
     throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${error.stderr?.trim() || message(error)}`);
+  } finally {
+    release();
+  }
+}
+var WORKTREE_LOCK_STALE_MS = 150000;
+async function takeWorktreeLock(project) {
+  const lock = join3(project, ".pi", "pstack", "worktree-add.lock");
+  for (;; ) {
+    try {
+      mkdirSync2(lock);
+      return () => rmSync2(lock, { recursive: true, force: true });
+    } catch (error) {
+      if (error.code !== "EEXIST")
+        throw error;
+      const held = statSync(lock, { throwIfNoEntry: false });
+      if (held !== undefined && Date.now() - held.mtimeMs > WORKTREE_LOCK_STALE_MS)
+        rmSync2(lock, { recursive: true, force: true });
+      await new Promise((done) => setTimeout(done, 25));
+    }
   }
 }
 function prepareSocket(path) {
@@ -665,7 +685,7 @@ async function runHost(assignmentFile, launchText) {
   if (assignment.kind === "pi" && assignment.workspace.mode !== "readonly") {
     try {
       if (assignment.workspace.mode === "worktree")
-        prepareWorktree(loaded, assignment.workspace.inputCommit);
+        await prepareWorktree(loaded, assignment.workspace.inputCommit);
       else
         prepareOutput(workerDir);
     } catch (error) {
