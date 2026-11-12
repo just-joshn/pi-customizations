@@ -439,14 +439,6 @@ async function automationStatus(exec: Exec, socket: string, ctx: ExtensionContex
 
 // ---- status and doctor
 
-function upstreamRevision(): string {
-  try {
-    return (JSON.parse(readFileSync(join(PACKAGE_ROOT, 'generated', 'upstream-lock.json'), 'utf8')) as { revision: string }).revision;
-  } catch {
-    return 'unknown';
-  }
-}
-
 function statusText(pi: ExtensionAPI, ctx: ExtensionContext): string {
   const on = styleOn(ctx.sessionManager.getBranch());
   const project = projectRoot(ctx.cwd);

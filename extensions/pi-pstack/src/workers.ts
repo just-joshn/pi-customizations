@@ -1,8 +1,8 @@
 // pstack_worker (spec 8.4, 9): spawn, inspect, steer, abort, and collect tmux-hosted Pi workers, plus the settle
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
-import { execFile } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
+import { basename, delimiter, dirname, isAbsolute, join, relative } from 'node:path';
 import { promisify } from 'node:util';
 
 import { StringEnum } from '@earendil-works/pi-ai';
@@ -13,7 +13,7 @@ import { Type } from 'typebox';
 import { agentDirOf, type ContainerAuth, MIN_OAUTH_LIFETIME_MS, prepareContainerAuth } from './container-auth.ts';
 import { ENGINE_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
 import { ingestContainerReceipts, registerEvidenceTool } from './evidence.ts';
-import { PACKAGE_ROOT } from './paths.ts';
+import { PACKAGE_ROOT, upstreamRevision } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
@@ -22,8 +22,10 @@ import {
   appendEvent,
   type ClaimIdentity,
   formatTmuxIdentity,
+  ensureRun,
   ensureRunStateIgnored,
   type HostState,
+  isInside,
   isTerminal,
   type LoadedAssignment,
   launchEnvPath,
@@ -597,7 +599,11 @@ const WorkerParams = Type.Object({
   action: StringEnum(['spawn', 'inspect', 'steer', 'abort', 'collect'] as const, {
     description: 'spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled.',
   }),
-  runId: Type.String({ description: 'The run id (the folder under .pi/pstack/runs).' }),
+  runId: Type.String({
+    description:
+      'The run id, the folder under .pi/pstack/runs. You choose it: a short lowercase id such as how-retries. The first spawn into an id with no run creates the run for this session; later spawns, inspect, steer, abort, and collect reuse the id. A run another session owns is refused.',
+  }),
+  playbook: Type.Optional(Type.String({ description: 'spawn: the skill that started the run, recorded in run.json when this spawn creates the run (for example how, why, arena, swarm).' })),
   workerId: Type.Optional(Type.String({ description: 'inspect, steer, abort, collect: the worker id.' })),
   assignmentPath: Type.Optional(Type.String({ description: 'spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json.' })),
   message: Type.Optional(Type.String({ description: 'steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle.' })),
@@ -724,8 +730,38 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return loadAssignment(join(workerDirOf(runRoot, workerId), 'assignment.json'));
   };
 
-  const spawnWorker = async (ctx: ExtensionContext, rawRunId: string, assignmentPath: string | undefined): Promise<SpawnResult> => {
+  /** The first line of the brief, the run's title; the run id when the brief has no usable line. */
+  const titleOf = (assignmentPath: string, runId: RunId): string => {
+    try {
+      const line = readFileSync(join(dirname(assignmentPath), 'brief.md'), 'utf8').split('\n').find((candidate) => candidate.trim() !== '');
+      return line === undefined ? runId : line.trim().slice(0, 120);
+    } catch {
+      return runId;
+    }
+  };
+  const commitOf = (project: string): string | null => {
+    try {
+      return execFileSync('git', ['-C', project, 'rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    } catch {
+      return null;
+    }
+  };
+
+  /** A skill outside poteto-mode names a free run id and spawns; the run it names is made here, owned by the caller. */
+  const createRunFor = (ctx: ExtensionContext, rawRunId: string, assignmentPath: string, playbook: string | undefined): void => {
+    const runId = parseRunId(rawRunId);
+    const project = projectRoot(ctx.cwd);
+    const runRoot = runRootOf(project, runId);
+    if (existsSync(join(runRoot, 'run.json'))) return;
+    const sessionFile = ctx.sessionManager.getSessionFile();
+    if (sessionFile === undefined) throw new Error(`Run ${runId} has no run.json and this session has no session file to own one`);
+    if (!existsSync(assignmentPath) || !isInside(runRoot, assignmentPath)) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
+    ensureRun(project, { runId, title: titleOf(assignmentPath, runId), playbook: playbook ?? null, upstreamRevision: upstreamRevision(), parentSessionFile: sessionFile, inputCommit: commitOf(project) });
+  };
+
+  const spawnWorker = async (ctx: ExtensionContext, rawRunId: string, assignmentPath: string | undefined, playbook: string | undefined): Promise<SpawnResult> => {
     if (assignmentPath === undefined) throw new Error('assignmentPath is required');
+    createRunFor(ctx, rawRunId, assignmentPath, playbook);
     const { runId, project, run } = runOf(ctx, rawRunId);
     requireOwner(ctx, run, runId);
     const registry = (ctx as { modelRegistry?: { getApiKeyForProvider(provider: string): Promise<unknown> } }).modelRegistry;
@@ -822,13 +858,13 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     name: 'pstack_worker',
     label: 'pstack worker',
     description:
-      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
+      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. You choose the runId (a short lowercase id); write the assignment and brief under it, then spawn: the first spawn into an id creates the run for this session, with no other setup. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
     promptSnippet: 'Spawn, inspect, steer, abort, or collect tmux-hosted pstack worker processes',
     promptGuidelines: ['Use pstack_worker collect only after a pstack-worker wake message or an inspect that shows the worker settled; before that it returns live state, not a result.'],
     parameters: WorkerParams,
     async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
       if (params.action === 'spawn') {
-        const result = await spawnWorker(ctx, params.runId, params.assignmentPath);
+        const result = await spawnWorker(ctx, params.runId, params.assignmentPath, params.playbook);
         return text(
           `Spawned worker ${result.workerId} (${result.model === null ? 'watch' : `${result.model.provider}/${result.model.id}`}).\nAttach: ${result.attach}\nSession file: ${result.sessionFile ?? '(none)'}\nYou will get a pstack-worker message when it settles.`,
           result,
