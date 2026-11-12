@@ -92,3 +92,9 @@ test('the repro instructions describe the operations follow-up window the parent
   expect(repro).toContain('The parent allows one rerun per case.');
   expect(repro).not.toContain('read and not acted on');
 });
+
+test('the setup instructions name the validation setup runs and the flag for the read-only connector checks', () => {
+  const setup = text('skills/setup-benny/SKILL.md');
+  expect(setup).toContain('runs the seven thread-safety checks of section 8');
+  expect(setup).toContain('--check-connectors');
+});

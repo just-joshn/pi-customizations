@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // Installs the Benny pack into a project without touching local edits, reports connector state and the same-uid
-// credential limit, and proves the dispatcher on a harmless event with a fake spawn.
+// credential limit, proves the dispatcher on a harmless event with a fake spawn, and runs the thread-safety checks of
+// vendor setup-benny SKILL.md section 8 against the project's own configuration with every external edge in memory.
+// With --check-connectors it also checks section 4 with read-only calls to Slack and `gh`, and posts nothing.
 //
 //   node scripts/benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]
+//       [--check-connectors] [--slack-credentials <file>] [--slack-api-url <url>]
 import { randomBytes } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,6 +18,8 @@ import { loadBennyConfig } from '../src/automation/configuration.ts';
 import { controlSkillProblem, featureMapProblem } from '../src/automation/control-adapter.ts';
 import { createAutomation } from '../adapters/automation-events.ts';
 import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
+import { checkConnectors, threadSafetyCheck } from '../src/automation/setup-check.ts';
+import { nodeGh } from '../src/automation/tracker-github.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pack = join(packageRoot, 'generated', 'automations', 'benny');
@@ -92,9 +97,9 @@ function readiness(root) {
   return result;
 }
 
-const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string', default: 'benny-triage' }, credentials: { type: 'string' } } });
+const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string', default: 'benny-triage' }, credentials: { type: 'string' }, 'check-connectors': { type: 'boolean' }, 'slack-credentials': { type: 'string' }, 'slack-api-url': { type: 'string' } } });
 if (values.project === undefined) {
-  console.error('usage: benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]');
+  console.error('usage: benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>] [--check-connectors] [--slack-credentials <file>] [--slack-api-url <url>]');
   process.exit(2);
 }
 const project = resolve(values.project);
@@ -120,5 +125,24 @@ report.sameUidLimit = SAME_UID_LIMIT;
 report.testEvent = await harmlessTestEvent();
 report.readiness = readiness(project);
 
+// The checks need a filled configuration. One that still has the template's placeholders, or that does not load, is reported and does not fail setup.
+let config;
+try {
+  config = loadBennyConfig(project, 'triage');
+} catch (error) {
+  report.threadSafety = { skipped: `the configuration does not load yet: ${error.message}` };
+}
+const filled = config !== undefined && /^[A-Z0-9]{2,32}$/.test(config.sourceChannelId);
+if (config !== undefined) report.threadSafety = filled ? await threadSafetyCheck(config) : { skipped: 'the configuration still has placeholder values' };
+if (values['check-connectors']) {
+  if (!filled) report.connectors = { skipped: 'the configuration is not filled in yet' };
+  else {
+    const slackFile = values['slack-credentials'] ?? defaultCredentialFile('slack');
+    const slack = readCredential(slackFile, 'token');
+    report.connectors = await checkConnectors(config, { fetch, slack: slack.ok ? { ok: true, token: slack.value } : { ok: false, reason: slack.reason }, ...(values['slack-api-url'] === undefined ? {} : { baseUrl: values['slack-api-url'] }), exec: nodeGh });
+  }
+}
+
 console.log(JSON.stringify(report, null, 2));
-process.exit(report.testEvent.ok ? 0 : 1);
+const failed = report.threadSafety?.ok === false || (Array.isArray(report.connectors) && report.connectors.some((check) => !check.ok));
+process.exit(report.testEvent.ok && !failed ? 0 : 1);

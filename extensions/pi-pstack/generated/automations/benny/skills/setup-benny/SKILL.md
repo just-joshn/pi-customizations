@@ -20,7 +20,7 @@ Do this before asking for Benny configuration and before starting any automation
 
 Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.pi/automations/benny/`.
 
-`node scripts/benny-setup.mjs --project <target-repository>`, run from the pi-pstack package root, does this whole step. It copies the pack and the three user-owned configuration files (`.pi/benny/configuration.yaml`, `.pi/benny/feature-map.md`, `.pi/benny/routing.md`) only where they are absent, merges the settings entry below, creates the webhook secret, and proves the dispatcher on a harmless event. Read its JSON report. A path listed under `conflicts` differs from the pack and was left alone. By hand, the same merge is:
+`node scripts/benny-setup.mjs --project <target-repository>`, run from the pi-pstack package root, does this whole step. It copies the pack and the three user-owned configuration files (`.pi/benny/configuration.yaml`, `.pi/benny/feature-map.md`, `.pi/benny/routing.md`) only where they are absent, merges the settings entry below, creates the webhook secret, proves the dispatcher on a harmless event, and, once `.pi/benny/configuration.yaml` is filled in, runs the seven thread-safety checks of section 8 on that configuration with every external edge in memory, so it posts nothing. Read its JSON report. A path listed under `conflicts` differs from the pack and was left alone. By hand, the same merge is:
 
 1. Create the destination when it is absent.
 2. Copy every source file to the same relative path.
@@ -116,6 +116,8 @@ Use pstack's `unslop` skill on the final automation names, descriptions, and pro
 ## 4. Check integration capabilities
 
 The pi-pstack process that runs an automation is the only one that talks to Slack and the tracker. It performs every read of the source thread, every post, and every tracker write. Workers return findings and an optional tracker request, and have no tool for any of those writes.
+
+`node scripts/benny-setup.mjs --project <target-repository> --check-connectors` checks the items below with read-only calls to Slack and `gh`, posts nothing, and exits nonzero when one fails. Its report names each check.
 
 Check, in this order:
 
