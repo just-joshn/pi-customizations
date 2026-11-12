@@ -11,6 +11,9 @@ jobs:
   linux:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: extensions/pi-pstack
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,5 +56,5 @@ jobs:
         if: ${{ !cancelled() }}
         with:
           name: linux-results
-          path: out/
+          path: extensions/pi-pstack/out/
           retention-days: 14

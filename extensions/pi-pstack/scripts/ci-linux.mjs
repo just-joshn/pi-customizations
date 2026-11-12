@@ -5,7 +5,7 @@
 // It pushes a snapshot of the git-tracked package files (never the working tree, never anything outside this package) to a
 // ci/<commit>-<time> branch of the sandbox repo, authenticated by `gh auth git-credential` for that one command.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,9 +15,11 @@ const { values } = parseArgs({ options: { repo: { type: 'string' }, out: { type:
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 const repo = values.repo ?? 'just-joshn/pstack-parity-sandbox';
 const out = resolve(root, values.out ?? 'generated/ci-results');
+const PACKAGE_DIR = 'extensions/pi-pstack';
 const EXCLUDE = /^(generated\/ci-results\/|node_modules\/)/;
 
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...options }).trim();
+const repoRoot = run('git', ['-C', root, 'rev-parse', '--show-toplevel']);
 const gh = (...args) => run('gh', args);
 
 if (run('git', ['-C', root, 'status', '--porcelain', '--', '.'])) {
@@ -30,13 +32,14 @@ const branch = `ci/${commit.slice(0, 12)}-${Math.floor(Date.now() / 1000)}`;
 const snapshot = mkdtempSync(join(tmpdir(), 'pstack-ci-'));
 try {
   const files = run('git', ['-C', root, 'ls-files', '-z'], { maxBuffer: 1 << 28 }).split('\0').filter((f) => f && !EXCLUDE.test(f));
-  for (const f of files) {
-    mkdirSync(dirname(join(snapshot, f)), { recursive: true });
-    cpSync(join(root, f), join(snapshot, f));
-  }
-  mkdirSync(join(snapshot, '.github/workflows'), { recursive: true });
-  copyFileSync(join(root, 'scripts/ci-linux/workflow.yml'), join(snapshot, '.github/workflows/linux-tests.yml'));
-  writeFileSync(join(snapshot, 'ci-snapshot.json'), `${JSON.stringify({ commit, files: files.length })}\n`);
+  const place = (from, to) => {
+    mkdirSync(dirname(join(snapshot, to)), { recursive: true });
+    cpSync(from, join(snapshot, to));
+  };
+  for (const f of files) place(join(root, f), `${PACKAGE_DIR}/${f}`);
+  place(join(repoRoot, 'tsconfig.json'), 'tsconfig.json');
+  place(join(root, 'scripts/ci-linux/workflow.yml'), '.github/workflows/linux-tests.yml');
+  writeFileSync(join(snapshot, PACKAGE_DIR, 'ci-snapshot.json'), `${JSON.stringify({ commit, files: files.length })}\n`);
   const git = (...args) => run('git', ['-C', snapshot, ...args]);
   git('init', '-q', '-b', branch);
   git('add', '-A');
@@ -73,6 +76,10 @@ for (const name of ['linux-security', 'linux-full']) {
   const path = join(out, `${name}.json`);
   if (!existsSync(path)) continue;
   const r = JSON.parse(readFileSync(path, 'utf8'));
+  if (!r.numTotalTests) {
+    console.error(`ci-linux: ${name}.json holds no tests; the run did not execute them`);
+    process.exit(1);
+  }
   console.log(`${name}: ${r.numPassedTests} passed, ${r.numFailedTests} failed, ${r.numPendingTests} skipped of ${r.numTotalTests}`);
 }
 process.exit(view.conclusion === 'success' ? 0 : 2);
