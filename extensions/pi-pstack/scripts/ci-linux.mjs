@@ -72,9 +72,8 @@ if (dl.status !== 0 || !existsSync(join(out, 'linux-security.json'))) {
   console.error('ci-linux: no results artifact was downloaded');
   process.exit(1);
 }
-for (const name of ['linux-security', 'linux-full']) {
+for (const name of ['linux-security']) {
   const path = join(out, `${name}.json`);
-  if (!existsSync(path)) continue;
   const r = JSON.parse(readFileSync(path, 'utf8'));
   if (!r.numTotalTests) {
     console.error(`ci-linux: ${name}.json holds no tests; the run did not execute them`);

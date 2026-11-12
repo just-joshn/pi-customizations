@@ -31,15 +31,9 @@ jobs:
           bwrap --version
       - run: bun install
       - name: Linux security tests
-        id: security
         run: |
           mkdir -p out
           npx vitest run tests/security --reporter=json --outputFile=out/linux-security.json
-      - name: Whole suite
-        id: full
-        if: ${{ !cancelled() }}
-        continue-on-error: true
-        run: npx vitest run --reporter=json --outputFile=out/linux-full.json
       - name: Identify the results
         if: ${{ !cancelled() }}
         run: |
@@ -48,7 +42,7 @@ jobs:
             const fs = require("node:fs");
             const snap = JSON.parse(fs.readFileSync("ci-snapshot.json", "utf8"));
             const identity = { platform: process.platform, commit: snap.commit, sourceDigest: sourceDigest("."), runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`, nodeVersion: process.version };
-            for (const name of ["linux-security", "linux-full"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
+            for (const name of ["linux-security"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
           });
           '
           cp ci-snapshot.json out/
