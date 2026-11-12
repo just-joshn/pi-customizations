@@ -8,7 +8,9 @@ export type LogEntry =
   | { ts: string; kind: 'received'; key: EventKey; event: AutomationEvent }
   | { ts: string; kind: 'blocked'; key: EventKey; missing: Prerequisite[]; problems?: string[] }
   | { ts: string; kind: 'dispatched'; key: EventKey; runId: RunId }
-  | { ts: string; kind: 'rejected'; reason: string }
+  | { ts: string; kind: 'awaiting-verdict'; key: EventKey }
+  /** A case closed for good. `key` is absent when the event never became a case. */
+  | { ts: string; kind: 'rejected'; reason: string; key?: EventKey }
   | { ts: string; kind: 'reply-refused'; key: EventKey; reason: string }
   | { ts: string; kind: 'completed'; key: EventKey; runId: RunId }
   | { ts: string; kind: 'posted'; actionId: ActionId; destinationTs: string; reconciled: boolean }
@@ -16,6 +18,10 @@ export type LogEntry =
   | { ts: string; kind: 'follow-up-completed'; key: EventKey; runId: RunId; round: number }
   | { ts: string; kind: 'follow-up-closed'; key: EventKey; reason: string }
   | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string }
+  | { ts: string; kind: 'repro-window'; key: EventKey; runId: RunId; seenTs: string }
+  | { ts: string; kind: 'repro-turn'; key: EventKey; runId: RunId; turn: number; purpose: 'review' | 'fix' | 'rerun'; generation: number; prompt: string; seenTs?: string }
+  | { ts: string; kind: 'repro-turn-completed'; key: EventKey; runId: RunId; turn: number; failure?: string; decision?: string; corrected?: boolean }
+  | { ts: string; kind: 'repro-closed'; key: EventKey; runId: RunId; reason: string }
   | { ts: string; kind: 'deadline'; runId: RunId; minutes: number; abort: string }
   | { ts: string; kind: 'compensated'; key: EventKey; issue: string; verified: boolean; reason?: string }
   | { ts: string; kind: 'outbox-failed'; actionId: ActionId; attempts: number; error: string; final: boolean }

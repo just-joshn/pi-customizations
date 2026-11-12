@@ -55,7 +55,7 @@ If any check fails, post nothing. Never retry at the root or in a fallback chann
 
 ## 2. Wait for the triage contract
 
-Watch the source thread for the configured verdict budget. Stay silent while waiting.
+The parent watched the source thread for `budgets.verdict_wait_minutes` before it started you, and stayed silent while it waited.
 
 Accept a verdict only when:
 
@@ -73,7 +73,7 @@ Public marker forms:
 [benny:other]
 ```
 
-Proceed only for `bug` or `performance`. Capture the optional tracker URL. Stop silently for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout.
+The parent applied these checks before it started you. It starts nothing for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout. Your brief carries the optional tracker URL from the verdict.
 
 This marker replaces private bot identities and free-form verdict matching.
 

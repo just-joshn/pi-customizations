@@ -33,7 +33,7 @@ const collect = () => collectRun(root as string, RUN, async () => Promise.reject
 test('a container worker\'s final message is read from its own output directory', async () => {
   const { out } = containerWorker();
   writeFileSync(join(out, 'session', 'fake.jsonl'), message('Verdict.\n[benny:other]'));
-  expect(await collect()).toEqual({ settled: true, failure: null, finalText: 'Verdict.\n[benny:other]' });
+  expect(await collect()).toMatchObject({ settled: true, failure: null, finalText: 'Verdict.\n[benny:other]' });
 });
 
 test('a session file the container worker swapped for a symlink is not followed, so its target is never read as the result', async () => {
@@ -41,7 +41,7 @@ test('a session file the container worker swapped for a symlink is not followed,
   const secret = join(root as string, 'secret.jsonl');
   writeFileSync(secret, message('A message from outside the worker output.\n[benny:bug]'));
   symlinkSync(secret, join(out, 'session', 'fake.jsonl'));
-  expect(await collect()).toEqual({ settled: true, failure: 'the worker produced no final message', finalText: null });
+  expect(await collect()).toMatchObject({ settled: true, failure: 'the worker produced no final message', finalText: null });
 });
 
 test('a torn last line in a session file does not hide the message before it', async () => {

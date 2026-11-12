@@ -24,7 +24,7 @@ export interface AutomationConfig extends DispatchConfig {
   /** The marker line attribute that carries the tracker url (`verdict_markers.tracker_attribute`). */
   trackerAttribute?: string;
   /** The kind's own minutes: triage_total_minutes or repro_minutes, and triage_follow_up_minutes or operations_follow_up_minutes. */
-  budgets?: { totalMinutes: number; followUpMinutes: number };
+  budgets?: { totalMinutes: number; followUpMinutes: number; /** Repro only: how long to wait for a trusted triage verdict, the window a person may reject the repro in, and the fix phase's own budget. */ verdictWaitMinutes?: number; rejectionWindowMinutes?: number; fixMinutes?: number };
 }
 
 export interface AutomationDeps {
@@ -50,6 +50,8 @@ export interface AutomationDeps {
 export type HandleOutcome =
   | { status: 'rejected'; reason: string }
   | { status: 'blocked'; key: EventKey; missing: Prerequisite[]; problems?: string[] }
+  /** Repro only: no triage verdict is in the thread yet, and verdict_wait_minutes has not passed. Nothing was posted or started. */
+  | { status: 'waiting'; key: EventKey }
   | { status: 'dispatched'; key: EventKey; runId: RunId }
   | { status: 'duplicate'; key: EventKey; runId: RunId };
 
@@ -71,6 +73,8 @@ export interface Automation {
   flush(): Promise<void>;
   /** Moves each open follow-up window one step: closes an ended one, collects a settled round, starts a round for new human messages. */
   advanceFollowUps(): Promise<void>;
+  /** Repro only: looks again at each case still waiting for its triage verdict. Dispatches it, closes it, or lets it wait. */
+  retryWaiting(): Promise<void>;
   /** Brings the operations status message in line with what each pending repro run last reported, then retries every pending outbox action. */
   syncOperations(): Promise<void>;
   /** When the run was dispatched, from the event log. */
@@ -81,13 +85,14 @@ export interface Automation {
   pendingRuns(): RunId[];
 }
 
-type CaseState = { phase: 'unknown' } | { phase: 'received'; entry: Extract<LogEntry, { kind: 'received' }> } | { phase: 'dispatched'; entry: Extract<LogEntry, { kind: 'received' }>; runId: RunId };
+type CaseState = { phase: 'unknown' } | { phase: 'received'; entry: Extract<LogEntry, { kind: 'received' }> } | { phase: 'closed'; reason: string } | { phase: 'dispatched'; entry: Extract<LogEntry, { kind: 'received' }>; runId: RunId };
 
 function caseState(log: LogEntry[], key: EventKey): CaseState {
   let state: CaseState = { phase: 'unknown' };
   for (const entry of log) {
     if (entry.kind === 'received' && entry.key === key && state.phase === 'unknown') state = { phase: 'received', entry };
     if (entry.kind === 'dispatched' && entry.key === key && state.phase === 'received') state = { phase: 'dispatched', entry: state.entry, runId: entry.runId };
+    if (entry.kind === 'rejected' && entry.key === key && state.phase === 'received') state = { phase: 'closed', reason: entry.reason };
   }
   return state;
 }
@@ -98,6 +103,23 @@ function markerProblem(result: string, markers: readonly string[]): string | und
   if (count !== 1) return `expected exactly one marker, found ${count}`;
   const last = result.trimEnd().split('\n').at(-1)?.trim() ?? '';
   return markers.some((marker) => last.startsWith(marker)) ? undefined : 'marker is not on the last line';
+}
+
+type TriageVerdict = { kind: 'none' } | { kind: 'refused'; reason: string } | { kind: 'trusted'; trackerUrl?: string };
+
+/**
+ * What the repro automation may act on: exactly one message in the thread carries a marker, it comes from the configured
+ * triage identity, its last line is that one marker, and the marker is bug or performance. No marker at all is not a
+ * refusal, because the verdict may not have been posted yet.
+ */
+function triageVerdict(thread: readonly { user?: string; text?: string }[], triageIdentityUserId: string | undefined, attribute: string): TriageVerdict {
+  const marked = thread.filter((message) => /\[benny:(bug|performance|other)\]/.test(message.text ?? ''));
+  if (marked.length === 0) return { kind: 'none' };
+  const verdict = marked[0];
+  const text = verdict?.text ?? '';
+  if (!triageIdentityUserId || marked.length !== 1 || verdict?.user !== triageIdentityUserId || markerProblem(text, AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(text)) return { kind: 'refused', reason: 'missing, untrusted or ambiguous triage marker' };
+  const trackerUrl = trackerUrlOf(text, attribute);
+  return { kind: 'trusted', ...(trackerUrl === undefined ? {} : { trackerUrl }) };
 }
 
 const gitHead = (cwd: string) => () => execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' }).trim();
@@ -120,23 +142,37 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const advance = async (key: EventKey): Promise<HandleOutcome> => {
     const state = caseState(readLog(store), key);
     if (state.phase === 'dispatched') return { status: 'duplicate', key, runId: state.runId };
+    if (state.phase === 'closed') return { status: 'rejected', reason: state.reason };
     if (state.phase === 'unknown') throw new Error(`no received event for ${key}`);
+    const { event } = state.entry;
+    const readThread = () => deps.destination.readThread(event.channel, event.rootTs).catch(() => []);
+    // Repro waits for the triage verdict before anything else: it costs one Slack read, and a case with no verdict yet has no use for the probes.
+    let thread: Awaited<ReturnType<typeof readThread>> | undefined;
+    let trackerUrl: string | undefined;
+    if (config.kind === 'reproduce') {
+      thread = await readThread();
+      const verdict = triageVerdict(thread, config.triageIdentityUserId, trackerAttribute);
+      if (verdict.kind === 'none') {
+        const waitMinutes = config.budgets?.verdictWaitMinutes ?? 0;
+        if (now().getTime() - Date.parse(state.entry.ts) < waitMinutes * 60_000) {
+          if (!readLog(store).some((entry) => entry.kind === 'awaiting-verdict' && entry.key === key)) appendLog(store, { ts: stamp(), kind: 'awaiting-verdict', key });
+          return { status: 'waiting', key };
+        }
+        return reject(`no trusted triage verdict within ${waitMinutes} minutes`, key);
+      }
+      if (verdict.kind === 'refused') return reject(verdict.reason, key);
+      trackerUrl = verdict.trackerUrl;
+    }
     const { missing, problems } = await missingPrerequisites(config.kind, deps.prerequisites);
     if (missing.length > 0) {
       appendLog(store, { ts: stamp(), kind: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) });
       return { status: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) };
     }
-    const thread = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
-    if (config.kind === 'reproduce') {
-      const marked = thread.filter(message => /\[benny:(bug|performance|other)\]/.test(message.text ?? ''));
-      const verdict = marked[0];
-      if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? '', AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? '')) return reject('missing, untrusted or ambiguous triage marker');
-    }
+    thread ??= await readThread();
     const runId = runIdFor(config.name, key);
-    const trackerUrl = config.kind === 'reproduce' ? trackerUrlOf(thread.find((message) => message.user === config.triageIdentityUserId && /\[benny:(bug|performance)\]/.test(message.text ?? ''))?.text ?? '', trackerAttribute) : undefined;
-    const { files } = state.entry.event;
+    const { files } = event;
     const attachments = deps.downloadAttachment === undefined || files.length === 0 ? undefined : await fetchAttachments(join(workerDir(config.projectRoot, runId), 'attachments'), files, deps.downloadAttachment);
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }) });
+    await dispatchRun(config, event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }) });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };
@@ -190,8 +226,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return 'done';
   };
 
-  const reject = (reason: string): HandleOutcome => {
-    appendLog(store, { ts: stamp(), kind: 'rejected', reason });
+  const reject = (reason: string, key?: EventKey): HandleOutcome => {
+    appendLog(store, { ts: stamp(), kind: 'rejected', reason, ...(key === undefined ? {} : { key }) });
     return { status: 'rejected', reason };
   };
 
@@ -291,6 +327,12 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
         return { status: reply?.state === 'failed' ? 'failed' : queued ? 'queued' : 'already-queued', key: event.key };
       }),
+    retryWaiting: () =>
+      serial(async () => {
+        const log = readLog(store);
+        const waiting = new Set(log.flatMap((entry) => (entry.kind === 'awaiting-verdict' ? [entry.key] : [])));
+        for (const key of waiting) if (caseState(log, key).phase === 'received') await advance(key);
+      }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
     syncOperations: () =>
@@ -321,7 +363,7 @@ export interface RunningSource {
   stop(): Promise<void>;
 }
 
-const httpStatus: Record<HandleOutcome['status'], number> = { rejected: 422, blocked: 202, dispatched: 200, duplicate: 200 };
+const httpStatus: Record<HandleOutcome['status'], number> = { rejected: 422, blocked: 202, waiting: 202, dispatched: 200, duplicate: 200 };
 
 /**
  * Starts the automation's one event source after reconciling leftovers. The source lock refuses a second receiver or

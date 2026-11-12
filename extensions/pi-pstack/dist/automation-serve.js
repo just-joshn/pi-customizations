@@ -15828,17 +15828,18 @@ async function collectRun(projectRoot, runId, inspect = inspectHost) {
   const state = live ?? readHostState(loaded.workerDir);
   if (state === undefined)
     return { settled: false };
+  const { generation } = state;
   const last = state.settles.at(-1);
   if (last === undefined || last.generation !== state.generation || !(isTerminal(state.phase) || state.phase === "idle")) {
     const gone = live === undefined && (isTerminal(state.phase) || !alive2(state.hostPid));
-    return gone ? { settled: true, failure: `the worker host ended in phase ${state.phase} without finishing its work`, finalText: null } : { settled: false };
+    return gone ? { settled: true, failure: `the worker host ended in phase ${state.phase} without finishing its work`, finalText: null, generation } : { settled: false, generation };
   }
   if (last.phase === "failed" || last.phase === "aborted" || last.phase === "exited")
-    return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? "" : `: ${oneLine2(last.reason)}`}`, finalText: null };
+    return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? "" : `: ${oneLine2(last.reason)}`}`, finalText: null, generation };
   const finalText = workerFinalText(loaded, state.sessionFile);
   if (finalText === null || finalText.trim() === "")
-    return { settled: true, failure: "the worker produced no final message", finalText: null };
-  return { settled: true, failure: null, finalText };
+    return { settled: true, failure: "the worker produced no final message", finalText: null, generation };
+  return { settled: true, failure: null, finalText, generation };
 }
 var OPERATIONS = ["create", "update", "comment"];
 function intentOf(value) {
@@ -15910,7 +15911,7 @@ function startSettler(automation, options) {
   let timer;
   let running = Promise.resolve();
   const tick = async () => {
-    await automation.syncOperations().then(() => completeSettledRuns(automation, options)).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    await automation.syncOperations().then(() => automation.retryWaiting()).then(() => completeSettledRuns(automation, options)).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped)
       return;
     timer = setTimeout(() => {
@@ -16222,6 +16223,8 @@ function caseState(log, key) {
       state = { phase: "received", entry };
     if (entry.kind === "dispatched" && entry.key === key && state.phase === "received")
       state = { phase: "dispatched", entry: state.entry, runId: entry.runId };
+    if (entry.kind === "rejected" && entry.key === key && state.phase === "received")
+      state = { phase: "closed", reason: entry.reason };
   }
   return state;
 }
@@ -16232,6 +16235,17 @@ function markerProblem(result, markers) {
   const last = result.trimEnd().split(`
 `).at(-1)?.trim() ?? "";
   return markers.some((marker) => last.startsWith(marker)) ? undefined : "marker is not on the last line";
+}
+function triageVerdict(thread, triageIdentityUserId, attribute) {
+  const marked = thread.filter((message) => /\[benny:(bug|performance|other)\]/.test(message.text ?? ""));
+  if (marked.length === 0)
+    return { kind: "none" };
+  const verdict = marked[0];
+  const text = verdict?.text ?? "";
+  if (!triageIdentityUserId || marked.length !== 1 || verdict?.user !== triageIdentityUserId || markerProblem(text, AUTOMATION_KINDS.triage.replyMarkers) || !/\[benny:(bug|performance)\]/.test(text))
+    return { kind: "refused", reason: "missing, untrusted or ambiguous triage marker" };
+  const trackerUrl = trackerUrlOf(text, attribute);
+  return { kind: "trusted", ...trackerUrl === undefined ? {} : { trackerUrl } };
 }
 var gitHead = (cwd) => () => execFileSync2("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" }).trim();
 function createAutomation(config, deps) {
@@ -16255,25 +16269,40 @@ function createAutomation(config, deps) {
     const state = caseState(readLog(store), key);
     if (state.phase === "dispatched")
       return { status: "duplicate", key, runId: state.runId };
+    if (state.phase === "closed")
+      return { status: "rejected", reason: state.reason };
     if (state.phase === "unknown")
       throw new Error(`no received event for ${key}`);
+    const { event } = state.entry;
+    const readThread = () => deps.destination.readThread(event.channel, event.rootTs).catch(() => []);
+    let thread;
+    let trackerUrl;
+    if (config.kind === "reproduce") {
+      thread = await readThread();
+      const verdict = triageVerdict(thread, config.triageIdentityUserId, trackerAttribute);
+      if (verdict.kind === "none") {
+        const waitMinutes = config.budgets?.verdictWaitMinutes ?? 0;
+        if (now().getTime() - Date.parse(state.entry.ts) < waitMinutes * 60000) {
+          if (!readLog(store).some((entry) => entry.kind === "awaiting-verdict" && entry.key === key))
+            appendLog(store, { ts: stamp(), kind: "awaiting-verdict", key });
+          return { status: "waiting", key };
+        }
+        return reject(`no trusted triage verdict within ${waitMinutes} minutes`, key);
+      }
+      if (verdict.kind === "refused")
+        return reject(verdict.reason, key);
+      trackerUrl = verdict.trackerUrl;
+    }
     const { missing, problems } = await missingPrerequisites(config.kind, deps.prerequisites);
     if (missing.length > 0) {
       appendLog(store, { ts: stamp(), kind: "blocked", key, missing, ...problems.length > 0 ? { problems } : {} });
       return { status: "blocked", key, missing, ...problems.length > 0 ? { problems } : {} };
     }
-    const thread = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
-    if (config.kind === "reproduce") {
-      const marked = thread.filter((message) => /\[benny:(bug|performance|other)\]/.test(message.text ?? ""));
-      const verdict = marked[0];
-      if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? "", AUTOMATION_KINDS.triage.replyMarkers) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? ""))
-        return reject("missing, untrusted or ambiguous triage marker");
-    }
+    thread ??= await readThread();
     const runId = runIdFor(config.name, key);
-    const trackerUrl = config.kind === "reproduce" ? trackerUrlOf(thread.find((message) => message.user === config.triageIdentityUserId && /\[benny:(bug|performance)\]/.test(message.text ?? ""))?.text ?? "", trackerAttribute) : undefined;
-    const { files } = state.entry.event;
+    const { files } = event;
     const attachments = deps.downloadAttachment === undefined || files.length === 0 ? undefined : await fetchAttachments(join13(workerDir(config.projectRoot, runId), "attachments"), files, deps.downloadAttachment);
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread, ...trackerUrl === undefined ? {} : { trackerUrl }, ...attachments === undefined ? {} : { attachments } });
+    await dispatchRun(config, event, runId, { spawnWorker, inputCommit, now, thread, ...trackerUrl === undefined ? {} : { trackerUrl }, ...attachments === undefined ? {} : { attachments } });
     appendLog(store, { ts: stamp(), kind: "dispatched", key, runId });
     return { status: "dispatched", key, runId };
   };
@@ -16319,8 +16348,8 @@ function createAutomation(config, deps) {
     }
     return "done";
   };
-  const reject = (reason) => {
-    appendLog(store, { ts: stamp(), kind: "rejected", reason });
+  const reject = (reason, key) => {
+    appendLog(store, { ts: stamp(), kind: "rejected", reason, ...key === undefined ? {} : { key } });
     return { status: "rejected", reason };
   };
   const lander = deps.tracker === undefined ? undefined : ("land" in deps.tracker) ? deps.tracker : directLander(deps.tracker);
@@ -16425,6 +16454,13 @@ function createAutomation(config, deps) {
         appendLog(store, { ts: stamp(), kind: "completed", key: event.key, runId });
       return { status: reply?.state === "failed" ? "failed" : queued ? "queued" : "already-queued", key: event.key };
     }),
+    retryWaiting: () => serial(async () => {
+      const log = readLog(store);
+      const waiting = new Set(log.flatMap((entry) => entry.kind === "awaiting-verdict" ? [entry.key] : []));
+      for (const key of waiting)
+        if (caseState(log, key).phase === "received")
+          await advance(key);
+    }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
     syncOperations: () => serial(async () => {
@@ -16447,7 +16483,7 @@ function createAutomation(config, deps) {
     pendingRuns
   };
 }
-var httpStatus = { rejected: 422, blocked: 202, dispatched: 200, duplicate: 200 };
+var httpStatus = { rejected: 422, blocked: 202, waiting: 202, dispatched: 200, duplicate: 200 };
 async function startEventSource(automation, source) {
   const release = acquireSourceLock(automation.store, source.kind);
   try {
@@ -16715,7 +16751,7 @@ function loadBennyConfig(projectRoot, kind, path = join14(projectRoot, ".pi/benn
     labels: { bug: text(labels["bug"], "tracker.labels.bug"), performance: text(labels["performance"], "tracker.labels.performance"), intake: text(labels["intake"], "tracker.labels.intake"), needsRepro: text(labels["needs_repro"], "tracker.labels.needs_repro") }
   };
   const budgetOf = (name) => section("budgets")[name];
-  const budgets = kind === "triage" ? { totalMinutes: budgetOf("triage_total_minutes"), followUpMinutes: budgetOf("triage_follow_up_minutes") } : { totalMinutes: budgetOf("repro_minutes"), followUpMinutes: budgetOf("operations_follow_up_minutes") };
+  const budgets = kind === "triage" ? { totalMinutes: budgetOf("triage_total_minutes"), followUpMinutes: budgetOf("triage_follow_up_minutes") } : { totalMinutes: budgetOf("repro_minutes"), followUpMinutes: budgetOf("operations_follow_up_minutes"), verdictWaitMinutes: budgetOf("verdict_wait_minutes"), rejectionWindowMinutes: budgetOf("rejection_window_minutes"), fixMinutes: budgetOf("fix_minutes") };
   const operationsChannel = section("slack")["operations_channel_id"];
   if (operationsChannel !== undefined && typeof operationsChannel !== "string")
     throw new Error("invalid Benny slack.operations_channel_id");

@@ -130,6 +130,20 @@ export const BENNY_RULES: readonly Rule[] = [
       "8. point your slack event sender at the receiver url (`POST /events` with the webhook secret from `~/.pi/agent/pstack/credentials/<name>.json`), then send a harmless test report and verify every source-channel post stays in the original thread.",
     ])),
   rule(
+    'reproduce-and-fix-issues.2-wait-for-verdict',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    'Watch the source thread for the configured verdict budget. Stay silent while waiting.',
+    'The parent watched the source thread for `budgets.verdict_wait_minutes` before it started you, and stayed silent while it waited.',
+  ),
+  rule(
+    'reproduce-and-fix-issues.2-verdict-gate',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    'Proceed only for `bug` or `performance`. Capture the optional tracker URL. Stop silently for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout.',
+    'The parent applied these checks before it started you. It starts nothing for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout. Your brief carries the optional tracker URL from the verdict.',
+  ),
+  rule(
     'reproduce-and-fix-issues.4-root-status-message',
     'cursor-automations',
     BN('skills/reproduce-and-fix-issues/SKILL.md'),

@@ -66,7 +66,7 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
     labels: { bug: text(labels['bug'], 'tracker.labels.bug'), performance: text(labels['performance'], 'tracker.labels.performance'), intake: text(labels['intake'], 'tracker.labels.intake'), needsRepro: text(labels['needs_repro'], 'tracker.labels.needs_repro') },
   };
   const budgetOf = (name: string) => section('budgets')[name] as number;
-  const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes') };
+  const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes'), verdictWaitMinutes: budgetOf('verdict_wait_minutes'), rejectionWindowMinutes: budgetOf('rejection_window_minutes'), fixMinutes: budgetOf('fix_minutes') };
   // An empty operations_channel_id disables the operations thread. A channel is never the source channel: upstream forbids a root post there.
   const operationsChannel = section('slack')['operations_channel_id'];
   if (operationsChannel !== undefined && typeof operationsChannel !== 'string') throw new Error('invalid Benny slack.operations_channel_id');
