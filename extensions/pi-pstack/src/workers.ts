@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 
 import { StringEnum } from '@earendil-works/pi-ai';
+import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { PACKAGE_ROOT } from './paths.ts';
@@ -219,6 +220,31 @@ async function ensureWorktree(pi: ExtensionAPI, project: string, loaded: LoadedA
   await git(pi, project, exists ? ['worktree', 'add', '--quiet', path, branch] : ['worktree', 'add', '--quiet', '-b', branch, path, commit]);
 }
 
+// Credential sources pi-ai reads for these providers besides an API key variable (env-api-keys.js).
+const AMBIENT_CREDENTIALS: Record<string, string[]> = {
+  'amazon-bedrock': [
+    'AWS_PROFILE',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_SESSION_TOKEN',
+    'AWS_REGION',
+    'AWS_DEFAULT_REGION',
+    'AWS_BEARER_TOKEN_BEDROCK',
+    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
+    'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+    'AWS_WEB_IDENTITY_TOKEN_FILE',
+  ],
+  'google-vertex': ['GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_PROJECT', 'GCLOUD_PROJECT', 'GOOGLE_CLOUD_LOCATION'],
+};
+
+/**
+ * The environment variables that carry the provider's credentials, so a minimal worker environment keeps them.
+ * Credentials from /login live in auth.json under PI_CODING_AGENT_DIR (or HOME's ~/.pi/agent), which env 'minimal' keeps.
+ */
+function credentialEnv(provider: string): string[] {
+  return [...(findEnvKeys(provider) ?? []), ...(AMBIENT_CREDENTIALS[provider] ?? [])];
+}
+
 function finalAssistantText(sessionFile: string | null): string | null {
   if (sessionFile === null || !existsSync(sessionFile)) return null;
   let text: string | null = null;
@@ -353,6 +379,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const loaded = loadAssignment(assignmentPath);
     const assignment: Assignment = loaded.assignment;
     if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
+    if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
     if (existsSync(join(loaded.workerDir, 'claim'))) throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
     const session = tmuxSessionName(runId, assignment.workerId);
     let model: ResolvedModel | null = null;
@@ -374,6 +401,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       tmuxSession: session,
       extraArgs: options.extraPiArgs ?? [],
       env: options.extraEnv ?? {},
+      credentialEnv: model === null ? [] : credentialEnv(model.provider),
     };
     const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
     if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);

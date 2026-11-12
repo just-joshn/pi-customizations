@@ -3,8 +3,11 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { controlSocketPath, type WorkerId } from '../../src/run-files.ts';
-import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, TMUX, tmux, transcript, until, wakes, workerDir, writeAssignment } from './harness.ts';
+import { controlSocketPath, loadAssignment, type WorkerId } from '../../src/run-files.ts';
+import { type Entry, FIXTURE, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, TMUX, tmux, transcript, until, wakes, workerDir, writeAssignment } from './harness.ts';
+
+// The tmux server this file starts inherits it, so an inheriting worker sees it.
+process.env['U04A_PARENT_MARKER'] = 'parent-secret-marker';
 
 let project: Project;
 let parent: Parent;
@@ -227,6 +230,65 @@ describe('pstack_worker on real tmux and Pi', () => {
       client.on('close', () => resolve(data));
     });
     expect(JSON.parse(reply)).toMatchObject({ ok: false, error: 'Assignment identity mismatch' });
+  });
+});
+
+describe('capability boundary', () => {
+  const withoutNoMcp = ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-approve', '--extension', FIXTURE];
+  const envScript = (command: string) => `@@script [{"tool":"bash","args":{"command":${JSON.stringify(command)}}}]`;
+  const collectText = async (owner: Parent, workerId: string) => {
+    await until(
+      async () => ((await owner.call('pstack_worker', { action: 'inspect', runId: 'run1', workerId })).details.state?.settles ?? []).length,
+      (count) => count === 1,
+      20_000,
+      `${workerId} settle`,
+    );
+    return (await owner.call('pstack_worker', { action: 'collect', runId: 'run1', workerId })).details.finalText as string;
+  };
+  // Pi renames its process title, so the argv comes from the host's launch record in events.jsonl.
+  const argvOf = (workerId: string): string[] =>
+    readFileSync(join(project.runRoot('run1'), 'events.jsonl'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line))
+      .find((event) => event.kind === 'launch' && event.workerId === workerId).data.command;
+
+  test("mcp 'none' and env 'minimal' launch Pi with --no-mcp and without the parent's variables", async () => {
+    const owner = makeParent(project, [], { extraPiArgs: withoutNoMcp });
+    const worktree = { mode: 'worktree', inputCommit: project.commit };
+    await owner.call('pstack_worker', {
+      action: 'spawn',
+      runId: 'run1',
+      assignmentPath: writeAssignment(project, 'run1', 'c1', envScript('env'), { workspace: worktree, capabilities: { mcp: 'none', env: 'minimal', externalWrite: false } }),
+    });
+    const minimal = await collectText(owner, 'c1');
+    expect(minimal).toContain('PSTACK_WORKER=1');
+    expect(minimal).not.toContain('U04A_PARENT_MARKER');
+    expect(argvOf('c1')).toContain('--no-mcp');
+
+    await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'c2', envScript('printenv U04A_PARENT_MARKER'), { workspace: worktree }) });
+    expect(await collectText(owner, 'c2')).toContain('parent-secret-marker');
+    expect(argvOf('c2')).not.toContain('--no-mcp');
+    await owner.stop();
+  });
+
+  test('spawn refuses a worker that asks for external write authority', async () => {
+    const path = writeAssignment(project, 'run1', 'c3', '@@say X', { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/externalWrite/);
+    expect(existsSync(join(workerDir(project, 'run1', 'c3'), 'claim'))).toBe(false);
+  });
+
+  test('a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits', () => {
+    makeRun(project, 'auto1', null);
+    const automated = loadAssignment(writeAssignment(project, 'auto1', 'owner', 'x', { runId: 'auto1', role: 'owner' }));
+    expect(automated.assignment.capabilities).toEqual({ mcp: 'none', env: 'minimal', externalWrite: false });
+    const engineering = loadAssignment(writeAssignment(project, 'run1', 'c4', 'x'));
+    expect(engineering.assignment.capabilities).toEqual({ mcp: 'inherit', env: 'inherit', externalWrite: false });
+  });
+
+  test('rejects malformed capabilities', async () => {
+    const path = writeAssignment(project, 'run1', 'c5', 'x', { capabilities: { mcp: 'some', env: 'inherit', externalWrite: false } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/capabilities/);
   });
 });
 

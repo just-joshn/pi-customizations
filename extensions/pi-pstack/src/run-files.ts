@@ -107,6 +107,28 @@ export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 
 export type Workspace = { mode: 'worktree'; inputCommit: string } | { mode: 'readonly'; path: string };
 
+/** What a worker may reach beyond its workspace (contract "Capability boundary"). */
+export interface Capabilities {
+  mcp: 'inherit' | 'none';
+  env: 'inherit' | 'minimal';
+  externalWrite: boolean;
+}
+const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'inherit', externalWrite: false };
+/** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
+const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', externalWrite: false };
+
+function parseCapabilities(raw: unknown): Capabilities {
+  if (
+    !isRecord(raw) ||
+    Object.keys(raw).sort().join(',') !== 'env,externalWrite,mcp' ||
+    !['inherit', 'none'].includes(raw['mcp'] as string) ||
+    !['inherit', 'minimal'].includes(raw['env'] as string) ||
+    typeof raw['externalWrite'] !== 'boolean'
+  )
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
+  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'] };
+}
+
 interface AssignmentBase {
   schemaVersion: 1;
   runId: RunId;
@@ -116,6 +138,7 @@ interface AssignmentBase {
   thinkingLevel: ThinkingLevel | null;
   workspace: Workspace;
   skills: string[];
+  capabilities: Capabilities;
 }
 export type Assignment = (AssignmentBase & { kind: 'pi'; brief: string }) | (AssignmentBase & { kind: 'watch'; brief?: string; watch: { argv: string[]; cwd: string } });
 
@@ -124,9 +147,9 @@ const MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 const COMMIT = /^[0-9a-f]{7,64}$/;
 
 /** Parses untrusted assignment JSON into the contract shape; unknown fields are rejected. */
-export function parseAssignment(raw: unknown): Assignment {
+export function parseAssignment(raw: unknown, defaultCapabilities: Capabilities): Assignment {
   if (!isRecord(raw)) throw new Error('Assignment must be a JSON object');
-  const allowed = ['schemaVersion', 'runId', 'workerId', 'kind', 'role', 'brief', 'model', 'thinkingLevel', 'workspace', 'skills', 'watch'];
+  const allowed = ['schemaVersion', 'runId', 'workerId', 'kind', 'role', 'brief', 'model', 'thinkingLevel', 'workspace', 'skills', 'watch', 'capabilities'];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
   if (unknown.length > 0) throw new Error(`Assignment has unknown fields: ${unknown.join(', ')}`);
   if (raw['schemaVersion'] !== 1) throw new Error('Assignment schemaVersion must be 1');
@@ -151,7 +174,8 @@ export function parseAssignment(raw: unknown): Assignment {
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];
   if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[] };
+  const capabilities = raw['capabilities'] === undefined ? defaultCapabilities : parseCapabilities(raw['capabilities']);
+  const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[], capabilities };
   if (kind === 'pi') {
     if (raw['watch'] !== undefined) throw new Error("Assignment watch is only for kind 'watch'");
     if (typeof brief !== 'string') throw new Error("Assignment kind 'pi' needs a brief");
@@ -216,7 +240,8 @@ export function loadAssignment(path: string): LoadedAssignment {
   const runRoot = dirname(dirname(workerDir));
   if (basename(dirname(workerDir)) !== 'workers' || basename(dirname(runRoot)) !== 'runs') throw new Error('Assignment must be at <runRoot>/workers/<workerId>/assignment.json');
   const bytes = readFileSync(file);
-  const assignment = parseAssignment(JSON.parse(bytes.toString('utf8')));
+  const automated = readRun(runRoot).parentSessionFile === null;
+  const assignment = parseAssignment(JSON.parse(bytes.toString('utf8')), automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES);
   if (assignment.workerId !== basename(workerDir)) throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
   if (assignment.runId !== basename(runRoot)) throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
   return { assignment, file, runRoot, workerDir, digest: createHash('sha256').update(bytes).digest('hex') };

@@ -43,7 +43,12 @@ export interface HostLaunch {
   tmuxSession: string;
   extraArgs: string[];
   env: Record<string, string>;
+  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. */
+  credentialEnv: string[];
 }
+
+/** What env 'minimal' keeps besides PSTACK_* and the provider's credential variables (contract "Capability boundary"). */
+const MINIMAL_ENV = ['PATH', 'HOME', 'LANG', 'TERM', 'TMPDIR', 'PI_CODING_AGENT_DIR'] as const;
 
 export const HOST_OPERATIONS = ['inspect', 'start', 'prompt', 'steer', 'follow-up', 'cancel', 'shutdown'] as const;
 export type HostOperation = (typeof HOST_OPERATIONS)[number];
@@ -66,7 +71,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   const raw: unknown = JSON.parse(text);
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute(piCommand[0] ?? '')) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
@@ -75,6 +80,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (typeof tmuxSession !== 'string' || !/^pstack-[a-z0-9-]+$/.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
   if (!isRecord(env) || Object.values(env).some((value) => typeof value !== 'string')) throw new Error('Launch env must map names to strings');
+  if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
   return {
     piCommand,
     model: model as HostLaunch['model'],
@@ -84,7 +90,16 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     tmuxSession,
     extraArgs,
     env: env as Record<string, string>,
+    credentialEnv,
   };
+}
+
+/** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, inherited: NodeJS.ProcessEnv): Record<string, string> {
+  const all = { ...inherited, ...launch.env };
+  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
+  return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
 }
 
 export function validateControl(value: unknown, loaded: LoadedAssignment, instance: string): ControlRequest {
@@ -120,6 +135,7 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
     ...(launch.thinkingLevel === null ? [] : ['--thinking', launch.thinkingLevel]),
     ...(launch.appendSystemPrompt === null ? [] : ['--append-system-prompt', launch.appendSystemPrompt]),
     ...(launch.tools === null ? [] : ['--tools', launch.tools.join(',')]),
+    ...(loaded.assignment.capabilities.mcp === 'none' ? ['--no-mcp'] : []),
     ...launch.extraArgs,
   ];
 }
@@ -206,7 +222,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     display('host settled', { phase: settlePhase, reason: why });
   };
 
-  const env = { ...process.env, ...launch.env, PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
