@@ -1,6 +1,6 @@
 // /pstack automation runs each event source as a kind 'watch' worker: a real receiver process in tmux.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -94,6 +94,14 @@ test('Benny starts through loadBennyConfig and startEventSource, fails closed wi
   expect(response.status).toBe(202);
   expect(await response.json()).toMatchObject({ status: 'blocked', missing: ['tracker'] });
   expect((await fake.pstack('automation stop benny-triage')).text).toBe('Stopped automation benny-triage: source-2: stopped.');
+});
+
+test('an install with no Benny configuration starts nothing: the command is an error and no worker, run or source exists', async () => {
+  const started = await fake.pstack('automation start benny-triage');
+  expect(started.level).toBe('error');
+  expect(started.text).toContain('No automation named benny-triage');
+  expect(existsSync(join(project, '.pi', 'pstack'))).toBe(false);
+  expect((await fake.pstack('automation status benny-triage')).text).toContain('No automation named benny-triage');
 });
 
 test('an unknown automation name is an error naming where it looked', async () => {
