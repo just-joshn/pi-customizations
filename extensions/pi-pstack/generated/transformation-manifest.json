@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 238,
-    "spans": 303
+    "rules": 240,
+    "spans": 305
   },
   "skills": [
     "architect",
@@ -1969,6 +1969,24 @@
       }
     },
     {
+      "id": "reproduce-and-fix-issues.14-open-draft",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.14-creation-fails",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
       "id": "reproduce-and-fix-issues.15-follow-ups",
       "primitives": [
         "cursor-automations"
@@ -2669,6 +2687,36 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.14-open-draft",
+      "offset": [
+        12985,
+        13055
+      ],
+      "lines": [
+        291,
+        291
+      ],
+      "original": "- Open a draft pull request. Never merge or deploy from this workflow.",
+      "replacement": "- Commit your fix on your run branch in your worktree and describe the pull request in the `pullRequest` field of your result, with a title and a body. Do not push and do not open a pull request, as a draft or otherwise: the parent pushes your branch and opens the draft pull request itself, and it never opens one that is ready for review. The parent opens none until your proof record shows the patched build measured twice (`\"fix\": { \"patched\": [...] }`). Never merge or deploy from this workflow.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.14-creation-fails",
+      "offset": [
+        13429,
+        13579
+      ],
+      "lines": [
+        297,
+        297
+      ],
+      "original": "If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.",
+      "replacement": "If you cannot produce the commits and the pull request text, do not claim success: report the status `Fix did not land`. If the parent cannot open the pull request, it records `Fix did not land` itself and the commit and branch state stay in your worktree.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
       "rule": "reproduce-and-fix-issues.14-pull-request-reply",
       "offset": [
         13581,
@@ -2679,7 +2727,7 @@
         299
       ],
       "original": "On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.",
-      "replacement": "On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.",
+      "replacement": "The parent records `Draft pull request opened` and posts the linked pull request as one concise reply in the operations thread once the pull request exists as a draft. Do not ask for a second source-channel root or unprompted source reply.",
       "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
     },
     {

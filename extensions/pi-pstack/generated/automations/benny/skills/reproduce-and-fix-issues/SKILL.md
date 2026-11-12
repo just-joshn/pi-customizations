@@ -293,15 +293,15 @@ Only after before-and-after proof:
 - Review the final diff for unrelated changes and secrets.
 - Run the repository's required checks.
 - Create small ordered commits when the repository workflow allows it.
-- Open a draft pull request. Never merge or deploy from this workflow.
+- Commit your fix on your run branch in your worktree and describe the pull request in the `pullRequest` field of your result, with a title and a body. Do not push and do not open a pull request, as a draft or otherwise: the parent pushes your branch and opens the draft pull request itself, and it never opens one that is ready for review. The parent opens none until your proof record shows the patched build measured twice (`"fix": { "patched": [...] }`). Never merge or deploy from this workflow.
 - Link the configured tracker issue using the tracker's supported pull request syntax.
 - Use the configured public URL form, normally `https://github.com/{owner}/{repo}/pull/{number}`.
 - Include the repro steps, root cause, test result, before and after evidence, and blast-radius checks.
 - Run the pull request text and all Slack updates through pstack's `unslop` skill.
 
-If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.
+If you cannot produce the commits and the pull request text, do not claim success: report the status `Fix did not land`. If the parent cannot open the pull request, it records `Fix did not land` itself and the commit and branch state stay in your worktree.
 
-On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.
+The parent records `Draft pull request opened` and posts the linked pull request as one concise reply in the operations thread once the pull request exists as a draft. Do not ask for a second source-channel root or unprompted source reply.
 
 ## 15. Follow-ups and cleanup
 

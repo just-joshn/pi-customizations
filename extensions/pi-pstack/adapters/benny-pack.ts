@@ -227,7 +227,21 @@ export const BENNY_RULES: readonly Rule[] = [
     'cursor-automations',
     BN('skills/reproduce-and-fix-issues/SKILL.md'),
     'On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.',
-    'On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.',
+    'The parent records `Draft pull request opened` and posts the linked pull request as one concise reply in the operations thread once the pull request exists as a draft. Do not ask for a second source-channel root or unprompted source reply.',
+  ),
+  rule(
+    'reproduce-and-fix-issues.14-open-draft',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    '- Open a draft pull request. Never merge or deploy from this workflow.',
+    '- Commit your fix on your run branch in your worktree and describe the pull request in the `pullRequest` field of your result, with a title and a body. Do not push and do not open a pull request, as a draft or otherwise: the parent pushes your branch and opens the draft pull request itself, and it never opens one that is ready for review. The parent opens none until your proof record shows the patched build measured twice (`"fix": { "patched": [...] }`). Never merge or deploy from this workflow.',
+  ),
+  rule(
+    'reproduce-and-fix-issues.14-creation-fails',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    'If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.',
+    'If you cannot produce the commits and the pull request text, do not claim success: report the status `Fix did not land`. If the parent cannot open the pull request, it records `Fix did not land` itself and the commit and branch state stay in your worktree.',
   ),
   rule(
     'reproduce-and-fix-issues.15-follow-ups',

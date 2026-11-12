@@ -150,6 +150,7 @@ export function buildBrief(config: DispatchConfig, event: AutomationEvent, threa
     ...(config.kind === 'reproduce'
       ? [
           `- Return a JSON object. \`status\` is where the run ended, one of ${Object.keys(OPS_STATUSES).map((status) => `\`${status}\``).join(', ')}. \`text\` is the one concise reply for the source thread, only for a confirmed repro, and an empty string otherwise: a \`Could not reproduce\` or \`Blocked\` outcome posts nothing in the source thread. \`operations\` is the concise evidence reply for the operations thread, for example the linked pull request.`,
+          '- Never push a branch or open a pull request yourself, in any phase. In the fix phase you commit on your run branch and the parent opens the one draft pull request from your commits.',
           config.operations === undefined
             ? '- No operations channel is configured. Your final message and the run output carry the detail.'
             : `- Report each status change by appending one JSON line, \`{ "status": "<status>", "note": "<short note>" }\`, to \`${statusFile ?? 'status.jsonl'}\`. The parent edits the one operations status message from it. You cannot post or edit anything yourself.`,

@@ -15464,6 +15464,12 @@ function verifyExistingFix(ctx, outcome) {
   const times = (Array.isArray(fix["baseline"]) ? fix["baseline"] : []).flatMap((entry) => typeof record3(entry)?.["at"] === "string" ? [Date.parse(record3(entry)?.["at"])] : []).filter((time) => !Number.isNaN(time) && time <= ctx.now.getTime() + SKEW_MS);
   return checkRuns(fix["patched"], "patched runs", ctx, new Date(Math.max(ctx.since.getTime(), ...times)));
 }
+function verifyPatched(ctx) {
+  const read = readRecord(ctx);
+  if ("problem" in read)
+    return fail2(read.problem);
+  return checkRuns(record3(read.proof["fix"])?.["patched"], "patched runs", ctx);
+}
 
 // src/automation/model.ts
 import { createHash as createHash4 } from "node:crypto";
@@ -15789,6 +15795,7 @@ function buildBrief(config, event, thread = [], statusFile, extra = {}) {
     "- The parent posts your result once, as a reply in the thread above. Never ask for a root message.",
     ...config.kind === "reproduce" ? [
       `- Return a JSON object. \`status\` is where the run ended, one of ${Object.keys(OPS_STATUSES).map((status) => `\`${status}\``).join(", ")}. \`text\` is the one concise reply for the source thread, only for a confirmed repro, and an empty string otherwise: a \`Could not reproduce\` or \`Blocked\` outcome posts nothing in the source thread. \`operations\` is the concise evidence reply for the operations thread, for example the linked pull request.`,
+      "- Never push a branch or open a pull request yourself, in any phase. In the fix phase you commit on your run branch and the parent opens the one draft pull request from your commits.",
       config.operations === undefined ? "- No operations channel is configured. Your final message and the run output carry the detail." : `- Report each status change by appending one JSON line, \`{ "status": "<status>", "note": "<short note>" }\`, to \`${statusFile ?? "status.jsonl"}\`. The parent edits the one operations status message from it. You cannot post or edit anything yourself.`
     ] : ["- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing."],
     ...kind.replyMarkers === null ? [] : [`- End your final message with exactly one marker line: ${kind.replyMarkers.map((marker) => `\`${marker}\``).join(", ")}.`],
@@ -16529,6 +16536,31 @@ function acceptOutcome(result, ctx) {
   return { result };
 }
 
+// src/automation/pull-request.ts
+var MAX_TITLE = 200;
+var MAX_BODY = 20000;
+var fixFailed = (reason) => ({ corrected: false, status: "Fix did not land", operations: `The fix did not land: ${reason}. No pull request was opened.` });
+async function landFix(host, fix, reported) {
+  if (reported.status === "Fix did not land")
+    return reported;
+  const title = untrustedText(reported.pullRequest?.title ?? "").replace(/\s+/g, " ").trim().slice(0, MAX_TITLE);
+  const body = untrustedText(reported.pullRequest?.body ?? "").trim().slice(0, MAX_BODY);
+  if (host.forge.target === undefined)
+    return fixFailed("repository.url is not a github.com repository, so the parent cannot open a draft pull request");
+  const state = await host.forge.state(fix.projectRoot, fix.runId);
+  if (state.ahead === 0)
+    return fixFailed("the worker made no commit on its run branch");
+  const proven = host.provePatched(fix.runId, fix.since);
+  if (!proven.ok)
+    return fixFailed(`there is no proof that the patched build was run twice (${proven.reason})`);
+  const existing = (await host.forge.pullRequests(fix.runId)).some((pr) => pr.state === "OPEN");
+  if (!existing && (title === "" || body === ""))
+    return fixFailed("the worker described no pull request (a title and a body)");
+  const { pr, converted } = await host.forge.openDraft({ projectRoot: fix.projectRoot, runId: fix.runId, actionId: actionIdFor(host.config.name, fix.key, "pull-request"), title, body });
+  return { corrected: false, status: "Draft pull request opened", operations: `Draft pull request: ${pr.url}${converted ? `
+The worker had already opened it as ready for review, so the parent converted it to a draft.` : ""}` };
+}
+
 // src/automation/repro-turns.ts
 function parseTurnResult(finalText) {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
@@ -16540,7 +16572,8 @@ function parseTurnResult(finalText) {
       ...isOpsStatus(parsed.status) ? { status: parsed.status } : {},
       ...typeof parsed.operations === "string" && parsed.operations.trim() !== "" ? { operations: parsed.operations } : {},
       ...typeof parsed.text === "string" && parsed.text.trim() !== "" ? { text: parsed.text } : {},
-      ...evidenceOf(parsed.evidence) === undefined ? {} : { evidence: evidenceOf(parsed.evidence) }
+      ...evidenceOf(parsed.evidence) === undefined ? {} : { evidence: evidenceOf(parsed.evidence) },
+      ...typeof parsed.pullRequest?.title === "string" && typeof parsed.pullRequest.body === "string" ? { pullRequest: { title: parsed.pullRequest.title, body: parsed.pullRequest.body } } : {}
     };
   } catch {
     return { corrected: false };
@@ -16584,7 +16617,9 @@ var fixPrompt = (minutes) => [
   "",
   `The rejection window closed without a valid rejection. Start the fix phase now: sections 11 through 14 of the operational file. Keep to the fix budget of ${minutes} minutes, and stop at once if the change grows past it.`,
   "",
-  'Report as before. Your final message is one JSON object and nothing else: `{ "status": "<where the run ended, one of the operations statuses>", "operations": "<one concise reply for the operations thread, for example the linked pull request>" }`.',
+  'You are on your run branch in your worktree. Commit your fix there. Do not push it and do not open a pull request: the parent pushes the branch and opens the draft pull request after it reads your result. Before you report, add the patched build measured twice to the proof record your brief describes, as `"fix": { "patched": [<two runs>] }`. The parent opens no pull request without it.',
+  "",
+  'Report as before. Your final message is one JSON object and nothing else: `{ "status": "<Fix did not land when you could not finish, otherwise Attempting bounded fix>", "pullRequest": { "title": "<the pull request title>", "body": "<the pull request body: repro steps, root cause, test result, before and after evidence, blast-radius checks>" }, "operations": "<one concise note for the operations thread>" }`. The parent records `Draft pull request opened` and posts the link once the pull request exists as a draft.',
   ""
 ].join(`
 `);
@@ -16638,6 +16673,21 @@ function createReproTurns(host) {
     await host.steer(lifecycle.runId, prompt);
     return;
   };
+  const LANDING_ATTEMPTS = 5;
+  const LANDING_RETRY_MS = 60000;
+  const land = async (lifecycle, turn, reported) => {
+    const failures = readLog(store).filter((entry) => entry.kind === "fix-landing-failed" && entry.key === lifecycle.key && entry.turn === turn.turn);
+    const last = failures.at(-1);
+    if (last !== undefined && host.now().getTime() - Date.parse(last.ts) < LANDING_RETRY_MS)
+      return;
+    try {
+      return await host.land({ key: lifecycle.key, runId: lifecycle.runId, since: new Date(turn.at) }, reported);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      appendLog(store, { ts: stamp(), kind: "fix-landing-failed", key: lifecycle.key, runId: lifecycle.runId, turn: turn.turn, reason: reason.slice(0, 500) });
+      return failures.length + 1 >= LANDING_ATTEMPTS ? fixFailed(reason.slice(0, 200)) : undefined;
+    }
+  };
   const settleTurn = async (lifecycle, turn) => {
     const run = await host.collect(lifecycle.runId);
     const delivered = run.generation === undefined || run.generation > turn.generation;
@@ -16667,7 +16717,13 @@ function createReproTurns(host) {
       const owesProof = parsed.status === "Reproduced" && (turn.purpose === "rerun" || turn.purpose === "review" && parsed.corrected);
       const verdict = owesProof ? host.prove(lifecycle.runId, new Date(turn.at)) : { ok: true };
       const { text: _unproven, evidence: _files, ...doubted } = parsed;
-      const result = verdict.ok ? parsed : { ...doubted, status: NOT_CONFIRMED, operations: unverifiedNote("Reproduced", NOT_CONFIRMED, verdict.reason) };
+      let result = verdict.ok ? parsed : { ...doubted, status: NOT_CONFIRMED, operations: unverifiedNote("Reproduced", NOT_CONFIRMED, verdict.reason) };
+      if (turn.purpose === "fix") {
+        const landed = await land(lifecycle, turn, result);
+        if (landed === undefined)
+          return;
+        result = landed;
+      }
       const { text: _source, ...withoutText } = result;
       if (!await host.report(lifecycle.event, lifecycle.runId, turn.purpose === "rerun" ? result : withoutText, `turn-${turn.turn}`))
         return;
@@ -16823,9 +16879,83 @@ function createRetirement(host) {
         const over = item.closed || windowless || host.now().getTime() > Date.parse(start) + (minutes ?? 0) * 60000;
         if (!over)
           continue;
+        try {
+          await host.beforeRetire?.(item.runId);
+        } catch {
+          continue;
+        }
         const outcome = await host.abort(config.projectRoot, item.runId).catch((error) => `refused: ${error instanceof Error ? error.message : String(error)}`);
         appendLog(store, { ts: host.now().toISOString(), kind: "worker-retired", key: item.key, runId: item.runId, outcome, ok: !outcome.startsWith("refused") });
       }
+    }
+  };
+}
+
+// src/automation/fix-guard.ts
+var FORGE_READ_MS = 60000;
+function runs(log) {
+  const events = new Map;
+  const found = new Map;
+  for (const entry of log) {
+    if (entry.kind === "received")
+      events.set(entry.key, entry.event);
+    if (entry.kind === "dispatched")
+      found.set(entry.runId, { key: entry.key, runId: entry.runId, event: events.get(entry.key), goAhead: false, stopped: false, retired: false, completed: false });
+  }
+  for (const entry of log) {
+    const run = "runId" in entry ? found.get(entry.runId) : undefined;
+    if (run === undefined)
+      continue;
+    if (entry.kind === "repro-turn" && entry.purpose === "fix")
+      run.goAhead = true;
+    if (entry.kind === "unprompted-fix")
+      run.stopped = true;
+    if (entry.kind === "worker-retired" && entry.ok)
+      run.retired = true;
+    if (entry.kind === "completed")
+      run.completed = true;
+  }
+  return [...found.values()];
+}
+function createFixGuard(host) {
+  const { config, store, forge } = host;
+  const stamp = () => host.now().toISOString();
+  const lastRead = new Map;
+  const sweepDrafts = async (run) => {
+    if (forge.target === undefined)
+      return;
+    for (const pr of await forge.pullRequests(run.runId)) {
+      if (pr.state !== "OPEN" || pr.isDraft)
+        continue;
+      if (run.event !== undefined && !await host.report(run.event, run.runId, { operations: `Pull request ${pr.url} was ready for review. Benny opens draft pull requests only, so the parent converted it to a draft.` }, `draft-guard-${pr.number}`))
+        return;
+      await forge.ensureDraft(pr);
+      if (!readLog(store).some((entry) => entry.kind === "draft-guard" && entry.runId === run.runId && entry.pullRequest === pr.url))
+        appendLog(store, { ts: stamp(), kind: "draft-guard", key: run.key, runId: run.runId, pullRequest: pr.url });
+    }
+  };
+  return {
+    async advance() {
+      if (config.kind !== "reproduce")
+        return;
+      for (const run of runs(readLog(store))) {
+        if (run.retired || run.stopped)
+          continue;
+        try {
+          const due = host.now().getTime() - (lastRead.get(run.runId) ?? 0) >= FORGE_READ_MS;
+          if (due) {
+            lastRead.set(run.runId, host.now().getTime());
+            await sweepDrafts(run);
+          }
+        } catch (error) {
+          appendLog(store, { ts: stamp(), kind: "source-error", reason: `fix guard: ${error instanceof Error ? error.message : String(error)}` });
+        }
+      }
+    },
+    async sweep(runId) {
+      const run = runs(readLog(store)).find((candidate) => candidate.runId === runId);
+      if (run !== undefined && config.kind === "reproduce")
+        await sweepDrafts(run);
     }
   };
 }
@@ -17115,7 +17245,7 @@ function createAutomation(config, deps) {
     await flush();
     return entryOf(id)?.state !== "pending";
   };
-  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), land: async (fix, reported) => deps.forge === undefined ? fixFailed("no repository is configured to open a pull request in") : landFix({ config, forge: deps.forge, provePatched: (runId, since) => verifyPatched({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }) }, { ...fix, projectRoot: config.projectRoot }, reported), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const reproduce = {
     anchor: (key) => reproTurns.followUpAnchor(key),
     outcome: (key) => {
@@ -17125,7 +17255,8 @@ function createAutomation(config, deps) {
     rerun: (key, correction) => reproTurns.startRerun(key, correction)
   };
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush(), ...deps.collect === undefined ? {} : { collect: deps.collect }, ...deps.abort === undefined ? {} : { abort: deps.abort }, reproduce });
-  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, anchor: (key, completedTs) => config.kind === "reproduce" ? reproTurns.followUpAnchor(key) : completedTs, inFlight: () => reproTurns.inFlightRuns() });
+  const fixGuard = deps.forge === undefined ? undefined : createFixGuard({ config, store, now, forge: deps.forge, abort: deps.abort ?? abortRun, report: reportTurn });
+  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, ...fixGuard === undefined ? {} : { beforeRetire: (runId) => fixGuard.sweep(runId) }, anchor: (key, completedTs) => config.kind === "reproduce" ? reproTurns.followUpAnchor(key) : completedTs, inFlight: () => reproTurns.inFlightRuns() });
   const pendingRuns = () => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => entry.kind === "completed" ? [entry.runId] : []));
@@ -17247,7 +17378,10 @@ Evidence: https://slack.com/archives/${operations.channelId}/p${root.destination
     }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
-    advanceRepro: () => serial(() => reproTurns.advance()),
+    advanceRepro: () => serial(async () => {
+      await fixGuard?.advance();
+      await reproTurns.advance();
+    }),
     retireWorkers: () => serial(() => retirement.advance()),
     syncOperations: () => serial(async () => {
       if (operations !== undefined) {
@@ -17552,7 +17686,7 @@ function loadBennyConfig(projectRoot, kind, path = join17(projectRoot, ".pi/benn
   const emoji = Object.fromEntries(Object.entries(section("status_emoji")).filter((entry) => typeof entry[1] === "string"));
   const operations = typeof operationsChannel === "string" && operationsChannel.trim() !== "" ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };
-  return { name, kind, projectRoot: resolve6(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section("repository")["url"], "repository.url"), model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets, ...operations === undefined ? {} : { operations } };
+  return { name, kind, projectRoot: resolve6(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section("repository")["url"], "repository.url"), defaultBranch: text(section("repository")["default_branch"], "repository.default_branch"), model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets, ...operations === undefined ? {} : { operations } };
 }
 
 // src/automation/control-adapter.ts
@@ -17766,6 +17900,100 @@ function adapterTracker(options) {
   };
 }
 
+// src/automation/forge.ts
+import { execFile as execFile4 } from "node:child_process";
+import { existsSync as existsSync14 } from "node:fs";
+import { join as join19 } from "node:path";
+var nodeGit = (cwd, args) => new Promise((resolve, reject) => {
+  execFile4("git", ["-C", cwd, ...args], { encoding: "utf8", timeout: 120000, maxBuffer: 16 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } }, (error, stdout, stderr) => error === null ? resolve(stdout) : reject(new Error(`git ${args.slice(0, 2).join(" ")} failed: ${stderr.trim() || error.message}`)));
+});
+var GITHUB_REMOTE = /^(?:https:\/\/(?:[^@/]+@)?github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([A-Za-z0-9][A-Za-z0-9._-]*)\/([A-Za-z0-9._-]+?)(?:\.git)?\/?$/i;
+var githubRepoOf = (url) => {
+  const found = GITHUB_REMOTE.exec(url.trim());
+  return found === null ? undefined : `${found[1]}/${found[2]}`.toLowerCase();
+};
+var runBranchOf = (runId) => `pstack-run/${runId}/${WORKER_ID}`;
+var worktreeOf = (projectRoot, runId) => join19(workerDir(projectRoot, runId), "worktree");
+var FIELDS = "number,url,isDraft,state,body";
+var PR_URL = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/[1-9]\d{0,9}$/;
+var markerOf2 = (id) => `<!-- pstack-action:${id} -->`;
+function parsePulls(output) {
+  const parsed = JSON.parse(output.trim() === "" ? "[]" : output);
+  return (Array.isArray(parsed) ? parsed : [parsed]).flatMap((raw) => typeof raw?.["number"] === "number" && typeof raw["url"] === "string" ? [{ number: raw["number"], url: raw["url"], isDraft: raw["isDraft"] === true, state: raw["state"] === "MERGED" ? "MERGED" : raw["state"] === "CLOSED" ? "CLOSED" : "OPEN", body: typeof raw["body"] === "string" ? raw["body"] : "" }] : []);
+}
+function createForge(options) {
+  const { git, gh } = options;
+  const reach = () => {
+    if (options.target === undefined)
+      throw new Error("repository.url is not a github.com repository, so the parent cannot reach its pull requests");
+    return options.target;
+  };
+  const view = async (number) => parsePulls(await gh(["pr", "view", String(number), "--repo", reach().repo, "--json", FIELDS]))[0];
+  const inputCommitOf = (projectRoot, runId) => {
+    const { workspace } = loadAssignment(join19(workerDir(projectRoot, runId), "assignment.json")).assignment;
+    if (workspace.mode !== "worktree")
+      throw new Error("the repro worker has no worktree");
+    return workspace.inputCommit;
+  };
+  const ensureDraft = async (pr) => {
+    if (pr.state !== "OPEN" || pr.isDraft)
+      return { pr, converted: false };
+    await gh(["pr", "ready", String(pr.number), "--repo", reach().repo, "--undo"]);
+    const after = await view(pr.number);
+    if (after === undefined || !after.isDraft)
+      throw new Error(`pull request ${pr.url} is still ready for review after the conversion to a draft`);
+    return { pr: after, converted: true };
+  };
+  const pullRequests = async (runId) => parsePulls(await gh(["pr", "list", "--repo", reach().repo, "--head", runBranchOf(runId), "--state", "all", "--limit", "20", "--json", FIELDS]));
+  return {
+    target: options.target,
+    async state(projectRoot, runId) {
+      const cwd = worktreeOf(projectRoot, runId);
+      const ahead = Number((await git(cwd, ["rev-list", "--count", `${inputCommitOf(projectRoot, runId)}..refs/heads/${runBranchOf(runId)}`]).catch(() => "0")).trim()) || 0;
+      const committed = (await git(cwd, ["reflog", "show", "--format=%gs", "HEAD"]).catch(() => "")).split(`
+`).filter((line) => /^commit/.test(line)).length;
+      return { ahead, committed };
+    },
+    async pushed(projectRoot, runId) {
+      if (!existsSync14(worktreeOf(projectRoot, runId)))
+        return false;
+      return (await git(worktreeOf(projectRoot, runId), ["ls-remote", "--heads", "origin", `refs/heads/${runBranchOf(runId)}`])).trim() !== "";
+    },
+    pullRequests,
+    ensureDraft,
+    async close(pr, comment) {
+      if (pr.state === "OPEN")
+        await gh(["pr", "close", String(pr.number), "--repo", reach().repo, "--comment", comment]);
+    },
+    async openDraft({ projectRoot, runId, actionId, title, body }) {
+      const { repo, baseBranch } = reach();
+      const cwd = worktreeOf(projectRoot, runId);
+      const head = runBranchOf(runId);
+      const origin = githubRepoOf((await git(cwd, ["config", "--get", "remote.origin.url"])).trim());
+      if (origin !== repo.toLowerCase())
+        throw new Error(`the worktree's origin is not ${repo}, so nothing was pushed`);
+      const known = await pullRequests(runId);
+      const merged = known.find((pr) => pr.state === "MERGED");
+      if (merged !== undefined)
+        throw new Error(`pull request ${merged.url} for the run branch is already merged`);
+      const open = known.find((pr) => pr.state === "OPEN");
+      if (open !== undefined)
+        return { ...await ensureDraft(open), reconciled: true };
+      await git(cwd, ["push", "origin", `refs/heads/${head}:refs/heads/${head}`]);
+      const created = (await gh(["pr", "create", "--repo", repo, "--draft", "--base", baseBranch, "--head", head, "--title", title, "--body", `${body.trimEnd()}
+
+${markerOf2(actionId)}`])).trim().split(`
+`).at(-1) ?? "";
+      if (!PR_URL.test(created))
+        throw new Error("gh pr create did not answer with a pull request url");
+      const landed = (await pullRequests(runId)).find((pr) => pr.url === created);
+      if (landed === undefined)
+        throw new Error(`the pull request ${created} is not on the run branch after it was opened`);
+      return { ...await ensureDraft(landed), reconciled: false };
+    }
+  };
+}
+
 // src/automation/tracker-policy.ts
 function createTrackerPolicy(options) {
   const { tracker, reader, destination } = options;
@@ -17805,12 +18033,15 @@ function wireBenny(config, deps) {
     policy = createTrackerPolicy({ tracker: config.tracker, reader: github, destination, canCompensate: true });
   }
   const repo = config.tracker.repo;
+  const codeRepo = githubRepoOf(config.repositoryUrl);
+  const forge = createForge({ git: deps.git ?? nodeGit, gh: deps.exec, target: codeRepo === undefined ? undefined : { repo: codeRepo, baseBranch: config.defaultBranch } });
   const automationConfig = config;
   return createAutomation(automationConfig, {
     destination,
     operations: destination,
     downloadAttachment: slackFileDownloader({ fetch: deps.fetch, token: deps.slackToken }),
     prerequisites: probes,
+    forge,
     ...tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy },
     ...config.tracker.type === "github" && repo !== undefined ? { trackerUrl: (id) => `https://github.com/${repo}/issues/${id}` } : {},
     ...deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker },

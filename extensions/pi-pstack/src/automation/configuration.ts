@@ -18,6 +18,8 @@ function text(value: unknown, name: string): string {
 export interface BennyConfig extends AutomationConfig {
   /** `repository.url`, where a draft pull request is opened. */
   repositoryUrl: string;
+  /** `repository.default_branch`, the base of a draft pull request. */
+  defaultBranch: string;
   tracker: TrackerConfig;
   control: { skillName: string; featureMapPath: string };
 }
@@ -80,5 +82,5 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   const emoji = Object.fromEntries(Object.entries(section('status_emoji')).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   const operations: OperationsConfig | undefined = typeof operationsChannel === 'string' && operationsChannel.trim() !== '' ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section('repository')['url'], 'repository.url'), model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section('repository')['url'], 'repository.url'), defaultBranch: text(section('repository')['default_branch'], 'repository.default_branch'), model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
 }

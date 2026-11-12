@@ -111,11 +111,11 @@ describe('the rejection window', () => {
 
     await t.automation.advanceRepro();
     expect(opsReplies(t)).toEqual(['Evidence: the Export button does nothing, twice.']);
-    settleWorker(t.project.dir, runId, { phase: 'idle', finalText: JSON.stringify({ status: 'Draft pull request opened', operations: 'Draft pull request: https://github.com/acme/app/pull/9' }) });
+    settleWorker(t.project.dir, runId, { phase: 'idle', finalText: JSON.stringify({ status: 'Fix did not land', operations: 'The change grew past the budget.' }) });
     await t.automation.advanceRepro();
     await t.automation.advanceRepro();
-    expect(status(t)).toBe('🔗 Draft pull request opened');
-    expect(opsReplies(t)).toEqual(['Evidence: the Export button does nothing, twice.', 'Draft pull request: https://github.com/acme/app/pull/9']);
+    expect(status(t)).toBe('❌ Fix did not land');
+    expect(opsReplies(t)).toEqual(['Evidence: the Export button does nothing, twice.', 'The change grew past the budget.']);
     expect(sourceReplies(t)).toEqual(['Reproduced twice on Safari 17.1.']);
     expect(t.steers).toHaveLength(1);
     expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-closed', reason: 'the fix phase finished' }));

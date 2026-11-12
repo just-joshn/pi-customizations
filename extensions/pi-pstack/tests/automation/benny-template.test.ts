@@ -61,3 +61,7 @@ test.for([
 ] as const)('%s is refused', ([, from, to, message]) => {
   expect(() => load(shippedText.replace(from, to))).toThrow(message);
 });
+
+test('the loader reads the default branch a draft pull request is based on', () => {
+  expect(load(shippedText)).toMatchObject({ defaultBranch: 'main', repositoryUrl: 'https://github.com/example-org/example-repo' });
+});

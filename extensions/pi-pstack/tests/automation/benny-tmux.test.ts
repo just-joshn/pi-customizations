@@ -15,7 +15,7 @@ import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
 import { readHostState } from '../../src/run-files.ts';
 import { killTmuxServer, makeProject, type Project, PI, stopProject, TEST_PI_ARGS, TMUX, until, workerTestEnv } from '../worker-lifecycle/harness.ts';
-import { bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
+import { bennyProject, CHANNEL, fakeGh, fakeSlack, gitProject, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 let project: Project | undefined;
 afterEach(async () => {
@@ -136,21 +136,23 @@ async function reproCase(reply: (prompt: string) => string, report: string, foll
   const benny = bennyProject({ root: current.dir, operationsChannel: OPS_CHANNEL });
   const slack = fakeSlack();
   slack.messages.push({ ts: '1762900001.999999', user: TRIAGE_USER, text: 'A bug.\n[benny:bug]' });
+  const gh = fakeGh();
+  const git = gitProject(current.dir, { existing: true });
   const prompts: string[] = [];
   let clock = Date.parse('2026-11-12T08:00:00Z');
   const spawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }) });
   const automation: Automation = wireBenny(
     benny.config('reproduce'),
-    wiringDeps(slack, fakeGh(), {
+    wiringDeps(slack, gh, {
       inputCommit: () => current.commit,
       now: () => new Date(clock),
       spawnWorker: async (runId, assignmentPath) => {
-        writeFileSync(join(assignmentPath, '..', 'brief.md'), `@@say ${runId.startsWith('fu-') && followUp !== undefined ? followUp : report}`);
+        writeFileSync(join(assignmentPath, '..', 'brief.md'), runId.startsWith('fu-') || !report.startsWith('@@') ? `@@say ${runId.startsWith('fu-') && followUp !== undefined ? followUp : report}` : report);
         await spawn(runId, assignmentPath);
       },
       steer: async (root, runId, text) => {
         prompts.push(text);
-        writeProof(current.dir, runId, new Date(clock), { tag: `turn-${prompts.length}` });
+        writeProof(current.dir, runId, new Date(clock), { tag: `turn-${prompts.length}`, ...(text.includes('Start the fix phase now') ? { section: 'fix.patched' as const } : {}) });
         await steerRun(root, runId, reply(text));
       },
       abort: abortInTmux({ tmuxSocket: TMUX }),
@@ -162,14 +164,17 @@ async function reproCase(reply: (prompt: string) => string, report: string, foll
   const run = await automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
   await until(async () => (await completeSettledRuns(automation)) > 0 || automation.pendingRuns().length === 0, Boolean, 60_000, 'the first report to settle and the case to complete');
-  return { automation, slack, run, prompts, dir: workerDir(current.dir, run.runId), later: (minutes: number) => void (clock += minutes * 60_000) };
+  return { automation, slack, gh, git, run, prompts, dir: workerDir(current.dir, run.runId), later: (minutes: number) => void (clock += minutes * 60_000) };
 }
 
 const opsStatus = (slack: ReturnType<typeof fakeSlack>) => slack.ops.find((message) => message.thread_ts === undefined)?.text.split('\n')[0];
 const REPORTED = JSON.stringify({ text: 'Reproduced twice.', status: 'Reproduced', operations: 'Evidence attached.' });
 
-test('a real repro worker is held through the rejection window and then takes the fix phase as its next turn', async () => {
-  const r = await reproCase(() => `@@say ${JSON.stringify({ status: 'Draft pull request opened', operations: 'Draft pull request: https://github.com/acme/app/pull/9' })}`, REPORTED);
+const COMMIT = 'echo fix > fix.txt && git add fix.txt && git -c user.name=worker -c user.email=worker@example.com commit -q -m fix';
+const FIX_TURN = `@@script ${JSON.stringify([{ tool: 'bash', args: { command: COMMIT } }, { text: JSON.stringify({ status: 'Attempting bounded fix', pullRequest: { title: 'Fix the export', body: 'Repro, root cause, evidence.' }, operations: 'Fixed.' }) }])}`;
+
+test('a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request', async () => {
+  const r = await reproCase(() => FIX_TURN, REPORTED);
   expect(r.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: 'Reproduced twice.' }]);
   expect(opsStatus(r.slack)).toBe('✅ Reproduced');
   const generationBefore = readHostState(r.dir)?.generation;
@@ -182,7 +187,10 @@ test('a real repro worker is held through the rejection window and then takes th
   expect(r.prompts).toHaveLength(1);
   expect(r.prompts[0]).toContain('Start the fix phase now');
   expect(readHostState(r.dir)?.generation).toBe((generationBefore ?? 0) + 1);
-  expect(r.slack.ops.filter((message) => message.thread_ts !== undefined).map((message) => message.text)).toEqual(['Evidence attached.', 'Draft pull request: https://github.com/acme/app/pull/9']);
+  expect(r.slack.ops.filter((message) => message.thread_ts !== undefined).map((message) => message.text)).toEqual(['Evidence attached.', 'Draft pull request: https://github.com/example-org/example-repo/pull/1']);
+  expect(r.git.remoteBranches()).toEqual([`pstack-run/${r.run.runId}/owner`]);
+  expect(r.gh.pulls).toEqual([expect.objectContaining({ head: `pstack-run/${r.run.runId}/owner`, title: 'Fix the export', draft: true })]);
+  expect(r.gh.calls.filter((call) => call[1] === 'create').every((call) => call.includes('--draft'))).toBe(true);
   expect(readLog(r.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-closed', reason: 'the fix phase finished' }));
   const session = readFileSync(join(r.dir, 'session', readdirSync(join(r.dir, 'session'))[0] as string), 'utf8');
   expect(session.match(/"role":"user"/g)).toHaveLength(2);

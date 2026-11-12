@@ -11,6 +11,7 @@ import type { SteerRun } from './steer.ts';
 import type { TrackerDestination, TrackerLander } from './outbox.ts';
 import { type SlackApi, slackDestination, slackFileDownloader } from './slack.ts';
 import { adapterSkillProblem, adapterTracker } from './tracker-adapter.ts';
+import { createForge, type Git, githubRepoOf, nodeGit } from './forge.ts';
 import { type GhExec, githubTracker } from './tracker-github.ts';
 import { createTrackerPolicy } from './tracker-policy.ts';
 
@@ -18,6 +19,8 @@ export interface WiringDeps {
   fetch: typeof fetch;
   slackToken: string;
   exec: GhExec;
+  /** Runs git in a worktree. Defaults to the real one. */
+  git?: Git;
   spawnWorker?: SpawnWorker;
   inputCommit?: () => string;
   now?: () => Date;
@@ -50,12 +53,15 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
     policy = createTrackerPolicy({ tracker: config.tracker, reader: github, destination, canCompensate: true });
   }
   const repo = config.tracker.repo;
+  const codeRepo = githubRepoOf(config.repositoryUrl);
+  const forge = createForge({ git: deps.git ?? nodeGit, gh: deps.exec, target: codeRepo === undefined ? undefined : { repo: codeRepo, baseBranch: config.defaultBranch } });
   const automationConfig: AutomationConfig = config;
   return createAutomation(automationConfig, {
     destination,
     operations: destination,
     downloadAttachment: slackFileDownloader({ fetch: deps.fetch, token: deps.slackToken }),
     prerequisites: probes,
+    forge,
     ...(tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy }),
     ...(config.tracker.type === 'github' && repo !== undefined ? { trackerUrl: (id: string) => `https://github.com/${repo}/issues/${id}` } : {}),
     ...(deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker }),

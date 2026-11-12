@@ -19,6 +19,8 @@ export interface RetireHost {
   anchor: (key: EventKey, completedTs: string) => string | undefined;
   /** Runs with a repro turn still to settle. */
   inFlight: () => RunId[];
+  /** Runs before a worker is shut down; a failure holds the shutdown until the next pass. */
+  beforeRetire?: (runId: RunId) => Promise<void>;
 }
 
 interface Case {
@@ -70,6 +72,11 @@ export function createRetirement(host: RetireHost): { advance(): Promise<void> }
         if (start === undefined) continue;
         const over = item.closed || windowless || host.now().getTime() > Date.parse(start) + (minutes ?? 0) * 60_000;
         if (!over) continue;
+        try {
+          await host.beforeRetire?.(item.runId);
+        } catch {
+          continue;
+        }
         const outcome = await host.abort(config.projectRoot, item.runId).catch((error: unknown) => `refused: ${error instanceof Error ? error.message : String(error)}`);
         appendLog(store, { ts: host.now().toISOString(), kind: 'worker-retired', key: item.key, runId: item.runId, outcome, ok: !outcome.startsWith('refused') });
       }

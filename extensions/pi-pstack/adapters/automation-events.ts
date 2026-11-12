@@ -15,9 +15,12 @@ import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
 import { createRetirement } from '../src/automation/retire.ts';
+import { createFixGuard } from '../src/automation/fix-guard.ts';
+import { type Forge } from '../src/automation/forge.ts';
+import { fixFailed, landFix } from '../src/automation/pull-request.ts';
 import { stageEvidence } from '../src/automation/evidence-files.ts';
 import { acceptOutcome } from '../src/automation/accept.ts';
-import { verifyReproduction } from '../src/automation/proof.ts';
+import { verifyPatched, verifyReproduction } from '../src/automation/proof.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
 import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -44,6 +47,8 @@ export interface AutomationDeps {
   collect?: (runId: RunId) => Promise<CollectedRun>;
   abort?: AbortRun;
   steer?: SteerRun;
+  /** The repository a repro fix is proposed in, as the parent reaches it (git and `gh`). Without one a fix cannot land and no early fix can be detected. */
+  forge?: Forge;
   /** Fetches a report attachment with the parent's Slack credential. Absent: no attachment is downloaded. */
   downloadAttachment?: Download;
   /** The url of the issue with this id, for a tracker whose urls the parent can build. Another tracker's worker returns its own. */
@@ -274,7 +279,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     await flush();
     return entryOf(id)?.state !== 'pending';
   };
-  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), land: async (fix, reported) => (deps.forge === undefined ? fixFailed('no repository is configured to open a pull request in') : landFix({ config, forge: deps.forge, provePatched: (runId, since) => verifyPatched({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }) }, { ...fix, projectRoot: config.projectRoot }, reported)), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const reproduce = {
     anchor: (key: EventKey) => reproTurns.followUpAnchor(key),
     outcome: (key: EventKey) => {
@@ -284,7 +289,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     rerun: (key: EventKey, correction: string) => reproTurns.startRerun(key, correction),
   };
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush(), ...(deps.collect === undefined ? {} : { collect: deps.collect }), ...(deps.abort === undefined ? {} : { abort: deps.abort }), reproduce });
-  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, anchor: (key, completedTs) => (config.kind === 'reproduce' ? reproTurns.followUpAnchor(key) : completedTs), inFlight: () => reproTurns.inFlightRuns() });
+  const fixGuard = deps.forge === undefined ? undefined : createFixGuard({ config, store, now, forge: deps.forge, abort: deps.abort ?? abortRun, report: reportTurn });
+  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, ...(fixGuard === undefined ? {} : { beforeRetire: (runId: RunId) => fixGuard.sweep(runId) }), anchor: (key, completedTs) => (config.kind === 'reproduce' ? reproTurns.followUpAnchor(key) : completedTs), inFlight: () => reproTurns.inFlightRuns() });
   const pendingRuns = (): RunId[] => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
@@ -402,7 +408,11 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
-    advanceRepro: () => serial(() => reproTurns.advance()),
+    advanceRepro: () =>
+      serial(async () => {
+        await fixGuard?.advance();
+        await reproTurns.advance();
+      }),
     retireWorkers: () => serial(() => retirement.advance()),
     syncOperations: () =>
       serial(async () => {

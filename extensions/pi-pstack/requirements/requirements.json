@@ -2290,6 +2290,70 @@
     "bn.benny-tmux.9": {
       "file": "tests/automation/benny-tmux.test.ts",
       "name": "a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix"
+    },
+    "bn.fix-guard.1": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft the worker's fix becomes a draft pull request the parent pushed and opened: pushed branch, --draft, the worker's title and body, the link on the operations thread"
+    },
+    "bn.fix-guard.2": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft the fix prompt tells the worker to commit and describe the pull request, not to push or open one"
+    },
+    "bn.fix-guard.3": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a worker that claims it opened a pull request is not believed: with no commit there is nothing to open and the fix did not land"
+    },
+    "bn.fix-guard.4": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a fix with no proof of the patched build does not land: nothing is pushed or opened"
+    },
+    "bn.fix-guard.5": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a fix whose worker described no pull request does not land"
+    },
+    "bn.fix-guard.6": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a worker that reports Fix did not land is passed through, and nothing is pushed even if it committed"
+    },
+    "bn.fix-guard.7": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a repository that is not on github.com cannot receive a pull request, and the fix did not land"
+    },
+    "bn.fix-guard.8": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a worktree whose origin is another repository is never pushed to: after the attempt limit the fix did not land"
+    },
+    "bn.fix-guard.9": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a crash after the pull request was opened and before the turn was recorded adopts it: one pull request, one push"
+    },
+    "bn.fix-guard.10": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft a worker that already opened a ready-for-review pull request itself has it adopted and converted to a draft, and the operations thread says so"
+    },
+    "bn.fix-guard.11": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "the parent opens the pull request, and only as a draft every pull request that exists after a run is a draft"
+    },
+    "bn.fix-guard.12": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a worker that goes around the parent still leaves no ready pull request a ready pull request the worker opens during its fix turn is made a draft on the next look, once, with one notice"
+    },
+    "bn.fix-guard.13": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a worker that goes around the parent still leaves no ready pull request the forge is read at most once a minute for a run, however often the settler looks"
+    },
+    "bn.fix-guard.14": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a worker that goes around the parent still leaves no ready pull request the last look before the worker is shut down converts a pull request opened since the previous one"
+    },
+    "bn.benny-tmux.10": {
+      "file": "tests/automation/benny-tmux.test.ts",
+      "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
+    },
+    "bn.benny-template.8": {
+      "file": "tests/automation/benny-template.test.ts",
+      "name": "the loader reads the default branch a draft pull request is based on"
     }
   },
   "structural": [
@@ -5072,22 +5136,38 @@
         ],
         "anchor": "Never merge or deploy"
       },
-      "observable": "A fix opens a draft pull request after before-and-after proof.",
+      "observable": "A fix opens a draft pull request after before-and-after proof. The worker commits on its run branch and describes the pull request; the parent pushes the branch and opens the pull request itself, always with --draft, and only when the worker's proof record shows the patched build measured twice. A ready-for-review pull request on the run branch (one the worker opened itself) is converted to a draft by a throttled sweep, before the parent reports a fix and before the worker is shut down.",
       "invariants": [
         "Never merge or deploy."
       ],
-      "piMechanism": "Reproduce worker.",
+      "piMechanism": "src/automation/forge.ts and pull-request.ts (the parent pushes and opens the draft), fix-guard.ts (the draft sweep), retire.ts (the last sweep before shutdown).",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts: the parent reports the Draft pull request opened and Fix did not land statuses. No test covers draft pull request creation.",
+      "verification": "tests/automation/fix-guard.test.ts with real git and a stateful fake gh, and benny-tmux.test.ts with a real worker committing in its worktree.",
       "tests": [
         "bn.repro-window.4",
-        "bn.repro-window.13"
+        "bn.repro-window.13",
+        "bn.fix-guard.1",
+        "bn.fix-guard.2",
+        "bn.fix-guard.3",
+        "bn.fix-guard.4",
+        "bn.fix-guard.5",
+        "bn.fix-guard.6",
+        "bn.fix-guard.7",
+        "bn.fix-guard.8",
+        "bn.fix-guard.9",
+        "bn.fix-guard.10",
+        "bn.fix-guard.11",
+        "bn.fix-guard.12",
+        "bn.fix-guard.13",
+        "bn.fix-guard.14",
+        "bn.benny-tmux.10",
+        "bn.benny-template.8"
       ],
-      "coverageGap": "A draft pull request is opened by the repro worker through the operator's own gh login in its worktree. The parent does not open or merge one and does not enforce draft-only, and no test runs a worker through pull request creation."
+      "coverageGap": "A repro worker runs as the operator in a worktree and holds the operator's own gh and git credentials, which no tool boundary can take away (the contract's same-uid limit). Prevention therefore holds for the path the worker is told to use, where the parent alone opens the pull request and always as a draft. A worker that opens a ready pull request itself is caught by the sweep, at most one minute later and again before shutdown, not prevented, and a pull request from a branch other than the run branch is not attributable to the run. No test runs gh against GitHub."
     },
     {
       "id": "BENNY-OUTBOX-RESTART",

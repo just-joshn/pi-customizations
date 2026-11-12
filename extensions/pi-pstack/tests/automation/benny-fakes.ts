@@ -1,5 +1,6 @@
 // Fakes for the two external edges of the Benny serve process: Slack's HTTP API and the `gh` CLI. Both keep state, so a
 // test can assert what the destination holds after a crash and a restart, not only which calls were made.
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -145,11 +146,49 @@ interface Issue {
 }
 
 /** A GitHub repository behind the `gh api` calls the adapter makes. Anything else fails, so a stray call is a test failure. */
+export interface FakePull {
+  number: number;
+  head: string;
+  base: string;
+  title: string;
+  body: string;
+  draft: boolean;
+  state: 'OPEN' | 'CLOSED' | 'MERGED';
+  comments: string[];
+}
+
 export function fakeGh(seed: Pick<Issue, 'title' | 'body' | 'state'>[] = []) {
   const issues: Issue[] = seed.map((issue, index) => ({ ...issue, number: index + 1, labels: [], comments: [] }));
   const calls: string[][] = [];
+  /** The pull requests of the code repository, behind `gh pr ...`. `failures` makes a matching call throw, `remaining` times. */
+  const pulls: FakePull[] = [];
+  const failures: { when: (args: string[]) => boolean; remaining: number }[] = [];
+  const pullJson = (pull: FakePull) => ({ number: pull.number, url: `https://github.com/example-org/example-repo/pull/${pull.number}`, isDraft: pull.draft, state: pull.state, body: pull.body });
   const exec: GhExec = async (args) => {
     calls.push(args);
+    const failing = failures.find((failure) => failure.remaining > 0 && failure.when(args));
+    if (failing !== undefined) {
+      failing.remaining -= 1;
+      throw new Error(`gh ${args.slice(0, 2).join(' ')} failed: simulated outage`);
+    }
+    if (args[0] === 'pr') {
+      const option = (name: string) => args[args.indexOf(name) + 1] ?? '';
+      if (args[1] === 'list') return JSON.stringify(pulls.filter((pull) => pull.head === option('--head')).map(pullJson));
+      if (args[1] === 'create') {
+        const pull: FakePull = { number: pulls.length + 1, head: option('--head'), base: option('--base'), title: option('--title'), body: option('--body'), draft: args.includes('--draft'), state: 'OPEN', comments: [] };
+        pulls.push(pull);
+        return `${pullJson(pull).url}\n`;
+      }
+      const pull = pulls.find((candidate) => candidate.number === Number(args[2]));
+      if (pull === undefined) throw new Error(`gh: no pull request ${args[2]}`);
+      if (args[1] === 'view') return JSON.stringify(pullJson(pull));
+      if (args[1] === 'ready' && args.includes('--undo')) pull.draft = true;
+      else if (args[1] === 'close') {
+        pull.state = 'CLOSED';
+        pull.comments.push(option('--comment'));
+      } else throw new Error(`gh: unexpected ${args.slice(0, 3).join(' ')}`);
+      return '';
+    }
     const field = (name: string) => args.flatMap((arg, index) => (args[index - 1] === '-f' && arg.startsWith(`${name}=`) ? [arg.slice(name.length + 1)] : []))[0] ?? '';
     const path = args.find((arg) => arg.startsWith('repos/')) ?? '';
     const jq = args[args.indexOf('--jq') + 1] ?? '';
@@ -176,7 +215,7 @@ export function fakeGh(seed: Pick<Issue, 'title' | 'body' | 'state'>[] = []) {
     }
     return jq.startsWith('.body') ? `${issue.body}\n` : `${JSON.stringify({ number: issue.number, state: issue.state, title: issue.title, pull_request: false })}\n`;
   };
-  return { issues, calls, exec };
+  return { issues, calls, exec, pulls, failures };
 }
 
 const FEATURE_MAP = `# Feature map
@@ -277,4 +316,46 @@ export function writeProof(dir: string, runId: RunId, at: Date, options: { secti
   Object.assign(record, options.extra ?? {});
   writeFileSync(file, JSON.stringify(record));
   return folder;
+}
+
+export const CODE_REPO_URL = 'https://github.com/example-org/example-repo.git';
+
+/**
+ * A real git repository for the project, with a bare repository standing in for GitHub: the worktree's `origin` is the
+ * github.com url the configuration names, and git rewrites it to the bare repository, so a push lands somewhere a test can
+ * read. A worker's worktree is created the way the host creates it, on `pstack-run/<runId>/owner`.
+ */
+export function gitProject(dir: string, options: { existing?: boolean } = {}) {
+  const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=worker', '-c', 'user.email=worker@example.com', ...args], { encoding: 'utf8' }).trim();
+  const origin = join(mkdtempSync(join(tmpdir(), 'benny-origin-')), 'origin.git');
+  mkdirSync(origin, { recursive: true });
+  git(origin, 'init', '--quiet', '--bare', '-b', 'main');
+  if (options.existing !== true) {
+    git(dir, 'init', '--quiet', '-b', 'main');
+    writeFileSync(join(dir, 'README.md'), 'fixture\n');
+    writeFileSync(join(dir, '.gitignore'), '.pi/\nartifacts/\n');
+    git(dir, 'add', 'README.md', '.gitignore');
+    git(dir, 'commit', '--quiet', '-m', 'init');
+  }
+  git(dir, 'remote', 'add', 'origin', CODE_REPO_URL);
+  git(dir, 'config', `url.file://${origin}.insteadOf`, CODE_REPO_URL);
+  const commit = git(dir, 'rev-parse', 'HEAD');
+  const worktree = (runId: RunId) => join(workerDir(dir, runId), 'worktree');
+  return {
+    commit,
+    origin,
+    worktree,
+    branch: (runId: RunId) => `pstack-run/${runId}/owner`,
+    /** The worker's worktree, created as the host creates it. */
+    startWorker: (runId: RunId) => void git(dir, 'worktree', 'add', '--quiet', '-b', `pstack-run/${runId}/owner`, worktree(runId), commit),
+    /** The worker commits a file in its worktree. */
+    commitIn: (runId: RunId, name: string, text: string) => {
+      writeFileSync(join(worktree(runId), name), text);
+      git(worktree(runId), 'add', name);
+      git(worktree(runId), 'commit', '--quiet', '-m', `fix: ${name}`);
+    },
+    /** Branches the bare repository holds. */
+    remoteBranches: () => git(origin, 'for-each-ref', '--format=%(refname:short)', 'refs/heads').split('\n').filter((line) => line !== ''),
+    git,
+  };
 }
