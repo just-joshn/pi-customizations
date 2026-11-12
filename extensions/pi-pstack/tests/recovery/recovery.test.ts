@@ -269,6 +269,68 @@ describe('wake delivery on a real session tree', () => {
     expect(new Set(parent.messages.map((entry) => entry.message.details?.transitionId)).size).toBe(1);
   });
 
+  test('a poll in flight when the parent switches session sends nothing into the new session, and the owner gets its wake once', async () => {
+    const { session: owner } = realSession();
+    const spawner = parentFor({ sessionManager: owner });
+    await spawner.start();
+    await spawnIn(spawner, 'w3', '@@say DONE');
+    await spawner.stop();
+    await until(
+      () => readState(project, 'run2', 'w3').settles.length,
+      (count) => count === 1,
+      20_000,
+      'settle with no parent',
+    );
+
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const parent = parentFor({ sessionManager: SessionManager.open(owner.getSessionFile() as string), beforeTmux: () => gate });
+    const starting = parent.start();
+    await sleep(200);
+    const other = SessionManager.create(project.dir, join(project.home, 'other-sessions'));
+    const switching = parent.switchSession(other);
+    release();
+    await Promise.all([starting, switching]);
+    await sleep(600);
+    expect(branchWakes(other)).toHaveLength(0);
+    expect(parent.messages).toHaveLength(0);
+
+    const reopened = SessionManager.open(owner.getSessionFile() as string);
+    await parent.switchSession(reopened);
+    await sleep(600);
+    expect(branchWakes(reopened).map((entry) => (entry as { details: { transitionId: string } }).details.transitionId)).toEqual([expect.stringMatching(/^w3:[0-9a-f-]{36}:1$/)]);
+    expect(parent.messages).toHaveLength(1);
+  });
+
+  test('a wake summarized by compaction still counts as delivered and is not resent', async () => {
+    const { session } = realSession();
+    const first = parentFor({ sessionManager: session });
+    await first.start();
+    await spawnIn(first, 'w4', '@@say DONE');
+    await until(
+      () => first.messages.length,
+      (count) => count === 1,
+      20_000,
+      'first wake',
+    );
+    await first.stop();
+    const wakeInContext = () => session.buildSessionContext().messages.some((message) => (message as { customType?: string }).customType === 'pstack-worker');
+    expect(wakeInContext()).toBe(true);
+    const kept = session.appendMessage({ role: 'user', content: 'later work', timestamp: Date.now() });
+    session.appendCompaction('Worker w4 finished; its wake was handled.', kept, 1_000);
+    expect(wakeInContext()).toBe(false);
+    expect(branchWakes(session)).toHaveLength(1);
+
+    const reopened = SessionManager.open(session.getSessionFile() as string);
+    const second = parentFor({ sessionManager: reopened });
+    await second.start();
+    await second.fire('session_compact', { compactionEntry: reopened.getLeafEntry(), fromExtension: false });
+    await sleep(600);
+    expect(second.messages).toHaveLength(0);
+  });
+
   test('a parent reopened from the session file finds the wake on its branch and does not resend it', async () => {
     const { session } = realSession();
     const first = parentFor({ sessionManager: session });

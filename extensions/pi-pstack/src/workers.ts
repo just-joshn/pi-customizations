@@ -280,19 +280,25 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
+  // Bumped on every session_start and session_tree. A pass that began under an older version is discarded and rerun,
+  // so it never sends wakes chosen for another session or branch.
+  let branchVersion = 0;
   let current: { ctx: ExtensionContext; project: string } | undefined;
   let timer: NodeJS.Timeout | undefined;
   let polling: Promise<void> | undefined;
 
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
 
-  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<void> => {
+  /** One pass; false when the branch changed while it waited on tmux, so its view is stale and nothing was sent. */
+  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<boolean> => {
+    const version = branchVersion;
     const sessionFile = ctx.sessionManager.getSessionFile();
-    if (sessionFile === undefined) return;
+    if (sessionFile === undefined) return true;
     const runs = ownedRuns(project, sessionFile);
-    if (runs.length === 0) return;
+    if (runs.length === 0) return true;
     // tmux first: a host writes its final state before exiting, so a session seen gone means state.json is final.
     const live = await liveSessions(pi, socket);
+    if (version !== branchVersion) return false;
     const delivered = deliveredTransitions(ctx);
     for (const { runId, runRoot } of runs) {
       for (const workerId of workerIds(runRoot)) {
@@ -312,11 +318,16 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         }
       }
     }
+    return true;
   };
 
   const poll = (): Promise<void> => {
     if (polling !== undefined || current === undefined) return polling ?? Promise.resolve();
-    polling = reconcile(current)
+    polling = (async () => {
+      while (current !== undefined && !(await reconcile(current))) {
+        // The branch changed mid-pass; run again against the current one.
+      }
+    })()
       .catch(() => undefined)
       .finally(() => {
         polling = undefined;
@@ -333,11 +344,13 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   pi.on('session_start', async (_event, ctx) => {
+    branchVersion += 1;
     sent.clear();
     watch(ctx);
     await poll();
   });
   pi.on('session_tree', async () => {
+    branchVersion += 1;
     sent.clear();
     await poll();
   });
