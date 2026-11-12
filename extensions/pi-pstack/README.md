@@ -105,6 +105,7 @@ Never edit `generated/` by hand. Change a rule in `adapters/` or the pinned sour
 sh ../../parity/pi-native-tmux-2026-11-11/regen.sh      # compile skills, check dependencies and parity, rebuild dist/
 sh ../../parity/pi-native-tmux-2026-11-11/merge-gate.sh # typecheck and the full test suite
 bun run test:statechart                                 # the statechart compiler suite
+node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json --results parity-results/ci/linux-all.json  # on a clean commit: rerun Vitest, record its identity, rebuild the manifest
 ```
 
 `dist/` holds bundles built by Bun 1.4.4 from `src/` and `generated/`. `npm pack` runs `build-helpers.mjs --check` and fails on a stale bundle.

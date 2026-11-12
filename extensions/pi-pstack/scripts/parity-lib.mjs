@@ -294,7 +294,8 @@ export function failedTests(report, root) {
   return failures;
 }
 
-export function runIdentity(root, report, resultsSource, attributed = {}) {
+/** What a run is attributed to: the checkout's commit, whether it was dirty, and the digest of the code the tests can see. */
+export function sourceState(root) {
   const git = (...args) => {
     try {
       return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
@@ -302,13 +303,16 @@ export function runIdentity(root, report, resultsSource, attributed = {}) {
       return null;
     }
   };
+  return { commit: git('rev-parse', 'HEAD'), dirty: Boolean(git('status', '--porcelain', '--', '.')), sourceDigest: sourceDigest(root) };
+}
+
+/** `attributed` overrides what this checkout would say, so a report recorded at another time or place is never stamped with the current code. */
+export function runIdentity(root, report, resultsSource, attributed = {}) {
   return {
     platform: process.platform,
     startedAt: report.startTime ? new Date(report.startTime).toISOString() : null,
     generatedAt: new Date().toISOString(),
-    commit: git('rev-parse', 'HEAD'),
-    dirty: Boolean(git('status', '--porcelain', '--', '.')),
-    sourceDigest: sourceDigest(root),
+    ...sourceState(root),
     resultsSource,
     totalTests: report.numTotalTests ?? null,
     passedTests: report.numPassedTests ?? null,
@@ -319,10 +323,50 @@ export function runIdentity(root, report, resultsSource, attributed = {}) {
   };
 }
 
+/** A report with no sidecar says nothing about when or where it ran, so it carries no commit, platform or digest and cannot open the gate. */
+export const UNATTRIBUTED = { platform: null, commit: null, dirty: null, sourceDigest: null };
+
+/**
+ * Judges a finished `vitest run --reporter=json`. Exit 1 is how Vitest reports failing tests and its report then counts them; any other
+ * exit, a signal, or a report that is missing, truncated, or does not account for every suite and test is not a run.
+ */
+export function vitestRunOutcome({ status, signal, error }, reportText) {
+  if (error) return { problem: `could not start Vitest: ${error.message}` };
+  if (signal) return { problem: `Vitest was killed by ${signal}` };
+  if (status !== 0 && status !== 1) return { problem: `Vitest exited ${status}` };
+  if (reportText === null) return { problem: `Vitest exited ${status} and wrote no JSON report` };
+  let report;
+  try {
+    report = JSON.parse(reportText);
+  } catch (e) {
+    return { problem: `the Vitest JSON report is not valid JSON (${e.message})` };
+  }
+  const counts = ['numTotalTests', 'numPassedTests', 'numFailedTests', 'numTotalTestSuites'];
+  const bad = counts.filter((k) => !Number.isInteger(report?.[k]) || report[k] < 0);
+  if (bad.length || !Array.isArray(report.testResults)) return { problem: `the Vitest JSON report is incomplete: ${[...bad, ...(Array.isArray(report?.testResults) ? [] : ['testResults'])].join(', ')} missing or invalid` };
+  if (!report.numTotalTests) return { problem: 'the Vitest run executed no tests' };
+  if (report.testResults.length !== report.numTotalTestSuites) return { problem: `the Vitest JSON report has ${report.testResults.length} file result(s) for ${report.numTotalTestSuites} test file(s)` };
+  const listed = report.testResults.reduce((n, f) => n + (f.assertionResults?.length ?? 0), 0);
+  if (listed !== report.numTotalTests) return { problem: `the Vitest JSON report lists ${listed} test(s) of ${report.numTotalTests}` };
+  const failed = failedTests(report, '/').length;
+  if (status === 0 && (report.success !== true || failed || report.numFailedTests)) return { problem: 'Vitest exited 0 but its report records failures' };
+  if (status === 1 && report.success !== false) return { problem: 'Vitest exited 1 but its report says it succeeded' };
+  if (status === 1 && !failed && !report.numFailedTests) return { problem: 'Vitest exited 1 but its report names no failed test' };
+  return { report };
+}
+
 const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl', 'root'];
 
-/** A result file recorded elsewhere (CI) must say what it is. Returns { identity } or { problem }. */
+/** A result file recorded elsewhere (CI) must say what it is. Returns { identity } or { problem }.
+ * A local sidecar (resultsSource "local", written by `build-parity-manifest.mjs` around its own Vitest run) carries the commit, dirty flag and digest taken at run time. */
 export function sidecarIdentity(sidecar) {
+  if (sidecar?.resultsSource === 'local') {
+    const missing = ['platform', 'commit'].filter((f) => typeof sidecar[f] !== 'string' || !sidecar[f].trim());
+    if (!/^[0-9a-f]{64}$/.test(sidecar.sourceDigest ?? '')) missing.push('sourceDigest');
+    if (typeof sidecar.dirty !== 'boolean') missing.push('dirty');
+    if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
+    return { identity: { resultsSource: 'local', platform: sidecar.platform, commit: sidecar.commit, dirty: sidecar.dirty, sourceDigest: sidecar.sourceDigest } };
+  }
   const missing = SIDECAR_FIELDS.filter((f) => typeof sidecar?.[f] !== 'string' || !sidecar[f].trim());
   if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
   return { identity: Object.fromEntries(SIDECAR_FIELDS.map((f) => [f, sidecar[f]])) };
@@ -341,6 +385,7 @@ export function checkRuns(manifest, currentDigest) {
       const named = failures.length ? `: ${failures.slice(0, 5).join('; ')}${failures.length > 5 ? `; and ${failures.length - 5} more` : ''}` : '';
       problems.push(`${label}: ${Math.max(failures.length, run.failedTests ?? 0)} test(s) failed in the recorded run, whether or not a requirement links them${named}`);
     }
+    if (run.dirty === true) problems.push(`${label}: recorded from a tree with uncommitted changes; commit them and rerun`);
     if (typeof run.platform !== 'string' || !run.platform) problems.push(`${label}: no platform recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && (typeof run.commit !== 'string' || !run.commit)) problems.push(`${label}: no commit recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && !run.runUrl) problems.push(`${label}: a CI result without its run URL is unattributed`);

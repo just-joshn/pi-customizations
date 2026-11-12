@@ -16,9 +16,11 @@ From the repository root:
 ```sh
 sh parity/pi-native-tmux-2026-11-11/regen.sh       # recompile, check parity and dependencies, rebuild dist/
 sh parity/pi-native-tmux-2026-11-11/merge-gate.sh  # tsc and the full Vitest suite
-node scripts/build-parity-manifest.mjs             # run Vitest, derive every status, rewrite the manifest and the section below
+node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json --results parity-results/ci/linux-all.json  # run Vitest, keep its report and identity sidecar, merge the Linux CI result, rewrite the manifest and the section below
 node scripts/check-release.mjs                     # the release gate: non-zero until every mandatory requirement is PASS
 ```
+
+Run `build-parity-manifest.mjs` from `extensions/pi-pstack` on a clean, committed tree. `--save` writes the report and a `<name>.identity.json` sidecar with the commit, dirty flag and source digest taken around the run. A Vitest exit other than 0 or 1, a signal, an incomplete report, or code that changes during the run aborts the build. A report passed with `--results` and no sidecar has no commit or digest, so the release gate stays closed until it is rerun with `--save`. `node scripts/ci-linux.mjs` writes the Linux sidecar beside its report.
 
 `git status` must be clean after `regen.sh`. `tests/integration/pi-load.test.ts` runs the real Pi binary, `/Users/josh-desktop/.pi/agent/bin/pi` unless `PSTACK_E2E_PI` names another.
 
