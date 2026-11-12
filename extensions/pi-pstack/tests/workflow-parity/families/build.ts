@@ -1,11 +1,11 @@
 // Families: feature, bug-fix, tdd (spec 12.3). Refactoring, perf-issue, hillclimb and prototype live in build-measured.ts.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, lineOf } from '../fixtures/repos.ts';
-import { check, fail, src, when } from '../lib/check.ts';
+import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
@@ -28,7 +28,8 @@ import {
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
+import { appendToolCall, dirtyRepo, overwrite, rewriteSession, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, removeWorker, rewriteFinalReply, setStep, squashBranch, squashMain, stripEvidence } from '../lib/mutate.ts';
+import type { RunView, ToolCall } from '../lib/view.ts';
 import { taskItems, todoNegatives, worktreeOf, writer } from './shared.ts';
 import type { Family } from './types.ts';
 
@@ -83,6 +84,12 @@ Throughput checkpoint
 - Smallest safe decomposition: one worker, two units.
 Open decisions: whether name should be required on cart items.`;
 
+/** The delegate the playbook's step 4 spawns: the poteto worker, whatever the parent named it. */
+const featureWriter = (view: RunView): string => allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto')?.id ?? 'impl';
+
+/** The brief says what done means. The playbook names "success criteria" as content, so a labelled section, an exact contract, or a stated test or exit condition each say it. */
+const SUCCESS_CRITERIA = /success criteria|acceptance (criteria|tests?)|definition of done|done when|exact contract|\bmust (pass|return|keep|stay|exit)\b|\bcover at least\b|(node --test|npm test) passes|exits? (0|zero)\b/i;
+
 export const featureFamily: Family = {
   id: 'feature',
   title: 'Feature playbook: ground with how, checkpoint, delegate to one worker, verify units and the surface (spec 12.3)',
@@ -132,7 +139,7 @@ export const featureFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('feature', ['architect', 'interrogate', 'arena']),
     ...todoChecks({ playbook: 'feature', mandatory: [4], skipReason: { 8: /PR|remote/i } }),
-    workersCheck('feature.grounded-with-how', 'step 1: how ran over the subsystem, a readonly explainer on the repository root', src('poteto-mode/playbooks/feature.md', '`how` over the affected subsystem'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /explainer/ }),
+    workersCheck('feature.grounded-with-how', 'step 1: how ran over the subsystem, a readonly explainer on the repository root', src('poteto-mode/playbooks/feature.md', '`how` over the affected subsystem'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
     check('feature.architect-step-honest', 'step 2 is either done with the architect skill opened, or skipped with a reason', src('poteto-mode/playbooks/feature.md', '`architect` for parallel design exploration'), (view) => {
       const step = primaryRun(view, 'feature')?.steps.find((entry) => entry.n === 2);
       if (step === undefined) return fail('no step 2');
@@ -141,24 +148,29 @@ export const featureFamily: Family = {
     }),
     check('feature.throughput-checkpoint-four-items', 'step 3: the throughput checkpoint is four todo items, none dropped', src('poteto-mode/playbooks/feature.md', 'Write the throughput checkpoint as four todo items'), (view) => {
       const items = taskItems(primaryRun(view, 'feature')).map((item) => item.text);
-      const missing = ['Blocking first steps', 'Independent workstreams', 'Shared mutable state', 'Smallest safe decomposition'].filter((name) => !items.some((item) => item.startsWith(name)));
-      const empty = items.filter((item) => /^(Blocking|Independent|Shared|Smallest)/.test(item) && item.replace(/^[^.]*\.\s*/, '').trim() === '');
+      // An item may carry its own ordinal ("C1. Blocking first steps"): the dimension is what the item names, not its numbering.
+      const named = items.map((item) => item.replace(/^[A-Za-z]{0,3}\d+[.):]\s+/, ''));
+      const missing = ['Blocking first steps', 'Independent workstreams', 'Shared mutable state', 'Smallest safe decomposition'].filter((name) => !named.some((item) => item.startsWith(name)));
+      const empty = named.filter((item) => /^(Blocking|Independent|Shared|Smallest)/.test(item) && item.replace(/^[^.:]*[.:]\s*/, '').trim() === '');
       return when(missing.length === 0 && empty.length === 0, 'all four dimensions kept, each with content or n/a: <reason>', `missing ${missing.join(', ') || 'none'}; empty ${empty.join(', ') || 'none'}`);
     }),
     workersCheck('feature.delegated-to-one-writer', 'step 4: code-writing is delegated to a fresh poteto worker in its own worktree at the base commit, on the "feature, refactoring" model line', src('poteto-mode/playbooks/feature.md', 'Delegate code-writing to a subagent using your configured feature model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'feature, refactoring' }),
     check('feature.brief-names-scope', 'the delegate brief carries file paths, the named data shape, and success criteria', src('poteto-mode/playbooks/feature.md', 'with a specific scope (file paths, named data shape'), (view) => {
       const worker = allWorkers(view).find((entry) => assignmentOf(entry).role === 'poteto');
       const brief = worker?.brief ?? '';
-      const missing = [{ name: 'file paths', pattern: /src\/\w+\.js/ }, { name: 'data shape', pattern: /data shape/i }, { name: 'success criteria', pattern: /success criteria/i }].filter(({ pattern }) => !pattern.test(brief)).map(({ name }) => name);
+      const missing = [{ name: 'file paths', pattern: /src\/\w+\.js/ }, { name: 'data shape', pattern: /data shape/i }, { name: 'success criteria', pattern: SUCCESS_CRITERIA }].filter(({ pattern }) => !pattern.test(brief)).map(({ name }) => name);
       return when(missing.length === 0 && assignmentOf(worker as never).workspace?.inputCommit === view.base, 'the brief names paths, the data shape, success criteria, and the base commit is the input', `brief lacks ${missing.join(', ')}`);
     }),
     parentWritesOnlyScratch('feature.parent-stays-in-the-lead', 'the parent wrote no production code and the main checkout is clean: it plans, reviews, verifies', src('poteto-mode/playbooks/feature.md', 'Delegate implementation. Stay in the lead.')),
-    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', 'impl', { min: 2 }),
-    check('feature.surface-receipt-is-the-delivered-commit', 'the surface receipt records the commit the worker delivered', src('poteto-mode/playbooks/feature.md', 'Verify on the matching surface'), (view) => {
+    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', featureWriter, { min: 2 }),
+    check('feature.surface-receipt-is-the-delivered-commit', 'the surface receipt (the one step 5 cites) records the commit the worker delivered', src('poteto-mode/playbooks/feature.md', 'Verify on the matching surface'), (view) => {
       const run = primaryRun(view, 'feature');
-      const head = branchCommits(view, run?.id ?? '', 'impl').at(-1);
-      const receipt = run?.receipts.find((entry) => entry.id === 'feat-surface');
-      return when(head !== undefined && receipt?.commit === head, `receipt commit ${head?.slice(0, 10)} is the worker head`, `receipt commit ${String(receipt?.commit)} is not worker head ${String(head)}`);
+      const head = branchCommits(view, run?.id ?? '', featureWriter(view)).at(-1);
+      const cited = run?.steps.find((step) => step.n === 5)?.evidence ?? [];
+      const receipts = (run?.receipts ?? []).filter((entry) => cited.includes(entry.id));
+      // The parent may merge the worker's commits into the checkout; the receipt then names the checkout's head, which is the worker's head.
+      const delivered = (sha: string | null | undefined) => sha !== undefined && sha !== null && (sha === head || (head !== undefined && sha === view.git.head && view.git.commitsSinceBase.includes(head)));
+      return when(head !== undefined && receipts.length > 0 && receipts.every((receipt) => delivered(receipt.commit)), `${receipts.map((receipt) => `${receipt.id}@${receipt.commit?.slice(0, 10)}`).join(', ')} is the worker head ${head?.slice(0, 10)}`, `step 5 cites ${receipts.length} recorded receipt(s) (${cited.join(', ') || 'none'}); commits ${receipts.map((receipt) => String(receipt.commit)).join(', ') || 'none'} are not the worker head ${String(head)}`);
     }),
     writableWorkerRecords('feature.worker-records', src('poteto-mode/playbooks/feature.md', 'Commit liberally'), ['poteto']),
     settledAndCollected('feature.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
@@ -179,8 +191,12 @@ export const featureFamily: Family = {
     { name: 'the work landed as one commit', mutate: (sandbox) => squashBranch(sandbox, 'pstack-run/feature-export/impl'), fails: ['feature.small-ordered-verified-commits'] },
     { name: 'a throughput item was dropped', mutate: (sandbox) => removeTodoItem(sandbox, 'feature-export', 'Shared mutable state'), fails: ['feature.throughput-checkpoint-four-items'] },
     { name: 'the surface receipt names a commit nobody delivered', mutate: (sandbox) => patchReceipt(sandbox, 'feature-export', 'feat-surface', { commit: 'deadbeefdeadbeef' }), fails: ['feature.surface-receipt-is-the-delivered-commit'] },
-    { name: 'the delegate brief has no success criteria', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Success criteria/g, 'Hope'), fails: ['feature.brief-names-scope'] },
+    { name: 'the delegate brief has no success criteria', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Success criteria:[^\n]*/g, 'Hope it works.'), fails: ['feature.brief-names-scope'] },
     { name: 'the delegate left no commit', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: ['feature.small-ordered-verified-commits'] },
+    { name: 'the throughput items carry ordinals, C1 to C4', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs/feature-export/TODO.md'), (text) => ['Blocking first steps', 'Independent workstreams', 'Shared mutable state', 'Smallest safe decomposition'].reduce((acc, name, index) => acc.replace(`- [ ] ${name}`, `- [ ] C${index + 1}. ${name}`), text)), fails: [], passes: ['feature.throughput-checkpoint-four-items'] },
+    { name: 'the brief states an exact contract instead of a success criteria heading', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Success criteria:[^\n]*/g, 'Exact contract: exportCsv returns the header and the row.'), fails: [], passes: ['feature.brief-names-scope'] },
+    { name: 'the delegate\'s commits were fast-forwarded into the checkout', mutate: (sandbox) => mergeBranch(sandbox, 'pstack-run/feature-export/impl'), fails: [], passes: ['feature.parent-stays-in-the-lead'] },
+    { name: 'the parent committed on the checkout itself', mutate: (sandbox) => commitOnMain(sandbox), fails: ['feature.parent-stays-in-the-lead'] },
   ],
 };
 
@@ -365,6 +381,15 @@ const TDD_REPLY = `Failing before: test/coupon-over-100.test.js failed with "a c
 Passing after: node --test ran green with 4 tests after the one-line bound in src/cart.js.
 Nearby validation: the three existing cart tests still pass unchanged.`;
 
+const TEST_RUN = /\b(node --test|npm (run )?test|npx vitest|vitest|pnpm( run)? test|yarn test|pytest|go test|cargo test)\b/;
+const isRepoFile = (call: ToolCall, view: RunView) => {
+  const path = String(call.args['path'] ?? '');
+  return (path.startsWith(view.repo) || !path.startsWith('/')) && !path.includes('/.pi/') && !path.startsWith('.pi/');
+};
+/** A write or an edit of a test file: the regression test is a new file or a new test added to an existing one. */
+const isTestEdit = (call: ToolCall, view: RunView) => (call.name === 'write' || call.name === 'edit') && isRepoFile(call, view) && /(^|\/)(tests?|__tests__)\/|\.(test|spec)\.[jt]sx?$/.test(String(call.args['path']));
+const isRepoSource = (call: ToolCall, view: RunView) => isRepoFile(call, view) && /(^|\/)(src|lib)\//.test(String(call.args['path']));
+
 export const tddFamily: Family = {
   id: 'tdd',
   title: 'tdd: a failing test first, confirmed red for the intended reason, then the smallest fix, then green (spec 12.3)',
@@ -394,30 +419,35 @@ export const tddFamily: Family = {
   checks: [
     promptRoutes('tdd'),
     parentReads('tdd.reads-skill', 'the parent opens the tdd skill', src('tdd/SKILL.md', '# TDD Bug Fix'), ['tdd']),
-    check('tdd.test-first-red-then-fix-then-green', 'the regression test is written first, run and seen failing, then the source is edited, then the suite is run and passes', src('tdd/SKILL.md', '**Run the new test before fixing.**'), (view) => {
+    check('tdd.test-first-red-then-fix-then-green', 'a regression test is written or added to a test file first, run and seen failing, then the source is edited, then the suite is run and passes', src('tdd/SKILL.md', '**Run the new test before fixing.**'), (view) => {
       const calls = view.parent.toolCalls;
-      const writeTest = calls.find((call) => call.name === 'write' && String(call.args['path']).includes('/test/'));
-      const editSource = calls.find((call) => call.name === 'edit' && String(call.args['path']).includes('/src/'));
-      const runs = calls.filter((call) => call.name === 'bash' && /node --test/.test(String(call.args['command'])) && !/git add/.test(String(call.args['command'])));
-      const red = runs.find((call) => writeTest !== undefined && call.order > writeTest.order);
-      const green = runs.find((call) => editSource !== undefined && call.order > editSource.order);
-      return when(writeTest !== undefined && editSource !== undefined && red !== undefined && green !== undefined && writeTest.order < (red.order) && red.order < editSource.order && editSource.order < green.order && red.isError && !green.isError && /fail/i.test(red.resultText), `test written at ${writeTest?.order}, red at ${red?.order}, fix at ${editSource?.order}, green at ${green?.order}`, `write ${writeTest?.order}, red ${red?.order} err=${red?.isError}, edit ${editSource?.order}, green ${green?.order} err=${green?.isError}`);
+      const wrote = calls.find((call) => isTestEdit(call, view));
+      const fixed = calls.find((call) => (call.name === 'edit' || call.name === 'write') && !isTestEdit(call, view) && isRepoSource(call, view) && wrote !== undefined && call.order > wrote.order);
+      const runs = calls.filter((call) => call.name === 'bash' && TEST_RUN.test(String(call.args['command'])) && !/git (add|commit)/.test(String(call.args['command'])));
+      const red = runs.find((call) => wrote !== undefined && call.order > wrote.order);
+      const green = runs.find((call) => fixed !== undefined && call.order > fixed.order);
+      const failed = (call: ToolCall | undefined) => call !== undefined && (call.isError || /exited with code [1-9]|\bnot ok\b|\bfailed\b|\bfailing\b|\bFAIL\b|\bfail [1-9]|✖/.test(call.resultText));
+      const detail = `test written at ${wrote?.order}, red at ${red?.order}, fix at ${fixed?.order}, green at ${green?.order}`;
+      return when(wrote !== undefined && fixed !== undefined && red !== undefined && green !== undefined && wrote.order < red.order && red.order < fixed.order && fixed.order < green.order && failed(red) && !failed(green), detail, `${detail}; red failed ${String(failed(red))}, green failed ${String(failed(green))}`);
     }),
-    check('tdd.history-has-the-failing-test-before-the-fix', 'git history holds the failing test commit before the fix commit, each touching only its own files', src('tdd/SKILL.md', 'The goal is a focused regression test that fails before the fix and passes after it'), (view) => {
+    check('tdd.history-has-the-failing-test-before-the-fix', 'when the work was committed, git history holds the failing test before the fix; the skill has no commit step, so uncommitted work is judged by the transcript order alone', src('tdd/SKILL.md', 'The goal is a focused regression test that fails before the fix and passes after it'), (view) => {
       const commits = [...view.git.commitsSinceBase].reverse();
-      if (commits.length !== 2) return fail(`${commits.length} commits since the base, want the test and the fix`);
+      if (commits.length === 0) return pass('nothing was committed: the skill has no commit step, and the order of test, red run, fix, and green run is held by the transcript check');
+      if (commits.length !== 2) return fail(`${commits.length} commit(s) since the base, want the test and the fix in two`);
       const [first, second] = commits as [string, string];
       const red = runAtCommit(view, first, 'node --test');
       const green = runAtCommit(view, second, 'node --test');
-      return when(filesChanged(view, first).every((file) => file.startsWith('test/')) && filesChanged(view, second).join() === 'src/cart.js' && red.status !== 0 && green.status === 0, 'test commit fails alone, fix commit touches only src/cart.js and passes', `first ${filesChanged(view, first).join()} exit ${red.status}; second ${filesChanged(view, second).join()} exit ${green.status}`);
+      return when(filesChanged(view, first).every((file) => file.startsWith('test/')) && filesChanged(view, second).every((file) => file.startsWith('src/')) && red.status !== 0 && green.status === 0, 'test commit fails alone, fix commit touches only source and passes', `first ${filesChanged(view, first).join()} exit ${red.status}; second ${filesChanged(view, second).join()} exit ${green.status}`);
     }),
-    check('tdd.existing-tests-untouched', 'no existing assertion was weakened: test/cart.test.js is identical at HEAD', src('tdd/SKILL.md', 'Do not change tests merely to match a wrong implementation'), (view) => {
-      const changed = view.git.commitsSinceBase.flatMap((sha) => filesChanged(view, sha)).filter((file) => file === 'test/cart.test.js');
-      return when(changed.length === 0, 'test/cart.test.js untouched', 'test/cart.test.js was edited');
+    check('tdd.existing-tests-untouched', 'no existing assertion was weakened: test/cart.test.js has no removed or changed line against the base (new tests may be added to it)', src('tdd/SKILL.md', 'Do not change tests merely to match a wrong implementation'), (view) => {
+      const diff = spawnSync('git', ['-C', view.repo, 'diff', view.base, '--', 'test/cart.test.js'], { encoding: 'utf8' }).stdout;
+      const removed = diff.split('\n').filter((line) => line.startsWith('-') && !line.startsWith('---'));
+      return when(removed.length === 0, 'test/cart.test.js only gained lines', `test/cart.test.js lost or changed ${removed.length} line(s): ${removed.slice(0, 2).join(' | ')}`);
     }),
     check('tdd.reply-names-the-evidence', 'the reply names the failing-before test and its failure, and the passing-after run', src('tdd/SKILL.md', 'Name the failing-before test or executable check and the failure it produced'), (view) => {
       const reply = finalReply(view);
-      return when(/Failing before/i.test(reply) && /Passing after/i.test(reply) && /test\/coupon-over-100\.test\.js/.test(reply) && /-?\d/.test(reply), 'reply has Failing before and Passing after with the test file', `reply: ${reply.slice(0, 120)}`);
+      const tests = view.parent.toolCalls.filter((call) => isTestEdit(call, view)).map((call) => basename(String(call.args['path'])));
+      return when(/Failing[- ]before/i.test(reply) && /Passing[- ]after/i.test(reply) && tests.some((name) => reply.includes(name)) && /-?\d/.test(reply), 'reply has Failing before and Passing after with the test file', `reply: ${reply.slice(0, 160)}; test files ${tests.join(', ') || 'none'}`);
     }),
   ],
   negatives: [
@@ -426,6 +456,11 @@ export const tddFamily: Family = {
     { name: 'an existing test was weakened', mutate: (sandbox) => weakenExisting(sandbox), fails: ['tdd.existing-tests-untouched'] },
     { name: 'the reply lost the failing-before evidence', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Failing before', 'Earlier'), fails: ['tdd.reply-names-the-evidence'] },
     { name: 'the parent never opened the tdd skill', mutate: (sandbox) => rewriteSessionPath(sandbox), fails: ['tdd.reads-skill'] },
+    { name: 'the reply names no test file', mutate: (sandbox) => rewriteFinalReply(sandbox, 'test/coupon-over-100.test.js', 'a test'), fails: ['tdd.reply-names-the-evidence'] },
+    { name: 'the reply hyphenates the two evidence labels', mutate: (sandbox) => rewriteFinalReply(sandbox, /Failing before|Passing after/g, (label) => label.replace(' ', '-')), fails: [], passes: ['tdd.reply-names-the-evidence'] },
+    { name: 'the work was never committed, which the skill does not ask for', mutate: (sandbox) => uncommit(sandbox), fails: [], passes: ['tdd.history-has-the-failing-test-before-the-fix'] },
+    { name: 'the suite ran as npm test', mutate: (sandbox) => rewriteSession(parentSession(sandbox), /"command":"node --test"/g, '"command":"npm test"'), fails: [], passes: ['tdd.test-first-red-then-fix-then-green'] },
+    { name: 'a new test was added to the existing test file', mutate: (sandbox) => addToExistingTest(sandbox), fails: [], passes: ['tdd.existing-tests-untouched'] },
   ],
 };
 
@@ -438,9 +473,33 @@ function swapOrder(sandbox: string): void {
 
 function weakenExisting(sandbox: string): void {
   const repo = join(sandbox, 'repo');
-  writeFileSync(join(repo, 'test/cart.test.js'), `${readFileSync(join(repo, 'test/cart.test.js'), 'utf8')}// weakened\n`);
+  const path = join(repo, 'test/cart.test.js');
+  writeFileSync(path, readFileSync(path, 'utf8').replace('assert.equal(total(items), 10)', 'assert.ok(total(items))'));
   execFileSync('git', ['-C', repo, 'add', '-A']);
   execFileSync('git', ['-C', repo, '-c', 'user.name=m', '-c', 'user.email=m@x', 'commit', '-q', '-m', 'weaken']);
+  refreshGit(sandbox);
+}
+
+function uncommit(sandbox: string): void {
+  const base = (JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { base: string }).base;
+  execFileSync('git', ['-C', join(sandbox, 'repo'), 'reset', '-q', '--mixed', base]);
+  refreshGit(sandbox);
+}
+
+function addToExistingTest(sandbox: string): void {
+  const repo = join(sandbox, 'repo');
+  const path = join(repo, 'test/cart.test.js');
+  writeFileSync(path, `${readFileSync(path, 'utf8')}\ntest('a coupon of 100 percent is free', () => assert.equal(total([{ price: 10, qty: 1 }], 100), 0));\n`);
+  refreshGit(sandbox);
+}
+
+function mergeBranch(sandbox: string, branch: string): void {
+  execFileSync('git', ['-C', join(sandbox, 'repo'), 'merge', '-q', '--ff-only', branch]);
+  refreshGit(sandbox);
+}
+
+function commitOnMain(sandbox: string): void {
+  execFileSync('git', ['-C', join(sandbox, 'repo'), '-c', 'user.name=m', '-c', 'user.email=m@x', 'commit', '-q', '--allow-empty', '-m', 'parent edits production']);
   refreshGit(sandbox);
 }
 
