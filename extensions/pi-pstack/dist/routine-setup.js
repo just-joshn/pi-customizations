@@ -19,6 +19,7 @@ import { join as join6 } from "node:path";
 // src/workers.ts
 import { execFile } from "node:child_process";
 import { existsSync as existsSync4, mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync2, rmSync, statSync, writeFileSync as writeFileSync3 } from "node:fs";
+import { homedir } from "node:os";
 import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as join4, relative as relative2 } from "node:path";
 import { promisify } from "node:util";
 import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
@@ -1121,6 +1122,17 @@ var AMBIENT_CREDENTIALS = {
 function credentialEnv(provider) {
   return [...findEnvKeys(provider) ?? [], ...AMBIENT_CREDENTIALS[provider] ?? []];
 }
+function defaultProvider(env) {
+  const home = env["HOME"] ?? homedir();
+  const configured = env["PI_CODING_AGENT_DIR"];
+  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join4(home, ".pi", "agent");
+  try {
+    const provider = JSON.parse(readFileSync3(join4(agentDir, "settings.json"), "utf8")).defaultProvider;
+    return typeof provider === "string" ? provider : undefined;
+  } catch {
+    return;
+  }
+}
 var execFileAsync = promisify(execFile);
 var nodeExec = async (command, args, options) => {
   try {
@@ -1205,6 +1217,8 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   } else if (!existsSync4(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory())
     throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? piCommand();
+  const source = { ...process.env, ...options.extraEnv };
+  const provider = model?.provider ?? (assignment.kind === "pi" ? defaultProvider(source) : undefined);
   const launch = {
     piCommand: [onPath(command[0]), ...command.slice(1)],
     model: model === null ? null : { provider: model.provider, id: model.id },
@@ -1213,10 +1227,10 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: model === null ? [] : credentialEnv(model.provider)
+    credentialEnv: provider === undefined ? [] : credentialEnv(provider)
   };
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? "1" : null,
     ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
@@ -1376,9 +1390,9 @@ import { createServer as createServer2 } from "node:http";
 
 // src/automation/credentials.ts
 import { readFileSync as readFileSync5, statSync as statSync2 } from "node:fs";
-import { homedir } from "node:os";
+import { homedir as homedir2 } from "node:os";
 import { join as join7 } from "node:path";
-var credentialsDir = () => join7(homedir(), ".pi", "agent", "pstack", "credentials");
+var credentialsDir = () => join7(homedir2(), ".pi", "agent", "pstack", "credentials");
 var defaultCredentialFile = (connector) => join7(credentialsDir(), `${connector}.json`);
 function readCredential(file, field) {
   let mode;

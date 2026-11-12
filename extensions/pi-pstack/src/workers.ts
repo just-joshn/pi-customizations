@@ -2,6 +2,7 @@
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -232,6 +233,23 @@ function credentialEnv(provider: string): string[] {
   return [...(findEnvKeys(provider) ?? []), ...(AMBIENT_CREDENTIALS[provider] ?? [])];
 }
 
+/**
+ * The provider Pi starts on when it gets no --model: `defaultProvider` in settings.json under the agent directory the
+ * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Undefined when the file names none and Pi picks on its own.
+ */
+function defaultProvider(env: Record<string, string | undefined>): string | undefined {
+  const home = env['HOME'] ?? homedir();
+  const configured = env['PI_CODING_AGENT_DIR'];
+  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join(home, '.pi', 'agent');
+  try {
+    const provider = (JSON.parse(readFileSync(join(agentDir, 'settings.json'), 'utf8')) as { defaultProvider?: unknown }).defaultProvider;
+    return typeof provider === 'string' ? provider : undefined;
+  } catch {
+    // Pi starts without this file's settings too.
+    return undefined;
+  }
+}
+
 function finalAssistantText(sessionFile: string | null): string | null {
   if (sessionFile === null || !existsSync(sessionFile)) return null;
   let text: string | null = null;
@@ -384,6 +402,9 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
   } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? runningPiCommand();
+  // This process's environment now, not the tmux server's, which dates from when the server started.
+  const source = { ...process.env, ...options.extraEnv };
+  const provider = model?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
   const launch: HostLaunch = {
     piCommand: [onPath(command[0] as string), ...command.slice(1)],
     model: model === null ? null : { provider: model.provider, id: model.id },
@@ -392,12 +413,11 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: model === null ? [] : credentialEnv(model.provider),
+    credentialEnv: provider === undefined ? [] : credentialEnv(provider),
   };
-  // This process's environment now, not the tmux server's, which dates from when the server started.
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? '1' : null,
     ...(spawns ? { PSTACK_TMUX_SOCKET: socket } : {}),
