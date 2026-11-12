@@ -7,7 +7,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, 
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
-import { type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
+import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
@@ -214,18 +214,23 @@ function workerPhases(repo: string): string[] {
   });
 }
 
-function observeTodos(repo: string, history: Record<string, Snapshot[]>): () => void {
+function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: Claim[]): () => void {
+  let seq = 0;
   const timer = setInterval(() => {
     const runs = join(repo, '.pi', 'pstack', 'runs');
     if (!existsSync(runs)) return;
     for (const id of readdirSync(runs)) {
       const path = join(runs, id, 'TODO.md');
-      if (!existsSync(path)) continue;
-      const text = readFileSync(path, 'utf8');
-      const seen = (history[id] ??= []);
-      if (seen.at(-1)?.text !== text) seen.push({ t: Date.now(), text });
+      if (existsSync(path)) {
+        const text = readFileSync(path, 'utf8');
+        const seen = (history[id] ??= []);
+        if (seen.at(-1)?.text !== text) seen.push({ t: Date.now(), seq: seq++, text });
+      }
+      const workers = join(runs, id, 'workers');
+      if (!existsSync(workers)) continue;
+      for (const workerId of readdirSync(workers)) if (existsSync(join(workers, workerId, 'claim')) && !claims.some((claim) => claim.runId === id && claim.workerId === workerId)) claims.push({ runId: id, workerId, seq: seq++ });
     }
-  }, 25);
+  }, 10);
   return () => clearInterval(timer);
 }
 
@@ -261,7 +266,8 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   const child = spawn(PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
   const rpc = new Rpc(child);
   const history: Record<string, Snapshot[]> = {};
-  const stopObserving = observeTodos(ctx.repo, history);
+  const claims: Claim[] = [];
+  const stopObserving = observeRuns(ctx.repo, history, claims);
   const timeoutMs = spec.timeoutMs ?? (driver === 'scripted' ? 120_000 : 900_000);
   const deadline = Date.now() + timeoutMs;
   let timedOut = false;
@@ -311,6 +317,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
+  writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
   writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base), null, 2));
   const view = loadView(ctx.sandbox);
   return { sandbox: ctx.sandbox, view, meta, cleanup: () => removeSandbox(ctx.sandbox) };
@@ -345,6 +352,7 @@ export function loadView(sandbox: string): RunView {
       : [],
     plans: loadPlans(repo),
     todoHistory: existsSync(join(sandbox, 'todo-history.json')) ? (JSON.parse(readFileSync(join(sandbox, 'todo-history.json'), 'utf8')) as Record<string, Snapshot[]>) : {},
+    claims: existsSync(join(sandbox, 'claims.json')) ? (JSON.parse(readFileSync(join(sandbox, 'claims.json'), 'utf8')) as Claim[]) : [],
     git: JSON.parse(readFileSync(join(sandbox, 'git.json'), 'utf8')) as GitState,
     pkg: PKG,
     prompt: parent.messages.find((message) => message.role === 'user')?.text ?? meta.prompt,

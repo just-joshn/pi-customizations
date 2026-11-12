@@ -345,7 +345,7 @@ export function writableWorkerRecords(id: string, source: Src | Src[], roles?: s
     const problems = workers.flatMap((worker) => {
       if (assignmentOf(worker).workspace?.mode === 'readonly') return worker.finalText.trim() === '' ? [`${worker.id}: readonly worker has no final reply`] : [];
       const run = view.runs.find((entry) => entry.workers.includes(worker)) as RunDir;
-      const own = run.receipts.filter((receipt) => worker.evidenceFiles.includes(`${receipt.id}.json`));
+      const own = run.receipts.filter((receipt) => worker.evidenceFiles.includes(`${receipt.id}.json`) || worker.evidenceFiles.includes(`${receipt.id}.receipt.json`));
       if (worker.report === null || worker.report.trim() === '') return [`${worker.id}: no report.md`];
       return own.length === 0 ? [`${worker.id}: no receipt recorded from its evidence/ (${worker.evidenceFiles.join(', ') || 'empty'})`] : [];
     });
@@ -493,5 +493,59 @@ export function noInventedSources(id: string, source: Src | Src[]): Check {
     const unknownShas = shas.filter((sha) => !seen.includes(sha) && !allWorkers(view).some((worker) => worker.finalText.includes(sha)));
     const unknownPrs = prs.filter((n) => !known(n));
     return when(unknownPrs.length === 0 && unknownShas.length === 0 && (prs.length > 0 || shas.length > 0), `${prs.length} PR numbers and ${shas.length} commits all appear in tool results`, `not in any tool result: PRs ${unknownPrs.join(', ') || 'none'}, commits ${unknownShas.join(', ') || 'none'}${prs.length + shas.length === 0 ? '; the reply cites no source at all' : ''}`);
+  });
+}
+
+/** A panel role: the workers of that role run on the models the line lists, each entry used, from at least two families when the line has them. */
+export function panelCheck(id: string, title: string, source: Src | Src[], options: { role: string; line: string; mode: 'worktree' | 'readonly' }): Check {
+  return check(id, title, source, (view) => {
+    const workers = allWorkers(view).filter((worker) => assignmentOf(worker).role === options.role);
+    const configured = view.models?.[options.line];
+    const entries = (Array.isArray(configured) ? configured : configured === undefined ? [] : [configured]).map((entry) => entry.replace(/:(off|minimal|low|medium|high|xhigh|max)$/, ''));
+    const parent = view.parent.models[0] ?? '';
+    const used = workers.map((worker) => {
+      const model = String(assignmentOf(worker).model);
+      return model === 'inherit-parent' ? parent : model;
+    });
+    const problems: string[] = [];
+    if (workers.length < Math.max(2, entries.length === 0 ? 2 : Math.min(entries.length, 2))) problems.push(`${workers.length} ${options.role} workers`);
+    for (const worker of workers) if (assignmentOf(worker).workspace?.mode !== options.mode) problems.push(`${worker.id} workspace ${String(assignmentOf(worker).workspace?.mode)} is not ${options.mode}`);
+    const outside = used.filter((model) => !entries.includes(model));
+    if (entries.length > 0 && outside.length > 0) problems.push(`models outside the "${options.line}" line: ${outside.join(', ')}`);
+    const unused = entries.filter((entry) => !used.includes(entry));
+    if (workers.length >= entries.length && unused.length > 0) problems.push(`line entries with no worker: ${unused.join(', ')}`);
+    const families = new Set(used.map(FAMILY_OF));
+    const available = new Set(entries.map(FAMILY_OF));
+    if (families.size < Math.min(2, available.size)) problems.push(`one model family only (${[...families].join(', ')}): two labels on one family are not independent review`);
+    return when(problems.length === 0, `${workers.length} ${options.role} workers on ${used.join(', ')} (${families.size} families)`, problems.join('; '));
+  });
+}
+
+/** Every spawn of these roles happens before the parent's first collect, "one after another without waiting". */
+export function fanOutBeforeCollect(id: string, source: Src | Src[], roles: string[]): Check {
+  return check(id, `all ${roles.join('/')} workers are spawned before the parent waits on or collects any of them`, source, (view) => {
+    const ids = idsOf(view, roles);
+    const spawns = ids.map((workerId) => spawnOrder(view, workerId));
+    const collects = ids.map((workerId) => collectOrder(view, workerId)).filter((order) => order !== -1);
+    const firstCollect = Math.min(...collects);
+    return when(ids.length >= 2 && !spawns.includes(-1) && Math.max(...spawns) < firstCollect, `${ids.length} spawns (last at ${Math.max(...spawns)}) precede the first collect (${firstCollect})`, `spawn orders ${spawns.join(',')}, first collect ${firstCollect}`);
+  });
+}
+
+/** The sentence-level contract of a brief: every listed pattern appears in the brief of each worker of the role. */
+export function briefsContain(id: string, title: string, source: Src | Src[], roles: string[], patterns: { name: string; pattern: RegExp }[]): Check {
+  return check(id, title, source, (view) => {
+    const workers = allWorkers(view).filter((worker) => roles.includes(String(assignmentOf(worker).role)));
+    const gaps = workers.flatMap((worker) => patterns.filter(({ pattern }) => !pattern.test(worker.brief ?? '')).map(({ name }) => `${worker.id} brief lacks ${name}`));
+    return when(workers.length > 0 && gaps.length === 0, `${workers.length} briefs carry ${patterns.map(({ name }) => name).join(', ')}`, gaps.join('; ') || 'no workers');
+  });
+}
+
+/** The parent opened these repository files (by suffix) with read or a shell reader. */
+export function parentOpenedFiles(id: string, title: string, source: Src | Src[], suffixes: (view: RunView) => string[]): Check {
+  return check(id, title, source, (view) => {
+    const wanted = suffixes(view);
+    const missing = wanted.filter((suffix) => openedAt(view.parent, suffix) === -1);
+    return when(wanted.length > 0 && missing.length === 0, `parent opened ${wanted.length} files`, `parent never opened ${missing.join(', ')}`);
   });
 }

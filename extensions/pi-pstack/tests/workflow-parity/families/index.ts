@@ -1,7 +1,8 @@
+import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies];
+export const families: Family[] = [...investigationFamilies, ...designFamilies];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);

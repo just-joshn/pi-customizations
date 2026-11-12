@@ -51,6 +51,8 @@ export interface AssignmentFields {
 }
 
 export interface ProofOptions {
+  /** Takes the receipt's commit from this checkout's HEAD when the command has run. */
+  gitDir?: string;
   id: string;
   target: string;
   /** Shell command run in `cwd`; its output is the artifact and its exit status the verdict. */
@@ -125,6 +127,9 @@ export class Parent extends Actor {
   collect(...workerIds: string[]): this {
     return this.together(...workerIds.map((workerId) => ({ tool: 'pstack_worker', args: { action: 'collect', runId: this.ctx.runId, workerId } })));
   }
+  worktreePath(workerId: string): string {
+    return join(this.runDir, 'workers', workerId, 'worktree');
+  }
   workerDir(workerId: string): string {
     return join(this.runDir, 'workers', workerId);
   }
@@ -136,19 +141,7 @@ export class Parent extends Actor {
   }
   /** Runs a command, keeps its output as the artifact, writes a receipt from its exit status, and records it. */
   proof(options: ProofOptions): this {
-    const dir = options.dir ?? join(this.runDir, 'verification', 'artifacts');
-    const artifact = join(dir, `${options.id}.txt`);
-    const receipt = join(dir, `${options.id}.receipt.json`);
-    const helper = join(this.ctx.pkg, 'tests', 'workflow-parity', 'fixtures', 'receipt.mjs');
-    const script = [
-      `mkdir -p ${JSON.stringify(dir)}`,
-      `cd ${JSON.stringify(options.cwd ?? this.ctx.repo)}`,
-      `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
-      `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${this.ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} --exit $code --cmd ${JSON.stringify(options.command)} --artifact ${JSON.stringify(artifact)}`,
-      'exit 0',
-    ].join('\n');
-    this.bash(script);
-    return this.call('pstack_evidence', { action: 'record', runId: this.ctx.runId, receiptPath: receipt });
+    return proofSteps(this, this.ctx, options, join(this.runDir, 'verification', 'artifacts'));
   }
   /** Appends a decision row with the package's own show-me-your-work helper. */
   decision(phase: string, decision: string, why: string, evidence: string, result: string, file = join(this.runDir, 'decisions.tsv')): this {
@@ -162,4 +155,22 @@ export class Worker extends Actor {}
 
 export function scenario(parent: Parent, workers: Record<string, Worker> = {}): { actors: Record<string, unknown[]> } {
   return { actors: { parent: parent.steps, ...Object.fromEntries(Object.entries(workers).map(([id, worker]) => [id, worker.steps])) } };
+}
+
+/** The steps that run a command, hash its output, write a receipt, and record it with pstack_evidence. */
+export function proofSteps<T extends Actor>(actor: T, ctx: Ctx, options: ProofOptions, defaultDir: string): T {
+  const dir = options.dir ?? defaultDir;
+  const artifact = join(dir, `${options.id}.txt`);
+  const receipt = join(dir, `${options.id}.receipt.json`);
+  const helper = join(ctx.pkg, 'tests', 'workflow-parity', 'fixtures', 'receipt.mjs');
+  const script = [
+    `mkdir -p ${JSON.stringify(dir)}`,
+    `cd ${JSON.stringify(options.cwd ?? ctx.repo)}`,
+    `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
+    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} --exit $code --cmd ${JSON.stringify(options.command)} --artifact ${JSON.stringify(artifact)}`,
+    'exit 0',
+  ].join('\n');
+  actor.bash(script);
+  actor.call('pstack_evidence', { action: 'record', runId: ctx.runId, receiptPath: receipt });
+  return actor;
 }

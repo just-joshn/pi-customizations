@@ -27,8 +27,15 @@ export function defineFamilyTests(list: Family[]): void {
       test('scripted run: every check passes', () => {
         const results = run?.results ?? [];
         expect(run?.timedOut, `pi stderr: ${run?.piStderr}`).toBe(false);
-        expect(results.filter((result) => result.verdict !== 'PASS').map((result) => `${result.verdict} ${result.id}: ${result.evidence}`)).toEqual([]);
+        const known = new Set((family.knownDefects ?? []).map((entry) => entry.checkId));
+        expect(results.filter((result) => result.verdict !== 'PASS' && !known.has(result.id)).map((result) => `${result.verdict} ${result.id}: ${result.evidence}`)).toEqual([]);
         expect(results.length).toBeGreaterThan(0);
+      });
+
+      test.for(family.knownDefects ?? [])('known product defect: $checkId', ({ checkId }) => {
+        const result = run?.results.find((entry) => entry.id === checkId);
+        expect(result, `check ${checkId} did not run`).toBeDefined();
+        expect(result?.verdict, 'the defect is fixed: remove it from knownDefects').toBe('FAIL');
       });
 
       test('the run left no tmux session on its private server', () => {

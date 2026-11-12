@@ -137,7 +137,15 @@ export interface RunDir {
 
 export interface Snapshot {
   t: number;
+  /** Position in the driver's one observation sequence, shared with claims. */
+  seq: number;
   text: string;
+}
+
+export interface Claim {
+  runId: string;
+  workerId: string;
+  seq: number;
 }
 
 export interface GitState {
@@ -167,6 +175,8 @@ export interface RunView {
   plans: { path: string; text: string }[];
   /** Distinct TODO.md contents the driver saw, per run id, oldest first. */
   todoHistory: Record<string, Snapshot[]>;
+  /** When the driver first saw each worker's claim directory, in the same sequence as todoHistory. */
+  claims: Claim[];
   git: GitState;
   pkg: string;
   /** The text of the user's first message to the parent. */

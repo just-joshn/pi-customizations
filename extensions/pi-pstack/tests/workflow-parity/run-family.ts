@@ -2,7 +2,7 @@
 // Scripted: the real Pi binary with a scenario model. --real: PSTACK_E2E_REAL_MODEL=<provider>/<id> lets a real model decide.
 import { families, familyById } from './families/index.ts';
 import { REAL_MODEL } from './lib/driver.ts';
-import { report, runFamily, writeEvidence } from './lib/run.ts';
+import { report, runFamily, unexpectedFailures, writeEvidence } from './lib/run.ts';
 
 const [target, ...flags] = process.argv.slice(2);
 const driver = flags.includes('--real') ? 'real' : 'scripted';
@@ -20,7 +20,9 @@ for (const family of target === 'all' ? families : [familyById(target)]) {
   console.log(report(run));
   console.log(`evidence record: ${writeEvidence(run)}`);
   if (run.timedOut) console.log(`TIMED OUT; pi stderr: ${run.piStderr}`);
-  if (run.results.some((result) => result.verdict === 'FAIL') || run.negatives.some((negative) => !negative.detected)) bad += 1;
+  const known = (family.knownDefects ?? []).map((entry) => `${entry.checkId}: ${entry.defect}`);
+  if (known.length > 0) console.log(`known product defects (expected FAIL):\n  ${known.join('\n  ')}`);
+  if (unexpectedFailures(run, family).length > 0 || run.negatives.some((negative) => !negative.detected)) bad += 1;
   if (!flags.includes('--keep')) run.cleanup();
   else console.log(`sandbox kept: ${run.sandbox}`);
 }

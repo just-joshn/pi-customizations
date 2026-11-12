@@ -158,14 +158,14 @@ export const exists = existsSync;
 /** Rewrites the driver's TODO.md timeline so step n is resolved before the steps ahead of it. */
 export function reorderHistory(sandbox: string, runId: string, n: number): void {
   const path = join(sandbox, 'todo-history.json');
-  const history = JSON.parse(readFileSync(path, 'utf8')) as Record<string, { t: number; text: string }[]>;
+  const history = JSON.parse(readFileSync(path, 'utf8')) as Record<string, { t: number; seq: number; text: string }[]>;
   const final = history[runId]?.at(-1)?.text ?? '';
   const open = final.replace(/^- \[[x~X]\] (\d+\. )/gm, '- [ ] $1');
   const partial = open.split('\n').map((line) => (new RegExp(`^- \\[ \\] ${n}\\. `).test(line) ? (final.split('\n').find((candidate) => new RegExp(`^- \\[.\\] ${n}\\. `).test(candidate)) as string) : line)).join('\n');
   history[runId] = [
-    { t: 1, text: open },
-    { t: 2, text: partial },
-    { t: 3, text: final },
+    { t: 1, seq: 1, text: open },
+    { t: 2, seq: 2, text: partial },
+    { t: 3, seq: 3, text: final },
   ];
   writeFileSync(path, JSON.stringify(history));
 }

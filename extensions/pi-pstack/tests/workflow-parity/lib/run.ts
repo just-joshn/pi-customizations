@@ -57,3 +57,9 @@ export function writeEvidence(run: FamilyRun): string {
   writeFileSync(path, JSON.stringify({ family: run.family, driver: run.driver, at: new Date().toISOString(), timedOut: run.timedOut, sandbox: run.sandbox, results: run.results, negatives: run.negatives }, null, 2));
   return path;
 }
+
+/** Failing checks that the family does not list as a known product defect. */
+export function unexpectedFailures(run: FamilyRun, family: Family): string[] {
+  const known = new Set((family.knownDefects ?? []).map((entry) => entry.checkId));
+  return run.results.filter((result) => result.verdict === 'FAIL' && !known.has(result.id)).map((result) => result.id);
+}
