@@ -11,7 +11,7 @@ import { recordReceipt } from '../../src/evidence.ts';
 import { type RunId, readHostState } from '../../src/run-files.ts';
 import { registerStyle } from '../../src/style.ts';
 import { spawnAssignment, workerSocket } from '../../src/workers.ts';
-import { type FakePi, fakePi } from './fake-pi.ts';
+import { type FakePi, fakePi, stopWorkers } from './fake-pi.ts';
 
 let root: string;
 let project: string;
@@ -23,13 +23,7 @@ beforeEach(() => {
   execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], { cwd: project });
 });
 afterEach(async () => {
-  let sessions = '';
-  try {
-    sessions = execFileSync('tmux', ['-L', workerSocket(), 'list-sessions', '-F', '#{session_name}'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  } catch {
-    // No server: nothing to end.
-  }
-  for (const session of sessions.split('\n').filter((name) => name.startsWith('pstack_cmd-'))) execFileSync('tmux', ['-L', workerSocket(), 'kill-session', '-t', session], { stdio: 'ignore' });
+  await stopWorkers(project);
   rmSync(root, { recursive: true, force: true });
 }, 30_000);
 

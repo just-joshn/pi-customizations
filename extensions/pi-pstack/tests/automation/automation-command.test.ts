@@ -9,7 +9,7 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 import { automationRunId, registerPstackCommand } from '../../src/commands.ts';
 import { readHostState } from '../../src/run-files.ts';
 import { workerSocket } from '../../src/workers.ts';
-import { type FakePi, fakePi } from '../integration/fake-pi.ts';
+import { type FakePi, fakePi, stopWorkers } from '../integration/fake-pi.ts';
 
 const PKG = resolve(import.meta.dirname, '../..');
 let root: string;
@@ -30,7 +30,7 @@ beforeEach(() => {
 });
 
 afterEach(async () => {
-  for (const name of ['nightly', 'benny-triage']) await fake.pstack(`automation stop ${name}`).catch(() => undefined);
+  await stopWorkers(project);
   rmSync(root, { recursive: true, force: true });
 }, 30_000);
 

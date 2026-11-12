@@ -1,12 +1,15 @@
 // A minimal ExtensionAPI over a real in-memory Pi SessionManager: custom entries and messages land in the session as
 // Pi would put them there, so branch and compaction behavior is Pi's own.
 import { execFile } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
 import type { ExtensionAPI, ExtensionCommandContext, SessionManager, SlashCommandInfo } from '@earendil-works/pi-coding-agent';
 import { SessionManager as PiSessionManager } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { controlHost, hostTarget } from '../../src/rpc-client.ts';
+import { loadAssignment } from '../../src/run-files.ts';
 import { generatedSkillNames } from '../../src/skill-routing.ts';
 
 const run = promisify(execFile);
@@ -90,4 +93,33 @@ export function fakePi(options: { cwd: string; commands?: SlashCommandInfo[]; se
     return notice;
   };
   return { pi, session, tools, commands, handlers, notices, sent, ctx, fire, pstack };
+}
+
+/** Ends every worker under the project's runs and waits until each host and child process has exited. */
+export async function stopWorkers(project: string): Promise<void> {
+  const runs = join(project, '.pi', 'pstack', 'runs');
+  const pids: number[] = [];
+  for (const runId of existsSync(runs) ? readdirSync(runs) : []) {
+    const workers = join(runs, runId, 'workers');
+    for (const workerId of existsSync(workers) ? readdirSync(workers) : []) {
+      const statePath = join(workers, workerId, 'state.json');
+      if (!existsSync(statePath)) continue;
+      const state = JSON.parse(readFileSync(statePath, 'utf8')) as { hostPid?: number; childPid?: number | null };
+      for (const pid of [state.hostPid, state.childPid]) if (typeof pid === 'number') pids.push(pid);
+      try {
+        await controlHost(hostTarget(loadAssignment(join(workers, workerId, 'assignment.json'))), 'shutdown');
+      } catch {
+        // Already gone.
+      }
+    }
+  }
+  const alive = (pid: number) => {
+    try {
+      process.kill(pid, 0);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  for (let attempt = 0; attempt < 100 && pids.some(alive); attempt += 1) await new Promise((done) => setTimeout(done, 100));
 }
