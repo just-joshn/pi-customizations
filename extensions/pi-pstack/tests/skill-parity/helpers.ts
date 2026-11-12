@@ -18,6 +18,7 @@ export function fixture(): { root: string; cleanup: () => void } {
   const root = mkdtempSync(join(tmpdir(), 'pstack-parity-'));
   cpSync(join(PKG, 'vendor'), join(root, 'vendor'), { recursive: true });
   cpSync(join(PKG, 'generated'), join(root, 'generated'), { recursive: true });
+  cpSync(join(PKG, 'package.json'), join(root, 'package.json'));
   return { root, cleanup: () => rmSync(root, { recursive: true, force: true }) };
 }
 

@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { buildRecords, loadInputs } from './parity-lib.mjs';
 import { KEEPS } from '../adapters/cursor-to-pi.ts';
 import { extractReferences } from '../adapters/dependencies.ts';
 import { listFiles, toPosix } from '../adapters/provenance.ts';
@@ -16,6 +17,8 @@ const fail = (message) => problems.push(message);
 const read = (path) => readFileSync(join(root, path), 'utf8');
 
 const lock = JSON.parse(read('generated/upstream-lock.json'));
+if (existsSync(join(root, 'requirements/requirements.json'))) for (const problem of buildRecords(root, loadInputs(root)).problems) fail(problem);
+else fail('requirements/requirements.json: missing');
 const pinned = JSON.parse(read('package.json')).pstackSource;
 if (pinned.revision !== lock.revision) fail(`package.json pstackSource.revision ${pinned.revision} differs from generated/upstream-lock.json ${lock.revision}`);
 if (!existsSync(join(root, 'generated/source-review-log.json'))) fail('generated/source-review-log.json: missing; move the pin with scripts/sync-upstream.mjs');

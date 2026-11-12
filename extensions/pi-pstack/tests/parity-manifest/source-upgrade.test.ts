@@ -99,7 +99,6 @@ describe('pin consistency gate', () => {
     const { fixture } = await import('../skill-parity/helpers.ts');
     const f = fixture();
     try {
-      cpSync(join(PKG, 'package.json'), join(f.root, 'package.json'));
       const lockPath = join(f.root, 'generated/upstream-lock.json');
       const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
       lock.revision = '0'.repeat(40);

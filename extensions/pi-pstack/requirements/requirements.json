@@ -1,0 +1,3783 @@
+{
+  "schemaVersion": 1,
+  "description": "Source of the parity manifest. Structural rules classify every upstream file; behavioral records cite an upstream span. Status is never written here: scripts/build-parity-manifest.mjs derives it from a Vitest run.",
+  "tests": {
+    "inv.count": {
+      "file": "tests/skill-parity/inventory.test.ts",
+      "name": "inventory upstream source holds 34 primary skills, 24 principles, 23 playbooks, and 2 agents"
+    },
+    "inv.gen": {
+      "file": "tests/skill-parity/inventory.test.ts",
+      "name": "inventory generated skills cover every pstack skill plus the required team-kit set"
+    },
+    "inv.playbooks": {
+      "file": "tests/skill-parity/inventory.test.ts",
+      "name": "inventory generated poteto-mode keeps all 23 playbooks"
+    },
+    "inv.agents": {
+      "file": "tests/skill-parity/inventory.test.ts",
+      "name": "inventory both upstream agents become worker roles beside the general role"
+    },
+    "inv.prompts": {
+      "file": "tests/skill-parity/inventory.test.ts",
+      "name": "inventory every generated skill has a prompt alias of the same name"
+    },
+    "refs.resolve": {
+      "file": "tests/skill-parity/references.test.ts",
+      "name": "every relative reference in generated skills resolves inside the generated package"
+    },
+    "regen.twice": {
+      "file": "tests/skill-parity/regeneration.test.ts",
+      "name": "regenerating the skills twice produces the committed tree byte for byte"
+    },
+    "spans.reapply": {
+      "file": "tests/skill-parity/spans.test.ts",
+      "name": "every manifest span re-applies cleanly to the vendored source and reproduces the generated file"
+    },
+    "gate.real": {
+      "file": "tests/skill-parity/gates.test.ts",
+      "name": "parity gate passes on the real tree"
+    },
+    "gate.task": {
+      "file": "tests/skill-parity/gates.test.ts",
+      "name": "parity gate fails when generated text carries an unmapped Task call"
+    },
+    "gate.drift": {
+      "file": "tests/skill-parity/gates.test.ts",
+      "name": "upstream drift a changed upstream phrase fails the expected-count check and leaves the generated tree alone"
+    },
+    "gate.primitive": {
+      "file": "tests/skill-parity/gates.test.ts",
+      "name": "upstream drift a new upstream instruction that needs an unmapped primitive fails the build"
+    },
+    "gate.unknown": {
+      "file": "tests/skill-parity/gates.test.ts",
+      "name": "upstream drift an unknown Cursor primitive fails the dependency check"
+    },
+    "fm.skill": {
+      "file": "tests/skill-parity/frontmatter.test.ts",
+      "name": "frontmatter {name} has valid Agent Skills frontmatter whose name matches its directory"
+    },
+    "slash.all": {
+      "file": "tests/skill-parity/slash-routing.test.ts",
+      "name": "every generated skill is reachable by /name when nothing else owns the name"
+    },
+    "slash.pstack": {
+      "file": "tests/skill-parity/slash-routing.test.ts",
+      "name": "every generated skill is reachable by /pstack:<name> when another command owns /name"
+    },
+    "slash.alias": {
+      "file": "tests/skill-parity/slash-routing.test.ts",
+      "name": "the alias is only for conflicting names whose skill is loaded, and keeps the text after the name exactly"
+    },
+    "slash.handler": {
+      "file": "tests/skill-parity/slash-routing.test.ts",
+      "name": "the input handler rewrites an aliased name and passes everything else through"
+    },
+    "slash.ships": {
+      "file": "tests/skill-parity/slash-routing.test.ts",
+      "name": "the package ships 62 generated skills, each with a prompt that loads it and passes the arguments"
+    },
+    "load.skills": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "parent session Pi loads all 62 skills with their /name prompts, /pstack, and only the native pstack tools"
+    },
+    "load.expand": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "parent session /name expands the skill prompt with its arguments, and /pstack on puts poteto-mode in context once"
+    },
+    "load.conflict": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "parent session a name another extension owns is reported by doctor and reachable as /pstack:<name>"
+    },
+    "load.install": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "pi install of a copy without node_modules loads the manifest: generated skills, prompts, /pstack, and the pstack tools"
+    },
+    "load.worker": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "worker session PSTACK_WORKER=1 gives the model pstack_evidence only, and no /pstack"
+    },
+    "todo.step": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "copies every complete source step from {name}.md into TODO.md"
+    },
+    "todo.stepall": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "copies every complete source step from {name}.md into TODO.md",
+      "expand": "playbooks"
+    },
+    "todo.inventory": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "the source inventory contains all 23 playbooks"
+    },
+    "todo.nested": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "keeps nested lines and continuation paragraphs without treating code as numbered steps"
+    },
+    "todo.nosteps-pr": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "a playbook without numbered steps says so and points at its rules (opening-a-pr)"
+    },
+    "todo.nosteps-orch": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "a playbook without numbered steps says so and points at its rules (orchestrate)"
+    },
+    "todo.root": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "uses the git project root and records the parent session and input commit"
+    },
+    "todo.overwrite": {
+      "file": "tests/todo/start-run.test.ts",
+      "name": "refuses to overwrite an existing run"
+    },
+    "ext.entry": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "entry a parent gets pstack_worker, pstack_evidence, and /pstack"
+    },
+    "ext.style-on": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "persistent style on adds the poteto-mode skill once per context, never on custom wake turns"
+    },
+    "ext.style-compact": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "persistent style a compaction that keeps the skill adds nothing; one that summarizes it away brings it back once"
+    },
+    "ext.style-off": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "persistent style off adds one notice while the skill is visible, then nothing"
+    },
+    "ext.style-resume": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "persistent style resume and fork restore the selection from the session file, and a fork turning it off leaves the original on"
+    },
+    "ext.role-inherit": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "roleModelResolver inherit-parent is the session model at its level, or at the requested level"
+    },
+    "ext.role-named": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "roleModelResolver a named model resolves against the registry; null keeps its default level; a level clamps to a supported one"
+    },
+    "ext.worker-entry": {
+      "file": "tests/integration/extension.test.ts",
+      "name": "entry a worker (PSTACK_WORKER=1) gets only pstack_evidence and no command, style, or routing"
+    },
+    "cmd.doctor": {
+      "file": "tests/integration/commands.test.ts",
+      "name": "status and doctor doctor reports tmux, pi, containers, models, MCP, skills, the upstream lock, hard links, and slash conflicts"
+    },
+    "cmd.pause": {
+      "file": "tests/integration/commands.test.ts",
+      "name": "workers, pause, resume pause records the pause, stops live workers with abort semantics, and keeps a dirty worktree; resume reconciles"
+    },
+    "cmd.pause-owner": {
+      "file": "tests/integration/commands.test.ts",
+      "name": "workers, pause, resume only the run owner session may pause it, and automation runs are refused"
+    },
+    "cmd.audit": {
+      "file": "tests/integration/commands.test.ts",
+      "name": "audit audit checks each done step against its receipts with pstack_evidence verify"
+    },
+    "cmd.status": {
+      "file": "tests/integration/commands.test.ts",
+      "name": "status and doctor status reports the style and this project runs"
+    },
+    "model.missing": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "reports a missing provider without returning a nonexistent model"
+    },
+    "model.ladder": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "falls down the supported effort ladder"
+    },
+    "model.family": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "uses another listed same-family model when the selected id is absent"
+    },
+    "model.inherit": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "inherit-parent preserves the parent effort instead of the budget"
+    },
+    "model.panel": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "preserves panel cardinality but reports the missing family"
+    },
+    "model.judge-skip": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "cross-judge skips aliases and the parent family and takes one independent choice"
+    },
+    "model.judge-missing": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "cross-judge reports an unavailable independent family"
+    },
+    "model.judge-default": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "cross-judge falls back to the listed independent skill default"
+    },
+    "model.tiers": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "does not count two Claude tiers as independent families"
+    },
+    "model.default": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "missing role configuration selects its available skill default"
+    },
+    "model.unknown-role": {
+      "file": "tests/model-routing/models.test.ts",
+      "name": "rejects an unknown role"
+    },
+    "life.spawn": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi spawn returns before the work finishes, with an attach command whose pane shows the output"
+    },
+    "life.steer": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi steer while running and while idle both land in the transcript"
+    },
+    "life.abort": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi abort clears queued work, stops the worker, and wakes the parent with aborted"
+    },
+    "life.collect": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi collect returns report.md and the final text of a settled worktree worker"
+    },
+    "life.reuse-clone": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi spawn refuses to reuse a clone the operator made at the worktree path"
+    },
+    "life.reuse-other-branch": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi spawn refuses to reuse a worktree of this repo on another branch at the worktree path"
+    },
+    "life.reuse-own": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi spawn refuses to reuse this worker's own registered worktree and branch at the worktree path"
+    },
+    "life.branch-exists": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi spawn refuses when the worker's branch already exists, rather than check out its old commits"
+    },
+    "life.collect-running": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi collect on a worker still running returns its live state, never a result"
+    },
+    "life.crash": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a Pi crash is failed, never success"
+    },
+    "life.host-killed": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a killed host is unavailable and the assignment cannot be spawned again"
+    },
+    "life.host-killed-early": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a host killed after accepting work but before the run started leaves collect with no result"
+    },
+    "life.distinct": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi two workers whose ids join to the same text get distinct tmux sessions"
+    },
+    "life.readonly-tools": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a readonly worker gets only read, grep, find, and ls"
+    },
+    "life.watch": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a watch worker wakes the parent when its command exits"
+    },
+    "life.socket": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi the control socket is private and rejects a forged identity"
+    },
+    "life.mcp-none": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "capability boundary mcp 'none' and env 'minimal' launch Pi with --no-mcp and without the parent's variables"
+    },
+    "life.launch-secrets": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "capability boundary launch secrets reach the worker through claim/launch-env.json, never argv or events.jsonl"
+    },
+    "life.external-write": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "capability boundary spawn refuses a worker that asks for external write authority"
+    },
+    "life.automation-default": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "capability boundary a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits"
+    },
+    "life.not-owner": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker boundary validation refuses control from a session that does not own the run"
+    },
+    "life.after-steer": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi collect after the host accepted a steer never returns the earlier settle"
+    },
+    "nest.registers-spawn": {
+      "file": "tests/worker-lifecycle/nested-spawn.test.ts",
+      "name": "a worker with env {\"PSTACK_WORKER\":\"1\",\"PSTACK_SPAWN\":\"1\"} registers [\"pstack_evidence\",\"pstack_worker\"]"
+    },
+    "nest.registers-readonly": {
+      "file": "tests/worker-lifecycle/nested-spawn.test.ts",
+      "name": "a worker with env {\"PSTACK_WORKER\":\"1\",\"PSTACK_READONLY\":\"1\"} registers [\"bash_readonly\",\"pstack_evidence\"]"
+    },
+    "nest.registers-worker": {
+      "file": "tests/worker-lifecycle/nested-spawn.test.ts",
+      "name": "a worker with env {\"PSTACK_WORKER\":\"1\"} registers [\"pstack_evidence\"]"
+    },
+    "nest.subcoordinator": {
+      "file": "tests/worker-lifecycle/nested-spawn.test.ts",
+      "name": "a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level"
+    },
+    "depth.two": {
+      "file": "tests/worker-lifecycle/spawn-depth.test.ts",
+      "name": "a sub-coordinator spawned by the root runs at depth 2 with spawning enabled on the same tmux server"
+    },
+    "depth.three": {
+      "file": "tests/worker-lifecycle/spawn-depth.test.ts",
+      "name": "a sub-coordinator's worker runs at depth 3 without the spawning flag it would otherwise inherit"
+    },
+    "depth.refuse3": {
+      "file": "tests/worker-lifecycle/spawn-depth.test.ts",
+      "name": "with PSTACK_DEPTH=3 spawn refuses every worker, before claiming it"
+    },
+    "depth.refuse4": {
+      "file": "tests/worker-lifecycle/spawn-depth.test.ts",
+      "name": "with PSTACK_DEPTH=4 spawn refuses every worker, before claiming it"
+    },
+    "readonly.worker": {
+      "file": "tests/worker-lifecycle/readonly-worker.test.ts",
+      "name": "a readonly worker has bash_readonly and pstack_evidence, reads git history with it, and cannot write through it"
+    },
+    "evid.none": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence verify is inconclusive, never pass, when no receipt exists"
+    },
+    "evid.pass": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence verify passes a recorded receipt whose artifacts still match"
+    },
+    "evid.changed": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence verify fails when an artifact changed after recording"
+    },
+    "evid.commit": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence verify fails a commit target that the receipt did not examine"
+    },
+    "evid.noartifact": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence a pass with no artifacts is inconclusive"
+    },
+    "evid.passfail": {
+      "file": "tests/worker-lifecycle/evidence.test.ts",
+      "name": "pstack_evidence a pass whose command exited non-zero verifies as fail"
+    },
+    "settle.steer-ends": {
+      "file": "tests/worker-lifecycle/settle-coverage.test.ts",
+      "name": "a steer acknowledged as a run ends never makes collect return that run (the steer stays queued)"
+    },
+    "settle.cancel": {
+      "file": "tests/worker-lifecycle/settle-coverage.test.ts",
+      "name": "a cancel whose run settled before Pi was quiescent records the abort when the host's cancel completes"
+    },
+    "settle.same-chunk": {
+      "file": "tests/worker-lifecycle/settle-coverage.test.ts",
+      "name": "a prompt response and its agent_settled in one stdout chunk settle the work"
+    },
+    "settle.liveness-error": {
+      "file": "tests/worker-lifecycle/settle-liveness.test.ts",
+      "name": "an error stop after auto-retry settles as failed"
+    },
+    "host.alive": {
+      "file": "tests/worker-lifecycle/host-gone.test.ts",
+      "name": "a live pid with the recorded start time is the host"
+    },
+    "host.dead": {
+      "file": "tests/worker-lifecycle/host-gone.test.ts",
+      "name": "a dead pid is gone even when its start time cannot be read"
+    },
+    "rec.wake-once": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "parent restart a worker that settles while no parent runs wakes the restarted parent exactly once"
+    },
+    "rec.reconcile": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "parent restart the restarted parent reconciles a live worker, controls it, and gets each later settle once"
+    },
+    "rec.host-killed": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "parent restart a host killed while no parent runs is reported unavailable once, never complete"
+    },
+    "rec.notresent": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "wake delivery record a wake already present in the session entries is not resent"
+    },
+    "rec.other-owner": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "wake delivery record a run owned by another session never wakes this one"
+    },
+    "rec.many": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "wake delivery record more than 64 settles while no parent runs each wake the restarted parent once"
+    },
+    "rec.tree-reopen": {
+      "file": "tests/recovery/recovery.test.ts",
+      "name": "wake delivery on a real session tree a parent reopened from the session file finds the wake on its branch and does not resend it"
+    },
+    "forge.parsers": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "loads working watcher parsers and memoizes the modules"
+    },
+    "forge.types": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "keeps emitted watcher declarations current"
+    },
+    "forge.classify": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "parses PR and checks using watcher classification, including owner approval"
+    },
+    "forge.malicious": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "returns malicious review text as data without executing it"
+    },
+    "forge.stdin": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "sends reply bodies through JSON stdin rather than commands"
+    },
+    "forge.unsupported": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "unsupported backends advertise no capabilities and reject every operation"
+    },
+    "forge.resolve": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "resolves native before Origin before GitHub and retains the persisted choice"
+    },
+    "forge.failed-middle": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "stops shipping at a failed middle PR even when the tip passed"
+    },
+    "forge.stale": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "stale heads, missing verdicts and self verification block shipping"
+    },
+    "forge.inconclusive": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "an inconclusive or unknown verdict read from disk never ships"
+    },
+    "forge.merge-auth": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "merges only with authorization and current independent verification"
+    },
+    "forge.babysit-route": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "routes babysitting by request and size without starting a watcher"
+    },
+    "forge.create": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "creates a ready PR with its body on stdin"
+    },
+    "forge.failures": {
+      "file": "tests/forge/forge.test.ts",
+      "name": "propagates CLI and malformed snapshot failures"
+    },
+    "watch.help": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for help without installing dependencies"
+    },
+    "watch.invalid": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for invalid PR without installing dependencies"
+    },
+    "watch.conflict": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for conflicting modes without installing dependencies"
+    },
+    "watch.merged": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for merged without installing dependencies"
+    },
+    "watch.closed": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for closed without installing dependencies"
+    },
+    "watch.ready": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for ready without installing dependencies"
+    },
+    "watch.draft": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for draft without installing dependencies"
+    },
+    "watch.failed": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for failed check without installing dependencies"
+    },
+    "watch.pending": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for pending check without installing dependencies"
+    },
+    "watch.query": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for query failure without installing dependencies"
+    },
+    "watch.readypol": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for ready policy without installing dependencies"
+    },
+    "watch.draftpol": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for draft policy without installing dependencies"
+    },
+    "watch.failedpol": {
+      "file": "tests/helpers/watch-pr-differential.test.ts",
+      "name": "Node bundle matches Bun source for failed check policy without installing dependencies"
+    },
+    "scripts.own-tests": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "bundled scripts run from the package (SCRIPT-001) the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies"
+    },
+    "scripts.watch-usage": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "bundled scripts run from the package (SCRIPT-001) watch-pr starts and prints usage"
+    },
+    "scripts.orch-gone": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "bundled scripts run from the package (SCRIPT-001) orch is gone (pstack 0.15.36 runs orchestrate with agent tools)"
+    },
+    "scripts.checkplan": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "bundled scripts run from the package (SCRIPT-001) check-plan reports a plan that lacks the required sections"
+    },
+    "scripts.log": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "bundled scripts run from the package (SCRIPT-001) log.sh writes the header once and neutralizes formula and tab characters"
+    },
+    "scripts.statechart-entry": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "statechart CLI runs from the package (SCRIPT-001) ships the TypeScript entry and ketchup-video skill"
+    },
+    "scripts.statechart-usage": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "statechart CLI runs from the package (SCRIPT-001) missing SPEC prints usage and exits 2"
+    },
+    "scripts.wta-recent": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a Pi session that worked in the worktree makes it a recent chat"
+    },
+    "scripts.wta-sessiondir": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a custom session directory from PI_CODING_AGENT_SESSION_DIR is searched (review: parity 4)"
+    },
+    "scripts.wta-project": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a project .pi/settings.json sessionDir wins over the global one and resolves from the working directory (recheck)"
+    },
+    "scripts.wta-cursor": {
+      "file": "tests/helpers/scripts.test.ts",
+      "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a Cursor transcript no longer counts"
+    },
+    "gen.log": {
+      "file": "tests/helpers/generated-helpers.test.ts",
+      "name": "decision log appends one header and sanitized six-column TSV rows"
+    },
+    "gen.checkplan": {
+      "file": "tests/helpers/generated-helpers.test.ts",
+      "name": "check-plan detects a required section removed from the generated template"
+    },
+    "gen.audit": {
+      "file": "tests/helpers/generated-helpers.test.ts",
+      "name": "audit protects recent Pi sessions, tracked edits and unmerged work, but permits merged clean work"
+    },
+    "inst.statechart-render": {
+      "file": "tests/packaging/installed-helpers.test.ts",
+      "name": "the installed statechart entry and worker render a custom view"
+    },
+    "inst.statechart-tlc": {
+      "file": "tests/packaging/installed-helpers.test.ts",
+      "name": "the installed statechart checks a model with real TLC"
+    },
+    "inst.deps": {
+      "file": "tests/packaging/installed-helpers.test.ts",
+      "name": "the consumer installs all production dependencies with exactly the host peers omitted"
+    },
+    "inst.source": {
+      "file": "tests/packaging/installed-helpers.test.ts",
+      "name": "source installs contain the same ready-to-run helpers without consumer build scripts"
+    },
+    "pack.npm": {
+      "file": "tests/packaging/package.test.ts",
+      "name": "npm pack ships the native runtime and its sources without node_modules or the removed runtime"
+    },
+    "pack.stale-watch": {
+      "file": "tests/packaging/helper-pack.test.ts",
+      "name": "default packing rejects stale source for dist/watch-pr.js"
+    },
+    "pack.stale-host": {
+      "file": "tests/packaging/helper-pack.test.ts",
+      "name": "default packing rejects stale source for dist/worker-host.js"
+    },
+    "pack.bun": {
+      "file": "tests/packaging/helper-pack.test.ts",
+      "name": "a producer without Bun cannot bypass the helper check"
+    },
+    "pack.standalone-host": {
+      "file": "tests/packaging/standalone-bundles.test.ts",
+      "name": "the shipped package has no host packages to resolve up the tree"
+    },
+    "auto.dedupe": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery the same event delivered three times gives one run and one reply"
+    },
+    "auto.thread-key": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery a reply in the thread keys to its root, so it does not start a second run"
+    },
+    "auto.secret": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery a wrong or missing secret is rejected and starts nothing"
+    },
+    "auto.cred-perm": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery a credential file readable by others is refused"
+    },
+    "auto.oversize": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery an oversized body is rejected"
+    },
+    "auto.nonjson": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery a body that is not a JSON object is rejected"
+    },
+    "auto.second-source": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "webhook delivery a second event source for the same automation is refused"
+    },
+    "auto.outbox": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "outbox reconciliation a crash between post and acknowledgement does not post again after restart"
+    },
+    "auto.no-thread": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "fail closed an event without thread identity starts nothing and writes nothing outside the log"
+    },
+    "auto.other-channel": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "fail closed an event from another channel is rejected"
+    },
+    "auto.prereq": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "fail closed a missing or uncertain prerequisite blocks the case until reconcile finds it restored"
+    },
+    "auto.dispatch-once": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "fail closed a blocked case dispatches once when its prerequisites return"
+    },
+    "auto.marker": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "fail closed a triage result without exactly one marker is not posted"
+    },
+    "auto.worker-inputs": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "worker inputs assignment and brief carry the automation capabilities and no secret or credential path"
+    },
+    "auto.worktree": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "worker inputs a reproduce case gets a writable worktree at the input commit"
+    },
+    "auto.poll-fire": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "slack polling the poller fires each new top-level report once and advances its cursor"
+    },
+    "auto.poll-first": {
+      "file": "tests/automation/automation.test.ts",
+      "name": "slack polling the first poll only records a cursor, so earlier reports never fire"
+    },
+    "par.tracker": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "tracker crash recovery and redelivery creates one ticket"
+    },
+    "par.inelig": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "parent rejects ineligible tracker actions"
+    },
+    "par.untrusted": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "reproduce fails closed for untrusted or ambiguous handoff undefined"
+    },
+    "par.loader": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "loader accepts the real template and rejects malformed input"
+    },
+    "par.secret": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "setup creates a private secret once without printing it and preserves settings conflicts"
+    },
+    "par.jsonc": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "settings append preserves JSONC comments, unrelated keys, and existing packages"
+    },
+    "par.trusted": {
+      "file": "tests/automation/parity.test.ts",
+      "name": "trusted bug verdict dispatches reproduce once"
+    },
+    "bsetup.preserve": {
+      "file": "tests/automation/benny-setup.test.ts",
+      "name": "setup preserves existing local config and pack edits and reports them as conflicts"
+    },
+    "bsetup.idempotent": {
+      "file": "tests/automation/benny-setup.test.ts",
+      "name": "a second setup run changes nothing and reports every file unchanged"
+    },
+    "acmd.benny": {
+      "file": "tests/automation/automation-command.test.ts",
+      "name": "Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe"
+    },
+    "acmd.unknown": {
+      "file": "tests/automation/automation-command.test.ts",
+      "name": "an unknown automation name is an error naming where it looked"
+    },
+    "acmd.routine": {
+      "file": "tests/automation/automation-command.test.ts",
+      "name": "a webhook routine starts as a watch worker running routine-setup --serve, reports its receiver, and stops"
+    },
+    "routine.post": {
+      "file": "tests/automation/routine.test.ts",
+      "name": "a verified POST dispatches one prompt-bearing worker and event ids deduplicate"
+    },
+    "routine.key": {
+      "file": "tests/automation/routine.test.ts",
+      "name": "setup keeps its key out of stdout and serves the reported URL"
+    },
+    "routine.worktree": {
+      "file": "tests/automation/routine.test.ts",
+      "name": "a routine worker gets a writable worktree at the project HEAD by default, readonly only when configured"
+    },
+    "dmc.creds": {
+      "file": "tests/automation/default-model-credential.test.ts",
+      "name": "an automation worker on Pi's default model gets that provider's credential from the parent under env minimal"
+    },
+    "rf.botui-b1": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "B: make-bot-ui maps to the U08 adapter B1: every routine API and setup script the skill names exists"
+    },
+    "rf.botui-url": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "B: make-bot-ui maps to the U08 adapter B1: the webhook URL matches what startWebhookReceiver serves"
+    },
+    "rf.botui-key": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "B: make-bot-ui maps to the U08 adapter B2: setup generates the sender key, and the skill never asks the user for it"
+    },
+    "rf.botui-wake": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "B: make-bot-ui maps to the U08 adapter B3: the wake names exactly the event fields U08 delivers and keeps the body untrusted"
+    },
+    "rf.reflect-first-user": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C4: reflect matches the opening prompt against the first user message, not the system message"
+    },
+    "rf.reflect-session": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message"
+    },
+    "rf.help-pointers": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C5: poteto-help sends changed files to the pi-pstack copy and only unchanged files upstream"
+    },
+    "rf.setup-models": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C2: setup-pstack describes pi --list-models as it is and validates specs against the detected set and the ladder"
+    },
+    "rf.models-src": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C2: src/models.ts agrees: any ladder level parses, an unsupported one clamps down, and a non-thinking model runs at off"
+    },
+    "rf.ro-abs": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "C: setup-pstack, reflect, poteto-help C3: every readonly spawn names an absolute path"
+    },
+    "rf.worker-ref": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A1/A4: the worker-assignment reference holds a complete example per workspace mode and kind, each valid under parseAssignment"
+    },
+    "rf.watch-babysit": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A1: skills/poteto-mode/playbooks/babysit.md spawns its watch with role, an absolute cwd, and the reference"
+    },
+    "rf.watch-shipping": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A1: skills/poteto-mode/playbooks/shipping.md spawns its watch with role, an absolute cwd, and the reference"
+    },
+    "rf.watch-cleanup": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A1: skills/poteto-mode/playbooks/worktree-cleanup.md spawns its watch with role, an absolute cwd, and the reference"
+    },
+    "rf.cleanup-audit": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A2: worktree-cleanup runs the audit script from the package by absolute path in the repository root"
+    },
+    "rf.arena-runner": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "re-scan: templates copied into a worker brief skills/architect/references/runner-prompt.md names every file it tells the worker to read by an absolute package path"
+    },
+    "rf.loop": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A7: no bare Loop or /loop step remains"
+    },
+    "rf.package-root": {
+      "file": "tests/skill-parity/review-fixes.test.ts",
+      "name": "A: poteto-mode workers and watches A5: poteto-mode locates the package root by `pi list`, not by a directory count"
+    },
+    "sem.why-ro": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "readonly investigators and reviewers (defect 1) why spawns every worker readonly with MCP kept and git/gh through bash_readonly"
+    },
+    "sem.ro-bash": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "readonly investigators and reviewers (defect 1) a readonly worker has bash_readonly and reports through its final reply, not report.md"
+    },
+    "sem.how-ro": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "readonly investigators and reviewers (defect 1) how explorers and reflect reviewers stay readonly"
+    },
+    "sem.nested-text": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "nested spawning (defect 2) no generated text claims workers can never spawn"
+    },
+    "sem.nested-spawn": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "nested spawning (defect 2) workers lack pstack_worker by default, and capabilities.spawn grants it within three levels"
+    },
+    "sem.orch-sub": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "nested spawning (defect 2) orchestrate gives a sub-coordinator spawn and maps fork to a fresh worker from the source's committed state"
+    },
+    "sem.container-swarm": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "container workers (defect 3) skills/swarm/SKILL.md:27 names the container shape and its ContainerUnavailable fallback"
+    },
+    "sem.container-orch": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "container workers (defect 3) skills/poteto-mode/playbooks/orchestrate.md:10 names the container shape and its ContainerUnavailable fallback"
+    },
+    "sem.container-ship": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "container workers (defect 3) skills/poteto-mode/playbooks/shipping.md:5 names the container shape and its ContainerUnavailable blocked"
+    },
+    "sem.container-auto": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "container workers (defect 3) skills/poteto-mode/playbooks/autopilot-full.md:8 names the container shape and its ContainerUnavailable blocked"
+    },
+    "sem.container-def": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "container workers (defect 3) poteto-mode defines the container shape and the refusal"
+    },
+    "sem.nocomments": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work"
+    },
+    "sem.watch-rearm": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "recurring watch loops (defect 5) poteto-mode states a watch fires once and is re-armed after a parent restart"
+    },
+    "sem.autopilot-trail": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "self-audit fixes autopilot-full keeps its decision trail in the worker directory, not a Cursor agent store"
+    },
+    "sem.cleanup-watch": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "self-audit fixes worktree-cleanup runs the slow scan as a one-shot watch that writes a file, and names no Cursor sidebar"
+    },
+    "sem.orch-watch": {
+      "file": "tests/skill-parity/semantics.test.ts",
+      "name": "self-audit fixes orchestrate separates its PR watch from the scripts and polling loops it forbids"
+    },
+    "sec.ro-shell": {
+      "file": "tests/security/readonly-shell.test.ts",
+      "name": "describes the subprocess boundary without claiming whole-process isolation"
+    },
+    "sec.ro-failclosed": {
+      "file": "tests/security/readonly-shell.test.ts",
+      "name": "unsupported hosts fail closed without running a command"
+    },
+    "sec.ro-state": {
+      "file": "tests/security/readonly-shell.test.ts",
+      "name": "a read-only shell sharing a session shell continues from bash state and still denies writes"
+    },
+    "sec.ro-bashenv": {
+      "file": "tests/security/readonly-shell-security.test.ts",
+      "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)"
+    },
+    "sec.ro-fetch": {
+      "file": "tests/security/readonly-fetch.test.ts",
+      "name": "a readonly command can read HTTP with N…"
+    },
+    "sec.ro-deps": {
+      "file": "tests/security/readonly-shell-dependency.test.ts",
+      "name": "missing Unix socket isolation prevents the readonly command from running"
+    },
+    "sec.linux-sandbox": {
+      "file": "tests/security/linux-readonly-sandbox.test.ts",
+      "name": "read-only commands and network reads run, while writes and Unix sockets are refused (G12)"
+    },
+    "sec.linux-missing": {
+      "file": "tests/security/linux-readonly-sandbox-missing.test.ts",
+      "name": "without bubblewrap the readonly command fails closed and never runs"
+    },
+    "src.up-new": {
+      "file": "tests/parity-manifest/source-upgrade.test.ts",
+      "name": "source upgrade a pin move with no vendored content change goes through and is logged without a review"
+    },
+    "src.up-refuse": {
+      "file": "tests/parity-manifest/source-upgrade.test.ts",
+      "name": "source upgrade a changed upstream instruction is refused without a parity review and writes nothing"
+    },
+    "src.up-review": {
+      "file": "tests/parity-manifest/source-upgrade.test.ts",
+      "name": "source upgrade a review record that does not name the changed files is refused; a matching one is logged"
+    },
+    "src.up-pin": {
+      "file": "tests/parity-manifest/source-upgrade.test.ts",
+      "name": "pin consistency gate check-parity fails when the lock moves without a source-review-log entry"
+    }
+  },
+  "structural": [
+    {
+      "id": "principle-skill",
+      "match": "^pstack:skills/principle-[^/]+/SKILL\\.md$",
+      "kind": "principle-skill",
+      "title": "Principle skill",
+      "specSection": "4.2",
+      "observable": "The principle skill {file} is present in the generated package under its original name with valid Agent Skills frontmatter, loadable by Pi, with a /name prompt.",
+      "invariants": [
+        "The name equals the directory name.",
+        "Every change from upstream is a recorded transformation span.",
+        "The skill stays individually loadable."
+      ],
+      "piMechanism": "Compiled by adapters/skill-transforms.ts into generated/skills/<name>/SKILL.md; discovered through the package pi.skills manifest.",
+      "tests": [
+        "inv.count",
+        "inv.gen",
+        "fm.skill",
+        "slash.all",
+        "slash.pstack",
+        "load.skills",
+        "inv.prompts",
+        "gate.real",
+        "regen.twice",
+        "spans.reapply"
+      ],
+      "verification": "tests/skill-parity (inventory, frontmatter, slash-routing, spans, regeneration), tests/integration/pi-load.test.ts, and scripts/check-parity.mjs",
+      "bind": "skill"
+    },
+    {
+      "id": "primary-skill",
+      "match": "^pstack:skills/[^/]+/SKILL\\.md$",
+      "kind": "primary-skill",
+      "title": "Primary skill",
+      "specSection": "4.1",
+      "observable": "The primary skill {file} is present under its original name, routed by /name, with valid frontmatter and its upstream routing description.",
+      "invariants": [
+        "The name equals the directory name.",
+        "Every change from upstream is a recorded transformation span.",
+        "No unmapped Cursor primitive remains in its active text."
+      ],
+      "piMechanism": "Compiled into generated/skills/<name>/SKILL.md plus a generated/prompts/<name>.md alias; /pstack:<name> when another command owns /name.",
+      "tests": [
+        "inv.count",
+        "inv.gen",
+        "fm.skill",
+        "slash.all",
+        "slash.pstack",
+        "load.skills",
+        "inv.prompts",
+        "gate.real",
+        "regen.twice",
+        "spans.reapply"
+      ],
+      "verification": "tests/skill-parity (inventory, frontmatter, slash-routing, spans, regeneration), tests/integration/pi-load.test.ts, and scripts/check-parity.mjs",
+      "bind": "skill"
+    },
+    {
+      "id": "playbook",
+      "match": "^pstack:skills/poteto-mode/playbooks/[^/]+\\.md$",
+      "kind": "playbook",
+      "title": "Playbook",
+      "specSection": "4.3",
+      "observable": "The playbook {file} ships in generated poteto-mode and /pstack start copies every one of its source steps into a run TODO.md in order.",
+      "invariants": [
+        "The numbered steps appear in source order, verbatim.",
+        "A playbook without numbered steps says so and points at its rules.",
+        "Every change from upstream is a recorded transformation span."
+      ],
+      "piMechanism": "Compiled into generated/skills/poteto-mode/playbooks; scripts/start-run.mjs writes the TODO.md checkpoint.",
+      "tests": [
+        "inv.count",
+        "inv.playbooks",
+        "todo.step",
+        "gate.real",
+        "regen.twice",
+        "spans.reapply"
+      ],
+      "verification": "tests/todo/start-run.test.ts and tests/skill-parity/inventory.test.ts",
+      "bind": "playbook"
+    },
+    {
+      "id": "agent",
+      "match": "^pstack:agents/[^/]+\\.md$",
+      "kind": "agent",
+      "title": "Worker role definition",
+      "specSection": "4.4",
+      "observable": "The upstream agent {file} becomes a worker role instruction in generated/agents, run as an independent Pi process.",
+      "invariants": [
+        "The role keeps its required skill reading and reporting contract.",
+        "No new agent type is introduced."
+      ],
+      "piMechanism": "generated/agents/<role>.md loaded as the worker role prompt by src/workers.ts.",
+      "tests": [
+        "inv.agents",
+        "gate.real",
+        "regen.twice",
+        "spans.reapply"
+      ],
+      "verification": "tests/skill-parity/inventory.test.ts and scripts/check-parity.mjs"
+    },
+    {
+      "id": "reference",
+      "match": "^(pstack:skills/[^/]+/references/.+|pstack:skills/poteto-mode/references/.+)$",
+      "kind": "reference",
+      "title": "Skill reference",
+      "specSection": "4.1",
+      "observable": "The reference {file} ships beside its skill and every relative link in generated skills resolves inside the generated package.",
+      "invariants": [
+        "The file is byte-identical to upstream except for recorded spans.",
+        "No reference leaves the generated package."
+      ],
+      "piMechanism": "Copied or compiled into generated/skills/<skill>/references.",
+      "tests": [
+        "inv.gen",
+        "refs.resolve",
+        "regen.twice",
+        "spans.reapply",
+        "gate.real"
+      ],
+      "verification": "tests/skill-parity/references.test.ts, regeneration.test.ts, spans.test.ts"
+    },
+    {
+      "id": "script-check-plan",
+      "match": "^pstack:skills/poteto-mode/scripts/check-plan\\.(mjs|test\\.ts)$",
+      "kind": "script",
+      "title": "Plan validator",
+      "specSection": "12.6",
+      "observable": "{file} ships as a bundled helper; the validator reports the same structural failures for a plan with a required section removed.",
+      "invariants": [
+        "The validator output and exit status are those of the upstream script.",
+        "The upstream test suite runs from the package."
+      ],
+      "piMechanism": "Copied to generated/skills/poteto-mode/scripts and bundled; runs under Node.",
+      "tests": [
+        "gen.checkplan",
+        "scripts.checkplan",
+        "scripts.own-tests",
+        "gate.real"
+      ],
+      "verification": "tests/helpers/scripts.test.ts and generated-helpers.test.ts"
+    },
+    {
+      "id": "script-watch-pr",
+      "match": "^pstack:skills/poteto-mode/scripts/(watch-pr/.+|bootstrap\\.ts|package\\.json|bun\\.lock)$",
+      "kind": "script",
+      "title": "watch-pr watcher and its toolchain",
+      "specSection": "12.6",
+      "observable": "{file} ships unchanged; the Node bundle of the watcher gives the same output as the Bun source for every differential case.",
+      "invariants": [
+        "Parsing and policy logic is upstream code, not a second interpretation.",
+        "Runtime dependency installation never happens during a verification run."
+      ],
+      "piMechanism": "dist/watch-pr.js bundle built from the vendored source; differential tests against the Bun source.",
+      "tests": [
+        "watch.help",
+        "watch.invalid",
+        "watch.conflict",
+        "watch.merged",
+        "watch.closed",
+        "watch.ready",
+        "watch.draft",
+        "watch.failed",
+        "watch.pending",
+        "watch.query",
+        "watch.readypol",
+        "watch.draftpol",
+        "watch.failedpol",
+        "scripts.watch-usage",
+        "scripts.own-tests",
+        "forge.parsers",
+        "forge.types",
+        "pack.stale-watch"
+      ],
+      "verification": "tests/helpers/watch-pr-differential.test.ts, scripts.test.ts, tests/forge/forge.test.ts"
+    },
+    {
+      "id": "script-worktree-audit",
+      "match": "^pstack:skills/poteto-mode/scripts/worktree-audit\\.sh$",
+      "kind": "script",
+      "title": "Worktree audit",
+      "specSection": "12.6",
+      "observable": "{file} classifies worktrees read-only, replacing only Cursor transcript discovery with Pi session discovery.",
+      "invariants": [
+        "It never deletes anything.",
+        "Recent chats, tracked edits and unmerged work protect a worktree.",
+        "A Cursor transcript no longer counts."
+      ],
+      "piMechanism": "Shipped as generated/skills/poteto-mode/scripts/worktree-audit.sh with a recorded span for Pi session discovery.",
+      "tests": [
+        "gen.audit",
+        "scripts.wta-recent",
+        "scripts.wta-sessiondir",
+        "scripts.wta-project",
+        "scripts.wta-cursor",
+        "gate.real"
+      ],
+      "verification": "tests/helpers/scripts.test.ts and generated-helpers.test.ts"
+    },
+    {
+      "id": "script-decision-log",
+      "match": "^pstack:skills/show-me-your-work/scripts/log\\.sh$",
+      "kind": "script",
+      "title": "Decision log helper",
+      "specSection": "12.6",
+      "observable": "{file} appends one header and sanitized six-column TSV rows.",
+      "invariants": [
+        "The TSV format is unchanged.",
+        "Cells starting with a formula character or containing tabs are neutralized."
+      ],
+      "piMechanism": "Shipped unchanged under generated/skills/show-me-your-work/scripts.",
+      "tests": [
+        "gen.log",
+        "scripts.log",
+        "gate.real"
+      ],
+      "verification": "tests/helpers/generated-helpers.test.ts and scripts.test.ts"
+    },
+    {
+      "id": "statechart-engine",
+      "match": "^pstack:skills/statechart/scripts/(?!test/)[^/]+(/.+)?$",
+      "kind": "script",
+      "title": "Statechart engine",
+      "specSection": "12.4",
+      "observable": "The TLA+ statechart engine (every file under statechart/scripts except test/) ships and renders views, and its model-checking path runs TLC.",
+      "invariants": [
+        "A generated diagram without a real model-checker run is not parity.",
+        "The CLI prints usage and exits 2 without a SPEC."
+      ],
+      "piMechanism": "Bundled into dist/statechart.js; run under Node with TLC and Java installed through mise.",
+      "tests": [
+        "scripts.statechart-entry",
+        "scripts.statechart-usage",
+        "inst.statechart-render",
+        "inst.statechart-tlc",
+        "gate.real"
+      ],
+      "verification": "tests/helpers/scripts.test.ts and tests/packaging/installed-helpers.test.ts (the TLC run needs Java and network)",
+      "group": true
+    },
+    {
+      "id": "statechart-tests",
+      "match": "^pstack:skills/statechart/scripts/test/.+$",
+      "kind": "script-test",
+      "title": "Statechart upstream test suite and fixtures",
+      "specSection": "12.6",
+      "observable": "The statechart upstream test suite and its corpus ship with the package and pass when run.",
+      "invariants": [
+        "The suite is the upstream suite, unmodified."
+      ],
+      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test).",
+      "tests": [],
+      "verification": "`bun run test:statechart`, which is not a Vitest test. No Vitest test runs these files, so the status stays INCONCLUSIVE until one does.",
+      "group": true
+    },
+    {
+      "id": "benny-file",
+      "match": "^pstack:automations/benny/.+$",
+      "kind": "benny",
+      "title": "Benny automation pack",
+      "specSection": "14.3",
+      "observable": "The Benny pack file {file} ships in automations/benny, stays dormant until configured, and setup preserves user-owned files.",
+      "invariants": [
+        "The pack is copied into a project-owned directory, never edited in place.",
+        "Setup preserves existing local configuration and reports conflicts.",
+        "A second setup run changes nothing."
+      ],
+      "piMechanism": "scripts/benny-setup.mjs copies the pack; src/automation loads the configuration.",
+      "tests": [
+        "bsetup.preserve",
+        "bsetup.idempotent",
+        "par.loader"
+      ],
+      "verification": "tests/automation/benny-setup.test.ts and parity.test.ts"
+    },
+    {
+      "id": "docs",
+      "match": "^pstack:docs/.+$",
+      "kind": "documentation",
+      "title": "Upstream user guide",
+      "specSection": "4",
+      "observable": "Reference documentation that poteto-help links by pinned public URL. It carries no behavior and is not loaded by Pi.",
+      "invariants": [
+        "Linked by pinned upstream URL."
+      ],
+      "piMechanism": "Not shipped as a skill.",
+      "tests": [],
+      "verification": "tests/skill-parity/review-fixes.test.ts (C5: poteto-help links)",
+      "mandatory": false,
+      "naJustification": "Reference documentation that poteto-help links by pinned public URL. It carries no behavior and is not loaded by Pi."
+    },
+    {
+      "id": "plugin-manifest",
+      "match": "^pstack:(plugin\\.json|\\.cursor-plugin/.+)$",
+      "kind": "packaging",
+      "title": "Cursor plugin manifest",
+      "specSection": "16.2",
+      "observable": "The Cursor plugin manifest {file} is replaced by the package.json pi manifest.",
+      "invariants": [
+        "The pi manifest lists extensions, skills and prompts."
+      ],
+      "piMechanism": "package.json pi.* fields, tested by pi-load.",
+      "tests": [
+        "load.skills",
+        "load.install"
+      ],
+      "verification": "tests/integration/pi-load.test.ts",
+      "mandatory": false,
+      "naJustification": "A Cursor marketplace manifest. Pi does not read it. The replacement contract, the package.json pi manifest, is covered by MX-NATIVE-PACKAGE."
+    },
+    {
+      "id": "marketing",
+      "match": "^pstack:(assets/.+|README\\.md|LICENSE)$",
+      "kind": "packaging",
+      "title": "Plugin README, logo and license",
+      "specSection": "4",
+      "observable": "{file} describes or brands the Cursor plugin.",
+      "invariants": [
+        "None."
+      ],
+      "piMechanism": "pi-pstack ships its own README and the licenses/ directory.",
+      "tests": [],
+      "verification": "n/a",
+      "mandatory": false,
+      "naJustification": "Cursor marketplace branding and install instructions with no runtime behavior. The upstream license text is carried in licenses/ and the package LICENSE."
+    },
+    {
+      "id": "teamkit-required",
+      "match": "^team-kit:skills/.+$",
+      "kind": "team-kit-skill",
+      "title": "Required cursor-team-kit skill file",
+      "specSection": "5",
+      "observable": "The required team-kit skill file {file} ships under its original name, referenced by a pstack skill.",
+      "invariants": [
+        "Every change from upstream is a recorded span."
+      ],
+      "piMechanism": "Compiled into generated/skills as a dependency of pstack skills.",
+      "tests": [
+        "inv.gen",
+        "gate.real",
+        "regen.twice",
+        "spans.reapply",
+        "refs.resolve"
+      ],
+      "verification": "tests/skill-parity and scripts/check-dependencies.mjs",
+      "teamKit": "required"
+    },
+    {
+      "id": "teamkit-other",
+      "match": "^team-kit:skills/.+$",
+      "kind": "team-kit-skill",
+      "title": "Unrequired cursor-team-kit skill file",
+      "specSection": "5",
+      "observable": "Vendored by sync but referenced by no pstack skill.",
+      "invariants": [
+        "None."
+      ],
+      "piMechanism": "Not compiled.",
+      "tests": [],
+      "verification": "generated/dependency-manifest.json requiredTeamKit",
+      "mandatory": false,
+      "naJustification": "No pstack skill depends on this team-kit skill (generated/dependency-manifest.json requiredTeamKit lists the four that do), so it is not part of the pstack contract.",
+      "teamKit": "unrequired"
+    }
+  ],
+  "behavioral": [
+    {
+      "id": "MX-NATIVE-PACKAGE",
+      "title": "Package installs and loads into Pi",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/plugin.json",
+        "lines": [
+          1,
+          21
+        ],
+        "anchor": "\"name\": \"pstack\""
+      },
+      "observable": "Pi installs the package from a copy without node_modules and loads every skill, prompt, /pstack, and only the native pstack tools.",
+      "invariants": [
+        "No Cursor manifest is read.",
+        "The generated skills and prompts are discovered through package.json pi.* fields.",
+        "A worker session sees pstack_evidence only."
+      ],
+      "piMechanism": "package.json pi manifest; extension src/extension.ts; real Pi binary in tests/integration/pi-load.test.ts.",
+      "dependencies": [
+        "Pi binary",
+        "tmux"
+      ],
+      "prerequisites": [
+        "pi on PATH or PSTACK_E2E_PI"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/integration/pi-load.test.ts and tests/packaging",
+      "tests": [
+        "load.skills",
+        "load.install",
+        "load.worker",
+        "pack.npm",
+        "inst.source"
+      ]
+    },
+    {
+      "id": "MX-SLASH",
+      "title": "Every original skill is invocable by its name",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+        "lines": [
+          1,
+          5
+        ],
+        "anchor": "/poteto-mode"
+      },
+      "observable": "Typing /<skill> with arguments delivers that skill's instructions and the arguments to Pi; a name another command owns is reachable as /pstack:<name>.",
+      "invariants": [
+        "Skill names equal upstream names.",
+        "Arguments after the name arrive unchanged.",
+        "Only a leading /name expands."
+      ],
+      "piMechanism": "generated/prompts aliases plus the input handler in src/extension.ts.",
+      "dependencies": [],
+      "prerequisites": [
+        "pi on PATH"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/slash-routing.test.ts and pi-load.test.ts",
+      "tests": [
+        "slash.all",
+        "slash.pstack",
+        "slash.alias",
+        "slash.handler",
+        "slash.ships",
+        "load.expand",
+        "load.conflict"
+      ]
+    },
+    {
+      "id": "MX-PLAN-ONLY",
+      "title": "A multi-PR plan is written with no implementation side effects",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "lines": [
+          3,
+          3
+        ],
+        "anchor": "Do not implement."
+      },
+      "observable": "Requesting a multi-PR plan produces a plan file that passes the validator and changes no code.",
+      "invariants": [
+        "The plan is the deliverable.",
+        "Execution starts only on the operator's explicit go."
+      ],
+      "piMechanism": "Playbook text plus check-plan.mjs; no execution mode in Pi.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test starts the playbook and checks that the working tree is unchanged apart from the plan file.",
+      "tests": []
+    },
+    {
+      "id": "MX-TODO-PARITY",
+      "title": "A playbook start writes every original step, in order, to TODO.md",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+        "lines": [
+          124,
+          124
+        ],
+        "anchor": "copied in verbatim"
+      },
+      "observable": "Starting any of the 23 playbooks writes a TODO.md that contains each source step verbatim and in order, with its source playbook and upstream revision.",
+      "invariants": [
+        "Steps are never reordered or dropped.",
+        "An existing run is never overwritten.",
+        "The run id is validated."
+      ],
+      "piMechanism": "scripts/start-run.mjs and /pstack run start.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/todo/start-run.test.ts",
+      "tests": [
+        "todo.stepall",
+        "todo.inventory",
+        "todo.nested",
+        "todo.nosteps-pr",
+        "todo.nosteps-orch",
+        "todo.root",
+        "todo.overwrite"
+      ]
+    },
+    {
+      "id": "MX-WORKER-CONCURRENCY",
+      "title": "Concurrent workers get distinct sessions and worktrees",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+        "lines": [
+          27,
+          27
+        ],
+        "anchor": "Spawn all N workers in one message"
+      },
+      "observable": "Several workers spawn at once, each as its own Pi process in its own tmux session and git worktree, and spawn returns before the work finishes.",
+      "invariants": [
+        "No two workers share a session or a worktree.",
+        "A worker's branch is never reused.",
+        "Spawn is non-blocking."
+      ],
+      "piMechanism": "src/workers.ts pstack_worker spawn; one tmux session per worker.",
+      "dependencies": [
+        "tmux",
+        "git"
+      ],
+      "prerequisites": [
+        "tmux on PATH"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "tests": [
+        "life.spawn",
+        "life.distinct",
+        "life.reuse-clone",
+        "life.reuse-other-branch",
+        "life.reuse-own",
+        "life.branch-exists",
+        "nest.subcoordinator"
+      ],
+      "coverageGap": "No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise."
+    },
+    {
+      "id": "MX-DIRECT-INTERACTION",
+      "title": "A live worker can be steered and its pane attached",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+        "lines": [
+          12,
+          12
+        ],
+        "anchor": "Message a worker only for a follow-up"
+      },
+      "observable": "A steer sent to a running or idle worker reaches Pi and lands in its transcript, and spawn returns an attach command whose pane shows the worker's output.",
+      "invariants": [
+        "The control socket is private and rejects a forged identity.",
+        "Only the owning session may control a run."
+      ],
+      "piMechanism": "pstack_worker steer through the host control socket; tmux attach.",
+      "dependencies": [
+        "tmux"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "tests": [
+        "life.steer",
+        "life.spawn",
+        "life.socket",
+        "life.not-owner"
+      ],
+      "coverageGap": "No test types into the attached tmux pane as an operator and checks the transcript."
+    },
+    {
+      "id": "MX-WORKER-CRASH",
+      "title": "A crashed or killed worker is a failure, never a pass",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+        "lines": [
+          33,
+          33
+        ],
+        "anchor": "If a worker drops out"
+      },
+      "observable": "A Pi crash, a killed host, or an abort yields failed, unavailable, or aborted, collect returns no result for an unsettled run, and the assignment cannot be spawned again.",
+      "invariants": [
+        "No false completion.",
+        "No duplicate writer for a dead worker's assignment.",
+        "Process identity uses pid plus start time."
+      ],
+      "piMechanism": "Host claim and identity files, settle accounting in src/worker-host.ts.",
+      "dependencies": [
+        "tmux"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle and tests/recovery",
+      "tests": [
+        "life.crash",
+        "life.host-killed",
+        "life.host-killed-early",
+        "life.abort",
+        "host.alive",
+        "host.dead",
+        "settle.liveness-error",
+        "life.collect-running",
+        "rec.host-killed"
+      ]
+    },
+    {
+      "id": "MX-PARENT-RESTART",
+      "title": "Workers outlive the parent and wake the restarted parent once",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "long runs drift and agents stall silently"
+      },
+      "observable": "After Pi restarts, live workers are reconciled and controllable, each settle wakes the parent exactly once, a wake already in the session is not resent, and a dead host is reported unavailable once.",
+      "invariants": [
+        "Wake delivery is idempotent across restart, fork, compaction and tree navigation.",
+        "A run owned by another session never wakes this one."
+      ],
+      "piMechanism": "src/recovery and wake records in the session entries.",
+      "dependencies": [
+        "tmux"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/recovery/recovery.test.ts",
+      "tests": [
+        "rec.wake-once",
+        "rec.reconcile",
+        "rec.host-killed",
+        "rec.notresent",
+        "rec.other-owner",
+        "rec.many",
+        "rec.tree-reopen",
+        "sem.watch-rearm"
+      ]
+    },
+    {
+      "id": "MX-SESSION-OPS",
+      "title": "Persistent style survives compaction, resume and fork",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/README.md",
+        "lines": [
+          106,
+          106
+        ],
+        "anchor": "across turns"
+      },
+      "observable": "The poteto-mode style added once per context is kept across a compaction that preserves it, restored on resume and fork, and removed with one notice when turned off.",
+      "invariants": [
+        "The skill is added once per context.",
+        "A fork turning the style off leaves the original on."
+      ],
+      "piMechanism": "Extension hooks in src/extension.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/integration/extension.test.ts",
+      "tests": [
+        "ext.style-on",
+        "ext.style-compact",
+        "ext.style-off",
+        "ext.style-resume",
+        "rec.tree-reopen"
+      ]
+    },
+    {
+      "id": "MX-HEADLESS",
+      "title": "Print, JSON and RPC modes run without deadlock or lost state",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md",
+        "lines": [
+          3,
+          3
+        ],
+        "anchor": "drive to it without stopping"
+      },
+      "observable": "The package loads and runs in print, JSON and RPC modes with no UI-dependent deadlock.",
+      "invariants": [
+        "No call blocks on a human prompt.",
+        "State is not silently lost."
+      ],
+      "piMechanism": "Pi print, json and rpc modes.",
+      "dependencies": [],
+      "prerequisites": [
+        "pi on PATH"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/integration/pi-load.test.ts runs RPC mode only",
+      "tests": [
+        "load.skills",
+        "ext.entry"
+      ],
+      "coverageGap": "No test runs print or JSON mode. The load test uses RPC mode only."
+    },
+    {
+      "id": "MX-MCP",
+      "title": "why keeps MCP access and the read-only guarantee is enforced by tools",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/why/SKILL.md",
+        "lines": [
+          13,
+          13
+        ],
+        "anchor": "It strips MCP access"
+      },
+      "observable": "why spawns every investigator readonly with MCP kept, so MCP-backed investigators work without a write tool; a worker launched with mcp none gets --no-mcp.",
+      "invariants": [
+        "A read-only mode that removes MCP is rejected.",
+        "Missing services are reported, never invented."
+      ],
+      "piMechanism": "Readonly worker tool allowlist with MCP retained; assignment capabilities.mcp.",
+      "dependencies": [
+        "MCP servers configured in Pi"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/semantics.test.ts and tests/worker-lifecycle/lifecycle.test.ts",
+      "tests": [
+        "sem.why-ro",
+        "life.mcp-none",
+        "life.automation-default"
+      ],
+      "coverageGap": "No test runs why with and without configured MCP services and checks citations or explicit missing coverage."
+    },
+    {
+      "id": "MX-CODEMODE",
+      "title": "Codemode composes concurrent tool calls with isolated results",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+        "lines": [
+          84,
+          84
+        ],
+        "anchor": "Use any MCP tool"
+      },
+      "observable": "Codemode scripts compose concurrent tool calls and return bounded, valid results.",
+      "invariants": [
+        "Calls are isolated.",
+        "Output stays manageable."
+      ],
+      "piMechanism": "Pi codemode, not provided by pstack.",
+      "dependencies": [
+        "Pi codemode"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No pstack test exercises Codemode.",
+      "tests": []
+    },
+    {
+      "id": "MX-MODEL-ROUTING",
+      "title": "Roles resolve to exact physical models with reported limits",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+        "lines": [
+          98,
+          98
+        ],
+        "anchor": "Match the model to the job"
+      },
+      "observable": "Each role resolves to a model by the budget ladder, inherits the parent, falls back within a family, reports a missing provider, and never counts two tiers of one family as independent.",
+      "invariants": [
+        "A missing provider is reported, not faked.",
+        "Panel cardinality is preserved.",
+        "Unknown roles and invalid configuration are rejected."
+      ],
+      "piMechanism": "src/models.ts and the roleModelResolver extension hook.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/model-routing/models.test.ts and tests/integration/extension.test.ts",
+      "tests": [
+        "model.missing",
+        "model.ladder",
+        "model.family",
+        "model.inherit",
+        "model.panel",
+        "model.default",
+        "model.unknown-role",
+        "ext.role-inherit",
+        "ext.role-named"
+      ]
+    },
+    {
+      "id": "MX-ARENA-ISOLATION",
+      "title": "Arena candidates get separate writable locations",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+        "lines": [
+          18,
+          18
+        ],
+        "anchor": "its own output location"
+      },
+      "observable": "Each arena candidate writes only to its own worktree or output directory.",
+      "invariants": [
+        "No two candidates share a writable path."
+      ],
+      "piMechanism": "Per-worker git worktree from pstack_worker.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs an arena and checks that candidate outputs are disjoint.",
+      "tests": []
+    },
+    {
+      "id": "MX-SWARM-GAPS",
+      "title": "A missing or invalid lane is never a pass",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+        "lines": [
+          37,
+          37
+        ],
+        "anchor": "A gap does not count as a pas"
+      },
+      "observable": "Evidence verification returns inconclusive without a receipt, fails when an artifact changed, a commit was not examined, or a command exited non-zero, and passes only a matching receipt.",
+      "invariants": [
+        "An abandoned or invalid worker result does not become a passing lane.",
+        "Receipts are idempotent and race-safe."
+      ],
+      "piMechanism": "pstack_evidence record and verify.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/evidence.test.ts",
+      "tests": [
+        "evid.none",
+        "evid.pass",
+        "evid.changed",
+        "evid.commit",
+        "evid.noartifact",
+        "evid.passfail"
+      ],
+      "coverageGap": "No test runs a swarm that drops a lane, respawns once and records the gap in the final report."
+    },
+    {
+      "id": "MX-SWARM-OUTCOMES",
+      "title": "Swarm reports keep PASS, ISSUES and BLOCKED distinct",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+        "lines": [
+          31,
+          31
+        ],
+        "anchor": "`ISSUES`, or `BLOCKED`"
+      },
+      "observable": "Every lane report is one of PASS, ISSUES or BLOCKED with evidence.",
+      "invariants": [
+        "The three outcomes are never merged."
+      ],
+      "piMechanism": "Skill text plus pstack_evidence receipts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test checks swarm report outcomes.",
+      "tests": []
+    },
+    {
+      "id": "SCRIPT-WATCH-PR",
+      "title": "watch-pr behaves identically under Node and Bun",
+      "specSection": "12.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          12,
+          12
+        ],
+        "anchor": "scripts/watch-pr/watch-pr"
+      },
+      "observable": "The Node bundle of watch-pr matches the Bun source for help, invalid PR, conflicting modes, merged, closed, ready, draft, failed, pending, and query failure.",
+      "invariants": [
+        "Upstream parsing and policy are reused.",
+        "No dependency installs during a run."
+      ],
+      "piMechanism": "dist/watch-pr.js built from the vendored source.",
+      "dependencies": [
+        "Node"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers/watch-pr-differential.test.ts",
+      "tests": [
+        "watch.help",
+        "watch.invalid",
+        "watch.conflict",
+        "watch.merged",
+        "watch.closed",
+        "watch.ready",
+        "watch.draft",
+        "watch.failed",
+        "watch.pending",
+        "watch.query",
+        "watch.readypol",
+        "watch.draftpol",
+        "watch.failedpol",
+        "forge.parsers",
+        "forge.types",
+        "pack.stale-watch"
+      ]
+    },
+    {
+      "id": "SCRIPT-CHECK-PLAN",
+      "title": "check-plan reports the same structural failures",
+      "specSection": "12.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+        "lines": [
+          10,
+          10
+        ],
+        "anchor": "check-plan.mjs"
+      },
+      "observable": "The plan validator fails a plan that lacks a required section and passes the generated template.",
+      "invariants": [
+        "Its exit status and messages match upstream."
+      ],
+      "piMechanism": "Bundled check-plan.mjs.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers/scripts.test.ts",
+      "tests": [
+        "gen.checkplan",
+        "scripts.checkplan",
+        "scripts.own-tests"
+      ]
+    },
+    {
+      "id": "SCRIPT-WORKTREE-AUDIT",
+      "title": "worktree-audit reads Pi sessions and protects active work",
+      "specSection": "12.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "lines": [
+          3,
+          3
+        ],
+        "anchor": "scripts/worktree-audit.sh"
+      },
+      "observable": "The audit finds Pi sessions on macOS and Linux (including custom and project session directories), protects recent chats, tracked edits and unmerged work, and ignores Cursor transcripts.",
+      "invariants": [
+        "The audit never deletes.",
+        "Merged clean work may be pruned."
+      ],
+      "piMechanism": "Shipped script with a Pi session-discovery span.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers/scripts.test.ts and generated-helpers.test.ts",
+      "tests": [
+        "gen.audit",
+        "scripts.wta-recent",
+        "scripts.wta-sessiondir",
+        "scripts.wta-project",
+        "scripts.wta-cursor",
+        "rf.cleanup-audit"
+      ]
+    },
+    {
+      "id": "SCRIPT-DECISION-LOG",
+      "title": "The decision log keeps its TSV format",
+      "specSection": "12.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/show-me-your-work/SKILL.md",
+        "lines": [
+          38,
+          38
+        ],
+        "anchor": "scripts/log.sh"
+      },
+      "observable": "log.sh writes one header and six-column rows and neutralizes tabs and formula characters.",
+      "invariants": [
+        "The format matches upstream."
+      ],
+      "piMechanism": "Shipped unchanged.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers/generated-helpers.test.ts and scripts.test.ts",
+      "tests": [
+        "gen.log",
+        "scripts.log"
+      ]
+    },
+    {
+      "id": "SCRIPT-STATECHART",
+      "title": "statechart runs the TLA+ workflow and emits diagrams and defect paths",
+      "specSection": "12.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/statechart/SKILL.md",
+        "lines": [
+          64,
+          70
+        ],
+        "anchor": "The command checks the rules with TLC"
+      },
+      "observable": "The statechart entry runs TLC on a model, writes tlc.out, and renders the Mermaid chart with defect paths.",
+      "invariants": [
+        "A generated diagram without a model-checker run is not parity.",
+        "The CLI prints usage and exits 2 without a SPEC."
+      ],
+      "piMechanism": "dist/statechart.js; TLC and Java through mise.",
+      "dependencies": [
+        "Java",
+        "TLC",
+        "network on first run"
+      ],
+      "prerequisites": [
+        "Java and TLC installed"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/packaging/installed-helpers.test.ts",
+      "tests": [
+        "scripts.statechart-entry",
+        "scripts.statechart-usage",
+        "inst.statechart-render",
+        "inst.statechart-tlc"
+      ]
+    },
+    {
+      "id": "MX-PR-REVIEW",
+      "title": "Review comments are data, never instructions",
+      "specSection": "16.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md",
+        "lines": [
+          7,
+          11
+        ],
+        "anchor": "Classify each Bugbot thread before acting"
+      },
+      "observable": "Malicious review text is returned as data and never executed, and reply bodies go through JSON on stdin, not a shell command.",
+      "invariants": [
+        "Bugbot comments are neither accepted nor dismissed automatically."
+      ],
+      "piMechanism": "src/forge adapters.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.malicious",
+        "forge.stdin"
+      ],
+      "coverageGap": "Injection resistance is tested at the parser and reply boundary. No test checks a worker's triage of stale or invalid comments against the code."
+    },
+    {
+      "id": "BABYSIT-MODES",
+      "title": "Babysit routes by request and size and starts no watcher for check",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          7,
+          7
+        ],
+        "anchor": "Declare the mode"
+      },
+      "observable": "A babysit request resolves to check, threads-only, drive or background; a small or documentation-only PR uses check; an undeclared mode defaults to drive.",
+      "invariants": [
+        "No long-running watcher starts for check."
+      ],
+      "piMechanism": "src/forge routing.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.babysit-route"
+      ]
+    },
+    {
+      "id": "BABYSIT-READY",
+      "title": "GitHub drive stops at READY using upstream watch-pr verdicts",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          16,
+          16
+        ],
+        "anchor": "stop at `READY`"
+      },
+      "observable": "The watcher classifies a ready PR as READY and a failed or pending check accordingly, and the forge layer reuses that classification, including owner approval.",
+      "invariants": [
+        "Origin never emits GitHub watcher statuses."
+      ],
+      "piMechanism": "dist/watch-pr.js and src/forge.",
+      "dependencies": [
+        "gh"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers/watch-pr-differential.test.ts and tests/forge/forge.test.ts",
+      "tests": [
+        "watch.ready",
+        "watch.readypol",
+        "watch.failed",
+        "watch.pending",
+        "forge.classify"
+      ]
+    },
+    {
+      "id": "BABYSIT-MERGE-QUEUE",
+      "title": "A blocker-free queued frontier reports WAITING with reason merge-queue",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          16,
+          16
+        ],
+        "anchor": "merge-queue"
+      },
+      "observable": "In queued mode the watcher never emits READY; a blocker-free frontier is a non-terminal WAITING with reason merge-queue and the watcher stops.",
+      "invariants": [
+        "Queued mode never emits READY."
+      ],
+      "piMechanism": "dist/watch-pr.js.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test simulates a merge-queue frontier.",
+      "tests": []
+    },
+    {
+      "id": "BABYSIT-ORDER",
+      "title": "Babysit fixes conflicts, then review threads, then CI, and never rebases",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          11,
+          11
+        ],
+        "anchor": "Order is conflicts, then review threads, then CI"
+      },
+      "observable": "A conflict is reported, not resolved; threads are batched; CI is last; no rebase, retarget or force-push happens inside babysit.",
+      "invariants": [
+        "The stack topology is never mutated."
+      ],
+      "piMechanism": "Playbook text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test simulates a conflicted PR through a babysit run.",
+      "tests": []
+    },
+    {
+      "id": "BABYSIT-RETRY",
+      "title": "A source-verified flake earns exactly one fresh build",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "One retry only."
+      },
+      "observable": "A flaky failure is retried once; an identical second failure is reclassified.",
+      "invariants": [
+        "No unlimited retries."
+      ],
+      "piMechanism": "Playbook text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test simulates a failing check through a babysit run.",
+      "tests": []
+    },
+    {
+      "id": "BABYSIT-NO-MERGE",
+      "title": "Babysit never merges because checks are green",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "Babysitting never authorizes merging"
+      },
+      "observable": "A merge is refused without authorization and a current independent verification, whatever the checks say.",
+      "invariants": [
+        "Green CI is not authorization."
+      ],
+      "piMechanism": "src/forge merge guard.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.merge-auth"
+      ]
+    },
+    {
+      "id": "BUGBOT-TRIAGE",
+      "title": "Bugbot findings are classified fix, dismiss or ask against the code",
+      "specSection": "13.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md",
+        "lines": [
+          9,
+          11
+        ],
+        "anchor": "`dismiss`"
+      },
+      "observable": "Each Bugbot thread is classified by the rubric and checked against the code.",
+      "invariants": [
+        "No blanket acceptance or dismissal."
+      ],
+      "piMechanism": "Reference text read by the babysit worker.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test checks triage decisions.",
+      "tests": []
+    },
+    {
+      "id": "SHIPPING-CONTIGUOUS",
+      "title": "Only the contiguous verified run from the root can merge",
+      "specSection": "13.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+        "lines": [
+          6,
+          6
+        ],
+        "anchor": "Land only the contiguous verified run rooted at the bottom"
+      },
+      "observable": "With a failed middle PR, shipping stops below it even when the tip passed, and an inconclusive or unknown verdict never ships.",
+      "invariants": [
+        "The ceiling is the first PR without PASS or PASS+NOTES."
+      ],
+      "piMechanism": "src/forge shipping.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.failed-middle",
+        "forge.inconclusive"
+      ]
+    },
+    {
+      "id": "SHIPPING-FRESH",
+      "title": "A verdict covers the patch it examined",
+      "specSection": "13.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+        "lines": [
+          7,
+          7
+        ],
+        "anchor": "git patch-id"
+      },
+      "observable": "A stale head, a missing verdict, or a self verification blocks shipping.",
+      "invariants": [
+        "A verdict is tied to the head being merged."
+      ],
+      "piMechanism": "src/forge shipping.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.stale"
+      ],
+      "coverageGap": "No test shows a rebased head with an unchanged patch-id keeping its verdict."
+    },
+    {
+      "id": "SHIPPING-INDEPENDENT",
+      "title": "Shipping verifies each PR independently before it merges",
+      "specSection": "13.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+        "lines": [
+          5,
+          5
+        ],
+        "anchor": "verify each PR independently"
+      },
+      "observable": "A PR merges only with explicit authorization and a current verdict from a verifier that did not write it.",
+      "invariants": [
+        "No self verification."
+      ],
+      "piMechanism": "src/forge shipping.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.stale",
+        "forge.merge-auth"
+      ]
+    },
+    {
+      "id": "SHIPPING-ORDER",
+      "title": "Shipping lands bottom-up one PR at a time",
+      "specSection": "13.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+        "lines": [
+          8,
+          8
+        ],
+        "anchor": "Land bottom-up"
+      },
+      "observable": "The lowest unmerged PR merges first and the next moves only after it lands.",
+      "invariants": [
+        "No other branch or base changes while the run lands."
+      ],
+      "piMechanism": "Playbook text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test lands a stack.",
+      "tests": []
+    },
+    {
+      "id": "CLEANUP-PROTECT",
+      "title": "Dirty or active worktrees are protected until authorized",
+      "specSection": "12.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+        "lines": [
+          6,
+          6
+        ],
+        "anchor": "Pause on irreversible loss"
+      },
+      "observable": "The audit marks worktrees with recent chats, tracked edits or unmerged work as protected, and the playbook deletes only an authorized set.",
+      "invariants": [
+        "Uncommitted work is never removed without a decision."
+      ],
+      "piMechanism": "worktree-audit.sh plus playbook gates.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/helpers",
+      "tests": [
+        "gen.audit",
+        "scripts.wta-recent"
+      ],
+      "coverageGap": "The audit is tested. No test runs the cleanup playbook against a dirty or active worktree and checks that nothing is deleted."
+    },
+    {
+      "id": "FORGE-RESOLUTION",
+      "title": "The forge is resolved once, persisted, and unsupported operations are explicit",
+      "specSection": "13.1",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md",
+        "lines": [
+          5,
+          5
+        ],
+        "anchor": "command -v origin"
+      },
+      "observable": "A native tool is preferred over Origin over GitHub; the choice is persisted; a backend advertises only operations it supports; PRs are created ready with their body on stdin; CLI failures propagate.",
+      "invariants": [
+        "No PR is created through one backend and managed through another."
+      ],
+      "piMechanism": "src/forge.",
+      "dependencies": [
+        "gh or origin"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.resolve",
+        "forge.unsupported",
+        "forge.create",
+        "forge.failures",
+        "forge.stdin"
+      ]
+    },
+    {
+      "id": "AUTOPILOT-VERIFIED-MERGE",
+      "title": "An owner merges only what the root verified at that head",
+      "specSection": "13.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+        "lines": [
+          17,
+          17
+        ],
+        "anchor": "Green CI alone never authorizes a merge"
+      },
+      "observable": "The merge guard refuses without authorization and a current independent verification.",
+      "invariants": [
+        "Green CI alone never authorizes a merge."
+      ],
+      "piMechanism": "src/forge merge guard.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/forge/forge.test.ts",
+      "tests": [
+        "forge.merge-auth",
+        "forge.stale"
+      ],
+      "coverageGap": "No test runs the root coordination layer, one owner per PR, or the swarm verification of an autopilot run."
+    },
+    {
+      "id": "AUTOPILOT-STACK-NO-MERGE",
+      "title": "Autopilot-stack hands verified PRs over without merging",
+      "specSection": "13.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md",
+        "lines": [
+          3,
+          3
+        ],
+        "anchor": "but do not merge"
+      },
+      "observable": "Autopilot-stack stops at verified and stacks only genuine dependencies.",
+      "invariants": [
+        "No merge."
+      ],
+      "piMechanism": "Playbook text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs autopilot-stack.",
+      "tests": []
+    },
+    {
+      "id": "AUTOPILOT-HOLD",
+      "title": "The operator's stop reaches every owner at once",
+      "specSection": "13.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+        "lines": [
+          23,
+          23
+        ],
+        "anchor": "Stand down at once"
+      },
+      "observable": "A hold is a zero-writes order each owner reports against.",
+      "invariants": [
+        "Owners keep their brief until released."
+      ],
+      "piMechanism": "pstack_worker abort and steer.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test sends a hold to a fleet.",
+      "tests": []
+    },
+    {
+      "id": "ORCHESTRATE-TOPOLOGY",
+      "title": "Orchestrate keeps one owner per PR within three levels",
+      "specSection": "13.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+        "lines": [
+          9,
+          11
+        ],
+        "anchor": "One owner per PR"
+      },
+      "observable": "A sub-coordinator spawns workers into its own run at depth 2 and its workers run at depth 3; depth 3 and beyond spawn nothing; workers lack spawn by default.",
+      "invariants": [
+        "At most three levels: coordinator, sub-coordinators, workers."
+      ],
+      "piMechanism": "PSTACK_DEPTH and capabilities.spawn.",
+      "dependencies": [
+        "tmux"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/nested-spawn.test.ts and spawn-depth.test.ts",
+      "tests": [
+        "nest.subcoordinator",
+        "depth.two",
+        "depth.three",
+        "depth.refuse3",
+        "depth.refuse4",
+        "sem.orch-sub",
+        "nest.registers-spawn",
+        "nest.registers-worker",
+        "sem.nested-spawn"
+      ],
+      "coverageGap": "No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run."
+    },
+    {
+      "id": "CONTAINER-WORKERS",
+      "title": "Container workers run or report ContainerUnavailable",
+      "specSection": "9.6",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
+        "lines": [
+          27,
+          27
+        ],
+        "anchor": "environment: \"cloud\""
+      },
+      "observable": "A container-mode assignment either starts a container worker or is refused with ContainerUnavailable and the skill's fallback.",
+      "invariants": [
+        "No silent downgrade to a local worker."
+      ],
+      "piMechanism": "Planned container workspace mode.",
+      "dependencies": [
+        "Docker"
+      ],
+      "prerequisites": [
+        "docker"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/semantics.test.ts checks the generated text only",
+      "tests": [
+        "sem.container-swarm",
+        "sem.container-orch",
+        "sem.container-ship",
+        "sem.container-auto",
+        "sem.container-def"
+      ],
+      "coverageGap": "parseAssignment in src/run-files.ts accepts only worktree and readonly workspaces, so a container assignment is refused with a different message. No test starts a container worker."
+    },
+    {
+      "id": "WF-HOW-READONLY",
+      "title": "how and reviewers run with read-only tools, enforced by the worker",
+      "specSection": "12.1",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/how/SKILL.md",
+        "lines": [
+          11,
+          11
+        ],
+        "anchor": "readonly: true"
+      },
+      "observable": "A readonly worker gets read, grep, find, ls, bash_readonly and pstack_evidence, reads git history through bash_readonly, and cannot write through it; unsupported hosts fail closed.",
+      "invariants": [
+        "Read-only is enforced by the tool set, not by instruction.",
+        "bash_readonly is registered for readonly workers (src/workers.ts READONLY_TOOLS and registerWorkerSideTools)."
+      ],
+      "piMechanism": "PSTACK_READONLY=1 registers bash_readonly in src/workers.ts; sandbox in src/readonly-shell.",
+      "dependencies": [
+        "macOS sandbox-exec or Linux bubblewrap"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security",
+      "tests": [
+        "sem.how-ro",
+        "sem.ro-bash",
+        "readonly.worker",
+        "nest.registers-readonly",
+        "sec.ro-shell",
+        "sec.ro-failclosed",
+        "sec.ro-state",
+        "sec.ro-bashenv"
+      ]
+    },
+    {
+      "id": "SECURITY-READONLY-LINUX",
+      "title": "The Linux readonly sandbox fails closed and blocks writes and sockets",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Pi-side security boundary with no upstream counterpart; specification 15.1."
+      },
+      "observable": "On Linux the readonly command runs under bubblewrap with a seccomp filter that refuses writes and Unix sockets, and fails closed without bubblewrap.",
+      "invariants": [
+        "No unfiltered run."
+      ],
+      "piMechanism": "Linux bubblewrap and seccomp.",
+      "dependencies": [
+        "Linux",
+        "bubblewrap"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/security/linux-readonly-*.test.ts (skipped off Linux)",
+      "tests": [
+        "sec.linux-sandbox",
+        "sec.linux-missing"
+      ]
+    },
+    {
+      "id": "WORKER-CAPABILITY-BOUNDARY",
+      "title": "A worker's tools, MCP and environment are limited by its assignment",
+      "specSection": "15.1",
+      "source": {
+        "specOnly": true,
+        "reason": "Pi-side security boundary with no upstream counterpart; specification 15.1."
+      },
+      "observable": "A minimal worker launches with --no-mcp and without the parent's variables, secrets travel in claim/launch-env.json, never argv, and a worker asking for external write authority is refused.",
+      "invariants": [
+        "A worker receives no credential it was not assigned."
+      ],
+      "piMechanism": "Assignment capabilities and launch environment in src/worker-host.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "tests": [
+        "life.mcp-none",
+        "life.launch-secrets",
+        "life.external-write",
+        "nest.registers-worker",
+        "life.automation-default",
+        "life.not-owner"
+      ],
+      "coverageGap": "A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access."
+    },
+    {
+      "id": "WF-TEACH",
+      "title": "teach composes how and why into one plain account",
+      "specSection": "12.1",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/teach/SKILL.md",
+        "lines": [
+          11,
+          11
+        ],
+        "anchor": "run `how` for how it works"
+      },
+      "observable": "teach runs how and why, in parallel, and weaves their results into one explanation.",
+      "invariants": [
+        "It never changes the work."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes teach.",
+      "tests": []
+    },
+    {
+      "id": "WF-ARCHITECT-ARENA",
+      "title": "architect requests structurally distinct designs through arena",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/architect/SKILL.md",
+        "lines": [
+          29,
+          29
+        ],
+        "anchor": "Run the **arena** skill"
+      },
+      "observable": "architect grounds the system, runs arena for at least two structurally distinct designs, and synthesizes.",
+      "invariants": [
+        "Two candidates minimum."
+      ],
+      "piMechanism": "Skill text and worker spawning.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes architect.",
+      "tests": []
+    },
+    {
+      "id": "WF-ARCHITECT-CHECKPOINT",
+      "title": "architect proceeds unless a checkpoint was explicitly requested",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/architect/SKILL.md",
+        "lines": [
+          43,
+          43
+        ],
+        "anchor": "No human checkpoint"
+      },
+      "observable": "The default is to implement the synthesized design without stopping.",
+      "invariants": [
+        "A checkpoint is opt-in."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes architect.",
+      "tests": []
+    },
+    {
+      "id": "WF-ARENA-FLOW",
+      "title": "arena frames, fans out, cross-judges, picks, grafts and verifies",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+        "lines": [
+          9,
+          9
+        ],
+        "anchor": "Frame, Fan out, Cross-judge, Pick, Graft, Verify"
+      },
+      "observable": "The six arena phases run in order and the combined result is verified.",
+      "invariants": [
+        "Every candidate gets the same prompt."
+      ],
+      "piMechanism": "Skill text and worker spawning.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs arena.",
+      "tests": []
+    },
+    {
+      "id": "WF-INTERROGATE",
+      "title": "interrogate keeps only findings a run proves",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/interrogate/SKILL.md",
+        "lines": [
+          9,
+          9
+        ],
+        "anchor": "A finding survives only when a run proves it"
+      },
+      "observable": "Adversaries report findings with a command and its output; unsupported findings are dropped and no fixes are applied.",
+      "invariants": [
+        "Independent adversarial reviewers."
+      ],
+      "piMechanism": "Skill text, worker spawning and pstack_evidence.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs interrogate.",
+      "tests": []
+    },
+    {
+      "id": "WF-MODEL-INDEPENDENCE",
+      "title": "A multi-model review needs genuinely different model families",
+      "specSection": "12.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/arena/SKILL.md",
+        "lines": [
+          28,
+          28
+        ],
+        "anchor": "cross-judge pool"
+      },
+      "observable": "Aliases and the parent family are skipped when choosing a cross-judge, an unavailable independent family is reported, and two Claude tiers do not count as independent.",
+      "invariants": [
+        "Two labels for one physical model are not independent."
+      ],
+      "piMechanism": "src/models.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/model-routing/models.test.ts",
+      "tests": [
+        "model.judge-skip",
+        "model.judge-missing",
+        "model.judge-default",
+        "model.tiers",
+        "model.panel"
+      ]
+    },
+    {
+      "id": "WF-FEATURE",
+      "title": "Feature begins with code grounding and a named data shape",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/feature.md",
+        "lines": [
+          5,
+          7
+        ],
+        "anchor": "`architect` for parallel design exploration"
+      },
+      "observable": "Feature work runs how, then architect, then writes the throughput checkpoint before delegating.",
+      "invariants": [
+        "Implementation goes to a fresh bounded worker."
+      ],
+      "piMechanism": "Playbook steps copied into TODO.md.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs the Feature playbook end to end.",
+      "tests": []
+    },
+    {
+      "id": "WF-BUGFIX",
+      "title": "Bug fix reproduces on the real surface before and after the fix",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/bug-fix.md",
+        "lines": [
+          7,
+          11
+        ],
+        "anchor": "Reproduce it yourself"
+      },
+      "observable": "The bug is reproduced, root-caused, fixed with the failing repro landing first, and re-verified on the same surface.",
+      "invariants": [
+        "Wrong-surface or inconclusive is not a pass."
+      ],
+      "piMechanism": "Playbook steps copied into TODO.md.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs the Bug fix playbook end to end.",
+      "tests": []
+    },
+    {
+      "id": "WF-TDD",
+      "title": "TDD places a failing check before the fix",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/tdd/SKILL.md",
+        "lines": [
+          17,
+          20
+        ],
+        "anchor": "Write the failing test first"
+      },
+      "observable": "A focused test fails for the intended reason before the fix and passes after it.",
+      "invariants": [
+        "Do not weaken assertions to fit a wrong implementation."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes tdd.",
+      "tests": []
+    },
+    {
+      "id": "WF-REFACTOR",
+      "title": "Refactoring pins a behavior contract first",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/refactoring.md",
+        "lines": [
+          7,
+          7
+        ],
+        "anchor": "Pin the behavior contract first"
+      },
+      "observable": "A characterization test, snapshot or equivalence harness is written before structure changes, and the same observable behavior survives.",
+      "invariants": [
+        "No new behavior."
+      ],
+      "piMechanism": "Playbook steps copied into TODO.md.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs the Refactoring playbook.",
+      "tests": []
+    },
+    {
+      "id": "WF-PERF",
+      "title": "Performance work captures a baseline before optimizing",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/perf-issue.md",
+        "lines": [
+          5,
+          5
+        ],
+        "anchor": "Capture a baseline trace"
+      },
+      "observable": "A baseline trace exists before a fix and every number is vetted with benchmark-checklist.",
+      "invariants": [
+        "A measurement ties every fix."
+      ],
+      "piMechanism": "Playbook steps copied into TODO.md.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs the Perf issue playbook.",
+      "tests": []
+    },
+    {
+      "id": "WF-HILLCLIMB",
+      "title": "Hillclimb attempts are measured, accepted or reverted and logged",
+      "specSection": "12.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/hillclimb.md",
+        "lines": [
+          14,
+          15
+        ],
+        "anchor": "Accept only when the metric moves past noise"
+      },
+      "observable": "Each attempt is measured with a frozen harness, kept or reverted in full, committed once if kept, and logged either way.",
+      "invariants": [
+        "A plateau triggers reconsideration, not invented improvement."
+      ],
+      "piMechanism": "Playbook steps copied into TODO.md and the decision log helper.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test runs the Hillclimb playbook.",
+      "tests": []
+    },
+    {
+      "id": "WF-CREATE-VERIFICATION-SKILL",
+      "title": "create-verification-skill writes a project-local skill with a feature map",
+      "specSection": "12.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/create-verification-skill/SKILL.md",
+        "lines": [
+          25,
+          25
+        ],
+        "anchor": "Write `.cursor/skills/verify-<app>/SKILL.md`"
+      },
+      "observable": "A project-local Pi skill under .pi/skills/verify-<app>/ with a launch, doctor, drive, evidence, cleanup recipe and a feature map is written and run on one mapped feature.",
+      "invariants": [
+        "The skill is run successfully before it is accepted."
+      ],
+      "piMechanism": "Skill text with the Cursor path replaced by .pi/skills.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes create-verification-skill.",
+      "tests": []
+    },
+    {
+      "id": "WF-MAINTAIN-VERIFICATION-SKILL",
+      "title": "maintain-verification-skill always performs a live pass",
+      "specSection": "12.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/maintain-verification-skill/SKILL.md",
+        "lines": [
+          33,
+          33
+        ],
+        "anchor": "Required even when source looks clean"
+      },
+      "observable": "The feature map is reconciled against source and a live pass runs even when the source looks consistent.",
+      "invariants": [
+        "Live pass is never skipped."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes maintain-verification-skill.",
+      "tests": []
+    },
+    {
+      "id": "WF-FORMAL-VERIFICATION",
+      "title": "Formal verification states its model, assumptions and counterexamples",
+      "specSection": "12.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/create-formal-verification-skill/SKILL.md",
+        "lines": [
+          21,
+          28
+        ],
+        "anchor": "never seen fail"
+      },
+      "observable": "Each property is shown failing on a broken variant, findings keep their counterexample, and scope and one reproducible command are stated.",
+      "invariants": [
+        "Do not weaken a property until it passes."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes the formal verification skills.",
+      "tests": []
+    },
+    {
+      "id": "WF-RECALL",
+      "title": "recall validates reconstructed history against current state",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/recall/SKILL.md",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "Verify against live state"
+      },
+      "observable": "recall reconstructs prior conversations from Pi session records scoped to the workspace and checks conclusions with git and gh.",
+      "invariants": [
+        "History access is workspace-scoped."
+      ],
+      "piMechanism": "Pi session records instead of Cursor transcripts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes recall.",
+      "tests": []
+    },
+    {
+      "id": "WF-REFLECT-TRANSCRIPT",
+      "title": "reflect reads the opening prompt from the first user message of a Pi session",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "first JSONL line"
+      },
+      "observable": "reflect matches the opening prompt against the first user message, not the system message, in a real Pi session file.",
+      "invariants": [
+        "Transcripts come from Pi session records."
+      ],
+      "piMechanism": "Skill text adapted to Pi session layout.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/review-fixes.test.ts",
+      "tests": [
+        "rf.reflect-first-user",
+        "rf.reflect-session"
+      ],
+      "coverageGap": "No test runs reflect with three reviewers and a synthesizer."
+    },
+    {
+      "id": "WF-REFLECT-APPROVAL",
+      "title": "reflect waits for explicit approval before editing a skill",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/reflect/SKILL.md",
+        "lines": [
+          47,
+          47
+        ],
+        "anchor": "wait for explicit approval"
+      },
+      "observable": "Accepted edits are applied only after the user approves; Backlog items are filed without waiting.",
+      "invariants": [
+        "No skill edit before approval."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test checks the approval gate.",
+      "tests": []
+    },
+    {
+      "id": "WF-AUTOMATE-ME",
+      "title": "automate-me derives preferences from history into a skill",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/automate-me/SKILL.md",
+        "lines": [
+          29,
+          31
+        ],
+        "anchor": "transcript"
+      },
+      "observable": "Recurring working preferences from available history produce or revise an Agent Skill.",
+      "invariants": [
+        "History is workspace-scoped and privacy-aware."
+      ],
+      "piMechanism": "Pi session records.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes automate-me.",
+      "tests": []
+    },
+    {
+      "id": "WF-KETCHUP",
+      "title": "ketchup gives a concise recap of what changed since the last message",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/ketchup/SKILL.md",
+        "lines": [
+          3,
+          3
+        ],
+        "anchor": "Catch the user up"
+      },
+      "observable": "A short recap lists every item waiting on the user.",
+      "invariants": [
+        "Plain words."
+      ],
+      "piMechanism": "Skill text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test invokes ketchup.",
+      "tests": []
+    },
+    {
+      "id": "WF-KETCHUP-VIDEO",
+      "title": "ketchup-video renders an actual subtitled video",
+      "specSection": "12.5",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/ketchup-video/SKILL.md",
+        "lines": [
+          27,
+          27
+        ],
+        "anchor": "Render one silent landscape video"
+      },
+      "observable": "A subtitled video file is rendered and checked frame by frame, not only a textual summary.",
+      "invariants": [
+        "The artifact exists on disk."
+      ],
+      "piMechanism": "Skill text; mp4 rendering tools.",
+      "dependencies": [
+        "ffmpeg or equivalent"
+      ],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test renders a video.",
+      "tests": []
+    },
+    {
+      "id": "WF-MAKE-BOT-UI",
+      "title": "make-bot-ui uses a local receiver and never asks for the sender key",
+      "specSection": "14.4",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+        "lines": [
+          41,
+          41
+        ],
+        "anchor": "Do not accept the sender key in chat"
+      },
+      "observable": "Every routine API and setup script the skill names exists, the webhook URL matches the receiver, setup generates the key, and the wake carries exactly the delivered event fields as untrusted data.",
+      "invariants": [
+        "The secret stays on the server."
+      ],
+      "piMechanism": "src/automation/routine.ts receiver.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/review-fixes.test.ts and tests/automation/routine.test.ts",
+      "tests": [
+        "rf.botui-b1",
+        "rf.botui-url",
+        "rf.botui-key",
+        "rf.botui-wake",
+        "routine.post",
+        "routine.key"
+      ]
+    },
+    {
+      "id": "WF-LEAF-READ",
+      "title": "A principle is cited only after its leaf skill was read",
+      "specSection": "4.2",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/poteto-mode/SKILL.md",
+        "lines": [
+          15,
+          15
+        ],
+        "anchor": "Cite only principles whose leaf SKILL.md you read"
+      },
+      "observable": "The active poteto-mode skill retains the rule that an applicable principle's leaf is read before it is claimed.",
+      "invariants": [
+        "The rule survives compilation."
+      ],
+      "piMechanism": "Compiled poteto-mode text.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test checks the compiled rule or the behavior.",
+      "tests": []
+    },
+    {
+      "id": "WF-SETUP-PSTACK",
+      "title": "setup-pstack detects Pi models and validates choices against the ladder",
+      "specSection": "10.3",
+      "source": {
+        "file": "vendor/upstream-pstack/skills/setup-pstack/SKILL.md",
+        "lines": [
+          14,
+          14
+        ],
+        "anchor": "Enumerate the model slugs"
+      },
+      "observable": "setup-pstack describes pi --list-models as it is and validates specs against the detected set and the effort ladder, and src/models.ts agrees.",
+      "invariants": [
+        "An unsupported level clamps down."
+      ],
+      "piMechanism": "Compiled setup-pstack text and src/models.ts.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/review-fixes.test.ts",
+      "tests": [
+        "rf.setup-models",
+        "rf.models-src"
+      ]
+    },
+    {
+      "id": "ROLE-POTETO-AGENT",
+      "title": "poteto-agent is an independent Pi worker role",
+      "specSection": "4.4",
+      "source": {
+        "file": "vendor/upstream-pstack/agents/poteto-agent.md",
+        "lines": [
+          1,
+          9
+        ],
+        "anchor": "SKILL.md"
+      },
+      "observable": "The poteto-agent role instruction reads the poteto-mode skill before work and runs as an independent Pi process.",
+      "invariants": [
+        "No new agent type."
+      ],
+      "piMechanism": "generated/agents/poteto.md.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/inventory.test.ts",
+      "tests": [
+        "inv.agents",
+        "load.worker"
+      ]
+    },
+    {
+      "id": "ROLE-COMMENT-SICKO",
+      "title": "comment-sicko keeps its scope and reporting contract",
+      "specSection": "4.4",
+      "source": {
+        "file": "vendor/upstream-pstack/agents/comment-sicko.md",
+        "lines": [
+          1,
+          12
+        ],
+        "anchor": "comment"
+      },
+      "observable": "The comment-review worker receives the scoped diff as patches in its own worktree and returns it without committing caller work.",
+      "invariants": [
+        "Caller work is never committed by the worker."
+      ],
+      "piMechanism": "generated/agents/comment-sicko.md and the no-comments scope transfer.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/semantics.test.ts",
+      "tests": [
+        "inv.agents",
+        "sem.nocomments"
+      ]
+    },
+    {
+      "id": "BENNY-ONE-REPLY",
+      "title": "Benny posts exactly one reply in the source thread",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+        "lines": [
+          202,
+          202
+        ],
+        "anchor": "post exactly one reply"
+      },
+      "observable": "A redelivered event gives one run and one reply, and a triage result without exactly one marker is not posted.",
+      "invariants": [
+        "Never a root message in the source channel."
+      ],
+      "piMechanism": "Parent-owned outbox in src/automation.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.dedupe",
+        "auto.marker",
+        "auto.thread-key"
+      ]
+    },
+    {
+      "id": "BENNY-MARKER",
+      "title": "The reply ends with exactly one prescribed marker",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+        "lines": [
+          212,
+          221
+        ],
+        "anchor": "End with exactly one marker line"
+      },
+      "observable": "The verdict carries one of the benny marker lines.",
+      "invariants": [
+        "Exactly one marker."
+      ],
+      "piMechanism": "Parent validation before posting.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.marker"
+      ]
+    },
+    {
+      "id": "BENNY-THREAD-IMMUTABLE",
+      "title": "Source channel and root thread never change during a case",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          28,
+          28
+        ],
+        "anchor": "immutable for the whole run"
+      },
+      "observable": "An event without thread identity or from another channel starts nothing; a reply in a thread keys to its root.",
+      "invariants": [
+        "The idempotency key is channel plus root timestamp."
+      ],
+      "piMechanism": "src/automation event adapter.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.thread-key",
+        "auto.no-thread",
+        "auto.other-channel"
+      ]
+    },
+    {
+      "id": "BENNY-NO-SLACK-CREDENTIALS",
+      "title": "Workers never receive Slack credentials",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          30,
+          30
+        ],
+        "anchor": "cannot post to slack or receive slack credentials"
+      },
+      "observable": "Assignments carry the automation capabilities and no secret or credential path; secrets reach a worker only through claim/launch-env.json; a worker asking for external write authority is refused.",
+      "invariants": [
+        "The trusted parent performs external messages."
+      ],
+      "piMechanism": "Worker capabilities.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts and lifecycle.test.ts",
+      "tests": [
+        "auto.worker-inputs",
+        "life.launch-secrets",
+        "life.external-write"
+      ]
+    },
+    {
+      "id": "BENNY-DUPLICATE-TICKET",
+      "title": "A redelivery or crash never creates a second ticket",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          11,
+          11
+        ],
+        "anchor": "update a confident duplicate"
+      },
+      "observable": "Tracker crash recovery and redelivery create one ticket, and the parent rejects ineligible tracker actions.",
+      "invariants": [
+        "Reconcile the destination before retrying."
+      ],
+      "piMechanism": "Parent tracker adapter.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/parity.test.ts",
+      "tests": [
+        "par.tracker",
+        "par.inelig"
+      ],
+      "coverageGap": "Tracker actions are tested against a fake tracker. No tracker adapter ships."
+    },
+    {
+      "id": "BENNY-FAIL-CLOSED",
+      "title": "Missing or uncertain prerequisites block the case",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          35,
+          35
+        ],
+        "anchor": "fail closed"
+      },
+      "observable": "A case with a missing prerequisite is blocked until reconcile finds it restored, then dispatches once; untrusted or ambiguous handoffs do not dispatch.",
+      "invariants": [
+        "No case proceeds on uncertain identity."
+      ],
+      "piMechanism": "src/automation prerequisites.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation",
+      "tests": [
+        "auto.prereq",
+        "auto.dispatch-once",
+        "par.untrusted",
+        "auto.no-thread",
+        "acmd.benny"
+      ],
+      "coverageGap": "No tracker or control adapter ships, so a case needing one is blocked in practice."
+    },
+    {
+      "id": "BENNY-REPRODUCE-TWICE",
+      "title": "A symptom is reproduced twice through the real UI before any fix",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "lines": [
+          25,
+          25
+        ],
+        "anchor": "must appear twice through real UI"
+      },
+      "observable": "A trusted bug verdict dispatches the reproduce worker once, in a writable worktree at the input commit.",
+      "invariants": [
+        "No confirmed repro means no authored fix."
+      ],
+      "piMechanism": "Reproduce worker with a control adapter.",
+      "dependencies": [],
+      "prerequisites": [
+        "control adapter",
+        "feature map"
+      ],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation",
+      "tests": [
+        "par.trusted",
+        "auto.worktree"
+      ],
+      "coverageGap": "No control adapter ships, so no test reproduces a symptom twice through a real UI."
+    },
+    {
+      "id": "BENNY-EXISTING-FIX",
+      "title": "An existing fix is verified, not competed with",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "verification instead of a competing change"
+      },
+      "observable": "When an open PR or merged commit may fix the report, the automation verifies it.",
+      "invariants": [
+        "No competing change."
+      ],
+      "piMechanism": "Reproduce worker.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test covers existing-fix verification.",
+      "tests": []
+    },
+    {
+      "id": "BENNY-DRAFT-ONLY",
+      "title": "Benny opens draft PRs only and never merges or deploys",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "lines": [
+          291,
+          291
+        ],
+        "anchor": "Never merge or deploy"
+      },
+      "observable": "A fix opens a draft pull request after before-and-after proof.",
+      "invariants": [
+        "Never merge or deploy."
+      ],
+      "piMechanism": "Reproduce worker.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "No test covers draft PR creation.",
+      "tests": []
+    },
+    {
+      "id": "BENNY-OUTBOX-RESTART",
+      "title": "A crash after posting but before acknowledgement does not post again",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+        "lines": [
+          13,
+          13
+        ],
+        "anchor": "exactly one reply"
+      },
+      "observable": "After restart the parent reconciles the destination and does not repost.",
+      "invariants": [
+        "Where a provider has no idempotency key, inspect before retrying."
+      ],
+      "piMechanism": "Outbox in src/automation.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.outbox"
+      ]
+    },
+    {
+      "id": "BENNY-EVENT-DELIVERY",
+      "title": "Webhook delivery authenticates, bounds and deduplicates events",
+      "specSection": "14.1",
+      "source": {
+        "specOnly": true,
+        "reason": "The upstream pack is Cursor-hosted; the Pi event receiver is a specification 14.1 replacement."
+      },
+      "observable": "A wrong or missing secret, an oversized body, a non-object body, or a second event source is rejected and starts nothing; a readable-by-others credential file is refused.",
+      "invariants": [
+        "The same event delivered three times gives one run."
+      ],
+      "piMechanism": "src/automation webhook receiver.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.secret",
+        "auto.cred-perm",
+        "auto.oversize",
+        "auto.nonjson",
+        "auto.second-source",
+        "auto.dedupe"
+      ]
+    },
+    {
+      "id": "BENNY-POLLING",
+      "title": "Polling records its cursor and fires each report once",
+      "specSection": "14.1",
+      "source": {
+        "specOnly": true,
+        "reason": "A Pi-only fallback adapter; specification 14.1."
+      },
+      "observable": "The first poll only records a cursor; each later top-level report fires once and advances the cursor.",
+      "invariants": [
+        "Not run together with the webhook by default."
+      ],
+      "piMechanism": "src/automation poller.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation.test.ts",
+      "tests": [
+        "auto.poll-fire",
+        "auto.poll-first"
+      ]
+    },
+    {
+      "id": "BENNY-DORMANT",
+      "title": "Benny starts nothing until explicitly configured",
+      "specSection": "14.3",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/README.md",
+        "lines": [
+          5,
+          5
+        ],
+        "anchor": "dormant"
+      },
+      "observable": "Starting Benny requires a loaded configuration and the Slack connector, else it fails closed.",
+      "invariants": [
+        "No automatic enable."
+      ],
+      "piMechanism": "src/automation loadBennyConfig.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/automation-command.test.ts",
+      "tests": [
+        "acmd.benny",
+        "acmd.unknown"
+      ],
+      "coverageGap": "No test proves that an unconfigured install starts nothing."
+    },
+    {
+      "id": "BENNY-SETUP",
+      "title": "Setup preserves user-owned files and reports conflicts",
+      "specSection": "14.3",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+        "lines": [
+          88,
+          88
+        ],
+        "anchor": "must never touch the user-owned copies"
+      },
+      "observable": "Setup copies the pack, preserves local edits as conflicts, creates the secret once without printing it, and a second run changes nothing.",
+      "invariants": [
+        "Pack refreshes never overwrite user data."
+      ],
+      "piMechanism": "scripts/benny-setup.mjs.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/benny-setup.test.ts and parity.test.ts",
+      "tests": [
+        "bsetup.preserve",
+        "bsetup.idempotent",
+        "par.secret",
+        "par.jsonc"
+      ],
+      "coverageGap": "Setup does not validate connectors or run a harmless test event end to end."
+    },
+    {
+      "id": "PARITY-SOURCE-UPGRADE",
+      "title": "A source upgrade cannot bypass the parity gates",
+      "specSection": "16.2",
+      "source": {
+        "specOnly": true,
+        "reason": "A package property of the pin and the gates; no upstream file describes it."
+      },
+      "observable": "A changed upstream phrase, a new unmapped primitive, an unknown dependency, or a pin move with changed content but no review fails; a content-free pin move is logged.",
+      "invariants": [
+        "The lock, package.json and the review log agree."
+      ],
+      "piMechanism": "scripts/compile-skills.mjs, check-dependencies.mjs, check-parity.mjs, sync-upstream.mjs.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/gates.test.ts and tests/parity-manifest/source-upgrade.test.ts",
+      "tests": [
+        "gate.drift",
+        "gate.primitive",
+        "gate.unknown",
+        "gate.task",
+        "src.up-new",
+        "src.up-refuse",
+        "src.up-review",
+        "src.up-pin"
+      ]
+    },
+    {
+      "id": "NO-UNMAPPED-PRIMITIVE",
+      "title": "No active instruction needs an unavailable Cursor primitive",
+      "specSection": "16.1",
+      "source": {
+        "specOnly": true,
+        "reason": "A property of the generated package; specification 16.1."
+      },
+      "observable": "Generated text carries no unmapped Task call, no unknown dependency, and every reference resolves inside the package.",
+      "invariants": [
+        "A source reference that cannot resolve is a failure."
+      ],
+      "piMechanism": "Compile rules and gates.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/skill-parity/gates.test.ts and references.test.ts",
+      "tests": [
+        "gate.real",
+        "gate.task",
+        "gate.primitive",
+        "gate.unknown",
+        "refs.resolve"
+      ]
+    }
+  ]
+}
