@@ -2,7 +2,6 @@
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -11,6 +10,7 @@ import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { agentDirOf, type ContainerAuth, MIN_OAUTH_LIFETIME_MS, prepareContainerAuth } from './container-auth.ts';
 import { ENGINE_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
 import { ingestContainerReceipts, registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
@@ -241,21 +241,20 @@ function credentialEnv(provider: string | undefined): string[] {
 }
 
 /**
- * The provider Pi starts on when it gets no --model: `defaultProvider` in settings.json under the agent directory the
- * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Undefined when the file names none and Pi picks on its own.
+ * What Pi starts on when it gets no --model: `defaultProvider` and `defaultModel` in settings.json under the agent directory the
+ * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Either is undefined when the file names none.
  */
-function defaultProvider(env: Record<string, string | undefined>): string | undefined {
-  const home = env['HOME'] ?? homedir();
-  const configured = env['PI_CODING_AGENT_DIR'];
-  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join(home, '.pi', 'agent');
+function defaultSettings(env: Record<string, string | undefined>): { provider: string | undefined; model: string | undefined } {
   try {
-    const provider = (JSON.parse(readFileSync(join(agentDir, 'settings.json'), 'utf8')) as { defaultProvider?: unknown }).defaultProvider;
-    return typeof provider === 'string' ? provider : undefined;
+    const settings = JSON.parse(readFileSync(join(agentDirOf(env), 'settings.json'), 'utf8')) as { defaultProvider?: unknown; defaultModel?: unknown };
+    return { provider: typeof settings.defaultProvider === 'string' ? settings.defaultProvider : undefined, model: typeof settings.defaultModel === 'string' ? settings.defaultModel : undefined };
   } catch {
     // Pi starts without this file's settings too.
-    return undefined;
+    return { provider: undefined, model: undefined };
   }
 }
+
+const defaultProvider = (env: Record<string, string | undefined>): string | undefined => defaultSettings(env).provider;
 
 function finalAssistantText(transcript: string | null): string | null {
   if (transcript === null) return null;
@@ -345,6 +344,16 @@ export interface SpawnOptions {
   containerPi?: string;
   /** Read-only host paths a container worker can also read, mounted at the same path. */
   containerMounts?: string[];
+  /**
+   * Has Pi resolve a provider's credential now: it refreshes an OAuth token near expiry and resolves a key that is a command or an
+   * environment reference. A container worker never holds a refresh token, so the host does this before it hands over the token.
+   * `pstack_worker` supplies the session's model registry; callers without one can pass only a literal key or a token with life left.
+   */
+  providerAuth?: (provider: string) => Promise<unknown>;
+  /** Package directories that register the worker's model provider, in place of finding them in settings.json (or PSTACK_CONTAINER_PROVIDER_PACKAGES). */
+  containerProviderPackages?: string[];
+  /** The least life an OAuth access token may have left for a container worker. Defaults to 10 minutes. */
+  minOAuthValidityMs?: number;
   /** How long the host may take to answer. A container worker's clone and install count, so it defaults to 5 minutes there and 30 seconds otherwise. */
   startupMs?: number;
   /** How long a lost tmux answer is reconciled before a worker with no host and no session counts as never started. */
@@ -457,10 +466,26 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const command = options.piCommand ?? runningPiCommand();
   // This process's environment now, not the tmux server's, which dates from when the server started.
   const source = { ...process.env, ...options.extraEnv };
-  const provider = model?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
+  const inContainer = assignment.kind === 'pi' && assignment.workspace.mode === 'container';
+  // A container sees no settings.json, so the model Pi would have defaulted to on the host is named to it.
+  const hostDefault = inContainer && model === null ? defaultSettings(source) : undefined;
+  const launchModel = model !== null ? { provider: model.provider, id: model.id } : hostDefault?.provider !== undefined && hostDefault.model !== undefined ? { provider: hostDefault.provider, id: hostDefault.model } : null;
+  const provider = launchModel?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
   // Everything a container needs is settled before the claim, so a refusal leaves no claim behind.
   let container: PreparedContainer | null = null;
-  if (assignment.kind === 'pi' && assignment.workspace.mode === 'container')
+  if (assignment.kind === 'pi' && assignment.workspace.mode === 'container') {
+    const auth: ContainerAuth | undefined =
+      provider === undefined
+        ? undefined
+        : await prepareContainerAuth({
+            provider,
+            source,
+            projectRoot: root,
+            builtin: new Set(getBuiltinProviders()),
+            ...(options.providerAuth === undefined ? {} : { resolve: options.providerAuth }),
+            ...(options.containerProviderPackages === undefined ? {} : { packages: options.containerProviderPackages }),
+            minOAuthValidityMs: options.minOAuthValidityMs ?? MIN_OAUTH_LIFETIME_MS,
+          });
     container = await prepareContainer({
       project: root,
       runId,
@@ -473,11 +498,13 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       roleDoc,
       extraMounts: options.containerMounts ?? [],
       forge: assignment.capabilities.forge === true,
+      auth: { authJson: auth?.authJson ?? null, mounts: auth?.packages.mounts ?? [], extensions: auth?.packages.extensions ?? [] },
     });
+  }
   const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
-    model: model === null ? null : { provider: model.provider, id: model.id },
+    model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
@@ -699,7 +726,9 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     if (assignmentPath === undefined) throw new Error('assignmentPath is required');
     const { runId, project, run } = runOf(ctx, rawRunId);
     requireOwner(ctx, run, runId);
-    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec, resolveModel: (request) => resolveModel(request, ctx) });
+    const registry = (ctx as { modelRegistry?: { getApiKeyForProvider(provider: string): Promise<unknown> } }).modelRegistry;
+    const providerAuth = options.providerAuth ?? (registry === undefined ? undefined : (provider: string) => registry.getApiKeyForProvider(provider));
+    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec, ...(providerAuth === undefined ? {} : { providerAuth }), resolveModel: (request) => resolveModel(request, ctx) });
     watch(ctx);
     return result;
   };

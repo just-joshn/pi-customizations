@@ -361,6 +361,7 @@ export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_NO_UPDATE_NOTIFIER=1
 WS=${CONTAINER_WORKSPACE}
 {
   mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
+  if [ -n "\${PSTACK_CONTAINER_AUTH:-}" ]; then (umask 077 && printf %s "$PSTACK_CONTAINER_AUTH" > "$PI_CODING_AGENT_DIR/auth.json") || fail "cannot write the model credential"; fi
   git config --global --add safe.directory '*'
   [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
   [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
@@ -372,7 +373,7 @@ WS=${CONTAINER_WORKSPACE}
   git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
   if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
 } >&2
-unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST PSTACK_CONTAINER_AUTH
 printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
@@ -471,6 +472,8 @@ export interface ContainerRequest {
   extraMounts: readonly string[];
   /** The assignment's `capabilities.forge`: the worker gets a forge token and needs `gh`. */
   forge: boolean;
+  /** The resolved model provider's credential, and the packages that register it (see container-auth.ts). */
+  auth: { authJson: string | null; mounts: readonly string[]; extensions: readonly string[] };
 }
 
 export interface PreparedContainer {
@@ -502,7 +505,7 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
   if (forgeToken !== undefined && environment.image.kind !== 'default') await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
   const mounts: ContainerMount[] = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];
-  for (const path of [packageRoot, ...(request.roleDoc === null ? [] : [resolve(request.roleDoc, '..')]), ...request.extraMounts])
+  for (const path of [packageRoot, ...(request.roleDoc === null ? [] : [resolve(request.roleDoc, '..')]), ...request.extraMounts, ...request.auth.mounts])
     if (!mounts.some((mount) => mount.dst === path || (mount.readonly && within(mount.dst, path)))) mounts.push({ src: path, dst: path, readonly: true });
   // A local remote stands in for a network one: the container pushes to it the way it would push over the network.
   if (remote.localPath !== null) mounts.push({ src: remote.localPath, dst: remote.localPath, readonly: false });
@@ -516,13 +519,14 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
       PSTACK_CONTAINER_CLONE_URL: remote.url,
       PSTACK_CONTAINER_COMMIT: commit,
       PSTACK_CONTAINER_BRANCH: `pstack-run/${runId}/${workerId}`,
+      ...(request.auth.authJson === null ? {} : { PSTACK_CONTAINER_AUTH: request.auth.authJson }),
       ...(forgeToken === undefined ? {} : { GH_TOKEN: forgeToken, PSTACK_CONTAINER_FORGE: '1', PSTACK_CONTAINER_FORGE_HOST: source['GH_HOST'] || 'github.com' }),
       ...(environment.install === undefined ? {} : { PSTACK_CONTAINER_INSTALL: environment.install }),
       ...(name === undefined || name === '' ? {} : { PSTACK_CONTAINER_GIT_NAME: name }),
       ...(email === undefined || email === '' ? {} : { PSTACK_CONTAINER_GIT_EMAIL: email }),
     },
     piCommand: ['node', pi.script],
-    piArgs: ['--extension', join(packageRoot, 'src', 'extension.ts'), '--skill', join(packageRoot, 'generated', 'skills')],
+    piArgs: ['--extension', join(packageRoot, 'src', 'extension.ts'), ...request.auth.extensions.flatMap((path) => ['--extension', path]), '--skill', join(packageRoot, 'generated', 'skills')],
     engine,
     engineVersion: engine.version,
     image,

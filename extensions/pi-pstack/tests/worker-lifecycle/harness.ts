@@ -200,7 +200,7 @@ export interface Parent {
 export function makeParent(
   project: Project,
   entries: Entry[],
-  options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager; beforeTmux?: () => Promise<void> } = {},
+  options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager; beforeTmux?: () => Promise<void>; modelRegistry?: unknown } = {},
 ): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
@@ -236,6 +236,7 @@ export function makeParent(
   const ctx = {
     cwd: project.dir,
     model: undefined,
+    modelRegistry: options.modelRegistry,
     get sessionManager() {
       return realSession ?? fakeSession;
     },
