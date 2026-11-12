@@ -240,6 +240,24 @@ describe('a container worker that cannot start', () => {
   });
 });
 
+describe('a container worker that fails while it starts', () => {
+  test('shows its error without the credentials it held: not in the spawn error, state.json, or events.jsonl', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ install: 'echo "leaking $PSTACK_TEST_CREDENTIAL from the install" >&2; exit 7' }));
+
+    const failure = await spawn('leaky', '@@say NEVER').then(
+      () => undefined,
+      (error: unknown) => error as Error,
+    );
+
+    expect(failure?.message).toMatch(/leaking \*\*\* from the install/);
+    expect(failure?.message).not.toContain(SECRET);
+    const dir = workerDir(project, RUN_ID, 'leaky');
+    for (const file of ['state.json', join('..', '..', 'events.jsonl')]) expect(readFileSync(join(dir, file), 'utf8')).not.toContain(SECRET);
+    expect(readFileSync(join(dir, 'state.json'), 'utf8')).toContain('leaking ***');
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+  }, 180_000);
+});
+
 describe('a container worker whose environment would hand it the checkout', () => {
   test.each([
     ['is the checkout itself', () => project.dir],

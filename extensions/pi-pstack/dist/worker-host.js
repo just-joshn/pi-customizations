@@ -10,6 +10,39 @@ import { fileURLToPath } from "node:url";
 // src/container.ts
 import { execFile } from "node:child_process";
 import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
+
+// src/redact.ts
+var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
+var SECRET_NAME = /TOKEN|SECRET|PASSW|CREDENTIAL|API_?KEY|PRIVATE|(^|_)AUTH($|_)/i;
+var MIN_SECRET_LENGTH = 6;
+function collectStrings(value, into) {
+  if (typeof value === "string") {
+    if (value.length >= MIN_SECRET_LENGTH)
+      into.add(value);
+  } else if (Array.isArray(value))
+    for (const part of value)
+      collectStrings(part, into);
+  else if (typeof value === "object" && value !== null)
+    for (const part of Object.values(value))
+      collectStrings(part, into);
+}
+function secretValues(env, credentialNames) {
+  const names = new Set(credentialNames);
+  const found = new Set;
+  for (const [name, value] of Object.entries(env)) {
+    if (!names.has(name) && !SECRET_NAME.test(name))
+      continue;
+    if (value.length >= MIN_SECRET_LENGTH)
+      found.add(value);
+    try {
+      collectStrings(JSON.parse(value), found);
+    } catch {}
+  }
+  return [...found].sort((a, b) => b.length - a.length);
+}
+var scrubber = (secrets) => (text) => secrets.reduce((clean, secret) => clean.split(secret).join("***"), redactUserinfo(text));
+
+// src/container.ts
 var CONTAINER_LABEL = "pstack.worker";
 var ENVIRONMENT_FILE = join(".pi", "environment.json");
 var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
@@ -43,7 +76,7 @@ function dockerCli(docker, args, env, timeoutMs) {
       if (error === null)
         resolveRun(stdout);
       else
-        reject(new Error(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`));
+        reject(new Error(redactUserinfo(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`)));
     });
     child.stdin?.end();
   });
@@ -337,6 +370,8 @@ var MAX_BRIEF_BYTES = 1024 * 1024;
 var RPC_DEADLINE_MS = 1e4;
 var ABORT_DEADLINE_MS = 60000;
 var CONTAINER_START_MS = 30 * 60000;
+var STDERR_HOLD = 16384;
+var STDERR_OVERLAP = 512;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
 var HOST_OPERATIONS = ["inspect", "start", "prompt", "steer", "follow-up", "cancel", "shutdown"];
 var TEXT_OPERATIONS = ["prompt", "steer", "follow-up"];
@@ -513,6 +548,7 @@ async function runHost(assignmentFile, launchText) {
   const instance = randomUUID();
   claim(loaded, instance);
   const launchEnv = takeLaunchEnv(workerDir);
+  const scrub = scrubber(secretValues(workerEnv(loaded, launch, launchEnv), launch.credentialEnv));
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join3(workerDir, "session");
   let phase = "starting";
@@ -531,6 +567,12 @@ async function runHost(assignmentFile, launchText) {
   let settles = [];
   let childPid = null;
   let stderrTail = "";
+  let stderrPending = "";
+  const showStderr = (text) => {
+    const clean = scrub(text);
+    stderrTail = `${stderrTail}${clean}`.slice(-8192);
+    display("pi diagnostic", clean.slice(-8192).trimEnd());
+  };
   let requestNumber = 0;
   let runFailure;
   let childExited = false;
@@ -570,8 +612,8 @@ async function runHost(assignmentFile, launchText) {
     }
   };
   const save = () => writeJsonAtomic(join3(workerDir, "state.json"), observation());
-  const display = (kind, value) => process.stdout.write(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
-`);
+  const display = (kind, value) => process.stdout.write(scrub(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
+`));
   const settle = (settlePhase, why, covers = generation) => {
     recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
@@ -639,6 +681,9 @@ async function runHost(assignmentFile, launchText) {
   const closed = new Promise((resolveClosed) => {
     child.once("close", async (code, signal) => {
       childExited = true;
+      if (stderrPending !== "")
+        showStderr(stderrPending);
+      stderrPending = "";
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event("child_exit", exit);
@@ -750,9 +795,16 @@ async function runHost(assignmentFile, launchText) {
     if (container !== null)
       child.stdin?.write(containerPreamble(containerEnv(piEnv)));
     child.stderr?.on("data", (chunk) => {
-      const text = chunk.toString("utf8");
-      stderrTail = `${stderrTail}${text}`.slice(-8192);
-      display("pi diagnostic", text.slice(-8192).trimEnd());
+      stderrPending += chunk.toString("utf8");
+      const cut = stderrPending.lastIndexOf(`
+`);
+      if (cut !== -1) {
+        showStderr(stderrPending.slice(0, cut + 1));
+        stderrPending = stderrPending.slice(cut + 1);
+      } else if (stderrPending.length > STDERR_HOLD) {
+        showStderr(stderrPending.slice(0, -STDERR_OVERLAP));
+        stderrPending = stderrPending.slice(-STDERR_OVERLAP);
+      }
     });
     let rpcBuffer = Buffer.alloc(0);
     const decoder = new TextDecoder("utf-8", { fatal: true });

@@ -8,6 +8,8 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { delimiter, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { redactUserinfo, stripUserinfo } from './redact.ts';
+
 /** The label every pstack container carries, valued with its worker's tmux session name; pstack removes only containers that have it. */
 export const CONTAINER_LABEL = 'pstack.worker';
 /** Debian with node and git: enough to clone, run Pi, and build most repositories. */
@@ -78,7 +80,7 @@ function dockerCli(docker: string, args: readonly string[], env: NodeJS.ProcessE
   return new Promise((resolveRun, reject) => {
     const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: 'utf8', maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
       if (error === null) resolveRun(stdout);
-      else reject(new Error(`docker ${args[0] ?? ''} failed: ${stderr.trim() || error.message}`));
+      else reject(new Error(redactUserinfo(`docker ${args[0] ?? ''} failed: ${stderr.trim() || error.message}`)));
     });
     child.stdin?.end();
   });
@@ -199,7 +201,7 @@ function git(cwd: string, args: readonly string[], env: NodeJS.ProcessEnv): Prom
   return new Promise((resolveRun, reject) => {
     const child = execFile('git', ['-C', cwd, ...args], { env: { ...env, GIT_TERMINAL_PROMPT: '0' }, timeout: 60_000, encoding: 'utf8', maxBuffer: 16 << 20 }, (error, stdout, stderr) => {
       if (error === null) resolveRun(stdout.trim());
-      else reject(new Error(stderr.trim() || error.message));
+      else reject(new Error(redactUserinfo(stderr.trim() || error.message)));
     });
     child.stdin?.end();
   });
@@ -209,6 +211,7 @@ const tryGit = (cwd: string, args: readonly string[], env: NodeJS.ProcessEnv): P
 
 export interface Remote {
   name: string;
+  /** What the container clones: a local path, or a URL without its userinfo. A token never rides in a URL. */
   url: string;
   /** The bare repository's own path when the remote is a local path: the container cannot reach it without a mount. */
   localPath: string | null;
@@ -233,7 +236,7 @@ export async function resolveRemote(project: string, env: NodeJS.ProcessEnv): Pr
     );
   const url = await git(project, ['remote', 'get-url', name], env);
   const localPath = localPathOf(url, project);
-  return { name, url: localPath ?? url, localPath };
+  return { name, url: localPath ?? stripUserinfo(url), localPath };
 }
 
 /** A local remote is mounted read-write, so it must not be, contain, or lie inside the checkout the operator works in. */
@@ -254,7 +257,8 @@ export function assertRemoteOutsideCheckout(project: string, remote: Remote): vo
 export async function verifyPushed(project: string, remote: Remote, inputCommit: string, env: NodeJS.ProcessEnv): Promise<string> {
   const full = await tryGit(project, ['rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`], env);
   if (full === undefined) throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
-  const listed = await git(project, ['ls-remote', '--heads', '--tags', remote.url], env).catch((error: unknown) => {
+  // By name, so the checkout's own URL, userinfo and all, stays in git's configuration and out of argv.
+  const listed = await git(project, ['ls-remote', '--heads', '--tags', remote.name], env).catch((error: unknown) => {
     throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
   });
   const tips = [...new Set(listed.split('\n').flatMap((line) => (line === '' ? [] : [line.split('\t')[0] as string])))];

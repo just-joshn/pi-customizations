@@ -3908,6 +3908,12 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+
+// src/redact.ts
+var stripUserinfo = (url) => url.replace(/^([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^/@]*@/, "$1");
+var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
+
+// src/container.ts
 var DEFAULT_IMAGE = "node:24-bookworm";
 var ENVIRONMENT_FILE = join(".pi", "environment.json");
 var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
@@ -3929,7 +3935,7 @@ function dockerCli(docker, args, env, timeoutMs) {
       if (error === null)
         resolveRun(stdout);
       else
-        reject(new Error(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`));
+        reject(new Error(redactUserinfo(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`)));
     });
     child.stdin?.end();
   });
@@ -3960,6 +3966,10 @@ async function connectEngine(source) {
     throw new ContainerUnavailableError(`no container engine answers \`docker version\` (${error instanceof Error ? error.message : String(error)}). Start Docker or OrbStack, or point DOCKER_HOST at an engine.`);
   }
 }
+var within = (parent, child) => {
+  const path = relative(parent, child);
+  return path === "" || !path.startsWith("..") && !isAbsolute(path);
+};
 var fail = (path, problem) => {
   throw new Error(`${path}: ${problem}`);
 };
@@ -4002,6 +4012,13 @@ function readEnvironment(project) {
   if (!existsSync(file))
     fail(path, `build.dockerfile ${file} does not exist`);
   const context = resolve(base, optionalString(path, build["context"], "build.context") ?? ".");
+  if (!existsSync(context))
+    fail(path, `build.context ${context} does not exist`);
+  const root = realpathSync(project);
+  if (!within(root, realpathSync(file)))
+    fail(path, `build.dockerfile ${file} is outside the project ${root}`);
+  if (!within(root, realpathSync(context)))
+    fail(path, `build.context ${context} is outside the project ${root}; the docker client would send that folder to the engine`);
   const digest = createHash("sha256").update(readFileSync(file)).update("\x00").update(relative(project, context)).digest("hex").slice(0, 16);
   return { source: path, image: { kind: "build", dockerfile: file, context, tag: `pstack-env:${digest}` }, install };
 }
@@ -4025,7 +4042,7 @@ function git(cwd, args, env) {
       if (error === null)
         resolveRun(stdout.trim());
       else
-        reject(new Error(stderr.trim() || error.message));
+        reject(new Error(redactUserinfo(stderr.trim() || error.message)));
     });
     child.stdin?.end();
   });
@@ -4048,13 +4065,21 @@ async function resolveRemote(project, env) {
     throw new Error(names.length === 0 ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.` : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`);
   const url = await git(project, ["remote", "get-url", name], env);
   const localPath = localPathOf(url, project);
-  return { name, url: localPath ?? url, localPath };
+  return { name, url: localPath ?? stripUserinfo(url), localPath };
+}
+function assertRemoteOutsideCheckout(project, remote) {
+  if (remote.localPath === null)
+    return;
+  const target = existsSync(remote.localPath) ? realpathSync(remote.localPath) : remote.localPath;
+  const checkout = realpathSync(project);
+  if (within(target, checkout) || within(checkout, target))
+    throw new Error(`The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`);
 }
 async function verifyPushed(project, remote, inputCommit, env) {
   const full = await tryGit(project, ["rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`], env);
   if (full === undefined)
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
-  const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.url], env).catch((error) => {
+  const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.name], env).catch((error) => {
     throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
   });
   const tips = [...new Set(listed.split(`
@@ -4106,14 +4131,11 @@ printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
 `;
-var within = (parent, child) => {
-  const path = relative(parent, child);
-  return path === "" || !path.startsWith("..") && !isAbsolute(path);
-};
 async function prepareContainer(request) {
   const { project, runId, workerId, session, source, packageRoot } = request;
   const engine = await connectEngine(source);
   const remote = await resolveRemote(project, source);
+  assertRemoteOutsideCheckout(project, remote);
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
   const image = await ensureImage(engine, environment);
