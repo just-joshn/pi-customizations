@@ -35,8 +35,10 @@ export async function tmux(...args: string[]): Promise<string> {
   return (await run('tmux', ['-L', TMUX, ...args])).stdout;
 }
 
+/** Kills only this file's private server and removes the socket file tmux leaves behind. */
 export async function killTmuxServer(): Promise<void> {
   await run('tmux', ['-L', TMUX, 'kill-server']).catch(() => undefined);
+  rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, TMUX), { force: true });
 }
 
 export async function liveTmuxSessions(): Promise<string[]> {
