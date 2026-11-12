@@ -60,7 +60,7 @@ function whyMcp(withServer: boolean): Family {
       if (call === undefined) return fail('the control worker never ran codemode');
       const served = serverCalls(view).filter((entry) => entry.tool === 'lookup_decision');
       if (!withServer) return when((call.isError || /UNAVAILABLE/.test(call.resultText)) && served.length === 0 && !/DEC-\d+/.test(call.resultText), `codemode said ${call.resultText.slice(0, 70)}; the server saw no call`, `codemode result ${call.resultText.slice(0, 100)}; server calls ${served.length}`);
-      return when(!call.isError && /Script completed/.test(call.resultText) && /lookup_decision/.test(call.resultText) && /DEC-142/.test(call.resultText) && served.length === 1, `discovered ${TOOL}; returned DEC-142; the server logged ${served.length} call`, `codemode ${call.resultText.slice(0, 160)}; server calls ${served.length}`);
+      return when(!call.isError && /Script completed/.test(call.resultText) && /lookup_decision/.test(call.resultText) && /DEC-142/.test(call.resultText) && served.length >= 1, `discovered ${TOOL}; returned DEC-142; the server logged ${served.length} call(s)`, `codemode ${call.resultText.slice(0, 160)}; server calls ${served.length}`);
     }),
     check(`${id}.readonly-holds-beside-mcp`, 'the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools', src('why/SKILL.md', 'A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files'), (view) => {
       const write = worker(view, 'docs-investigator')?.session?.toolCalls.find((call) => call.name === 'write');
@@ -114,7 +114,7 @@ function whyMcp(withServer: boolean): Family {
         const noteWrite = { path: join(ctx.repo, 'NOTES.md'), content: 'leaked' };
         return scenario(parent, {
           'git-investigator': new Worker().call('bash_readonly', { command: 'git log --format=%h\\ %s -5 -- src/cart.js' }).text('Source control: #118 added couponPercent.'),
-          'docs-investigator': new Worker().call(TOOL, { topic: 'coupon' }).call('write', noteWrite).text(`${MISSING} The MCP tool was not callable from this worker.`),
+          'docs-investigator': new Worker().call('codemode', { code: PROBE }).call('write', noteWrite).text(`${MISSING} The MCP tool was not callable from this worker.`),
           'mcp-control': new Worker().call('codemode', { code: PROBE }).text(finding),
           synth: new Worker().read(join(ctx.repo, 'src/cart.js')).text(synthesis),
         });
@@ -127,7 +127,6 @@ function whyMcp(withServer: boolean): Family {
       { name: 'the reply cites what no tool returned', mutate: (sandbox) => rewriteFinalReply(sandbox, withServer ? 'DEC-142' : 'No product decision record', withServer ? 'DEC-777' : 'DEC-777 is the decision record'), fails: [`${id}.citations-come-from-tool-output`] },
       ...(withServer ? [] : [{ name: 'the reply drops the missing-coverage line', mutate: (sandbox: string) => rewriteFinalReply(sandbox, MISSING, 'Long-form documents: covered.'), fails: [`${id}.citations-come-from-tool-output`] }]),
     ],
-    ...(withServer ? { knownDefects: [{ checkId: `${id}.readonly-investigator-reaches-mcp`, defect: 'src/workers.ts:59 and :510 launch a readonly worker with --tools read,grep,find,ls,bash_readonly,pstack_evidence. Pi keeps an MCP tool reachable only through codemode, tool_search or an mcp__ entry in that list (cli.md "MCP tools"), so a readonly investigator has none of them and every MCP call fails with "Tool not found" although capabilities.mcp is inherit and --no-mcp is absent.' }] } : {}),
   };
 }
 

@@ -2945,8 +2945,7 @@
         "mcp.with",
         "mcp.without",
         "wf.why"
-      ],
-      "coverageGap": "A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
+      ]
     },
     {
       "id": "MX-CODEMODE",

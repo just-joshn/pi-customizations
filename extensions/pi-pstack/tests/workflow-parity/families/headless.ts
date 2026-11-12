@@ -122,7 +122,6 @@ const dialogFamily: Family = {
   negatives: [
     { name: 'the command hung until the driver killed it', mutate: (sandbox) => rewriteShot(sandbox, (shot) => ({ ...shot, exitCode: null })), fails: ['headless-command.exits-without-hanging'] },
   ],
-  knownDefects: [{ checkId: 'headless-command.report-reaches-stdout', defect: 'src/commands.ts:609 and :611 deliver every /pstack subcommand result through ctx.ui.notify, which prints nothing under pi -p and pi --mode json: status, doctor, workers and audit output is dropped without an error.' }],
 };
 
 export const headlessFamilies: Family[] = [headless('print'), headless('json'), dialogFamily];

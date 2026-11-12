@@ -11056,6 +11056,7 @@ var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT
 var CONTAINER_WORKSPACE = "/tmp/workspace";
 var CONTAINER_PI_ROOT = "/opt/pstack/pi/node_modules";
 var READY_RECORD = "pstack_container_ready";
+var isTmuxIdentityEnv = (name) => name === "TMUX" || name === "TMUX_PANE";
 class ContainerUnavailableError extends Error {
   constructor(reason) {
     super(`ContainerUnavailable: ${reason}`);
@@ -14732,7 +14733,7 @@ var CONTAINER_START_MS = 30 * 60000;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
 function launchEnvironment(mode, credentialEnv, source) {
   if (mode === "inherit")
-    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined));
+    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
   const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
@@ -14799,6 +14800,8 @@ async function controlHost(target, operation, text) {
 
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
+var MCP_ACCESS_TOOLS = ["codemode", "tool_search"];
+var readonlyTools = (mcp) => [...READONLY_TOOLS, ...mcp === "none" ? [] : MCP_ACCESS_TOOLS];
 function onPath(command) {
   if (isAbsolute4(command))
     return command;
@@ -15017,7 +15020,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
+    tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
     credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],
