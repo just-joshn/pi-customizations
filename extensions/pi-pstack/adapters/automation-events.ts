@@ -8,6 +8,7 @@ import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerActio
 import { directLander, enqueue, flushOutbox, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
+import { createFollowUps } from '../src/automation/follow-up.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
 
 export { createRoutine, startRoutineSource, type RoutineConfig } from '../src/automation/routine.ts';
@@ -17,6 +18,8 @@ export interface AutomationConfig extends DispatchConfig {
   sourceChannelId: string;
   triageIdentityUserId?: string;
   tracker?: TrackerConfig;
+  /** The kind's own minutes: triage_total_minutes or repro_minutes, and triage_follow_up_minutes or operations_follow_up_minutes. */
+  budgets?: { totalMinutes: number; followUpMinutes: number };
 }
 
 export interface AutomationDeps {
@@ -55,6 +58,8 @@ export interface Automation {
   /** Queues the settled worker's result as the case's single thread reply and flushes the outbox. */
   complete(runId: RunId, result: string | WorkerResult): Promise<CompleteOutcome>;
   flush(): Promise<void>;
+  /** Moves each open follow-up window one step: closes an ended one, collects a settled round, starts a round for new human messages. */
+  advanceFollowUps(): Promise<void>;
   /** Dispatched runs whose case has no `completed` entry in the event log, oldest first. Derived from the log alone. */
   pendingRuns(): RunId[];
 }
@@ -103,14 +108,14 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       appendLog(store, { ts: stamp(), kind: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) });
       return { status: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) };
     }
+    const thread = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
     if (config.kind === 'reproduce') {
-      const messages = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
-      const marked = messages.filter(message => /\[benny:(bug|performance|other)\]/.test(message.text ?? ''));
+      const marked = thread.filter(message => /\[benny:(bug|performance|other)\]/.test(message.text ?? ''));
       const verdict = marked[0];
       if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? '', AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? '')) return reject('missing, untrusted or ambiguous triage marker');
     }
     const runId = runIdFor(config.name, key);
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now });
+    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };
@@ -141,6 +146,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
 
   const lander = deps.tracker === undefined ? undefined : 'land' in deps.tracker ? deps.tracker : directLander(deps.tracker);
   const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, ...options });
+  const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush() });
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
 
   return {
@@ -204,6 +210,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         return { status: reply?.state === 'failed' ? 'failed' : queued ? 'queued' : 'already-queued', key: event.key };
       }),
     flush: () => serial(flush),
+    advanceFollowUps: () => serial(() => followUps.advance()),
     pendingRuns: () => {
       const log = readLog(store);
       const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));

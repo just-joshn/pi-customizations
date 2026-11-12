@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 212,
-    "spans": 277
+    "rules": 222,
+    "spans": 287
   },
   "skills": [
     "architect",
@@ -1997,6 +1997,96 @@
       }
     },
     {
+      "id": "triage-issue-reports.hard-safety-rules",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.1-freeze-source-coordinates",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.2-read-the-whole-report",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.2-attachments",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.6-adapter-contract",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.6-resolve-targets",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.7-confident-duplicate",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.9-post-one-verdict",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.9-verify-and-compensate",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.10-follow-up-window",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
       "id": "triage-issue-reports-references-routing-.top",
       "primitives": [
         "cursor-path",
@@ -2493,6 +2583,156 @@
       "original": "Before testing, confirm that the target repository's `.cursor/settings.json`, `.cursor/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.",
       "replacement": "Before testing, confirm that the target repository's `.pi/settings.json`, `.pi/automations/benny/`, and every referenced secret-free configuration file are committed. Confirm that `/pstack automation status <name>` shows each automation running with a receiver URL. If any check fails, stop. Tell the user that the automation cannot be enabled yet.",
       "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.hard-safety-rules",
+      "offset": [
+        1099,
+        1458
+      ],
+      "lines": [
+        21,
+        24
+      ],
+      "original": "- The coordinator is the only Slack poster.\n- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions.\n- Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.\n- If worker isolation cannot enforce those limits, do the work in the coordinator.",
+      "replacement": "- The pi-pstack parent process is the only Slack poster and the only tracker writer. You are a worker. You return findings, one verdict, and at most one tracker request. You are read-only and hold no Slack credentials or write actions.\n- Every prompt you give a helper must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.\n- If you cannot enforce those limits on a helper, do the work yourself.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.1-freeze-source-coordinates",
+      "offset": [
+        2149,
+        2259
+      ],
+      "lines": [
+        39,
+        40
+      ],
+      "original": "6. Read the thread and verify that its root has exactly those coordinates.\n7. Fetch a stable source permalink.",
+      "replacement": "6. The parent verified that the thread root has exactly those coordinates before it started you. It verifies the root again before any tracker write and immediately before the verdict post. You have no Slack tool, so do not look for one.\n7. The parent computes the stable source permalink from the coordinates and adds it to every tracker write.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.2-read-the-whole-report",
+      "offset": [
+        2431,
+        2481
+      ],
+      "lines": [
+        46,
+        46
+      ],
+      "original": "Read the root and current replies before deciding.",
+      "replacement": "Read the root and the replies your brief carries before deciding. The parent read the thread when it dispatched you.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.2-attachments",
+      "offset": [
+        2785,
+        2819
+      ],
+      "lines": [
+        59,
+        59
+      ],
+      "original": "Inspect every relevant attachment.",
+      "replacement": "Inspect every relevant attachment you can open. Your brief links attachments and you hold no Slack credentials, so a linked file you cannot open is one that cannot be read.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.6-adapter-contract",
+      "offset": [
+        6041,
+        6077
+      ],
+      "lines": [
+        131,
+        131
+      ],
+      "original": "The configured adapter must provide:",
+      "replacement": "The parent reaches the tracker through the configured adapter, which must provide:",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.6-resolve-targets",
+      "offset": [
+        6498,
+        6669
+      ],
+      "lines": [
+        142,
+        142
+      ],
+      "original": "Resolve configured team, project, status, and labels at runtime. Do not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.",
+      "replacement": "The adapter resolves configured team, project, status, and labels at runtime. It does not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.\n\nYou ask for at most one tracker write by adding `tracker` to your final JSON result. Give `operation` (`create`, `update`, or `comment`), `body`, `title` for a create, and `targetId` for an existing issue. It is a request only. The parent checks sections 7 and 8 itself from independent reads before it writes, and it drops a request that fails any of them. Your verdict still posts.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.7-confident-duplicate",
+      "offset": [
+        7290,
+        7399
+      ],
+      "lines": [
+        165,
+        165
+      ],
+      "original": "For a confident duplicate, update the existing issue with the source permalink and one short recurrence note.",
+      "replacement": "For a confident duplicate, request an `update` of the existing issue (`targetId` is that issue) with one short recurrence note. The parent adds the source permalink.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-post-one-verdict",
+      "offset": [
+        8647,
+        8878
+      ],
+      "lines": [
+        200,
+        204
+      ],
+      "original": "## 9. Post one verdict\n\nRun a fresh source-parent preflight. Then post exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.\n\nNever call a source-channel posting action without a nonempty `thread_ts`.",
+      "replacement": "## 9. Return one verdict\n\nYour final message is one JSON object: `{ \"text\": \"<the verdict>\", \"tracker\": <the optional request from section 6> }`.\n\nThe parent runs a fresh source-parent preflight. Then it posts exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`. It posts nothing when the parent message is missing.\n\nThe parent never calls a source-channel posting action without a nonempty `thread_ts`.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-verify-and-compensate",
+      "offset": [
+        9471,
+        9862
+      ],
+      "lines": [
+        226,
+        228
+      ],
+      "original": "After posting, read the same source thread and verify the verdict appears under `SOURCE_THREAD_TS`. If it does not, never retry at the root.\n\nIf this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the automation run output.",
+      "replacement": "After posting, the parent reads the same source thread and verifies the verdict appears as a reply under `SOURCE_THREAD_TS`. If it does not, it retries under the same thread with backoff and never at the root.\n\nIf this run created a tracker issue and the verdict did not land after the outbox's retry limit, the parent uses the adapter's compensation action and verifies that the issue is canceled, closed, or deleted. If compensation cannot be verified, it reports the failure only in the automation run log.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.10-follow-up-window",
+      "offset": [
+        9899,
+        10319
+      ],
+      "lines": [
+        232,
+        240
+      ],
+      "original": "Watch the source thread for the configured follow-up window, then stop.\n\n- Answer only a direct question to the triage identity.\n- Apply a concrete correction to the tracker issue when safe.\n- Do not emit a second marker in the same run.\n- Stay out of human coordination and side chatter.\n- Stop early if someone asks the automation to stop.\n\nDo not extend the window more than once. A new report should start a new run.",
+      "replacement": "After the verdict posts, the parent watches the source thread for `budgets.triage_follow_up_minutes`, then stops. It starts one follow-up worker for each batch of new human messages. You are that worker when your brief says follow-up, and these rules are yours.\n\n- Answer only a direct question to the triage identity.\n- Apply a concrete correction to the tracker issue when safe.\n- Do not emit a second marker in the same run.\n- Stay out of human coordination and side chatter.\n- Stop early if someone asks the automation to stop.\n\nYour final message is one JSON object: `{ \"text\": \"<the reply, or an empty string to say nothing>\", \"tracker\": { \"operation\": \"comment\", \"body\": \"<the correction>\" }, \"stop\": true }`. Leave out `tracker` when there is no correction. Add `\"stop\": true` only when someone asked the automation to stop. The parent posts `text` as a reply in the source thread, comments on the one issue this case owns, and drops any reply that carries a verdict marker.\n\nThe parent never extends the window. A new report starts a new run.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md",

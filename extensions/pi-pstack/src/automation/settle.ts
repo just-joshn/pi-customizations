@@ -119,7 +119,9 @@ export function startSettler(automation: Automation, options: { intervalMs: numb
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> = Promise.resolve();
   const tick = async (): Promise<void> => {
-    await completeSettledRuns(automation, options.collect).catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    await completeSettledRuns(automation, options.collect)
+      .then(() => automation.advanceFollowUps())
+      .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;
     timer = setTimeout(() => {
       running = tick();

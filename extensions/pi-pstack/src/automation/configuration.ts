@@ -61,6 +61,8 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
     ...(typeof section('tracker')['source_link_title'] === 'string' ? { sourceLinkTitle: section('tracker')['source_link_title'] as string } : {}),
     labels: { bug: text(labels['bug'], 'tracker.labels.bug'), performance: text(labels['performance'], 'tracker.labels.performance'), intake: text(labels['intake'], 'tracker.labels.intake'), needsRepro: text(labels['needs_repro'], 'tracker.labels.needs_repro') },
   };
+  const budgetOf = (name: string) => section('budgets')[name] as number;
+  const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes') };
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets };
 }
