@@ -230,7 +230,7 @@ export function rewriteBrief(sandbox: string, runId: string, workerId: string, f
 
 // ---- bug fix
 
-const REPRO = `node --input-type=module -e "import('./src/cart.js').then((m)=>{const t=m.total([{price:10,qty:1}],150);console.log('total='+t);process.exit(t<0?1:0)})"`;
+const REPRO = `node --input-type=module -e "import('./src/cart.js').then((m)=>{const t=m.total([{price:10,qty:1}],150);console.log((t<0?'FAIL total is negative: ':'')+'total='+t);process.exit(t<0?1:0)})"`;
 
 const FIX_TEST = `import assert from 'node:assert/strict';
 import { test } from 'node:test';
@@ -251,7 +251,7 @@ const BUGFIX_REPLY = `Broken: total() with a coupon over 100 percent returned a 
 Root cause: applyCoupon at src/cart.js:${lineOf(cartHistory, 'src/cart.js', 'export function applyCoupon')} did not bound the percent.
 Fix: the percent is bounded to 0..100 before it is applied.
 Verified on the same surface. Before:
-total=-5
+FAIL total is negative: total=-5
 After:
 total=0`;
 
@@ -268,7 +268,7 @@ export const bugFixFamily: Family = {
       const workers: Record<string, Worker> = {};
       parent.beginPlaybook('bug-fix', 'Bug fix: coupon over 100 percent pays the customer');
       for (const skill of ['principle-sequence-verifiable-units', 'control-cli', 'how', 'why', 'tdd']) parent.readSkill(skill);
-      parent.proof({ id: 'bug-repro-before', target: 'step-1', command: REPRO, kind: 'command', commit: ctx.base, verdict: 'pass', expectedFail: true, reason: 'defect reproduced: total=-5' });
+      parent.proof({ id: 'bug-repro-before', target: 'step-1', command: REPRO, kind: 'command', commit: ctx.base, verdict: 'pass', expectedFail: true, expectedFailTests: ['total is negative'], expectedFailReason: 'total=-5', reason: 'defect reproduced: total=-5' });
       parent.done('bug-fix', 1, 'bug-repro-before');
       parent.spawn('hunter', { role: 'investigator', model: model('why investigators'), workspace: parent.readonly(), capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: false } }, 'Rule hypotheses out with runtime evidence. H1 rounding drift. H2 coupon above 100 percent is not bounded. Report each with the command you ran.');
       workers['hunter'] = new Worker().call('bash_readonly', { command: 'node --input-type=module -e "import(\'./src/cart.js\').then((m)=>console.log(\'total=\'+m.total([{price:10,qty:1}],0)))"' }).call('bash_readonly', { command: REPRO }).text(INVESTIGATION_REPORT);
