@@ -37,11 +37,14 @@ afterEach(async () => {
   await stopProject(project);
 });
 
+// Pi creates a session file on the worker's first message, so a poll can arrive before it exists.
 const sessionEntries = (file: string) =>
-  readFileSync(file, 'utf8')
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line));
+  existsSync(file)
+    ? readFileSync(file, 'utf8')
+        .trim()
+        .split('\n')
+        .map((line) => JSON.parse(line))
+    : [];
 
 test('a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level', async () => {
   const worktree = join(workerDir(project, 'run1', 'sub'), 'worktree');
