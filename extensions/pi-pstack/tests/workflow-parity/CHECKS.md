@@ -1408,3 +1408,25 @@ Negative cases, each of which must FAIL the named checks:
 - spawn blocked until the workers finished → `worker-concurrency.spawn-does-not-block`
 - all four workers ran on one model → `worker-concurrency.assignments-differ-only-where-intended`
 
+## worker-interaction
+
+an operator types into a live worker pane, the parent steers the worker, and RPC steers the parent: every message lands in a transcript (MX-DIRECT-INTERACTION)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `worker-interaction.spawn-returns-an-attach-command` | the spawn result names the tmux session and an attach command, and returned while the worker was starting | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.pane-shows-the-worker` | the live pane shows the host banner, the operator command echo and a receipt for each typed line | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.typed-prompt-reaches-the-transcript` | the line typed as `prompt <text>` is a user message in the worker session, and the worker acted on it (its next tool call is the long command) | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.typed-steer-lands-mid-run` | the line typed as `steer <text>` while the worker ran is a user message that follows the command it interrupted, and the worker answered it | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.parent-steer-lands` | pstack_worker steer reaches the same worker as a user message, and the worker answered it | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.rpc-steer-lands-in-the-parent` | an RPC steer sent while the parent ran a command is a user message in the parent session after that command and before its next call | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the typed prompt never reached the worker → `worker-interaction.typed-prompt-reaches-the-transcript`
+- the typed steer was lost → `worker-interaction.typed-steer-lands-mid-run`
+- the parent steer never arrived → `worker-interaction.parent-steer-lands`
+- the RPC steer was not recorded in the parent → `worker-interaction.rpc-steer-lands-in-the-parent`
+- the pane showed nothing → `worker-interaction.pane-shows-the-worker`
+

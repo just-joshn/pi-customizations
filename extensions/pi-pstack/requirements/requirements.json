@@ -1294,6 +1294,10 @@
     "cc.four": {
       "file": "tests/workflow-parity/concurrency.test.ts",
       "name": "worker-concurrency scripted run: every check passes"
+    },
+    "di.operator": {
+      "file": "tests/workflow-parity/interaction.test.ts",
+      "name": "worker-interaction scripted run: every check passes"
     }
   },
   "structural": [
@@ -1879,14 +1883,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/interaction.test.ts (tmux send-keys into a live worker pane, pstack_worker steer, RPC steer)",
       "tests": [
         "life.steer",
         "life.spawn",
         "life.socket",
-        "life.not-owner"
-      ],
-      "coverageGap": "No test types into the attached tmux pane as an operator and checks the transcript."
+        "life.not-owner",
+        "di.operator"
+      ]
     },
     {
       "id": "MX-WORKER-CRASH",
