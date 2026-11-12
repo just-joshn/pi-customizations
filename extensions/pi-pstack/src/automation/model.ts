@@ -63,13 +63,14 @@ export function parseEvent(raw: unknown): ParsedEvent {
 }
 
 export type Prerequisite = 'tracker' | 'controlAdapter' | 'featureMap';
-export type AutomationKind = 'triage' | 'reproduce';
+export type BennyAutomationKind = 'triage' | 'reproduce';
+export type AutomationKind = BennyAutomationKind | 'routine';
 export type Probe = () => Promise<boolean>;
 
 const BENNY_MARKERS = ['[benny:bug]', '[benny:performance]', '[benny:other]'] as const;
 
 /** What each Benny automation needs before it may act, which operational file it follows, and what its reply must carry. */
-export const AUTOMATION_KINDS: Record<AutomationKind, { operationalFile: string; requires: readonly Prerequisite[]; workspace: 'readonly' | 'worktree'; replyMarkers: readonly string[] | null }> = {
+export const AUTOMATION_KINDS: Record<BennyAutomationKind, { operationalFile: string; requires: readonly Prerequisite[]; workspace: 'readonly' | 'worktree'; replyMarkers: readonly string[] | null }> = {
   triage: {
     operationalFile: '.pi/automations/benny/skills/triage-issue-reports/SKILL.md',
     requires: ['tracker'],

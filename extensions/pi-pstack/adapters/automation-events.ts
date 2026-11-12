@@ -10,6 +10,8 @@ import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, readLog } from '../src/automation/store.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
 
+export { createRoutine, startRoutineSource, type RoutineConfig } from '../src/automation/routine.ts';
+
 export interface AutomationConfig extends DispatchConfig {
   /** The only channel this automation accepts events from. */
   sourceChannelId: string;

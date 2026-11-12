@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
-import { isIdentifier, type AutomationKind } from './model.ts';
+import { isIdentifier, type BennyAutomationKind } from './model.ts';
 
 function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`invalid Benny ${name}`);
@@ -13,7 +13,7 @@ function text(value: unknown, name: string): string {
   return value;
 }
 
-export function loadBennyConfig(projectRoot: string, kind: AutomationKind, path = join(projectRoot, '.pi/benny/configuration.yaml')): AutomationConfig {
+export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, path = join(projectRoot, '.pi/benny/configuration.yaml')): AutomationConfig {
   const raw = object(parse(readFileSync(path, 'utf8')), 'configuration');
   if (raw['schema_version'] !== 1) throw new Error('unsupported Benny schema_version');
   const sections = new Map(['automations', 'slack', 'repository', 'tracker', 'routing', 'control', 'verdict_markers', 'status_emoji', 'budgets', 'models'].map((key) => [key, object(raw[key], key)]));

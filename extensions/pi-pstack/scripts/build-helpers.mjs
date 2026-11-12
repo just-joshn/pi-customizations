@@ -12,6 +12,7 @@ const helpers = [
   ['generated/skills/statechart/scripts/worker.ts', 'skills/statechart/scripts/worker.js'],
   ['generated/skills/poteto-mode/scripts/watch-pr/cli.ts', 'dist/watch-pr.js'],
   ['src/worker-host.ts', 'dist/worker-host.js'],
+  ['src/automation/routine-cli.mjs', 'dist/routine-setup.js'],
 ];
 const check = process.argv.slice(2).includes('--check');
 

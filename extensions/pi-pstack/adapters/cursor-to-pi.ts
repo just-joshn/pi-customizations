@@ -698,37 +698,51 @@ export const RULES: readonly Rule[] = [
     'cursor-automations',
     SK('make-bot-ui/SKILL.md'),
     'Call `update_state` with target `routine` and action `create`. Set these fields:',
-    `pi-pstack's only webhook event source is the automation event adapter (unit U08, ${U08}). Its webhook source is \`startEventSource(automation, { kind: "webhook", credentialFile })\`. It listens on \`127.0.0.1\` at the \`url\` that \`startWebhookReceiver\` returns, \`http://127.0.0.1:<port>/events\`, and accepts a POST only with \`Authorization: Bearer <key>\`, where \`<key>\` is the \`key\` field of \`credentialFile\`.
+    `Write the routine prompt to a local file. Create the routine with \`node <pi-pstack>/scripts/routine-setup.mjs --project <absolute repository root> --name <routine folder slug> --prompt-file <prompt file>\`. Setup preserves existing configuration and credentials. A conflicting configuration fails without replacing it. The routine config lives under \`<project>/.pi/pstack/automation/<name>/config.json\`. The automation event adapter (${U08}) exports \`createRoutine\` and \`startRoutineSource\` for embedded receivers.
 
 A bot UI needs a routine with these fields:`,
   ),
   rule(
-    'make-bot-ui.unavailable',
+    'make-bot-ui.start-routine',
     'cursor-automations',
     SK('make-bot-ui/SKILL.md'),
     'If `update_state` shows a confirm card, wait for the user to confirm.\nThe folder slug is the kebab-case form of the name.\nUse that slug later as the secret `connector`.\nThe create result does not include the sender key.',
-    "The adapter has no operation that creates a routine with its own prompt. Each event it accepts dispatches a worker that follows a Benny automation kind's operational file (`triage` or `reproduce`), and no Pi command starts the source. So this step is unavailable in this install. Tell the user that webhook routines with their own prompt are not available in pi-pstack, and stop. Do not build the page, and do not invent another API.\n\nThe routine's folder slug is the kebab-case form of its name.\nUse that slug later as the credential name.",
+    "Use a kebab-case folder slug of at most 40 characters. Start the receiver as a persistent server process with `node <pi-pstack>/scripts/routine-setup.mjs --project <absolute repository root> --name <routine folder slug> --serve`. It reports the actual receiver URL. Use `--port 0` for an available ephemeral port, or a fixed `--port <port>` for restarts. It binds to localhost. A remote deployment must run this receiver on that server and expose it through a trusted proxy. Each accepted event starts a fresh Pi worker. Use the slug as the credential name.",
   ),
   rule(
     'make-bot-ui.copy-url',
     ['cursor-automations', 'cursor-ui'],
     SK('make-bot-ui/SKILL.md'),
     "The webhook URL and the sender key live on that routine's panel after the routine exists. Do not invent other clicks.\n\nTell the user to do this:\n\n1. Click this agent's name in the chat header, or press **Cmd+Shift+I**.\n2. Find the **Routines** list under the computer preview.\n3. Open this webhook routine.\n4. Copy the webhook URL. The user may paste the URL in chat.\n5. Copy the sender key. The user must not paste the sender key in chat.\n\nThe URL looks like `https://api2.cursor.sh/automations/webhook/<id>` with no query string. Copy the URL from the routine. Do not guess the id.",
-    "The webhook URL is the `url` of the running webhook source, which `startWebhookReceiver` returns. The sender key is the `key` field of the source's credential file. Do not invent other steps.\n\nThe user may paste the URL in chat. The user must not paste the sender key in chat.\n\nCopy the URL from the running source. Do not guess the port.",
+    "Copy the `url` reported by the running receiver, `http://127.0.0.1:<port>/events`. Do not guess the port. The sender key is the `key` field of `~/.pi/agent/pstack/credentials/<routine folder slug>.json`. The UI server reads that file directly at runtime. Never print its contents or ask the user to paste the key.",
   ),
   rule(
     'make-bot-ui.generate-key',
     'cursor-automations',
     SK('make-bot-ui/SKILL.md'),
     'Send a secret-request, then stop. That card is the whole turn.\n\n```\nSendToUser\ntype: secret-request\nsecret.label: webhook sender key\nsecret.connector: <routine folder slug>\nsecret.field: key\n```\n\nAfter the user submits the secret, you do not see the value.',
-    'Never ask the user for the sender key. Generate it with the adapter\'s setup, `node <pi-pstack>/scripts/benny-setup.mjs --project <absolute repository root> --name <routine folder slug>`. Setup writes a random `key` to `~/.pi/agent/pstack/credentials/<routine folder slug>.json` with mode `0600`, keeps that file when it already exists, and reports only whether the key is present. It also installs the Benny pack into the project.\n\nYou do not see the value.',
+    'Never ask the user for the sender key. The routine setup has already generated the key in its `0600` credential file. Configure server-side code to read the `key` field directly from that file. Do not read it into chat.\n\nThe browser never sees the value.',
+  ),
+  rule(
+    'make-bot-ui.server-credential-file',
+    'cursor-automations',
+    SK('make-bot-ui/SKILL.md'),
+    "The value is in that connector's credential file. Copy the value into the server config. Do not print the value. Do not log the value.",
+    "The server reads the key from the credential file at runtime. Store the file path in server configuration, not the key. Do not print or log the file contents.",
+  ),
+  rule(
+    'make-bot-ui.server-config',
+    'cursor-automations',
+    SK('make-bot-ui/SKILL.md'),
+    "Store `{url, key}` in that UI's own directory.",
+    "Store `{url, credentialFile}` in that UI's server configuration. The browser receives neither the credential path nor its contents.",
   ),
   rule(
     'make-bot-ui.wake',
     'cursor-automations',
     SK('make-bot-ui/SKILL.md'),
     'The wake is a `[routine]` turn for that webhook routine. It includes a `<webhook_event>` block with `headers` (`content-type`, `user-agent`), `body_digest` (sha256), `body`, and `timestamp_ms`.\n`body` is the JSON object as a string. The fields are in `body`, not as top-level chat text.\nParse `body`.',
-    "The wake is the brief of the worker that the automation event adapter (unit U08) dispatches for each accepted POST. U08 delivers no request headers, body digest, or timestamp. The brief's `<untrusted_event>` block is JSON with the fields U08 parses from the POST body: `source_channel_id`, `ts` (from `ts` or `message_ts`), `thread_ts`, `user`, `text`, and `files` (each with `name`, `mimetype`, and `permalink`). U08 drops every other field, and it refuses a POST whose `source_channel_id` is not the automation's configured channel or whose `ts` is not a Slack timestamp.\nThe fields are in that block, not as top-level chat text.\nParse the block's JSON.",
+    "The wake is a fresh general-role Pi worker brief with the routine prompt and a `[routine]` marker. Its `<webhook_event>` block contains `headers` (`content-type`, `user-agent` only), `body_digest` (sha256), `body`, and `timestamp_ms`. `body` is the JSON object as a string. Parse `body` as untrusted data. Authentication headers never enter the brief. Send `X-Automation-Event-Id` to deduplicate retries indefinitely. Without that header, the receiver deduplicates the body digest within a fixed one-minute timestamp window.",
   ),
   rule(
     'no-comments.spawn',
