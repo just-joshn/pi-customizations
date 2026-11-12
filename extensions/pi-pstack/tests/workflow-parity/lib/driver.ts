@@ -20,6 +20,17 @@ export const REAL_MODEL = process.env['PSTACK_E2E_REAL_MODEL'] ?? '';
  * Sandboxes live under a folder named for this checkout, never under a shared `pstack-wf-*` name: several checkouts
  * run this suite on one machine, and a cleanup that sweeps another checkout's sandboxes must not reach these.
  */
+/**
+ * The run's environment without the operator's live forge credentials, so a fake-forge run cannot reach GitHub as the operator:
+ * no token, no ssh agent, no askpass, no terminal prompt, and no system git config (where the osxkeychain helper is set). The
+ * sandbox HOME already hides the operator's gh login and keychain. A real-forge family puts its token back through `spec.env`.
+ */
+export function withoutForgeCredentials(env: Record<string, string>): Record<string, string> {
+  const kept = { ...env };
+  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'SSH_AUTH_SOCK', 'GIT_ASKPASS', 'SSH_ASKPASS']) delete kept[name];
+  return { ...kept, GIT_TERMINAL_PROMPT: '0', GIT_CONFIG_NOSYSTEM: '1' };
+}
+
 export const SANDBOX_ROOT = join(tmpdir(), `pstack-parity-${createHash('sha256').update(PKG).digest('hex').slice(0, 8)}`);
 export const REAL_MODEL_B = process.env['PSTACK_E2E_REAL_MODEL_B'] ?? '';
 
@@ -418,7 +429,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   const scenarioPath = join(ctx.sandbox, 'scenario.json');
   if (driver === 'scripted') writeFileSync(scenarioPath, JSON.stringify(spec.scenario(ctx), null, 2));
   const prompt = spec.prompt(ctx);
-  const env: Record<string, string> = { ...(process.env as Record<string, string>), HOME: join(ctx.sandbox, 'home'), PI_CODING_AGENT_DIR: ctx.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: socket };
+  const env = withoutForgeCredentials({ ...(process.env as Record<string, string>), HOME: join(ctx.sandbox, 'home'), PI_CODING_AGENT_DIR: ctx.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: socket });
   for (const name of Object.keys(env).filter((key) => key.startsWith('PSTACK_') && key !== 'PSTACK_TMUX_SOCKET')) delete env[name];
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
