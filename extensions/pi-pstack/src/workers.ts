@@ -623,12 +623,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
    * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
    * when the claimed session id still names the session created then, on the same server; anything else is left running.
    */
+  const sessions = async () => {
+    const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
+    return listed.code === 0 ? listed.stdout.split('\n') : [];
+  };
   const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
     const owned = readTmuxIdentity(loaded.workerDir);
-    const sessions = async () => {
-      const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
-      return listed.code === 0 ? listed.stdout.split('\n') : [];
-    };
     if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
     const line = formatTmuxIdentity(owned);
     if (!(await sessions()).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
@@ -639,6 +639,25 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   /**
+   * Whether the host that claimed the worker can never run again: the session recorded in claim/tmux.json is gone from
+   * the server, and the claim's host pid is dead or now names another process. A host that may still be starting would
+   * read launch-env.json, so only then may the file go.
+   */
+  const claimingHostGone = async (loaded: LoadedAssignment): Promise<boolean> => {
+    const claim = readClaim(loaded.workerDir);
+    const owned = readTmuxIdentity(loaded.workerDir);
+    if (claim === undefined || owned === undefined || (await sessions()).includes(formatTmuxIdentity(owned))) return false;
+    try {
+      process.kill(claim.hostPid, 0);
+    } catch (error) {
+      // EPERM: the pid belongs to another user, so it is not this user's host.
+      return ['ESRCH', 'EPERM'].includes((error as NodeJS.ErrnoException).code ?? '');
+    }
+    const listed = await pi.exec('ps', ['-ww', '-o', 'command=', '-p', String(claim.hostPid)], { timeout: 5_000 });
+    return listed.code === 0 && !listed.stdout.includes(loaded.file);
+  };
+
+  /**
    * A claim with no identity.json may belong to a spawn whose parent died before tmux started a host. When no host and
    * no session by the worker's name appear within the wait, the worker is abandoned: its launch secrets are removed and
    * its claim stays, so it is never spawned again. A fresh worker id is the retry.
@@ -646,7 +665,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const abortUnreachable = async (project: string, loaded: LoadedAssignment, reason: string) => {
     const { runId, workerId } = loaded.assignment;
     const claimDir = join(loaded.workerDir, 'claim');
-    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) return endHostSession(loaded, reason);
+    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) {
+      const ended = await endHostSession(loaded, reason);
+      if (!existsSync(launchEnvPath(loaded.workerDir)) || !(await claimingHostGone(loaded))) return ended;
+      rmSync(launchEnvPath(loaded.workerDir), { force: true });
+      return { ...ended, reason: `${ended.reason}; the host that claimed the worker is gone, so its unread launch-env.json was removed` };
+    }
     const check = await checkStart(exec, socket, tmuxSessionName(project, runId, workerId), loaded.workerDir, startCheckMs);
     if (check.outcome === 'started') {
       try {
