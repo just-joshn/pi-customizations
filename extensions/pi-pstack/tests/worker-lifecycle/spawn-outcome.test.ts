@@ -1,5 +1,5 @@
 // What spawn leaves behind when tmux's answer is lost or the steps after it fail.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
@@ -61,4 +61,18 @@ test('a tmux session with the worker name but no host claim keeps the claim as u
   await expect(spawnAssignment(project.dir, 'run1' as RunId, assignmentPath, options(squatted))).rejects.toThrow(/unknown/);
   expect(existsSync(claim('w3'))).toBe(true);
   expect(existsSync(claim('w3', 'launch-env.json'))).toBe(false);
+});
+
+test('a failure after tmux reported the session removes launch-env.json and keeps the claim', async () => {
+  const reported: Exec = async (command, args, execOptions) => (isNewSession(args) ? { stdout: '4242 1700000000 $9 1700000001\n', stderr: '', code: 0, killed: false } : nodeExec(command, args, execOptions));
+  mkdirSync(join(project.runRoot('run1'), 'events.jsonl'));
+  await expect(spawn('w4', reported)).rejects.toThrow(/EISDIR/);
+  expect(existsSync(claim('w4', 'tmux.json'))).toBe(true);
+  expect(existsSync(claim('w4', 'launch-env.json'))).toBe(false);
+});
+
+test('a reported success without a parsable identity, and no host, releases the claim and launch-env.json', async () => {
+  const garbled: Exec = async (command, args, execOptions) => (isNewSession(args) ? { stdout: 'garbled\n', stderr: '', code: 0, killed: false } : nodeExec(command, args, execOptions));
+  await expect(spawn('w5', garbled)).rejects.toThrow(/did not start/);
+  expect(existsSync(claim('w5'))).toBe(false);
 });

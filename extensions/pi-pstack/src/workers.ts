@@ -382,35 +382,33 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     rmSync(claimDir, { recursive: true, force: true });
     return error;
   };
-  try {
-    writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
-  } catch (error) {
-    throw release(error as Error);
-  }
-  const started = await exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
-    timeout: 10_000,
-  }).catch((error: unknown): Awaited<ReturnType<Exec>> => ({ stdout: '', stderr: error instanceof Error ? error.message : String(error), code: 1, killed: true }));
-  // tmux exits with an error only when it created nothing. A killed or timed-out client says nothing about what the
-  // server did, so the claim stays until the evidence settles it.
-  if (started.code !== 0 && !started.killed) throw release(new Error(`tmux could not start ${session}: ${started.stderr.trim()}`));
-  let tmuxIdentity = started.code === 0 ? parseTmuxIdentity(started.stdout) : undefined;
-  if (tmuxIdentity === undefined) {
-    const check = await checkStart(exec, socket, session, loaded.workerDir, options.startCheckMs ?? 10_000);
-    const lost = `tmux gave no session identity for ${session} (${(started.stderr || started.stdout).trim()})`;
-    if (check.outcome === 'not-started') throw release(new Error(`${lost}, and no host started or claimed it within the wait: the worker did not start and its claim is released`));
-    if (check.outcome === 'unknown') {
-      rmSync(secrets, { force: true });
-      throw new Error(`${lost}; a session by that name exists but no host claimed the worker, so whether it started is unknown. The claim stays: abort it, or spawn a fresh worker id. Attach: ${attach(session)}`);
-    }
-    tmuxIdentity = check.identity;
-  }
-  if (tmuxIdentity !== undefined) writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
-  appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
-
   const target = hostTarget(loaded);
-  const deadline = Date.now() + startupMs;
   let state: HostState | undefined;
+  // launch-env.json leaves the disk on every path out of here; claim/ goes only where non-start is established.
   try {
+    try {
+      writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
+    } catch (error) {
+      throw release(error as Error);
+    }
+    const started = await exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+      timeout: 10_000,
+    }).catch((error: unknown): Awaited<ReturnType<Exec>> => ({ stdout: '', stderr: error instanceof Error ? error.message : String(error), code: 1, killed: true }));
+    // tmux exits with an error only when it created nothing. A killed or timed-out client says nothing about what the
+    // server did, so the claim stays until the evidence settles it.
+    if (started.code !== 0 && !started.killed) throw release(new Error(`tmux could not start ${session}: ${started.stderr.trim()}`));
+    let tmuxIdentity = started.code === 0 ? parseTmuxIdentity(started.stdout) : undefined;
+    if (tmuxIdentity === undefined) {
+      const check = await checkStart(exec, socket, session, loaded.workerDir, options.startCheckMs ?? 10_000);
+      const lost = `tmux gave no session identity for ${session} (${(started.stderr || started.stdout).trim()})`;
+      if (check.outcome === 'not-started') throw release(new Error(`${lost}, and no host started or claimed it within the wait: the worker did not start and its claim is released`));
+      if (check.outcome === 'unknown')
+        throw new Error(`${lost}; a session by that name exists but no host claimed the worker, so whether it started is unknown. The claim stays: abort it, or spawn a fresh worker id. Attach: ${attach(session)}`);
+      tmuxIdentity = check.identity;
+    }
+    if (tmuxIdentity !== undefined) writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
+    appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
+    const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
       state = await inspectHost(target).catch(() => undefined);
       if (state !== undefined && state.phase !== 'starting') break;
@@ -419,7 +417,6 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   } finally {
-    // The host unlinks it before starting Pi; a host that never got that far must not leave the values on disk.
     rmSync(secrets, { force: true });
   }
   if (state === undefined || state.phase === 'starting') throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
