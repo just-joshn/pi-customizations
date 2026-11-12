@@ -5,7 +5,7 @@ import type { Family } from '../families/types.ts';
 import { validateSources } from './check.ts';
 import { realTmux, REAL_MODEL } from './driver.ts';
 import { type FamilyRun, report, runFamily, writeEvidence } from './run.ts';
-import { engineAvailable, withContainerLock, withStartupRetry } from './container-lock.ts';
+import { engineAvailable, withContainerLock } from './container-lock.ts';
 import { tlcAvailable } from './tlc.ts';
 
 export function defineFamilyTests(list: Family[]): void {
@@ -14,7 +14,7 @@ export function defineFamilyTests(list: Family[]): void {
     describe.skipIf(skip)(family.id, () => {
       let run: FamilyRun | undefined;
       beforeAll(async () => {
-        run = family.requires === 'container' ? await withContainerLock(() => withStartupRetry(() => runFamily(family, 'scripted'))) : await runFamily(family, 'scripted');
+        run = family.requires === 'container' ? await withContainerLock(() => runFamily(family, 'scripted')) : await runFamily(family, 'scripted');
         console.log(report(run));
         writeEvidence(run);
       }, family.requires === 'container' ? 1_800_000 : 300_000);

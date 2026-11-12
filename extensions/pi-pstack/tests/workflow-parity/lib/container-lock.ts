@@ -1,6 +1,5 @@
 // Container families start real containers on the local engine. Several test files run at once, and each family starts
-// up to four containers, so a cross-process lock lets one container family run at a time. A machine already loaded by
-// other work can then still start every worker inside Pi's startup deadline.
+// up to four containers, so a cross-process lock lets one container family run at a time.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -39,19 +38,5 @@ export async function withContainerLock<T>(use: () => Promise<T>): Promise<T> {
     return await use();
   } finally {
     rmSync(LOCK, { recursive: true, force: true });
-  }
-}
-
-/** Pi in a container answers its first RPC within a fixed deadline, which a machine under heavy load can miss. Such a start failure is retried with a fresh sandbox, twice at most; a real defect fails all three. */
-export async function withStartupRetry<R extends { results: { verdict: string; evidence: string }[]; cleanup: () => void }>(run: () => Promise<R>): Promise<R> {
-  const flaky = (result: R): boolean => result.results.some((entry) => entry.verdict !== 'PASS' && /failed to start|deadline expired|did not answer|ContainerUnavailable.*(timed out|deadline)/.test(entry.evidence));
-  for (let attempt = 1; ; attempt += 1) {
-    try {
-      const result = await run();
-      if (attempt >= 3 || !flaky(result)) return result;
-      result.cleanup();
-    } catch (error) {
-      if (attempt >= 3) throw error;
-    }
   }
 }
