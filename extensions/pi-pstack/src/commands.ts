@@ -10,7 +10,7 @@ import { VERSION } from '@earendil-works/pi-coding-agent';
 import type { BennyAutomationKind } from './automation/model.ts';
 import { listReceipts, verifyTarget } from './evidence.ts';
 import { loadModelsConfig, type ResolvedModel, ROLE_NAMES, resolveRole } from './models.ts';
-import { PACKAGE_ROOT } from './paths.ts';
+import { PACKAGE_ROOT, upstreamRevision } from './paths.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
 import { appendEvent, loadAssignment, parseRunId, parseWorkerId, projectRoot, type RunId, readHostState, readRun, runRootOf, runsDir, tmuxSessionName, type WorkerId, workerDirOf, writeJsonAtomic } from './run-files.ts';
 import { GENERATED_SKILLS, generatedSkillNames, type SlashConflict } from './skill-routing.ts';
