@@ -1,7 +1,7 @@
 // Shared by build-parity-manifest.mjs, check-release.mjs and check-parity.mjs. Pure functions over files and a vitest JSON report.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { isAbsolute, join, relative } from 'node:path';
 
 export const STATUS = { PASS: 'PASS', FAIL: 'FAIL', INCONCLUSIVE: 'INCONCLUSIVE', NA: 'N/A' };
@@ -249,17 +249,49 @@ export function evaluate(records, input, root) {
   });
 }
 
-/** Hash of the files the tests exercise, so a result can be tied to the code it ran against. */
+/** Results the gate reads, which cannot bind themselves: the manifest, the result files, and the status section generated from them. */
+const SELF_REFERENTIAL = [/^generated\/parity-manifest\.json$/, /^parity-results\//];
+const STATUS_DOC = 'docs/parity-status.md';
+/** The lockfile and the workspace configuration above the package decide which dependencies the tests ran against. */
+const WORKSPACE_INPUTS = ['bun.lock', 'package.json', 'tsconfig.json'];
+
+/**
+ * Hash of everything the tests can depend on, so a result is tied to the code it ran against: every tracked file in the package
+ * (sources, adapters, generated and vendored trees, helper bundles, package.json, tsconfig and vitest config) and the workspace
+ * lockfile, less the results themselves. Listing the files to include would miss the next kind of input; listing what is excluded cannot.
+ */
 export function sourceDigest(root) {
   try {
-    const files = execFileSync('git', ['-C', root, 'ls-files', '-z', '--', 'src', 'tests', 'requirements', 'dist', 'scripts'], { encoding: 'utf8' }).split('\0').filter(Boolean).sort();
+    const git = (...args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' });
+    const files = git('ls-files', '-z', '--', '.')
+      .split('\0')
+      .filter((f) => f && !SELF_REFERENTIAL.some((re) => re.test(f)))
+      .sort();
     if (!files.length) return null;
     const hash = createHash('sha256');
-    for (const f of files) hash.update(`${f}\0${sha256(readFileSync(join(root, f)))}\n`);
+    const add = (label, buffer) => hash.update(`${label}\0${sha256(buffer)}\n`);
+    for (const f of files) {
+      const buffer = readFileSync(join(root, f));
+      add(f, f === STATUS_DOC ? Buffer.from(spliceStatusSection(buffer.toString('utf8'), '')) : buffer);
+    }
+    const top = git('rev-parse', '--show-toplevel').trim();
+    if (realpathSync(top) !== realpathSync(root)) for (const name of WORKSPACE_INPUTS) if (existsSync(join(top, name))) add(`workspace:${name}`, readFileSync(join(top, name)));
     return hash.digest('hex');
   } catch {
     return null;
   }
+}
+
+/** Every failed test of a report, linked to a requirement or not, as `file::name`, plus each suite that failed with no failed test to show for it. */
+export function failedTests(report, root) {
+  const failures = [];
+  for (const suite of report.testResults ?? []) {
+    const file = isAbsolute(suite.name) ? relative(root, suite.name).split('\\').join('/') : suite.name;
+    const failed = (suite.assertionResults ?? []).filter((a) => a.status === 'failed');
+    for (const a of failed) failures.push(key(file, a.fullName));
+    if (suite.status === 'failed' && !failed.length) failures.push(key(file, '(suite failed)'));
+  }
+  return failures;
 }
 
 export function runIdentity(root, report, resultsSource, attributed = {}) {
@@ -281,6 +313,7 @@ export function runIdentity(root, report, resultsSource, attributed = {}) {
     totalTests: report.numTotalTests ?? null,
     passedTests: report.numPassedTests ?? null,
     failedTests: report.numFailedTests ?? null,
+    failures: failedTests(report, attributed.root ?? root),
     skippedTests: report.numPendingTests ?? null,
     ...attributed,
   };
@@ -302,9 +335,16 @@ export function checkRuns(manifest, currentDigest) {
   if (!runs.length) problems.push('manifest records no result file; rebuild it');
   runs.forEach((run, i) => {
     const label = `result ${i + 1} (${run.platform ?? 'unknown platform'})`;
+    const failures = Array.isArray(run.failures) ? run.failures : undefined;
+    if (failures === undefined) problems.push(`${label}: records no failed-test identities; rebuild it`);
+    else if (failures.length || (run.failedTests ?? 0) > 0) {
+      const named = failures.length ? `: ${failures.slice(0, 5).join('; ')}${failures.length > 5 ? `; and ${failures.length - 5} more` : ''}` : '';
+      problems.push(`${label}: ${Math.max(failures.length, run.failedTests ?? 0)} test(s) failed in the recorded run, whether or not a requirement links them${named}`);
+    }
     if (typeof run.platform !== 'string' || !run.platform) problems.push(`${label}: no platform recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && (typeof run.commit !== 'string' || !run.commit)) problems.push(`${label}: no commit recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && !run.runUrl) problems.push(`${label}: a CI result without its run URL is unattributed`);
+    if (run.sourceDigest && !currentDigest) problems.push(`${label}: the code it ran against cannot be hashed now, so the result cannot be tied to the tree`);
     if (run.sourceDigest && currentDigest && run.sourceDigest !== currentDigest) problems.push(`${label}: stale, it ran against code that has since changed (commit ${run.commit?.slice(0, 12)}); rerun it`);
     if (!run.sourceDigest && run.resultsSource === 'ci') problems.push(`${label}: no source digest recorded; the result is unattributed`);
   });
