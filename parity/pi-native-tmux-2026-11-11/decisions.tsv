@@ -8,3 +8,4 @@ ts	phase	decision	why	evidence	result
 2026-11-12T00:45:44Z	design	Route the remaining verbatim phases (01,03-09) to the Orchestrate playbook	multi-day, many stacked PRs, removes Task/TodoWrite/plan mode that every skill and this harness use	spec section 17; poteto-mode Orchestrate routing	proposed
 2026-11-12T00:52:44Z	baseline	Capture pre-change suite on integration branch	old-vs-new check for cutover	vitest 78 files/1007 tests pass, tsc 0	recorded
 2026-11-12T00:52:44Z	design	Fan out wave 1 across file seams: U01+U03 source+compile, U04a workers, U04b models+TODO.md, U07 forge	disjoint paths per contract.md layout table; integration U04c serializes after	contract.md	launching
+2026-11-12T00:54:18Z	delegate	Wave 1 workers: U03 terra:medium, U04a terra:medium, U04b sol:low, U07a sol:low, U08 terra:low	hardest-tasks role raised one step for compile transforms and concurrency; feature role for routine units	pstack-models.md roles	running
