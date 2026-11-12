@@ -21,12 +21,248 @@ import { execFile } from "node:child_process";
 import { existsSync as existsSync4, mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync2, rmSync, statSync, writeFileSync as writeFileSync3 } from "node:fs";
 import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as join4, relative as relative2 } from "node:path";
 import { promisify } from "node:util";
-import { StringEnum } from "@earendil-works/pi-ai";
+import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
+import { Type as Type2 } from "typebox";
+
+// src/evidence.ts
+import { StringEnum } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
+import { Value } from "typebox/value";
+
+// src/run-files.ts
+import { createHash } from "node:crypto";
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
+function parseId(value, what) {
+  if (typeof value !== "string" || !ID.test(value))
+    throw new Error(`Invalid ${what}: must match ${ID.source}`);
+  return value;
+}
+var parseRunId = (value) => parseId(value, "runId");
+var parseWorkerId = (value) => parseId(value, "workerId");
+var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
+var TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
+var runsDir = (project) => join(project, ".pi", "pstack", "runs");
+var runRootOf = (project, runId) => join(runsDir(project), runId);
+var projectOfRunRoot = (runRoot) => resolve(runRoot, "..", "..", "..", "..");
+var workerDirOf = (runRoot, workerId) => join(runRoot, "workers", workerId);
+function controlSocketPath(runRoot, workerId) {
+  const local = join(workerDirOf(runRoot, workerId), "control.sock");
+  if (Buffer.byteLength(local) <= 100)
+    return local;
+  const uid = process.getuid?.() ?? 0;
+  return join("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
+}
+function writeJsonAtomic(path, value, mode = 384) {
+  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
+  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}
+`, { mode });
+  renameSync(temporary, path);
+}
+function readJson(path) {
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+var MAX_EVENT_DATA = 4096;
+function appendEvent(runRoot, event) {
+  let data = JSON.stringify(event.data ?? null);
+  if (data.length > MAX_EVENT_DATA)
+    data = JSON.stringify(`${data.slice(0, MAX_EVENT_DATA)}…`);
+  const line = `{"ts":${JSON.stringify(new Date().toISOString())},"runId":${JSON.stringify(event.runId)}${event.workerId === undefined ? "" : `,"workerId":${JSON.stringify(event.workerId)}`},"kind":${JSON.stringify(event.kind)},"data":${data}}
+`;
+  appendFileSync(join(runRoot, "events.jsonl"), line, { mode: 384 });
+}
+var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+function readRun(runRoot) {
+  const raw = readJson(join(runRoot, "run.json"));
+  if (!isRecord(raw) || raw["schemaVersion"] !== 1)
+    throw new Error(`${runRoot}/run.json: unsupported schema`);
+  const runId = parseRunId(raw["runId"]);
+  if (runId !== basename(runRoot))
+    throw new Error(`${runRoot}/run.json: runId ${runId} does not name its directory`);
+  const parent = raw["parentSessionFile"];
+  if (parent !== null && typeof parent !== "string")
+    throw new Error(`${runRoot}/run.json: parentSessionFile must be a string or null`);
+  return raw;
+}
+var WORKER_ROLES = ["poteto", "explorer", "investigator", "candidate", "judge", "verifier", "reviewer", "owner", "watcher", "comment-sicko", "general"];
+var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
+var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
+var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
+function parseCapabilities(raw) {
+  if (!isRecord(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
+  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
+}
+var BRIEF = "brief.md";
+var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
+var COMMIT = /^[0-9a-f]{7,64}$/;
+function parseAssignment(raw, defaults) {
+  if (!isRecord(raw))
+    throw new Error("Assignment must be a JSON object");
+  const allowed = ["schemaVersion", "runId", "workerId", "kind", "role", "brief", "model", "thinkingLevel", "workspace", "skills", "watch", "capabilities"];
+  const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
+  if (unknown.length > 0)
+    throw new Error(`Assignment has unknown fields: ${unknown.join(", ")}`);
+  if ((raw["schemaVersion"] ?? 1) !== 1)
+    throw new Error("Assignment schemaVersion must be 1");
+  const runId = parseRunId(raw["runId"]);
+  const workerId = parseWorkerId(raw["workerId"]);
+  const kind = raw["kind"] ?? "pi";
+  if (kind !== "pi" && kind !== "watch")
+    throw new Error("Assignment kind must be 'pi' or 'watch'");
+  const role = raw["role"];
+  if (typeof role !== "string" || !WORKER_ROLES.includes(role))
+    throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(", ")}`);
+  const model = raw["model"];
+  if (typeof model !== "string" || !MODEL_SPEC.test(model))
+    throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
+  const thinkingLevel = raw["thinkingLevel"] ?? null;
+  if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
+    throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
+  const workspace = raw["workspace"];
+  if (!isRecord(workspace))
+    throw new Error("Assignment workspace must be an object");
+  let parsedWorkspace;
+  if (workspace["mode"] === "worktree" && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
+    parsedWorkspace = { mode: "worktree", inputCommit: workspace["inputCommit"] };
+  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute(workspace["path"])))
+    parsedWorkspace = { mode: "readonly", path: workspace["path"] ?? defaults.projectRoot };
+  else
+    throw new Error("Assignment workspace must be { mode: 'worktree', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
+  const skills = raw["skills"] ?? [];
+  if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== "string" || skill.length === 0))
+    throw new Error("Assignment skills must be an array of skill names");
+  const brief = raw["brief"];
+  if (brief !== undefined && brief !== BRIEF)
+    throw new Error(`Assignment brief must be '${BRIEF}'`);
+  const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
+    throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
+  const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
+  if (kind === "pi") {
+    if (raw["watch"] !== undefined)
+      throw new Error("Assignment watch is only for kind 'watch'");
+    if (typeof brief !== "string")
+      throw new Error("Assignment kind 'pi' needs a brief");
+    return { ...base, kind, brief };
+  }
+  const watch = raw["watch"];
+  if (!isRecord(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
+    throw new Error("Assignment kind 'watch' needs watch: { argv, cwd }");
+  const argv = watch["argv"];
+  if (!Array.isArray(argv) || argv.length === 0 || argv.some((part) => typeof part !== "string" || part.includes("\x00")))
+    throw new Error("Assignment watch.argv must be a non-empty string array");
+  const cwd = watch["cwd"] ?? defaults.projectRoot;
+  if (typeof cwd !== "string" || !isAbsolute(cwd))
+    throw new Error("Assignment watch.cwd must be absolute");
+  return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
+}
+function readBrief(workerDir) {
+  const path = join(workerDir, BRIEF);
+  let fd;
+  try {
+    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  } catch (error) {
+    if (error.code === "ELOOP")
+      throw new Error(`${path} must be a regular file, not a symlink`);
+    throw error;
+  }
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(path) !== path)
+      throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
+    return readFileSync(fd);
+  } finally {
+    closeSync(fd);
+  }
+}
+function ownedEntry(path, directory) {
+  const stat = lstatSync(path);
+  if (stat.isSymbolicLink() || (directory ? !stat.isDirectory() : !stat.isFile()))
+    throw new Error(`${path} must be a real ${directory ? "directory" : "file"}`);
+  if (process.getuid !== undefined && stat.uid !== process.getuid())
+    throw new Error(`${path} is not owned by this user`);
+}
+function loadAssignment(path) {
+  if (!isAbsolute(path))
+    throw new Error("Assignment path must be absolute");
+  const file = resolve(path);
+  if (basename(file) !== "assignment.json")
+    throw new Error("Assignment file must be named assignment.json");
+  ownedEntry(file, false);
+  if (realpathSync(file) !== file)
+    throw new Error("Assignment path must be canonical (no symlinks)");
+  const workerDir = dirname(file);
+  ownedEntry(workerDir, true);
+  const runRoot = dirname(dirname(workerDir));
+  if (basename(dirname(workerDir)) !== "workers" || basename(dirname(runRoot)) !== "runs")
+    throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
+  const bytes = readFileSync(file);
+  const automated = readRun(runRoot).parentSessionFile === null;
+  const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), { capabilities: automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES, projectRoot: projectOfRunRoot(runRoot) });
+  if (assignment.workerId !== basename(workerDir))
+    throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
+  if (assignment.runId !== basename(runRoot))
+    throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
+  return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
+}
+var TERMINAL_PHASES = ["stopped", "failed", "exited"];
+var MAX_SETTLES = 1e4;
+var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
+function readHostState(workerDir) {
+  const path = join(workerDir, "state.json");
+  if (!existsSync(path))
+    return;
+  const raw = readJson(path);
+  if (!isRecord(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
+    throw new Error(`${path}: malformed host state`);
+  return raw;
+}
+var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
+var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
+var tmuxIdentityPath = (workerDir) => join(workerDir, "claim", "tmux.json");
+function parseTmuxIdentity(text) {
+  const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
+  return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
+}
+function readClaim(workerDir) {
+  const path = join(workerDir, "claim", "identity.json");
+  if (!existsSync(path))
+    return;
+  const raw = readJson(path);
+  if (!isRecord(raw) || typeof raw["instance"] !== "string")
+    throw new Error(`${path}: malformed claim`);
+  return raw;
+}
+
+// src/evidence.ts
+var ReceiptSchema = Type.Object({
+  schemaVersion: Type.Literal(1),
+  id: Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" }),
+  runId: Type.String(),
+  target: Type.String({ minLength: 1 }),
+  kind: Type.Union(["test", "command", "screenshot", "trace", "review", "measurement", "other"].map((kind) => Type.Literal(kind))),
+  verdict: Type.Union([Type.Literal("pass"), Type.Literal("fail"), Type.Literal("inconclusive")]),
+  commit: Type.Union([Type.String(), Type.Null()]),
+  environment: Type.String(),
+  command: Type.Optional(Type.Array(Type.String())),
+  exitCode: Type.Optional(Type.Integer()),
+  artifacts: Type.Array(Type.Object({ path: Type.String({ minLength: 1 }), sha256: Type.String({ pattern: "^[0-9a-f]{64}$" }) }, { additionalProperties: false })),
+  defects: Type.Optional(Type.Array(Type.String())),
+  reason: Type.Optional(Type.String()),
+  createdAt: Type.String()
+}, { additionalProperties: false });
+var EvidenceParams = Type.Object({
+  action: StringEnum(["record", "verify", "list"], { description: "record stores a receipt file as verification/receipts/<id>.json; verify re-checks every receipt for a target; list shows recorded receipts." }),
+  runId: Type.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  receiptPath: Type.Optional(Type.String({ description: "record: the receipt JSON file, inside the run root." })),
+  target: Type.Optional(Type.String({ description: "verify: a TODO step id, worker id, or commit." }))
+});
 
 // src/paths.ts
-import { dirname, join, resolve } from "node:path";
+import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/child-env.ts
@@ -79,227 +315,23 @@ delete process.env[ROOT_SESSION_ENV];
 delete process.env[ROOT_PID_ENV];
 
 // src/paths.ts
-var PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-var SKILLS_DIR = join(PACKAGE_ROOT, "skills");
-var AGENTS_DIR = join(PACKAGE_ROOT, "agents");
+var PACKAGE_ROOT = join2(dirname2(fileURLToPath(import.meta.url)), "..");
+var SKILLS_DIR = join2(PACKAGE_ROOT, "skills");
+var AGENTS_DIR = join2(PACKAGE_ROOT, "agents");
 
 // src/pi-command.ts
-import { existsSync } from "node:fs";
-import { basename } from "node:path";
+import { existsSync as existsSync2 } from "node:fs";
+import { basename as basename2 } from "node:path";
 function piCommand() {
   const script = process.argv[1];
-  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync(script))
+  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync2(script))
     return [process.execPath, script];
-  return /^(node|bun)(\.exe)?$/.test(basename(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
+  return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
 }
 
 // src/rpc-client.ts
 import { randomUUID as randomUUID2 } from "node:crypto";
 import { connect } from "node:net";
-
-// src/run-files.ts
-import { createHash } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
-import { basename as basename2, dirname as dirname2, isAbsolute, join as join2, relative, resolve as resolve2, sep } from "node:path";
-var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
-function parseId(value, what) {
-  if (typeof value !== "string" || !ID.test(value))
-    throw new Error(`Invalid ${what}: must match ${ID.source}`);
-  return value;
-}
-var parseRunId = (value) => parseId(value, "runId");
-var parseWorkerId = (value) => parseId(value, "workerId");
-var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
-var TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
-var runsDir = (project) => join2(project, ".pi", "pstack", "runs");
-var runRootOf = (project, runId) => join2(runsDir(project), runId);
-var workerDirOf = (runRoot, workerId) => join2(runRoot, "workers", workerId);
-function controlSocketPath(runRoot, workerId) {
-  const local = join2(workerDirOf(runRoot, workerId), "control.sock");
-  if (Buffer.byteLength(local) <= 100)
-    return local;
-  const uid = process.getuid?.() ?? 0;
-  return join2("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
-}
-function writeJsonAtomic(path, value, mode = 384) {
-  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}
-`, { mode });
-  renameSync(temporary, path);
-}
-function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
-}
-var MAX_EVENT_DATA = 4096;
-function appendEvent(runRoot, event) {
-  let data = JSON.stringify(event.data ?? null);
-  if (data.length > MAX_EVENT_DATA)
-    data = JSON.stringify(`${data.slice(0, MAX_EVENT_DATA)}…`);
-  const line = `{"ts":${JSON.stringify(new Date().toISOString())},"runId":${JSON.stringify(event.runId)}${event.workerId === undefined ? "" : `,"workerId":${JSON.stringify(event.workerId)}`},"kind":${JSON.stringify(event.kind)},"data":${data}}
-`;
-  appendFileSync(join2(runRoot, "events.jsonl"), line, { mode: 384 });
-}
-var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
-function readRun(runRoot) {
-  const raw = readJson(join2(runRoot, "run.json"));
-  if (!isRecord(raw) || raw["schemaVersion"] !== 1)
-    throw new Error(`${runRoot}/run.json: unsupported schema`);
-  const runId = parseRunId(raw["runId"]);
-  if (runId !== basename2(runRoot))
-    throw new Error(`${runRoot}/run.json: runId ${runId} does not name its directory`);
-  const parent = raw["parentSessionFile"];
-  if (parent !== null && typeof parent !== "string")
-    throw new Error(`${runRoot}/run.json: parentSessionFile must be a string or null`);
-  return raw;
-}
-var WORKER_ROLES = ["poteto", "explorer", "investigator", "candidate", "judge", "verifier", "reviewer", "owner", "watcher", "comment-sicko", "general"];
-var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
-var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
-var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
-function parseCapabilities(raw) {
-  if (!isRecord(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
-}
-var BRIEF = "brief.md";
-var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
-var COMMIT = /^[0-9a-f]{7,64}$/;
-function parseAssignment(raw, defaultCapabilities) {
-  if (!isRecord(raw))
-    throw new Error("Assignment must be a JSON object");
-  const allowed = ["schemaVersion", "runId", "workerId", "kind", "role", "brief", "model", "thinkingLevel", "workspace", "skills", "watch", "capabilities"];
-  const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
-  if (unknown.length > 0)
-    throw new Error(`Assignment has unknown fields: ${unknown.join(", ")}`);
-  if (raw["schemaVersion"] !== 1)
-    throw new Error("Assignment schemaVersion must be 1");
-  const runId = parseRunId(raw["runId"]);
-  const workerId = parseWorkerId(raw["workerId"]);
-  const kind = raw["kind"];
-  if (kind !== "pi" && kind !== "watch")
-    throw new Error("Assignment kind must be 'pi' or 'watch'");
-  const role = raw["role"];
-  if (typeof role !== "string" || !WORKER_ROLES.includes(role))
-    throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(", ")}`);
-  const model = raw["model"];
-  if (typeof model !== "string" || !MODEL_SPEC.test(model))
-    throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
-  const thinkingLevel = raw["thinkingLevel"];
-  if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
-    throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
-  const workspace = raw["workspace"];
-  if (!isRecord(workspace))
-    throw new Error("Assignment workspace must be an object");
-  let parsedWorkspace;
-  if (workspace["mode"] === "worktree" && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
-    parsedWorkspace = { mode: "worktree", inputCommit: workspace["inputCommit"] };
-  else if (workspace["mode"] === "readonly" && Object.keys(workspace).length === 2 && typeof workspace["path"] === "string" && isAbsolute(workspace["path"]))
-    parsedWorkspace = { mode: "readonly", path: workspace["path"] };
-  else
-    throw new Error("Assignment workspace must be { mode: 'worktree', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
-  const skills = raw["skills"];
-  if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== "string" || skill.length === 0))
-    throw new Error("Assignment skills must be an array of skill names");
-  const brief = raw["brief"];
-  if (brief !== undefined && brief !== BRIEF)
-    throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw["capabilities"] === undefined ? defaultCapabilities : parseCapabilities(raw["capabilities"]);
-  const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
-  if (kind === "pi") {
-    if (raw["watch"] !== undefined)
-      throw new Error("Assignment watch is only for kind 'watch'");
-    if (typeof brief !== "string")
-      throw new Error("Assignment kind 'pi' needs a brief");
-    return { ...base, kind, brief };
-  }
-  const watch = raw["watch"];
-  if (!isRecord(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
-    throw new Error("Assignment kind 'watch' needs watch: { argv, cwd }");
-  const argv = watch["argv"];
-  if (!Array.isArray(argv) || argv.length === 0 || argv.some((part) => typeof part !== "string" || part.includes("\x00")))
-    throw new Error("Assignment watch.argv must be a non-empty string array");
-  const cwd = watch["cwd"];
-  if (typeof cwd !== "string" || !isAbsolute(cwd))
-    throw new Error("Assignment watch.cwd must be absolute");
-  return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
-}
-function readBrief(workerDir) {
-  const path = join2(workerDir, BRIEF);
-  let fd;
-  try {
-    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
-  } catch (error) {
-    if (error.code === "ELOOP")
-      throw new Error(`${path} must be a regular file, not a symlink`);
-    throw error;
-  }
-  try {
-    const stat = fstatSync(fd);
-    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(path) !== path)
-      throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
-    return readFileSync(fd);
-  } finally {
-    closeSync(fd);
-  }
-}
-function ownedEntry(path, directory) {
-  const stat = lstatSync(path);
-  if (stat.isSymbolicLink() || (directory ? !stat.isDirectory() : !stat.isFile()))
-    throw new Error(`${path} must be a real ${directory ? "directory" : "file"}`);
-  if (process.getuid !== undefined && stat.uid !== process.getuid())
-    throw new Error(`${path} is not owned by this user`);
-}
-function loadAssignment(path) {
-  if (!isAbsolute(path))
-    throw new Error("Assignment path must be absolute");
-  const file = resolve2(path);
-  if (basename2(file) !== "assignment.json")
-    throw new Error("Assignment file must be named assignment.json");
-  ownedEntry(file, false);
-  if (realpathSync(file) !== file)
-    throw new Error("Assignment path must be canonical (no symlinks)");
-  const workerDir = dirname2(file);
-  ownedEntry(workerDir, true);
-  const runRoot = dirname2(dirname2(workerDir));
-  if (basename2(dirname2(workerDir)) !== "workers" || basename2(dirname2(runRoot)) !== "runs")
-    throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
-  const bytes = readFileSync(file);
-  const automated = readRun(runRoot).parentSessionFile === null;
-  const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES);
-  if (assignment.workerId !== basename2(workerDir))
-    throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
-  if (assignment.runId !== basename2(runRoot))
-    throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
-  return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
-}
-var TERMINAL_PHASES = ["stopped", "failed", "exited"];
-var MAX_SETTLES = 1e4;
-var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
-function readHostState(workerDir) {
-  const path = join2(workerDir, "state.json");
-  if (!existsSync2(path))
-    return;
-  const raw = readJson(path);
-  if (!isRecord(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
-    throw new Error(`${path}: malformed host state`);
-  return raw;
-}
-var launchEnvPath = (workerDir) => join2(workerDir, "claim", "launch-env.json");
-var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
-var tmuxIdentityPath = (workerDir) => join2(workerDir, "claim", "tmux.json");
-function parseTmuxIdentity(text) {
-  const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
-  return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
-}
-function readClaim(workerDir) {
-  const path = join2(workerDir, "claim", "identity.json");
-  if (!existsSync2(path))
-    return;
-  const raw = readJson(path);
-  if (!isRecord(raw) || typeof raw["instance"] !== "string")
-    throw new Error(`${path}: malformed claim`);
-  return raw;
-}
 
 // src/worker-host.ts
 import { execFileSync, spawn } from "node:child_process";
@@ -1122,6 +1154,15 @@ var parentlessModel = ({ model, thinkingLevel }) => {
   const slash = model.indexOf("/");
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
+var MAX_DEPTH = 3;
+function spawnDepth(env) {
+  const raw = env["PSTACK_DEPTH"];
+  if (raw === undefined || raw === "")
+    return 1;
+  if (!/^[1-9]$/.test(raw))
+    throw new Error(`PSTACK_DEPTH ${raw} is not a spawn depth`);
+  return Number(raw);
+}
 function workerSocket(explicit) {
   const socket = explicit ?? process.env["PSTACK_TMUX_SOCKET"] ?? "pstack";
   if (socket === "pstack" && process.env["VITEST"])
@@ -1136,12 +1177,18 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const attach = (session) => `tmux -L ${socket} attach -t ${session}`;
   const root = realpathSync2(project);
   const runRoot = runRootOf(root, runId);
-  const loaded = loadAssignment(assignmentPath);
+  let loaded = loadAssignment(assignmentPath);
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
     throw new Error(`Assignment must be ${join4(runRoot, "workers", "<workerId>", "assignment.json")}`);
   if (assignment.capabilities.externalWrite)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  const depth = spawnDepth(process.env) + 1;
+  const spawns = assignment.capabilities.spawn === true;
+  if (depth > MAX_DEPTH)
+    throw new Error(`Spawn depth is capped at ${MAX_DEPTH} levels (root, sub-coordinator, worker), and this process is at level ${depth - 1}; it cannot spawn workers`);
+  if (spawns && depth === MAX_DEPTH)
+    throw new Error(`Worker ${assignment.workerId} asks for spawn: true at depth ${depth}, the last of ${MAX_DEPTH} levels (root, sub-coordinator, worker); a sub-coordinator's workers cannot spawn`);
   const session = tmuxSessionName(root, runId, assignment.workerId);
   let model = null;
   let roleDoc = null;
@@ -1164,8 +1211,18 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     extraArgs: options.extraPiArgs ?? [],
     credentialEnv: model === null ? [] : credentialEnv(model.provider)
   };
-  const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
+  const launchEnv = {
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    PSTACK_DEPTH: String(depth),
+    PSTACK_SPAWN: spawns ? "1" : null,
+    ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
+  };
   const claimDir = join4(loaded.workerDir, "claim");
+  if (!existsSync4(claimDir) && readFileSync3(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
+`) {
+    writeJsonAtomic(loaded.file, assignment);
+    loaded = loadAssignment(loaded.file);
+  }
   try {
     mkdirSync2(claimDir, { mode: 448 });
   } catch (error) {
@@ -1227,14 +1284,14 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     await controlHost(target, "start");
   return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
 }
-var WorkerParams = Type.Object({
-  action: StringEnum(["spawn", "inspect", "steer", "abort", "collect"], {
+var WorkerParams = Type2.Object({
+  action: StringEnum2(["spawn", "inspect", "steer", "abort", "collect"], {
     description: "spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled."
   }),
-  runId: Type.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
-  workerId: Type.Optional(Type.String({ description: "inspect, steer, abort, collect: the worker id." })),
-  assignmentPath: Type.Optional(Type.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
-  message: Type.Optional(Type.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
+  runId: Type2.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  workerId: Type2.Optional(Type2.String({ description: "inspect, steer, abort, collect: the worker id." })),
+  assignmentPath: Type2.Optional(Type2.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
+  message: Type2.Optional(Type2.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
 });
 
 // src/automation/model.ts

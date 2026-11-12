@@ -22,6 +22,7 @@ var parseWorkerId = (value) => parseId(value, "workerId");
 var TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
 var runsDir = (project) => join(project, ".pi", "pstack", "runs");
 var runRootOf = (project, runId) => join(runsDir(project), runId);
+var projectOfRunRoot = (runRoot) => resolve(runRoot, "..", "..", "..", "..");
 var workerDirOf = (runRoot, workerId) => join(runRoot, "workers", workerId);
 function controlSocketPath(runRoot, workerId) {
   const local = join(workerDirOf(runRoot, workerId), "control.sock");
@@ -73,18 +74,18 @@ function parseCapabilities(raw) {
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 var COMMIT = /^[0-9a-f]{7,64}$/;
-function parseAssignment(raw, defaultCapabilities) {
+function parseAssignment(raw, defaults) {
   if (!isRecord(raw))
     throw new Error("Assignment must be a JSON object");
   const allowed = ["schemaVersion", "runId", "workerId", "kind", "role", "brief", "model", "thinkingLevel", "workspace", "skills", "watch", "capabilities"];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
   if (unknown.length > 0)
     throw new Error(`Assignment has unknown fields: ${unknown.join(", ")}`);
-  if (raw["schemaVersion"] !== 1)
+  if ((raw["schemaVersion"] ?? 1) !== 1)
     throw new Error("Assignment schemaVersion must be 1");
   const runId = parseRunId(raw["runId"]);
   const workerId = parseWorkerId(raw["workerId"]);
-  const kind = raw["kind"];
+  const kind = raw["kind"] ?? "pi";
   if (kind !== "pi" && kind !== "watch")
     throw new Error("Assignment kind must be 'pi' or 'watch'");
   const role = raw["role"];
@@ -93,7 +94,7 @@ function parseAssignment(raw, defaultCapabilities) {
   const model = raw["model"];
   if (typeof model !== "string" || !MODEL_SPEC.test(model))
     throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
-  const thinkingLevel = raw["thinkingLevel"];
+  const thinkingLevel = raw["thinkingLevel"] ?? null;
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
   const workspace = raw["workspace"];
@@ -102,17 +103,19 @@ function parseAssignment(raw, defaultCapabilities) {
   let parsedWorkspace;
   if (workspace["mode"] === "worktree" && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
     parsedWorkspace = { mode: "worktree", inputCommit: workspace["inputCommit"] };
-  else if (workspace["mode"] === "readonly" && Object.keys(workspace).length === 2 && typeof workspace["path"] === "string" && isAbsolute(workspace["path"]))
-    parsedWorkspace = { mode: "readonly", path: workspace["path"] };
+  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute(workspace["path"])))
+    parsedWorkspace = { mode: "readonly", path: workspace["path"] ?? defaults.projectRoot };
   else
     throw new Error("Assignment workspace must be { mode: 'worktree', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
-  const skills = raw["skills"];
+  const skills = raw["skills"] ?? [];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== "string" || skill.length === 0))
     throw new Error("Assignment skills must be an array of skill names");
   const brief = raw["brief"];
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw["capabilities"] === undefined ? defaultCapabilities : parseCapabilities(raw["capabilities"]);
+  const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
+    throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)
@@ -127,7 +130,7 @@ function parseAssignment(raw, defaultCapabilities) {
   const argv = watch["argv"];
   if (!Array.isArray(argv) || argv.length === 0 || argv.some((part) => typeof part !== "string" || part.includes("\x00")))
     throw new Error("Assignment watch.argv must be a non-empty string array");
-  const cwd = watch["cwd"];
+  const cwd = watch["cwd"] ?? defaults.projectRoot;
   if (typeof cwd !== "string" || !isAbsolute(cwd))
     throw new Error("Assignment watch.cwd must be absolute");
   return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
@@ -174,7 +177,7 @@ function loadAssignment(path) {
     throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
   const bytes = readFileSync(file);
   const automated = readRun(runRoot).parentSessionFile === null;
-  const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES);
+  const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), { capabilities: automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES, projectRoot: projectOfRunRoot(runRoot) });
   if (assignment.workerId !== basename(workerDir))
     throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
   if (assignment.runId !== basename(runRoot))

@@ -17,6 +17,8 @@ const run = promisify(execFile);
 
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
 export const FIXTURE = join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts');
+/** Offline Pi with no user resources, whose only model is the scripted one. */
+export const TEST_PI_ARGS = ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-mcp', '--no-approve', '--extension', FIXTURE];
 export const FAKE_PI = join(PACKAGE_ROOT, 'tests/worker-lifecycle/fake-pi.mjs');
 export const TMUX = `pstack-test-${randomBytes(4).toString('hex')}`;
 
@@ -62,15 +64,20 @@ const running = (pid: number) => {
  */
 export async function stopProject(project: Project): Promise<void> {
   for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
-  const runs = join(project.dir, '.pi', 'pstack', 'runs');
-  const workers = (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
-    const dir = join(runs, runId, 'workers');
-    return (existsSync(dir) ? readdirSync(dir) : []).map((workerId) => {
-      const statePath = join(dir, workerId, 'state.json');
-      const state = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : {};
-      return { socket: controlSocketPath(join(runs, runId), workerId as WorkerId), pids: [state.hostPid, state.childPid].filter((pid): pid is number => typeof pid === 'number') };
+  // A sub-coordinator's runs live under its own worktree, so its workers are found there.
+  const workersUnder = (workspace: string): { socket: string; pids: number[] }[] => {
+    const runs = join(workspace, '.pi', 'pstack', 'runs');
+    return (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
+      const dir = join(runs, runId, 'workers');
+      return (existsSync(dir) ? readdirSync(dir) : []).flatMap((workerId) => {
+        const statePath = join(dir, workerId, 'state.json');
+        const state = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : {};
+        const worker = { socket: controlSocketPath(join(runs, runId), workerId as WorkerId), pids: [state.hostPid, state.childPid].filter((pid): pid is number => typeof pid === 'number') };
+        return [worker, ...workersUnder(join(dir, workerId, 'worktree'))];
+      });
     });
-  });
+  };
+  const workers = workersUnder(project.dir);
   const pids = workers.flatMap((worker) => worker.pids);
   await until(
     () => pids.filter(running),
@@ -236,7 +243,7 @@ export function makeParent(
   registerWorkerTools(pi as unknown as ExtensionAPI, {
     tmuxSocket: TMUX,
     piCommand: [PI],
-    extraPiArgs: ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-mcp', '--no-approve', '--extension', FIXTURE],
+    extraPiArgs: TEST_PI_ARGS,
     extraEnv: workerTestEnv(project),
     agentsDir: project.agentsDir,
     pollMs: 150,

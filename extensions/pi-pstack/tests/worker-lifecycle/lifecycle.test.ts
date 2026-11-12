@@ -513,7 +513,7 @@ describe('capability boundary', () => {
 
   test('capabilities.spawn is an optional boolean', () => {
     const base = { mcp: 'inherit', env: 'inherit', externalWrite: false };
-    expect(loadAssignment(writeAssignment(project, 'run1', 'c6', 'x', { capabilities: { ...base, spawn: true } })).assignment.capabilities).toEqual({ ...base, spawn: true });
+    expect(loadAssignment(writeAssignment(project, 'run1', 'c6', 'x', { workspace: { mode: 'worktree', inputCommit: project.commit }, capabilities: { ...base, spawn: true } })).assignment.capabilities).toEqual({ ...base, spawn: true });
     expect(loadAssignment(writeAssignment(project, 'run1', 'c7', 'x', { capabilities: base })).assignment.capabilities).toEqual(base);
     expect(() => loadAssignment(writeAssignment(project, 'run1', 'c8', 'x', { capabilities: { ...base, spawn: 'yes' } }))).toThrow(/capabilities/);
   });

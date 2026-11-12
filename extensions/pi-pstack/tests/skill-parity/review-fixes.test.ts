@@ -9,7 +9,7 @@ import * as automationEvents from '../../adapters/automation-events.ts';
 import { defaultCredentialFile } from '../../src/automation/credentials.ts';
 import * as webhook from '../../src/automation/webhook.ts';
 import { parseModelsConfig, resolveRole } from '../../src/models.ts';
-import { parseAssignment, THINKING_LEVELS } from '../../src/run-files.ts';
+import { ENGINEERING_CAPABILITIES, parseAssignment, THINKING_LEVELS } from '../../src/run-files.ts';
 import { PKG } from './helpers.ts';
 
 const gen = (path: string) => readFileSync(join(PKG, 'generated', path), 'utf8');
@@ -28,11 +28,12 @@ describe('A: poteto-mode workers and watches', () => {
     const examples = referenceExamples();
     expect(new Set(examples.map((e) => e.workspace.mode))).toEqual(new Set(['worktree', 'readonly', 'container']));
     expect(new Set(examples.map((e) => e.kind))).toEqual(new Set(['pi', 'watch']));
+    const defaults = { capabilities: ENGINEERING_CAPABILITIES, projectRoot: '/Users/you/src/app' };
     for (const example of examples) {
       if (example.workspace.mode === 'container') {
-        expect(() => parseAssignment(example)).toThrow(/workspace/);
-        expect(parseAssignment({ ...example, workspace: { mode: 'worktree', inputCommit: '4f2c1a9e0b7d3c5a8e6f1b2d4c9a7e3f5b1d8c6a' } })).toMatchObject({ kind: example.kind, role: example['role'] });
-      } else expect(parseAssignment(example)).toEqual(example);
+        expect(() => parseAssignment(example, defaults)).toThrow(/workspace/);
+        expect(parseAssignment({ ...example, workspace: { mode: 'worktree', inputCommit: '4f2c1a9e0b7d3c5a8e6f1b2d4c9a7e3f5b1d8c6a' } }, defaults)).toMatchObject({ kind: example.kind, role: example['role'] });
+      } else expect(parseAssignment(example, defaults)).toEqual({ ...example, capabilities: ENGINEERING_CAPABILITIES });
     }
   });
 
