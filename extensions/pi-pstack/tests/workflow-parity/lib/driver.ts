@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
-import { assertOauthOutlastsRun, packagesRegistering, providerOf } from './providers.ts';
+import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');
@@ -183,7 +183,7 @@ function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; s
       const source = join(process.env['PSTACK_E2E_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi', 'agent'), file);
       if (existsSync(source)) cpSync(source, join(agentDir, file));
     }
-    if (existsSync(join(agentDir, 'auth.json'))) assertOauthOutlastsRun(join(agentDir, 'auth.json'), needed, budgetOf(spec, driver).ceilingMs);
+    if (existsSync(join(agentDir, 'auth.json'))) withoutOauthRefresh(join(agentDir, 'auth.json'));
   }
   writeFileSync(join(agentDir, 'settings.json'), JSON.stringify(settings, null, 2));
   const roles = spec.roles ?? (driver === 'scripted' ? SCRIPTED_ROLES : realRoles());

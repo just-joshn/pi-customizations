@@ -1,7 +1,7 @@
 // A real-model run's sandbox has its own agent directory, so a provider that a Pi package registers (claude-subscription)
 // is missing from its model catalog unless that package is loaded there too. The packages are referenced in place, not copied:
 // a copy would lose the dependencies the operator's install hoists above the package.
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const operatorAgentDir = () => process.env['PSTACK_E2E_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi', 'agent');
@@ -35,14 +35,11 @@ export function providerOf(model: string): string {
 }
 
 /**
- * An OAuth access token that expires mid-run is refreshed in the sandbox's copy of auth.json, which rotates the refresh token and
- * leaves the operator's copy holding a revoked one. A run must start with a token that outlasts it.
+ * The sandbox must never refresh an OAuth credential: a refresh rotates the refresh token and leaves the operator's copy revoked.
+ * Its copy of auth.json keeps only the access token, so a token that expires mid-run fails that run instead of refreshing.
  */
-export function assertOauthOutlastsRun(authFile: string, providers: string[], runMs: number, now = Date.now()): void {
-  const auth = JSON.parse(readFileSync(authFile, 'utf8')) as Record<string, { type?: string; expires?: number }>;
-  for (const provider of providers) {
-    const credential = auth[provider];
-    if (credential?.type !== 'oauth' || typeof credential.expires !== 'number') continue;
-    if (credential.expires - now < runMs) throw new Error(`${provider}'s OAuth access token expires in ${Math.round((credential.expires - now) / 60_000)} min, before this run's ${Math.round(runMs / 60_000)} min ceiling. A refresh inside the sandbox would rotate the operator's refresh token. Use the provider in Pi once to refresh it, then rerun.`);
-  }
+export function withoutOauthRefresh(authFile: string): void {
+  const auth = JSON.parse(readFileSync(authFile, 'utf8')) as Record<string, { type?: string; refresh?: string }>;
+  for (const credential of Object.values(auth)) if (credential?.type === 'oauth') credential.refresh = '';
+  writeFileSync(authFile, JSON.stringify(auth, null, 2), { mode: 0o600 });
 }
