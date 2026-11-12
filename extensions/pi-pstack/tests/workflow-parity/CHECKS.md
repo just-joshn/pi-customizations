@@ -2178,6 +2178,32 @@ Negative cases, each of which must FAIL the named checks:
 - the babysitter pushed an empty commit to retrigger → `babysit.twice.never-mutates-stack-topology`
 - the reply claims it is merge-ready → `babysit.twice.reply-says-not-merge-ready-and-why`
 
+## babysit-restart
+
+babysit across a parent restart: the live watcher is adopted through pstack_worker inspect, no second watcher is armed, and its one wake reaches the restarted parent once (spec 13.2)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.babysit.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/babysit.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `babysit.restart.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session` | one parent Pi process was stopped, a different one started in the same repo on the same session, and the session holds both babysit requests | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed` | the restarted parent inspected the watcher the first parent armed and found it running with its output, spawned nothing, and the run has exactly one watcher with one claim | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once` | the watcher exited READY (0) after the restart, and the restarted parent got exactly one pstack-worker wake for it, the host transition 1 of that instance, carrying the READY verdict | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.never-merges` | nothing merged, queued or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
+| `babysit.restart.reply-says-merge-ready-from-the-adopted-watcher` | the reply says the adopted watcher reached READY, that no second watcher was armed, and leaves landing to Shipping | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
+| `babysit.restart.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the restarted parent armed a second watcher → `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed`
+- the restarted parent never looked at the watcher → `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed`
+- the exit wake was delivered twice → `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once`
+- the exit wake carried no verdict → `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once`
+- the first parent was never stopped → `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session`
+- the replaced Pi was still running → `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session`
+- the reply claims a second watcher → `babysit.restart.reply-says-merge-ready-from-the-adopted-watcher`
+
 ## shipping
 
 shipping a stack with a failed middle PR: container verifiers with the forge capability record receipts, only the contiguous verified prefix merges bottom-up, green CI is not a verdict (spec 13.3)

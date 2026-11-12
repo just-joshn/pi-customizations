@@ -2,7 +2,7 @@
 // reads and writes <origin.git>/forge/state.json, and an append-only action log the checkers read. Real git decides head
 // SHAs, conflicts and merges, so a rebase, a force-push or a merge is a fact in the bare repository, not a claim.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -224,6 +224,29 @@ export function editForge(sandbox: string, change: (actions: ForgeAction[], stat
   change(actions, state);
   writeFileSync(join(dir, 'actions.jsonl'), actions.map((action) => JSON.stringify(action)).join('\n') + (actions.length === 0 ? '' : '\n'));
   writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2));
+}
+
+/** Settles a PR's pending checks while a run is live, the way CI finishing would. Takes the forge's own lock so a running `gh` never reads a half-written state. */
+export function settleChecks(sandbox: string, pr: number, to: 'SUCCESS' | 'FAILURE' = 'SUCCESS'): void {
+  const dir = forgeDirOf(sandbox);
+  const lock = join(dir, 'lock');
+  for (let tries = 0; ; tries += 1) {
+    try {
+      mkdirSync(lock);
+      break;
+    } catch (error) {
+      if (tries > 400) throw error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
+    }
+  }
+  try {
+    const state = JSON.parse(readFileSync(join(dir, 'state.json'), 'utf8')) as { prs: Record<string, { checks: { state: string; pendingReads?: number }[] }> };
+    for (const check of state.prs[String(pr)]?.checks ?? []) Object.assign(check, { state: to, pendingReads: 0 });
+    writeFileSync(join(dir, 'state.tmp'), JSON.stringify(state, null, 2));
+    renameSync(join(dir, 'state.tmp'), join(dir, 'state.json'));
+  } finally {
+    rmSync(lock, { recursive: true, force: true });
+  }
 }
 
 /** `git patch-id --stable` of the diff a commit makes against its parent. */

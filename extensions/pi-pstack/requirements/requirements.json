@@ -2990,6 +2990,22 @@
     "wf.babysit-queued.queued.inspect": {
       "file": "tests/workflow-parity/pr-babysit.test.ts",
       "name": "babysit-queued negative: inspect returned the host state without the watcher output"
+    },
+    "wf.babysit-restart": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart scripted run: every check passes"
+    },
+    "wf.babysit-restart.restart.second": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the restarted parent armed a second watcher"
+    },
+    "wf.babysit-restart.restart.twice": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the exit wake was delivered twice"
+    },
+    "wf.babysit-restart.restart.live": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the replaced Pi was still running"
     }
   },
   "structural": [
@@ -3659,7 +3675,11 @@
         "rec.other-owner",
         "rec.many",
         "rec.tree-reopen",
-        "sem.watch-rearm"
+        "sem.watch-rearm",
+        "wf.babysit-restart",
+        "wf.babysit-restart.restart.second",
+        "wf.babysit-restart.restart.twice",
+        "wf.babysit-restart.restart.live"
       ]
     },
     {

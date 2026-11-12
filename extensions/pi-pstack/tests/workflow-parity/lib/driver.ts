@@ -50,6 +50,10 @@ export interface DriveApi {
   socket: string;
   request: (command: Json) => Promise<{ success?: boolean } & Json>;
   events: () => ({ type: string } & Json)[];
+  /** Stops the parent Pi, leaving its workers and tmux server running, and starts a new Pi that resumes the same session in the same repo. It acts as the scenario's `parent-<n>` actor, n counting restarts from 2. */
+  restart: () => Promise<void>;
+  /** Sends a user message to the current parent and returns once Pi accepted it. */
+  prompt: (message: string) => Promise<void>;
 }
 
 export interface Scenario {
@@ -323,6 +327,8 @@ export interface Meta {
   timedOut: boolean;
   tmuxSocket: string;
   piStderr: string;
+  /** One entry per parent restart: the Pi process that was stopped and the one that replaced it. */
+  restarts?: { stoppedPid: number | undefined; startedPid: number | undefined }[];
 }
 
 export interface RunOutcome {
@@ -365,12 +371,31 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
   const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
-  const child = spawn(options.pi ?? PI, args, { cwd: ctx.repo, env, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
-  const rpc = new Rpc(child, mode === 'rpc');
+  const startPi = (piArgs: string[], extraEnv: Record<string, string> = {}) => {
+    const started = spawn(options.pi ?? PI, piArgs, { cwd: ctx.repo, env: { ...env, ...extraEnv }, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
+    const next = new Rpc(started, mode === 'rpc');
+    started.once('close', (code) => {
+      if (child === started) exitCode = code;
+    });
+    return { started, next };
+  };
   let exitCode: number | null = null;
-  child.once('close', (code) => {
-    exitCode = code;
-  });
+  let { started: child, next: rpc } = startPi(args);
+  const restarts: NonNullable<Meta['restarts']> = [];
+  const stopPi = async (target: ChildProcess) => {
+    if (target.exitCode !== null || target.signalCode !== null) return;
+    target.stdin?.end();
+    await new Promise<void>((done) => {
+      const timer = setTimeout(() => {
+        target.kill('SIGKILL');
+        done();
+      }, 10_000);
+      target.once('close', () => {
+        clearTimeout(timer);
+        done();
+      });
+    });
+  };
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
   const stopObserving = observeRuns(ctx.repo, history, claims);
@@ -415,7 +440,27 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {
       const accepted = await rpc.request({ type: 'prompt', message }, options.rpcTimeoutMs);
       if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
-      if (message === prompt && spec.drive !== undefined) await spec.drive({ ctx, socket, request: (command) => rpc.request(command), events: () => rpc.events });
+      if (message === prompt && spec.drive !== undefined)
+        await spec.drive({
+          ctx,
+          socket,
+          request: (command) => rpc.request(command),
+          events: () => rpc.events,
+          prompt: async (text) => {
+            const sent = await rpc.request({ type: 'prompt', message: text }, options.rpcTimeoutMs);
+            if (sent['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(sent)}`);
+          },
+          restart: async () => {
+            const stopped = child;
+            await stopPi(stopped);
+            const next = startPi([...args, '--continue'], { PSTACK_SCENARIO_ACTOR: `parent-${restarts.length + 2}` });
+            child = next.started;
+            rpc = next.next;
+            restarts.push({ stoppedPid: stopped.pid, startedPid: child.pid });
+            const resumed = await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs);
+            parentSessionFile = ((resumed['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? parentSessionFile;
+          },
+        });
       if (!(await untilQuiet())) {
         timedOut = true;
         break;
@@ -424,25 +469,13 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     }
   } finally {
     stopObserving();
-    if (child.exitCode === null) {
-      child.stdin?.end();
-      await new Promise<void>((done) => {
-        const timer = setTimeout(() => {
-          child.kill('SIGKILL');
-          done();
-        }, 10_000);
-        child.once('close', () => {
-          clearTimeout(timer);
-          done();
-        });
-      });
-    }
+    await stopPi(child);
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
+  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));

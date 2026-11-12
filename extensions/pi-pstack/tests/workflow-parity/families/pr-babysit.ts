@@ -13,6 +13,7 @@ import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } fro
 import { editForge, type ForgeAction } from '../fixtures/forge.ts';
 import { todoNegatives } from './shared.ts';
 import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, replyMentions, REPO_FLAGS, REPO_SLUG, stepDone, spawnOrderOf, watchers } from './pr-shared.ts';
+import { babysitRestartFamilies } from './pr-babysit-restart.ts';
 import type { Family } from './types.ts';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -1003,4 +1004,4 @@ function dropCommands(sandbox: string, pattern: RegExp): void {
   writeFileSync(file, lines.join('\n'));
 }
 
-export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily, babysitSingleWatcherFamily, babysitFlakeTwiceFamily];
+export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily, babysitSingleWatcherFamily, babysitFlakeTwiceFamily, ...babysitRestartFamilies];

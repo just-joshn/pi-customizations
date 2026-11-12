@@ -1,7 +1,8 @@
 // Test-only Pi extension: a scripted actor built on Pi's faux provider. The real Pi binary and the real pstack
 // extension run unchanged. Only the model's answers are scripted.
 //
-// PSTACK_SCENARIO names a JSON file { actors: { <actor>: Step[] } }. The actor is PSTACK_WORKER_ID, or "parent".
+// PSTACK_SCENARIO names a JSON file { actors: { <actor>: Step[] } }. The actor is PSTACK_WORKER_ID, else PSTACK_SCENARIO_ACTOR
+// (a restarted parent), else "parent".
 // Each provider call consumes the next step of its actor:
 //   { tool, args } | [{ tool, args }, ...]   call these tools (several in one array run in one assistant message)
 //   { text }                                 reply with text and end the turn
@@ -29,7 +30,8 @@ function script(): Step[] {
   const path = process.env['PSTACK_SCENARIO'];
   if (path === undefined) return [{ text: 'no PSTACK_SCENARIO' }];
   const actors = (JSON.parse(readFileSync(path, 'utf8')) as { actors: Record<string, Step[]> }).actors;
-  return actors[process.env['PSTACK_WORKER_ID'] ?? 'parent'] ?? [{ text: `no script for ${process.env['PSTACK_WORKER_ID'] ?? 'parent'}` }];
+  const actor = process.env['PSTACK_WORKER_ID'] ?? process.env['PSTACK_SCENARIO_ACTOR'] ?? 'parent';
+  return actors[actor] ?? [{ text: `no script for ${actor}` }];
 }
 
 let cursor = 0;
