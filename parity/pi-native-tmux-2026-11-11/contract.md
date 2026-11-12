@@ -92,7 +92,7 @@ Exactly two model-facing tools, TypeBox-validated.
 
 `pstack_evidence`:
 
-- `{ action: 'record', runId, receiptPath }`. Validates a receipt under the run root and appends it to `verification/verdicts.json`.
+- `{ action: 'record', runId, receiptPath }`. Validates a receipt under the run root and stores it as `verification/receipts/<id>.json`: the recorder writes a private temporary file and hard-links it to that name, so the name never holds a partial receipt and concurrent recorders share no file and take no lock. Recording an id that exists is idempotent when the receipt is identical (deep equality of the receipt object) and an error when it differs. `verify` and `list` read the directory.
 - `{ action: 'verify', runId, target }`. Re-checks every receipt for `target` (a TODO step id, worker id, or commit): files exist, sha256 match, `commit` equals the target commit when given. Returns `pass`, `fail`, or `inconclusive`. A missing receipt is `inconclusive`, never `pass`.
 - `{ action: 'list', runId }`.
 

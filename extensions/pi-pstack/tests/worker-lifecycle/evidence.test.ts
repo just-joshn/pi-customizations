@@ -1,11 +1,11 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
-import { makeParent, makeProject, makeRun, type Parent, type Project, sleep, until } from './harness.ts';
+import { makeParent, makeProject, makeRun, type Parent, type Project } from './harness.ts';
 
 let project: Project;
 let parent: Parent;
@@ -107,7 +107,7 @@ describe('pstack_evidence', () => {
   });
 });
 
-describe('verdicts lock', () => {
+describe('receipt files from concurrent processes', () => {
   const evidenceModule = join(PACKAGE_ROOT, 'src', 'evidence.ts');
   const node = (script: string, ...args: string[]) => {
     const child = spawn(process.execPath, ['--input-type=module', '-e', script, ...args], { stdio: ['ignore', 'pipe', 'pipe'] });
@@ -117,44 +117,53 @@ describe('verdicts lock', () => {
     const exited = new Promise<number | null>((resolve) => child.once('exit', (code) => resolve(code)));
     return { child, output: () => output, exited };
   };
+  const recorder = (receiptPath: string) => node(`import { recordReceipt } from ${JSON.stringify(evidenceModule)}; await recordReceipt(process.argv[1], 'run1', process.argv[2]); process.stdout.write('RECORDED\\n');`, runRoot, receiptPath);
+  const receiptsDir = () => join(runRoot, 'verification', 'receipts');
   const children: ChildProcess[] = [];
   afterEach(() => {
     for (const child of children.splice(0)) child.kill('SIGKILL');
   });
 
-  test('a paused owner keeps the lock past the stale age, and concurrent recorders wait for its release', async () => {
-    const owner = node(
-      `import { withVerdictsLock } from ${JSON.stringify(evidenceModule)}; await withVerdictsLock(process.argv[1], () => { process.stdout.write('HELD\\n'); process.kill(process.pid, 'SIGSTOP'); }); process.stdout.write('RELEASED\\n');`,
-      runRoot,
-    );
-    children.push(owner.child);
-    await until(owner.output, (text) => text.includes('HELD'), 10_000, 'owner holds the lock');
-    const lock = join(runRoot, 'verification', 'verdicts.lock');
-    const old = new Date(Date.now() - 120_000);
-    utimesSync(lock, old, old);
-
-    const record = (id: string) => node(`import { recordReceipt } from ${JSON.stringify(evidenceModule)}; await recordReceipt(process.argv[1], 'run1', process.argv[2]); process.stdout.write('RECORDED\\n');`, runRoot, receipt(id));
-    const recorders = [record('r1'), record('r2')];
-    children.push(...recorders.map((recorder) => recorder.child));
-    await sleep(1_500);
-    expect(recorders.map((recorder) => recorder.output())).toEqual(['', '']);
+  test('every recorder lands its own receipt file, with no shared file and no lock', async () => {
+    const ids = Array.from({ length: 8 }, (_, index) => `c${index}`);
+    const recorders = ids.map((id) => recorder(receipt(id)));
+    children.push(...recorders.map((entry) => entry.child));
+    expect(await Promise.all(recorders.map((entry) => entry.exited))).toEqual(ids.map(() => 0));
+    expect(readdirSync(receiptsDir()).sort()).toEqual(ids.map((id) => `${id}.json`).sort());
     expect(existsSync(join(runRoot, 'verification', 'verdicts.json'))).toBe(false);
-
-    owner.child.kill('SIGCONT');
-    expect(await owner.exited).toBe(0);
-    expect(owner.output()).toContain('RELEASED');
-    expect(await Promise.all(recorders.map((recorder) => recorder.exited))).toEqual([0, 0]);
-    const recorded = JSON.parse(readFileSync(join(runRoot, 'verification', 'verdicts.json'), 'utf8')).receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id);
-    expect(recorded.sort()).toEqual(['r1', 'r2']);
+    expect((await evidence({ action: 'list' })).details.receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id).sort()).toEqual(ids.sort());
+    expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'pass' });
   });
 
-  test("a dead owner's lock is reclaimed", async () => {
-    const owner = node(`import { withVerdictsLock } from ${JSON.stringify(evidenceModule)}; await withVerdictsLock(process.argv[1], () => { process.stdout.write('HELD\\n'); process.kill(process.pid, 'SIGSTOP'); });`, runRoot);
-    children.push(owner.child);
-    await until(owner.output, (text) => text.includes('HELD'), 10_000, 'owner holds the lock');
-    owner.child.kill('SIGKILL');
-    await owner.exited;
-    await evidence({ action: 'record', receiptPath: receipt('r1') });
-    expect((await evidence({ action: 'list' })).details.receipts).toHaveLength(1);
+  test('identical duplicates from racing processes are one receipt; a changed duplicate is rejected', async () => {
+    const path = receipt('dup');
+    const same = Array.from({ length: 6 }, () => recorder(path));
+    children.push(...same.map((entry) => entry.child));
+    expect(await Promise.all(same.map((entry) => entry.exited))).toEqual(same.map(() => 0));
+    expect(readdirSync(receiptsDir())).toEqual(['dup.json']);
+
+    const changed = recorder(receipt('dup', { verdict: 'fail' }));
+    children.push(changed.child);
+    expect(await changed.exited).not.toBe(0);
+    expect(changed.output()).toMatch(/already recorded with different content/);
+    expect((await evidence({ action: 'verify', target: 'step-3' })).details).toEqual({ kind: 'pass', receipts: ['dup'] });
   });
+
+  test('a recorder killed mid-write leaves no partial receipt, and the id can be recorded afterwards', async () => {
+    const path = receipt('big', { reason: 'x'.repeat(64 * 1024 * 1024) });
+    const doomed = recorder(path);
+    children.push(doomed.child);
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline && (!existsSync(receiptsDir()) || readdirSync(receiptsDir()).length === 0)) {
+      // Spin, so the kill lands while the first file in receipts/ is still being written.
+    }
+    doomed.child.kill('SIGKILL');
+    await doomed.exited;
+    expect(readdirSync(receiptsDir()).length).toBeGreaterThan(0);
+    expect(readdirSync(receiptsDir())).not.toContain('big.json');
+    expect((await evidence({ action: 'list' })).details.receipts).toEqual([]);
+
+    await evidence({ action: 'record', receiptPath: path });
+    expect((await evidence({ action: 'list' })).details.receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id)).toEqual(['big']);
+  }, 60_000);
 });
