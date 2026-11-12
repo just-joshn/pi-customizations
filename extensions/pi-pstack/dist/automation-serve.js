@@ -6949,16 +6949,16 @@ import { resolve as resolve8 } from "node:path";
 import { parseArgs } from "node:util";
 
 // adapters/automation-events.ts
-import { execFileSync } from "node:child_process";
+import { execFileSync as execFileSync2 } from "node:child_process";
 
 // src/automation/dispatch.ts
 import { existsSync as existsSync7 } from "node:fs";
 import { join as join7 } from "node:path";
 
 // src/workers.ts
-import { execFile as execFile2 } from "node:child_process";
-import { existsSync as existsSync5, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync as realpathSync4, rmSync, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
-import { basename as basename3, delimiter as delimiter3, isAbsolute as isAbsolute4, join as join5, relative as relative4 } from "node:path";
+import { execFile as execFile2, execFileSync } from "node:child_process";
+import { existsSync as existsSync5, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync as realpathSync4, rmSync as rmSync2, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
+import { basename as basename3, delimiter as delimiter3, dirname as dirname4, isAbsolute as isAbsolute4, join as join5, relative as relative4 } from "node:path";
 import { promisify } from "node:util";
 
 // scripts/pi-standalone-shims.mjs
@@ -14327,8 +14327,8 @@ var Delete = _Object_({
 });
 var Edit = Union([Insert2, Update2, Delete]);
 // src/run-files.ts
-import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, lstatSync, mkdirSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { createHash as createHash2, randomBytes } from "node:crypto";
+import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, rmSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { basename, dirname as dirname2, isAbsolute as isAbsolute3, join as join3, relative as relative3, resolve as resolve4, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
@@ -14901,7 +14901,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   }
   const secrets = launchEnvPath(loaded.workerDir);
   const release = (error) => {
-    rmSync(claimDir, { recursive: true, force: true });
+    rmSync2(claimDir, { recursive: true, force: true });
     return error;
   };
   const target = hostTarget(loaded);
@@ -14950,7 +14950,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   } finally {
-    rmSync(secrets, { force: true });
+    rmSync2(secrets, { force: true });
   }
   if (state === undefined || state.phase === "starting")
     throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
@@ -14964,7 +14964,10 @@ var WorkerParams = _Object_({
   action: StringEnum(["spawn", "inspect", "steer", "abort", "collect"], {
     description: "spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled."
   }),
-  runId: String2({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  runId: String2({
+    description: "The run id, the folder under .pi/pstack/runs. You choose it: a short lowercase id such as how-retries. The first spawn into an id with no run creates the run for this session; later spawns, inspect, steer, abort, and collect reuse the id. A run another session owns is refused."
+  }),
+  playbook: Optional(String2({ description: "spawn: the skill that started the run, recorded in run.json when this spawn creates the run (for example how, why, arena, swarm)." })),
   workerId: Optional(String2({ description: "inspect, steer, abort, collect: the worker id." })),
   assignmentPath: Optional(String2({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
   message: Optional(String2({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
@@ -15074,25 +15077,25 @@ function eligibleTrackerAction(intent, policy) {
 }
 
 // src/automation/store.ts
-import { appendFileSync as appendFileSync2, existsSync as existsSync6, linkSync, mkdirSync as mkdirSync3, readdirSync as readdirSync3, readFileSync as readFileSync5, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
-import { dirname as dirname4, join as join6 } from "node:path";
+import { appendFileSync as appendFileSync2, existsSync as existsSync6, linkSync as linkSync2, mkdirSync as mkdirSync3, readdirSync as readdirSync3, readFileSync as readFileSync5, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
+import { dirname as dirname5, join as join6 } from "node:path";
 function automationStore(projectRoot, name) {
   const dir = join6(projectRoot, ".pi", "pstack", "automation", name);
   return { dir, log: join6(dir, "events.jsonl"), cursor: join6(dir, "cursor.json"), outbox: join6(dir, "outbox"), lock: join6(dir, "source.lock") };
 }
 var temporary = (path) => `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
 function writeAtomic(path, text) {
-  mkdirSync3(dirname4(path), { recursive: true, mode: 448 });
+  mkdirSync3(dirname5(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
   writeFileSync4(tmp, text, { mode: 384 });
   renameSync2(tmp, path);
 }
 function createExclusive(path, text) {
-  mkdirSync3(dirname4(path), { recursive: true, mode: 448 });
+  mkdirSync3(dirname5(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
   writeFileSync4(tmp, text, { mode: 384 });
   try {
-    linkSync(tmp, path);
+    linkSync2(tmp, path);
     return true;
   } catch (error) {
     if (error.code === "EEXIST")
@@ -15911,7 +15914,7 @@ function markerProblem(result, markers) {
 `).at(-1)?.trim() ?? "";
   return markers.some((marker) => last.startsWith(marker)) ? undefined : "marker is not on the last line";
 }
-var gitHead = (cwd) => () => execFileSync("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" }).trim();
+var gitHead = (cwd) => () => execFileSync2("git", ["rev-parse", "HEAD"], { cwd, encoding: "utf8" }).trim();
 function createAutomation(config, deps) {
   if (!isIdentifier(config.name))
     throw new Error(`invalid automation name: ${config.name}`);
@@ -16400,15 +16403,15 @@ import { relative as relative6, resolve as resolve7 } from "node:path";
 // src/automation/skills.ts
 import { existsSync as existsSync10, readdirSync as readdirSync4, statSync as statSync4 } from "node:fs";
 import { homedir as homedir3 } from "node:os";
-import { dirname as dirname5, join as join12, resolve as resolve6 } from "node:path";
+import { dirname as dirname6, join as join12, resolve as resolve6 } from "node:path";
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var MAX_DEPTH2 = 3;
 var isSkillName = (value) => value.length <= 64 && SKILL_NAME.test(value);
 function agentsDirs(projectRoot) {
   const dirs = [];
-  for (let dir = resolve6(projectRoot);; dir = dirname5(dir)) {
+  for (let dir = resolve6(projectRoot);; dir = dirname6(dir)) {
     dirs.push(join12(dir, ".agents", "skills"));
-    if (existsSync10(join12(dir, ".git")) || dirname5(dir) === dir)
+    if (existsSync10(join12(dir, ".git")) || dirname6(dir) === dir)
       return dirs;
   }
 }

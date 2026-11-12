@@ -189,8 +189,8 @@ async function removeWorkerContainers(docker, env, name) {
 
 // src/run-files.ts
 import { execFileSync } from "node:child_process";
-import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { createHash as createHash2, randomBytes } from "node:crypto";
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
