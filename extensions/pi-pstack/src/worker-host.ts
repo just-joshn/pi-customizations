@@ -314,7 +314,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const readonly = assignment.kind === 'pi' && assignment.workspace.mode === 'readonly';
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),

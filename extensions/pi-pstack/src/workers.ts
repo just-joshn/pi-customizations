@@ -13,6 +13,7 @@ import { Type } from 'typebox';
 import { registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
+import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
 import {
   type Assignment,
@@ -51,7 +52,7 @@ import {
 import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
-export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls'] as const;
+export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'pstack_evidence'] as const;
 
 export interface ResolvedModel {
   provider: string;
@@ -497,11 +498,16 @@ const WorkerParams = Type.Object({
 const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as const, text: value }], details });
 
 /**
- * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, and pstack_worker only for a
- * sub-coordinator, the worker its parent spawned with capabilities.spawn (PSTACK_SPAWN=1).
+ * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, bash_readonly in a readonly workspace
+ * (PSTACK_READONLY=1), and pstack_worker only for a sub-coordinator, the worker its parent spawned with
+ * capabilities.spawn (PSTACK_SPAWN=1).
  */
 export function registerWorkerSideTools(pi: ExtensionAPI, env: NodeJS.ProcessEnv, options: WorkerToolOptions = {}): void {
   registerEvidenceTool(pi);
+  if (env['PSTACK_READONLY'] === '1') {
+    pi.registerTool(createReadonlyBashTool('bash_readonly'));
+    pi.on('session_shutdown', releaseReadonlySandbox);
+  }
   if (env['PSTACK_SPAWN'] === '1') registerWorkerTools(pi, options);
 }
 

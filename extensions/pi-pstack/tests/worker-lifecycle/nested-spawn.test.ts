@@ -15,6 +15,7 @@ const PI_ARGS = [...TEST_PI_ARGS, '--extension', WORKER_SIDE];
 test.for([
   [{ PSTACK_WORKER: '1' }, ['pstack_evidence']],
   [{ PSTACK_WORKER: '1', PSTACK_SPAWN: '1' }, ['pstack_evidence', 'pstack_worker']],
+  [{ PSTACK_WORKER: '1', PSTACK_READONLY: '1' }, ['bash_readonly', 'pstack_evidence']],
 ] as const)('a worker with env %j registers %j', ([env, tools]) => {
   const registered: string[] = [];
   const pi = { registerTool: (tool: { name: string }) => registered.push(tool.name), on: () => undefined } as unknown as ExtensionAPI;

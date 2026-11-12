@@ -24,7 +24,7 @@ import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as jo
 import { promisify } from "node:util";
 import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
-import { Type as Type2 } from "typebox";
+import { Type as Type3 } from "typebox";
 
 // src/evidence.ts
 import { StringEnum } from "@earendil-works/pi-ai";
@@ -330,6 +330,39 @@ function piCommand() {
   return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
 }
 
+// src/readonly-shell.ts
+import { createBashTool, createLocalBashOperations as createLocalBashOperations2 } from "@earendil-works/pi-coding-agent";
+
+// src/seccomp-filter.ts
+var AF_UNIX = 1;
+var SOCK_STREAM = 1;
+var SOCK_TYPE_MASK = 15;
+var SYS_SOCKET = 1;
+var SYS_SOCKETPAIR = 8;
+var SOCKETCALL = 102;
+var BROKER_POLICY = `socketcall=${SOCKETCALL},socket=${SYS_SOCKET},socketpair=${SYS_SOCKETPAIR},unix=${AF_UNIX},stream=${SOCK_STREAM},typemask=${SOCK_TYPE_MASK}`;
+
+// src/linux-readonly-sandbox.ts
+var FILTER_FD = 3;
+var CLOSE_INHERITED_DESCRIPTORS = `for f in /proc/self/fd/*; do n=\${f##*/}; if [ "$n" -gt ${FILTER_FD} ]; then eval "exec $n>&-"; fi; done; `;
+
+// src/shell-state.ts
+import { createBashToolDefinition, createLocalBashOperations, getShellConfig } from "@earendil-works/pi-coding-agent";
+import { Type as Type2 } from "typebox";
+var NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+var skipForeignName = `[[ $__pstack_n =~ ${NAME.source} ]] || continue`;
+var FUNCTION_BASELINE = [
+  "while IFS= read -r __pstack_n; do",
+  '  case $__pstack_n in __pstack_*|"") continue ;; esac',
+  `  ${skipForeignName}`,
+  '  builtin printf -v "__pstack_0_fn_$__pstack_n" %s "$(builtin declare -f -- "$__pstack_n")"',
+  "done < <(builtin compgen -A function)"
+].join(`
+`);
+
+// src/readonly-shell.ts
+var STRIP_ENV = ["BASH_ENV", "ENV", ...Object.keys(process.env).filter((key) => key.startsWith("BASH_FUNC_"))];
+
 // src/rpc-client.ts
 import { randomUUID as randomUUID2 } from "node:crypto";
 import { connect } from "node:net";
@@ -586,7 +619,8 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const readonly = assignment.kind === "pi" && assignment.workspace.mode === "readonly";
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -1079,7 +1113,7 @@ async function controlHost(target, operation, text) {
 }
 
 // src/workers.ts
-var READONLY_TOOLS = ["read", "grep", "find", "ls"];
+var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 function onPath(command) {
   if (isAbsolute3(command))
     return command;
@@ -1302,14 +1336,14 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     await controlHost(target, "start");
   return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
 }
-var WorkerParams = Type2.Object({
+var WorkerParams = Type3.Object({
   action: StringEnum2(["spawn", "inspect", "steer", "abort", "collect"], {
     description: "spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled."
   }),
-  runId: Type2.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
-  workerId: Type2.Optional(Type2.String({ description: "inspect, steer, abort, collect: the worker id." })),
-  assignmentPath: Type2.Optional(Type2.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
-  message: Type2.Optional(Type2.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
+  runId: Type3.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  workerId: Type3.Optional(Type3.String({ description: "inspect, steer, abort, collect: the worker id." })),
+  assignmentPath: Type3.Optional(Type3.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
+  message: Type3.Optional(Type3.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
 });
 
 // src/automation/model.ts
