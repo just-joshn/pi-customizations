@@ -4,7 +4,7 @@
 // Plain Node: node: builtins only, because the worker host bundle imports it.
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { delimiter, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -376,6 +376,22 @@ export async function removeWorkerContainers(docker: string, env: NodeJS.Process
   return ids;
 }
 
+/** The engine a container worker was started on, as spawn saw it. Abort removes the container there, whatever the environment has become. */
+export const engineRecordPath = (workerDir: string): string => join(workerDir, 'claim', 'engine.json');
+
+export function writeEngineRecord(workerDir: string, engine: Pick<Engine, 'docker' | 'env'>): void {
+  writeFileSync(engineRecordPath(workerDir), JSON.stringify({ docker: engine.docker, env: engine.env }), { mode: 0o600, flag: 'wx' });
+}
+
+/** Removes the worker's container on the engine spawn recorded. Throws when nothing was recorded: guessing an engine from today's environment could miss the container or hit another engine. */
+export async function removeRecordedContainers(workerDir: string, name: string): Promise<string[]> {
+  const path = engineRecordPath(workerDir);
+  if (!existsSync(path)) throw new Error(`${path} does not exist, so the engine this worker's container ran on is unknown`);
+  const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  if (!isRecord(raw) || typeof raw['docker'] !== 'string' || !isAbsolute(raw['docker']) || !isRecord(raw['env']) || Object.values(raw['env']).some((value) => typeof value !== 'string')) throw new Error(`${path} is not an engine record`);
+  return removeWorkerContainers(raw['docker'], raw['env'] as NodeJS.ProcessEnv, name);
+}
+
 export interface ContainerRequest {
   project: string;
   runId: string;
@@ -401,6 +417,7 @@ export interface PreparedContainer {
   /** Pi's command inside the container, and the arguments that load pstack there. */
   piCommand: string[];
   piArgs: string[];
+  engine: Engine;
   engineVersion: string;
   image: { reference: string; id: string };
   remote: string;
@@ -440,6 +457,7 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
     },
     piCommand: ['node', pi.script],
     piArgs: ['--extension', join(packageRoot, 'src', 'extension.ts'), '--skill', join(packageRoot, 'generated', 'skills')],
+    engine,
     engineVersion: engine.version,
     image,
     remote: remote.name,

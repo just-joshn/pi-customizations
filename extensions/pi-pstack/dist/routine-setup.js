@@ -2,7 +2,7 @@
 
 // src/automation/routine-cli.mjs
 import { randomBytes } from "node:crypto";
-import { chmodSync, mkdirSync as mkdirSync3, readFileSync as readFileSync6, realpathSync as realpathSync4, writeFileSync as writeFileSync4 } from "node:fs";
+import { chmodSync, mkdirSync as mkdirSync3, readFileSync as readFileSync6, realpathSync as realpathSync4, writeFileSync as writeFileSync5 } from "node:fs";
 import { dirname as dirname4, join as join9, resolve as resolve4 } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { parseArgs } from "node:util";
@@ -18,7 +18,7 @@ import { join as join6 } from "node:path";
 
 // src/workers.ts
 import { execFile as execFile2 } from "node:child_process";
-import { existsSync as existsSync4, mkdirSync, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync3, rmSync, statSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync4, mkdirSync, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync3, rmSync, statSync, writeFileSync as writeFileSync3 } from "node:fs";
 import { homedir } from "node:os";
 import { basename as basename3, delimiter as delimiter2, isAbsolute as isAbsolute3, join as join4, relative as relative3 } from "node:path";
 import { promisify } from "node:util";
@@ -3905,7 +3905,7 @@ function Priority(types) {
 // src/container.ts
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -4131,6 +4131,10 @@ printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
 `;
+var engineRecordPath = (workerDir) => join(workerDir, "claim", "engine.json");
+function writeEngineRecord(workerDir, engine) {
+  writeFileSync(engineRecordPath(workerDir), JSON.stringify({ docker: engine.docker, env: engine.env }), { mode: 384, flag: "wx" });
+}
 async function prepareContainer(request) {
   const { project, runId, workerId, session, source, packageRoot } = request;
   const engine = await connectEngine(source);
@@ -4164,6 +4168,7 @@ async function prepareContainer(request) {
     },
     piCommand: ["node", pi.script],
     piArgs: ["--extension", join(packageRoot, "src", "extension.ts"), "--skill", join(packageRoot, "generated", "skills")],
+    engine,
     engineVersion: engine.version,
     image,
     remote: remote.name
@@ -7144,7 +7149,7 @@ var Delete = _Object_({
 var Edit = Union([Insert2, Update2, Delete]);
 // src/run-files.ts
 import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync as readFileSync2, realpathSync as realpathSync2, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync as readFileSync2, realpathSync as realpathSync2, renameSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve3, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
@@ -7168,7 +7173,7 @@ function controlSocketPath(runRoot, workerId) {
 }
 function writeJsonAtomic(path, value, mode = 384) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}
+  writeFileSync2(temporary, `${JSON.stringify(value, null, 2)}
 `, { mode });
   renameSync(temporary, path);
 }
@@ -7686,7 +7691,9 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   let state;
   try {
     try {
-      writeFileSync2(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
+      if (container !== null)
+        writeEngineRecord(loaded.workerDir, container.engine);
+      writeFileSync3(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
     } catch (error) {
       throw release(error);
     }
@@ -7706,7 +7713,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       tmuxIdentity = check.identity;
     }
     if (tmuxIdentity !== undefined)
-      writeFileSync2(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
+      writeFileSync3(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
     appendEvent(runRoot, {
       runId,
       workerId: assignment.workerId,
@@ -7758,7 +7765,7 @@ function runIdFor(automation, key) {
 }
 
 // src/automation/store.ts
-import { appendFileSync as appendFileSync2, existsSync as existsSync5, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync3 } from "node:fs";
+import { appendFileSync as appendFileSync2, existsSync as existsSync5, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
 import { dirname as dirname3, join as join5 } from "node:path";
 function automationStore(projectRoot, name) {
   const dir = join5(projectRoot, ".pi", "pstack", "automation", name);
@@ -7768,7 +7775,7 @@ var temporary = (path) => `${path}.${process.pid}.${Math.random().toString(36).s
 function createExclusive(path, text) {
   mkdirSync2(dirname3(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
-  writeFileSync3(tmp, text, { mode: 384 });
+  writeFileSync4(tmp, text, { mode: 384 });
   try {
     linkSync(tmp, path);
     return true;
@@ -8020,7 +8027,7 @@ if (!config)
 var credentialFile = defaultCredentialFile(values.name);
 mkdirSync3(dirname4(credentialFile), { recursive: true, mode: 448 });
 try {
-  writeFileSync4(credentialFile, json({ key: randomBytes(32).toString("hex") }), { flag: "wx", mode: 384 });
+  writeFileSync5(credentialFile, json({ key: randomBytes(32).toString("hex") }), { flag: "wx", mode: 384 });
 } catch (error) {
   if (error.code !== "EEXIST")
     throw error;

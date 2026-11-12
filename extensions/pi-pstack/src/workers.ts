@@ -11,7 +11,7 @@ import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { connectEngine, ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeWorkerContainers } from './container.ts';
+import { ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
 import { registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
@@ -517,6 +517,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // launch-env.json leaves the disk on every path out of here; claim/ goes only where non-start is established.
   try {
     try {
+      if (container !== null) writeEngineRecord(loaded.workerDir, container.engine);
       writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
     } catch (error) {
       throw release(error as Error);
@@ -766,9 +767,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const removeContainers = async (project: string, loaded: LoadedAssignment) => {
     if (loaded.assignment.workspace.mode !== 'container') return;
     const { runId, workerId } = loaded.assignment;
+    // A worker with no claim never started a container, so there is nothing to remove.
+    if (!existsSync(join(loaded.workerDir, 'claim'))) return;
     try {
-      const engine = await connectEngine({ ...process.env, ...options.extraEnv });
-      const ids = await removeWorkerContainers(engine.docker, engine.env, tmuxSessionName(project, runId, workerId));
+      const ids = await removeRecordedContainers(loaded.workerDir, tmuxSessionName(project, runId, workerId));
       if (ids.length > 0) appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removed', data: { ids } });
     } catch (error) {
       appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removal_failed', data: { error: error instanceof Error ? error.message : String(error) } });
