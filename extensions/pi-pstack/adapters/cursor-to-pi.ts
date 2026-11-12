@@ -127,6 +127,7 @@ export const BENIGN: readonly Benign[] = [
   { id: 'tmp-path', pattern: /\/tmp\b/g, reason: 'a filesystem path, not a slash command' },
   { id: 'ts-readonly', pattern: /\breadonly __brand\b/g, reason: 'TypeScript readonly modifier in code examples' },
   { id: 'code-identifiers', pattern: /`(?:UserService|UserId|OrderId|NoDeadlock|PeleError|ReturnType|DerivedData)`/g, reason: 'identifiers in code examples, not host tools' },
+  { id: 'slack-write-actions', pattern: /`(?:SendSlackMessage|PostToSlack)`/g, reason: 'names of Slack write actions the Benny pack forbids a worker to call, kept so the ban holds under any host' },
   { id: 'plan-template-heading', pattern: /<Task as a verb phrase>/g, reason: 'placeholder heading in the plan template' },
 ];
 
@@ -234,7 +235,7 @@ swarm workers: grok-4.7-xhigh-fast
 architect runners: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast
 interrogate reviewers: claude-opus-5-5-xhigh, grok-4.7-xhigh-fast`;
 
-function rule(id: string, primitives: PrimitiveId | PrimitiveId[], files: string | Record<string, number>, find: string, replace: string): Rule {
+export function rule(id: string, primitives: PrimitiveId | PrimitiveId[], files: string | Record<string, number>, find: string, replace: string): Rule {
   return { id, primitives: Array.isArray(primitives) ? primitives : [primitives], find, replace, files: typeof files === 'string' ? { [files]: 1 } : files };
 }
 

@@ -25,13 +25,20 @@ function fixture(messages: ThreadMessage[] = [], kind: 'triage' | 'reproduce' = 
   const tickets: string[] = [];
   let spawns = 0;
   let crash = true;
+  const posted: ThreadMessage[] = [];
   const deps: AutomationDeps = {
     spawnWorker: async () => {
       spawns++;
     },
     inputCommit: () => 'a'.repeat(40),
     prerequisites: { tracker: async () => true, controlAdapter: async () => true, featureMap: async () => true },
-    destination: { readThread: async () => messages, post: async () => ({ ts: '2.000001' }) },
+    destination: {
+      readThread: async () => [{ ts: event.ts }, ...messages, ...posted],
+      post: async (action) => {
+        posted.push({ ts: '2.000001', marker: action.id });
+        return { ts: '2.000001' };
+      },
+    },
     tracker: {
       searchByMarker: async (marker: string) => (tickets.includes(marker) ? [{ id: 'ticket' }] : []),
       create: async (action: { id: string }) => {
@@ -54,7 +61,7 @@ test('tracker crash recovery and redelivery creates one ticket', async () => {
   const f = fixture();
   const run = await f.automation.handle(event);
   if (run.status !== 'dispatched') throw Error('not dispatched');
-  await expect(f.automation.complete(run.runId, result)).rejects.toThrow('crash');
+  expect(await f.automation.complete(run.runId, result)).toMatchObject({ status: 'retrying' });
   const restarted = createAutomation(f.config, f.deps);
   await restarted.reconcile();
   await restarted.complete(run.runId, result);
@@ -84,7 +91,7 @@ test.for([
 test('loader accepts the real template and rejects malformed input', () => {
   const p = project();
   const path = join(p, 'configuration.yaml');
-  writeFileSync(path, readFileSync(resolve('automations/benny/templates/configuration.example.yaml')));
+  writeFileSync(path, readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml')));
   expect(configuration.loadBennyConfig(p, 'triage', path)).toMatchObject({ name: 'benny-triage', kind: 'triage', sourceChannelId: 'SOURCE_CHANNEL_ID' });
   writeFileSync(path, 'schema_version: 1\nslack: []');
   expect(() => configuration.loadBennyConfig(p, 'triage', path)).toThrow();

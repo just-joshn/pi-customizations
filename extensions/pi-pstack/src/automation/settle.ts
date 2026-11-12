@@ -7,8 +7,9 @@ import { join } from 'node:path';
 import type { Automation } from '../../adapters/automation-events.ts';
 import { hostTarget, inspectHost } from '../rpc-client.ts';
 import { type HostState, isTerminal, loadAssignment, readHostState } from '../run-files.ts';
+import { abortRun, type AbortRun } from './abort.ts';
 import { workerDir } from './dispatch.ts';
-import type { BennyAutomationKind, RunId, TrackerIntent, WorkerResult } from './model.ts';
+import { failureReply, isOpsStatus, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
 import { appendLog } from './store.ts';
 
 export type CollectedRun = { settled: false } | { settled: true; failure: string | null; finalText: string | null };
@@ -82,33 +83,56 @@ export function parseWorkerResult(finalText: string): string | WorkerResult {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
     const parsed: unknown = JSON.parse(body);
-    if (typeof parsed === 'object' && parsed !== null && typeof (parsed as { text?: unknown }).text === 'string') {
-      const tracker = intentOf((parsed as { tracker?: unknown }).tracker);
-      return { text: (parsed as { text: string }).text, ...(tracker === undefined ? {} : { tracker }) };
+    const fields = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as { text?: unknown; tracker?: unknown; status?: unknown; operations?: unknown };
+    if (typeof fields.text === 'string' || isOpsStatus(fields.status)) {
+      const tracker = intentOf(fields.tracker);
+      return {
+        text: typeof fields.text === 'string' ? fields.text : '',
+        ...(tracker === undefined ? {} : { tracker }),
+        ...(isOpsStatus(fields.status) ? { status: fields.status } : {}),
+        ...(typeof fields.operations === 'string' ? { operations: fields.operations } : {}),
+      };
     }
   } catch {}
   return finalText;
 }
 
-/** Triage replies need a marker, and `other` is the one the repro automation never trusts, so a failure cannot start a repro. */
-export function failureReply(kind: BennyAutomationKind, failure: string): string {
-  return kind === 'triage' ? `Benny triage could not finish this report: ${failure}. No ticket was created.\n[benny:other]` : `Benny repro and fix could not finish: ${failure}. No pull request was opened.`;
+export interface SettleOptions {
+  collect?: (runId: RunId) => Promise<CollectedRun>;
+  abort?: AbortRun;
 }
 
 /**
  * Completes every dispatched run that has settled. A tracker request the parent refuses still leaves the worker's
- * verdict to post without it, and a verdict the parent refuses (no single marker) becomes the failure reply.
+ * verdict to post without it, and a verdict the parent refuses (no single marker) becomes the failure reply. A run still
+ * unsettled when its budget (triage_total_minutes or repro_minutes) has passed is aborted through the same shutdown
+ * `pstack_worker abort` uses, whatever its host is doing or whether it left a state file, and completes as a failure.
  */
-export async function completeSettledRuns(automation: Automation, collect: (runId: RunId) => Promise<CollectedRun> = (runId) => collectRun(automation.config.projectRoot, runId)): Promise<number> {
+export async function completeSettledRuns(automation: Automation, options: SettleOptions = {}): Promise<number> {
+  const { projectRoot } = automation.config;
+  const collect = options.collect ?? ((runId: RunId) => collectRun(projectRoot, runId));
+  const abort = options.abort ?? abortRun;
+  const minutes = automation.config.budgets?.totalMinutes;
   let completed = 0;
   for (const runId of automation.pendingRuns()) {
-    const run = await collect(runId);
+    let run = await collect(runId);
+    const started = automation.dispatchedAt(runId);
+    if (!run.settled && minutes !== undefined && started !== undefined && automation.now().getTime() - started.getTime() > minutes * 60_000) {
+      const outcome = await abort(projectRoot, runId).catch((error: unknown) => `abort failed: ${error instanceof Error ? error.message : String(error)}`);
+      appendLog(automation.store, { ts: automation.now().toISOString(), kind: 'deadline', runId, minutes, abort: outcome });
+      run = { settled: true, failure: `the worker exceeded its ${minutes}-minute budget`, finalText: null };
+    }
     if (!run.settled) continue;
-    const failure = failureReply(automation.config.kind, run.failure ?? 'its reply was not a verdict this automation may post');
+    const reason = run.failure ?? 'its reply was not a verdict this automation may post';
+    // A repro run that could not finish is `Blocked`: upstream posts nothing in the source thread for it, so the operations thread and the run log carry it.
+    const failure: string | WorkerResult = automation.config.kind === 'reproduce' ? { text: '', status: 'Blocked', operations: failureReply('reproduce', reason) } : failureReply(automation.config.kind, reason);
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
-    const attempts = typeof result === 'string' ? [result] : [result, result.text];
+    const { tracker: _refused, ...withoutTracker } = typeof result === 'string' ? ({} as WorkerResult) : result;
+    const attempts = typeof result === 'string' ? [result] : result.tracker === undefined ? [result] : [result, withoutTracker];
     for (const attempt of [...attempts, failure]) {
-      if ((await automation.complete(runId, attempt)).status !== 'refused') {
+      const outcome = await automation.complete(runId, attempt);
+      if (outcome.status === 'retrying') break;
+      if (outcome.status !== 'refused') {
         completed += 1;
         break;
       }
@@ -117,12 +141,16 @@ export async function completeSettledRuns(automation: Automation, collect: (runI
   return completed;
 }
 
-export function startSettler(automation: Automation, options: { intervalMs: number; collect?: (runId: RunId) => Promise<CollectedRun> }): { stop(): Promise<void> } {
+export function startSettler(automation: Automation, options: SettleOptions & { intervalMs: number }): { stop(): Promise<void> } {
   let stopped = false;
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> = Promise.resolve();
   const tick = async (): Promise<void> => {
-    await completeSettledRuns(automation, options.collect).catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    await automation
+      .syncOperations()
+      .then(() => completeSettledRuns(automation, options))
+      .then(() => automation.advanceFollowUps())
+      .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;
     timer = setTimeout(() => {
       running = tick();

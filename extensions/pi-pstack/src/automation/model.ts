@@ -65,7 +65,8 @@ export function parseEvent(raw: unknown): ParsedEvent {
 export type Prerequisite = 'tracker' | 'controlAdapter' | 'featureMap';
 export type BennyAutomationKind = 'triage' | 'reproduce';
 export type AutomationKind = BennyAutomationKind | 'routine';
-export type Probe = () => Promise<boolean>;
+/** `true`: holds. `false`: could not be established. A string: it does not hold, and why. */
+export type Probe = () => Promise<boolean | string>;
 
 const BENNY_MARKERS = ['[benny:bug]', '[benny:performance]', '[benny:other]'] as const;
 
@@ -115,21 +116,81 @@ export interface TrackerIntent {
   title?: string;
   body: string;
 }
-export interface TrackerAction extends TrackerIntent {
+export interface TrackerAction extends Omit<TrackerIntent, 'operation'> {
   id: ActionId;
   kind: 'tracker';
+  /** `close` is the parent's compensation for an issue it created and could not announce. A worker's intent never carries it. */
+  operation: TrackerIntent['operation'] | 'close';
   sourceUrl: string;
   /** Set by the parent from the verdict marker and configuration, never taken from the worker. Create only. */
   labels?: string[];
 }
-export type OutboxAction = ThreadReplyAction | TrackerAction;
+/** The operations status message: the one root post the repro workflow may make, in the operations channel only. */
+export interface OpsRootAction {
+  id: ActionId;
+  kind: 'ops-root';
+  channel: string;
+  text: string;
+}
+/** Sets the text of the operations root message that action `rootId` posted. */
+export interface OpsEditAction {
+  id: ActionId;
+  kind: 'ops-edit';
+  channel: string;
+  rootId: ActionId;
+  text: string;
+}
+export type OutboxAction = ThreadReplyAction | TrackerAction | OpsRootAction | OpsEditAction;
+
+/** The status strings of the repro workflow (vendor reproduce SKILL.md section 4), each with its `status_emoji` key. */
+export const OPS_STATUSES = {
+  Reproducing: 'reproducing',
+  'Could not reproduce': 'could_not_reproduce',
+  Blocked: 'blocked',
+  Reproduced: 'reproduced',
+  'Verifying existing fix': 'reproducing',
+  'Attempting bounded fix': 'fixing',
+  'Draft pull request opened': 'pull_request_opened',
+  'Fix did not land': 'fix_failed',
+} as const;
+export type OpsStatus = keyof typeof OPS_STATUSES;
+export const isOpsStatus = (value: unknown): value is OpsStatus => typeof value === 'string' && Object.hasOwn(OPS_STATUSES, value);
+
+/** The operations channel and the configured plain Unicode status strings. An empty `operations_channel_id` means none. */
+export interface OperationsConfig {
+  channelId: string;
+  emoji: Record<string, string>;
+}
+
+/** Short status text: the emoji and the status, then one short note, then the source link. A worker's note cannot carry markers or links of its own. */
+export function opsText(operations: OperationsConfig, status: OpsStatus, sourceUrl: string, note?: string): string {
+  const cleaned = untrustedText(note ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return [`${operations.emoji[OPS_STATUSES[status]] ?? ''} ${status}`.trim(), ...(cleaned === '' ? [] : [cleaned]), sourceUrl].join('\n');
+}
 /** The tracker section of the Benny configuration, as the parent adapter needs it. */
 export interface TrackerConfig {
   type: string;
   /** `owner/name`, required by the GitHub adapter. */
   repo?: string;
+  /** Any other tracker: the project-owned skill the parent's tracker worker loads, and the targets it resolves at runtime. */
+  adapterSkillName?: string;
+  team?: string;
+  project?: string;
+  status?: string;
+  sourceLinkTitle?: string;
   labels: { bug: string; performance: string; intake: string; needsRepro: string };
 }
+
+/**
+ * Worker-supplied text a parent copies into an external system. It cannot carry an action marker or a `Source:` line,
+ * because the parent writes the one footer that later searches trust.
+ */
+export const untrustedText = (text: string) =>
+  text
+    .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
+    .split('\n')
+    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
+    .join('\n');
 
 /** The Slack permalink the parent computes from the immutable source coordinates. */
 export const sourceUrlOf = (event: Pick<AutomationEvent, 'channel' | 'rootTs'>) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}`;
@@ -142,9 +203,21 @@ export function classificationOf(reply: string): Classification {
   return found === 'bug' || found === 'performance' ? found : 'other';
 }
 
+const oneLine = (value: string) => value.replace(/\s+/g, ' ').trim().slice(0, 200);
+
+/** Triage replies need a marker, and `other` is the one the repro automation never trusts, so a failure cannot start a repro. */
+export function failureReply(kind: BennyAutomationKind, failure: string): string {
+  const reason = oneLine(failure);
+  return kind === 'triage' ? `Benny triage could not finish this report: ${reason}. No ticket was created.\n[benny:other]` : `Benny repro and fix could not finish: ${reason}. No pull request was opened.`;
+}
+
 export interface WorkerResult {
   text: string;
   tracker?: TrackerIntent;
+  /** Repro only: where the run ended, in the operations status strings. */
+  status?: OpsStatus;
+  /** Repro only: the concise reply for the operations thread. */
+  operations?: string;
 }
 export interface TrackerEligibility {
   classification: Classification;

@@ -18,10 +18,9 @@ Load the external Benny configuration supplied by the automation. If the config 
 - Preflight the source parent before any tracker write and immediately before the verdict post.
 - If the parent is missing, deleted, inaccessible, or uncertain, stop with no writes.
 - Post one substantive verdict. Do not narrate progress.
-- The coordinator is the only Slack poster.
-- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions.
-- Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.
-- If worker isolation cannot enforce those limits, do the work in the coordinator.
+- The pi-pstack parent process is the only Slack poster and the only tracker writer. You are a worker. You return findings, one verdict, and at most one tracker request. You are read-only and hold no Slack credentials or write actions.
+- Every prompt you give a helper must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.
+- If you cannot enforce those limits on a helper, do the work yourself.
 - Never create an issue that cannot link back to the source thread.
 - Prefer no ticket over a guessed or duplicate ticket.
 - Apply pstack's `principle-separate-before-serializing-shared-state` to source coordinates.
@@ -36,14 +35,14 @@ Before making a work list or delegating:
 3. Set `SOURCE_THREAD_TS` to `trigger.thread_ts` when present. Otherwise use `trigger.ts`.
 4. Require a nonempty `SOURCE_THREAD_TS`.
 5. Store `SOURCE_CHANNEL_ID` and `SOURCE_THREAD_TS` as immutable values.
-6. Read the thread and verify that its root has exactly those coordinates.
-7. Fetch a stable source permalink.
+6. The parent verified that the thread root has exactly those coordinates before it started you. It verifies the root again before any tracker write and immediately before the verdict post. You have no Slack tool, so do not look for one.
+7. The parent computes the stable source permalink from the coordinates and adds it to every tracker write.
 
 Every later source read and post must use those stored values. Never replace them with a reply timestamp or an operations-thread timestamp.
 
 ## 2. Read the whole report
 
-Read the root and current replies before deciding.
+Read the root and the replies your brief carries before deciding. The parent read the thread when it dispatched you.
 
 Capture:
 
@@ -56,7 +55,7 @@ Capture:
 - Existing issue, commit, or pull request links
 - Any explicit statement that someone is already fixing it
 
-Inspect every relevant attachment.
+Inspect every relevant attachment you can open. Your brief links attachments and you hold no Slack credentials, so a linked file you cannot open is one that cannot be read.
 
 - Read screenshots at full useful resolution.
 - Review video for the state transition that separates correct and broken behavior.
@@ -128,7 +127,7 @@ No other case gets a ping.
 
 The tracker is an adapter, not a required vendor. A Linear adapter is one valid example. A GitHub Issues adapter or another tracker may implement the same contract.
 
-The configured adapter must provide:
+The parent reaches the tracker through the configured adapter, which must provide:
 
 - Search issues by text, state, label, source URL, and date range
 - Read one issue and its links
@@ -139,7 +138,9 @@ The configured adapter must provide:
 
 If a required operation is unavailable, fail closed for that write.
 
-Resolve configured team, project, status, and labels at runtime. Do not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.
+The adapter resolves configured team, project, status, and labels at runtime. It does not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.
+
+You ask for at most one tracker write by adding `tracker` to your final JSON result. Give `operation` (`create`, `update`, or `comment`), `body`, `title` for a create, and `targetId` for an existing issue. It is a request only. The parent checks sections 7 and 8 itself from independent reads before it writes, and it drops a request that fails any of them. Your verdict still posts.
 
 ## 7. Dedupe
 
@@ -162,7 +163,7 @@ Choose one outcome:
 - Weak resemblance: similarity is superficial.
 - No match.
 
-For a confident duplicate, update the existing issue with the source permalink and one short recurrence note. Do not reopen, relabel, or reassign it unless the config says to.
+For a confident duplicate, request an `update` of the existing issue (`targetId` is that issue) with one short recurrence note. The parent adds the source permalink. Do not reopen, relabel, or reassign it unless the config says to.
 
 For a possible match, link it in the verdict as uncertain and create nothing.
 
@@ -197,11 +198,13 @@ The new issue must be self-contained:
 
 Do not put a guessed root cause in the title.
 
-## 9. Post one verdict
+## 9. Return one verdict
 
-Run a fresh source-parent preflight. Then post exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.
+Your final message is one JSON object: `{ "text": "<the verdict>", "tracker": <the optional request from section 6> }`.
 
-Never call a source-channel posting action without a nonempty `thread_ts`.
+The parent runs a fresh source-parent preflight. Then it posts exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`. It posts nothing when the parent message is missing.
+
+The parent never calls a source-channel posting action without a nonempty `thread_ts`.
 
 Keep the reply short:
 
@@ -223,13 +226,13 @@ Marker contract:
 
 Use only the configured marker strings. The repro automation trusts the marker only when it comes from the configured triage identity in this source thread.
 
-After posting, read the same source thread and verify the verdict appears under `SOURCE_THREAD_TS`. If it does not, never retry at the root.
+After posting, the parent reads the same source thread and verifies the verdict appears as a reply under `SOURCE_THREAD_TS`. If it does not, it retries under the same thread with backoff and never at the root.
 
-If this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the automation run output.
+If this run created a tracker issue and the verdict did not land after the outbox's retry limit, the parent uses the adapter's compensation action and verifies that the issue is canceled, closed, or deleted. If compensation cannot be verified, it reports the failure only in the automation run log.
 
 ## 10. Watch one follow-up window
 
-Watch the source thread for the configured follow-up window, then stop.
+After the verdict posts, the parent watches the source thread for `budgets.triage_follow_up_minutes`, then stops. It starts one follow-up worker for each batch of new human messages. You are that worker when your brief says follow-up, and these rules are yours.
 
 - Answer only a direct question to the triage identity.
 - Apply a concrete correction to the tracker issue when safe.
@@ -237,4 +240,6 @@ Watch the source thread for the configured follow-up window, then stop.
 - Stay out of human coordination and side chatter.
 - Stop early if someone asks the automation to stop.
 
-Do not extend the window more than once. A new report should start a new run.
+Your final message is one JSON object: `{ "text": "<the reply, or an empty string to say nothing>", "tracker": { "operation": "comment", "body": "<the correction>" }, "stop": true }`. Leave out `tracker` when there is no correction. Add `"stop": true` only when someone asked the automation to stop. The parent posts `text` as a reply in the source thread, comments on the one issue this case owns, and drops any reply that carries a verdict marker.
+
+The parent never extends the window. A new report starts a new run.

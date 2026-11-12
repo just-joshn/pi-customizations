@@ -10,7 +10,7 @@ const { values } = parseArgs({ options: { root: { type: 'string' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 try {
   const result = compile(root);
-  for (const dir of ['generated/skills', 'generated/agents', 'generated/prompts']) rmSync(join(root, dir), { recursive: true, force: true });
+  for (const dir of ['generated/skills', 'generated/agents', 'generated/prompts', 'generated/automations']) rmSync(join(root, dir), { recursive: true, force: true });
   for (const output of result.outputs) {
     const target = join(root, output.path);
     mkdirSync(dirname(target), { recursive: true });

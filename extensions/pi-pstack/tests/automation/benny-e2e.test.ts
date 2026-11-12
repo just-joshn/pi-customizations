@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
@@ -8,7 +8,7 @@ import type { RunId } from '../../src/automation/model.ts';
 import { completeSettledRuns, startSettler } from '../../src/automation/settle.ts';
 import { readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, wiringDeps } from './benny-fakes.ts';
+import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, settleWorker, wiringDeps } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -17,17 +17,6 @@ afterEach(() => {
 
 const VERDICT = 'Reproducible export failure in the Safari download path.\n[benny:bug]';
 const CREATE = { text: VERDICT, tracker: { operation: 'create', title: 'Export button does nothing on Safari', body: 'Expected a download. Observed nothing.' } };
-
-/** Writes what a settled host leaves behind: its state file and the native session file with the worker's final message. */
-function settleWorker(dir: string, runId: RunId, outcome: { phase: 'idle' | 'failed' | 'aborted'; reason?: string; finalText?: string }) {
-  const worker = workerDir(dir, runId);
-  const sessionFile = join(worker, 'session', 'fake.jsonl');
-  mkdirSync(join(worker, 'session'), { recursive: true });
-  const message = outcome.finalText === undefined ? '' : `${JSON.stringify({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: outcome.finalText }] } })}\n`;
-  writeFileSync(sessionFile, message);
-  const state = { schemaVersion: 1, runId, workerId: 'owner', kind: 'pi', digest: 'x', instance: 'i1', hostPid: 2 ** 22 - 1, childPid: null, tmuxSession: 's', socketPath: '/nonexistent', phase: 'idle', reason: null, model: null, sessionFile, briefSent: true, generation: 1, settles: [{ sequence: 1, generation: 1, phase: outcome.phase, reason: outcome.reason ?? null, at: new Date().toISOString() }], exit: null, updatedAt: new Date().toISOString() };
-  writeFileSync(join(worker, 'state.json'), JSON.stringify(state));
-}
 
 function triage(options: { gh?: ReturnType<typeof fakeGh>; slack?: ReturnType<typeof fakeSlack>; project?: BennyProject } = {}) {
   const project = options.project ?? bennyProject();
@@ -88,9 +77,10 @@ describe('triage end to end', () => {
     const run = await t.automation.handle(REPORT);
     if (run.status !== 'dispatched') throw new Error('not dispatched');
     settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText: JSON.stringify(CREATE) });
-    await expect(completeSettledRuns(t.automation)).rejects.toThrow('ratelimited');
+    expect(await completeSettledRuns(t.automation)).toBe(0);
     expect(t.gh.issues).toHaveLength(1);
     expect(t.slack.posts).toHaveLength(0);
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'outbox-failed', error: expect.stringContaining('ratelimited'), final: false }));
 
     const restarted = t.build();
     await restarted.reconcile();
@@ -164,7 +154,7 @@ describe('triage end to end', () => {
   });
 
   test('a report whose permalink is already linked gets no second issue', async () => {
-    const gh = fakeGh([{ title: 'Other title', body: 'Source: https://slack.com/archives/CSOURCE01/p1762900000000100', state: 'open' }]);
+    const gh = fakeGh([{ title: 'Other title', body: 'Source: https://slack.com/archives/CSOURCE01/p1762900000000100\n\n<!-- pstack-action:act-0123456789abcdef -->', state: 'open' }]);
     const t = triage({ gh });
     const run = await t.automation.handle(REPORT);
     if (run.status !== 'dispatched') throw new Error('not dispatched');
@@ -217,7 +207,7 @@ describe('reproduce prerequisites', () => {
 
   test.for([
     ['no feature map file', { featureMap: null }, ['featureMap']],
-    ['the unedited example feature map', { featureMap: readFileSync('automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md', 'utf8') }, ['featureMap']],
+    ['the unedited example feature map', { featureMap: readFileSync('generated/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md', 'utf8') }, ['featureMap']],
     ['a control skill that is not shipped', { controlSkill: 'control-target-app' }, ['controlAdapter']],
     ['a control skill name that climbs out of generated/skills', { controlSkill: '../../README' }, ['controlAdapter']],
   ] as const)('blocks with %s', async ([, options, missing]) => {

@@ -17,7 +17,7 @@ import { createAutomation } from '../adapters/automation-events.ts';
 import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const pack = join(packageRoot, 'automations', 'benny');
+const pack = join(packageRoot, 'generated', 'automations', 'benny');
 
 const LOCAL_CONFIG = [
   ['templates/configuration.example.yaml', 'configuration.yaml'],
@@ -54,7 +54,7 @@ async function harmlessTestEvent() {
           spawns.push({ runId, assignmentPath });
         },
         destination: {
-          readThread: async () => thread,
+          readThread: async () => [{ ts: '1700000000.000100' }, ...thread],
           post: async (action) => {
             thread.push({ ts: `${thread.length + 1}.000000`, marker: action.id });
             return { ts: `${thread.length}.000000` };
@@ -84,7 +84,7 @@ function readiness(root) {
   for (const kind of ['triage', 'reproduce']) {
     try {
       const config = loadBennyConfig(root, kind);
-      result[kind] = { config: 'ok', tracker: config.tracker.type, featureMap: featureMapProblem(root, config.control.featureMapPath) ?? 'ok', controlSkill: controlSkillProblem(config.control.skillName) ?? 'ok' };
+      result[kind] = { config: 'ok', tracker: config.tracker.type, featureMap: featureMapProblem(root, config.control.featureMapPath) ?? 'ok', controlSkill: controlSkillProblem(config.control.skillName, { projectRoot: root }) ?? 'ok' };
     } catch (error) {
       result[kind] = { config: error.message };
     }

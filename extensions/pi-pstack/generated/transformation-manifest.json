@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 183,
-    "spans": 248
+    "rules": 230,
+    "spans": 295
   },
   "skills": [
     "architect",
@@ -74,6 +74,20 @@
     "unslop",
     "verify-this",
     "why"
+  ],
+  "automations": [
+    "generated/automations/benny/FOR_AGENTS.md",
+    "generated/automations/benny/README.md",
+    "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+    "generated/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+    "generated/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+    "generated/automations/benny/skills/reproduce-and-fix-issues/references/verify-existing-fix.md",
+    "generated/automations/benny/skills/setup-benny/SKILL.md",
+    "generated/automations/benny/skills/triage-issue-reports/SKILL.md",
+    "generated/automations/benny/skills/triage-issue-reports/references/routing.example.md",
+    "generated/automations/benny/templates/configuration.example.yaml",
+    "generated/automations/benny/templates/reproduce-automation-prompt.md",
+    "generated/automations/benny/templates/triage-automation-prompt.md"
   ],
   "rules": [
     {
@@ -1786,6 +1800,444 @@
       "files": {
         "vendor/upstream-pstack/skills/typescript-best-practices/SKILL.md": 1
       }
+    },
+    {
+      "id": "for-agents.what-i-want-to-automate",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md": 1
+      }
+    },
+    {
+      "id": "for-agents.shared-rules",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md": 1
+      }
+    },
+    {
+      "id": "for-agents.my-configuration",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md": 1
+      }
+    },
+    {
+      "id": "readme.top",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/README.md": 1
+      }
+    },
+    {
+      "id": "readme.set-it-up",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/README.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.4-root-status-message",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.4-status-reports",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.8-evidence-thread",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-status-first",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-source-reply",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-attachments",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.14-pull-request-reply",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.15-follow-ups",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues-references-cont.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues-references-feat.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.1-copy-the-pack-and-enable-shared-pstack",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.1-copy-the-pack-and-enable-shared-pstack-2",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.1-copy-the-pack-and-enable-shared-pstack-3",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.2-adapt-the-configuration",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.2-adapt-the-configuration-2",
+      "primitives": [
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.3-fill-the-required-choices",
+      "primitives": [],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.3-fill-the-required-choices-2",
+      "primitives": [
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.4-check-integration-capabilities",
+      "primitives": [
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.5-prepare-the-routing-map",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.6-verify-the-control-adapter",
+      "primitives": [],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.7-prepare-the-live-automations",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "setup-benny.8-test-thread-safety",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.hard-safety-rules",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.1-freeze-source-coordinates",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.2-read-the-whole-report",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.2-attachments",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.6-adapter-contract",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.6-resolve-targets",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.7-confident-duplicate",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.9-post-one-verdict",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.9-verify-and-compensate",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.10-follow-up-window",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports-references-routing-.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md": 1
+      }
+    },
+    {
+      "id": "templates-configuration-example.slack-actions",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
+      }
+    },
+    {
+      "id": "templates-configuration-example.tracker-types",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
+      }
+    },
+    {
+      "id": "templates-configuration-example.routing-path",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
+      }
+    },
+    {
+      "id": "templates-configuration-example.feature-map-path",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
+      }
+    },
+    {
+      "id": "templates-reproduce-automation-prompt.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/reproduce-automation-prompt.md": 1
+      }
+    },
+    {
+      "id": "templates-reproduce-automation-prompt.top-2",
+      "primitives": [],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/reproduce-automation-prompt.md": 1
+      }
+    },
+    {
+      "id": "templates-triage-automation-prompt.top",
+      "primitives": [
+        "cursor-path",
+        "cursor-automations",
+        "cursor-host"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/triage-automation-prompt.md": 1
+      }
+    },
+    {
+      "id": "templates-triage-automation-prompt.top-2",
+      "primitives": [],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/triage-automation-prompt.md": 1
+      }
     }
   ],
   "keeps": [
@@ -1887,6 +2339,711 @@
       "original": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n",
       "replacement": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets `capabilities.spawn: true`, as for a sub-coordinator, you have `pstack_worker` and own your children's runs. They live under your workspace's `.pi/pstack/runs/`, their wakes come to you, and you collect and judge their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get `capabilities.spawn: true`. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
       "output": "generated/agents/poteto.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+      "rule": "for-agents.what-i-want-to-automate",
+      "offset": [
+        55,
+        131
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "i want two cursor automations that work together in one slack issue channel.",
+      "replacement": "i want two pi-pstack automations that work together in one slack issue channel. each runs with no chat open, as a process this package starts on my machine.",
+      "output": "generated/automations/benny/FOR_AGENTS.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+      "rule": "for-agents.shared-rules",
+      "offset": [
+        2694,
+        3383
+      ],
+      "lines": [
+        31,
+        34
+      ],
+      "original": "- i want this entire pack committed at `.cursor/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not registered plugin skills.\n- i want pstack enabled through the target repository's committed `.cursor/settings.json` only for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.\n- i want each live automation prompt to read its committed operational file directly. i do not want plugin cache paths, copied excerpts, or slash-skill discovery.\n- i keep user-owned configuration, feature maps, routing maps, and secrets outside `.cursor/automations/benny/` so pack refreshes cannot overwrite them.",
+      "replacement": "- i want this entire pack committed at `.pi/automations/benny/` in the target repository. its `SKILL.md` files are direct automation instructions, not registered skills.\n- i want pi-pstack enabled through the target repository's committed `.pi/settings.json` only for shared dependencies such as `how`, `why`, `tdd`, `unslop`, and the required principle skills.\n- i want each live automation prompt to read its committed operational file directly. i do not want package paths, copied excerpts, or slash-skill discovery.\n- i keep user-owned configuration, feature maps, routing maps, and secrets outside `.pi/automations/benny/` so pack refreshes cannot overwrite them.",
+      "output": "generated/automations/benny/FOR_AGENTS.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/FOR_AGENTS.md",
+      "rule": "for-agents.my-configuration",
+      "offset": [
+        4344,
+        7459
+      ],
+      "lines": [
+        53,
+        89
+      ],
+      "original": "start from [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md). copy and fill them outside this pack, for example under `.cursor/benny/`. keep secret values in a secret manager or environment.\n\n## for the agent\n\nthe human enters setup by pointing cursor at this file. do not look for or invoke a discovered benny slash skill.\n\n1. ask which repository will run the automations.\n2. treat the directory containing this `FOR_AGENTS.md` as the source pack.\n3. merge the entire source pack into `<target-repository>/.cursor/automations/benny/`.\n4. preserve every destination-only file. never delete unrelated files or overwrite user-owned configuration, feature maps, or routing maps.\n5. when an existing destination file at a source-managed path differs, review the diff and merge without discarding local edits. if ownership is ambiguous, stop and ask before replacing it.\n6. verify that the copied `FOR_AGENTS.md` and `skills/setup-benny/SKILL.md` exist in the target repository.\n7. read and follow `.cursor/automations/benny/skills/setup-benny/SKILL.md` directly from the target repository.\n\ni want you to merge this entry into the target repository's `.cursor/settings.json`:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\npreserve every unrelated setting and plugin. preserve comments and valid jsonc syntax when the existing file uses jsonc.\n\ni want verification from a fresh agent rooted in the target repository. confirm that pstack's `how`, `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.\n\nif project-scoped plugins are unavailable or any shared dependency does not resolve, stop and explain what failed. do not add `.cursor/automations/benny/skills/` to a plugin manifest or expect its files to appear in the slash-skill list.\n\ntell me that `.cursor/settings.json`, `.cursor/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. do not create or update an automation until i explicitly ask.\n\nfor first-time creation, use built-in `/automate` once for triage and once for repro and fix. complete the draft review, approval, readiness check, and Automations editor handoff for the first automation before starting the second.\n\nparaphrase this intent and the finished configuration into each draft. the triage prompt must read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md`. the repro prompt must read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`. use these repo-relative paths only after `/automate` confirms they are committed in the repository where the automation will run.\n\nfor existing automations, do not use `/automate` to inspect or update them. validate the configuration, then use the concise field checklist in the copied setup file so i can edit each automation directly in its editor. do not create duplicates.",
+      "replacement": "start from [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md). copy and fill them outside this pack, for example under `.pi/benny/`. keep secret values in a secret manager or environment.\n\n## for the agent\n\nthe human enters setup by pointing pi at this file. do not look for or invoke a discovered benny slash skill.\n\n1. ask which repository will run the automations.\n2. treat the directory containing this `FOR_AGENTS.md` as the source pack.\n3. merge the entire source pack into `<target-repository>/.pi/automations/benny/`.\n4. preserve every destination-only file. never delete unrelated files or overwrite user-owned configuration, feature maps, or routing maps.\n5. when an existing destination file at a source-managed path differs, review the diff and merge without discarding local edits. if ownership is ambiguous, stop and ask before replacing it.\n6. verify that the copied `FOR_AGENTS.md` and `skills/setup-benny/SKILL.md` exist in the target repository.\n7. read and follow `.pi/automations/benny/skills/setup-benny/SKILL.md` directly from the target repository.\n\ni want you to merge this entry into the target repository's `.pi/settings.json` (what `pi install -l npm:@justjoshn/pi-pstack` writes):\n\n```json\n{\n\t\"packages\": [\"npm:@justjoshn/pi-pstack\"]\n}\n```\n\npreserve every unrelated setting and package. preserve comments and valid jsonc syntax when the existing file uses jsonc.\n\ni want verification from a fresh agent rooted in the target repository. confirm that pstack's `how`, `why`, `tdd`, `unslop`, and the principle skills used by benny resolve in project scope. do not count skills loaded from the current session or a user-scoped install.\n\nif project-scoped packages are unavailable or any shared dependency does not resolve, stop and explain what failed. do not add `.pi/automations/benny/skills/` to a skill path or expect its files to appear in the slash-skill list.\n\ntell me that `.pi/settings.json`, `.pi/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. do not create or update an automation until i explicitly ask.\n\nthis package has no hosted automation service. an automation is a configured event source that `/pstack automation start <name>` runs as a watch worker in tmux. each case it accepts starts one worker whose brief reads the committed operational file, `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for triage and `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for repro and fix. the package writes that brief itself, so there is no prompt to draft or paste anywhere.\n\nfor first-time setup, follow `skills/setup-benny/SKILL.md`. it runs `node scripts/benny-setup.mjs --project <target-repository>` from the pi-pstack package root, helps me fill `.pi/benny/configuration.yaml`, and then starts triage and, once its prerequisites hold, repro and fix with `/pstack automation start <name>`. start the first before the second.\n\nfor automations that already exist, check them with `/pstack automation status <name>`, change the configuration file, and restart with `/pstack automation stop <name>` and then `/pstack automation start <name>`. do not start a second source for a name that is already running.",
+      "output": "generated/automations/benny/FOR_AGENTS.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/README.md",
+      "rule": "readme.top",
+      "offset": [
+        9,
+        168
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "benny gives you two cursor automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.",
+      "replacement": "benny gives you two pi-pstack automations for slack issue reports. one triages each report. the other reproduces confirmed bugs and may prepare a small draft fix.",
+      "output": "generated/automations/benny/README.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/README.md",
+      "rule": "readme.set-it-up",
+      "offset": [
+        291,
+        1320
+      ],
+      "lines": [
+        9,
+        23
+      ],
+      "original": "1. point cursor at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.cursor/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits.\n3. let setup enable pstack in the target repository's `.cursor/settings.json` for shared dependencies:\n\n```json\n{\n\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.cursor/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.cursor/settings.json`, `.cursor/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. review each new automation draft or update existing automations in their editors. then send a harmless test report and verify every source-channel post stays in the original thread.",
+      "replacement": "1. point pi at [`FOR_AGENTS.md`](./FOR_AGENTS.md) and name the target repository.\n2. let setup merge this whole directory into the target at `.pi/automations/benny/`. it must preserve destination-only files and review conflicts instead of overwriting local edits. `node scripts/benny-setup.mjs --project <target>`, run from the pi-pstack package root, does the copy, the settings merge below, and the webhook secret, and it never replaces a file that differs.\n3. let setup enable pi-pstack in the target repository's `.pi/settings.json` for shared dependencies:\n\n```json\n{\n\t\"packages\": [\"npm:@justjoshn/pi-pstack\"]\n}\n```\n\n4. keep user-owned configuration outside the copied pack, for example in `.pi/benny/`. adapt [`configuration.example.yaml`](./templates/configuration.example.yaml) and [`feature-map.example.md`](./skills/reproduce-and-fix-issues/references/feature-map.example.md).\n5. commit `.pi/settings.json`, `.pi/automations/benny/`, and any secret-free configuration before enabling either automation.\n6. store the slack bot token in `~/.pi/agent/pstack/credentials/slack.json` as `{ \"token\": \"xoxb-...\" }` with mode 0600. only the pi-pstack process that runs the automation reads it. workers never get it. for the github tracker, sign in with `gh auth login` as the user that runs the automation.\n7. start each automation with `/pstack automation start <name>`, where the names are `automations.triage_name` and `automations.reproduce_name` in `.pi/benny/configuration.yaml`. each one runs as a watch worker in tmux on this machine, not in a hosted environment. `/pstack automation status <name>` shows its receiver url and `/pstack automation stop <name>` ends it.\n8. point your slack event sender at the receiver url (`POST /events` with the webhook secret from `~/.pi/agent/pstack/credentials/<name>.json`), then send a harmless test report and verify every source-channel post stays in the original thread.",
+      "output": "generated/automations/benny/README.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.4-root-status-message",
+      "offset": [
+        5018,
+        5181
+      ],
+      "lines": [
+        107,
+        107
+      ],
+      "original": "If `slack.operations_channel_id` is configured, the coordinator may create one root status message there. This is the only allowed root post in the repro workflow.",
+      "replacement": "If `slack.operations_channel_id` is configured, the pi-pstack parent creates one root status message there when it starts your run. This is the only allowed root post in the repro workflow, and it is never in the source channel. You do not post it.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.4-status-reports",
+      "offset": [
+        5540,
+        5749
+      ],
+      "lines": [
+        122,
+        122
+      ],
+      "original": "Prefer configured Cursor Slack actions. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.",
+      "replacement": "You have no Slack tool and never hold a token. Report each status by appending one JSON line, `{ \"status\": \"<one of the statuses above>\", \"note\": \"<one short line>\" }`, to the `status.jsonl` file your brief names. The parent edits the one status message to match, and it ignores any other status text. Your final result carries the last status and the operations reply, as the brief describes.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.8-evidence-thread",
+      "offset": [
+        9119,
+        9220
+      ],
+      "lines": [
+        198,
+        198
+      ],
+      "original": "Post detailed evidence only in the operations thread when configured. Keep the source update concise.",
+      "replacement": "Put detailed evidence only in the `operations` field of your result. The parent posts it as a reply in the operations thread when one is configured. Keep the source update concise.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-status-first",
+      "offset": [
+        9254,
+        9289
+      ],
+      "lines": [
+        202,
+        202
+      ],
+      "original": "Update the operations status first.",
+      "replacement": "Update the operations status first. The parent applies the `status` of your final result to the operations message before it posts anything in the source thread.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-source-reply",
+      "offset": [
+        9423,
+        9516
+      ],
+      "lines": [
+        206,
+        206
+      ],
+      "original": "For a confirmed repro, run the source preflight and post at most one unprompted source reply:",
+      "replacement": "For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed repro, the parent runs the source preflight and posts at most one unprompted source reply from your `text`:",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-attachments",
+      "offset": [
+        9719,
+        9862
+      ],
+      "lines": [
+        214,
+        214
+      ],
+      "original": "Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.",
+      "replacement": "You cannot attach files. Link evidence in your `operations` reply instead.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.14-pull-request-reply",
+      "offset": [
+        13581,
+        13796
+      ],
+      "lines": [
+        299,
+        299
+      ],
+      "original": "On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.",
+      "replacement": "On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.15-follow-ups",
+      "offset": [
+        13829,
+        14111
+      ],
+      "lines": [
+        303,
+        308
+      ],
+      "original": "Watch the configured operations thread for one follow-up window.\n\n- Answer a direct question from evidence already gathered.\n- Apply one concrete correction and rerun the repro once when it invalidates the setup.\n- Stay out of human coordination and side chatter.\n- Stop when asked.",
+      "replacement": "The parent does not watch the operations thread after a repro run, so this package has no repro follow-up window and `budgets.operations_follow_up_minutes` is read and not acted on. Put the evidence a reader would ask about in your `operations` reply, and keep it from your own gathered evidence.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md",
+      "rule": "reproduce-and-fix-issues-references-cont.top",
+      "offset": [
+        230,
+        450
+      ],
+      "lines": [
+        7,
+        7
+      ],
+      "original": "Set the completed user-facing feature map path in `control.feature_map_path`. Copy and fill [`feature-map.example.md`](./feature-map.example.md) outside `.cursor/automations/benny/` instead of editing the copied example.",
+      "replacement": "Set the completed user-facing feature map path in `control.feature_map_path`. Copy and fill [`feature-map.example.md`](./feature-map.example.md) outside `.pi/automations/benny/` instead of editing the copied example.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/references/control-adapter.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md",
+      "rule": "reproduce-and-fix-issues-references-feat.top",
+      "offset": [
+        250,
+        435
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.",
+      "replacement": "Copy this file outside `.pi/automations/benny/`, for example to `.pi/benny/feature-map.md`, and set `control.feature_map_path` to the copy. Pack refreshes must not overwrite it.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.top",
+      "offset": [
+        264,
+        1276
+      ],
+      "lines": [
+        9,
+        23
+      ],
+      "original": "Benny ships as a dormant automation pack inside pstack. The plugin manifest exposes only pstack's normal skill root; this file and the two operational files are not slash skills.\n\nThe human enters setup by pointing Cursor at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.cursor/automations/benny/skills/setup-benny/SKILL.md`.\n\nBenny needs external configuration and two live Cursor automations.\n\nDo not create or update an automation until the user explicitly asks. Never put a secret value in plugin files, prompts, or committed configuration.\n\n## 1. Copy the pack and enable shared pstack skills\n\nDo this before asking for Benny configuration and before invoking the built-in `/automate` skill.\n\nAsk which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.cursor/automations/benny/`.\n\nMerge the entire source pack into the destination:",
+      "replacement": "Benny ships as a dormant automation pack inside pstack. The pi-pstack package exposes only its normal skill root; this file and the two operational files are not slash skills.\n\nThe human enters setup by pointing Pi at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.pi/automations/benny/skills/setup-benny/SKILL.md`.\n\nBenny needs external configuration and two automations that pi-pstack runs as event sources.\n\nDo not start or restart an automation until the user explicitly asks. Never put a secret value in package files, prompts, or committed configuration.\n\n## 1. Copy the pack and enable shared pstack skills\n\nDo this before asking for Benny configuration and before starting any automation.\n\nAsk which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.pi/automations/benny/`.\n\n`node scripts/benny-setup.mjs --project <target-repository>`, run from the pi-pstack package root, does this whole step. It copies the pack and the three user-owned configuration files (`.pi/benny/configuration.yaml`, `.pi/benny/feature-map.md`, `.pi/benny/routing.md`) only where they are absent, merges the settings entry below, creates the webhook secret, and proves the dispatcher on a harmless event. Read its JSON report. A path listed under `conflicts` differs from the pack and was left alone. By hand, the same merge is:",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.1-copy-the-pack-and-enable-shared-pstack",
+      "offset": [
+        2026,
+        2150
+      ],
+      "lines": [
+        34,
+        34
+      ],
+      "original": "Add pstack to the target repository's `.cursor/settings.json`. If the file or `.cursor` directory does not exist, create it.",
+      "replacement": "Add pi-pstack to the target repository's `.pi/settings.json` (what `pi install -l npm:@justjoshn/pi-pstack` writes). If the file or `.pi` directory does not exist, create it.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.1-copy-the-pack-and-enable-shared-pstack-2",
+      "offset": [
+        2213,
+        2513
+      ],
+      "lines": [
+        40,
+        46
+      ],
+      "original": "\t\"plugins\": {\n\t\t\"pstack\": { \"enabled\": true }\n\t}\n}\n```\n\nPreserve every unrelated top-level setting and every other plugin entry. If `plugins.pstack` already exists, change only its `enabled` value. Preserve comments and valid JSONC syntax when the file uses JSONC. Validate the file after editing it.",
+      "replacement": "\t\"packages\": [\"npm:@justjoshn/pi-pstack\"]\n}\n```\n\nPreserve every unrelated top-level setting and every other package entry. If `packages` already lists pi-pstack (by npm name, git URL, or path), leave that entry as it is. Preserve comments and valid JSONC syntax when the file uses JSONC. Validate the file after editing it.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.1-copy-the-pack-and-enable-shared-pstack-3",
+      "offset": [
+        2910,
+        3819
+      ],
+      "lines": [
+        61,
+        69
+      ],
+      "original": "Do not count a skill loaded from the current session or a user-scoped plugin. The check must show that a fresh agent in the target repository receives pstack through project settings.\n\nIf project-scoped plugin installation is unavailable or any shared dependency does not resolve, stop and explain the failure.\n\nThe Benny files are read directly from `.cursor/automations/benny/`. Do not add that directory to a plugin manifest or expect its `SKILL.md` files to appear in the slash-skill list.\n\nTell the user that `.cursor/settings.json`, `.cursor/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. Do not commit them unless the user asks.\n\nOnce this check passes, live automation prompts may read the committed operational files by their stable repository-relative paths. They must not embed a plugin cache path or copy the file contents.",
+      "replacement": "Do not count a skill loaded from the current session or a user-scoped install. The check must show that a fresh agent in the target repository receives pstack through project settings.\n\nIf project-scoped package installation is unavailable or any shared dependency does not resolve, stop and explain the failure.\n\nThe Benny files are read directly from `.pi/automations/benny/`. Do not add that directory to a skill path or a manifest or expect its `SKILL.md` files to appear in the slash-skill list.\n\nTell the user that `.pi/settings.json`, `.pi/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. Do not commit them unless the user asks.\n\nOnce this check passes, live automation prompts may read the committed operational files by their stable repository-relative paths. They must not embed a pi-pstack package path or copy the file contents.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.2-adapt-the-configuration",
+      "offset": [
+        3995,
+        4305
+      ],
+      "lines": [
+        78,
+        82
+      ],
+      "original": "Create user-owned copies outside `.cursor/automations/benny/`. These are configuration files, not pack files. Example locations:\n\n- Project config, such as `.cursor/benny/configuration.yaml`\n- Project feature map, such as `.cursor/benny/feature-map.md`\n- Project routing map, such as `.cursor/benny/routing.md`",
+      "replacement": "Create user-owned copies outside `.pi/automations/benny/`. These are configuration files, not pack files. Example locations:\n\n- Project config, such as `.pi/benny/configuration.yaml`\n- Project feature map, such as `.pi/benny/feature-map.md`\n- Project routing map, such as `.pi/benny/routing.md`",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.2-adapt-the-configuration-2",
+      "offset": [
+        4777,
+        5273
+      ],
+      "lines": [
+        90,
+        92
+      ],
+      "original": "Prefer committed, secret-free files in the target repository when a fresh automation checkout must read them. Otherwise paraphrase the required values into the live prompt. Reference a repository file only after the built-in `/automate` skill confirms that the file is committed in the repository where the automation runs.\n\nUse stable repository-relative paths for committed pack and configuration files. Never reference the plugin source directory or a plugin cache path from a live automation.",
+      "replacement": "Commit the secret-free copies. The triage worker reads the project directory, but the repro worker runs in a git worktree of the committed revision, so it sees only what is committed. Keep secret values out of them.\n\nUse stable repository-relative paths for committed pack and configuration files. Never reference the pi-pstack package directory from a worker.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.3-fill-the-required-choices",
+      "offset": [
+        5469,
+        5628
+      ],
+      "lines": [
+        102,
+        105
+      ],
+      "original": "- Issue tracker type, team, project, labels, and intake status\n- Tracker adapter skill or MCP actions\n- Optional routing map path\n- Required control skill name",
+      "replacement": "- Issue tracker type, team, project, labels, and intake status. `tracker.type: \"github\"` with `tracker.repo: \"owner/name\"` is the one tracker this package ships. It talks to GitHub through the `gh` CLI and has no team, project, or status, so those keys are not needed. The four labels must already exist in the repository, because the adapter applies them and never creates one.\n- Tracker adapter skill or MCP actions. For a tracker other than GitHub this is `tracker.adapter_skill_name`, a skill the project owns. It uses whatever MCP tools this workspace has, and the worker that writes each issue loads it.\n- Optional routing map path\n- Required control skill name. It is any skill Pi can load for the project: one in `.pi/skills/`, in a `.agents/skills/` directory from the project up to the repository root, in `~/.pi/agent/skills/` or `~/.agents/skills/`, or one this package ships, such as `control-ui` or `control-cli`.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.3-fill-the-required-choices-2",
+      "offset": [
+        5808,
+        5967
+      ],
+      "lines": [
+        112,
+        112
+      ],
+      "original": "Use only model slugs shown as available in the user's Cursor model picker or supported model list. Do not guess a slug and do not carry over a private default.",
+      "replacement": "Use only models listed as available in `<pstack_subagents>` or `pi --list-models`. Do not guess a slug and do not carry over a private default.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.4-check-integration-capabilities",
+      "offset": [
+        6284,
+        7156
+      ],
+      "lines": [
+        120,
+        136
+      ],
+      "original": "The triage automation needs:\n\n- Read access to the configured source Slack channel and its threads\n- Thread-reply access in that channel\n- Attachment metadata and file download access when reports include media\n- Search, read, create, and update access through the configured issue-tracker adapter\n\nThe repro automation needs:\n\n- Read access to the source thread\n- Thread-reply access in the source channel\n- Optional post and edit access in the configured operations channel\n- Repository read and history access\n- A pull request action that can open a draft pull request\n- The configured control-adapter skill\n\nPrefer configured Cursor Slack actions for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.\n",
+      "replacement": "The pi-pstack process that runs an automation is the only one that talks to Slack and the tracker. It performs every read of the source thread, every post, and every tracker write. Workers return findings and an optional tracker request, and have no tool for any of those writes.\n\nCheck, in this order:\n\n1. The Slack connector. `~/.pi/agent/pstack/credentials/slack.json` must hold `{ \"token\": \"xoxb-...\" }` with mode 0600. The bot needs `conversations.replies` read access and `chat.postMessage` in the source channel. When `slack.operations_channel_id` names a channel, which must not be the source channel, repro also needs `chat.postMessage`, `chat.update`, and `conversations.history` there for its one status message and its replies. An empty value disables the operations thread and the status stays in the run log. Without the file, the automation does not start. Never put the token in YAML or in any committed file.\n2. The tracker. With `tracker.type: \"github\"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing. With any other tracker type, the skill named by `tracker.adapter_skill_name` must be one Pi can load for the project, by the locations section 3 lists, and the MCP servers it uses must be configured for the project (`pi mcp list`). The automation starts one worker per tracker write. That worker has Pi's MCP, loads the skill, searches for the action marker before any write, writes only when the marker is absent, and returns a JSON result. A missing or unresolvable skill logs the case `blocked` with the skill name, and nothing is written.\n3. The webhook secret. `benny-setup.mjs` creates `~/.pi/agent/pstack/credentials/<automation name>.json`. The event sender presents its `key` as `Authorization: Bearer <key>` on `POST /events`.\n4. For repro and fix, a draft pull request needs `gh` access to the repository. A worker cannot post or open one itself.\n",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.5-prepare-the-routing-map",
+      "offset": [
+        7280,
+        7381
+      ],
+      "lines": [
+        144,
+        144
+      ],
+      "original": "1. Copy `../triage-issue-reports/references/routing.example.md` outside `.cursor/automations/benny/`.",
+      "replacement": "1. Copy `../triage-issue-reports/references/routing.example.md` outside `.pi/automations/benny/`.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.6-verify-the-control-adapter",
+      "offset": [
+        7826,
+        7860
+      ],
+      "lines": [
+        154,
+        155
+      ],
+      "original": "\nConfirm that the named skill can:",
+      "replacement": "\nThe automation checks two things itself before it dispatches a repro case, and logs the case `blocked` when either fails: the feature map at `control.feature_map_path` exists inside the project and is complete, meaning it has at least one feature section with no unfilled `<placeholder>` heading and each feature has `How a user gets there` and `How the control adapter drives it`; and `control.skill_name` names a skill Pi can load for the project, by the locations section 3 lists. A name with a path separator, or anything that is not plain skill-name syntax, is refused. Whether the skill can do the following is judged by the repro worker and by the setup check below, not by code.\n\nConfirm that the named skill can:",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.7-prepare-the-live-automations",
+      "offset": [
+        8278,
+        13012
+      ],
+      "lines": [
+        167,
+        248
+      ],
+      "original": "## 7. Prepare the live automations\n\nAsk whether this is first-time creation or configuration of existing automations.\n\nRead `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source for either path. Use it to understand the two triggers, tools, instructions, outcomes, and shared rules.\n\n### First-time creation\n\nCreate one automation at a time.\n\nFor each automation:\n\n1. Read the matching copied prompt template as secondary internal source material.\n2. Turn `FOR_AGENTS.md`, the finished Benny configuration, and the template intent into a complete natural-language request.\n3. Tell the live prompt to read and follow its exact committed operational file under `.cursor/automations/benny/`.\n4. Use the stable repository-relative path, not a plugin source or cache path. Do not copy the operational file contents into the live prompt.\n5. Read and follow the built-in `automate` skill.\n6. Let `automate` discover Slack channels, the repository, and connected integrations.\n7. Let `automate` confirm that the copied pack and any referenced configuration files are committed in the same repository where the automation will run.\n8. Let `automate` show its draft table, obtain approval, ask readiness, and open the Automations editor.\n9. Finish the editor handoff for this automation before starting the next one.\n\nGive `automate` this complete triage intent, filled from configuration:\n\n- Name `benny-triage`.\n- Read and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.\n- Trigger on each new top-level report in the configured source Slack channel.\n- Read the triggering thread and reply only inside it.\n- Use the configured issue-tracker integration.\n- Classify, inspect evidence, trace cause, dedupe, and create only clear new bugs.\n- End one thread-only verdict with the configured `[benny:bug]`, `[benny:performance]`, or `[benny:other]` marker and optional tracker URL.\n- Never post a source-channel root message.\n\nAfter the triage editor handoff is complete, give `automate` this complete repro and fix intent:\n\n- Name `benny-reproduce`.\n- Read and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.\n- Trigger on the same new top-level reports in the configured source Slack channel.\n- Use the configured repository and default branch.\n- Read the source thread and reply only inside it.\n- Include pull request creation and the configured tracker, control-adapter, and feature-map requirements. Paraphrase mapped user paths and states unless `automate` confirms an eligible committed file in the same repository.\n- Wait for a trusted triage marker before acting.\n- Reproduce the exact symptom twice through the mapped real UI and capture evidence.\n- Verify an existing fix without authoring over it.\n- Attempt an optional bounded fix only after confirmed repro, then open a draft pull request when proof and checks pass.\n- Never post a source-channel root message.\n\nDo not duplicate `automate`'s Slack, repository, integration, completeness, authentication, draft-review, approval, readiness, or editor-handoff work.\n\n### Existing automations\n\nThe built-in `automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations.\n\nFinish configuration, routing, control-adapter, and feature-map validation. Then give the user this concise editor checklist.\n\nFor the existing triage automation, update:\n\n- Name and description\n- Direct instruction to read `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md`\n- New top-level Slack report trigger and source channel\n- Slack thread read and reply capabilities\n- Issue-tracker integration\n- Paraphrased triage instructions, thread-only rule, and Benny verdict markers\n\nFor the existing repro automation, update:\n\n- Name and description\n- Direct instruction to read `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`\n- Matching Slack trigger and source channel\n- Repository and default branch\n- Slack thread read and reply capabilities\n- Pull request action\n- Tracker, control-adapter, and feature-map requirements\n- Paraphrased marker wait, evidence, verification, and bounded-fix instructions\n\nAsk the user to update each existing automation directly in its Automations editor. Do not create replacements or duplicates.\n\n### Creation boundary\n\nNever call a direct automation backend service or backend automation tool. Never use a browser URL that carries draft fields. Never build or open a Cursor protocol deep link. For new automations, the only finish path is the built-in `automate` skill's reviewed Automations editor handoff.\n\nDo not enable either automation until the thread-safety test passes after the editor save.\n",
+      "replacement": "## 7. Start the automations\n\nRead `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source. Use it to understand the two triggers, outcomes, and shared rules, and `../../templates/triage-automation-prompt.md` and `../../templates/reproduce-automation-prompt.md` for what each case's worker is told.\n\nThere is nothing to draft or paste. When an event arrives, pi-pstack writes the worker's brief itself. The brief names the exact committed operational file, `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` or `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`, and carries the event as untrusted data.\n\nStart one automation at a time, and only after the user asks:\n\n1. Read the automation names from `.pi/benny/configuration.yaml`: `automations.triage_name` and `automations.reproduce_name`.\n2. Run `/pstack automation start <triage name>`. It starts the receiver as a watch worker in tmux on this machine.\n3. Run `/pstack automation status <triage name>` and read the receiver URL from it. Point the user's Slack event sender at that URL (`POST /events`, bearer key from step 3 of section 4).\n4. Start repro and fix the same way with `/pstack automation start <reproduce name>` once section 6 passes. Repro dispatches a case only when the tracker, the control skill, the feature map, and a trusted triage marker in the source thread all hold.\n\n`/pstack automation stop <name>` ends a source. To apply a changed configuration, stop it and start it again.\n\nTo change an automation that already exists, validate the configuration, then stop and start it. Never start a second source for a name that is already running. `start` refuses one that is.\n\n### Start boundary\n\nNever write the event log, the outbox, a cursor, or a credential file by hand. Never run the serve script directly. `/pstack automation start <name>` is the only path, because it records the source as a run the operator can stop.\n\nDo not enable normal traffic until the thread-safety test passes.\n",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/setup-benny/SKILL.md",
+      "rule": "setup-benny.8-test-thread-safety",
+      "offset": [
+        13086,
+        13470
+      ],
+      "lines": [
+        254,
+        254
+      ],
+      "original": "Before testing, confirm that the target repository's `.cursor/settings.json`, `.cursor/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.",
+      "replacement": "Before testing, confirm that the target repository's `.pi/settings.json`, `.pi/automations/benny/`, and every referenced secret-free configuration file are committed. Confirm that `/pstack automation status <name>` shows each automation running with a receiver URL. If any check fails, stop. Tell the user that the automation cannot be enabled yet.",
+      "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.hard-safety-rules",
+      "offset": [
+        1099,
+        1458
+      ],
+      "lines": [
+        21,
+        24
+      ],
+      "original": "- The coordinator is the only Slack poster.\n- Delegated workers return findings only. They must be read-only and receive no Slack credentials or write actions.\n- Every child prompt must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.\n- If worker isolation cannot enforce those limits, do the work in the coordinator.",
+      "replacement": "- The pi-pstack parent process is the only Slack poster and the only tracker writer. You are a worker. You return findings, one verdict, and at most one tracker request. You are read-only and hold no Slack credentials or write actions.\n- Every prompt you give a helper must forbid `SendSlackMessage`, `PostToSlack`, `chat.postMessage`, and every other Slack write.\n- If you cannot enforce those limits on a helper, do the work yourself.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.1-freeze-source-coordinates",
+      "offset": [
+        2149,
+        2259
+      ],
+      "lines": [
+        39,
+        40
+      ],
+      "original": "6. Read the thread and verify that its root has exactly those coordinates.\n7. Fetch a stable source permalink.",
+      "replacement": "6. The parent verified that the thread root has exactly those coordinates before it started you. It verifies the root again before any tracker write and immediately before the verdict post. You have no Slack tool, so do not look for one.\n7. The parent computes the stable source permalink from the coordinates and adds it to every tracker write.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.2-read-the-whole-report",
+      "offset": [
+        2431,
+        2481
+      ],
+      "lines": [
+        46,
+        46
+      ],
+      "original": "Read the root and current replies before deciding.",
+      "replacement": "Read the root and the replies your brief carries before deciding. The parent read the thread when it dispatched you.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.2-attachments",
+      "offset": [
+        2785,
+        2819
+      ],
+      "lines": [
+        59,
+        59
+      ],
+      "original": "Inspect every relevant attachment.",
+      "replacement": "Inspect every relevant attachment you can open. Your brief links attachments and you hold no Slack credentials, so a linked file you cannot open is one that cannot be read.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.6-adapter-contract",
+      "offset": [
+        6041,
+        6077
+      ],
+      "lines": [
+        131,
+        131
+      ],
+      "original": "The configured adapter must provide:",
+      "replacement": "The parent reaches the tracker through the configured adapter, which must provide:",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.6-resolve-targets",
+      "offset": [
+        6498,
+        6669
+      ],
+      "lines": [
+        142,
+        142
+      ],
+      "original": "Resolve configured team, project, status, and labels at runtime. Do not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.",
+      "replacement": "The adapter resolves configured team, project, status, and labels at runtime. It does not invent IDs, create labels, assign owners, or set priority unless the config explicitly requires it.\n\nYou ask for at most one tracker write by adding `tracker` to your final JSON result. Give `operation` (`create`, `update`, or `comment`), `body`, `title` for a create, and `targetId` for an existing issue. It is a request only. The parent checks sections 7 and 8 itself from independent reads before it writes, and it drops a request that fails any of them. Your verdict still posts.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.7-confident-duplicate",
+      "offset": [
+        7290,
+        7399
+      ],
+      "lines": [
+        165,
+        165
+      ],
+      "original": "For a confident duplicate, update the existing issue with the source permalink and one short recurrence note.",
+      "replacement": "For a confident duplicate, request an `update` of the existing issue (`targetId` is that issue) with one short recurrence note. The parent adds the source permalink.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-post-one-verdict",
+      "offset": [
+        8647,
+        8878
+      ],
+      "lines": [
+        200,
+        204
+      ],
+      "original": "## 9. Post one verdict\n\nRun a fresh source-parent preflight. Then post exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.\n\nNever call a source-channel posting action without a nonempty `thread_ts`.",
+      "replacement": "## 9. Return one verdict\n\nYour final message is one JSON object: `{ \"text\": \"<the verdict>\", \"tracker\": <the optional request from section 6> }`.\n\nThe parent runs a fresh source-parent preflight. Then it posts exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`. It posts nothing when the parent message is missing.\n\nThe parent never calls a source-channel posting action without a nonempty `thread_ts`.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-verify-and-compensate",
+      "offset": [
+        9471,
+        9862
+      ],
+      "lines": [
+        226,
+        228
+      ],
+      "original": "After posting, read the same source thread and verify the verdict appears under `SOURCE_THREAD_TS`. If it does not, never retry at the root.\n\nIf this run created a tracker issue and the verdict did not land, use the adapter's compensation action. Verify that the issue is canceled, closed, or deleted. If compensation cannot be verified, report the failure only in the automation run output.",
+      "replacement": "After posting, the parent reads the same source thread and verifies the verdict appears as a reply under `SOURCE_THREAD_TS`. If it does not, it retries under the same thread with backoff and never at the root.\n\nIf this run created a tracker issue and the verdict did not land after the outbox's retry limit, the parent uses the adapter's compensation action and verifies that the issue is canceled, closed, or deleted. If compensation cannot be verified, it reports the failure only in the automation run log.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.10-follow-up-window",
+      "offset": [
+        9899,
+        10319
+      ],
+      "lines": [
+        232,
+        240
+      ],
+      "original": "Watch the source thread for the configured follow-up window, then stop.\n\n- Answer only a direct question to the triage identity.\n- Apply a concrete correction to the tracker issue when safe.\n- Do not emit a second marker in the same run.\n- Stay out of human coordination and side chatter.\n- Stop early if someone asks the automation to stop.\n\nDo not extend the window more than once. A new report should start a new run.",
+      "replacement": "After the verdict posts, the parent watches the source thread for `budgets.triage_follow_up_minutes`, then stops. It starts one follow-up worker for each batch of new human messages. You are that worker when your brief says follow-up, and these rules are yours.\n\n- Answer only a direct question to the triage identity.\n- Apply a concrete correction to the tracker issue when safe.\n- Do not emit a second marker in the same run.\n- Stay out of human coordination and side chatter.\n- Stop early if someone asks the automation to stop.\n\nYour final message is one JSON object: `{ \"text\": \"<the reply, or an empty string to say nothing>\", \"tracker\": { \"operation\": \"comment\", \"body\": \"<the correction>\" }, \"stop\": true }`. Leave out `tracker` when there is no correction. Add `\"stop\": true` only when someone asked the automation to stop. The parent posts `text` as a reply in the source thread, comments on the one issue this case owns, and drops any reply that carries a verdict marker.\n\nThe parent never extends the window. A new report starts a new run.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/references/routing.example.md",
+      "rule": "triage-issue-reports-references-routing-.top",
+      "offset": [
+        23,
+        225
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "Copy this file outside `.cursor/automations/benny/`, for example to `.cursor/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.",
+      "replacement": "Copy this file outside `.pi/automations/benny/`, for example to `.pi/benny/routing.md`, and replace every placeholder. Point `routing.map_path` at the copy. Pack refreshes must not overwrite it.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/references/routing.example.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
+      "rule": "templates-configuration-example.slack-actions",
+      "offset": [
+        455,
+        484
+      ],
+      "lines": [
+        15,
+        15
+      ],
+      "original": "  prefer_cursor_actions: true",
+      "replacement": "  prefer_pi_pstack_slack_tools: true",
+      "output": "generated/automations/benny/templates/configuration.example.yaml"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
+      "rule": "templates-configuration-example.tracker-types",
+      "offset": [
+        853,
+        878
+      ],
+      "lines": [
+        27,
+        28
+      ],
+      "original": "tracker:\n  type: \"linear\"",
+      "replacement": "tracker:\n  # type \"linear\" (or any other tracker) is reached through the project-owned skill named by adapter_skill_name. The pi-pstack\n  # parent runs each tracker write in a worker that loads that skill and uses the MCP tools the workspace has.\n  # type: \"github\" (GitHub Issues, through the gh CLI the parent runs) is the one tracker the package ships. It needs\n  #   repo: \"owner/name\" and the four labels, and no adapter_skill_name, team, project, or status.\n  type: \"linear\"",
+      "output": "generated/automations/benny/templates/configuration.example.yaml"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
+      "rule": "templates-configuration-example.routing-path",
+      "offset": [
+        1297,
+        1335
+      ],
+      "lines": [
+        42,
+        42
+      ],
+      "original": "  map_path: \".cursor/benny/routing.md\"",
+      "replacement": "  map_path: \".pi/benny/routing.md\"",
+      "output": "generated/automations/benny/templates/configuration.example.yaml"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
+      "rule": "templates-configuration-example.feature-map-path",
+      "offset": [
+        1492,
+        1542
+      ],
+      "lines": [
+        49,
+        49
+      ],
+      "original": "  feature_map_path: \".cursor/benny/feature-map.md\"",
+      "replacement": "  feature_map_path: \".pi/benny/feature-map.md\"",
+      "output": "generated/automations/benny/templates/configuration.example.yaml"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/reproduce-automation-prompt.md",
+      "rule": "templates-reproduce-automation-prompt.top",
+      "offset": [
+        31,
+        547
+      ],
+      "lines": [
+        3,
+        7
+      ],
+      "original": "> Source material for the copied setup workflow. Paraphrase this intent into a built-in `automate` draft after `automate` confirms that the copied pack is committed in the repository where the automation will run.\n\nRead and follow `.cursor/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for this run.\n\nConfiguration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a plugin source or cache path:",
+      "replacement": "> Source material for the copied setup workflow. pi-pstack writes each worker's real brief itself when an event arrives, and it names the operational file below. This file records the intent that brief carries. Nothing here is pasted into a draft.\n\nRead and follow `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for this run.\n\nConfiguration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a pi-pstack package path:",
+      "output": "generated/automations/benny/templates/reproduce-automation-prompt.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/reproduce-automation-prompt.md",
+      "rule": "templates-reproduce-automation-prompt.top-2",
+      "offset": [
+        741,
+        988
+      ],
+      "lines": [
+        23,
+        23
+      ],
+      "original": "The creation intent should describe this as a new top-level report in the configured source Slack channel. It should include the configured repository, default branch, issue tracker, control adapter, feature map, and draft pull request capability.",
+      "replacement": "The event is a new top-level report in the configured source Slack channel. The worker works from the configured repository, default branch, issue tracker, control adapter, feature map, and draft pull request capability.",
+      "output": "generated/automations/benny/templates/reproduce-automation-prompt.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/triage-automation-prompt.md",
+      "rule": "templates-triage-automation-prompt.top",
+      "offset": [
+        28,
+        540
+      ],
+      "lines": [
+        3,
+        7
+      ],
+      "original": "> Source material for the copied setup workflow. Paraphrase this intent into a built-in `automate` draft after `automate` confirms that the copied pack is committed in the repository where the automation will run.\n\nRead and follow `.cursor/automations/benny/skills/triage-issue-reports/SKILL.md` for this run.\n\nConfiguration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a plugin source or cache path:",
+      "replacement": "> Source material for the copied setup workflow. pi-pstack writes each worker's real brief itself when an event arrives, and it names the operational file below. This file records the intent that brief carries. Nothing here is pasted into a draft.\n\nRead and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for this run.\n\nConfiguration source. Include this repository-relative path only when it is committed in the same target repository. Otherwise paraphrase the configured values. Never use a pi-pstack package path:",
+      "output": "generated/automations/benny/templates/triage-automation-prompt.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/templates/triage-automation-prompt.md",
+      "rule": "templates-triage-automation-prompt.top-2",
+      "offset": [
+        734,
+        840
+      ],
+      "lines": [
+        23,
+        23
+      ],
+      "original": "The creation intent should describe this as a new top-level report in the configured source Slack channel.",
+      "replacement": "The event is a new top-level report in the configured source Slack channel.",
+      "output": "generated/automations/benny/templates/triage-automation-prompt.md"
     },
     {
       "file": "vendor/upstream-pstack/skills/architect/SKILL.md",
