@@ -37,9 +37,10 @@ test.for(names)('copies every complete source step from %s into TODO.md', (filen
   const runDir = join(cwd, '.pi/pstack/runs/test-run');
   const todo = readFileSync(join(runDir, 'TODO.md'), 'utf8');
   const section = todo.split('## Original playbook steps\n')[1]!.split('\n\n## Task-specific work')[0]!;
-  const actual = section.split(/(?=^- \[ \] \d+\. )/m).filter(Boolean).map((step) => step.replace(/^- \[ \] /, '').trimEnd());
+  const actual = section.split(/(?=^- \[ \] \d+\. )/m).filter((step) => step.startsWith('- [ ] ')).map((step) => step.replace(/^- \[ \] /, '').trimEnd());
   const expected = sourceSteps(readFileSync(join(playbooks, filename), 'utf8'));
   expect(actual).toEqual(expected);
+  expect(section.startsWith(expected.length === 0 ? `_${name}.md has no numbered steps.` : '- [ ] 1. ')).toBe(true);
   expect(todo.endsWith('## Task-specific work\n')).toBe(true);
   expect(JSON.parse(readFileSync(join(runDir, 'run.json'), 'utf8'))).toMatchObject({
     schemaVersion: 1, runId: 'test-run', playbook: name, title: 'Test run',
@@ -95,4 +96,12 @@ test('uses the git project root and records the parent session and input commit'
   const result = run(child, 'feature', 'git-run', ['--parent-session-file', '/tmp/parent-session.jsonl']);
   expect(result.status, result.stderr).toBe(0);
   expect(JSON.parse(readFileSync(join(cwd, '.pi/pstack/runs/git-run/run.json'), 'utf8'))).toMatchObject({ inputCommit: commit, parentSessionFile: '/tmp/parent-session.jsonl' });
+});
+
+test.for(['opening-a-pr', 'orchestrate'])('a playbook without numbered steps says so and points at its rules (%s)', (name) => {
+  const cwd = project();
+  expect(run(cwd, name).status).toBe(0);
+  const todo = readFileSync(join(cwd, '.pi/pstack/runs/test-run/TODO.md'), 'utf8');
+  const section = todo.split('## Original playbook steps\n')[1]!.split('\n\n## Task-specific work')[0]!;
+  expect(section).toMatch(new RegExp(`no numbered steps.*${name}\\.md`));
 });

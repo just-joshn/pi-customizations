@@ -58,7 +58,7 @@ export function startRun({ playbook, title, runId = randomUUID(), playbooksDir =
   const temporary = join(runDir, 'run.json.tmp');
   writeFileSync(temporary, `${JSON.stringify(manifest, null, 2)}\n`, { flag: 'wx' });
   renameSync(temporary, join(runDir, 'run.json'));
-  writeFileSync(join(runDir, 'TODO.md'), `# ${title}\n\nSource playbook: ${playbook}.md\nUpstream revision: ${UPSTREAM_REVISION}\n\n## Original playbook steps\n${steps.map((step) => `- [ ] ${step}`).join('\n')}\n\n## Task-specific work\n`, { flag: 'wx' });
+  writeFileSync(join(runDir, 'TODO.md'), `# ${title}\n\nSource playbook: ${playbook}.md\nUpstream revision: ${UPSTREAM_REVISION}\n\n## Original playbook steps\n${steps.length === 0 ? `_${playbook}.md has no numbered steps. Its rules apply in full: read ${join(playbooksDir, `${playbook}.md`)}._` : steps.map((step) => `- [ ] ${step}`).join('\n')}\n\n## Task-specific work\n`, { flag: 'wx' });
   return runDir;
 }
 
