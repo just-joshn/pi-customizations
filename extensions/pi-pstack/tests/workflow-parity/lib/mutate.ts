@@ -191,7 +191,7 @@ export function reorderHistory(sandbox: string, runId: string, n: number): void 
 }
 
 /** Rewrites text only inside the parent's last substantive assistant message, the reply the user reads. */
-export function rewriteFinalReply(sandbox: string, from: string | RegExp, to: string): void {
+export function rewriteFinalReply(sandbox: string, from: string | RegExp, to: string | ((match: string, ...groups: string[]) => string)): void {
   const file = parentSession(sandbox);
   const lines = readFileSync(file, 'utf8').split('\n');
   const isReply = (entry: { type?: string; message?: { role?: string; content?: { type: string; text?: string }[] } }) => entry.type === 'message' && entry.message?.role === 'assistant' && (entry.message.content ?? []).some((part) => part.type === 'text' && (part.text ?? '').trim() !== '' && part.text !== '(script complete)' && !(part.text ?? '').startsWith('waiting for worker '));
@@ -201,7 +201,7 @@ export function rewriteFinalReply(sandbox: string, from: string | RegExp, to: st
   });
   if (index === -1) throw new Error('no reply to rewrite');
   const entry = JSON.parse(lines[index] as string) as { message: { content: { type: string; text?: string }[] } };
-  for (const part of entry.message.content) if (part.type === 'text' && part.text !== undefined) part.text = typeof from === 'string' ? part.text.replaceAll(from, to) : part.text.replace(from, to);
+  for (const part of entry.message.content) if (part.type === 'text' && part.text !== undefined) part.text = typeof from === 'string' ? part.text.replaceAll(from, to as string) : part.text.replace(from, to as (match: string, ...groups: string[]) => string);
   lines[index] = JSON.stringify(entry);
   writeFileSync(file, lines.join('\n'));
 }
@@ -223,4 +223,18 @@ export function squashMain(sandbox: string): void {
   const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { base: string };
   spawnSync('sh', ['-c', `git reset --soft ${meta.base} && git -c user.name=m -c user.email=m@x commit -q -m squashed`], { cwd: repo });
   refreshGit(sandbox);
+}
+
+/** A worker whose spawn was refused: its assignment and brief are on disk, and it never started, so it has no state, claim, session, or worktree. */
+export function unspawnWorker(sandbox: string, runId: string, workerId: string): void {
+  const dir = join(runDir(sandbox, runId), 'workers', workerId);
+  for (const name of readdirSync(dir)) if (name !== 'assignment.json' && name !== 'brief.md') rmSync(join(dir, name), { recursive: true, force: true });
+}
+
+/** Points one of the run's model-rule lines at another model, as the operator's models.json would. */
+export function setRoleLine(sandbox: string, line: string, value: string | string[]): void {
+  const path = join(sandbox, 'home', '.pi', 'agent', 'pstack', 'models.json');
+  const config = JSON.parse(readFileSync(path, 'utf8')) as { roles: Record<string, string | string[]> };
+  config.roles[line] = value;
+  writeFileSync(path, JSON.stringify(config, null, 2));
 }

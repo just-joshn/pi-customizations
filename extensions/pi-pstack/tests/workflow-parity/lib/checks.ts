@@ -1,7 +1,8 @@
 // Reusable contract checks. Each one reads only run artifacts and enforces a rule an upstream playbook or skill states.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { isAbsolute, join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { basename, isAbsolute, join, resolve } from 'node:path';
 
 import { type Check, check, fail, type Outcome, pass, type Src, src, when } from './check.ts';
 import { PKG } from './driver.ts';
@@ -19,8 +20,20 @@ const READERS = /\b(cat|head|tail|sed|less|bat|nl)\b/;
 /** Order of the first tool call that opens the file, or -1. A read of the path or a shell reader naming it counts. */
 export function openedAt(session: Session | null, suffix: string): number {
   if (session === null) return -1;
-  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && String(entry.args['command'] ?? '').includes(suffix)));
+  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && (String(entry.args['command'] ?? '').includes(suffix) || readsInDirectory(String(entry.args['command'] ?? ''), suffix))));
   return call?.order ?? -1;
+}
+
+/**
+ * `cd <dir> && cat src/x.js`, or `B=<dir>; cat $B/src/x.js`, opens `<dir>/src/x.js` without ever writing the joined path. A suffix of the
+ * form `<name>/worktree/<file>` is opened that way when one shell command names the worktree directory and the file under it, and reads.
+ */
+function readsInDirectory(command: string, suffix: string): boolean {
+  const at = suffix.indexOf('/worktree/');
+  if (at === -1) return false;
+  const directory = suffix.slice(0, at + '/worktree'.length);
+  const file = suffix.slice(at + '/worktree/'.length);
+  return command.includes(directory) && new RegExp(`(^|[\\s"'/=:$}])${file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[\\s"';&|)])`).test(command);
 }
 
 export const skillFile = (name: string) => `generated/skills/${name}/SKILL.md`;
@@ -39,9 +52,38 @@ export function primaryRun(view: RunView, playbook?: string): RunDir | undefined
   return (playbook === undefined ? undefined : view.runs.find((run) => run.runJson?.['playbook'] === playbook)) ?? view.runs[0];
 }
 
-export const finalReply = (view: RunView): string =>
-  [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.trim() !== '' && message.text !== '(script complete)' && !message.text.startsWith('waiting for worker '))?.text ?? '';
+const isFiller = (message: { text: string }) => message.text.trim() === '' || message.text === '(script complete)' || message.text.startsWith('waiting for worker ');
 
+/**
+ * A wake opens a turn of its own. When the parent had already collected that worker, or had already given a longer reply, that turn only
+ * acknowledges ("Collected. Same report, so the answer stands"): it is not the answer the user reads, and the answer is the reply before it.
+ * A wake for a worker not yet collected, answered by a reply longer than everything before it, is where the answer comes.
+ */
+function isRedundantWakeTurn(view: RunView, assistant: { order: number; text: string }): boolean {
+  const trigger = [...view.parent.messages].reverse().find((message) => message.order < assistant.order && (message.role === 'user' || message.role === 'custom'));
+  if (trigger?.customType !== 'pstack-worker') return false;
+  const workerId = trigger.details?.['workerId'];
+  const collectedBefore = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError && call.order < trigger.order && /settled/.test(call.resultText));
+  const longerBefore = view.parent.messages.some((message) => message.role === 'assistant' && message.order < trigger.order && !isFiller(message) && message.text.trim().length > assistant.text.trim().length);
+  return collectedBefore || longerBefore;
+}
+
+export function finalReply(view: RunView): string {
+  const replies = [...view.parent.messages].reverse().filter((message) => message.role === 'assistant' && !isFiller(message));
+  return (replies.find((message) => !isRedundantWakeTurn(view, message)) ?? replies[0])?.text ?? '';
+}
+
+/**
+ * A candidate's brief names the candidate: its id, "Candidate 2", and its own run directory. Two briefs are the same prompt when only
+ * that identity differs, so the comparison blanks it out before looking.
+ */
+export function withoutOwnIdentity(brief: string, worker: WorkerView): string {
+  const number = /(\d+)$/.exec(worker.id)?.[1];
+  const names = [worker.id, ...(number === undefined ? [] : [`${worker.id.replace(/[-_ ]?\d+$/, '')} ${number}`])];
+  let text = brief.replaceAll(worker.dir, '<own>');
+  for (const name of names) text = text.replace(new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[- _]/g, '[-_ ]'), 'gi'), '<own>');
+  return text.replace(/(<own>)(\/worktree)?/g, '<own>');
+}
 
 export function allWorkers(view: RunView): WorkerView[] {
   return view.runs.flatMap((run) => run.workers);
@@ -289,12 +331,44 @@ export function readonlyEnforced(id: string, source: Src | Src[], roles: string[
   });
 }
 
+/**
+ * Files the parent wrote into the repository outside `.pi/`. A hidden file (`.pi-setup-workers.mjs`) that is in no commit and not in the
+ * working tree afterwards is a scratch script the parent used to write worker files and then removed: it left nothing in the repository.
+ */
+export function parentProductionWrites(view: RunView): string[] {
+  const written = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError).map((call) => String(call.args['path'] ?? ''));
+  const inRepo = written.filter((path) => (path.startsWith(view.repo) || !path.startsWith('/')) && !path.includes('/.pi/') && !path.startsWith('.pi/'));
+  const kept = (path: string) => {
+    const relativePath = path.startsWith(view.repo) ? path.slice(view.repo.length + 1) : path;
+    if (!basename(relativePath).startsWith('.')) return true;
+    if (view.git.dirty.includes(relativePath)) return true;
+    return spawnSync('git', ['-C', view.repo, 'cat-file', '-e', `HEAD:${relativePath}`]).status === 0;
+  };
+  return inRepo.filter(kept);
+}
+
+/** A commit's change as git's patch-id sees it, so a cherry-pick and its original compare equal. Empty for an empty commit. */
+function patchId(view: RunView, sha: string): string {
+  const show = spawnSync('git', ['-C', view.repo, 'show', '--format=', sha], { encoding: 'utf8' });
+  return spawnSync('git', ['-C', view.repo, 'patch-id', '--stable'], { input: show.stdout, encoding: 'utf8' }).stdout.split(' ')[0] ?? '';
+}
+
+/**
+ * Commits on the checkout's branch since the base that carry no worker's change. A worker's commit that the parent fast-forwarded or
+ * cherry-picked into the checkout is the worker's; a commit with a change no worker branch holds, or an empty commit, is the parent's own.
+ */
+export function commitsNotFromWorkers(view: RunView): string[] {
+  const workerShas = new Set(Object.entries(view.git.branchCommits).filter(([branch]) => branch.startsWith('pstack-run/')).flatMap(([, commits]) => commits));
+  const workerPatches = new Set([...workerShas].map((sha) => patchId(view, sha)).filter((id) => id !== ''));
+  return view.git.commitsSinceBase.filter((sha) => !workerShas.has(sha) && !workerPatches.has(patchId(view, sha)));
+}
+
 export function repoUntouched(id: string, title: string, source: Src | Src[]): Check {
   return check(id, title, source, (view) => {
     const dirty = view.git.dirty;
     const moved = view.git.commitsSinceBase;
-    const parentWrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError && (String(call.args['path'] ?? '').startsWith(view.repo) || !String(call.args['path'] ?? '').startsWith('/')) && !String(call.args['path'] ?? '').includes('/.pi/') && !String(call.args['path'] ?? '').startsWith('.pi/'));
-    return when(dirty.length === 0 && moved.length === 0 && parentWrites.length === 0, `working tree clean outside .pi/, HEAD at base, ${view.parent.toolCalls.filter((call) => call.name === 'write' || call.name === 'edit').length} parent write calls, none into the repository outside .pi/`, `dirty: ${dirty.join(', ') || 'none'}; commits since base: ${moved.length}; parent writes: ${parentWrites.map((call) => String(call.args['path'])).join(', ') || 'none'}`);
+    const parentWrites = parentProductionWrites(view);
+    return when(dirty.length === 0 && moved.length === 0 && parentWrites.length === 0, `working tree clean outside .pi/, HEAD at base, ${view.parent.toolCalls.filter((call) => call.name === 'write' || call.name === 'edit').length} parent write calls, none into the repository outside .pi/`, `dirty: ${dirty.join(', ') || 'none'}; commits since base: ${moved.length}; parent writes: ${parentWrites.join(', ') || 'none'}`);
   });
 }
 
@@ -310,7 +384,7 @@ export function collectedOnEvidence(view: RunView, workerId: string, collect: To
 }
 
 export function settledAndCollected(id: string, source: Src | Src[], roles?: string[]): Check {
-  return check(id, 'every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake', source, (view) => {
+  return check(id, 'every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled', source, (view) => {
     const workers = allWorkers(view).filter((worker) => assignmentOf(worker).kind !== 'watch' && (roles === undefined || roles.includes(String(assignmentOf(worker).role))));
     if (workers.length === 0) return fail('no worker');
     const problems = workers.flatMap((worker) => {
@@ -318,9 +392,9 @@ export function settledAndCollected(id: string, source: Src | Src[], roles?: str
       if (settles.length === 0 || !settles.some((settle) => settle.phase === 'idle')) return [`${worker.id} never recorded an idle settle (${JSON.stringify(settles.map((settle) => settle.phase))})`];
       const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id);
       const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|settled/.test(call.resultText));
-      if (wake === undefined) return [`${worker.id}: no pstack-worker wake in the parent session`];
-      if (collect === undefined) return [`${worker.id}: parent never collected a settled result`];
-      return collectedOnEvidence(view, worker.id, collect, wake.order) ? [] : [`${worker.id}: collected before its wake, and no inspect had shown it settled`];
+      if (collect === undefined) return [wake === undefined ? `${worker.id}: no pstack-worker wake in the parent session, and the parent never collected a settled result` : `${worker.id}: parent never collected a settled result`];
+      // The collect span allows an inspect that shows the worker settled in place of a wake, and a settle the parent already collected is sent no wake.
+      return collectedOnEvidence(view, worker.id, collect, wake?.order ?? Number.POSITIVE_INFINITY) ? [] : [`${worker.id}: collected before ${wake === undefined ? 'any wake' : 'its wake'}, and no inspect had shown it settled`];
     });
     return when(problems.length === 0, `${workers.length} workers woke and were collected: ${workers.map((worker) => worker.id).join(', ')}`, problems.join('; '));
   });
@@ -356,7 +430,9 @@ export function writableWorkerRecords(id: string, source: Src | Src[], roles?: s
     const problems = workers.flatMap((worker) => {
       if (assignmentOf(worker).workspace?.mode === 'readonly') return worker.finalText.trim() === '' ? [`${worker.id}: readonly worker has no final reply`] : [];
       const run = view.runs.find((entry) => entry.workers.includes(worker)) as RunDir;
-      const own = run.receipts.filter((receipt) => worker.evidenceFiles.includes(`${receipt.id}.json`) || worker.evidenceFiles.includes(`${receipt.id}.receipt.json`));
+      // The worker's own receipt: its file is in the worker's evidence/ under the receipt's id, or the receipt names an artifact there
+      // (the parent may record it under a run-unique id, since two workers can each write a node-test receipt).
+      const own = run.receipts.filter((receipt) => worker.evidenceFiles.includes(`${receipt.id}.json`) || worker.evidenceFiles.includes(`${receipt.id}.receipt.json`) || receipt.artifacts.some((artifact) => artifact.path.includes(`workers/${worker.id}/evidence/`)));
       if (worker.report === null || worker.report.trim() === '') return [`${worker.id}: no report.md`];
       return own.length === 0 ? [`${worker.id}: no receipt recorded from its evidence/ (${worker.evidenceFiles.join(', ') || 'empty'})`] : [];
     });
@@ -480,13 +556,27 @@ export function spawnedAfterCollect(id: string, title: string, source: Src | Src
   });
 }
 
+/**
+ * The brief carries a worker's findings when its opening is there verbatim, or when most of its substantive lines are. A brief template
+ * puts the findings under its own headings and the model may demote or retitle the findings' headings and trim a path, so the opening is
+ * not the only place the text survives. A brief that holds a summary or a one-line mention carries almost none of the lines.
+ */
+export function carries(brief: string, findings: string, probe: (text: string) => string): boolean {
+  const flat = (text: string) => text.replace(/\s+/g, ' ').trim();
+  const whole = flat(brief);
+  if (whole.includes(probe(findings))) return true;
+  const lines = findings.split('\n').map(flat).filter((line) => line.length >= 40 && !line.startsWith('#'));
+  return lines.length >= 3 && lines.filter((line) => whole.includes(line)).length / lines.length >= 0.6;
+}
+
 /** The brief of each later worker contains the final text of each earlier worker (findings filled into the template). */
 export function briefCarries(id: string, title: string, source: Src | Src[], later: string[], earlier: string[]): Check {
   return check(id, title, source, (view) => {
     const sources = allWorkers(view).filter((worker) => earlier.includes(String(assignmentOf(worker).role)));
     const targets = allWorkers(view).filter((worker) => later.includes(String(assignmentOf(worker).role)));
-    const probe = (text: string) => text.replace(/\s+/g, ' ').trim().slice(0, 80);
-    const missing = targets.flatMap((target) => sources.filter((entry) => !(target.brief ?? '').replace(/\s+/g, ' ').includes(probe(entry.finalText))).map((entry) => `${target.id} brief lacks ${entry.id}'s findings`));
+    const flat = (text: string) => text.replace(/\s+/g, ' ').trim();
+    const probe = (text: string) => flat(text).slice(0, 80);
+    const missing = targets.flatMap((target) => sources.filter((entry) => !carries(target.brief ?? '', entry.finalText, probe)).map((entry) => `${target.id} brief lacks ${entry.id}'s findings`));
     return when(targets.length > 0 && sources.length > 0 && missing.length === 0, `${targets.map((worker) => worker.id).join(', ')} brief carries ${sources.map((worker) => worker.id).join(', ')}`, missing.join('; ') || 'no workers to compare');
   });
 }
@@ -586,7 +676,6 @@ export function parentOpenedFiles(id: string, title: string, source: Src | Src[]
 
 // ---- git evidence, read independently of the product
 
-import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
@@ -614,9 +703,9 @@ export function runAtCommit(view: RunView, sha: string, command: string): { stat
 }
 
 /** Every commit of the worker's branch, run on its own: each unit ends in a check that passes. */
-export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string, options: { min: number; command?: string }): Check {
+export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string | ((view: RunView) => string), options: { min: number; command?: string }): Check {
   return check(id, `the worker's branch holds at least ${options.min} commits and every one passes \`${options.command ?? 'node --test'}\` on its own`, source, (view) => {
-    const commits = branchCommits(view, runId(view), workerId);
+    const commits = branchCommits(view, runId(view), typeof workerId === 'function' ? workerId(view) : workerId);
     const results = commits.map((sha) => ({ sha, ...runAtCommit(view, sha, options.command ?? 'node --test') }));
     const red = results.filter((result) => result.status !== 0);
     return when(commits.length >= options.min && red.length === 0, `${commits.length} commits, all green: ${commits.map((sha) => sha.slice(0, 8)).join(', ')}`, `commits ${commits.length}, red at ${red.map((result) => `${result.sha.slice(0, 8)}: ${result.output.slice(-120)}`).join('; ')}`);
@@ -626,8 +715,9 @@ export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: 
 /** The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. */
 export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[]): Check {
   return check(id, title, source, (view) => {
-    const production = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && String(call.args['path'] ?? '').startsWith(view.repo) && !String(call.args['path']).includes('/.pi/'));
-    return when(production.length === 0 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, 'the parent wrote nothing into production source and the main checkout is clean', `parent wrote ${production.map((call) => String(call.args['path'])).join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits ${view.git.commitsSinceBase.length}`);
+    const production = parentProductionWrites(view);
+    const own = commitsNotFromWorkers(view);
+    return when(production.length === 0 && view.git.dirty.length === 0 && own.length === 0, 'the parent wrote nothing into production source, the main checkout is clean, and every commit on it is a worker\'s', `parent wrote ${production.join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits the parent made itself ${own.length}`);
   });
 }
 

@@ -146,6 +146,20 @@ export function wakeText(transition: Transition): string {
   return `pstack worker ${transition.workerId} in run ${transition.runId} ${PHASE_TEXT[transition.phase]}${transition.reason === null ? '' : `: ${transition.reason}`}. Collect it with pstack_worker {"action":"collect","runId":"${transition.runId}","workerId":"${transition.workerId}"}.`;
 }
 
+const collectedMarker = (workerDir: string, transitionId: string): string => join(workerDir, 'collected', transitionId.replace(/[^A-Za-z0-9._-]/g, '_'));
+
+/** A settle the parent already collected owes it no wake: the result is in its context, and a wake would only buy a turn that repeats it. */
+const isCollected = (workerDir: string, transitionId: string): boolean => existsSync(collectedMarker(workerDir, transitionId));
+
+/** Marks every settle `collect` just returned. Idempotent: the marker is a file named for the transition, and writing it again changes nothing. */
+function markCollected(workerDir: string, transitions: Transition[]): void {
+  for (const { transitionId } of transitions) {
+    const marker = collectedMarker(workerDir, transitionId);
+    mkdirSync(dirname(marker), { recursive: true });
+    writeFileSync(marker, '');
+  }
+}
+
 /** Which `pstack_*` tmux sessions have a live pane. undefined when tmux itself could not answer. */
 async function liveSessions(pi: ExtensionAPI, socket: string): Promise<Set<string> | undefined> {
   const result = await pi.exec('tmux', ['-L', socket, 'list-panes', '-a', '-F', '#{session_name} #{pane_dead}'], { timeout: 5_000 });
@@ -308,6 +322,7 @@ export function workerFinalText(loaded: LoadedAssignment, sessionFile: string | 
 function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
   const { workerDir, assignment } = loaded;
   const finalText = workerFinalText(loaded, sessionFile);
+  if (assignment.workspace.mode === 'readonly') return { report: finalText, finalText, evidence: [] };
   if (assignment.workspace.mode !== 'container') {
     const report = join(workerDir, 'report.md');
     return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText, evidence: listFiles(join(workerDir, 'evidence')) };
@@ -784,7 +799,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           continue;
         }
         for (const transition of transitions) {
-          if (delivered.has(transition.transitionId) || sent.has(transition.transitionId)) continue;
+          if (delivered.has(transition.transitionId) || sent.has(transition.transitionId) || isCollected(workerDir, transition.transitionId)) continue;
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
           // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
@@ -905,7 +920,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     name: 'pstack_worker',
     label: 'pstack worker',
     description:
-      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. You choose the runId (a short lowercase id); write the assignment and brief under it, then spawn: the first spawn into an id creates the run for this session, with no other setup. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
+      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. You choose the runId (a short lowercase id); write the assignment and brief under it, then spawn: the first spawn into an id creates the run for this session, with no other setup. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled. A readonly worker writes no report.md, so collect returns its final reply as the report.`,
     promptSnippet: 'Spawn, inspect, steer, abort, or collect tmux-hosted pstack worker processes',
     promptGuidelines: ['Use pstack_worker collect only after a pstack-worker wake message or an inspect that shows the worker settled; before that it returns live state, not a result.'],
     parameters: WorkerParams,
@@ -945,6 +960,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
       const worker = collectOutputs(loaded, state.sessionFile);
+      markCollected(loaded.workerDir, workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined));
       // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
       const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
       const result = {
@@ -957,8 +973,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         sessionFile: state.sessionFile,
       };
       const rejected = receipts === undefined || receipts.rejected.length === 0 ? '' : `\n\nContainer receipts rejected: ${receipts.rejected.map(({ workerId: from, file, reason }) => `${from}/${file}: ${reason}`).join('; ')}`;
+      const settledLine = `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).`;
+      if (loaded.assignment.workspace.mode === 'readonly') return text(`${settledLine}\n\nReport (a readonly worker's final reply, since it cannot write report.md):\n${result.finalText ?? '(none)'}${rejected}`, result);
       return text(
-        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
+        `${settledLine}\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },

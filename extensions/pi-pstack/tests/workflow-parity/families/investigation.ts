@@ -35,7 +35,7 @@ import {
   workersCheck,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToBrief, appendToolCall, cloneWorker, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory } from '../lib/mutate.ts';
+import { appendToBrief, appendToolCall, cloneWorker, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory, overwrite } from '../lib/mutate.ts';
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, lineOf } from '../fixtures/repos.ts';
 import type { RunView } from '../lib/view.ts';
@@ -74,6 +74,10 @@ checkout() in src/checkout.js:${cart('export function checkout', 'src/checkout.j
 Pricing is src/cart.js. Formatting is src/money.js. The entry point is src/checkout.js.
 ### Gotchas
 A coupon percent above 100 is not clamped in applyCoupon().`;
+
+function dropCheckpointLine(sandbox: string): void {
+  overwrite(join(sandbox, 'repo/.pi/pstack/runs/investigate-checkout/TODO.md'), (text) => text.split('\n').filter((line) => !line.includes('- [ ] throughput checkpoint')).join('\n'));
+}
 
 function explorerScript(findings: string, files: string[]): Worker {
   const worker = new Worker();
@@ -170,12 +174,14 @@ function howChecks(): Check[] {
     readonlyEnforced('how.readonly-enforced', src('how/SKILL.md', 'Every spawn is a `pstack_worker` worker with `workspace: { mode: "readonly"'), ['explorer', 'general']),
     repoUntouched('how.no-writes', 'the repository is untouched: how is read-only', src('poteto-mode/playbooks/investigation.md', 'Investigation requests are read-only')),
     settledAndCollected('how.settled-and-collected', src('how/SKILL.md', '## 4. Present')),
-    check('how.output-sections', 'the explainer output is presented with only the five how sections', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
+    check('how.output-sections', 'the explainer output is presented with only the five how sections (under at most one H1 title)', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
       const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
       const reply = presentedHow(view);
       if (explainer === undefined || reply === '') return fail(`no assistant message presents the explainer output (${explainer === undefined ? 'no explainer' : 'none repeats its opening'})`);
-      const headings = [...reply.matchAll(/^#{1,4}\s*(.+)$/gm)].map((match) => (match[1] as string).trim());
-      const unknown = headings.filter((heading) => !HOW_SECTIONS.includes(heading));
+      const all = [...reply.matchAll(/^(#{1,4})\s*(.+)$/gm)].map((match) => ({ level: (match[1] as string).length, text: (match[2] as string).trim() }));
+      // A single H1 that opens the reply is the answer's title, not a section: how's five sections sit below it.
+      const headings = (all[0]?.level === 1 && all.slice(1).every((heading) => heading.level > 1) ? all.slice(1) : all).map((heading) => heading.text);
+      const unknown = headings.filter((heading) => !HOW_SECTIONS.some((section) => section.toLowerCase() === heading.toLowerCase()));
       return when(headings.length > 0 && unknown.length === 0, `sections ${headings.join(', ')}; the explainer output is presented`, `unknown headings: ${unknown.join(', ') || 'none'}`);
     }),
     fileReferencesResolve('how.references-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3, from: presentedHow }),
@@ -257,6 +263,10 @@ export const howSimpleFamily: Family = {
   },
   checks: howChecks(),
   negatives: [
+    { name: 'the presented answer opens with one H1 title above the five sections', mutate: (sandbox) => rewriteFinalReply(sandbox, '### Overview', '# How formatMoney builds its label\n\n### Overview'), fails: [], passes: ['how.output-sections'] },
+    { name: 'the presented answer lowercases the second word of its section titles', mutate: (sandbox) => rewriteFinalReply(sandbox, /### (Key|Where|How) (Concepts|Things|It)/g, (_m, a: string, b: string) => `### ${a} ${b.toLowerCase()}`), fails: [], passes: ['how.output-sections'] },
+    { name: 'the presented answer adds a section the how template does not have', mutate: (sandbox) => rewriteFinalReply(sandbox, '### Gotchas', '### Extras\nmore\n### Gotchas'), fails: ['how.output-sections'] },
+    { name: 'the presented answer has an H1 title and a second H1 further down', mutate: (sandbox) => rewriteFinalReply(sandbox, /### Overview[\s\S]*### Gotchas/, (text) => `# Title\n\n${text.replace('### Gotchas', '# Gotchas')}`), fails: ['how.output-sections'] },
     { name: 'an explorer ran alongside the explainer: one explorer is not 2 to 4', mutate: (sandbox) => cloneWorker(sandbox, 'how-money', 'explainer', 'explorer-1', { role: 'explorer' }), fails: ['how.explorers'] },
     { name: 'the simple path brief still carries an explorer-findings section', mutate: (sandbox) => appendToBrief(sandbox, 'how-money', 'explainer', '\n## Explorer Findings\n\nnone'), fails: ['how.explainer-brief-has-findings'] },
     { name: 'a second worker ran after the explainer', mutate: (sandbox) => cloneWorker(sandbox, 'how-money', 'explainer', 'extra', {}), fails: ['how.explainer', 'how.explainer-after-explorers'] },
@@ -359,7 +369,12 @@ const whyChecks = (prefix: string): Check[] => [
     const reply = finalReply(view);
     const block = reply.split(/Sources Consulted/i)[1]?.split(/###? ?Confidence Summary/i)[0] ?? '';
     const lines = block.split('\n');
-    const missing = CATEGORIES.filter((category) => !lines.some((line) => line.toLowerCase().includes(category.toLowerCase()) && /(found|skipped|no matching|searched|nothing|null)/i.test(line)));
+    // A line accounts for a category with a result word, or with a sentence of its own: the skill asks for "one line per investigator" with the reason and prescribes no vocabulary.
+    const accounts = (line: string, category: string) => {
+      const at = line.toLowerCase().indexOf(category.toLowerCase());
+      return at !== -1 && (/(found|skipped|no matching|searched|nothing|null)/i.test(line) || line.slice(at + category.length).replace(/[^\w ]/g, '').trim().length >= 30);
+    };
+    const missing = CATEGORIES.filter((category) => !lines.some((line) => accounts(line, category)));
     return when(missing.length === 0, `all ${CATEGORIES.length} categories accounted for`, `categories with no line: ${missing.join(', ')}`);
   }),
   noInventedSources(`${prefix}.no-invented-sources`, src('why/references/investigator-prompt.md', '**Never invent.**')),
@@ -396,6 +411,7 @@ export const whyFamily: Family = {
     { name: 'the investigator was given no MCP', mutate: (sandbox) => patchAssignment(sandbox, 'why-coupons', 'git-investigator', (assignment) => (assignment['capabilities'] = { mcp: 'none', env: 'inherit', externalWrite: false })), fails: ['why.investigators'] },
     { name: 'the reply cites a PR the run never saw', mutate: (sandbox) => rewriteFinalReply(sandbox, '#118', '#999'), fails: ['why.no-invented-sources'] },
     { name: 'the reply drops the skipped-source accounting', mutate: (sandbox) => rewriteFinalReply(sandbox, /skipped, no matching MCP available/g, 'fine'), fails: ['why.sources-consulted-covers-seven-categories'] },
+    { name: 'the reply gives each category a line of its own sentence with no result word', mutate: (sandbox) => rewriteFinalReply(sandbox, /skipped, no matching MCP available/g, 'an MCP for it was not configured on this machine at all'), fails: [], passes: ['why.sources-consulted-covers-seven-categories'] },
     { name: 'no code anchor before the spawn', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'git blame', 'git status'), fails: ['why.code-anchor'] },
     { name: 'the investigator wrote a file', mutate: (sandbox) => appendToolCall(workerSessionFile(sandbox, 'why-coupons', 'git-investigator'), 'write', { path: '/x', content: 'x' }), fails: ['why.readonly-enforced'] },
     { name: 'the tree was edited', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['why.no-writes'] },
@@ -539,12 +555,20 @@ export const teachFamily: Family = {
     settledAndCollected('teach.settled-and-collected', src('teach/SKILL.md', 'Those are real skill invocations that do their own digging')),
     replyLacks('teach.no-framing-labels', 'the reply prints none of the labels the skill bans', src('teach/SKILL.md', 'Don\'t print framing labels'), [/the one idea to hold onto/i, /the thing to walk away with/i, /the key insight/i, /\bat its core\b/i, /\bTL;DR\b/i, /^\s*Pause\b/im, /the sentence to nail/i, /here is the part worth slowing down on/i]),
     replyLacks('teach.no-long-dashes', 'the reply contains no long dash', src('teach/SKILL.md', 'No em dashes'), [/—/, /–/]),
-    check('teach.why-hedges-kept-verbatim', "the why synthesizer's confidence language reaches the reply intact", src('teach/SKILL.md', "Keep `why`'s confidence language intact"), (view) => {
+    check('teach.why-hedges-kept-verbatim', "the why synthesizer's What We Don't Know lines reach the reply intact (at least half, verbatim)", src('teach/SKILL.md', "Keep `why`'s confidence language intact"), (view) => {
       const synthesizer = teachSides(view).synth[0];
       if (synthesizer === undefined) return pass('why did not run, so there is no hedge to keep');
-      const hedge = synthesizer?.finalText.split('\n').find((line) => /not recorded in the sources searched/.test(line));
-      const reply = finalReply(view).replace(/\s+/g, ' ');
-      return hedge !== undefined && reply.includes(hedge.replace(/\s+/g, ' ').trim()) ? pass('the unknown stays an unknown in the reply') : fail(`reply lacks the synthesizer's hedge: ${String(hedge)}`);
+      const lines = synthesizer.finalText.split('\n');
+      const start = lines.findIndex((line) => /^#{1,4}\s*What We Don't Know\s*$/.test(line));
+      const rest = start === -1 ? [] : lines.slice(start + 1);
+      const next = rest.findIndex((line) => /^#{1,4}\s/.test(line));
+      const section = (next === -1 ? rest : rest.slice(0, next)).join('\n');
+      const flat = (text: string) => text.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim();
+      const hedges = section.split('\n').map((line) => flat(line.replace(/^\s*(?:[-*]|\d+\.)\s+/, ''))).filter((line) => line.length >= 30).slice(0, 4);
+      if (hedges.length === 0) return fail("the synthesizer's text has no What We Don't Know lines to keep");
+      const reply = flat(finalReply(view));
+      const kept = hedges.filter((hedge) => reply.includes(hedge));
+      return when(kept.length * 2 >= hedges.length, `${kept.length} of the synthesizer's ${hedges.length} What We Don't Know lines reach the reply verbatim`, `reply keeps ${kept.length} of ${hedges.length} What We Don't Know lines; missing: ${hedges.filter((hedge) => !kept.includes(hedge)).map((hedge) => hedge.slice(0, 60)).join(' | ')}`);
     }),
     citationsResolve('teach.citations-resolve', src('teach/SKILL.md', 'Open the diff, the code, or the debugger'), { min: 2 }),
   ],
@@ -628,9 +652,13 @@ export const investigationFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('investigation', ['why']),
     ...todoChecks({ playbook: 'investigation' }),
-    check('investigation.throughput-checkpoint-line', 'the one-line throughput checkpoint is written verbatim', src('poteto-mode/playbooks/investigation.md', 'Throughput checkpoint stays one line'), (view) => {
-      const todo = primaryRun(view, 'investigation')?.todoText?.split('## Task-specific work')[1] ?? '';
-      return when(todo.includes('throughput checkpoint: n/a, read-only investigation'), 'TODO.md carries the checkpoint line', 'TODO.md lacks `throughput checkpoint: n/a, read-only investigation`');
+    check('investigation.throughput-checkpoint-line', 'the one-line throughput checkpoint is written: a task-specific line with the text, or playbook step 2 done with its evidence', src('poteto-mode/playbooks/investigation.md', 'Throughput checkpoint stays one line'), (view) => {
+      const run = primaryRun(view, 'investigation');
+      const line = 'throughput checkpoint: n/a, read-only investigation';
+      const task = run?.todoText?.split('## Task-specific work')[1] ?? '';
+      if (task.includes(line)) return pass('TODO.md carries the checkpoint line under Task-specific work');
+      const step = run?.steps.find((entry) => entry.text.includes(line));
+      return when(step?.state === 'done', `playbook step ${step?.n} carries the line and is done`, `Task-specific work lacks \`${line}\` and ${step === undefined ? 'no playbook step carries it' : `step ${step.n} is ${step.state}`}`);
     }),
     check('investigation.routed-through-how', 'the question was routed through how: an explainer, or explorers then an explainer, readonly on the root, each on its own how model line', src('poteto-mode/playbooks/investigation.md', 'Route through the **how** skill'), (view) => {
       const workers = allWorkers(view).filter((worker) => ['explorer', 'general'].includes(String(assignmentOf(worker).role)));
@@ -655,7 +683,7 @@ export const investigationFamily: Family = {
     check('investigation.output-is-how-shaped', 'the reply has the how-shaped sections, or for a decision between alternatives a recommendation with a tradeoffs table', [src('poteto-mode/playbooks/investigation.md', 'Produce the `how`-shaped output'), src('poteto-mode/playbooks/investigation.md', 'or a recommendation with a tradeoffs table')], (view) => {
       const reply = finalReply(view);
       if (/^\s*\|.*\|\s*$/m.test(reply) && /^\s*\|[\s:|-]*-[\s:|-]*\|\s*$/m.test(reply) && /recommend/i.test(reply) && /tradeoff/i.test(reply)) return pass('a recommendation with a tradeoffs table');
-      const missing = HOW_SECTIONS.filter((section) => !new RegExp(`^#{1,4}\\s*${section}`, 'm').test(reply));
+      const missing = HOW_SECTIONS.filter((section) => !new RegExp(`^#{1,4}\\s*${section}`, 'im').test(reply));
       return when(missing.length === 0, 'all five sections present', `missing: ${missing.join(', ')}`);
     }),
     citationsResolve('investigation.citations-resolve', src('poteto-mode/playbooks/investigation.md', 'cited explanation'), { min: 2 }),
@@ -665,6 +693,8 @@ export const investigationFamily: Family = {
     noToolErrors('investigation.no-tool-errors', src('poteto-mode/playbooks/investigation.md', '**Reply:** the investigation output')),
   ],
   negatives: [
+    { name: 'the checkpoint is carried by playbook step 2 done, with no task-specific line', mutate: (sandbox) => dropCheckpointLine(sandbox), fails: [], passes: ['investigation.throughput-checkpoint-line'] },
+    { name: 'no checkpoint line and playbook step 2 left open', mutate: (sandbox) => { dropCheckpointLine(sandbox); setStep(sandbox, 'investigate-checkout', 2, ' ', stripEvidence); }, fails: ['investigation.throughput-checkpoint-line'] },
     { name: 'a step was skipped and left open', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 2, ' ', stripEvidence), fails: ['todo.investigation.every-step-resolved'] },
     { name: 'a step was marked done with no receipt id', mutate: (sandbox) => setStep(sandbox, 'investigate-checkout', 3, 'x', stripEvidence), fails: ['todo.investigation.done-steps-proven'] },
     { name: 'a step cites a receipt that was never recorded', mutate: (sandbox) => deleteReceipt(sandbox, 'investigate-checkout', 'inv-shape'), fails: ['todo.investigation.done-steps-proven'] },
