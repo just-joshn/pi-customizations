@@ -1,0 +1,98 @@
+#!/usr/bin/env node
+// Installs the Benny pack into a project without touching local edits, reports connector state and the same-uid
+// credential limit, and proves the dispatcher on a harmless event with a fake spawn.
+//
+//   node scripts/benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, relative, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+
+import { createAutomation } from '../adapters/automation-events.ts';
+import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
+
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const pack = join(packageRoot, 'automations', 'benny');
+
+const LOCAL_CONFIG = [
+  ['templates/configuration.example.yaml', 'configuration.yaml'],
+  ['skills/reproduce-and-fix-issues/references/feature-map.example.md', 'feature-map.md'],
+  ['skills/triage-issue-reports/references/routing.example.md', 'routing.md'],
+];
+
+function files(dir) {
+  return readdirSync(dir, { recursive: true })
+    .map(String)
+    .filter((file) => statSync(join(dir, file)).isFile())
+    .sort();
+}
+
+/** Copies `source` to `target` only when `target` is absent. An existing file is never replaced. */
+function place(source, target) {
+  if (!existsSync(target)) {
+    mkdirSync(dirname(target), { recursive: true });
+    copyFileSync(source, target);
+    return 'added';
+  }
+  return readFileSync(source).equals(readFileSync(target)) ? 'unchanged' : 'conflict';
+}
+
+async function harmlessTestEvent() {
+  const project = mkdtempSync(join(tmpdir(), 'benny-setup-'));
+  const spawns = [];
+  const thread = [];
+  try {
+    const automation = createAutomation(
+      { name: 'setup-check', kind: 'triage', projectRoot: project, sourceChannelId: 'CSETUPCHECK' },
+      {
+        spawnWorker: async (runId, assignmentPath) => {
+          spawns.push({ runId, assignmentPath });
+        },
+        destination: {
+          readThread: async () => thread,
+          post: async (action) => {
+            thread.push({ ts: `${thread.length + 1}.000000`, marker: action.id });
+            return { ts: `${thread.length}.000000` };
+          },
+        },
+        prerequisites: { tracker: async () => true },
+        inputCommit: () => '0'.repeat(40),
+      },
+    );
+    const event = { source_channel_id: 'CSETUPCHECK', ts: '1700000000.000100', text: 'benny setup check: harmless test report' };
+    const first = await automation.handle(event);
+    const again = await automation.handle(event);
+    if (first.status !== 'dispatched' || again.status !== 'duplicate') return { ok: false, reason: `unexpected outcomes ${first.status}, ${again.status}` };
+    await automation.complete(first.runId, 'Setup check only.\n[benny:other]');
+    const written = readFileSync(spawns[0].assignmentPath, 'utf8') + readFileSync(join(dirname(spawns[0].assignmentPath), 'brief.md'), 'utf8');
+    if (written.includes(credentialsDir())) return { ok: false, reason: 'assignment or brief names the credentials directory' };
+    const ok = spawns.length === 1 && thread.length === 1;
+    return ok ? { ok, spawns: spawns.length, replies: thread.length } : { ok, reason: `spawns ${spawns.length}, replies ${thread.length}` };
+  } finally {
+    rmSync(project, { recursive: true, force: true });
+  }
+}
+
+const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string', default: 'benny-triage' }, credentials: { type: 'string' } } });
+if (values.project === undefined) {
+  console.error('usage: benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]');
+  process.exit(2);
+}
+const project = resolve(values.project);
+const packTarget = join(project, '.pi', 'automations', 'benny');
+const configTarget = join(project, '.pi', 'benny');
+
+const report = { pack: { added: [], unchanged: [], conflicts: [] }, localConfig: { added: [], unchanged: [], conflicts: [] } };
+const bucket = { added: 'added', unchanged: 'unchanged', conflict: 'conflicts' };
+for (const file of files(pack)) report.pack[bucket[place(join(pack, file), join(packTarget, file))]].push(file);
+for (const [source, target] of LOCAL_CONFIG) report.localConfig[bucket[place(join(pack, source), join(configTarget, target))]].push(relative(project, join(configTarget, target)));
+
+const credentialFile = values.credentials ?? defaultCredentialFile(values.name);
+const credential = readCredential(credentialFile, 'key');
+report.connector = { webhookSecret: credential.ok ? 'present, 0600' : credential.reason };
+report.sameUidLimit = SAME_UID_LIMIT;
+report.testEvent = await harmlessTestEvent();
+
+console.log(JSON.stringify(report, null, 2));
+process.exit(report.testEvent.ok ? 0 : 1);
