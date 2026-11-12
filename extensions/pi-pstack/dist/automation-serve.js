@@ -6945,7 +6945,7 @@ var require_public_api = __commonJS(function(exports) {
 
 // src/automation/serve-cli.ts
 import { realpathSync as realpathSync4 } from "node:fs";
-import { resolve as resolve5 } from "node:path";
+import { resolve as resolve6 } from "node:path";
 import { parseArgs } from "node:util";
 
 // adapters/automation-events.ts
@@ -15405,15 +15405,64 @@ function startSettler(automation, options) {
 }
 
 // src/automation/control-adapter.ts
-import { existsSync as existsSync7, readFileSync as readFileSync7, realpathSync as realpathSync3, statSync as statSync3 } from "node:fs";
-import { join as join9, relative as relative4, resolve as resolve4 } from "node:path";
+import { existsSync as existsSync8, readFileSync as readFileSync7, realpathSync as realpathSync3, statSync as statSync4 } from "node:fs";
+import { relative as relative4, resolve as resolve5 } from "node:path";
+
+// src/automation/skills.ts
+import { existsSync as existsSync7, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
+import { homedir as homedir3 } from "node:os";
+import { dirname as dirname4, join as join9, resolve as resolve4 } from "node:path";
+var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+var MAX_DEPTH2 = 3;
+var isSkillName = (value) => value.length <= 64 && SKILL_NAME.test(value);
+function agentsDirs(projectRoot) {
+  const dirs = [];
+  for (let dir = resolve4(projectRoot);; dir = dirname4(dir)) {
+    dirs.push(join9(dir, ".agents", "skills"));
+    if (existsSync7(join9(dir, ".git")) || dirname4(dir) === dir)
+      return dirs;
+  }
+}
+function skillDirectories(locations) {
+  const home = locations.home ?? homedir3();
+  const agentDir = process.env["PI_CODING_AGENT_DIR"] ?? join9(home, ".pi", "agent");
+  return [join9(resolve4(locations.projectRoot), ".pi", "skills"), ...agentsDirs(locations.projectRoot), join9(agentDir, "skills"), join9(home, ".agents", "skills"), join9(locations.packageRoot ?? PACKAGE_ROOT, "generated", "skills")];
+}
+function find(dir, name, depth) {
+  const direct = join9(dir, name, "SKILL.md");
+  if (existsSync7(direct) && statSync3(direct).isFile())
+    return direct;
+  if (depth === 0 || !existsSync7(dir))
+    return;
+  for (const entry of readdirSync3(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules" || existsSync7(join9(dir, entry.name, "SKILL.md")))
+      continue;
+    const found = find(join9(dir, entry.name), name, depth - 1);
+    if (found !== undefined)
+      return found;
+  }
+  return;
+}
+function resolveSkill(name, locations) {
+  if (!isSkillName(name))
+    return { ok: false, problem: `${JSON.stringify(name)} is not a skill name` };
+  const directories = skillDirectories(locations);
+  for (const dir of directories) {
+    const found = find(dir, name, MAX_DEPTH2);
+    if (found !== undefined)
+      return { ok: true, path: found };
+  }
+  return { ok: false, problem: `skill ${name} is not in any Pi skill location (${directories.join(", ")})` };
+}
+
+// src/automation/control-adapter.ts
 var REQUIRED_SECTIONS = ["How a user gets there", "How the control adapter drives it"];
 function featureMapProblem(projectRoot, featureMapPath) {
-  const root = realpathSync3(resolve4(projectRoot));
-  const file = resolve4(root, featureMapPath);
+  const root = realpathSync3(resolve5(projectRoot));
+  const file = resolve5(root, featureMapPath);
   if (relative4(root, file).startsWith(".."))
     return "the feature map is outside the project";
-  if (!existsSync7(file) || !statSync3(file).isFile())
+  if (!existsSync8(file) || !statSync4(file).isFile())
     return `the feature map ${featureMapPath} does not exist`;
   if (relative4(root, realpathSync3(file)).startsWith(".."))
     return "the feature map resolves outside the project";
@@ -15431,14 +15480,15 @@ function featureMapProblem(projectRoot, featureMapPath) {
   }
   return;
 }
-function controlSkillProblem(skillName, packageRoot = PACKAGE_ROOT) {
-  if (!isIdentifier(skillName))
-    return `control skill name ${JSON.stringify(skillName)} is not a skill name`;
-  return existsSync7(join9(packageRoot, "generated", "skills", skillName, "SKILL.md")) ? undefined : `control skill ${skillName} is not in generated/skills`;
+function controlSkillProblem(skillName, locations) {
+  const found = resolveSkill(skillName, locations);
+  if (found.ok)
+    return;
+  return found.problem.endsWith("is not a skill name") ? `control skill name ${found.problem}` : `control skill ${found.problem.replace(/^skill /, "")}`;
 }
-function controlProbes(projectRoot, control, packageRoot = PACKAGE_ROOT) {
+function controlProbes(projectRoot, control, locations = {}) {
   return {
-    controlAdapter: async () => controlSkillProblem(control.skillName, packageRoot) === undefined,
+    controlAdapter: async () => controlSkillProblem(control.skillName, { projectRoot, ...locations }) === undefined,
     featureMap: async () => featureMapProblem(projectRoot, control.featureMapPath) === undefined
   };
 }
@@ -15465,7 +15515,7 @@ function createTrackerPolicy(options) {
 // src/automation/wiring.ts
 function wireBenny(config, deps) {
   const destination = slackDestination({ fetch: deps.fetch, token: deps.slackToken });
-  const probes = controlProbes(config.projectRoot, config.control, deps.packageRoot);
+  const probes = controlProbes(config.projectRoot, config.control, { ...deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }, ...deps.home === undefined ? {} : { home: deps.home } });
   let tracker;
   let policy;
   if (config.tracker.type === "github" && config.tracker.repo !== undefined) {
@@ -15493,8 +15543,8 @@ var settlePollMs = Number(values["settle-poll-ms"]);
 if (values.project === undefined || kind !== "triage" && kind !== "reproduce" || !Number.isInteger(port) || port < 0 || port > 65535 || !Number.isInteger(settlePollMs) || settlePollMs < 100) {
   throw new Error("usage: automation-serve.mjs --project <root> --kind triage|reproduce [--port <port>] [--settle-poll-ms <ms>]");
 }
-var project = realpathSync4(resolve5(values.project));
-var configFile = resolve5(project, ".pi/benny/configuration.yaml");
+var project = realpathSync4(resolve6(values.project));
+var configFile = resolve6(project, ".pi/benny/configuration.yaml");
 var config = loadBennyConfig(project, kind, configFile);
 var slackFile = defaultCredentialFile("slack");
 var slack = readCredential(slackFile, "token");

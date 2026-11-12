@@ -97,10 +97,10 @@ Ask for or confirm:
 - Optional operations or status channel ID
 - Repository URL and default branch
 - Triage identity or Slack user ID
-- Issue tracker. Set `tracker.type: "github"` and `tracker.repo: "owner/name"`. The adapter ships with this package and talks to GitHub through the `gh` CLI. GitHub Issues has no team, project, or status, so those keys are not needed.
-- The four tracker labels. They must already exist in the repository, because the adapter applies them and never creates one.
+- Issue tracker type, team, project, labels, and intake status. `tracker.type: "github"` with `tracker.repo: "owner/name"` is the one tracker this package ships. It talks to GitHub through the `gh` CLI and has no team, project, or status, so those keys are not needed. The four labels must already exist in the repository, because the adapter applies them and never creates one.
+- Tracker adapter skill or MCP actions
 - Optional routing map path
-- Required control skill name, which must be a skill pi-pstack ships in `generated/skills`, such as `control-ui` or `control-cli`
+- Required control skill name. It is any skill Pi can load for the project: one in `.pi/skills/`, in a `.agents/skills/` directory from the project up to the repository root, in `~/.pi/agent/skills/` or `~/.agents/skills/`, or one this package ships, such as `control-ui` or `control-cli`.
 - Required user-facing feature-map path
 - Status emoji strings
 - Pull request URL format
@@ -141,7 +141,7 @@ If no routing map is configured, triage may classify a report but must not guess
 
 Read `../reproduce-and-fix-issues/references/control-adapter.md` and the user's completed feature map.
 
-The automation checks two things itself before it dispatches a repro case, and logs the case `blocked` when either fails: the feature map at `control.feature_map_path` exists inside the project and is complete, meaning it has at least one feature section with no unfilled `<placeholder>` heading and each feature has `How a user gets there` and `How the control adapter drives it`; and `control.skill_name` names a skill in the package's `generated/skills`. Whether the skill can do the following is judged by the repro worker and by the setup check below, not by code.
+The automation checks two things itself before it dispatches a repro case, and logs the case `blocked` when either fails: the feature map at `control.feature_map_path` exists inside the project and is complete, meaning it has at least one feature section with no unfilled `<placeholder>` heading and each feature has `How a user gets there` and `How the control adapter drives it`; and `control.skill_name` names a skill Pi can load for the project, by the locations section 3 lists. A name with a path separator, or anything that is not plain skill-name syntax, is refused. Whether the skill can do the following is judged by the repro worker and by the setup check below, not by code.
 
 Confirm that the named skill can:
 

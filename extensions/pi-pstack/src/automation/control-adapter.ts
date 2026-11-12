@@ -3,10 +3,10 @@
 // feature map is absent or incomplete. Which control capabilities the skill drives is the worker's judgment; code
 // checks only what it can see: the feature map file and the control skill's presence.
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { join, relative, resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
 
-import { PACKAGE_ROOT } from '../paths.ts';
-import { isIdentifier, type Probe } from './model.ts';
+import type { Probe } from './model.ts';
+import { resolveSkill, type SkillLocations } from './skills.ts';
 
 export interface ControlConfig {
   skillName: string;
@@ -37,15 +37,16 @@ export function featureMapProblem(projectRoot: string, featureMapPath: string): 
   return undefined;
 }
 
-/** The control skill must be a skill this package ships, by a name that cannot leave `generated/skills`. */
-export function controlSkillProblem(skillName: string, packageRoot = PACKAGE_ROOT): string | undefined {
-  if (!isIdentifier(skillName)) return `control skill name ${JSON.stringify(skillName)} is not a skill name`;
-  return existsSync(join(packageRoot, 'generated', 'skills', skillName, 'SKILL.md')) ? undefined : `control skill ${skillName} is not in generated/skills`;
+/** The control skill is any skill the configuration names that Pi can load for this project, not only one this package ships. */
+export function controlSkillProblem(skillName: string, locations: SkillLocations): string | undefined {
+  const found = resolveSkill(skillName, locations);
+  if (found.ok) return undefined;
+  return found.problem.endsWith('is not a skill name') ? `control skill name ${found.problem}` : `control skill ${found.problem.replace(/^skill /, '')}`;
 }
 
-export function controlProbes(projectRoot: string, control: ControlConfig, packageRoot = PACKAGE_ROOT): { controlAdapter: Probe; featureMap: Probe } {
+export function controlProbes(projectRoot: string, control: ControlConfig, locations: Omit<SkillLocations, 'projectRoot'> = {}): { controlAdapter: Probe; featureMap: Probe } {
   return {
-    controlAdapter: async () => controlSkillProblem(control.skillName, packageRoot) === undefined,
+    controlAdapter: async () => controlSkillProblem(control.skillName, { projectRoot, ...locations }) === undefined,
     featureMap: async () => featureMapProblem(projectRoot, control.featureMapPath) === undefined,
   };
 }

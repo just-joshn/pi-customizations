@@ -84,7 +84,7 @@ function readiness(root) {
   for (const kind of ['triage', 'reproduce']) {
     try {
       const config = loadBennyConfig(root, kind);
-      result[kind] = { config: 'ok', tracker: config.tracker.type, featureMap: featureMapProblem(root, config.control.featureMapPath) ?? 'ok', controlSkill: controlSkillProblem(config.control.skillName) ?? 'ok' };
+      result[kind] = { config: 'ok', tracker: config.tracker.type, featureMap: featureMapProblem(root, config.control.featureMapPath) ?? 'ok', controlSkill: controlSkillProblem(config.control.skillName, { projectRoot: root }) ?? 'ok' };
     } catch (error) {
       result[kind] = { config: error.message };
     }

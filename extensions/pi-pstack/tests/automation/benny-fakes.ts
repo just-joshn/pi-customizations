@@ -126,4 +126,4 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
   return { dir, config: (kind) => loadBennyConfig(dir, kind, file) };
 }
 
-export const wiringDeps = (slack: ReturnType<typeof fakeSlack>, gh: ReturnType<typeof fakeGh>, extra: Partial<WiringDeps> = {}): WiringDeps => ({ fetch: slack.fetch, slackToken: 'xoxb-test', exec: gh.exec, inputCommit: () => 'a'.repeat(40), ...extra });
+export const wiringDeps = (slack: ReturnType<typeof fakeSlack>, gh: ReturnType<typeof fakeGh>, extra: Partial<WiringDeps> = {}): WiringDeps => ({ fetch: slack.fetch, slackToken: 'xoxb-test', exec: gh.exec, inputCommit: () => 'a'.repeat(40), home: join(tmpdir(), 'benny-no-such-home'), ...extra });

@@ -18,11 +18,13 @@ export interface WiringDeps {
   inputCommit?: () => string;
   now?: () => Date;
   packageRoot?: string;
+  /** Where `~/.pi/agent/skills` and `~/.agents/skills` are looked up. Defaults to the user's home. */
+  home?: string;
 }
 
 export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   const destination = slackDestination({ fetch: deps.fetch, token: deps.slackToken });
-  const probes: Partial<Record<Prerequisite, Probe>> = controlProbes(config.projectRoot, config.control, deps.packageRoot);
+  const probes: Partial<Record<Prerequisite, Probe>> = controlProbes(config.projectRoot, config.control, { ...(deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }), ...(deps.home === undefined ? {} : { home: deps.home }) });
   let tracker: TrackerDestination | undefined;
   let policy: ReturnType<typeof createTrackerPolicy> | undefined;
   // Only the GitHub adapter ships. Any other tracker type has no probe, so cases needing a tracker are logged blocked.

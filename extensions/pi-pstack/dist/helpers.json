@@ -1,5 +1,5 @@
 {
-  "inputs": "3f926956bb6c9f2f8cb4cfe9ea9193569c3acd09926241c34e646060a9605c99",
+  "inputs": "42d27fd506c6f167f69dbb63f28a95f329c3703fe6c2300807deea89e4d95d06",
   "standaloneCatalog": {
     "package": "@earendil-works/pi-ai",
     "version": "1.5.0",
@@ -12,7 +12,7 @@
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
     "dist/worker-host.js": "80742b2101fb53c3b91eb71770979048b069097d5746fc02ce09d2f416f923c3",
     "dist/routine-setup.js": "1ae67179a257a0ad111d8541fbe35956de8bfa7afd8398a64612df6cf3a579a6",
-    "dist/automation-serve.js": "195a508b5c9a55598bc8dadba022d61aa98a302beecab837505d8da983e8e182",
+    "dist/automation-serve.js": "6eeb218f878ddafd8bd719b9a423f579e791134a780f13542f51d1a36b835cca",
     "dist/statechart.js": "3b180b5ebabac82256f6538844fc6b5d1798e0bf406f875fc27032a633b38d4a",
     "dist/worker.js": "df24c4d87f25024c57c3a2b8a0f36894f8aa5eaae51078402d1d6d37427c6fc7"
   }
