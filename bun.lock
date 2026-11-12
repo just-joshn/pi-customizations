@@ -72,20 +72,14 @@
     },
     "extensions/pi-pstack": {
       "name": "@justjoshn/pi-pstack",
-      "version": "0.15.36-pi.39",
-      "bin": {
-        "pstack-routines-supervisor": "./bin/pstack-routines-supervisor",
-      },
+      "version": "0.15.36-pi.40",
       "dependencies": {
         "@anthropic-ai/sandbox-runtime": "0.0.79",
-        "re2js": "1.2.2",
         "yaml": "2.9.0",
       },
       "devDependencies": {
-        "@earendil-works/pi-agent-core": "1.5.0",
         "@earendil-works/pi-ai": "1.5.0",
         "@earendil-works/pi-coding-agent": "1.5.0",
-        "@earendil-works/pi-tui": "1.5.0",
         "@types/node": "^22.19.0",
         "@vitest/coverage-v8": "^5.0.2",
         "commander": "14.0.0",
@@ -98,10 +92,8 @@
         "vitest": "^5.0.2",
       },
       "peerDependencies": {
-        "@earendil-works/pi-agent-core": "*",
         "@earendil-works/pi-ai": "*",
         "@earendil-works/pi-coding-agent": "*",
-        "@earendil-works/pi-tui": "*",
         "typebox": "*",
       },
     },
@@ -1051,8 +1043,6 @@
     "pure-rand": ["pure-rand@7.0.1", "", {}, "sha512-oTUZM/NAZS8p7ANR3SHh30kXB+zK2r2BPcEn/awJIbOvq82WoMN4p62AWWp3Hhw50G0xMsw1mhIBLqHw64EcNQ=="],
 
     "quickjs-wasi": ["quickjs-wasi@3.6.2", "", {}, "sha512-FCqGtGOrMgzUiIrMNMA2YnsOxCNwo31dzqXvclXUC6xeT35NJLKXQJsvbeCTjvoFAwZgEAPg8U6+KAPDGXn8Mg=="],
-
-    "re2js": ["re2js@1.2.2", "", {}, "sha512-xvy4uuynAZWg9SuHbg0lgQncOuK6wssLmbHs8L8+YRbWLKY8Pe1avaHjNaFLOjErq8Oh0HvwQRWqIOCRL7uDDw=="],
 
     "react": ["react@19.3.1", "", {}, "sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw=="],
 
