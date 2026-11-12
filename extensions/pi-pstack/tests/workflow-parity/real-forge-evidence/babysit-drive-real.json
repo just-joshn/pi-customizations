@@ -1,0 +1,670 @@
+{
+  "family": "babysit-drive-real",
+  "recordedAt": "2026-11-12T12:25:58.777Z",
+  "piRunMs": 116518,
+  "facts": {
+    "repo": "just-joshn/pstack-parity-sandbox",
+    "family": "babysit-drive",
+    "capturedAt": "2026-11-12T12:25:54.966Z",
+    "trunk": "pf/mwdirr4d/babysit-drive/trunk",
+    "trunkBase": "e4887bfd6685a8489381ccdf3c7e6bb849e4bd93",
+    "trunkCommits": [
+      {
+        "sha": "e4887bfd6685a8489381ccdf3c7e6bb849e4bd93",
+        "message": "refactor(cart): annotate applyCoupon",
+        "parents": 1
+      },
+      {
+        "sha": "617f04e67cc04df7c8f9ade609bcda6f6507b207",
+        "message": "ci: parity sandbox workflow",
+        "parents": 1
+      },
+      {
+        "sha": "71f47a86dd376863a530a334d8bc0311ef64001c",
+        "message": "refactor: split money helpers and add checkout (#130)",
+        "parents": 1
+      },
+      {
+        "sha": "d221701725910dbb20557d9f062ef2a4c21445fd",
+        "message": "fix: round totals to cents (#124)",
+        "parents": 1
+      },
+      {
+        "sha": "4ed33f0a484055e9104f5506583dcffb78b3534d",
+        "message": "feat: coupon percent off (#118)",
+        "parents": 1
+      },
+      {
+        "sha": "e14818ed25d00df2e9697b61f044ed8bef95ba0c",
+        "message": "feat: cart subtotal (#101)",
+        "parents": 0
+      }
+    ],
+    "prefix": "pf/mwdirr4d/babysit-drive",
+    "settled": true,
+    "prs": [
+      {
+        "number": 14,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/14",
+        "title": "fix(cart): cap a coupon at 100 percent",
+        "body": "## Why\nA coupon over 100 percent pays the customer.\n",
+        "state": "open",
+        "merged": false,
+        "mergedAt": null,
+        "mergeCommit": "25551e0b2c211fb2c68e2cb4ddec4ff7ff43ea3c",
+        "base": "pf/mwdirr4d/babysit-drive/trunk",
+        "head": "pf/mwdirr4d/babysit-drive/feat-coupon-cap",
+        "headSha": "7ac2b2bb104bf411dca7a06152bc81115f428ef9",
+        "owner": "owner-12",
+        "isDraft": false,
+        "mergeableState": "clean",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [
+          {
+            "author": "just-joshn",
+            "body": "babysit: PR 14 conflicts with trunk in src/cart.js. The owner of branch feat-coupon-cap needs to rebase it onto trunk and publish with --force-with-lease.\nDrift sweep: trunk changed applyCoupon, so check its callers in src/checkout.js in the same wave.\n",
+            "createdAt": "2026-11-12T12:24:11Z"
+          }
+        ],
+        "threads": [
+          {
+            "id": "PRRT_kwDOVrtC_c62nXef",
+            "resolved": true,
+            "comments": [
+              {
+                "id": 4550379784,
+                "author": "just-joshn",
+                "body": "Severity: Low\nDuplicated clamp logic: `Math.min(percent, 100)` already exists in `src/checkout.js`, so extract a shared helper.\nRUN_ID: bb-1",
+                "path": "src/cart.js",
+                "line": 12,
+                "createdAt": "2026-11-12T12:24:18Z"
+              },
+              {
+                "id": 4550381381,
+                "author": "just-joshn",
+                "body": "Dismissed: git grep for Math.min under src/ finds one clamp, in src/cart.js. src/checkout.js has none and calls total(), so there is no duplicate to extract.",
+                "path": "src/cart.js",
+                "line": 12,
+                "createdAt": "2026-11-12T12:24:28Z"
+              }
+            ]
+          }
+        ],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "7ac2b2bb104bf411dca7a06152bc81115f428ef9"
+          },
+          {
+            "event": "head_ref_force_pushed",
+            "actor": "just-joshn",
+            "createdAt": "2026-11-12T12:24:15Z",
+            "sha": "7ac2b2bb104bf411dca7a06152bc81115f428ef9"
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43217569107,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217569107/job/131180797149"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43217569107,
+            "headSha": "7ac2b2bb104bf411dca7a06152bc81115f428ef9",
+            "attempt": 2,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217569107",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "failure",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217569107",
+                "startedAt": "2026-11-12T12:24:16Z"
+              },
+              {
+                "attempt": 2,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217569107",
+                "startedAt": "2026-11-12T12:24:38Z"
+              }
+            ]
+          },
+          {
+            "id": 43217521291,
+            "headSha": "fb58e5c02e24231380879da41530e9c3a636dc35",
+            "attempt": 1,
+            "conclusion": "failure",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217521291",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "failure",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217521291",
+                "startedAt": "2026-11-12T12:23:57Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "9890cceb4b5fc1ffeb9790dc5de8b13744dd9f0f",
+        "parentSha": "e4887bfd6685a8489381ccdf3c7e6bb849e4bd93",
+        "testPassesAtHead": null
+      }
+    ],
+    "operator": [
+      {
+        "at": "2026-11-12T12:24:13.076Z",
+        "kind": "asked"
+      },
+      {
+        "at": "2026-11-12T12:24:14.845Z",
+        "kind": "force-push",
+        "branch": "pf/mwdirr4d/babysit-drive/feat-coupon-cap",
+        "old": "fb58e5c02e24231380879da41530e9c3a636dc35",
+        "new": "7ac2b2bb104bf411dca7a06152bc81115f428ef9"
+      },
+      {
+        "at": "2026-11-12T12:24:19.180Z",
+        "kind": "review-thread",
+        "head": "7ac2b2bb104bf411dca7a06152bc81115f428ef9",
+        "path": "src/cart.js",
+        "line": 12
+      }
+    ],
+    "notes": {
+      "initialMergeableState": "dirty"
+    },
+    "watch": {
+      "code": 0,
+      "kinds": [
+        "READY",
+        "single",
+        "passed",
+        "allowed"
+      ]
+    },
+    "actions": [
+      {
+        "name": "PR 14 run 43217569107",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217569107"
+      },
+      {
+        "name": "PR 14 run 43217521291",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217521291"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "slash.poteto-mode",
+      "title": "/poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:10",
+      "evidence": "first user message routes to generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "id": "reads.babysit.poteto-mode-and-playbook",
+      "title": "the parent opens poteto-mode SKILL.md and playbooks/babysit.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "poteto-mode and the playbook were opened"
+    },
+    {
+      "id": "todo.babysit.run-from-playbook",
+      "title": "a run for the babysit playbook exists with run.json and TODO.md pinned to the upstream revision",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "run babysit-drive-real: playbook=babysit revision=a5539b15a3d5"
+    },
+    {
+      "id": "todo.babysit.steps-verbatim-in-order",
+      "title": "the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/babysit.md:7",
+      "evidence": "9 steps match the playbook text in order"
+    },
+    {
+      "id": "todo.babysit.initial-states-open",
+      "title": "the first TODO.md the run wrote has every original step open",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "9 steps open in the first snapshot"
+    },
+    {
+      "id": "todo.babysit.every-step-resolved",
+      "title": "every original step ends done with evidence or skipped with a reason, none open",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "9 steps, all resolved"
+    },
+    {
+      "id": "todo.babysit.done-steps-proven",
+      "title": "each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass)",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "9 done steps, every cited receipt re-verifies"
+    },
+    {
+      "id": "todo.babysit.skips-explained",
+      "title": "a skipped step names its reason, and no mandatory step is skipped",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/babysit.md:7",
+      "evidence": "skips: none"
+    },
+    {
+      "id": "todo.babysit.resolved-in-order",
+      "title": "step N is not resolved before step N-1 is resolved",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "resolution order over 12 snapshots follows the source order"
+    },
+    {
+      "id": "todo.babysit.parent-sole-writer",
+      "title": "no worker writes the run TODO.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "4 workers, none touched TODO.md"
+    },
+    {
+      "id": "real.babysit.mode-declared-from-the-request",
+      "title": "the mode is declared in TODO.md before any forge call or watcher spawn, and equals the table's answer for the request (drive)",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:7",
+      "evidence": "request routes to drive; TODO.md declares drive at 10, before the first poll at 14"
+    },
+    {
+      "id": "real.babysit.forge-resolved-once-gh-fallback-recorded",
+      "title": "the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:7",
+      "evidence": "resolved once at 12 before the first forge call at 22; recorded gh"
+    },
+    {
+      "id": "real.babysit.watchers-are-watch-pr-workers-on-the-real-pr",
+      "title": "each watcher is a kind:watch worker with role watcher, the absolute watch-pr path, --owner and --repo of the sandbox repository, the PR number, no --status-only, cwd the repository root",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:12",
+      "evidence": "4 watchers, each watch-pr on just-joshn/pstack-parity-sandbox PR 14"
+    },
+    {
+      "id": "real.babysit.verdicts-arrive-conflicts-then-threads-then-ci",
+      "title": "the real watch-pr's exit codes are the playbook's order: 2 merge-conflicts, 3 review-threads, 4 failing-checks, then 0 READY",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:11",
+      "evidence": "watch-pr exits 2, 3, 4, 0"
+    },
+    {
+      "id": "real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop",
+      "title": "no two watchers were live at once, each was armed after the previous ended, none after READY, and the parent ran no sleep loop except the one bounded wait for the owner's push",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:12",
+      "evidence": "4 watchers, strictly sequential, the last ended READY, no sleep loop but the owner wait"
+    },
+    {
+      "id": "real.babysit.parent-typed-no-topology-change",
+      "title": "the parent typed no rebase, merge, reset, push, force, retarget or branch move",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:10",
+      "evidence": "no mutating git or retarget command typed"
+    },
+    {
+      "id": "real.babysit.fresh-build-came-after-the-log-and-the-base-check-and-was-whole-run",
+      "title": "the failing run log and the base were read before the one rerun, the rerun has no --failed or --job, and exactly one rerun was typed",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:19",
+      "evidence": "log read at 86 and base checked at 88, then one whole-run rerun at 90"
+    },
+    {
+      "id": "real.babysit.review-text-is-data-and-triage-is-grounded",
+      "title": "the thread was checked against the code before the reply, the reply went through a JSON file, no comment text reached a shell command, and a triage decision row names the evidence",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/references/bugbot-triage.md:7",
+      "evidence": "code lookup 14 before the reply 15; no comment text in a command; decision row dismiss the duplicate-clamp thread"
+    },
+    {
+      "id": "real.babysit.parent-typed-no-merge",
+      "title": "the parent typed no `gh pr merge`",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:21",
+      "evidence": "no merge command typed"
+    },
+    {
+      "id": "real.babysit.reply-is-merge-ready-not-merged",
+      "title": "the reply says the PR is merge-ready, that nothing merged, and that landing is Shipping",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:21",
+      "evidence": "merge-ready, not merged, Shipping"
+    },
+    {
+      "id": "real.babysit.no-tool-errors",
+      "title": "no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:12",
+      "evidence": "64 tool calls, none failed"
+    },
+    {
+      "id": "real.babysit.the-conflict-was-real-and-reported-before-anything-else",
+      "title": "the PR conflicted on GitHub when the run began, and its report comment (naming the branch, the rebase and the drift sweep) came before the owner rebase, the owner rebase before the thread reply, and the reply before the fresh build",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:11",
+      "evidence": "mergeable_state was dirty at the start; report 2026-11-12T12:24:11Z, owner force-push 2026-11-12T12:24:15Z, reply 2026-11-12T12:24:28Z, fresh build 2026-11-12T12:24:38Z"
+    },
+    {
+      "id": "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref",
+      "title": "exactly one force-push reached the PR branch, it is the owner stand-in's (its logged SHA is the head now, authored by the owner), the base never changed, and trunk holds only the commit that caused the conflict",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:10",
+      "evidence": "one force-push, the owner's (7ac2b2bb, author owner-12); base pf/mwdirr4d/babysit-drive/trunk unchanged; trunk tip is the conflicting commit"
+    },
+    {
+      "id": "real.babysit.the-review-thread-was-triaged-on-the-pr",
+      "title": "the review thread the owner stand-in opened on the new head holds a reply that cites src/cart.js and says Dismissed, and the thread is resolved on GitHub",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/references/bugbot-triage.md:7",
+      "evidence": "1 thread on src/cart.js, 2 comments, reply cites src/cart.js, resolved"
+    },
+    {
+      "id": "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure",
+      "title": "the check failed on attempt 1 with the infrastructure error and passed on attempt 2 of the same run: one whole-run rerun, never a third attempt",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:19",
+      "evidence": "run 43217569107: attempt 1 failure, attempt 2 success; 1 run at the head"
+    },
+    {
+      "id": "real.babysit.the-pr-is-merge-ready-on-github",
+      "title": "on GitHub the PR is open, not draft, mergeable_state clean, every check run success, no unresolved thread, and the real watch-pr, run once over this state, exits 0 with READY",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:16",
+      "evidence": "open, clean, 1 check(s) success, threads resolved; watch-pr exit 0 READY, single, passed, allowed"
+    },
+    {
+      "id": "real.babysit.never-merges-because-checks-are-green",
+      "title": "the GitHub API shows no PR merged, queued or armed for auto-merge, every PR still open, and trunk unmoved by the run",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/babysit.md:21",
+      "evidence": "1 PR(s) open, none merged or armed; trunk at its base"
+    }
+  ],
+  "negatives": [
+    {
+      "name": "a step was left open",
+      "expected": [
+        "todo.babysit.every-step-resolved"
+      ],
+      "failedChecks": [
+        "todo.babysit.every-step-resolved"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step is done with no receipt id",
+      "expected": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step cites a receipt that was never recorded",
+      "expected": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the artifact changed after the receipt hashed it",
+      "expected": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.babysit.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step was skipped with no reason",
+      "expected": [
+        "todo.babysit.skips-explained"
+      ],
+      "failedChecks": [
+        "todo.babysit.skips-explained"
+      ],
+      "detected": true
+    },
+    {
+      "name": "steps were resolved out of order",
+      "expected": [
+        "todo.babysit.resolved-in-order"
+      ],
+      "failedChecks": [
+        "todo.babysit.resolved-in-order"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a playbook step was deleted from TODO.md",
+      "expected": [
+        "todo.babysit.steps-verbatim-in-order"
+      ],
+      "failedChecks": [
+        "todo.babysit.steps-verbatim-in-order"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter merged because every check was green",
+      "expected": [
+        "real.babysit.never-merges-because-checks-are-green",
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "failedChecks": [
+        "real.babysit.the-pr-is-merge-ready-on-github",
+        "real.babysit.never-merges-because-checks-are-green"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter armed auto-merge",
+      "expected": [
+        "real.babysit.never-merges-because-checks-are-green"
+      ],
+      "failedChecks": [
+        "real.babysit.never-merges-because-checks-are-green"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter force-pushed the branch as well",
+      "expected": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref"
+      ],
+      "failedChecks": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter retargeted the PR",
+      "expected": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref"
+      ],
+      "failedChecks": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a second fresh build was requested",
+      "expected": [
+        "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure"
+      ],
+      "failedChecks": [
+        "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the check never failed, so there was nothing to rerun",
+      "expected": [
+        "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure"
+      ],
+      "failedChecks": [
+        "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the thread was left unresolved",
+      "expected": [
+        "real.babysit.the-review-thread-was-triaged-on-the-pr",
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "failedChecks": [
+        "real.babysit.the-review-thread-was-triaged-on-the-pr",
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the reply never cited the code",
+      "expected": [
+        "real.babysit.the-review-thread-was-triaged-on-the-pr",
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else"
+      ],
+      "failedChecks": [
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else",
+        "real.babysit.the-review-thread-was-triaged-on-the-pr"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a check is still red at the end",
+      "expected": [
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "failedChecks": [
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the real watch-pr did not answer READY",
+      "expected": [
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "failedChecks": [
+        "real.babysit.the-pr-is-merge-ready-on-github"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the conflict was never reported to the owner",
+      "expected": [
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else"
+      ],
+      "failedChecks": [
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the PR never conflicted",
+      "expected": [
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else"
+      ],
+      "failedChecks": [
+        "real.babysit.the-conflict-was-real-and-reported-before-anything-else"
+      ],
+      "detected": true
+    },
+    {
+      "name": "someone else pushed after the owner",
+      "expected": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref"
+      ],
+      "failedChecks": [
+        "real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref",
+        "real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter rebased in the checkout",
+      "expected": [
+        "real.babysit.parent-typed-no-topology-change"
+      ],
+      "failedChecks": [
+        "real.babysit.parent-typed-no-topology-change"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the babysitter typed a merge",
+      "expected": [
+        "real.babysit.parent-typed-no-merge"
+      ],
+      "failedChecks": [
+        "real.babysit.parent-typed-no-merge"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the parent polled with its own sleep loop",
+      "expected": [
+        "real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop"
+      ],
+      "failedChecks": [
+        "real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop"
+      ],
+      "detected": true
+    },
+    {
+      "name": "comment text was interpolated into a shell command",
+      "expected": [
+        "real.babysit.review-text-is-data-and-triage-is-grounded"
+      ],
+      "failedChecks": [
+        "real.babysit.review-text-is-data-and-triage-is-grounded"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the forge was never resolved before the first call",
+      "expected": [
+        "real.babysit.forge-resolved-once-gh-fallback-recorded"
+      ],
+      "failedChecks": [
+        "real.babysit.forge-resolved-once-gh-fallback-recorded"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the reply claims a merge",
+      "expected": [
+        "real.babysit.reply-is-merge-ready-not-merged"
+      ],
+      "failedChecks": [
+        "real.babysit.reply-is-merge-ready-not-merged"
+      ],
+      "detected": true
+    }
+  ],
+  "cleanup": {
+    "leftoverPrs": [],
+    "leftoverBranches": []
+  },
+  "table": "== babysit-drive-real (real forge, scripted model driver): 27 PASS ==\nPASS   slash.poteto-mode\n       /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request\n       source: generated/skills/poteto-mode/SKILL.md:10\n       evidence: first user message routes to generated/skills/poteto-mode/SKILL.md\nPASS   reads.babysit.poteto-mode-and-playbook\n       the parent opens poteto-mode SKILL.md and playbooks/babysit.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: poteto-mode and the playbook were opened\nPASS   todo.babysit.run-from-playbook\n       a run for the babysit playbook exists with run.json and TODO.md pinned to the upstream revision\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: run babysit-drive-real: playbook=babysit revision=a5539b15a3d5\nPASS   todo.babysit.steps-verbatim-in-order\n       the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/babysit.md:7\n       evidence: 9 steps match the playbook text in order\nPASS   todo.babysit.initial-states-open\n       the first TODO.md the run wrote has every original step open\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 9 steps open in the first snapshot\nPASS   todo.babysit.every-step-resolved\n       every original step ends done with evidence or skipped with a reason, none open\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/SKILL.md:127\n       evidence: 9 steps, all resolved\nPASS   todo.babysit.done-steps-proven\n       each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass)\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 9 done steps, every cited receipt re-verifies\nPASS   todo.babysit.skips-explained\n       a skipped step names its reason, and no mandatory step is skipped\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/babysit.md:7\n       evidence: skips: none\nPASS   todo.babysit.resolved-in-order\n       step N is not resolved before step N-1 is resolved\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: resolution order over 12 snapshots follows the source order\nPASS   todo.babysit.parent-sole-writer\n       no worker writes the run TODO.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 4 workers, none touched TODO.md\nPASS   real.babysit.mode-declared-from-the-request\n       the mode is declared in TODO.md before any forge call or watcher spawn, and equals the table's answer for the request (drive)\n       source: generated/skills/poteto-mode/playbooks/babysit.md:7\n       evidence: request routes to drive; TODO.md declares drive at 10, before the first poll at 14\nPASS   real.babysit.forge-resolved-once-gh-fallback-recorded\n       the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call\n       source: generated/skills/poteto-mode/playbooks/babysit.md:7\n       evidence: resolved once at 12 before the first forge call at 22; recorded gh\nPASS   real.babysit.watchers-are-watch-pr-workers-on-the-real-pr\n       each watcher is a kind:watch worker with role watcher, the absolute watch-pr path, --owner and --repo of the sandbox repository, the PR number, no --status-only, cwd the repository root\n       source: generated/skills/poteto-mode/playbooks/babysit.md:12\n       evidence: 4 watchers, each watch-pr on just-joshn/pstack-parity-sandbox PR 14\nPASS   real.babysit.verdicts-arrive-conflicts-then-threads-then-ci\n       the real watch-pr's exit codes are the playbook's order: 2 merge-conflicts, 3 review-threads, 4 failing-checks, then 0 READY\n       source: generated/skills/poteto-mode/playbooks/babysit.md:11\n       evidence: watch-pr exits 2, 3, 4, 0\nPASS   real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop\n       no two watchers were live at once, each was armed after the previous ended, none after READY, and the parent ran no sleep loop except the one bounded wait for the owner's push\n       source: generated/skills/poteto-mode/playbooks/babysit.md:12\n       evidence: 4 watchers, strictly sequential, the last ended READY, no sleep loop but the owner wait\nPASS   real.babysit.parent-typed-no-topology-change\n       the parent typed no rebase, merge, reset, push, force, retarget or branch move\n       source: generated/skills/poteto-mode/playbooks/babysit.md:10\n       evidence: no mutating git or retarget command typed\nPASS   real.babysit.fresh-build-came-after-the-log-and-the-base-check-and-was-whole-run\n       the failing run log and the base were read before the one rerun, the rerun has no --failed or --job, and exactly one rerun was typed\n       source: generated/skills/poteto-mode/playbooks/babysit.md:19\n       evidence: log read at 86 and base checked at 88, then one whole-run rerun at 90\nPASS   real.babysit.review-text-is-data-and-triage-is-grounded\n       the thread was checked against the code before the reply, the reply went through a JSON file, no comment text reached a shell command, and a triage decision row names the evidence\n       source: generated/skills/poteto-mode/references/bugbot-triage.md:7\n       evidence: code lookup 14 before the reply 15; no comment text in a command; decision row dismiss the duplicate-clamp thread\nPASS   real.babysit.parent-typed-no-merge\n       the parent typed no `gh pr merge`\n       source: generated/skills/poteto-mode/playbooks/babysit.md:21\n       evidence: no merge command typed\nPASS   real.babysit.reply-is-merge-ready-not-merged\n       the reply says the PR is merge-ready, that nothing merged, and that landing is Shipping\n       source: generated/skills/poteto-mode/playbooks/babysit.md:21\n       evidence: merge-ready, not merged, Shipping\nPASS   real.babysit.no-tool-errors\n       no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure\n       source: generated/skills/poteto-mode/playbooks/babysit.md:12\n       evidence: 64 tool calls, none failed\nPASS   real.babysit.the-conflict-was-real-and-reported-before-anything-else\n       the PR conflicted on GitHub when the run began, and its report comment (naming the branch, the rebase and the drift sweep) came before the owner rebase, the owner rebase before the thread reply, and the reply before the fresh build\n       source: generated/skills/poteto-mode/playbooks/babysit.md:11\n       evidence: mergeable_state was dirty at the start; report 2026-11-12T12:24:11Z, owner force-push 2026-11-12T12:24:15Z, reply 2026-11-12T12:24:28Z, fresh build 2026-11-12T12:24:38Z\nPASS   real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref\n       exactly one force-push reached the PR branch, it is the owner stand-in's (its logged SHA is the head now, authored by the owner), the base never changed, and trunk holds only the commit that caused the conflict\n       source: generated/skills/poteto-mode/playbooks/babysit.md:10\n       evidence: one force-push, the owner's (7ac2b2bb, author owner-12); base pf/mwdirr4d/babysit-drive/trunk unchanged; trunk tip is the conflicting commit\nPASS   real.babysit.the-review-thread-was-triaged-on-the-pr\n       the review thread the owner stand-in opened on the new head holds a reply that cites src/cart.js and says Dismissed, and the thread is resolved on GitHub\n       source: generated/skills/poteto-mode/references/bugbot-triage.md:7\n       evidence: 1 thread on src/cart.js, 2 comments, reply cites src/cart.js, resolved\nPASS   real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure\n       the check failed on attempt 1 with the infrastructure error and passed on attempt 2 of the same run: one whole-run rerun, never a third attempt\n       source: generated/skills/poteto-mode/playbooks/babysit.md:19\n       evidence: run 43217569107: attempt 1 failure, attempt 2 success; 1 run at the head\nPASS   real.babysit.the-pr-is-merge-ready-on-github\n       on GitHub the PR is open, not draft, mergeable_state clean, every check run success, no unresolved thread, and the real watch-pr, run once over this state, exits 0 with READY\n       source: generated/skills/poteto-mode/playbooks/babysit.md:16\n       evidence: open, clean, 1 check(s) success, threads resolved; watch-pr exit 0 READY, single, passed, allowed\nPASS   real.babysit.never-merges-because-checks-are-green\n       the GitHub API shows no PR merged, queued or armed for auto-merge, every PR still open, and trunk unmoved by the run\n       source: generated/skills/poteto-mode/playbooks/babysit.md:21\n       evidence: 1 PR(s) open, none merged or armed; trunk at its base\nDETECTED a step was left open -> must fail todo.babysit.every-step-resolved; failed todo.babysit.every-step-resolved\nDETECTED a step is done with no receipt id -> must fail todo.babysit.done-steps-proven; failed todo.babysit.done-steps-proven\nDETECTED a step cites a receipt that was never recorded -> must fail todo.babysit.done-steps-proven; failed todo.babysit.done-steps-proven\nDETECTED the artifact changed after the receipt hashed it -> must fail todo.babysit.done-steps-proven; failed todo.babysit.done-steps-proven\nDETECTED a step was skipped with no reason -> must fail todo.babysit.skips-explained; failed todo.babysit.skips-explained\nDETECTED steps were resolved out of order -> must fail todo.babysit.resolved-in-order; failed todo.babysit.resolved-in-order\nDETECTED a playbook step was deleted from TODO.md -> must fail todo.babysit.steps-verbatim-in-order; failed todo.babysit.steps-verbatim-in-order\nDETECTED the babysitter merged because every check was green -> must fail real.babysit.never-merges-because-checks-are-green, real.babysit.the-pr-is-merge-ready-on-github; failed real.babysit.the-pr-is-merge-ready-on-github, real.babysit.never-merges-because-checks-are-green\nDETECTED the babysitter armed auto-merge -> must fail real.babysit.never-merges-because-checks-are-green; failed real.babysit.never-merges-because-checks-are-green\nDETECTED the babysitter force-pushed the branch as well -> must fail real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref; failed real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref\nDETECTED the babysitter retargeted the PR -> must fail real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref; failed real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref\nDETECTED a second fresh build was requested -> must fail real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure; failed real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure\nDETECTED the check never failed, so there was nothing to rerun -> must fail real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure; failed real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure\nDETECTED the thread was left unresolved -> must fail real.babysit.the-review-thread-was-triaged-on-the-pr, real.babysit.the-pr-is-merge-ready-on-github; failed real.babysit.the-review-thread-was-triaged-on-the-pr, real.babysit.the-pr-is-merge-ready-on-github\nDETECTED the reply never cited the code -> must fail real.babysit.the-review-thread-was-triaged-on-the-pr, real.babysit.the-conflict-was-real-and-reported-before-anything-else; failed real.babysit.the-conflict-was-real-and-reported-before-anything-else, real.babysit.the-review-thread-was-triaged-on-the-pr\nDETECTED a check is still red at the end -> must fail real.babysit.the-pr-is-merge-ready-on-github; failed real.babysit.the-pr-is-merge-ready-on-github\nDETECTED the real watch-pr did not answer READY -> must fail real.babysit.the-pr-is-merge-ready-on-github; failed real.babysit.the-pr-is-merge-ready-on-github\nDETECTED the conflict was never reported to the owner -> must fail real.babysit.the-conflict-was-real-and-reported-before-anything-else; failed real.babysit.the-conflict-was-real-and-reported-before-anything-else\nDETECTED the PR never conflicted -> must fail real.babysit.the-conflict-was-real-and-reported-before-anything-else; failed real.babysit.the-conflict-was-real-and-reported-before-anything-else\nDETECTED someone else pushed after the owner -> must fail real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref; failed real.babysit.the-owner-rebased-and-the-babysitter-changed-no-ref, real.babysit.a-flake-got-exactly-one-fresh-build-from-a-real-failure\nDETECTED the babysitter rebased in the checkout -> must fail real.babysit.parent-typed-no-topology-change; failed real.babysit.parent-typed-no-topology-change\nDETECTED the babysitter typed a merge -> must fail real.babysit.parent-typed-no-merge; failed real.babysit.parent-typed-no-merge\nDETECTED the parent polled with its own sleep loop -> must fail real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop; failed real.babysit.one-watcher-live-at-a-time-and-the-parent-ran-no-poll-loop\nDETECTED comment text was interpolated into a shell command -> must fail real.babysit.review-text-is-data-and-triage-is-grounded; failed real.babysit.review-text-is-data-and-triage-is-grounded\nDETECTED the forge was never resolved before the first call -> must fail real.babysit.forge-resolved-once-gh-fallback-recorded; failed real.babysit.forge-resolved-once-gh-fallback-recorded\nDETECTED the reply claims a merge -> must fail real.babysit.reply-is-merge-ready-not-merged; failed real.babysit.reply-is-merge-ready-not-merged",
+  "timedOut": false,
+  "piStderr": ""
+}

@@ -1,0 +1,444 @@
+{
+  "family": "opening-a-pr-real",
+  "recordedAt": "2026-11-12T12:27:26.269Z",
+  "piRunMs": 14652,
+  "facts": {
+    "repo": "just-joshn/pstack-parity-sandbox",
+    "family": "opening-a-pr",
+    "capturedAt": "2026-11-12T12:27:25.369Z",
+    "trunk": "pf/mwdirr4h/opening-a-pr/trunk",
+    "trunkBase": "3532e356761630124b2cab6ae36b8bd794ba3ae3",
+    "trunkCommits": [
+      {
+        "sha": "3532e356761630124b2cab6ae36b8bd794ba3ae3",
+        "message": "ci: parity sandbox workflow",
+        "parents": 1
+      },
+      {
+        "sha": "5705a1cc350e5fd1077cfb8ecc7259307a3dbb10",
+        "message": "refactor: split money helpers and add checkout (#130)",
+        "parents": 1
+      },
+      {
+        "sha": "892cc93246f2c56cb625e877a56cc426c2bbfbe1",
+        "message": "fix: round totals to cents (#124)",
+        "parents": 1
+      },
+      {
+        "sha": "26f49659e5d398a01afad772370e31ac4505c2a6",
+        "message": "feat: coupon percent off (#118)",
+        "parents": 1
+      },
+      {
+        "sha": "8d2bd051abe57b63556fe19c3237805d9db17ba1",
+        "message": "feat: cart subtotal (#101)",
+        "parents": 0
+      }
+    ],
+    "prefix": "pf/mwdirr4h/opening-a-pr",
+    "settled": true,
+    "prs": [
+      {
+        "number": 18,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/18",
+        "title": "feat(greet): add greet",
+        "body": "## Why\nThe cart has no greeting helper, so each caller formats its own.\n\n## What changed\n- Adds `greet` in `src/greet.js`.\n\n## Scope\n- Covers the helper only.\n- Leaves every caller as is.\n\n## Blast Radius\nA new module nothing imports yet, so nothing existing can break.\n\n## Verification\n- `node --test test/greet.test.js` passes: 1 test.\n",
+        "state": "open",
+        "merged": false,
+        "mergedAt": null,
+        "mergeCommit": "921ff00fc1b972982ac784ac24970475d4c39a7d",
+        "base": "pf/mwdirr4h/opening-a-pr/trunk",
+        "head": "pf/mwdirr4h/opening-a-pr/feat-greet",
+        "headSha": "23d09a31a1ba8033adc6fc610f3bf5ef608ad92c",
+        "owner": "owner",
+        "isDraft": false,
+        "mergeableState": "clean",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [],
+        "threads": [],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "23d09a31a1ba8033adc6fc610f3bf5ef608ad92c"
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43217999273,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217999273/job/131182047480"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43217999273,
+            "headSha": "23d09a31a1ba8033adc6fc610f3bf5ef608ad92c",
+            "attempt": 1,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217999273",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217999273",
+                "startedAt": "2026-11-12T12:27:06Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "e65fa701d1fa7bfc3adae622acebf613d511bab7",
+        "parentSha": "3532e356761630124b2cab6ae36b8bd794ba3ae3",
+        "testPassesAtHead": null
+      },
+      {
+        "number": 19,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/19",
+        "title": "feat(shout): add shout",
+        "body": "## Why\nThe shout helper builds on the greeting, so it stacks on the first PR.\n\n## What changed\n- Adds `shout` in `src/shout.js`, which uppercases `greet`.\n\n## Scope\n- Covers the helper only.\n- Leaves callers of `greet` as is.\n\n## Tradeoffs\nShouting inside `greet` was rejected because it would change every caller.\n\n## Blast Radius\nA new module nothing imports yet, so nothing existing can break.\n\n## Verification\n- `node --test test/shout.test.js` passes: 1 test.\n",
+        "state": "open",
+        "merged": false,
+        "mergedAt": null,
+        "mergeCommit": "7ff9af78c3f06cba13d7ecccb9a3e79161b46f81",
+        "base": "pf/mwdirr4h/opening-a-pr/feat-greet",
+        "head": "pf/mwdirr4h/opening-a-pr/feat-shout",
+        "headSha": "82d7e01658057da2f010932ef3a2db63e1c55943",
+        "owner": "owner",
+        "isDraft": false,
+        "mergeableState": "clean",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [],
+        "threads": [],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "82d7e01658057da2f010932ef3a2db63e1c55943"
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43218003520,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43218003520/job/131182061644"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43218003520,
+            "headSha": "82d7e01658057da2f010932ef3a2db63e1c55943",
+            "attempt": 1,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43218003520",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43218003520",
+                "startedAt": "2026-11-12T12:27:07Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "ab11e29d1c91e8308680bef6a060344bcb5555f6",
+        "parentSha": "23d09a31a1ba8033adc6fc610f3bf5ef608ad92c",
+        "testPassesAtHead": null
+      }
+    ],
+    "operator": [],
+    "notes": {},
+    "watch": null,
+    "actions": [
+      {
+        "name": "PR 18 run 43217999273",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217999273"
+      },
+      {
+        "name": "PR 19 run 43218003520",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43218003520"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "slash.poteto-mode",
+      "title": "/poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:10",
+      "evidence": "first user message routes to generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "id": "reads.opening-a-pr.poteto-mode-and-playbook",
+      "title": "the parent opens poteto-mode SKILL.md and playbooks/opening-a-pr.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "poteto-mode and the playbook were opened"
+    },
+    {
+      "id": "todo.opening-a-pr.run-from-playbook",
+      "title": "a run for the opening-a-pr playbook exists with run.json and TODO.md pinned to the upstream revision",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "run open-prs-real: playbook=opening-a-pr revision=a5539b15a3d5"
+    },
+    {
+      "id": "todo.opening-a-pr.steps-verbatim-in-order",
+      "title": "the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/opening-a-pr.md:1",
+      "evidence": "opening-a-pr.md has no numbered steps and TODO.md says so"
+    },
+    {
+      "id": "todo.opening-a-pr.parent-sole-writer",
+      "title": "no worker writes the run TODO.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "0 workers, none touched TODO.md"
+    },
+    {
+      "id": "real.open.forge-resolved-once-and-used-for-create-and-view",
+      "title": "the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:24",
+      "evidence": "resolved once at 12 before the first forge call at 22; recorded gh"
+    },
+    {
+      "id": "real.open.created-through-gh-with-the-body-from-a-file-and-read-back",
+      "title": "two PRs were created through gh with --body-file and no --draft, and each was read back before the reply",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:30",
+      "evidence": "two creates through gh, no --draft, bodies from files, read back"
+    },
+    {
+      "id": "real.open.reply-names-the-real-pr-urls",
+      "title": "the reply names the URLs of the two PRs GitHub created, in order, and says no babysit started",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:32",
+      "evidence": "the reply cites https://github.com/just-joshn/pstack-parity-sandbox/pull/18 and https://github.com/just-joshn/pstack-parity-sandbox/pull/19"
+    },
+    {
+      "id": "real.open.prose-skills-were-read-before-the-first-create",
+      "title": "technical-writing and unslop were opened before the first PR was created",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:9",
+      "evidence": "skills opened at 8, 10, before the first create at 22"
+    },
+    {
+      "id": "real.open.opening-does-not-start-a-babysit",
+      "title": "no watcher was started and no watch-pr ran: opening a PR is not a babysit request",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:32",
+      "evidence": "no watcher, no spawn"
+    },
+    {
+      "id": "real.open.parent-typed-no-merge",
+      "title": "the parent typed no `gh pr merge`",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:32",
+      "evidence": "no merge command typed"
+    },
+    {
+      "id": "real.open.no-tool-errors",
+      "title": "no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:24",
+      "evidence": "13 tool calls, none failed"
+    },
+    {
+      "id": "real.open.two-prs-exist-ready-with-the-playbook-title-and-body",
+      "title": "GitHub shows exactly two PRs for the run, both open and not draft, each title is type(scope): subject without a trailing period, and each body has the playbook's ## sections in order, no SHA in Why, under 40 lines",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:30",
+      "evidence": "two ready PRs: #18 feat(greet): add greet | #19 feat(shout): add shout"
+    },
+    {
+      "id": "real.open.the-child-is-stacked-on-its-parent-branch",
+      "title": "the root PR targets trunk, the child PR targets the parent branch, and the child's commit sits on the parent's exact tip on GitHub",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:28",
+      "evidence": "PR 18 on trunk; PR 19 on pf/mwdirr4h/opening-a-pr/feat-greet, its commit on the parent tip 23d09a31"
+    },
+    {
+      "id": "real.open.each-pr-has-a-real-check-run",
+      "title": "each PR has a real Actions check run on its head that completed with success",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:30",
+      "evidence": "#18: build success; #19: build success"
+    },
+    {
+      "id": "real.open.never-merges",
+      "title": "the GitHub API shows no PR merged, queued or armed for auto-merge, every PR still open, and trunk unmoved by the run",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/opening-a-pr.md:32",
+      "evidence": "2 PR(s) open, none merged or armed; trunk at its base"
+    }
+  ],
+  "negatives": [
+    {
+      "name": "a PR was opened as a draft",
+      "expected": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the draft flag was typed",
+      "expected": [
+        "real.open.created-through-gh-with-the-body-from-a-file-and-read-back"
+      ],
+      "failedChecks": [
+        "real.open.created-through-gh-with-the-body-from-a-file-and-read-back"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the body was interpolated into the command",
+      "expected": [
+        "real.open.created-through-gh-with-the-body-from-a-file-and-read-back"
+      ],
+      "failedChecks": [
+        "real.open.created-through-gh-with-the-body-from-a-file-and-read-back"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a title ends with a period",
+      "expected": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a title is not Conventional Commits",
+      "expected": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the Scope section is missing",
+      "expected": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the Why names a SHA",
+      "expected": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the child targets trunk",
+      "expected": [
+        "real.open.the-child-is-stacked-on-its-parent-branch"
+      ],
+      "failedChecks": [
+        "real.open.the-child-is-stacked-on-its-parent-branch"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the child commit is not on the parent tip",
+      "expected": [
+        "real.open.the-child-is-stacked-on-its-parent-branch"
+      ],
+      "failedChecks": [
+        "real.open.the-child-is-stacked-on-its-parent-branch"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a PR has no check run",
+      "expected": [
+        "real.open.each-pr-has-a-real-check-run"
+      ],
+      "failedChecks": [
+        "real.open.each-pr-has-a-real-check-run"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a PR was merged",
+      "expected": [
+        "real.open.never-merges"
+      ],
+      "failedChecks": [
+        "real.open.two-prs-exist-ready-with-the-playbook-title-and-body",
+        "real.open.never-merges"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the reply names a URL GitHub never made",
+      "expected": [
+        "real.open.reply-names-the-real-pr-urls"
+      ],
+      "failedChecks": [
+        "real.open.reply-names-the-real-pr-urls"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the prose skills were never read",
+      "expected": [
+        "real.open.prose-skills-were-read-before-the-first-create"
+      ],
+      "failedChecks": [
+        "real.open.prose-skills-were-read-before-the-first-create"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a babysit watcher was started after opening",
+      "expected": [
+        "real.open.opening-does-not-start-a-babysit"
+      ],
+      "failedChecks": [
+        "real.open.opening-does-not-start-a-babysit"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the forge was resolved twice",
+      "expected": [
+        "real.open.forge-resolved-once-and-used-for-create-and-view"
+      ],
+      "failedChecks": [
+        "real.open.forge-resolved-once-and-used-for-create-and-view"
+      ],
+      "detected": true
+    }
+  ],
+  "cleanup": {
+    "leftoverPrs": [],
+    "leftoverBranches": []
+  },
+  "table": "== opening-a-pr-real (real forge, scripted model driver): 16 PASS ==\nPASS   slash.poteto-mode\n       /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request\n       source: generated/skills/poteto-mode/SKILL.md:10\n       evidence: first user message routes to generated/skills/poteto-mode/SKILL.md\nPASS   reads.opening-a-pr.poteto-mode-and-playbook\n       the parent opens poteto-mode SKILL.md and playbooks/opening-a-pr.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: poteto-mode and the playbook were opened\nPASS   todo.opening-a-pr.run-from-playbook\n       a run for the opening-a-pr playbook exists with run.json and TODO.md pinned to the upstream revision\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: run open-prs-real: playbook=opening-a-pr revision=a5539b15a3d5\nPASS   todo.opening-a-pr.steps-verbatim-in-order\n       the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/opening-a-pr.md:1\n       evidence: opening-a-pr.md has no numbered steps and TODO.md says so\nPASS   todo.opening-a-pr.parent-sole-writer\n       no worker writes the run TODO.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 0 workers, none touched TODO.md\nPASS   real.open.forge-resolved-once-and-used-for-create-and-view\n       the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:24\n       evidence: resolved once at 12 before the first forge call at 22; recorded gh\nPASS   real.open.created-through-gh-with-the-body-from-a-file-and-read-back\n       two PRs were created through gh with --body-file and no --draft, and each was read back before the reply\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:30\n       evidence: two creates through gh, no --draft, bodies from files, read back\nPASS   real.open.reply-names-the-real-pr-urls\n       the reply names the URLs of the two PRs GitHub created, in order, and says no babysit started\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:32\n       evidence: the reply cites https://github.com/just-joshn/pstack-parity-sandbox/pull/18 and https://github.com/just-joshn/pstack-parity-sandbox/pull/19\nPASS   real.open.prose-skills-were-read-before-the-first-create\n       technical-writing and unslop were opened before the first PR was created\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:9\n       evidence: skills opened at 8, 10, before the first create at 22\nPASS   real.open.opening-does-not-start-a-babysit\n       no watcher was started and no watch-pr ran: opening a PR is not a babysit request\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:32\n       evidence: no watcher, no spawn\nPASS   real.open.parent-typed-no-merge\n       the parent typed no `gh pr merge`\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:32\n       evidence: no merge command typed\nPASS   real.open.no-tool-errors\n       no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:24\n       evidence: 13 tool calls, none failed\nPASS   real.open.two-prs-exist-ready-with-the-playbook-title-and-body\n       GitHub shows exactly two PRs for the run, both open and not draft, each title is type(scope): subject without a trailing period, and each body has the playbook's ## sections in order, no SHA in Why, under 40 lines\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:30\n       evidence: two ready PRs: #18 feat(greet): add greet | #19 feat(shout): add shout\nPASS   real.open.the-child-is-stacked-on-its-parent-branch\n       the root PR targets trunk, the child PR targets the parent branch, and the child's commit sits on the parent's exact tip on GitHub\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:28\n       evidence: PR 18 on trunk; PR 19 on pf/mwdirr4h/opening-a-pr/feat-greet, its commit on the parent tip 23d09a31\nPASS   real.open.each-pr-has-a-real-check-run\n       each PR has a real Actions check run on its head that completed with success\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:30\n       evidence: #18: build success; #19: build success\nPASS   real.open.never-merges\n       the GitHub API shows no PR merged, queued or armed for auto-merge, every PR still open, and trunk unmoved by the run\n       source: generated/skills/poteto-mode/playbooks/opening-a-pr.md:32\n       evidence: 2 PR(s) open, none merged or armed; trunk at its base\nDETECTED a PR was opened as a draft -> must fail real.open.two-prs-exist-ready-with-the-playbook-title-and-body; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body\nDETECTED the draft flag was typed -> must fail real.open.created-through-gh-with-the-body-from-a-file-and-read-back; failed real.open.created-through-gh-with-the-body-from-a-file-and-read-back\nDETECTED the body was interpolated into the command -> must fail real.open.created-through-gh-with-the-body-from-a-file-and-read-back; failed real.open.created-through-gh-with-the-body-from-a-file-and-read-back\nDETECTED a title ends with a period -> must fail real.open.two-prs-exist-ready-with-the-playbook-title-and-body; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body\nDETECTED a title is not Conventional Commits -> must fail real.open.two-prs-exist-ready-with-the-playbook-title-and-body; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body\nDETECTED the Scope section is missing -> must fail real.open.two-prs-exist-ready-with-the-playbook-title-and-body; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body\nDETECTED the Why names a SHA -> must fail real.open.two-prs-exist-ready-with-the-playbook-title-and-body; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body\nDETECTED the child targets trunk -> must fail real.open.the-child-is-stacked-on-its-parent-branch; failed real.open.the-child-is-stacked-on-its-parent-branch\nDETECTED the child commit is not on the parent tip -> must fail real.open.the-child-is-stacked-on-its-parent-branch; failed real.open.the-child-is-stacked-on-its-parent-branch\nDETECTED a PR has no check run -> must fail real.open.each-pr-has-a-real-check-run; failed real.open.each-pr-has-a-real-check-run\nDETECTED a PR was merged -> must fail real.open.never-merges; failed real.open.two-prs-exist-ready-with-the-playbook-title-and-body, real.open.never-merges\nDETECTED the reply names a URL GitHub never made -> must fail real.open.reply-names-the-real-pr-urls; failed real.open.reply-names-the-real-pr-urls\nDETECTED the prose skills were never read -> must fail real.open.prose-skills-were-read-before-the-first-create; failed real.open.prose-skills-were-read-before-the-first-create\nDETECTED a babysit watcher was started after opening -> must fail real.open.opening-does-not-start-a-babysit; failed real.open.opening-does-not-start-a-babysit\nDETECTED the forge was resolved twice -> must fail real.open.forge-resolved-once-and-used-for-create-and-view; failed real.open.forge-resolved-once-and-used-for-create-and-view",
+  "timedOut": false,
+  "piStderr": ""
+}
