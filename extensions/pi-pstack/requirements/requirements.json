@@ -2982,6 +2982,14 @@
     "wf.babysit-flake-twice.twice.push": {
       "file": "tests/workflow-parity/pr-babysit.test.ts",
       "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger"
+    },
+    "life.watch-output": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a watch worker's redacted output tail is readable through inspect while it runs and rides its exit wake"
+    },
+    "wf.babysit-queued.queued.inspect": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: inspect returned the host state without the watcher output"
     }
   },
   "structural": [
@@ -4228,7 +4236,9 @@
         "wf.babysit-queued",
         "wf.babysit-queued.queued.merge",
         "wf.babysit-queued.queued.running",
-        "wf.babysit-queued.queued.order"
+        "wf.babysit-queued.queued.order",
+        "life.watch-output",
+        "wf.babysit-queued.queued.inspect"
       ]
     },
     {
