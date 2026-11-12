@@ -78,6 +78,46 @@
       "file": "tests/skill-parity/slash-routing.test.ts",
       "name": "the package ships 62 generated skills, each with a prompt that loads it and passes the arguments"
     },
+    "slash.mid": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "a skill named after other words is attached as a /skill: command carrying the whole message"
+    },
+    "slash.mid-many": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "several skills attach once each: the first as the command, the rest as blocks ahead of the message"
+    },
+    "slash.mid-lead": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "a leading /name keeps its own skill and later names attach after it, in order"
+    },
+    "slash.mid-pass": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own"
+    },
+    "slash.mid-code": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "paths, other words, code, and an attached block name nothing"
+    },
+    "slash.mid-other": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "a message led by another command or template is not touched"
+    },
+    "slash.mid-block": {
+      "file": "tests/skill-parity/mid-message.test.ts",
+      "name": "every attached block is the text Pi builds for /skill:<name>"
+    },
+    "load.mid-rpc": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "parent session a skill named mid-message attaches as Pi expands /skill:<name>, once, in RPC mode"
+    },
+    "load.mid-print": {
+      "file": "tests/integration/pi-load.test.ts",
+      "name": "a skill named mid-message attaches the same way in print mode, and a leading prompt template still expands"
+    },
+    "statechart.suite": {
+      "file": "tests/packaging/statechart-suite.test.ts",
+      "name": "the upstream statechart suite passes against the generated skill"
+    },
     "load.skills": {
       "file": "tests/integration/pi-load.test.ts",
       "name": "parent session Pi loads all 62 skills with their /name prompts, /pstack, and only the native pstack tools"
@@ -1220,11 +1260,13 @@
       "specSection": "12.6",
       "observable": "The statechart upstream test suite and its corpus ship with the package and pass when run.",
       "invariants": [
-        "The suite is the upstream suite, unmodified."
+        "The suite is the upstream suite. The only rewrite is the launcher-entry assertion in cli.test.ts (rule statechart.installed-entry-test), which follows the launcher's entry at dist/statechart.js."
       ],
-      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test).",
-      "tests": [],
-      "verification": "`bun run test:statechart`, which is not a Vitest test. No Vitest test runs these files, so the status stays INCONCLUSIVE until one does.",
+      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test) and by tests/packaging/statechart-suite.test.ts.",
+      "tests": [
+        "statechart.suite"
+      ],
+      "verification": "tests/packaging/statechart-suite.test.ts runs every test file in the suite under Node and requires zero failures.",
       "group": true
     },
     {
@@ -1392,9 +1434,9 @@
       "invariants": [
         "Skill names equal upstream names.",
         "Arguments after the name arrive unchanged.",
-        "Only a leading /name expands."
+        "A leading /name expands through its own prompt, and a /name later in a message attaches its skill once, as Cursor's findSkillReferences does."
       ],
-      "piMechanism": "generated/prompts aliases plus the input handler in src/extension.ts.",
+      "piMechanism": "generated/prompts aliases plus the input handler in src/skill-routing.ts, which rewrites a message that names a skill beyond its start to Pi's own /skill:<name> form.",
       "dependencies": [],
       "prerequisites": [
         "pi on PATH"
@@ -1409,6 +1451,15 @@
         "slash.alias",
         "slash.handler",
         "slash.ships",
+        "slash.mid",
+        "slash.mid-many",
+        "slash.mid-lead",
+        "slash.mid-pass",
+        "slash.mid-code",
+        "slash.mid-other",
+        "slash.mid-block",
+        "load.mid-rpc",
+        "load.mid-print",
         "load.expand",
         "load.conflict"
       ]

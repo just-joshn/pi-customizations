@@ -165,7 +165,7 @@ test("the launcher runs statechart.ts on Bun 1.1.5 when PATH has no Node", () =>
   });
   assert.equal(r.stderr, "");
   assert.equal(r.status, 0);
-  assert.equal(r.stdout, `${path.join(here, "../statechart.ts")}\n`);
+  assert.equal(r.stdout, `${path.dirname(launcher)}/../../../../dist/statechart.js\n`);
 });
 
 for (const [what, bin] of [

@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 182,
-    "spans": 247
+    "rules": 183,
+    "spans": 248
   },
   "skills": [
     "architect",
@@ -83,6 +83,15 @@
       ],
       "files": {
         "vendor/upstream-pstack/skills/statechart/scripts/statechart": 1
+      }
+    },
+    {
+      "id": "statechart.installed-entry-test",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/test/cli.test.ts": 1
       }
     },
     {
@@ -5238,6 +5247,21 @@
       "original": "path.join(import.meta.dirname, \"worker.ts\"),",
       "replacement": "path.join(import.meta.dirname, import.meta.url.endsWith(\".js\") ? \"worker.js\" : \"worker.ts\"),",
       "output": "generated/skills/statechart/scripts/statechart.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/test/cli.test.ts",
+      "rule": "statechart.installed-entry-test",
+      "offset": [
+        5570,
+        5612
+      ],
+      "lines": [
+        168,
+        168
+      ],
+      "original": "`${path.join(here, \"../statechart.ts\")}\\n`",
+      "replacement": "`${path.dirname(launcher)}/../../../../dist/statechart.js\\n`",
+      "output": "generated/skills/statechart/scripts/test/cli.test.ts"
     },
     {
       "file": "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts",

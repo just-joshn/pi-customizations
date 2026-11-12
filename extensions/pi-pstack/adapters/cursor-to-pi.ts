@@ -246,6 +246,13 @@ export const RULES: readonly Rule[] = [
     'entry=$(dirname "$self")/statechart.ts',
     'entry=$(dirname "$self")/../../../../dist/statechart.js',
   ),
+  rule(
+    'statechart.installed-entry-test',
+    'cursor-path',
+    SK('statechart/scripts/test/cli.test.ts'),
+    '`${path.join(here, "../statechart.ts")}\\n`',
+    '`${path.dirname(launcher)}/../../../../dist/statechart.js\\n`',
+  ),
   rule('statechart.bundled-worker', 'cursor-path', SK('statechart/scripts/statechart.ts'),
     'path.join(import.meta.dirname, "worker.ts"),',
     'path.join(import.meta.dirname, import.meta.url.endsWith(".js") ? "worker.js" : "worker.ts"),',
