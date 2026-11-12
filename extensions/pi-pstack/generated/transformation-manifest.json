@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 156,
-    "spans": 220
+    "rules": 157,
+    "spans": 221
   },
   "skills": [
     "architect",
@@ -648,6 +648,15 @@
       "id": "orchestrate.fork",
       "primitives": [
         "task-resume"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md": 1
+      }
+    },
+    {
+      "id": "orchestrate.sub-coordinator",
+      "primitives": [
+        "task-tool"
       ],
       "files": {
         "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md": 1
@@ -1581,7 +1590,7 @@
         32
       ],
       "original": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n",
-      "replacement": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool, so you cannot spawn workers. When the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
+      "replacement": "Report only. Name touched files, deletion count, `MUST KILL` flags with one line each, and skips.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets `capabilities.spawn: true`, as for a sub-coordinator, you have `pstack_worker` and own your children's runs. They live under your workspace's `.pi/pstack/runs/`, their wakes come to you, and you collect and judge their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get `capabilities.spawn: true`. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
       "output": "generated/agents/comment-sicko.md"
     },
     {
@@ -1641,7 +1650,7 @@
         9
       ],
       "original": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n",
-      "replacement": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool, so you cannot spawn workers. When the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
+      "replacement": "Navigate to a leaf `principle-*` skill whenever you apply that principle.\n\n## Pi worker\n\nYou run as a pstack worker: an independent Pi process in tmux that a parent session started with the `pstack_worker` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no `pstack_worker` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets `capabilities.spawn: true`, as for a sub-coordinator, you have `pstack_worker` and own your children's runs. They live under your workspace's `.pi/pstack/runs/`, their wakes come to you, and you collect and judge their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get `capabilities.spawn: true`. Write your final report to `report.md` in the worker directory the brief names. Save each check you ran as a receipt under that directory's `evidence/`, and register it with `pstack_evidence` `record`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.\n",
       "output": "generated/agents/poteto.md"
     },
     {
@@ -3036,7 +3045,7 @@
         96
       ],
       "original": "**Defaults for every `Task` call.** `run_in_background: true` (a steer or resume of a running agent too, because a foreground call holds your turn while other reports wait), agent mode (readonly strips MCP), file pointers not inlined context,",
-      "replacement": "**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write `brief.md` and `assignment.json` under `.pi/pstack/runs/<runId>/workers/<workerId>/` and call `pstack_worker` with `{ action: \"spawn\", runId, assignmentPath }`. The assignment's `role` picks the role instruction: `poteto`, `explorer`, `investigator`, `candidate`, `judge`, `verifier`, `reviewer`, `owner`, `watcher`, `comment-sicko`, or `general`. Its `workspace` is `{ mode: \"worktree\", inputCommit }` for a writable worker or `{ mode: \"readonly\", path }` for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`, and MCP tools. `bash_readonly` is an OS-sandboxed read-only shell that allows `git`, `gh`, and network reads and blocks writes. Its `model` is a model spec or `inherit-parent`. Its `capabilities` default to `{ mcp: \"inherit\", env: \"inherit\", externalWrite: false }`. A default written as a family and level, such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A `pstack-worker` wake message reports each worker that settles. Then call `collect` for its report. Use `inspect` for live state, `steer` to redirect a live worker, and `abort` to stop one. A worker has no `pstack_worker` tool, so it does delegated work itself. A container worker runs inside the configured container environment. Where none is configured, a step that requires a container worker refuses: say so and stop that step. A watch loop is a `pstack_worker` spawn with `kind: \"watch\"`. Its `watch.argv` runs in tmux, and its exit wakes you. A fixed interval uses `[\"sleep\", \"<seconds>\"]`, and an event uses the watcher's command. Spawn it again after each wake until the stop predicate holds. The model rule is `~/.pi/agent/pstack/models.json`, and each of its role keys is a line.\n\n**Defaults for every `pstack_worker` spawn.** Keep working after the spawn returns (a `steer` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use `workspace.mode: \"worktree\"` unless the step asks for a readonly worker, file pointers not inlined context,",
+      "replacement": "**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write `brief.md` and `assignment.json` under `.pi/pstack/runs/<runId>/workers/<workerId>/` and call `pstack_worker` with `{ action: \"spawn\", runId, assignmentPath }`. The assignment's `role` picks the role instruction: `poteto`, `explorer`, `investigator`, `candidate`, `judge`, `verifier`, `reviewer`, `owner`, `watcher`, `comment-sicko`, or `general`. Its `workspace` is `{ mode: \"worktree\", inputCommit }` for a writable worker or `{ mode: \"readonly\", path }` for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`, and MCP tools. `bash_readonly` is an OS-sandboxed read-only shell that allows `git`, `gh`, and network reads and blocks writes. Its `model` is a model spec or `inherit-parent`. Its `capabilities` default to `{ mcp: \"inherit\", env: \"inherit\", externalWrite: false }`, with `spawn` false. A default written as a family and level, such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A `pstack-worker` wake message reports each worker that settles. Then call `collect` for its report. Use `inspect` for live state, `steer` to redirect a live worker, and `abort` to stop one. A worker has no `pstack_worker` tool by default, so it does delegated work itself. A worker you assign `capabilities.spawn: true` has `pstack_worker` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get `capabilities.spawn: true`. A container worker runs inside the configured container environment. Where none is configured, a step that requires a container worker refuses: say so and stop that step. A watch loop is a `pstack_worker` spawn with `kind: \"watch\"`. Its `watch.argv` runs in tmux, and its exit wakes you. A fixed interval uses `[\"sleep\", \"<seconds>\"]`, and an event uses the watcher's command. Spawn it again after each wake until the stop predicate holds. The model rule is `~/.pi/agent/pstack/models.json`, and each of its role keys is a line.\n\n**Defaults for every `pstack_worker` spawn.** Keep working after the spawn returns (a `steer` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use `workspace.mode: \"worktree\"` unless the step asks for a readonly worker, file pointers not inlined context,",
       "output": "generated/skills/poteto-mode/SKILL.md"
     },
     {
@@ -3881,6 +3890,21 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
+      "rule": "orchestrate.sub-coordinator",
+      "offset": [
+        1653,
+        1728
+      ],
+      "lines": [
+        11,
+        11
+      ],
+      "original": "**A sub-coordinator only when one area has many parallel workers.** It owns",
+      "replacement": "**A sub-coordinator only when one area has many parallel workers.** Spawn it with `capabilities.spawn: true`, which gives it `pstack_worker`. It owns",
+      "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md",
       "rule": "orchestrate.fork",
       "offset": [
         2001,
@@ -3891,7 +3915,7 @@
         12
       ],
       "original": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. Message a worker only for a follow-up on the same work. Never message one to check on it, because a message restarts an idle agent.",
-      "replacement": "**Steer when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. Steer a worker only for a follow-up on the same work. Never steer one to check on it, because a steer starts a turn on an idle worker. Use `inspect` instead.",
+      "replacement": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. To fork, once that worker settles, spawn a fresh worker whose `workspace.inputCommit` is the source worker's worktree `HEAD`, with the source's report in its brief. Have the source commit its changes in its own worktree before it settles, and have the new brief restart any process the work needs, because neither carries over otherwise. Steer a worker only for a follow-up on the same work. Never steer one to check on it, because a steer starts a turn on an idle worker. Use `inspect` instead.",
       "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
     },
     {
