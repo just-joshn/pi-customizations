@@ -2,7 +2,7 @@
 // The host runs under plain Node, so this module imports nothing outside node: builtins.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, existsSync, lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export type RunId = string & { readonly __brand: 'RunId' };
@@ -17,7 +17,12 @@ function parseId<T extends string>(value: unknown, what: string): T {
 export const parseRunId = (value: unknown): RunId => parseId<RunId>(value, 'runId');
 export const parseWorkerId = (value: unknown): WorkerId => parseId<WorkerId>(value, 'workerId');
 
-export const tmuxSessionName = (runId: RunId, workerId: WorkerId): string => `pstack-${runId}-${workerId}`;
+/**
+ * `pstack_<runId>_<workerId>_<hash>`. Ids never contain `_`, so the parts cannot run together, and the hash of the
+ * project root keeps two projects' runs apart on the one `pstack` tmux server.
+ */
+export const tmuxSessionName = (project: string, runId: RunId, workerId: WorkerId): string => `pstack_${runId}_${workerId}_${createHash('sha256').update(`${project}\0${runId}\0${workerId}`).digest('hex').slice(0, 8)}`;
+export const TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
 
 /** The git toplevel of `cwd`, or `cwd` outside git; always a real path. */
 export function projectRoot(cwd: string): string {
@@ -107,6 +112,28 @@ export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 
 export type Workspace = { mode: 'worktree'; inputCommit: string } | { mode: 'readonly'; path: string };
 
+/** What a worker may reach beyond its workspace (contract "Capability boundary"). */
+export interface Capabilities {
+  mcp: 'inherit' | 'none';
+  env: 'inherit' | 'minimal';
+  externalWrite: boolean;
+}
+const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'inherit', externalWrite: false };
+/** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
+const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', externalWrite: false };
+
+function parseCapabilities(raw: unknown): Capabilities {
+  if (
+    !isRecord(raw) ||
+    Object.keys(raw).sort().join(',') !== 'env,externalWrite,mcp' ||
+    !['inherit', 'none'].includes(raw['mcp'] as string) ||
+    !['inherit', 'minimal'].includes(raw['env'] as string) ||
+    typeof raw['externalWrite'] !== 'boolean'
+  )
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
+  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'] };
+}
+
 interface AssignmentBase {
   schemaVersion: 1;
   runId: RunId;
@@ -116,16 +143,18 @@ interface AssignmentBase {
   thinkingLevel: ThinkingLevel | null;
   workspace: Workspace;
   skills: string[];
+  capabilities: Capabilities;
 }
 export type Assignment = (AssignmentBase & { kind: 'pi'; brief: string }) | (AssignmentBase & { kind: 'watch'; brief?: string; watch: { argv: string[]; cwd: string } });
 
+const BRIEF = 'brief.md';
 const MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 const COMMIT = /^[0-9a-f]{7,64}$/;
 
 /** Parses untrusted assignment JSON into the contract shape; unknown fields are rejected. */
-export function parseAssignment(raw: unknown): Assignment {
+export function parseAssignment(raw: unknown, defaultCapabilities: Capabilities): Assignment {
   if (!isRecord(raw)) throw new Error('Assignment must be a JSON object');
-  const allowed = ['schemaVersion', 'runId', 'workerId', 'kind', 'role', 'brief', 'model', 'thinkingLevel', 'workspace', 'skills', 'watch'];
+  const allowed = ['schemaVersion', 'runId', 'workerId', 'kind', 'role', 'brief', 'model', 'thinkingLevel', 'workspace', 'skills', 'watch', 'capabilities'];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
   if (unknown.length > 0) throw new Error(`Assignment has unknown fields: ${unknown.join(', ')}`);
   if (raw['schemaVersion'] !== 1) throw new Error('Assignment schemaVersion must be 1');
@@ -149,9 +178,9 @@ export function parseAssignment(raw: unknown): Assignment {
   const skills = raw['skills'];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];
-  if (brief !== undefined && (typeof brief !== 'string' || isAbsolute(brief) || brief.split(/[\\/]/).some((part) => part === '..' || part === '') || brief.includes('\0')))
-    throw new Error('Assignment brief must be a relative path inside the worker directory');
-  const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[] };
+  if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
+  const capabilities = raw['capabilities'] === undefined ? defaultCapabilities : parseCapabilities(raw['capabilities']);
+  const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[], capabilities };
   if (kind === 'pi') {
     if (raw['watch'] !== undefined) throw new Error("Assignment watch is only for kind 'watch'");
     if (typeof brief !== 'string') throw new Error("Assignment kind 'pi' needs a brief");
@@ -164,6 +193,28 @@ export function parseAssignment(raw: unknown): Assignment {
   const cwd = watch['cwd'];
   if (typeof cwd !== 'string' || !isAbsolute(cwd)) throw new Error('Assignment watch.cwd must be absolute');
   return { ...base, kind, ...(typeof brief === 'string' ? { brief } : {}), watch: { argv: argv as string[], cwd } };
+}
+
+/**
+ * The worker's brief, `<workerDir>/brief.md`: a regular file, not a symlink or a second name for a file elsewhere.
+ * `workerDir` must be canonical, as loadAssignment guarantees.
+ */
+export function readBrief(workerDir: string): Buffer {
+  const path = join(workerDir, BRIEF);
+  let fd: number;
+  try {
+    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ELOOP') throw new Error(`${path} must be a regular file, not a symlink`);
+    throw error;
+  }
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(path) !== path) throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
+    return readFileSync(fd);
+  } finally {
+    closeSync(fd);
+  }
 }
 
 export interface LoadedAssignment {
@@ -194,7 +245,8 @@ export function loadAssignment(path: string): LoadedAssignment {
   const runRoot = dirname(dirname(workerDir));
   if (basename(dirname(workerDir)) !== 'workers' || basename(dirname(runRoot)) !== 'runs') throw new Error('Assignment must be at <runRoot>/workers/<workerId>/assignment.json');
   const bytes = readFileSync(file);
-  const assignment = parseAssignment(JSON.parse(bytes.toString('utf8')));
+  const automated = readRun(runRoot).parentSessionFile === null;
+  const assignment = parseAssignment(JSON.parse(bytes.toString('utf8')), automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES);
   if (assignment.workerId !== basename(workerDir)) throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
   if (assignment.runId !== basename(runRoot)) throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
   return { assignment, file, runRoot, workerDir, digest: createHash('sha256').update(bytes).digest('hex') };
@@ -209,6 +261,8 @@ export type WakePhase = SettlePhase | 'unavailable';
 
 export interface Settle {
   sequence: number;
+  /** The latest unit of work this outcome covers. */
+  generation: number;
   phase: SettlePhase;
   reason: string | null;
   at: string;
@@ -230,13 +284,16 @@ export interface HostState {
   model: { provider: string; id: string } | null;
   sessionFile: string | null;
   briefSent: boolean;
-  /** The most recent settles, oldest first, at most MAX_SETTLES. */
+  /** The latest unit of work the host accepted. A worker's result is a settle covering it. */
+  generation: number;
+  /** Every settle, oldest first: each one is a wake the parent may not have seen yet. */
   settles: Settle[];
   exit: { code: number | null; signal: string | null } | null;
   updatedAt: string;
 }
 
-export const MAX_SETTLES = 64;
+/** A host with this many settles refuses new work rather than drop a settle the parent may not have seen. */
+export const MAX_SETTLES = 10_000;
 
 export const isTerminal = (phase: HostPhase): boolean => (TERMINAL_PHASES as readonly string[]).includes(phase);
 

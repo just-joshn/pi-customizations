@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 
 import { StringEnum } from '@earendil-works/pi-ai';
+import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { PACKAGE_ROOT } from './paths.ts';
@@ -21,6 +22,7 @@ import {
   parseWorkerId,
   projectRoot,
   type RunId,
+  readBrief,
   readClaim,
   readHostState,
   readRun,
@@ -118,7 +120,7 @@ export function wakeText(transition: Transition): string {
   return `pstack worker ${transition.workerId} in run ${transition.runId} ${PHASE_TEXT[transition.phase]}${transition.reason === null ? '' : `: ${transition.reason}`}. Collect it with pstack_worker {"action":"collect","runId":"${transition.runId}","workerId":"${transition.workerId}"}.`;
 }
 
-/** Which `pstack-*` tmux sessions have a live pane. undefined when tmux itself could not answer. */
+/** Which `pstack_*` tmux sessions have a live pane. undefined when tmux itself could not answer. */
 async function liveSessions(pi: ExtensionAPI, socket: string): Promise<Set<string> | undefined> {
   const result = await pi.exec('tmux', ['-L', socket, 'list-panes', '-a', '-F', '#{session_name} #{pane_dead}'], { timeout: 5_000 });
   if (result.code !== 0) return /no server running|error connecting|No such file/.test(result.stderr) ? new Set() : undefined;
@@ -126,14 +128,15 @@ async function liveSessions(pi: ExtensionAPI, socket: string): Promise<Set<strin
     result.stdout
       .split('\n')
       .map((line) => line.split(' '))
-      .filter(([name, dead]) => name?.startsWith('pstack-') === true && dead === '0')
+      .filter(([name, dead]) => name?.startsWith('pstack_') === true && dead === '0')
       .map(([name]) => name as string),
   );
 }
 
+/** Wakes on the active branch: from the root to the current leaf, the conversation the parent model sees. */
 function deliveredTransitions(ctx: ExtensionContext): Set<string> {
   const ids = new Set<string>();
-  for (const entry of ctx.sessionManager.getEntries()) {
+  for (const entry of ctx.sessionManager.getBranch()) {
     if (entry.type !== 'custom_message' || entry.customType !== WAKE_TYPE) continue;
     const id = (entry.details as { transitionId?: unknown } | undefined)?.transitionId;
     if (typeof id === 'string') ids.add(id);
@@ -197,25 +200,29 @@ function roleDocument(agentsDir: string, role: WorkerRole): string {
   return path;
 }
 
-async function git(pi: ExtensionAPI, cwd: string, args: string[]): Promise<string> {
-  const result = await pi.exec('git', ['-C', cwd, ...args], { timeout: 120_000 });
-  if (result.code !== 0) throw new Error(`git ${args.join(' ')} failed: ${(result.stderr || result.stdout).trim()}`);
-  return result.stdout.trim();
-}
+// Credential sources pi-ai reads for these providers besides an API key variable (env-api-keys.js).
+const AMBIENT_CREDENTIALS: Record<string, string[]> = {
+  'amazon-bedrock': [
+    'AWS_PROFILE',
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+    'AWS_SESSION_TOKEN',
+    'AWS_REGION',
+    'AWS_DEFAULT_REGION',
+    'AWS_BEARER_TOKEN_BEDROCK',
+    'AWS_CONTAINER_CREDENTIALS_RELATIVE_URI',
+    'AWS_CONTAINER_CREDENTIALS_FULL_URI',
+    'AWS_WEB_IDENTITY_TOKEN_FILE',
+  ],
+  'google-vertex': ['GOOGLE_APPLICATION_CREDENTIALS', 'GOOGLE_CLOUD_PROJECT', 'GCLOUD_PROJECT', 'GOOGLE_CLOUD_LOCATION'],
+};
 
-/** Creates `<workerDir>/worktree` at the input commit on its own branch, or reuses one an interrupted spawn left. */
-async function ensureWorktree(pi: ExtensionAPI, project: string, loaded: LoadedAssignment, inputCommit: string): Promise<void> {
-  const path = join(loaded.workerDir, 'worktree');
-  if (existsSync(path)) {
-    if ((await git(pi, path, ['rev-parse', '--show-toplevel'])) !== path) throw new Error(`${path} exists but is not a git worktree`);
-    return;
-  }
-  const commit = await git(pi, project, ['rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`]).catch(() => {
-    throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
-  });
-  const branch = `pstack-run/${loaded.assignment.runId}/${loaded.assignment.workerId}`;
-  const exists = (await pi.exec('git', ['-C', project, 'rev-parse', '--verify', '--quiet', `refs/heads/${branch}`])).code === 0;
-  await git(pi, project, exists ? ['worktree', 'add', '--quiet', path, branch] : ['worktree', 'add', '--quiet', '-b', branch, path, commit]);
+/**
+ * The environment variables that carry the provider's credentials, so a minimal worker environment keeps them.
+ * Credentials from /login live in auth.json under PI_CODING_AGENT_DIR (or HOME's ~/.pi/agent), which env 'minimal' keeps.
+ */
+function credentialEnv(provider: string): string[] {
+  return [...(findEnvKeys(provider) ?? []), ...(AMBIENT_CREDENTIALS[provider] ?? [])];
 }
 
 function finalAssistantText(sessionFile: string | null): string | null {
@@ -264,7 +271,8 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
   const pollMs = options.pollMs ?? 1_000;
   const startupMs = options.startupMs ?? 30_000;
-  // Wakes this instance handed to Pi. A follow-up queued behind a running turn is not in the session entries yet.
+  // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
+  // not on the branch yet.
   const sent = new Set<string>();
   let current: { ctx: ExtensionContext; project: string } | undefined;
   let timer: NodeJS.Timeout | undefined;
@@ -285,15 +293,16 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         const workerDir = workerDirOf(runRoot, workerId);
         let transitions: Transition[];
         try {
-          transitions = workerTransitions(runId, workerId, readHostState(workerDir), readClaim(workerDir), live?.has(tmuxSessionName(runId, workerId)));
+          transitions = workerTransitions(runId, workerId, readHostState(workerDir), readClaim(workerDir), live?.has(tmuxSessionName(project, runId, workerId)));
         } catch {
           continue;
         }
         for (const transition of transitions) {
           if (delivered.has(transition.transitionId) || sent.has(transition.transitionId)) continue;
-          sent.add(transition.transitionId);
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
+          // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
+          sent.add(transition.transitionId);
         }
       }
     }
@@ -318,7 +327,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   pi.on('session_start', async (_event, ctx) => {
+    sent.clear();
     watch(ctx);
+    await poll();
+  });
+  pi.on('session_tree', async () => {
+    sent.clear();
     await poll();
   });
   pi.on('session_shutdown', async () => {
@@ -352,16 +366,16 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const loaded = loadAssignment(assignmentPath);
     const assignment: Assignment = loaded.assignment;
     if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
+    if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
     if (existsSync(join(loaded.workerDir, 'claim'))) throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
-    const session = tmuxSessionName(runId, assignment.workerId);
+    const session = tmuxSessionName(project, runId, assignment.workerId);
     let model: ResolvedModel | null = null;
     let roleDoc: string | null = null;
     if (assignment.kind === 'pi') {
       model = await resolveModel({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role }, ctx);
       roleDoc = roleDocument(agentsDir, assignment.role);
-      if (!existsSync(join(loaded.workerDir, assignment.brief))) throw new Error(`Brief ${assignment.brief} is missing in ${loaded.workerDir}`);
-      if (assignment.workspace.mode === 'worktree') await ensureWorktree(pi, project, loaded, assignment.workspace.inputCommit);
-      else if (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
+      readBrief(loaded.workerDir);
+      if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
     } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
     const command = options.piCommand ?? runningPiCommand();
     const launch: HostLaunch = {
@@ -373,6 +387,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       tmuxSession: session,
       extraArgs: options.extraPiArgs ?? [],
       env: options.extraEnv ?? {},
+      credentialEnv: model === null ? [] : credentialEnv(model.provider),
     };
     const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
     if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
@@ -395,6 +410,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     if (state.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
     if (assignment.kind === 'pi') await controlHost(target, 'start');
     return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+  };
+
+  /**
+   * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
+   * when the session's one pane is this assignment's claimed host; anything else is left running.
+   */
+  const endHostSession = async (loaded: LoadedAssignment, session: string, reason: string) => {
+    const claim = readClaim(loaded.workerDir);
+    const panes = await pi.exec('tmux', ['-L', socket, 'list-panes', '-s', '-t', `=${session}`, '-F', '#{pane_pid}'], { timeout: 5_000 });
+    if (panes.code !== 0) return { disposition: 'unavailable', reason };
+    const pids = panes.stdout.split('\n').filter((line) => line !== '');
+    if (claim === undefined || pids.length !== 1 || Number(pids[0]) !== claim.hostPid)
+      return { disposition: 'refused', reason: `${reason}; tmux session ${session} runs pid ${pids.join(',')}, not this worker's claimed host ${claim?.hostPid ?? '(no claim)'}, so it was left running` };
+    const killed = await pi.exec('tmux', ['-L', socket, 'kill-session', '-t', `=${session}`], { timeout: 10_000 });
+    return { disposition: killed.code === 0 ? 'session-ended' : 'unavailable', reason };
   };
 
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
@@ -421,7 +451,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           result,
         );
       }
-      const { runId, runRoot, run } = runOf(ctx, params.runId);
+      const { runId, project, runRoot, run } = runOf(ctx, params.runId);
       const loaded = workerOf(runRoot, params.workerId);
       const { workerId } = loaded.assignment;
       if (params.action === 'inspect') {
@@ -437,15 +467,13 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        const session = tmuxSessionName(runId, workerId);
+        const session = tmuxSessionName(project, runId, workerId);
         let receipt: unknown;
         try {
           receipt = await controlHost(hostTarget(loaded), 'shutdown');
         } catch (error) {
           if (!(error instanceof HostUnavailableError)) throw error;
-          // The host does not answer; ending its tmux session sends it SIGHUP, which runs the same orderly shutdown.
-          const killed = await pi.exec('tmux', ['-L', socket, 'kill-session', '-t', `=${session}`], { timeout: 10_000 });
-          receipt = { disposition: killed.code === 0 ? 'session-ended' : 'unavailable', reason: error.message };
+          receipt = await endHostSession(loaded, session, error.message);
         }
         appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
         return text(`Aborted worker ${workerId}.`, receipt);
@@ -453,7 +481,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       const inspected = await inspectWorker(loaded);
       const state = inspected.available ? inspected.state : inspected.lastState;
       const lastSettle = state?.settles.at(-1) ?? null;
-      const settled = state !== null && lastSettle !== null && (isTerminal(state.phase) || state.phase === 'idle');
+      const settled = state !== null && lastSettle !== null && lastSettle.generation === state.generation && (isTerminal(state.phase) || state.phase === 'idle');
       if (!settled) {
         const live = inspected.available ? inspected.state : { phase: 'unavailable', reason: inspected.reason, lastState: inspected.lastState };
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });

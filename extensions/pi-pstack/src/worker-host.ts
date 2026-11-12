@@ -1,15 +1,31 @@
 // The tmux-hosted worker host (spec 9). It claims one assignment, runs `pi --mode rpc` (or a watch command) in the
 // worker's workspace, relays control requests from a private unix socket and from the operator's terminal, and keeps
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
-import { type ChildProcess, spawn } from 'node:child_process';
+import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-import { appendEvent, controlSocketPath, type HostPhase, type HostState, isTerminal, type LoadedAssignment, loadAssignment, MAX_SETTLES, type SettlePhase, THINKING_LEVELS, type ThinkingLevel, writeJsonAtomic } from './run-files.ts';
+import {
+  appendEvent,
+  controlSocketPath,
+  type HostPhase,
+  type HostState,
+  isTerminal,
+  type LoadedAssignment,
+  loadAssignment,
+  MAX_SETTLES,
+  readBrief,
+  runRootOf,
+  type SettlePhase,
+  THINKING_LEVELS,
+  type ThinkingLevel,
+  TMUX_SESSION,
+  writeJsonAtomic,
+} from './run-files.ts';
 
 export const MAX_CONTROL_BYTES = 65_536;
 export const MAX_INSTRUCTION_BYTES = 32_768;
@@ -29,7 +45,12 @@ export interface HostLaunch {
   tmuxSession: string;
   extraArgs: string[];
   env: Record<string, string>;
+  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. */
+  credentialEnv: string[];
 }
+
+/** What env 'minimal' keeps besides PSTACK_* and the provider's credential variables (contract "Capability boundary"). */
+const MINIMAL_ENV = ['PATH', 'HOME', 'LANG', 'TERM', 'TMPDIR', 'PI_CODING_AGENT_DIR'] as const;
 
 export const HOST_OPERATIONS = ['inspect', 'start', 'prompt', 'steer', 'follow-up', 'cancel', 'shutdown'] as const;
 export type HostOperation = (typeof HOST_OPERATIONS)[number];
@@ -47,20 +68,24 @@ export interface ControlRequest {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
+/** Pi answered the command with a failure, so it did not take the command as work. */
+class PiRejected extends Error {}
+
 export function parseLaunch(text: string | undefined): HostLaunch {
   if (text === undefined) throw new Error('Missing launch argument');
   const raw: unknown = JSON.parse(text);
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute(piCommand[0] ?? '')) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
   if (appendSystemPrompt !== null && !(typeof appendSystemPrompt === 'string' && isAbsolute(appendSystemPrompt))) throw new Error('Launch appendSystemPrompt must be an absolute path or null');
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name)))) throw new Error('Launch tools must be tool names or null');
-  if (typeof tmuxSession !== 'string' || !/^pstack-[a-z0-9-]+$/.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
+  if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
   if (!isRecord(env) || Object.values(env).some((value) => typeof value !== 'string')) throw new Error('Launch env must map names to strings');
+  if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
   return {
     piCommand,
     model: model as HostLaunch['model'],
@@ -70,7 +95,16 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     tmuxSession,
     extraArgs,
     env: env as Record<string, string>,
+    credentialEnv,
   };
+}
+
+/** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, inherited: NodeJS.ProcessEnv): Record<string, string> {
+  const all = { ...inherited, ...launch.env };
+  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
+  return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
 }
 
 export function validateControl(value: unknown, loaded: LoadedAssignment, instance: string): ControlRequest {
@@ -106,6 +140,7 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
     ...(launch.thinkingLevel === null ? [] : ['--thinking', launch.thinkingLevel]),
     ...(launch.appendSystemPrompt === null ? [] : ['--append-system-prompt', launch.appendSystemPrompt]),
     ...(launch.tools === null ? [] : ['--tools', launch.tools.join(',')]),
+    ...(loaded.assignment.capabilities.mcp === 'none' ? ['--no-mcp'] : []),
     ...launch.extraArgs,
   ];
 }
@@ -114,6 +149,42 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
 function claim(loaded: LoadedAssignment, instance: string): void {
   mkdirSync(join(loaded.workerDir, 'claim'), { mode: 0o700 });
   writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
+}
+
+/**
+ * Creates `<workerDir>/worktree` on branch pstack-run/<runId>/<workerId> at the input commit. It runs under this
+ * host's exclusive claim, and the path lies inside the claimed worker directory, so no other host can name it. A path
+ * that already exists is reused only when it is this repository's registered worktree on that branch.
+ */
+function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
+  const { runId, workerId } = loaded.assignment;
+  const project = resolve(loaded.runRoot, '..', '..', '..', '..');
+  if (runRootOf(project, runId) !== loaded.runRoot) throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
+  const path = join(loaded.workerDir, 'worktree');
+  const branch = `pstack-run/${runId}/${workerId}`;
+  const git = (...args: string[]) => execFileSync('git', ['-C', project, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120_000 }).trim();
+  const existing = lstatSync(path, { throwIfNoEntry: false });
+  if (existing !== undefined) {
+    const registered = git('worktree', 'list', '--porcelain')
+      .split('\n\n')
+      .map((block) => Object.fromEntries(block.split('\n').map((line) => [line.split(' ')[0], line.slice(line.indexOf(' ') + 1)])))
+      .find((entry) => entry['worktree'] === path);
+    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.['branch'] !== `refs/heads/${branch}`) throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
+    return;
+  }
+  let commit: string;
+  try {
+    commit = git('rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`);
+  } catch {
+    throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
+  }
+  let branchExists = true;
+  try {
+    git('rev-parse', '--verify', '--quiet', `refs/heads/${branch}`);
+  } catch {
+    branchExists = false;
+  }
+  git('worktree', 'add', '--quiet', ...(branchExists ? [path, branch] : ['-b', branch, path, commit]));
 }
 
 function prepareSocket(path: string): void {
@@ -142,7 +213,12 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let model: HostState['model'] = null;
   let sessionFile: string | null = null;
   let briefSent = false;
+  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. A settle covers the
+  // generations Pi acknowledged before it: Pi answers a prompt before that prompt's run can settle.
+  let generation = 0;
+  let acknowledged = 0;
   let settles: HostState['settles'] = [];
+  let childPid: number | null = null;
   let stderrTail = '';
   let requestNumber = 0;
   let runFailure: string | undefined;
@@ -163,7 +239,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     digest: loaded.digest,
     instance,
     hostPid: process.pid,
-    childPid: child.pid ?? null,
+    childPid,
     tmuxSession: launch.tmuxSession,
     socketPath,
     phase,
@@ -171,6 +247,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     model,
     sessionFile,
     briefSent,
+    generation,
     settles,
     exit,
     updatedAt: new Date().toISOString(),
@@ -184,15 +261,29 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   };
   const save = () => writeJsonAtomic(join(workerDir, 'state.json'), observation());
   const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
-  const settle = (settlePhase: SettlePhase, why: string | null) => {
+  /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
+  const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
     const last = settles.at(-1)?.sequence ?? 0;
-    settles = [...settles, { sequence: last + 1, phase: settlePhase, reason: why, at: new Date().toISOString() }].slice(-MAX_SETTLES);
+    settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
     event('settle', settles.at(-1));
     display('host settled', { phase: settlePhase, reason: why });
   };
 
-  const env = { ...process.env, ...launch.env, PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  if (assignment.kind === 'pi' && assignment.workspace.mode === 'worktree') {
+    try {
+      prepareWorktree(loaded, assignment.workspace.inputCommit);
+    } catch (error) {
+      phase = 'failed';
+      reason = message(error);
+      display('host failure', reason);
+      settle('failed', reason);
+      event('failure', { reason });
+      process.exitCode = 1;
+      return;
+    }
+  }
+  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -200,6 +291,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     env,
     stdio: assignment.kind === 'watch' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
   });
+  childPid = child.pid ?? null;
 
   const rejectWaiting = (error: Error) => {
     for (const pending of waiting.values()) {
@@ -352,14 +444,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // A shutdown records its own single settle; the run it aborts is part of it.
-      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null));
+      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null), acknowledged);
     } else if (type === 'response') {
       const pending = typeof record['id'] === 'string' ? waiting.get(record['id']) : undefined;
       if (pending !== undefined && typeof record['id'] === 'string') {
         waiting.delete(record['id']);
         clearTimeout(pending.timer);
         if (record['success'] === true) pending.resolve(record['data']);
-        else pending.reject(new Error(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
+        else pending.reject(new PiRejected(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
       }
     } else if (type === 'extension_ui_request') {
       // Nobody answers a dialog inside a worker; cancelling keeps the run from blocking forever.
@@ -381,11 +473,31 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     return observation();
   };
 
-  const sendText = async (operation: 'prompt' | 'steer' | 'follow-up', text: string) => {
-    // RPC steer and follow_up only queue: on an idle Pi they would wait for a run that never starts.
-    // A prompt with a streaming behavior starts a run when idle and queues when a run started in between.
-    if (phase === 'running' && operation !== 'prompt') return request(operation === 'steer' ? 'steer' : 'follow_up', { message: text });
-    return request('prompt', { message: text, streamingBehavior: operation === 'steer' ? 'steer' : 'followUp' });
+  /**
+   * Forwards one unit of work, persisted as unsettled first so a collect never reads an older settle as its result.
+   * Always a prompt with a streaming behavior: it starts a run when Pi is idle and joins the active run otherwise,
+   * where RPC steer or follow_up sent as a run ends would queue behind a run that never starts.
+   */
+  const forward = async (text: string, streamingBehavior: 'steer' | 'followUp') => {
+    if (settles.length >= MAX_SETTLES) throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
+    generation += 1;
+    save();
+    let result: unknown;
+    try {
+      result = await request('prompt', { message: text, streamingBehavior });
+    } catch (error) {
+      if (error instanceof PiRejected) {
+        generation -= 1;
+        save();
+      }
+      throw error;
+    }
+    const disposition = isRecord(result) ? result['disposition'] : undefined;
+    // A handled prompt started no run and joined none, so no settle will cover it.
+    if (disposition === 'handled') generation -= 1;
+    else acknowledged = generation;
+    save();
+    return { disposition };
   };
 
   const dispatch = async (operation: HostOperation, text?: string): Promise<unknown> => {
@@ -398,17 +510,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       event('control', { operation });
       if (operation === 'start') {
         if (briefSent) throw new Error('Brief already sent; request not replayed');
-        const brief = readFileSync(resolve(workerDir, assignment.brief ?? 'brief.md'));
+        const brief = readBrief(workerDir);
         if (brief.length === 0 || brief.length > MAX_BRIEF_BYTES) throw new Error(`Brief must contain 1 to ${MAX_BRIEF_BYTES} bytes`);
-        const result = await request('prompt', { message: brief.toString('utf8') });
+        const result = await forward(brief.toString('utf8'), 'followUp');
         briefSent = true;
         save();
-        return { disposition: isRecord(result) ? result['disposition'] : undefined };
+        return result;
       }
-      if (operation === 'prompt' || operation === 'steer' || operation === 'follow-up') {
-        const result = await sendText(operation, text as string);
-        return { disposition: isRecord(result) ? result['disposition'] : undefined };
-      }
+      if (operation === 'prompt' || operation === 'steer' || operation === 'follow-up') return forward(text as string, operation === 'steer' ? 'steer' : 'followUp');
       if (operation === 'cancel') {
         const before = (await request('get_state')) as Record<string, unknown>;
         phase = 'cancelling';

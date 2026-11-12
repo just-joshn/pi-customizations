@@ -1,7 +1,7 @@
 // pstack_evidence (spec 7 invariants 3-5, 8.4): records worker receipts in verification/verdicts.json and re-checks
 // them. An absent receipt, or one with nothing to re-check, never becomes a pass.
-import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
+import { existsSync, linkSync, mkdirSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 
 import { StringEnum } from '@earendil-works/pi-ai';
@@ -65,30 +65,61 @@ function readVerdicts(runRoot: string): Verdicts {
   return existsSync(path) ? (readJson(path) as Verdicts) : { schemaVersion: 1, receipts: [] };
 }
 
-/** Parent and worker processes may record at once; a lock directory serializes the read-modify-rename. */
-async function withVerdictsLock<T>(runRoot: string, body: () => T): Promise<T> {
-  const lock = join(runRoot, 'verification', 'verdicts.lock');
+/**
+ * Parent and worker processes may record at once. The lock file holds its owner's pid and token, written whole by
+ * link(). Only the owner's token releases it, and only a dead owner's lock is ever reclaimed.
+ */
+export async function withVerdictsLock<T>(runRoot: string, body: () => T): Promise<T> {
   mkdirSync(join(runRoot, 'verification'), { recursive: true });
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      mkdirSync(lock);
-      writeFileSync(join(lock, 'pid'), String(process.pid));
-      break;
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
-      const owner = Number(existsSync(join(lock, 'pid')) ? readFileSync(join(lock, 'pid'), 'utf8') : NaN);
-      const dead = Number.isInteger(owner) && !alive(owner);
-      const old = Date.now() - statSync(lock).mtimeMs > 30_000;
-      if (dead || old) rmSync(lock, { recursive: true, force: true });
-      else if (attempt > 200) throw new Error(`${lock} is held by pid ${owner}`);
+  const lock = join(runRoot, 'verification', 'verdicts.lock');
+  const token = randomUUID();
+  const draft = `${lock}.${token}`;
+  writeFileSync(draft, `${process.pid} ${token}\n`, { mode: 0o600 });
+  try {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        linkSync(draft, lock);
+        break;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      }
+      const holder = lockOwner(lock);
+      if (holder !== undefined && !alive(holder.pid)) reclaim(lock, holder.token);
+      else if (attempt > 400) throw new Error(`${lock} is held by ${holder === undefined ? 'an unreadable owner' : `pid ${holder.pid}`}`);
       else await new Promise((wait) => setTimeout(wait, 25));
     }
+  } finally {
+    rmSync(draft, { force: true });
   }
   try {
     return body();
   } finally {
-    rmSync(join(lock, 'pid'), { force: true });
-    rmdirSync(lock);
+    if (lockOwner(lock)?.token === token) unlinkSync(lock);
+  }
+}
+
+function lockOwner(lock: string): { pid: number; token: string } | undefined {
+  try {
+    const match = /^(\d+) ([0-9a-f-]{36})\n$/.exec(readFileSync(lock, 'utf8'));
+    return match === null ? undefined : { pid: Number(match[1]), token: match[2] as string };
+  } catch {
+    return undefined;
+  }
+}
+
+/** Removes the lock only while it is still the dead owner's: one reclaimer per stale token, by an exclusive link. */
+function reclaim(lock: string, staleToken: string): void {
+  const claim = `${lock}.reclaim-${staleToken}`;
+  try {
+    linkSync(lock, claim);
+  } catch (error) {
+    if (['EEXIST', 'ENOENT'].includes((error as NodeJS.ErrnoException).code ?? '')) return;
+    throw error;
+  }
+  try {
+    if (lockOwner(claim)?.token === staleToken) unlinkSync(lock);
+  } finally {
+    unlinkSync(claim);
   }
 }
 
@@ -137,8 +168,10 @@ export function verifyTarget(runRoot: string, target: string): EvidenceVerdict {
       else if (!existsSync(path)) defects.push(`${receipt.id}: artifact ${artifact.path} is missing`);
       else if (sha256(path) !== artifact.sha256) defects.push(`${receipt.id}: artifact ${artifact.path} does not match its sha256`);
     }
-    if (receipt.verdict === 'fail')
-      defects.push(...(receipt.defects ?? [`${receipt.id}: recorded verdict fail${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`]).map((defect) => (defect.startsWith(`${receipt.id}:`) ? defect : `${receipt.id}: ${defect}`)));
+    if (receipt.verdict === 'fail') {
+      const listed = receipt.defects ?? [];
+      defects.push(...(listed.length > 0 ? listed : [`recorded verdict fail${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`]).map((defect) => (defect.startsWith(`${receipt.id}:`) ? defect : `${receipt.id}: ${defect}`)));
+    } else if (receipt.verdict === 'pass' && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself`);
     else if (receipt.verdict === 'inconclusive') unverifiable.push(`${receipt.id}: recorded verdict inconclusive${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`);
     else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);
   }

@@ -2,14 +2,15 @@
 // parent ExtensionAPI whose session entries live in memory.
 import { execFile, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { registerEvidenceTool } from '../../src/evidence.ts';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { controlSocketPath, type WorkerId } from '../../src/run-files.ts';
 import { registerWorkerTools, type WorkerToolOptions } from '../../src/workers.ts';
 
 const run = promisify(execFile);
@@ -43,6 +44,41 @@ export async function killTmuxServer(): Promise<void> {
 
 export async function liveTmuxSessions(): Promise<string[]> {
   return (await tmux('list-sessions', '-F', '#{session_name}').catch(() => '')).split('\n').filter(Boolean);
+}
+
+const running = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Ends every worker of the project and deletes it. Hosts get SIGHUP from their ending session and shut down on their
+ * own; a host a test SIGKILLed cannot remove its control socket under /tmp, so that file is removed here.
+ */
+export async function stopProject(project: Project): Promise<void> {
+  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
+  const runs = join(project.dir, '.pi', 'pstack', 'runs');
+  const workers = (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
+    const dir = join(runs, runId, 'workers');
+    return (existsSync(dir) ? readdirSync(dir) : []).map((workerId) => {
+      const statePath = join(dir, workerId, 'state.json');
+      const state = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : {};
+      return { socket: controlSocketPath(join(runs, runId), workerId as WorkerId), pids: [state.hostPid, state.childPid].filter((pid): pid is number => typeof pid === 'number') };
+    });
+  });
+  const pids = workers.flatMap((worker) => worker.pids);
+  await until(
+    () => pids.filter(running),
+    (alive) => alive.length === 0,
+    15_000,
+    'worker hosts and Pi processes to exit',
+  );
+  for (const { socket } of workers) rmSync(socket, { force: true });
+  project.dispose();
 }
 
 export interface Project {
@@ -139,22 +175,30 @@ export interface Parent {
   call: (tool: string, params: Record<string, unknown>) => Promise<{ text: string; details: Details }>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
+  fire: (event: string, payload?: Record<string, unknown>) => Promise<void>;
 }
 
 /**
  * A parent Pi session as the extension sees it. `entries` is the session file: pass the same array to a second parent
  * to model a restart. With `persist: false`, sendMessage does not append (a follow-up still queued behind a turn).
+ * With `sessionManager`, a real Pi SessionManager is the session and sendMessage appends to it as Pi does.
  */
-export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string } = {}): Parent {
+export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager } = {}): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
   const messages: Parent['messages'] = [];
+  let failures = options.failSends ?? 0;
   const pi = {
     registerTool: (tool: Tool) => tools.set(tool.name, tool),
     on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => handlers.set(event, [...(handlers.get(event) ?? []), handler]),
     sendMessage: (message: Parent['messages'][number]['message'], sendOptions: unknown) => {
+      if (failures > 0) {
+        failures -= 1;
+        throw new Error('sendMessage failed');
+      }
       messages.push({ message, options: sendOptions });
-      if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
+      if (options.sessionManager !== undefined) options.sessionManager.appendCustomMessageEntry(message.customType, message.content, true, message.details);
+      else if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
     },
     exec: async (command: string, args: string[], execOptions: { timeout?: number } = {}) => {
       try {
@@ -166,8 +210,10 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
       }
     },
   };
-  const sessionFile = options.sessionFile ?? project.sessionFile;
-  const ctx = { cwd: project.dir, model: undefined, sessionManager: { getSessionFile: () => sessionFile, getEntries: () => entries } } as unknown as ExtensionContext;
+  const sessionFile = options.sessionFile ?? options.sessionManager?.getSessionFile() ?? project.sessionFile;
+  // Without a real session, every entry is on the active branch.
+  const sessionManager = options.sessionManager ?? { getSessionFile: () => sessionFile, getEntries: () => entries, getBranch: () => entries };
+  const ctx = { cwd: project.dir, model: undefined, sessionManager } as unknown as ExtensionContext;
   registerWorkerTools(pi as unknown as ExtensionAPI, {
     tmuxSocket: TMUX,
     piCommand: [PI],
@@ -178,8 +224,8 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     ...options,
   });
   registerEvidenceTool(pi as unknown as ExtensionAPI);
-  const fire = async (event: string) => {
-    for (const handler of handlers.get(event) ?? []) await handler({ type: event, reason: 'startup' }, ctx);
+  const fire = async (event: string, payload: Record<string, unknown> = { reason: 'startup' }) => {
+    for (const handler of handlers.get(event) ?? []) await handler({ type: event, ...payload }, ctx);
   };
   return {
     ctx,
@@ -192,6 +238,7 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     },
     start: () => fire('session_start'),
     stop: () => fire('session_shutdown'),
+    fire,
   };
 }
 

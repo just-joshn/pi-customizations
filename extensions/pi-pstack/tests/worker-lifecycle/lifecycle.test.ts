@@ -1,10 +1,33 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { controlSocketPath, type WorkerId } from '../../src/run-files.ts';
-import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, TMUX, tmux, transcript, until, wakes, workerDir, writeAssignment } from './harness.ts';
+import { controlSocketPath, loadAssignment, type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
+import {
+  type Entry,
+  FIXTURE,
+  killTmuxServer,
+  liveTmuxSessions,
+  makeParent,
+  makeProject,
+  makeRun,
+  type Parent,
+  type Project,
+  readState,
+  sleep,
+  stopProject,
+  TMUX,
+  tmux,
+  transcript,
+  until,
+  wakes,
+  workerDir,
+  writeAssignment,
+} from './harness.ts';
+
+// The tmux server this file starts inherits it, so an inheriting worker sees it.
+process.env['U04A_PARENT_MARKER'] = 'parent-secret-marker';
 
 let project: Project;
 let parent: Parent;
@@ -20,8 +43,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await parent.stop();
-  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
-  project.dispose();
+  await stopProject(project);
 });
 
 afterAll(killTmuxServer);
@@ -31,6 +53,7 @@ const phaseOf = async (workerId: string) => {
   const result = await inspect(workerId);
   return result.available ? result.state.phase : 'unavailable';
 };
+const sessionOf = (workerId: string) => tmuxSessionName(project.dir, 'run1' as RunId, workerId as WorkerId);
 const settleCount = async (workerId: string) => ((await inspect(workerId)).state?.settles ?? []).length;
 const spawn = (workerId: string, brief: string, fields: Record<string, unknown> = {}) => parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', workerId, brief, fields) });
 
@@ -38,12 +61,13 @@ describe('pstack_worker on real tmux and Pi', () => {
   test('spawn returns before the work finishes, with an attach command whose pane shows the output', async () => {
     const result = await spawn('w1', '@@sleep 1500 HELLO-PANE');
 
-    expect(result.details).toMatchObject({ workerId: 'w1', tmuxSession: 'pstack-run1-w1', attach: `tmux -L ${TMUX} attach -t pstack-run1-w1`, model: { provider: 'scripted', id: 'echo' } });
+    expect(result.details).toMatchObject({ workerId: 'w1', tmuxSession: expect.stringMatching(/^pstack_run1_w1_[0-9a-f]{8}$/), model: { provider: 'scripted', id: 'echo' } });
+    expect(result.details.attach).toBe(`tmux -L ${TMUX} attach -t ${result.details.tmuxSession}`);
     expect(result.details.sessionFile.startsWith(join(workerDir(project, 'run1', 'w1'), 'session'))).toBe(true);
     expect(await phaseOf('w1')).toBe('running');
 
     const pane = await until(
-      () => tmux('capture-pane', '-p', '-t', 'pstack-run1-w1', '-S', '-200'),
+      () => tmux('capture-pane', '-p', '-t', result.details.tmuxSession, '-S', '-200'),
       (text) => text.includes('[pi response] HELLO-PANE'),
       20_000,
       'pane output',
@@ -101,7 +125,7 @@ describe('pstack_worker on real tmux and Pi', () => {
     const texts = transcript(project, 'run1', 'w3');
     expect(texts).not.toContain('assistant:NEVER');
     expect(texts).not.toContain('assistant:QUEUED-NEVER');
-    expect(await liveTmuxSessions()).not.toContain('pstack-run1-w3');
+    expect(await liveTmuxSessions()).not.toContain(sessionOf('w3'));
     expect(readState(project, 'run1', 'w3').phase).toBe('stopped');
     await until(
       () => wakes(parent).map((wake) => wake?.phase),
@@ -128,11 +152,75 @@ describe('pstack_worker on real tmux and Pi', () => {
     expect(execFileSync('git', ['-C', worktree, 'branch', '--show-current'], { encoding: 'utf8' }).trim()).toBe('pstack-run/run1/w4');
   });
 
+  test.for([
+    ['a clone the operator made', (path: string) => execFileSync('git', ['clone', '--quiet', project.dir, path])],
+    ['a worktree of this repo on another branch', (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'operator-branch', path, project.commit])],
+  ] as const)('spawn refuses to reuse %s at the worktree path', async ([, makeCheckout]) => {
+    const path = join(workerDir(project, 'run1', 'w12'), 'worktree');
+    const assignmentPath = writeAssignment(project, 'run1', 'w12', '@@script [{"tool":"write","args":{"path":"OWNED.txt","content":"x"}}]', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    makeCheckout(path);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/not this worker's worktree/);
+    await sleep(1_000);
+    expect(existsSync(join(path, 'OWNED.txt'))).toBe(false);
+  });
+
   test('collect on a worker still running returns its live state, never a result', async () => {
     await spawn('w5', '@@sleep 3000 LATER');
     const result = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w5' });
     expect(result.details).toEqual({ settled: false, live: expect.objectContaining({ phase: 'running' }) });
     expect(result.details.report).toBeUndefined();
+  });
+
+  test('collect after the host accepted a steer never returns the earlier settle', async () => {
+    await spawn('w13', '@@say ONE');
+    await until(
+      () => settleCount('w13'),
+      (count) => count === 1,
+    );
+    const { childPid, tmuxSession } = (await inspect('w13')).state;
+    // A stopped Pi holds the steer between the host accepting it and the run starting. The operator's terminal sends
+    // it, because pstack_worker's handshake would wait on the stopped Pi first.
+    process.kill(childPid, 'SIGSTOP');
+    await tmux('send-keys', '-t', tmuxSession, 'steer @@say TWO', 'Enter');
+    await sleep(500);
+    const early = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' });
+    process.kill(childPid, 'SIGCONT');
+    expect(early.details.settled).toBe(false);
+    await until(
+      () => settleCount('w13'),
+      (count) => count === 2,
+    );
+    expect((await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' })).details).toMatchObject({ settled: true, finalText: 'TWO' });
+
+    await parent.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w13', message: '@@sleep 300 THREE' });
+    const immediate = (await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' })).details;
+    expect(immediate.settled === false || immediate.finalText === 'THREE').toBe(true);
+  });
+
+  test('a host killed after accepting work but before the run started leaves collect with no result', async () => {
+    await spawn('w14', '@@say ONE');
+    await until(
+      () => settleCount('w14'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid, tmuxSession } = (await inspect('w14')).state;
+    process.kill(childPid, 'SIGSTOP');
+    await tmux('send-keys', '-t', tmuxSession, 'steer @@say TWO', 'Enter');
+    await sleep(500);
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Already gone.
+    }
+    const collected = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w14' });
+    expect(collected.details).toMatchObject({ settled: false, live: { phase: 'unavailable' } });
   });
 
   test('a Pi crash is failed, never success', async () => {
@@ -192,6 +280,64 @@ describe('pstack_worker on real tmux and Pi', () => {
     }
   });
 
+  test("abort of a dead host never ends another session, even one with the worker's old or current session name", async () => {
+    const spawned = await spawn('a-b', '@@say UP');
+    await until(
+      () => settleCount('a-b'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('a-b')).state;
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(spawned.details.tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    // The old scheme named both run1/a-b and run1-a/b `pstack-run1-a-b`; an operator may also reuse the current name.
+    const foreign = [...new Set(['pstack-run1-a-b', spawned.details.tmuxSession])];
+    for (const name of foreign) await tmux('new-session', '-d', '-s', name, '--', 'sleep', '60');
+
+    const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'a-b' });
+    expect(receipt.details.disposition).not.toBe('session-ended');
+    expect(await liveTmuxSessions()).toEqual(expect.arrayContaining(foreign));
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Pi usually exits on its own once the host's pipe closes.
+    }
+  });
+
+  test('two workers whose ids join to the same text get distinct tmux sessions', async () => {
+    makeRun(project, 'run1-a');
+    const first = await spawn('a-b', '@@say ONE');
+    const second = await parent.call('pstack_worker', { action: 'spawn', runId: 'run1-a', assignmentPath: writeAssignment(project, 'run1-a', 'b', '@@say TWO', { runId: 'run1-a' }) }).catch((error: Error) => error);
+    expect(second).not.toBeInstanceOf(Error);
+    expect(first.details.tmuxSession).not.toBe((second as { details: { tmuxSession: string } }).details.tmuxSession);
+  });
+
+  test('abort of a host whose control socket is lost ends its own session after verifying the pane is that host', async () => {
+    const spawned = await spawn('w11', '@@say UP');
+    await until(
+      () => settleCount('w11'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('w11')).state;
+    rmSync(controlSocketPath(project.runRoot('run1'), 'w11' as WorkerId));
+    try {
+      const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'w11' });
+      expect(receipt.details.disposition).toBe('session-ended');
+      expect(await liveTmuxSessions()).not.toContain(spawned.details.tmuxSession);
+    } finally {
+      for (const pid of [hostPid, -childPid])
+        try {
+          process.kill(pid, 'SIGKILL');
+        } catch {
+          // Already gone.
+        }
+    }
+  });
+
   test('a readonly worker gets only read, grep, find, and ls', async () => {
     await spawn('w8', '@@tools-list');
     await until(
@@ -212,7 +358,7 @@ describe('pstack_worker on real tmux and Pi', () => {
     );
     expect(wakes(parent)[0]?.phase).toBe('exited');
     expect(readState(project, 'run1', 'w9')).toMatchObject({ phase: 'exited', exit: { code: 3 } });
-    expect(await tmux('capture-pane', '-p', '-t', 'pstack-run1-w9')).toContain('WATCHED');
+    expect(await tmux('capture-pane', '-p', '-t', sessionOf('w9'))).toContain('WATCHED');
   });
 
   test('the control socket is private and rejects a forged identity', async () => {
@@ -227,6 +373,65 @@ describe('pstack_worker on real tmux and Pi', () => {
       client.on('close', () => resolve(data));
     });
     expect(JSON.parse(reply)).toMatchObject({ ok: false, error: 'Assignment identity mismatch' });
+  });
+});
+
+describe('capability boundary', () => {
+  const withoutNoMcp = ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-approve', '--extension', FIXTURE];
+  const envScript = (command: string) => `@@script [{"tool":"bash","args":{"command":${JSON.stringify(command)}}}]`;
+  const collectText = async (owner: Parent, workerId: string) => {
+    await until(
+      async () => ((await owner.call('pstack_worker', { action: 'inspect', runId: 'run1', workerId })).details.state?.settles ?? []).length,
+      (count) => count === 1,
+      20_000,
+      `${workerId} settle`,
+    );
+    return (await owner.call('pstack_worker', { action: 'collect', runId: 'run1', workerId })).details.finalText as string;
+  };
+  // Pi renames its process title, so the argv comes from the host's launch record in events.jsonl.
+  const argvOf = (workerId: string): string[] =>
+    readFileSync(join(project.runRoot('run1'), 'events.jsonl'), 'utf8')
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line))
+      .find((event) => event.kind === 'launch' && event.workerId === workerId).data.command;
+
+  test("mcp 'none' and env 'minimal' launch Pi with --no-mcp and without the parent's variables", async () => {
+    const owner = makeParent(project, [], { extraPiArgs: withoutNoMcp });
+    const worktree = { mode: 'worktree', inputCommit: project.commit };
+    await owner.call('pstack_worker', {
+      action: 'spawn',
+      runId: 'run1',
+      assignmentPath: writeAssignment(project, 'run1', 'c1', envScript('env'), { workspace: worktree, capabilities: { mcp: 'none', env: 'minimal', externalWrite: false } }),
+    });
+    const minimal = await collectText(owner, 'c1');
+    expect(minimal).toContain('PSTACK_WORKER=1');
+    expect(minimal).not.toContain('U04A_PARENT_MARKER');
+    expect(argvOf('c1')).toContain('--no-mcp');
+
+    await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'c2', envScript('printenv U04A_PARENT_MARKER'), { workspace: worktree }) });
+    expect(await collectText(owner, 'c2')).toContain('parent-secret-marker');
+    expect(argvOf('c2')).not.toContain('--no-mcp');
+    await owner.stop();
+  });
+
+  test('spawn refuses a worker that asks for external write authority', async () => {
+    const path = writeAssignment(project, 'run1', 'c3', '@@say X', { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/externalWrite/);
+    expect(existsSync(join(workerDir(project, 'run1', 'c3'), 'claim'))).toBe(false);
+  });
+
+  test('a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits', () => {
+    makeRun(project, 'auto1', null);
+    const automated = loadAssignment(writeAssignment(project, 'auto1', 'owner', 'x', { runId: 'auto1', role: 'owner' }));
+    expect(automated.assignment.capabilities).toEqual({ mcp: 'none', env: 'minimal', externalWrite: false });
+    const engineering = loadAssignment(writeAssignment(project, 'run1', 'c4', 'x'));
+    expect(engineering.assignment.capabilities).toEqual({ mcp: 'inherit', env: 'inherit', externalWrite: false });
+  });
+
+  test('rejects malformed capabilities', async () => {
+    const path = writeAssignment(project, 'run1', 'c5', 'x', { capabilities: { mcp: 'some', env: 'inherit', externalWrite: false } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/capabilities/);
   });
 });
 
@@ -259,7 +464,20 @@ describe('pstack_worker boundary validation', () => {
 
   test('rejects a brief path outside the worker directory', async () => {
     const path = writeAssignment(project, 'run1', 'w1', '@@say X', { brief: '../../run.json' });
-    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief must be a relative path/);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief must be 'brief.md'/);
+  });
+
+  test('rejects a brief.md that is a symlink, and never sends its target', async () => {
+    const path = writeAssignment(project, 'run1', 'w1', 'unused');
+    const secret = join(project.home, 'secret.md');
+    writeFileSync(secret, '@@say SECRET-OUTSIDE-THE-WORKER');
+    const { rmSync, symlinkSync } = await import('node:fs');
+    rmSync(join(workerDir(project, 'run1', 'w1'), 'brief.md'));
+    symlinkSync(secret, join(workerDir(project, 'run1', 'w1'), 'brief.md'));
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief\.md must be a regular file/);
+    await sleep(1_000);
+    const session = join(workerDir(project, 'run1', 'w1'), 'session');
+    expect(existsSync(session) ? transcript(project, 'run1', 'w1') : []).not.toContain('assistant:SECRET-OUTSIDE-THE-WORKER');
   });
 
   test('rejects an assignment reached through a symlinked worker directory', async () => {

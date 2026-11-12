@@ -1,5 +1,10 @@
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, tmux, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
+import { type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
+import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, stopProject, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
 
 let project: Project;
 let entries: Entry[];
@@ -19,8 +24,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   for (const parent of parents.splice(0)) await parent.stop();
-  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
-  project.dispose();
+  await stopProject(project);
 });
 
 afterAll(killTmuxServer);
@@ -112,7 +116,7 @@ describe('parent restart', () => {
     process.kill(hostPid, 'SIGKILL');
     await until(
       () => liveTmuxSessions(),
-      (sessions) => !sessions.includes('pstack-run1-w3'),
+      (sessions) => !sessions.includes(tmuxSessionName(project.dir, 'run1' as RunId, 'w3' as WorkerId)),
       5_000,
       'session gone',
     );
@@ -184,5 +188,104 @@ describe('wake delivery record', () => {
     await stranger.start();
     await sleep(600);
     expect(stranger.messages).toHaveLength(0);
+  });
+
+  test('more than 64 settles while no parent runs each wake the restarted parent once', async () => {
+    const first = parentFor();
+    await first.start();
+    await spawn(first, 'w7', '@@say 1');
+    await first.stop();
+    const lastSequence = () => {
+      try {
+        return (readState(project, 'run1', 'w7').settles.at(-1)?.sequence ?? 0) as number;
+      } catch {
+        return 0;
+      }
+    };
+    for (let count = 1; count <= 70; count += 1) {
+      await until(lastSequence, (sequence) => sequence === count, 20_000, `settle ${count}`);
+      if (count < 70) await first.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w7', message: `@@say ${count + 1}` });
+    }
+    expect(first.messages).toHaveLength(0);
+
+    const second = parentFor();
+    await second.start();
+    expect(wakes(second).map((wake) => Number(wake?.transitionId.split(':')[2]))).toEqual(Array.from({ length: 70 }, (_, index) => index + 1));
+    await sleep(600);
+    expect(wakeIds()).toHaveLength(70);
+  }, 180_000);
+
+  test('a wake whose sendMessage threw is sent on the next poll', async () => {
+    const parent = parentFor({ failSends: 1 });
+    await parent.start();
+    await spawn(parent, 'w8', '@@say DONE');
+    await until(
+      () => wakes(parent),
+      (list) => list.length === 1,
+      20_000,
+      'wake after a failed send',
+    );
+    await sleep(600);
+    expect(wakeIds()).toHaveLength(1);
+  });
+});
+
+describe('wake delivery on a real session tree', () => {
+  const realSession = () => {
+    const sessionDir = join(project.home, 'real-sessions');
+    mkdirSync(sessionDir, { recursive: true });
+    const session = SessionManager.create(project.dir, sessionDir);
+    const root = session.appendMessage({ role: 'user', content: 'start the run', timestamp: Date.now() });
+    makeRun(project, 'run2', session.getSessionFile() as string);
+    return { session, root };
+  };
+  const spawnIn = (parent: Parent, workerId: string, brief: string) => parent.call('pstack_worker', { action: 'spawn', runId: 'run2', assignmentPath: writeAssignment(project, 'run2', workerId, brief, { runId: 'run2' }) });
+  const branchWakes = (session: SessionManager) => session.getBranch().filter((entry) => entry.type === 'custom_message' && entry.customType === 'pstack-worker');
+
+  test('navigating the tree to before a wake makes the parent deliver it again on the new branch', async () => {
+    const { session, root } = realSession();
+    const parent = parentFor({ sessionManager: session });
+    await parent.start();
+    await spawnIn(parent, 'w1', '@@say DONE');
+    await until(
+      () => parent.messages.length,
+      (count) => count === 1,
+      20_000,
+      'first wake',
+    );
+    expect(branchWakes(session)).toHaveLength(1);
+
+    session.branch(root);
+    expect(branchWakes(session)).toHaveLength(0);
+    await parent.fire('session_tree', { newLeafId: root, oldLeafId: null, fromExtension: false });
+    await until(
+      () => branchWakes(session).length,
+      (count) => count === 1,
+      5_000,
+      'wake on the new branch',
+    );
+    await sleep(600);
+    expect(parent.messages).toHaveLength(2);
+    expect(new Set(parent.messages.map((entry) => entry.message.details?.transitionId)).size).toBe(1);
+  });
+
+  test('a parent reopened from the session file finds the wake on its branch and does not resend it', async () => {
+    const { session } = realSession();
+    const first = parentFor({ sessionManager: session });
+    await first.start();
+    await spawnIn(first, 'w2', '@@say DONE');
+    await until(
+      () => first.messages.length,
+      (count) => count === 1,
+      20_000,
+      'first wake',
+    );
+    await first.stop();
+
+    const reopened = SessionManager.open(session.getSessionFile() as string);
+    const second = parentFor({ sessionManager: reopened });
+    await second.start();
+    await sleep(600);
+    expect(second.messages).toHaveLength(0);
   });
 });
