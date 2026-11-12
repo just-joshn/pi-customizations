@@ -4,17 +4,17 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "c7ada26c3e6d36830748e73c70860f70c84c51fc17d86db2e923b145f262d085",
+  "requirementsDigest": "7ff52c6b5bceec4cb9a89b9ea5af2c653af9b1a3fd8a2ef3616004dc25820cc7",
   "run": {
-    "startedAt": "2026-11-12T10:04:47.532Z",
-    "generatedAt": "2026-11-12T10:08:32.314Z",
-    "commit": "0e47a59c030ed8496e5c2930d70804fa2352b1bf",
+    "startedAt": "2026-11-12T10:47:07.102Z",
+    "generatedAt": "2026-11-12T10:51:41.020Z",
+    "commit": "e8b90b5c1a4e92f1f7044b2275f1aa759dbc5169",
     "dirty": false,
     "resultsSource": "vitest run",
-    "totalTests": 1766,
-    "passedTests": 1698,
-    "failedTests": 4,
-    "skippedTests": 64
+    "totalTests": 1785,
+    "passedTests": 1718,
+    "failedTests": 2,
+    "skippedTests": 65
   },
   "counts": {
     "structural": {
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 38,
-      "FAIL": 3,
-      "INCONCLUSIVE": 44,
+      "PASS": 42,
+      "FAIL": 1,
+      "INCONCLUSIVE": 42,
       "N/A": 0
     }
   },
@@ -22543,7 +22543,7 @@
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
           "name": "babysit-background scripted run: every check passes",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
@@ -22571,8 +22571,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
+      "status": "PASS",
+      "reason": "11 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-READY",
@@ -22658,7 +22658,6 @@
           "name": "babysit-single-watcher negative: the second request armed a second watcher"
         }
       ],
-      "coverageGap": "A repeated babysit request while a watcher is live arms no second watcher. No workflow test restarts Pi in the middle of a babysit and checks that the watcher is not duplicated after the restart; restart reconciliation of workers is tested by MX-PARENT-RESTART.",
       "results": [
         {
           "file": "tests/helpers/watch-pr-differential.test.ts",
@@ -22693,7 +22692,7 @@
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
           "name": "babysit-background scripted run: every check passes",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
@@ -22731,8 +22730,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
+      "status": "PASS",
+      "reason": "14 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-MERGE-QUEUE",
@@ -22909,7 +22908,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive) asserts exactly one fresh build after the run log and base were read",
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive, babysit-flake-twice) assert exactly one fresh build after the run log and base were read, and reclassification from the logs after an identical second failure",
       "tests": [
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
@@ -22926,9 +22925,24 @@
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
           "name": "babysit-drive negative: the build was retried without reading the log"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: a second fresh build was requested after the identical failure"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: the second failure was never read from the logs"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger"
         }
       ],
-      "coverageGap": "The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised.",
       "results": [
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
@@ -22949,10 +22963,30 @@
           "file": "tests/workflow-parity/pr-babysit.test.ts",
           "name": "babysit-drive negative: the build was retried without reading the log",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: a second fresh build was requested after the identical failure",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: the second failure was never read from the logs",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised."
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-NO-MERGE",
@@ -23062,7 +23096,7 @@
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
           "name": "babysit-background scripted run: every check passes",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/pr-babysit.test.ts",
@@ -23090,8 +23124,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
+      "status": "PASS",
+      "reason": "12 linked test(s) ran and passed"
     },
     {
       "id": "BUGBOT-TRIAGE",
@@ -24863,7 +24897,7 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's",
-          "outcome": "passed"
+          "outcome": "failed"
         },
         {
           "file": "tests/container/provider-auth.test.ts",
@@ -24976,8 +25010,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
+      "status": "FAIL",
+      "reason": "1 linked test(s) failed: a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's"
     },
     {
       "id": "WF-HOW-READONLY",
