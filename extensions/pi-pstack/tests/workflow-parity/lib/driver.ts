@@ -441,7 +441,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
-  if (!timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
+  if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
   const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
