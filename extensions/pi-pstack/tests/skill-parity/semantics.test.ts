@@ -60,3 +60,37 @@ describe('nested spawning (defect 2)', () => {
     expect(fork).toContain('Steer a worker only for a follow-up on the same work.');
   });
 });
+
+describe('container workers (defect 3)', () => {
+  const SHAPE = '`workspace: { mode: "container", inputCommit';
+
+  test.for([
+    ['skills/swarm/SKILL.md', 27, 'fallback'],
+    ['skills/poteto-mode/playbooks/orchestrate.md', 10, 'fallback'],
+    ['skills/poteto-mode/playbooks/multi-phase-plan.md', 71, 'fallback'],
+    ['skills/poteto-mode/playbooks/shipping.md', 5, 'blocked'],
+    ['skills/poteto-mode/playbooks/autopilot-full.md', 8, 'blocked'],
+  ] as const)('%s:%i names the container shape and its ContainerUnavailable %s', ([file, n, outcome]) => {
+    const text = line(file, n);
+    expect(text).toContain(SHAPE);
+    expect(text).toContain('`ContainerUnavailable`');
+    if (outcome === 'fallback') expect(text).toMatch(/`ContainerUnavailable`[^.]*`workspace: \{ mode: "worktree", inputCommit/);
+    else expect(text).toMatch(/`ContainerUnavailable`[^.]*blocked/);
+  });
+
+  test('poteto-mode defines the container shape and the refusal', () => {
+    const text = line('skills/poteto-mode/SKILL.md', 97);
+    expect(text).toContain(SHAPE);
+    expect(text).toContain('`ContainerUnavailable`');
+    expect(text).toMatch(/without one reports itself blocked/);
+  });
+
+  test('every container worker an engineering step requires names its shape and refusal', () => {
+    const offenders = listMarkdown('skills')
+      .filter((f) => !f.startsWith('skills/poteto-help/'))
+      .flatMap((f) => gen(f).split('\n').map((text, i) => ({ at: `${f}:${i + 1}`, text })))
+      .filter(({ text }) => /container worker|mode: "container"/.test(text) && !(text.includes(SHAPE) && text.includes('ContainerUnavailable')))
+      .map(({ at }) => at);
+    expect(offenders).toEqual([]);
+  });
+});

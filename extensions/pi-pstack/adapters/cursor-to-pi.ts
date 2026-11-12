@@ -171,7 +171,7 @@ export const WORKER_CONTRACT = `## Pi worker
 You run as a pstack worker: an independent Pi process in tmux that a parent session started with the \`pstack_worker\` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no \`pstack_worker\` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets \`capabilities.spawn: true\`, as for a sub-coordinator, you have \`pstack_worker\` and own your children's runs. They live under your workspace's \`.pi/pstack/runs/\`, their wakes come to you, and you collect and judge their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get \`capabilities.spawn: true\`. Write your final report to \`report.md\` in the worker directory the brief names. Save each check you ran as a receipt under that directory's \`evidence/\`, and register it with \`pstack_evidence\` \`record\`. A readonly worker cannot write files. Its final reply is its report, and it names each check it ran there, with the command and its result, in place of receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.
 `;
 
-const WORKERS = `**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write \`brief.md\` and \`assignment.json\` under \`.pi/pstack/runs/<runId>/workers/<workerId>/\` and call \`pstack_worker\` with \`{ action: "spawn", runId, assignmentPath }\`. The assignment's \`role\` picks the role instruction: \`poteto\`, \`explorer\`, \`investigator\`, \`candidate\`, \`judge\`, \`verifier\`, \`reviewer\`, \`owner\`, \`watcher\`, \`comment-sicko\`, or \`general\`. Its \`workspace\` is \`{ mode: "worktree", inputCommit }\` for a writable worker or \`{ mode: "readonly", path }\` for a worker limited to \`read\`, \`grep\`, \`find\`, \`ls\`, \`bash_readonly\`, and MCP tools. \`bash_readonly\` is an OS-sandboxed read-only shell that allows \`git\`, \`gh\`, and network reads and blocks writes. Its \`model\` is a model spec or \`inherit-parent\`. Its \`capabilities\` default to \`{ mcp: "inherit", env: "inherit", externalWrite: false }\`, with \`spawn\` false. A default written as a family and level, such as \`claude-opus-5-5-xhigh\` or \`grok-4.7-xhigh-fast\`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A \`pstack-worker\` wake message reports each worker that settles. Then call \`collect\` for its report. Use \`inspect\` for live state, \`steer\` to redirect a live worker, and \`abort\` to stop one. A worker has no \`pstack_worker\` tool by default, so it does delegated work itself. A worker you assign \`capabilities.spawn: true\` has \`pstack_worker\` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get \`capabilities.spawn: true\`. A container worker runs inside the configured container environment. Where none is configured, a step that requires a container worker refuses: say so and stop that step. A watch loop is a \`pstack_worker\` spawn with \`kind: "watch"\`. Its \`watch.argv\` runs in tmux, and its exit wakes you. A fixed interval uses \`["sleep", "<seconds>"]\`, and an event uses the watcher's command. Spawn it again after each wake until the stop predicate holds. The model rule is \`~/.pi/agent/pstack/models.json\`, and each of its role keys is a line.
+const WORKERS = `**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write \`brief.md\` and \`assignment.json\` under \`.pi/pstack/runs/<runId>/workers/<workerId>/\` and call \`pstack_worker\` with \`{ action: "spawn", runId, assignmentPath }\`. The assignment's \`role\` picks the role instruction: \`poteto\`, \`explorer\`, \`investigator\`, \`candidate\`, \`judge\`, \`verifier\`, \`reviewer\`, \`owner\`, \`watcher\`, \`comment-sicko\`, or \`general\`. Its \`workspace\` is \`{ mode: "worktree", inputCommit }\` for a writable worker or \`{ mode: "readonly", path }\` for a worker limited to \`read\`, \`grep\`, \`find\`, \`ls\`, \`bash_readonly\`, and MCP tools. \`bash_readonly\` is an OS-sandboxed read-only shell that allows \`git\`, \`gh\`, and network reads and blocks writes. Its \`model\` is a model spec or \`inherit-parent\`. Its \`capabilities\` default to \`{ mcp: "inherit", env: "inherit", externalWrite: false }\`, with \`spawn\` false. A default written as a family and level, such as \`claude-opus-5-5-xhigh\` or \`grok-4.7-xhigh-fast\`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A \`pstack-worker\` wake message reports each worker that settles. Then call \`collect\` for its report. Use \`inspect\` for live state, \`steer\` to redirect a live worker, and \`abort\` to stop one. A worker has no \`pstack_worker\` tool by default, so it does delegated work itself. A worker you assign \`capabilities.spawn: true\` has \`pstack_worker\` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get \`capabilities.spawn: true\`. A container worker has \`workspace: { mode: "container", inputCommit }\` and runs a writable clone inside the container that \`.pi/environment.json\` configures. Spawn refuses it with \`ContainerUnavailable\` until a container environment is installed. Then a step that names a local fallback uses it, and a step without one reports itself blocked. A watch loop is a \`pstack_worker\` spawn with \`kind: "watch"\`. Its \`watch.argv\` runs in tmux, and its exit wakes you. A fixed interval uses \`["sleep", "<seconds>"]\`, and an event uses the watcher's command. Spawn it again after each wake until the stop predicate holds. The model rule is \`~/.pi/agent/pstack/models.json\`, and each of its role keys is a line.
 
 **Defaults for every \`pstack_worker\` spawn.** Keep working after the spawn returns (a \`steer\` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use \`workspace.mode: "worktree"\` unless the step asks for a readonly worker, file pointers not inlined context,`;
 
@@ -372,7 +372,14 @@ export const RULES: readonly Rule[] = [
     'Pick the wake mechanism as a watch loop (a `pstack_worker` spawn with `kind: "watch"`, per the Subagents section).',
   ),
   rule('autonomous-run.askquestion', 'ask-question', PB('autonomous-run'), 'or use `AskQuestion`.', 'or stop to ask the user a question.'),
-  rule('autopilot-full.owner', 'cloud-environment', PB('autopilot-full'), 'Each owner is a Cursor cloud agent that builds', 'Each owner is a container worker (`role: "owner"`) that builds'),
+  rule(
+    'autopilot-full.owner',
+    'cloud-environment',
+    PB('autopilot-full'),
+    'Each owner is a Cursor cloud agent that builds, opens its PR per `playbooks/opening-a-pr.md`, proves the change on the real artifact, babysits to green per `playbooks/babysit.md`, and merges once steps 4 and 5 clear it.',
+    'Each owner is a container worker (`role: "owner"`, `workspace: { mode: "container", inputCommit }` at trunk) that builds, opens its PR per `playbooks/opening-a-pr.md`, proves the change on the real artifact, babysits to green per `playbooks/babysit.md`, and merges once steps 4 and 5 clear it. When spawn returns `ContainerUnavailable`, this step is blocked. Report it blocked and spawn no owner.',
+  ),
+  rule('autopilot-full.vm-dies', 'cloud-environment', PB('autopilot-full'), 'Assume the VM dies.', 'Assume the container dies.'),
   rule('autopilot-full.loop', 'loop', PB('autopilot-full'), "On the operator's go, arm `/loop 1h` to audit", 'On the operator\'s go, arm an hourly watch loop (`watch.argv: ["sleep", "3600"]`) to audit'),
   rule('autopilot-full.tick-from-trunk', 'upstream-repo-path', PB('autopilot-full'), 'Each tick re-reads this playbook from trunk', 'Each tick re-reads this playbook from the installed pi-pstack package'),
   rule('babysit.builtin-babysit', 'cursor-builtin-babysit', PB('babysit'), "This playbook replaces Cursor's built-in babysit skill for these requests", 'This playbook replaces any other babysit skill for these requests'),
@@ -411,7 +418,7 @@ export const RULES: readonly Rule[] = [
     ['cloud-environment', 'cursor-team-kit'],
     PB('multi-phase-plan'),
     'Each live lane runs on its own cloud VM at the PR head. Drive through `control-ui` or `control-cli` from `cursor-team-kit`.',
-    'Each live lane runs as its own container worker at the PR head. Drive through `control-ui` or `control-cli`.',
+    'Each live lane runs as its own container worker (`workspace: { mode: "container", inputCommit: <head SHA> }`). When spawn returns `ContainerUnavailable`, the lane takes the swarm skill\'s local fallback, `workspace: { mode: "worktree", inputCommit: <head SHA> }`. Drive through `control-ui` or `control-cli`.',
   ),
   rule('multi-phase-plan.review-video', 'cloud-environment', PB('multi-phase-plan'), 'on a lane VM.', 'on a lane worker.'),
   rule(
@@ -449,8 +456,8 @@ export const RULES: readonly Rule[] = [
     'orchestrate.cloud-workers',
     ['cloud-environment', 'cursor-team-kit'],
     PB('orchestrate'),
-    'Run workers on a new cloud VM (`environment: "cloud"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts,',
-    'Run workers as container workers unless the work needs this machine: a `control-ui` or `control-cli` runtime check, local session files,',
+    'Run workers on a new cloud VM (`environment: "cloud"`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check (from `cursor-team-kit`), local transcripts, a simulator, or auth that exists only here.',
+    'Run workers as container workers (`workspace: { mode: "container", inputCommit }`) unless the work needs this machine: a `control-ui` or `control-cli` runtime check, local session files, a simulator, or auth that exists only here. Run those, and every worker while spawn returns `ContainerUnavailable`, on this machine with `workspace: { mode: "worktree", inputCommit }`.',
   ),
   rule(
     'orchestrate.fork',
@@ -480,7 +487,20 @@ export const RULES: readonly Rule[] = [
     ', a cloud-agent URL, or a pushed branch.',
     `, a worker's run directory (\`.pi/pstack/runs/<runId>/workers/<workerId>/\`, with its \`report.md\` and ${WORKER_SESSIONS}), or a pushed branch.`,
   ),
-  rule('shipping.verifier', 'cloud-environment', PB('shipping'), 'One verifier per PR, each a Cursor cloud agent, runs the change', 'One verifier per PR, each a container worker (`role: "verifier"`), runs the change'),
+  rule(
+    'shipping.verifier',
+    'cloud-environment',
+    PB('shipping'),
+    'One verifier per PR, each a Cursor cloud agent, runs the change',
+    'One verifier per PR, each a container worker (`role: "verifier"`, `workspace: { mode: "container", inputCommit }` at the PR head), runs the change',
+  ),
+  rule(
+    'shipping.verifier-unavailable',
+    'cloud-environment',
+    PB('shipping'),
+    'Only a verdict from an agent that did not write the code counts,',
+    'When spawn returns `ContainerUnavailable`, this step is blocked. Report it blocked and land nothing. Only a verdict from an agent that did not write the code counts,',
+  ),
   rule('shipping.loop', 'loop', PB('shipping'), 'under `/loop` until it reports', 'under a watch loop until it reports'),
   rule('visual-parity.loop', 'loop', PB('visual-parity'), '`/loop` per component until the diff is zero.', 'Loop per component until the diff is zero.'),
   rule('worktree-cleanup.worktree-path', 'cursor-path', PB('worktree-cleanup'), 'misses one that lives at `.cursor/worktrees/myrepo/x`', 'misses one that lives at `.pi/pstack/runs/<runId>/workers/<workerId>/worktree`'),
@@ -814,7 +834,7 @@ export const RULES: readonly Rule[] = [
     ['subagent-type', 'cloud-environment', 'run-in-background'],
     SK('swarm/SKILL.md'),
     'Spawn all N workers in one message with `subagent_type: generalPurpose`, `environment: "cloud"`, `run_in_background: true`, and the step 3 model, left unset for `auto` or `inherit-parent`. Use `environment: "local"` only when the worker needs access to something on the user\'s computer.',
-    'Spawn all N workers one after another without waiting, as container workers with `role: "general"` and the step 3 model, `inherit-parent` for `auto` or `inherit-parent`. Run a worker as a local worktree worker only when it needs access to something on the user\'s computer.',
+    'Spawn all N workers one after another without waiting, each with `role: "general"`, `workspace: { mode: "container", inputCommit }`, and the step 3 model, `inherit-parent` for `auto` or `inherit-parent`. When a worker needs access to something on the user\'s computer, or spawn returns `ContainerUnavailable`, spawn it with `workspace: { mode: "worktree", inputCommit }` instead.',
   ),
   rule('swarm.base-branch', 'cloud-environment', SK('swarm/SKILL.md'), 'pass `cloud_base_branch`.', "set its `workspace.inputCommit` to that branch's head commit."),
   rule(

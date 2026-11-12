@@ -68,7 +68,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 ### Boot recipe, for every live lane
 
-Each live lane runs as its own container worker at the PR head. Drive through `control-ui` or `control-cli`.
+Each live lane runs as its own container worker (`workspace: { mode: "container", inputCommit: <head SHA> }`). When spawn returns `ContainerUnavailable`, the lane takes the swarm skill's local fallback, `workspace: { mode: "worktree", inputCommit: <head SHA> }`. Drive through `control-ui` or `control-cli`.
 
 - [ ] `git fetch origin <head-branch> && git checkout <head SHA>`.
 - [ ] <Start the backend and the surface. Wait for ready.>

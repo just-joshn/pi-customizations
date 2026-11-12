@@ -24,7 +24,7 @@ Add one `TODO.md` entry per phase (the Playbooks section of the **poteto-mode** 
 
 ## Phase B: Fan out
 
-Spawn all N workers one after another without waiting, as container workers with `role: "general"` and the step 3 model, `inherit-parent` for `auto` or `inherit-parent`. Run a worker as a local worktree worker only when it needs access to something on the user's computer.
+Spawn all N workers one after another without waiting, each with `role: "general"`, `workspace: { mode: "container", inputCommit }`, and the step 3 model, `inherit-parent` for `auto` or `inherit-parent`. When a worker needs access to something on the user's computer, or spawn returns `ContainerUnavailable`, spawn it with `workspace: { mode: "worktree", inputCommit }` instead.
 
 When a worker must start from a non-default pushed branch, set its `workspace.inputCommit` to that branch's head commit.
 
