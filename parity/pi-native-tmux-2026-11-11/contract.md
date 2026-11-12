@@ -14,6 +14,7 @@ New code lands beside the old code until the cutover. U04c-1 switched `package.j
 | `scripts/sync-upstream.mjs`, `scripts/check-dependencies.mjs`, `scripts/compile-skills.mjs`, `scripts/check-parity.mjs` | U01, U03 |
 | `adapters/*.ts`, `generated/**` | U03 compile pipeline (U04b owns `adapters/model-config.ts`) |
 | `src/worker-host.ts`, `src/rpc-client.ts`, `src/workers.ts`, `src/run-files.ts`, `src/evidence.ts` | U04a workers |
+| `src/container.ts`, `tests/container/` | U10 container workers |
 | `src/models.ts`, `adapters/model-config.ts`, `scripts/start-run.mjs` | U04b models and TODO.md |
 | `src/forge.ts` | U07 forge |
 | `src/extension.ts`, `src/commands.ts`, `src/skill-routing.ts`, `src/style.ts`, `src/automation/serve-cli.ts` | U04c integration and cutover |
@@ -71,7 +72,7 @@ Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/psta
   thinkingLevel: 'off'|'minimal'|'low'|'medium'|'high'|'xhigh'|'max' | null,
   workspace: { mode: 'worktree', inputCommit: string }   // writable: extension creates worktree/ at inputCommit
            | { mode: 'readonly', path: string }           // absolute; tools: read,grep,find,ls,bash_readonly,pstack_evidence (+MCP per capabilities)
-           | { mode: 'container', inputCommit: string },  // writable clone inside the configured container (.pi/environment.json); refused with ContainerUnavailable until the container unit lands
+           | { mode: 'container', inputCommit: string },  // writable clone of the pushed remote at inputCommit, inside the container .pi/environment.json configures (see Container workers)
   skills: string[],                  // skill names the brief requires the worker to read first
   watch?: { argv: string[], cwd: string }   // kind 'watch': argv runs in tmux; exit wakes the parent
 }
@@ -168,7 +169,60 @@ Sub-coordinators. A worker with `capabilities.spawn: true` is a sub-coordinator 
 
 The provider credential variables are the ones pi-ai's `findEnvKeys(provider)` reports set in the parent, plus the ambient AWS and Google variables pi-ai reads for `amazon-bedrock` and `google-vertex`. A worker launched with no `--model` (an automation's `inherit-parent`) runs Pi's default model, so its provider is `defaultProvider` in `settings.json` under the agent directory the worker sees (`PI_CODING_AGENT_DIR`, else `~/.pi/agent`); when that file names none, Pi picks a provider itself, so the credential variables of every known provider (`getBuiltinProviders`) are added, still only those set in the parent. The parent passes their names in the launch argument and their current values, with any configured extra variables, in `claim/launch-env.json` (see Runtime invariants, launch environment); values never appear in argv or logs. Credentials stored by `/login` live in `auth.json` under `PI_CODING_AGENT_DIR` (default `~/.pi/agent`, found through `HOME`), and both variables survive `minimal`, so Pi still reads that file. A custom provider whose `models.json` `apiKey` is `$NAME` or `!command` gets no extra variable under `minimal`. A worker with `PSTACK_WORKER=1` gets no tool that posts to Slack, a tracker, or a forge. Only `pstack_evidence` is registered, plus `bash_readonly` for a readonly worker and `pstack_worker` for a sub-coordinator. The host enforces `mcp` and `env` at spawn. Automation credentials live in `~/.pi/agent/pstack/credentials/<connector>.json` (0600), which is never named in a brief or assignment.
 
-The same-uid limit is stated, not hidden. A worker process running as the operator's uid can still read 0600 files that uid owns. The tool and env boundary stops a worker from posting through Pi, but it is not an OS boundary. The full guarantee of spec 15.1 requires `environment: 'container'` (the container unit). Until then, automation setup reports this limit, and the parity manifest marks the credential-isolation requirement `partial`.
+The same-uid limit is stated, not hidden. A worker process running as the operator's uid can still read 0600 files that uid owns. The tool and env boundary stops a worker from posting through Pi, but it is not an OS boundary. A `container` workspace removes the limit for the worker's filesystem (see Container workers). A `worktree` or `readonly` worker keeps it, so automation setup reports it, and the parity manifest marks the credential-isolation requirement `partial` for them.
+
+## Container workers (spec 5 "Cloud subagent", 9.6, 15.1; U10)
+
+`workspace: { mode: 'container', inputCommit }` runs the whole worker, Pi included, in a container on the local Docker-compatible engine (OrbStack, Docker Desktop, Colima, a remote `DOCKER_HOST`). State, settle, wake, and collect are the worktree worker's. The tmux host owns the RPC pipe.
+
+### Where Pi runs (decision)
+
+Option 1. The tmux host stays on the host. Its child is `docker run -i ... pi --mode rpc`, so the docker client's stdio is the RPC pipe and the container holds Pi, its tools, its extensions, and the clone. Option 2, Pi on the host with only tools routed into the container, is rejected.
+
+Evidence.
+- `docs/containerization.md` (Pi 1.5.2) lists "Plain Docker" as isolating "Pi, built-in tools, `!` commands, and extensions" and the Gondolin tool-routing pattern as isolating only "built-in tools and `!` commands". It says other extension tools "still run on the host unless they also delegate", and that commands inherit the host environment, so the pattern is not "a credential boundary" without more work.
+- A pstack worker loads extension tools (`pstack_evidence`, `bash_readonly`, MCP, and whatever the user installed). Under option 2 each needs its own routing. The deleted package (`2f045b2c:extensions/pi-pstack/src/cloud/routed-tools.ts`, 213 lines) routed `read`, `write`, `edit`, `find`, `grep`, `ls`, and `bash` only, and kept the Pi process and the model credentials on the host.
+- Spec 5 requires "independent filesystem" for the cloud subagent and 15.1 says a worker "owns only its isolated checkout". Under option 1 the Pi process itself has none of the host's files. Under option 2 the Pi process reads `~/.pi/agent`, the project, and everything the user can.
+- Measured: Pi 1.5.2 runs unchanged under the container's node (`node .../dist/bundle/cli.js --mode rpc`) with the host's install mounted read-only, loading the scripted-model fixture and this package's extension. tests/container covers it.
+
+Isolation achieved, by test (`tests/container/container.test.ts`) unless marked.
+- Host filesystem. Not visible: the worker's `test -e <host checkout>/README.md` finds nothing and it sees no engine socket. Mounted: Pi's `node_modules` (read-only, at `/opt/pstack/pi/node_modules`), this package, the role document's folder, `containerMounts` (read-only, same path), a local-path remote (read-write, same path: it stands in for the network remote, and giving the worker its push target is the point), and `<workerDir>/out` (read-write, at `<workerDir>`). The claim, `state.json`, `assignment.json`, and the control socket are not mounted. Writing in the container leaves the host checkout unchanged.
+- Process. Own PID namespace, `--init`, `--cap-drop ALL`, `--security-opt no-new-privileges`, the host uid and gid (`--user`). The worker has `CapEff` zero. Files it creates in `out` belong to the host user, on every engine.
+- Credentials. They enter through the launch-env snapshot and nowhere else. The host writes them to the docker client's stdin ahead of the RPC stream (see Entrypoint). They are absent from `docker inspect` (`Config.Env`, `Config.Cmd`, labels), from `docker history`, and from every process's argv on the host. The container does hold them, as the worker needs the provider key.
+- Network. Not restricted. The container uses the engine's default bridge: the model API needs it, and it reaches the host's network services and the LAN as any bridge container does. Restricting egress is a policy the operator sets on the engine.
+- Same-uid limit. The worker has no host file access, so the same-uid limit of Capability boundary does not apply to it. It still shares the engine and its kernel with every other container, and a container escape is out of scope.
+
+### Environment
+
+`<project>/.pi/environment.json`, read at spawn from the project checkout (the parent's, not the clone: the image must exist before the clone does): `image` (a reference), or `build: { dockerfile, context? }` relative to `<project>/.pi/`, and `install` (a shell command run in the clone before Pi). Not both `image` and `build`. Any other field, such as `start` or `terminals`, fails the spawn. A malformed file fails it too. Absent, the image is `node:24-bookworm`. Any image works that has `node` (22.19 or newer, Pi's floor), `git`, `base64`, and `/bin/sh`; the entrypoint names the missing tool. A pulled image is resolved to its id and a built one is rebuilt (the layer cache makes that cheap), and the worker runs by id, so what ran is what was checked; the id and the engine version are in the `spawn` event. `install` runs as the worker's unprivileged user, so setup that needs root belongs in `build.dockerfile`.
+
+Pi in the container, measured. Two ways work: bind-mount the parent's Pi install read-only (chosen), or `npm install -g @earendil-works/pi-coding-agent@<version>` in the image (4 s warm, 171 MB, needs the network and npm in the image). The mount is instant, the same Pi version as the parent, and needs no network; it needs a JS install of Pi. The mounted entry is `SpawnOptions.containerPi`, else `PSTACK_CONTAINER_PI`, else the running Pi's `process.argv[1]`, and its enclosing `node_modules` must contain `@earendil-works/pi-coding-agent`. A Pi that is a compiled binary has no JS to mount, and spawn then fails naming `PSTACK_CONTAINER_PI`; the npm-in-image route is the way around, not implemented. This package loads through `--extension <pkg>/src/extension.ts --skill <pkg>/generated/skills`, since the user's `~/.pi/agent` is deliberately absent.
+
+### Workspace
+
+A fresh clone made inside the container, never a bind mount of the user's checkout. The clone source is the pushed remote: `origin`, else the only remote. Spawn refuses, before any claim or container exists, when the checkout has no usable remote, when `inputCommit` names no commit in it, or when no branch or tag the remote lists is that commit or has it as an ancestor (`inputCommit <sha> is not on the remote origin ...`). Only tips this checkout holds can be compared, so a remote that moved past the checkout refuses until a fetch. The container then clones, verifies the commit is reachable, and checks out `pstack-run/<runId>/<workerId>` at the full SHA in `/tmp/workspace`, writable, so the worker can commit and push. The home is `/tmp/pstack-home` and the agent directory its `agent/`, because `/tmp` is the one place every image lets an arbitrary uid write. `GH_TOKEN` and `GITHUB_TOKEN`, when the worker's environment has them, authenticate https clones and pushes to github.com (a git credential helper in the entrypoint; the tests use a local remote, so it is not exercised). The checkout's `user.name` and `user.email` become the clone's git identity. A local-path remote (`file://` or a path) is mounted read-write at the same path.
+
+### Entrypoint
+
+The container runs `/bin/sh -c <script> pstack-container node <pi> <args>` with the image's own entrypoint overridden. The script reads the worker's environment from stdin, one `NAME=<base64>` line per variable ended by an empty line, then clones, runs install, prints `{"type":"pstack_container_ready"}` on stdout, and `exec`s Pi, whose stdin is the rest of the pipe. Everything else it prints goes to stderr, which the host shows in the pane. The host holds Pi's RPC until the ready record arrives (up to 30 minutes, for a large install). A container that ends first fails the worker with the entrypoint's stderr as its reason. Spawn's wait defaults to 5 minutes for a container worker (`startupMs` overrides it).
+
+The container's environment is the worker's own (the snapshot, narrowed for `minimal` as for any worker) less names that describe the host: `PATH`, `HOME`, `TMPDIR`, `PWD`, `OLDPWD`, `SHELL`, `USER`, `LOGNAME`, `HOSTNAME`, `TMUX`, `TMUX_PANE`, `PI_CODING_AGENT_DIR`, and `DOCKER_*`, `XDG_*`, `SSH_*`. The docker client gets `PATH`, `HOME`, and `DOCKER_HOST`, `DOCKER_CONTEXT`, `DOCKER_CONFIG`, `DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`, `DOCKER_API_VERSION`, which the snapshot carries for a container worker even under `minimal`, and which never reach the container. The clone's source URL, commit, branch, install command, and git identity travel as `PSTACK_CONTAINER_*` snapshot entries, because a remote URL can hold a token. The container's `--mount` arguments, name, and labels are non-secret and ride in the launch argument.
+
+Capabilities keep the engineering defaults for a container worker: `env: 'inherit'` passes the parent's whole environment, less the host-only names above, into the container. Assign `capabilities: { mcp: 'none', env: 'minimal', externalWrite: false }` to a worker that should hold only its provider credentials and the git tokens.
+
+### Outputs
+
+`<workerDir>/out` is mounted at `<workerDir>` inside, so the brief's paths are the same in both places. The host links `session`, `evidence`, and `report.md` in the worker directory to `out/`, so every reader of the worker directory sees the live files. `collect` reads them only while they stay inside `out`: a report, session file, or evidence entry that is a symlink out of it is refused or left out, because the worker controls that directory. `pstack_evidence record` fails inside a container, because the run root is not mounted: the container has no `<runRoot>/run.json`. The worker saves its receipt files under `evidence/`, which is live on the host, and the parent records them.
+
+### Lifecycle
+
+- Name and label: the container is named for the worker's tmux session (`pstack_<runId>_<workerId>_<hash>`, which carries the project hash, so it is collision-free) and labelled `pstack.worker=<session>` and `pstack.run=<runId>`. pstack lists and removes containers by those labels only, never by name alone.
+- It runs `--rm` and ends with its stdin. Shutdown, abort, and `SIGHUP` close the pipe, Pi exits, and the container goes. The host then removes by label to confirm, before the settle that records the stop.
+- A host that dies without cleanup (`SIGKILL`) closes the same pipe, so the container ends; tested.
+- `abort` also removes by label after the host's answer or its absence, so an unreachable host leaves nothing; an `abandoned` worker never had a container.
+- A settled worker is idle, and its container stays until `abort` or the host ends, as a worktree worker's Pi does. `collect` stops nothing.
+- Each removal is an event: `container_removed` or `container_removal_failed`. Removal is idempotent: it lists by label and removes what it finds.
+- `ContainerUnavailable` (the error text starts with that name) is raised in the parent before the claim when no `docker` answers `docker version`. The refusals for the remote, the commit, and the environment file also leave no claim.
 
 ## Webhook routines (spec 14.4)
 
@@ -198,7 +252,7 @@ The same-uid credential limitation above still applies. This is not OS credentia
 | Task `resume` of a finished agent | a fresh worker with consolidated brief (poteto-mode's own default); live-state reuse is `steer` |
 | `subagent_type: poteto-agent` / `generalPurpose` / `explore` / `shell` | assignment `role` |
 | `readonly: true` | `workspace.mode: 'readonly'` |
-| `environment: cloud` | assignment run inside the configured container (U09); otherwise refuse |
+| `environment: cloud` | `workspace: { mode: "container", inputCommit }`; `ContainerUnavailable` when no engine answers |
 | TodoWrite / todolist | `TODO.md` in the run root, created by `start-run.mjs` |
 | Plan mode / CreatePlan | a Markdown plan file under `.pi/pstack/plans/`, checked by `check-plan.mjs`, executed only after explicit go |
 | AskQuestion | ask in the conversation (`ctx.ui.select` where the extension has a UI) |

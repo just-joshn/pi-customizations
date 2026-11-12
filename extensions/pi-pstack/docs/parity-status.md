@@ -53,8 +53,8 @@ sh parity/pi-native-tmux-2026-11-11/merge-gate.sh  # tsc and the full Vitest sui
 
 ## Known gaps
 
-- **Container workers.** `parseAssignment` in `src/run-files.ts` accepts only `worktree` and `readonly` workspaces. The compiled Shipping and Autopilot-full playbooks ask for `workspace: { mode: "container" }` and expect `ContainerUnavailable`. Today the parser rejects the assignment with a different message.
-- **Same-uid credentials.** A worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access.
+- **Container workers.** `workspace: { mode: "container", inputCommit }` runs Pi in a container (`src/container.ts`, contract "Container workers"). Open: default capabilities still pass the whole environment in, a compiled Pi has no JS install to mount, `pstack_evidence record` fails inside the container (the run root is not mounted), and a Pi login stored in `auth.json` does not enter the container (only environment credentials do).
+- **Same-uid credentials.** A worktree or readonly worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access. A container worker has no host file access.
 - **Readonly shell.** `bash_readonly` is not registered for readonly workers yet. They get `read`, `grep`, `find`, and `ls` (`READONLY_TOOLS` in `src/workers.ts`).
 - **Benny pack text.** `automations/benny/` still tells the agent to create automations with `/automate`, `/automations`, and `environment: "cloud"`, which this package no longer has. `scripts/benny-setup.mjs` copies that pack into a project.
 - **Benny cases.** No tracker or control adapter ships, so a case that needs one is logged `blocked`.

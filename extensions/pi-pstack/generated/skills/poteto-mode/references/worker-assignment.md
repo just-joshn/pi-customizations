@@ -53,7 +53,7 @@ The worker reads `path` with `read`, `grep`, `find`, `ls`, `bash_readonly`, and 
 
 ## Container worker (`container`)
 
-The worker runs a writable clone at `inputCommit` inside the container that `.pi/environment.json` configures. Spawn refuses it with `ContainerUnavailable` until a container environment is installed. Then a step that names a local fallback spawns this assignment again with the `worktree` workspace above, and a step without one reports itself blocked.
+The worker runs a writable clone at `inputCommit` inside the container that `.pi/environment.json` configures. The container clones the pushed remote, so push `inputCommit` first. Spawn refuses a commit the remote lacks. Spawn refuses it with `ContainerUnavailable` when no container engine answers. Then a step that names a local fallback spawns this assignment again with the `worktree` workspace above, and a step without one reports itself blocked.
 
 ```json
 {
