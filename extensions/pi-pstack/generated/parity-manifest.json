@@ -4,22 +4,22 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "e8f3126fd8322a71d2ffe58165cb8ffb47859692421bae1cd6c46de700181c39",
+  "requirementsDigest": "3996269522957b48ff890d4b0e3ca9243be8500d430ef7e671b2725351496737",
   "run": {
-    "startedAt": "2026-11-12T10:36:11.384Z",
-    "generatedAt": "2026-11-12T10:39:53.248Z",
-    "commit": "c18f068370ff68f298bd54e667b7553dd6a97d25",
+    "startedAt": "2026-11-12T11:15:52.578Z",
+    "generatedAt": "2026-11-12T11:18:09.648Z",
+    "commit": "ac5a95d094fef691b99f97d5903f9dbf781437e5",
     "dirty": true,
     "resultsSource": "vitest run",
-    "totalTests": 1561,
-    "passedTests": 1515,
-    "failedTests": 1,
+    "totalTests": 1562,
+    "passedTests": 1517,
+    "failedTests": 0,
     "skippedTests": 45
   },
   "counts": {
     "structural": {
-      "PASS": 148,
-      "FAIL": 1,
+      "PASS": 149,
+      "FAIL": 0,
       "INCONCLUSIVE": 1,
       "N/A": 40
     },
@@ -18147,11 +18147,11 @@
         {
           "file": "tests/packaging/statechart-suite.test.ts",
           "name": "the upstream statechart suite passes against the generated skill",
-          "outcome": "failed"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: the upstream statechart suite passes against the generated skill"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "SRC/pstack/automations/benny/FOR_AGENTS.md",
@@ -26212,6 +26212,10 @@
         {
           "file": "tests/automation/benny-tmux.test.ts",
           "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds"
         }
       ],
       "results": [
@@ -26304,10 +26308,15 @@
           "file": "tests/automation/benny-tmux.test.ts",
           "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "18 linked test(s) ran and passed"
+      "reason": "19 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-OUTBOX-RESTART",
@@ -29004,6 +29013,10 @@
         {
           "file": "tests/automation/benny-tmux.test.ts",
           "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds"
         }
       ],
       "results": [
@@ -29056,10 +29069,15 @@
           "file": "tests/automation/benny-tmux.test.ts",
           "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "10 linked test(s) ran and passed"
+      "reason": "11 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-COMPENSATION",
