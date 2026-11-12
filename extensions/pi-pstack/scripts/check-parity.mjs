@@ -15,6 +15,19 @@ const problems = [];
 const fail = (message) => problems.push(message);
 const read = (path) => readFileSync(join(root, path), 'utf8');
 
+const lock = JSON.parse(read('generated/upstream-lock.json'));
+const pinned = JSON.parse(read('package.json')).pstackSource;
+if (pinned.revision !== lock.revision) fail(`package.json pstackSource.revision ${pinned.revision} differs from generated/upstream-lock.json ${lock.revision}`);
+if (!existsSync(join(root, 'generated/source-review-log.json'))) fail('generated/source-review-log.json: missing; move the pin with scripts/sync-upstream.mjs');
+else {
+  const { entries } = JSON.parse(read('generated/source-review-log.json'));
+  entries.forEach((entry, index) => {
+    if (index > 0 && entry.from !== entries[index - 1].to) fail(`source-review-log entry ${index}: from ${entry.from} does not continue from ${entries[index - 1].to}`);
+    if (entry.contentChanged && !(entry.review?.reviewer && entry.review?.notes && entry.changedFiles.length)) fail(`source-review-log entry ${index}: a content change to ${entry.to} has no recorded parity review`);
+  });
+  if (entries.at(-1)?.to !== lock.revision) fail(`source-review-log ends at ${entries.at(-1)?.to}, not the locked revision ${lock.revision}: the pin moved without scripts/sync-upstream.mjs`);
+}
+
 let compiled;
 try {
   compiled = compile(root);

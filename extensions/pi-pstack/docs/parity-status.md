@@ -4,7 +4,7 @@ This page lists, for pi-pstack 0.15.36-pi.40, which parts of the specification h
 
 ## Source pin
 
-- Upstream: `github.com/cursor/plugins` at `5866df557357d005b3c0c9d3da0d9e739b4bdde3`, paths `pstack/` and `cursor-team-kit/`. `generated/upstream-lock.json` holds the checksum of every vendored file.
+- Upstream: `github.com/cursor/plugins` at `a5539b15a3d56e04992565aafee2b37051329ce3`, paths `pstack/` and `cursor-team-kit/`. `generated/upstream-lock.json` holds the checksum of every vendored file.
 - pstack's last change at that commit is `c742dd61706fbacc1b95f1a20b7b988cf096ce6c`, recorded in `package.json` `pstackSource`.
 - `node scripts/check-parity.mjs` reports 62 skills (34 primary, 24 principle, 4 team-kit), 23 playbooks, 3 worker roles, 62 prompts, 180 rules, and 245 spans.
 
