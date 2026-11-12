@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 166,
-    "spans": 231
+    "rules": 167,
+    "spans": 232
   },
   "skills": [
     "architect",
@@ -1091,6 +1091,15 @@
       }
     },
     {
+      "id": "make-bot-ui.description-key",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md": 1
+      }
+    },
+    {
       "id": "make-bot-ui.create-routine",
       "primitives": [
         "cursor-automations"
@@ -1100,7 +1109,7 @@
       }
     },
     {
-      "id": "make-bot-ui.confirm",
+      "id": "make-bot-ui.unavailable",
       "primitives": [
         "cursor-automations"
       ],
@@ -1119,7 +1128,7 @@
       }
     },
     {
-      "id": "make-bot-ui.secret-request",
+      "id": "make-bot-ui.generate-key",
       "primitives": [
         "cursor-automations"
       ],
@@ -2411,6 +2420,21 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
+      "rule": "make-bot-ui.description-key",
+      "offset": [
+        143,
+        190
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "when the user must provide a webhook sender key",
+      "replacement": "when a webhook sender key must be set up",
+      "output": "generated/skills/make-bot-ui/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
       "rule": "make-bot-ui.create-routine",
       "offset": [
         547,
@@ -2421,22 +2445,22 @@
         15
       ],
       "original": "Call `update_state` with target `routine` and action `create`. Set these fields:",
-      "replacement": "Create the routine through the pstack automation event adapter (unit U08). If `/pstack doctor` does not report that adapter, stop and tell the user that webhook routines are not available in this install. Set these fields:",
+      "replacement": "pi-pstack's only webhook event source is the automation event adapter (unit U08, `<pi-pstack>/adapters/automation-events.ts`). Its webhook source is `startEventSource(automation, { kind: \"webhook\", credentialFile })`. It listens on `127.0.0.1` at the `url` that `startWebhookReceiver` returns, `http://127.0.0.1:<port>/events`, and accepts a POST only with `Authorization: Bearer <key>`, where `<key>` is the `key` field of `credentialFile`.\n\nA bot UI needs a routine with these fields:",
       "output": "generated/skills/make-bot-ui/SKILL.md"
     },
     {
       "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
-      "rule": "make-bot-ui.confirm",
+      "rule": "make-bot-ui.unavailable",
       "offset": [
         830,
-        899
+        1049
       ],
       "lines": [
         20,
-        20
+        23
       ],
-      "original": "If `update_state` shows a confirm card, wait for the user to confirm.",
-      "replacement": "If the adapter asks for confirmation, wait for the user to confirm.",
+      "original": "If `update_state` shows a confirm card, wait for the user to confirm.\nThe folder slug is the kebab-case form of the name.\nUse that slug later as the secret `connector`.\nThe create result does not include the sender key.",
+      "replacement": "The adapter has no operation that creates a routine with its own prompt. Each event it accepts dispatches a worker that follows a Benny automation kind's operational file (`triage` or `reproduce`), and no Pi command starts the source. So this step is unavailable in this install. Tell the user that webhook routines with their own prompt are not available in pi-pstack, and stop. Do not build the page, and do not invent another API.\n\nThe routine's folder slug is the kebab-case form of its name.\nUse that slug later as the credential name.",
       "output": "generated/skills/make-bot-ui/SKILL.md"
     },
     {
@@ -2451,12 +2475,12 @@
         37
       ],
       "original": "The webhook URL and the sender key live on that routine's panel after the routine exists. Do not invent other clicks.\n\nTell the user to do this:\n\n1. Click this agent's name in the chat header, or press **Cmd+Shift+I**.\n2. Find the **Routines** list under the computer preview.\n3. Open this webhook routine.\n4. Copy the webhook URL. The user may paste the URL in chat.\n5. Copy the sender key. The user must not paste the sender key in chat.\n\nThe URL looks like `https://api2.cursor.sh/automations/webhook/<id>` with no query string. Copy the URL from the routine. Do not guess the id.",
-      "replacement": "The adapter's create result names the webhook URL and the credential file that holds the sender key. Do not invent other steps.\n\nThe user may paste the URL in chat. The user must not paste the sender key in chat.\n\nCopy the URL from the create result. Do not guess it.",
+      "replacement": "The webhook URL is the `url` of the running webhook source, which `startWebhookReceiver` returns. The sender key is the `key` field of the source's credential file. Do not invent other steps.\n\nThe user may paste the URL in chat. The user must not paste the sender key in chat.\n\nCopy the URL from the running source. Do not guess the port.",
       "output": "generated/skills/make-bot-ui/SKILL.md"
     },
     {
       "file": "vendor/upstream-pstack/skills/make-bot-ui/SKILL.md",
-      "rule": "make-bot-ui.secret-request",
+      "rule": "make-bot-ui.generate-key",
       "offset": [
         1737,
         1993
@@ -2466,7 +2490,7 @@
         51
       ],
       "original": "Send a secret-request, then stop. That card is the whole turn.\n\n```\nSendToUser\ntype: secret-request\nsecret.label: webhook sender key\nsecret.connector: <routine folder slug>\nsecret.field: key\n```\n\nAfter the user submits the secret, you do not see the value.",
-      "replacement": "Ask the user to save it as the `key` field of `~/.pi/agent/pstack/credentials/<routine folder slug>.json` with mode `0600`, then stop. That request is the whole turn.\n\nAfter the user saves the file, you do not see the value.",
+      "replacement": "Never ask the user for the sender key. Generate it with the adapter's setup, `node <pi-pstack>/scripts/benny-setup.mjs --project <absolute repository root> --name <routine folder slug>`. Setup writes a random `key` to `~/.pi/agent/pstack/credentials/<routine folder slug>.json` with mode `0600`, keeps that file when it already exists, and reports only whether the key is present. It also installs the Benny pack into the project.\n\nYou do not see the value.",
       "output": "generated/skills/make-bot-ui/SKILL.md"
     },
     {
@@ -2489,14 +2513,14 @@
       "rule": "make-bot-ui.wake",
       "offset": [
         4105,
-        4298
+        4405
       ],
       "lines": [
         107,
-        107
+        109
       ],
-      "original": "The wake is a `[routine]` turn for that webhook routine. It includes a `<webhook_event>` block with `headers` (`content-type`, `user-agent`), `body_digest` (sha256), `body`, and `timestamp_ms`.",
-      "replacement": "The wake is the event message that the automation event adapter (unit U08) delivers for that webhook routine. It carries the request headers (`content-type`, `user-agent`), a sha256 digest of the body, `body`, and a timestamp.",
+      "original": "The wake is a `[routine]` turn for that webhook routine. It includes a `<webhook_event>` block with `headers` (`content-type`, `user-agent`), `body_digest` (sha256), `body`, and `timestamp_ms`.\n`body` is the JSON object as a string. The fields are in `body`, not as top-level chat text.\nParse `body`.",
+      "replacement": "The wake is the brief of the worker that the automation event adapter (unit U08) dispatches for each accepted POST. U08 delivers no request headers, body digest, or timestamp. The brief's `<untrusted_event>` block is JSON with the fields U08 parses from the POST body: `source_channel_id`, `ts` (from `ts` or `message_ts`), `thread_ts`, `user`, `text`, and `files` (each with `name`, `mimetype`, and `permalink`). U08 drops every other field, and it refuses a POST whose `source_channel_id` is not the automation's configured channel or whose `ts` is not a Slack timestamp.\nThe fields are in that block, not as top-level chat text.\nParse the block's JSON.",
       "output": "generated/skills/make-bot-ui/SKILL.md"
     },
     {

@@ -178,7 +178,7 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
   problems.push(...unkeptResiduals(residuals, keeps));
   let prompts = 0;
   for (const skill of required) {
-    const meta = frontmatter(readFileSync(join(root, VENDOR_ROOTS[skill.origin], 'skills', skill.name, 'SKILL.md'), 'utf8'));
+    const meta = frontmatter(outputs.find((o) => o.path === `generated/skills/${skill.name}/SKILL.md`)?.text ?? '');
     if (meta['user-invocable'] === false) continue;
     if (BUILTIN_COMMANDS.has(skill.name)) problems.push(`skill ${skill.name} conflicts with a built-in Pi command`);
     outputs.push({ path: `generated/prompts/${skill.name}.md`, source: null, text: promptTemplate(skill.name, String(meta['description'] ?? skill.name)) });
