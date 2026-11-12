@@ -20,9 +20,9 @@ how: explorers and an explainer, all readonly (spec 12.1)
 | `how.readonly-enforced` | readonly workers (explorer, general) ran only read-class tools and every write-class call was refused | `generated/skills/how/SKILL.md:11` |
 | `how.no-writes` | the repository is untouched: how is read-only | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `how.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/how/SKILL.md:30` |
-| `how.output-sections` | the reply uses only the five how sections and presents the explainer output | `generated/skills/how/SKILL.md:32` |
-| `how.citations-resolve` | the reply cites at least 3 file:line references, and each resolves in the repository | `generated/skills/how/references/explainer-prompt.md:38` |
-| `how.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/how/SKILL.md:30` |
+| `how.output-sections` | the explainer output is presented with only the five how sections | `generated/skills/how/SKILL.md:32` |
+| `how.references-resolve` | the reply references at least 3 repository files, and every file it names exists and every line it gives is inside its file | `generated/skills/how/references/explainer-prompt.md:38` |
+| `how.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/how/SKILL.md:30` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -31,7 +31,7 @@ Negative cases, each of which must FAIL the named checks:
 - an explorer got a writable worktree → `how.explorers`
 - only one explorer ran → `how.explorers`
 - an explorer ran on the wrong model line → `how.explorers`
-- the reply cites a file that does not exist → `how.citations-resolve`
+- the reply cites a file that does not exist → `how.references-resolve`
 - the parent never opened the how skill → `how.reads-skill-and-templates`
 - no wake reached the parent → `how.settled-and-collected`
 
@@ -53,9 +53,9 @@ how, simple path: one explainer and no explorers, with no run set up beforehand 
 | `how.readonly-enforced` | readonly workers (explorer, general) ran only read-class tools and every write-class call was refused | `generated/skills/how/SKILL.md:11` |
 | `how.no-writes` | the repository is untouched: how is read-only | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `how.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/how/SKILL.md:30` |
-| `how.output-sections` | the reply uses only the five how sections and presents the explainer output | `generated/skills/how/SKILL.md:32` |
-| `how.citations-resolve` | the reply cites at least 3 file:line references, and each resolves in the repository | `generated/skills/how/references/explainer-prompt.md:38` |
-| `how.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/how/SKILL.md:30` |
+| `how.output-sections` | the explainer output is presented with only the five how sections | `generated/skills/how/SKILL.md:32` |
+| `how.references-resolve` | the reply references at least 3 repository files, and every file it names exists and every line it gives is inside its file | `generated/skills/how/references/explainer-prompt.md:38` |
+| `how.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/how/SKILL.md:30` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -164,7 +164,7 @@ Investigation playbook: read-only, routed through how, cited answer, no PR (spec
 | `investigation.applies-unslop` | the parent opened the unslop skill for the reply | `generated/skills/poteto-mode/playbooks/investigation.md:10` |
 | `investigation.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
 | `investigation.receipts-recorded` | four receipts are recorded under verification/receipts and re-verify | `generated/skills/poteto-mode/SKILL.md:127` |
-| `investigation.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/investigation.md:14` |
+| `investigation.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/investigation.md:14` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -206,7 +206,7 @@ arena: independent candidates in separate worktrees, blind rubric, cross-family 
 | `arena.verified` | a passing receipt verifies the synthesized artifact (Phase F) | `generated/skills/arena/SKILL.md:44` |
 | `arena.synthesis-note` | the synthesis note names the base, the cross-judge verdict, the grafts with their source, what was rejected, convergence or dropouts, and the verification | `generated/skills/arena/SKILL.md:48` |
 | `arena.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/arena/SKILL.md:28` |
-| `arena.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/arena/SKILL.md:46` |
+| `arena.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/arena/SKILL.md:46` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -245,7 +245,7 @@ architect: ground with how, two structurally distinct designs through arena, red
 | `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge (or, with the judge skipped, the candidates) was collected | `generated/skills/architect/SKILL.md:43` |
 | `architect.implementation-verified` | the implementation worker recorded a passing test receipt | `generated/skills/architect/SKILL.md:53` |
 | `architect.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/arena/SKILL.md:28` |
-| `architect.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/architect/SKILL.md:77` |
+| `architect.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/architect/SKILL.md:77` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -314,7 +314,7 @@ interrogate: independent adversaries in worktrees, only run-proven findings surv
 | `interrogate.reports-without-fixing` | findings are reported and no fix is applied to the repository | `generated/skills/interrogate/SKILL.md:9` |
 | `interrogate.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/interrogate/SKILL.md:15` |
 | `interrogate.reviewer-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/interrogate/SKILL.md:19` |
-| `interrogate.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/interrogate/SKILL.md:27` |
+| `interrogate.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/interrogate/SKILL.md:27` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -355,7 +355,7 @@ Feature playbook: ground with how, checkpoint, delegate to one worker, verify un
 | `feature.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/feature.md:12` |
 | `feature.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
 | `feature.reply-has-the-contract` | the reply carries what was built, the throughput checkpoint, and open decisions | `generated/skills/poteto-mode/playbooks/feature.md:21` |
-| `feature.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/feature.md:21` |
+| `feature.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/feature.md:21` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -474,7 +474,7 @@ Refactoring playbook: pin first, subtract, small green steps, independent equiva
 | `refactoring.parent-stays-in-the-lead` | the parent wrote no production code: the contract is its, the edits are the worker's | `generated/skills/poteto-mode/playbooks/refactoring.md:3` |
 | `refactoring.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
-| `refactoring.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/refactoring.md:16` |
+| `refactoring.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/refactoring.md:16` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -613,7 +613,7 @@ Prototype playbook: settle an empirical fork by observing a throwaway, not by as
 | `prototype.decides-without-asking-the-human` | an empirical fork is settled by running it: the reply gives a recommendation and does not hand the choice back as a question | `generated/skills/poteto-mode/SKILL.md:22` |
 | `prototype.reply-names-tradeoffs-scratch-and-throwaway` | the reply gives the variants, tradeoffs, the scratch path, says the prototype is throwaway, and hands the real build to Feature | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
 | `prototype.repository-untouched` | no prototype code entered the repository | `generated/skills/poteto-mode/playbooks/prototype.md:12` |
-| `prototype.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
+| `prototype.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -852,7 +852,7 @@ show-me-your-work: a well-formed append-only trail, audited against the transcri
 | `trail.reviewer-brief-names-the-trail-and-transcript` | the reviewer brief names the trail and this run's real session file | `generated/skills/show-me-your-work/SKILL.md:67` |
 | `trail.reply-ends-with-attention` | the reply ends with an Attention section that leads with "reviewed by <model>" and points at rows | `generated/skills/show-me-your-work/SKILL.md:74` |
 | `trail.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/show-me-your-work/SKILL.md:65` |
-| `trail.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/show-me-your-work/SKILL.md:34` |
+| `trail.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/show-me-your-work/SKILL.md:34` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -890,7 +890,7 @@ Session pickup playbook: read the prior trail inside this workspace, name the re
 | `pickup.verdict-and-route` | the verdict is one of the four, and the playbook it routes to was opened | `generated/skills/poteto-mode/playbooks/session-pickup.md:8` |
 | `pickup.inherited-claims-verified-on-the-real-artifact` | the inherited claim is verified on the prior branch head: the receipt names that commit and the checker re-runs the tests there | `generated/skills/poteto-mode/playbooks/session-pickup.md:9` |
 | `pickup.reply-has-the-four-parts` | the reply says where the prior agent stopped, inherited versus redone, the resume point, and the outcome | `generated/skills/poteto-mode/playbooks/session-pickup.md:11` |
-| `pickup.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/session-pickup.md:3` |
+| `pickup.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/session-pickup.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -972,7 +972,7 @@ Autonomous run playbook: a checkable exit predicate, watch loops that re-arm aft
 | `auto.one-row-per-iteration` | each iteration leaves a decisions.tsv row naming what changed and whether the predicate moved | `generated/skills/poteto-mode/playbooks/autonomous-run.md:10` |
 | `auto.discarded-change-is-gone-and-the-win-is-one-small-commit` | a change that did not move the predicate is discarded in full, and the one that did is one commit touching only its file | `generated/skills/poteto-mode/playbooks/autonomous-run.md:7` |
 | `auto.stops-when-met-and-does-not-ask` | the reply gives the exit condition, iterations, what landed, what was discarded and the final state, and does not stop to ask the user a question | `generated/skills/poteto-mode/playbooks/autonomous-run.md:13` |
-| `auto.no-unexpected-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `auto.no-unexpected-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1013,7 +1013,7 @@ Worktree cleanup playbook: audit as a watch, the pinned set wins, dirty work pau
 | `cleanup.branches-survive` | no commit is lost: every branch ref still exists after the prune | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:7` |
 | `cleanup.pinned-set-wins-and-usage-was-verified` | the pinned set the user named is recorded, and a readonly worker read the chat transcript to confirm what it touches | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:4` |
 | `cleanup.reply-has-disk-pruned-and-held-back-with-reasons` | the reply gives df before and after, what was pruned, and a reason for each held-back worktree | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:12` |
-| `cleanup.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:10` |
+| `cleanup.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:10` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1055,7 +1055,7 @@ Authoring a skill playbook: Pi's docs followed, a valid project-local skill, val
 | `author.validation-ran-and-recorded` | a validator ran on the skill and its receipt records a pass | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:6` |
 | `author.reply-has-summary-decisions-validation` | the reply gives a summary of the skill, key design decisions, and validation notes | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
 | `author.production-code-untouched` | no production file changed | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:3` |
-| `author.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
+| `author.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1188,7 +1188,7 @@ Runtime forensics playbook: a real CPU profile of the live process, reduced by a
 | `rt.no-fix-unless-asked` | the deliverable is a diagnosis: the program and the repository are unchanged | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:11` |
 | `rt.reply-has-the-five-parts` | the reply gives the signal captured, the reduced finding, how the mechanism was proved, the source location, and the artifact paths | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:11` |
 | `rt.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
-| `rt.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:3` |
+| `rt.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1232,7 +1232,7 @@ Trace forensics playbook: a handed-over profile loaded into sqlite, narrowed, at
 | `trace.throughput-checkpoint-line` | the checkpoint stays one literal line | `generated/skills/poteto-mode/playbooks/trace-forensics.md:12` |
 | `trace.no-fix-unless-asked` | the deliverable is a diagnosis: nothing in the repository changed | `generated/skills/poteto-mode/playbooks/trace-forensics.md:12` |
 | `trace.reply-has-the-four-parts` | the reply gives the artifact and format, the reduced finding, the source location, the artifact paths, and whether a paired capture confirmed it | `generated/skills/poteto-mode/playbooks/trace-forensics.md:14` |
-| `trace.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/trace-forensics.md:3` |
+| `trace.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/trace-forensics.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 

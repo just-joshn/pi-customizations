@@ -9,6 +9,7 @@ import {
   briefCarries,
   citationsResolve,
   collectOrder,
+  fileReferencesResolve,
   expectedModels,
   finalReply,
   noInventedSources,
@@ -104,6 +105,17 @@ function byPath(id: string, title: string, sources: Src[], simple: (view: RunVie
   });
 }
 
+/**
+ * The assistant message that presents the explainer's output (how/SKILL.md "4. Present"). A wake that lands after the
+ * parent has already collected starts another, shorter turn, so the last message is not always the one that presents.
+ */
+function presentedHow(view: RunView): string {
+  const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
+  const probe = (text: string) => text.replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (explainer === undefined || probe(explainer.finalText) === '') return '';
+  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.replace(/\s+/g, ' ').includes(probe(explainer.finalText)))?.text ?? '';
+}
+
 const notAnExplorerPath = (what: string) => (): Outcome => pass(`${what} applies only to the complex path, and no explorer ran`);
 
 function howChecks(): Check[] {
@@ -158,14 +170,15 @@ function howChecks(): Check[] {
     readonlyEnforced('how.readonly-enforced', src('how/SKILL.md', 'Every spawn is a `pstack_worker` worker with `workspace: { mode: "readonly"'), ['explorer', 'general']),
     repoUntouched('how.no-writes', 'the repository is untouched: how is read-only', src('poteto-mode/playbooks/investigation.md', 'Investigation requests are read-only')),
     settledAndCollected('how.settled-and-collected', src('how/SKILL.md', '## 4. Present')),
-    check('how.output-sections', 'the reply uses only the five how sections and presents the explainer output', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
-      const reply = finalReply(view);
+    check('how.output-sections', 'the explainer output is presented with only the five how sections', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
+      const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
+      const reply = presentedHow(view);
+      if (explainer === undefined || reply === '') return fail(`no assistant message presents the explainer output (${explainer === undefined ? 'no explainer' : 'none repeats its opening'})`);
       const headings = [...reply.matchAll(/^#{1,4}\s*(.+)$/gm)].map((match) => (match[1] as string).trim());
       const unknown = headings.filter((heading) => !HOW_SECTIONS.includes(heading));
-      const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
-      return when(headings.length > 0 && unknown.length === 0 && explainer !== undefined && reply.includes(explainer.finalText.slice(0, 60)), `sections ${headings.join(', ')}; reply presents the explainer output`, `unknown headings: ${unknown.join(', ') || 'none'}; explainer text present: ${String(explainer !== undefined && reply.includes(explainer.finalText.slice(0, 60)))}`);
+      return when(headings.length > 0 && unknown.length === 0, `sections ${headings.join(', ')}; the explainer output is presented`, `unknown headings: ${unknown.join(', ') || 'none'}`);
     }),
-    citationsResolve('how.citations-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3 }),
+    fileReferencesResolve('how.references-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3, from: presentedHow }),
     noToolErrors('how.no-tool-errors', src('how/SKILL.md', '## 4. Present')),
   ];
 }
@@ -207,7 +220,7 @@ export const howFamily: Family = {
     { name: 'an explorer got a writable worktree', mutate: (sandbox) => patchAssignment(sandbox, 'how-checkout', 'explorer-1', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: 'abc1234' })), fails: ['how.explorers'] },
     { name: 'only one explorer ran', mutate: (sandbox) => removeWorker(sandbox, 'how-checkout', 'explorer-2'), fails: ['how.explorers'] },
     { name: 'an explorer ran on the wrong model line', mutate: (sandbox) => patchAssignment(sandbox, 'how-checkout', 'explorer-1', (assignment) => (assignment['model'] = 'sim/grok-sim')), fails: ['how.explorers'] },
-    { name: 'the reply cites a file that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /src\/cart\.js:/g, 'src/nope.js:'), fails: ['how.citations-resolve'] },
+    { name: 'the reply cites a file that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /src\/cart\.js:/g, 'src/nope.js:'), fails: ['how.references-resolve'] },
     { name: 'the parent never opened the how skill', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'generated/skills/how/SKILL.md', 'generated/skills/zzz/SKILL.md'), fails: ['how.reads-skill-and-templates'] },
     { name: 'no wake reached the parent', mutate: (sandbox) => dropWakes(sandbox), fails: ['how.settled-and-collected'] },
   ],

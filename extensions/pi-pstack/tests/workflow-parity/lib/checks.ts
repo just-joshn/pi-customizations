@@ -298,6 +298,17 @@ export function repoUntouched(id: string, title: string, source: Src | Src[]): C
   });
 }
 
+const SETTLED_INSPECT = /: (idle|stopped|exited|failed|aborted)\b/;
+
+/**
+ * pstack_worker's own rule: collect "only after a pstack-worker wake message or an inspect that shows the worker settled".
+ * A parent that polls with inspect collects before a wake that is queued behind its running turn, and that is allowed.
+ */
+export function collectedOnEvidence(view: RunView, workerId: string, collect: ToolCall, wakeOrder: number): boolean {
+  if (collect.order > wakeOrder) return true;
+  return view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === workerId && call.order < collect.order && SETTLED_INSPECT.test(call.resultText));
+}
+
 export function settledAndCollected(id: string, source: Src | Src[], roles?: string[]): Check {
   return check(id, 'every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake', source, (view) => {
     const workers = allWorkers(view).filter((worker) => assignmentOf(worker).kind !== 'watch' && (roles === undefined || roles.includes(String(assignmentOf(worker).role))));
@@ -309,7 +320,7 @@ export function settledAndCollected(id: string, source: Src | Src[], roles?: str
       const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && !call.isError && /"settled":\s*true|settled/.test(call.resultText));
       if (wake === undefined) return [`${worker.id}: no pstack-worker wake in the parent session`];
       if (collect === undefined) return [`${worker.id}: parent never collected a settled result`];
-      return collect.order > wake.order ? [] : [`${worker.id}: collected before its wake`];
+      return collectedOnEvidence(view, worker.id, collect, wake.order) ? [] : [`${worker.id}: collected before its wake, and no inspect had shown it settled`];
     });
     return when(problems.length === 0, `${workers.length} workers woke and were collected: ${workers.map((worker) => worker.id).join(', ')}`, problems.join('; '));
   });
@@ -364,6 +375,26 @@ export function replySections(id: string, title: string, source: Src | Src[], se
 }
 
 /** Every file:line citation in the text names a real file at the base commit and a line inside it. */
+/** The reply names at least `min` distinct repository files, every `file:line` it gives is inside its file, and none of the files it names is missing. */
+export function fileReferencesResolve(id: string, source: Src | Src[], options: { min: number; from?: (view: RunView) => string }): Check {
+  return check(id, `the reply references at least ${options.min} repository files, and every file it names exists and every line it gives is inside its file`, source, (view) => {
+    const text = (options.from ?? finalReply)(view);
+    const tracked = readdirSync(view.repo, { recursive: true }).map(String).filter((path) => !path.startsWith('.') && !path.includes('node_modules') && /\.[a-z]+$/.test(path));
+    const resolve = (file: string) => (file.includes('/') ? (existsSync(join(view.repo, file)) ? file : undefined) : tracked.find((path) => path === file || path.endsWith(`/${file}`)));
+    // A bare name that is no repository file (Node.js, a library) is prose; a path with a directory is a claim about this repository.
+    const refs = [...text.matchAll(/(?<![\w/.-])((?:[\w.-]+\/)*[\w.-]+\.(?:js|ts|json|md|mjs|tla|sh|py|css|html))(?::(\d+))?/g)]
+      .map((match) => ({ file: match[1] as string, line: match[2] === undefined ? null : Number(match[2]) }))
+      .filter((ref) => ref.file.includes('/') || resolve(ref.file) !== undefined);
+    const bad = refs.filter((ref) => {
+      const path = resolve(ref.file);
+      if (path === undefined) return true;
+      return ref.line !== null && (ref.line < 1 || ref.line > readFileSync(join(view.repo, path), 'utf8').split('\n').length);
+    });
+    const files = new Set(refs.map((ref) => resolve(ref.file)).filter((path) => path !== undefined));
+    return when(files.size >= options.min && bad.length === 0, `${files.size} repository files referenced (${[...files].slice(0, 4).join(', ')}), every reference resolves`, bad.length > 0 ? `unresolved: ${bad.map((ref) => `${ref.file}${ref.line === null ? '' : `:${ref.line}`}`).join(', ')}` : `only ${files.size} files referenced`);
+  });
+}
+
 export function citationsResolve(id: string, source: Src | Src[], options: { min: number; from?: (view: RunView) => string } = { min: 1 }): Check {
   return check(id, `the reply cites at least ${options.min} file:line references, and each resolves in the repository`, source, (view) => {
     const text = (options.from ?? finalReply)(view);
@@ -402,9 +433,12 @@ export function decisionLog(id: string, source: Src | Src[], options: { run?: st
   });
 }
 
+/** A shell command that ran and returned non-zero is the shell's answer (a probe for a path, a grep with no match), not a failed tool. */
+const RAN_AND_EXITED_NONZERO = /\n\nCommand exited with code [1-9]\d*\s*$/;
+
 export function noToolErrors(id: string, source: Src | Src[], allow: RegExp[] = []): Check {
-  return check(id, 'no parent tool call failed unexpectedly', source, (view) => {
-    const errors = view.parent.toolCalls.filter((call: ToolCall) => call.isError && !allow.some((pattern) => pattern.test(call.resultText) || pattern.test(JSON.stringify(call.args))));
+  return check(id, 'no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure', source, (view) => {
+    const errors = view.parent.toolCalls.filter((call: ToolCall) => call.isError && !(call.name === 'bash' && RAN_AND_EXITED_NONZERO.test(call.resultText)) && !allow.some((pattern) => pattern.test(call.resultText) || pattern.test(JSON.stringify(call.args))));
     return when(errors.length === 0, `${view.parent.toolCalls.length} tool calls, none failed`, errors.map((call) => `${call.name}: ${call.resultText.slice(0, 120)}`).join(' | '));
   });
 }
