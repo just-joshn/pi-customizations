@@ -216,8 +216,6 @@ Negative cases, each of which must FAIL the named checks:
 
 swarm: partitioned workers, container first with a worktree fallback, PASS/ISSUES/BLOCKED, invalid result respawned once (spec 12.2)
 
-Known product defect, asserted with test.fails: `swarm.container-refusal-is-ContainerUnavailable`. pstack_worker spawn rejects workspace.mode "container" as an invalid assignment instead of ContainerUnavailable (src/run-files.ts:188-192, contract.md "Assignment" and "Container worker"); the container unit has not landed
-
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.swarm` | /swarm reaches Pi as the pstack swarm skill prompt with the request | `generated/skills/swarm/SKILL.md:7` |
@@ -1077,8 +1075,6 @@ Negative cases, each of which must FAIL the named checks:
 ## eval
 
 Eval playbook: sanitized candidates that see no meta, a blinded cross-family judge, the chain verified from session files (spec 12.2)
-
-Known product defect, asserted with test.fails: `eval.candidate-sees-no-meta-anywhere`. generated/agents/general.md:7 says "you collect and judge their results yourself", and every candidate worker gets that file as its appended system prompt, which breaks eval.md's rule that the candidate sees no "judge" (generated/skills/poteto-mode/playbooks/eval.md, Non-negotiables for blinding)
 
 | Check | Contract | Source |
 | --- | --- | --- |

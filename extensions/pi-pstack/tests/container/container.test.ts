@@ -225,7 +225,7 @@ describe('a container worker that cannot start', () => {
     git(project.dir, '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '--quiet', '--allow-empty', '-m', 'local only');
     const unpushed = git(project.dir, 'rev-parse', 'HEAD');
 
-    await expect(spawn('unpushed', '@@say NEVER', {}, unpushed)).rejects.toThrow(new RegExp(`inputCommit ${unpushed} is not on the remote origin`));
+    await expect(spawn('unpushed', '@@say NEVER', {}, unpushed)).rejects.toThrow(new RegExp(`^ContainerUnavailable: inputCommit ${unpushed} is not on the remote origin`));
 
     expect(existsSync(join(workerDir(project, RUN_ID, 'unpushed'), 'claim'))).toBe(false);
     expect(await containersOf('unpushed')).toEqual([]);
@@ -328,7 +328,7 @@ describe('a container worker whose environment would hand it the checkout', () =
     if (target.endsWith('nested.git')) git(dirname(project.dir), 'init', '--quiet', '--bare', '-b', 'main', target);
     git(project.dir, 'remote', 'set-url', 'origin', target);
     try {
-      await expect(spawn('hand-over', '@@say NEVER')).rejects.toThrow(/is, contains, or lies inside the project checkout/);
+      await expect(spawn('hand-over', '@@say NEVER')).rejects.toThrow(/^ContainerUnavailable: .*is, contains, or lies inside the project checkout/);
     } finally {
       git(project.dir, 'remote', 'set-url', 'origin', remote);
     }

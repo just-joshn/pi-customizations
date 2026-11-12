@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, symlinkSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync as mkdirSync2, openSync as openSync2, readFileSync as readFileSync2, symlinkSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute3, join as join3, resolve as resolve3 } from "node:path";
 import { createInterface } from "node:readline";
@@ -190,7 +190,7 @@ async function removeWorkerContainers(docker, env, name) {
 // src/run-files.ts
 import { execFileSync } from "node:child_process";
 import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
@@ -512,7 +512,7 @@ function workspaceDir(loaded) {
 function prepareOutput(workerDir) {
   const out = outDirOf(workerDir);
   for (const name of ["session", "evidence", "receipts"])
-    mkdirSync(join3(out, name), { recursive: true, mode: 448 });
+    mkdirSync2(join3(out, name), { recursive: true, mode: 448 });
   for (const name of ["session", "evidence", "report.md"])
     if (lstatSync2(join3(workerDir, name), { throwIfNoEntry: false }) === undefined)
       symlinkSync(join3("out", name), join3(workerDir, name));
@@ -567,7 +567,7 @@ function prepareWorktree(loaded, inputCommit) {
 function prepareSocket(path) {
   const directory = dirname2(path);
   if (directory.startsWith("/tmp/pstack-")) {
-    mkdirSync(directory, { recursive: true, mode: 448 });
+    mkdirSync2(directory, { recursive: true, mode: 448 });
     const stat = lstatSync2(directory);
     if (stat.isSymbolicLink() || !stat.isDirectory() || stat.uid !== process.getuid?.() || (stat.mode & 63) !== 0)
       throw new Error(`${directory} must be a private directory owned by this user`);

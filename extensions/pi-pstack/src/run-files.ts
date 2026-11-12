@@ -2,7 +2,7 @@
 // The host runs under plain Node, so this module imports nothing outside node: builtins.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export type RunId = string & { readonly __brand: 'RunId' };
@@ -30,6 +30,17 @@ export function projectRoot(cwd: string): string {
     return realpathSync(execFileSync('git', ['-C', cwd, 'rev-parse', '--show-toplevel'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim());
   } catch {
     return realpathSync(cwd);
+  }
+}
+
+/** Keeps run state out of the user's commits: a `git add -A` in the project stages nothing under `.pi/pstack`. Never replaces a file already there. */
+export function ensureRunStateIgnored(project: string): void {
+  const dir = join(project, '.pi', 'pstack');
+  mkdirSync(dir, { recursive: true });
+  try {
+    writeFileSync(join(dir, '.gitignore'), '*\n', { flag: 'wx' });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
   }
 }
 
