@@ -22,6 +22,7 @@ import {
   appendEvent,
   type ClaimIdentity,
   formatTmuxIdentity,
+  ensureRunStateIgnored,
   type HostState,
   isTerminal,
   type LoadedAssignment,
@@ -446,6 +447,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
   const root = realpathSync(project);
   const runRoot = runRootOf(root, runId);
+  ensureRunStateIgnored(root);
   let loaded = loadAssignment(assignmentPath);
   const assignment: Assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);

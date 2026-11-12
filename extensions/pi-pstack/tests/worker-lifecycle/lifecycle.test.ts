@@ -60,6 +60,18 @@ const sessionOf = (workerId: string) => tmuxSessionName(project.dir, 'run1' as R
 const settleCount = async (workerId: string) => ((await inspect(workerId)).state?.settles ?? []).length;
 const spawn = (workerId: string, brief: string, fields: Record<string, unknown> = {}) => parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', workerId, brief, fields) });
 
+test('a spawn leaves run state ignored: git add -A stages nothing under .pi/pstack, and a user .gitignore is kept', async () => {
+  await spawn('ig1', '@@say UP');
+  expect(readFileSync(join(project.dir, '.pi', 'pstack', '.gitignore'), 'utf8')).toBe('*\n');
+  writeFileSync(join(project.dir, 'new.txt'), 'x');
+  execFileSync('git', ['-C', project.dir, 'add', '-A']);
+  const staged = execFileSync('git', ['-C', project.dir, 'diff', '--cached', '--name-only'], { encoding: 'utf8' }).trim().split('\n');
+  expect(staged).toEqual(['new.txt']);
+  writeFileSync(join(project.dir, '.pi', 'pstack', '.gitignore'), 'mine\n');
+  await spawn('ig2', '@@say UP');
+  expect(readFileSync(join(project.dir, '.pi', 'pstack', '.gitignore'), 'utf8')).toBe('mine\n');
+});
+
 describe('pstack_worker on real tmux and Pi', () => {
   test('spawn returns before the work finishes, with an attach command whose pane shows the output', async () => {
     const result = await spawn('w1', '@@sleep 1500 HELLO-PANE');
