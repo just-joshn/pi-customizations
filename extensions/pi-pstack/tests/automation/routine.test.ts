@@ -13,6 +13,8 @@ afterEach(() => { for (const root of roots.splice(0)) rmSync(root, { recursive: 
 test('a verified POST dispatches one prompt-bearing worker and event ids deduplicate', async () => {
   const root = mkdtempSync(join(tmpdir(), 'routine-test-'));
   roots.push(root);
+  execFileSync('git', ['init', '-q'], { cwd: root });
+  execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], { cwd: root });
   const key = 'routine-test-secret-never-in-worker';
   const credentialFile = join(root, 'credential.json');
   writeFileSync(credentialFile, JSON.stringify({ key }), { mode: 0o600 });
@@ -113,4 +115,20 @@ createInterface({ input: process.stdin }).on('line', line => {
     child.kill('SIGTERM');
     await exited;
   }
+});
+
+test('a routine worker gets a writable worktree at the project HEAD by default, readonly only when configured', async () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'routine-ws-')));
+  roots.push(root);
+  execFileSync('git', ['init', '-q'], { cwd: root });
+  execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], { cwd: root });
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const paths: string[] = [];
+  const spawnWorker = async (_run: string, path: string) => { paths.push(path); };
+  const event = { headers: {}, body: '{}', body_digest: 'd', timestamp_ms: 1 };
+  await createRoutine({ kind: 'routine', name: 'writer', prompt: 'Do the work.', projectRoot: root }, { spawnWorker }).handle(event);
+  await createRoutine({ kind: 'routine', name: 'reader', prompt: 'Only read.', projectRoot: root, workspace: 'readonly' }, { spawnWorker }).handle(event);
+  const [writer, reader] = paths.map((path) => JSON.parse(readFileSync(path, 'utf8')));
+  expect(writer.workspace).toEqual({ mode: 'worktree', inputCommit: head });
+  expect(reader.workspace).toEqual({ mode: 'readonly', path: root });
 });

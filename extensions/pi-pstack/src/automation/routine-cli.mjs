@@ -12,15 +12,15 @@ import { createExclusive, json, readJson } from './store.ts';
 import { loadAssignment, tmuxSessionName } from '../run-files.ts';
 import { controlHost, hostTarget, inspectHost } from '../rpc-client.ts';
 
-const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string' }, 'prompt-file': { type: 'string' }, model: { type: 'string' }, serve: { type: 'boolean' }, port: { type: 'string', default: '47913' } } });
-if (!values.project || !values.name || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(values.name)) throw new Error('usage: routine-setup.mjs --project <root> --name <slug> --prompt-file <file> [--serve] [--port <port>] [--model <provider/id>]');
+const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string' }, 'prompt-file': { type: 'string' }, model: { type: 'string' }, serve: { type: 'boolean' }, readonly: { type: 'boolean' }, port: { type: 'string', default: '47913' } } });
+if (!values.project || !values.name || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(values.name)) throw new Error('usage: routine-setup.mjs --project <root> --name <slug> --prompt-file <file> [--serve] [--port <port>] [--model <provider/id>] [--readonly]');
 const projectRoot = realpathSync(resolve(values.project));
 const dir = join(projectRoot, '.pi/pstack/automation', values.name);
 const configFile = join(dir, 'config.json');
 if (values['prompt-file']) {
   const prompt = readFileSync(values['prompt-file'], 'utf8');
   if (!prompt.trim()) throw new Error('routine prompt must not be empty');
-  const config = { kind: 'routine', name: values.name, prompt, projectRoot, ...(values.model ? { model: values.model } : {}) };
+  const config = { kind: 'routine', name: values.name, prompt, projectRoot, ...(values.model ? { model: values.model } : {}), ...(values.readonly ? { workspace: 'readonly' } : {}) };
   if (!createExclusive(configFile, json(config)) && JSON.stringify(readJson(configFile)) !== JSON.stringify(config)) throw new Error('routine already exists with different configuration');
 }
 const config = readJson(configFile);
