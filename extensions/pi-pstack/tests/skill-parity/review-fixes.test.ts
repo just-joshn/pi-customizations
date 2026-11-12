@@ -37,11 +37,12 @@ describe('A: poteto-mode workers and watches', () => {
     }
   });
 
-  test('A4: the Workers paragraph names every field the parser requires, says skills and thinkingLevel are required, and points at the reference', () => {
+  test('A4: the Workers paragraph names every assignment field, says skills and thinkingLevel are optional with their defaults, and points at the reference', () => {
     const workers = line('skills/poteto-mode/SKILL.md', 97);
     const fields = new Set(referenceExamples().flatMap((e) => Object.keys(e)));
     for (const field of fields) expect(workers).toContain(`\`${field === 'brief' ? 'brief: "brief.md"' : field === 'watch' ? 'watch: { argv, cwd }' : field === 'schemaVersion' ? 'schemaVersion: 1' : field}\``);
-    expect(workers).toMatch(/`skills` and `thinkingLevel` are required/);
+    expect(workers).not.toMatch(/required/);
+    expect(workers).toContain('`skills` and `thinkingLevel` are optional. `skills` defaults to `[]`, for a brief that names no skill, and `thinkingLevel` to `null`, the model\'s default level.');
     expect(workers).toContain('`references/worker-assignment.md`');
   });
 
