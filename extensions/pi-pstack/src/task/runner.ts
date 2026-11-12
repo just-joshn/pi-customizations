@@ -6,7 +6,7 @@ import { StringDecoder } from 'node:string_decoder';
 
 import type { ImageContent, Usage as ProviderUsage } from '@earendil-works/pi-ai';
 import { detectSupportedImageMimeTypeFromFile } from '@earendil-works/pi-coding-agent';
-import { PACKAGE_ROOT } from '../paths.ts';
+import { PACKAGE_ROOT, SKILLS_DIR } from '../paths.ts';
 import type { ModelSpec } from './models.ts';
 import { VIDEO, videoImages } from './video.ts';
 
@@ -39,6 +39,13 @@ export interface ChildArgsOptions {
   mode?: 'rpc' | 'json';
 }
 
+/**
+ * This runtime by path. The package manifest names the native extension (src/extension.ts) now, so a child started
+ * with the package directory would load that instead; this goes away with the old runtime.
+ */
+export const LEGACY_ENTRY = join(PACKAGE_ROOT, 'src', 'index.ts');
+export const LEGACY_RUNTIME_ARGS = ['-e', LEGACY_ENTRY, '--skill', SKILLS_DIR];
+
 /** Argv for one `pi --mode rpc` subagent process (or a detached `--mode json` run). Prompts never travel in argv. */
 export function childArgs(options: ChildArgsOptions): string[] {
   const extraTools = [...new Set([...(options.restoreTools ?? []), ...(options.addTools ?? [])])];
@@ -51,8 +58,7 @@ export function childArgs(options: ChildArgsOptions): string[] {
     options.sessionDir,
     '--session-id',
     options.agentId,
-    '-e',
-    PACKAGE_ROOT,
+    ...LEGACY_RUNTIME_ARGS,
     ...(options.trusted === undefined ? [] : [options.trusted ? '--approve' : '--no-approve']),
     ...model,
     ...(selectedTools === undefined ? [] : ['--tools', selectedTools.join(','), '--no-mcp']),

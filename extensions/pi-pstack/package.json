@@ -1,6 +1,6 @@
 {
   "name": "@justjoshn/pi-pstack",
-  "version": "0.15.36-pi.39",
+  "version": "0.15.36-pi.40",
   "description": "pstack 0.15.36 for Pi with its soft-dependency team-kit skills vendored in: rigorous agent workflows and principles as Pi skills, with the host features they use: subagents, todos, modes, plan mode, the model rule, /loop, subscriptions and routines, AskQuestion, SwitchMode, image generation, and visualize",
   "type": "module",
   "license": "MIT",
@@ -36,22 +36,27 @@
   },
   "pi": {
     "extensions": [
-      "./src/index.ts"
+      "./src/extension.ts"
     ],
     "skills": [
-      "./skills"
+      "./generated/skills"
+    ],
+    "prompts": [
+      "./generated/prompts"
     ]
   },
   "files": [
     "src",
     "generated",
+    "vendor",
+    "adapters",
+    "scripts",
     "skills",
     "rules",
     "agents",
     "automations",
     "bin",
     "dist",
-    "scripts/build-helpers.mjs",
     "docs",
     "assets",
     "licenses",
@@ -79,9 +84,7 @@
   },
   "peerDependencies": {
     "@earendil-works/pi-ai": "*",
-    "@earendil-works/pi-agent-core": "*",
     "@earendil-works/pi-coding-agent": "*",
-    "@earendil-works/pi-tui": "*",
     "typebox": "*"
   },
   "devDependencies": {

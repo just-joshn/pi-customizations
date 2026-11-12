@@ -13,6 +13,16 @@ beforeEach(() => {
 });
 afterEach(() => sandbox.dispose());
 
+/** A copy that still declares the old runtime, which these tests exercise; the package manifest names the native one. */
+function legacyCopy(): string {
+  const copy = join(sandbox.root, 'pi-pstack');
+  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  const manifest = JSON.parse(readFileSync(join(copy, 'package.json'), 'utf8')) as { pi: unknown };
+  manifest.pi = { extensions: ['./src/index.ts'], skills: ['./skills'] };
+  writeFileSync(join(copy, 'package.json'), JSON.stringify(manifest, null, 2));
+  return copy;
+}
+
 const pi = (...args: string[]) => execFileSync(...piInvocation(args), { cwd: sandbox.workDir, env: sandbox.env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 const settingsPackages = () => ((JSON.parse(readFileSync(join(sandbox.agentDir, 'settings.json'), 'utf8')) as { packages?: string[] }).packages ?? []).map((entry) => resolve(sandbox.agentDir, entry));
 
@@ -61,8 +71,7 @@ test('publishes bundled tools without locally installed script dependencies', as
 });
 
 test('a missing YAML dependency rejects metadata operations without blocking other tools', async () => {
-  const copy = join(sandbox.root, 'pi-pstack');
-  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  const copy = legacyCopy();
   pi('install', copy);
   const rpc = startRpc(sandbox, ['--no-session']);
   try {
@@ -94,8 +103,7 @@ test('a missing YAML dependency rejects metadata operations without blocking oth
 });
 
 test('missing regex dependencies refuse a watched command before it runs', async () => {
-  const copy = join(sandbox.root, 'pi-pstack');
-  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  const copy = legacyCopy();
   pi('install', copy);
   const run = await runJson(sandbox, script([{ tool: 'bash_background', args: { command: 'touch must-not-run.txt', notify_on_output: { pattern: 'READY', reason: 'ready' } } }]), ['--no-session']);
   expect(toolEnds(run.events, 'bash_background')).toEqual([expect.objectContaining({ isError: true, text: 'Shell output monitoring needs the re2js dependency. Run bun install in the pi-pstack package directory, then reload Pi.' })]);
@@ -103,8 +111,7 @@ test('missing regex dependencies refuse a watched command before it runs', async
 });
 
 test('installs from a fresh copy without node_modules, then removes cleanly (PKG-001)', async () => {
-  const copy = join(sandbox.root, 'pi-pstack');
-  cpSync(PACKAGE_ROOT, copy, { recursive: true, filter: (source) => !/\/(node_modules|coverage)(\/|$)/.test(source.slice(PACKAGE_ROOT.length)) });
+  const copy = legacyCopy();
   expect(existsSync(join(copy, 'node_modules'))).toBe(false);
 
   pi('install', copy);

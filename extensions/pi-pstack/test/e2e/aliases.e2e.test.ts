@@ -82,7 +82,7 @@ test('a prompt template at the start expands its template and attaches any skill
 test('aliases work when the package is installed through a symlink (recheck 1)', async () => {
   const link = join(sandbox.root, 'pkglink');
   symlinkSync(PACKAGE_ROOT, link);
-  writeFileSync(join(sandbox.agentDir, 'settings.json'), JSON.stringify({ packages: [link], extensions: [join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts')] }));
+  writeFileSync(join(sandbox.agentDir, 'settings.json'), JSON.stringify({ extensions: [join(link, 'src/index.ts'), join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts')], skills: [join(link, 'skills')] }));
   const run = await runJson(sandbox, '/ketchup now\n@@say LINKED', ['--no-session']);
   const [user] = messages(run.events, 'user').map((message) => contentText(message.content));
   expect([user?.startsWith('<skill name="ketchup"'), assistantTexts(run.events)]).toEqual([true, ['LINKED']]);
