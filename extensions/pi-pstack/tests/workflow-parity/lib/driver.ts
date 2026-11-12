@@ -194,12 +194,9 @@ class Rpc {
   private readonly json: boolean;
   constructor(child: ChildProcess, json: boolean) {
     this.child = child;
-<<<<<<< HEAD
     this.json = json;
-=======
     child.once('error', (error) => this.ended(`failed to start (${error.message})`));
     child.once('close', (code, signal) => this.ended(`exited (code ${code}, signal ${signal})`));
->>>>>>> pstack/native-u16f
     child.stderr?.on('data', (chunk: Buffer) => {
       this.stderr += chunk.toString('utf8');
     });
@@ -361,20 +358,15 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   Object.assign(env, spec.env);
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
-<<<<<<< HEAD
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
   const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
-  const child = spawn(PI, args, { cwd: ctx.repo, env, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
+  const child = spawn(options.pi ?? PI, args, { cwd: ctx.repo, env, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
   const rpc = new Rpc(child, mode === 'rpc');
   let exitCode: number | null = null;
   child.once('close', (code) => {
     exitCode = code;
   });
-=======
-  const child = spawn(options.pi ?? PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
-  const rpc = new Rpc(child);
->>>>>>> pstack/native-u16f
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
   const stopObserving = observeRuns(ctx.repo, history, claims);
@@ -383,7 +375,6 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   let timedOut = false;
   let parentSessionFile: string | null = null;
   try {
-<<<<<<< HEAD
     if (mode !== 'rpc') {
       while (exitCode === null && Date.now() < deadline) await sleep(200);
       if (exitCode === null) timedOut = true;
@@ -394,10 +385,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       }
       writeFileSync(join(ctx.sandbox, 'one-shot.json'), JSON.stringify({ mode, exitCode, stdout: rpc.raw.join(''), stderr: rpc.stderr }, null, 2));
     } else {
-    const state = await rpc.request({ type: 'get_state' });
-=======
     const state = await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs);
->>>>>>> pstack/native-u16f
     parentSessionFile = ((state['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? null;
     const untilQuiet = async (): Promise<boolean> => {
       let quietSince = Date.now();
