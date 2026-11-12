@@ -5,7 +5,7 @@
 // Each provider call consumes the next step of its actor:
 //   { tool, args } | [{ tool, args }, ...]   call these tools (several in one array run in one assistant message)
 //   { text }                                 reply with text and end the turn
-//   { await: { wake: <workerId> } }          end the turn until a pstack-worker wake for that worker is in the context
+//   { await: { wake: <workerId>, count? } }  end the turn until that many pstack-worker wakes for that worker are in the context
 // After the last step the actor answers "(script complete)", so a late wake turn does no harm.
 import { readFileSync } from 'node:fs';
 
@@ -14,7 +14,7 @@ import { fauxAssistantMessage, fauxProvider, fauxToolCall } from '@earendil-work
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 type Call = { tool: string; args: Record<string, unknown> };
-type Step = Call | Call[] | { text: string } | { await: { wake: string } };
+type Step = Call | Call[] | { text: string } | { await: { wake: string; count?: number } };
 
 const textOf = (content: string | readonly { type: string }[]): string =>
   typeof content === 'string'
@@ -33,8 +33,8 @@ function script(): Step[] {
 
 let cursor = 0;
 
-function wakeSeen(messages: readonly Message[], workerId: string): boolean {
-  return messages.some((message) => message.role === 'user' && textOf(message.content).startsWith(`pstack worker ${workerId} in run `));
+function wakeSeen(messages: readonly Message[], workerId: string, count: number): boolean {
+  return messages.filter((message) => message.role === 'user' && textOf(message.content).startsWith(`pstack worker ${workerId} in run `)).length >= count;
 }
 
 function respond(messages: readonly Message[]): AssistantMessage {
@@ -42,7 +42,7 @@ function respond(messages: readonly Message[]): AssistantMessage {
   const step = steps[cursor];
   if (step === undefined) return fauxAssistantMessage('(script complete)');
   if (!Array.isArray(step) && 'await' in step) {
-    if (!wakeSeen(messages, step.await.wake)) return fauxAssistantMessage(`waiting for worker ${step.await.wake}`);
+    if (!wakeSeen(messages, step.await.wake, step.await.count ?? 1)) return fauxAssistantMessage(`waiting for worker ${step.await.wake}`);
     cursor += 1;
     return respond(messages);
   }

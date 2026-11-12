@@ -84,3 +84,80 @@ export function lineOf(history: Commit[], path: string, needle: string): number 
   if (index === -1) throw new Error(`${needle} is not in ${path}`);
   return index + 1;
 }
+
+export const DEDUPE_JS = `export const counter = { comparisons: 0 };
+
+export function dedupe(values) {
+  const out = [];
+  for (const value of values) {
+    let seen = false;
+    for (const existing of out) {
+      counter.comparisons += 1;
+      if (existing === value) {
+        seen = true;
+        break;
+      }
+    }
+    if (!seen) out.push(value);
+  }
+  return out;
+}
+`;
+
+export const BENCH_JS = `import { counter, dedupe } from '../src/dedupe.js';
+
+const values = Array.from({ length: 400 }, (_, index) => (index * 7) % 200);
+const result = dedupe(values);
+const errors = result.length === 200 ? 0 : 1;
+console.log(\`errors=\${errors} work=\${values.length} comparisons=\${counter.comparisons}\`);
+process.exit(errors);
+`;
+
+export const DEDUPE_TEST_JS = `import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { dedupe } from '../src/dedupe.js';
+
+test('keeps the first of each value in order', () => {
+  assert.deepEqual(dedupe([3, 1, 3, 2, 1]), [3, 1, 2]);
+});
+`;
+
+export const SET_DEDUPE_JS = `export const counter = { comparisons: 0 };
+
+export function dedupe(values) {
+  const seen = new Set();
+  const out = [];
+  for (const value of values) {
+    counter.comparisons += 1;
+    if (seen.has(value)) continue;
+    seen.add(value);
+    out.push(value);
+  }
+  return out;
+}
+`;
+
+/** The cart repository plus a quadratic dedupe and its frozen benchmark, for the measured families. */
+export const perfHistory: Commit[] = [
+  ...cartHistory,
+  { message: 'feat: dedupe helper and its benchmark (#150)', files: { 'src/dedupe.js': DEDUPE_JS, 'bench/bench.js': BENCH_JS, 'test/dedupe.test.js': DEDUPE_TEST_JS } },
+];
+
+/** The comparisons the quadratic dedupe counts on the benchmark input, worked out here so a scenario can state them. */
+export function quadraticComparisons(): number {
+  const out: number[] = [];
+  let comparisons = 0;
+  for (let index = 0; index < 400; index += 1) {
+    const value = (index * 7) % 200;
+    let seen = false;
+    for (const existing of out) {
+      comparisons += 1;
+      if (existing === value) {
+        seen = true;
+        break;
+      }
+    }
+    if (!seen) out.push(value);
+  }
+  return comparisons;
+}

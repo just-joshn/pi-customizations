@@ -182,7 +182,7 @@ export function rewriteFinalReply(sandbox: string, from: string | RegExp, to: st
   });
   if (index === -1) throw new Error('no reply to rewrite');
   const entry = JSON.parse(lines[index] as string) as { message: { content: { type: string; text?: string }[] } };
-  for (const part of entry.message.content) if (part.type === 'text' && part.text !== undefined) part.text = part.text.replaceAll(from as string, to);
+  for (const part of entry.message.content) if (part.type === 'text' && part.text !== undefined) part.text = typeof from === 'string' ? part.text.replaceAll(from, to) : part.text.replace(from, to);
   lines[index] = JSON.stringify(entry);
   writeFileSync(file, lines.join('\n'));
 }

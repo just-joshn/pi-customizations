@@ -33,8 +33,8 @@ export class Actor {
     this.steps.push({ text });
     return this;
   }
-  wait(workerId: string): this {
-    this.steps.push({ await: { wake: workerId } });
+  wait(workerId: string, count = 1): this {
+    this.steps.push({ await: { wake: workerId, count } });
     return this;
   }
 }
