@@ -114,6 +114,8 @@ function parseAssignment(raw, defaults) {
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
   const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
+    throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)

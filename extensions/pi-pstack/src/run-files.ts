@@ -195,6 +195,7 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   const brief = raw['brief'];
   if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
   const capabilities = raw['capabilities'] === undefined ? defaults.capabilities : parseCapabilities(raw['capabilities']);
+  if (capabilities.spawn === true && parsedWorkspace.mode !== 'worktree') throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[], capabilities };
   if (kind === 'pi') {
     if (raw['watch'] !== undefined) throw new Error("Assignment watch is only for kind 'watch'");

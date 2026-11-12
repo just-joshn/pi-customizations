@@ -9,6 +9,7 @@ import { StringEnum } from '@earendil-works/pi-ai';
 import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
@@ -335,6 +336,17 @@ const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel 
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 
+/** Spawn tree levels, matching upstream Orchestrate: the root chat (1), a sub-coordinator (2), and its workers (3). */
+const MAX_DEPTH = 3;
+
+/** This process's level in the spawn tree: PSTACK_DEPTH, which the parent sets for every worker; the root has none. */
+function spawnDepth(env: NodeJS.ProcessEnv): number {
+  const raw = env['PSTACK_DEPTH'];
+  if (raw === undefined || raw === '') return 1;
+  if (!/^[1-9]$/.test(raw)) throw new Error(`PSTACK_DEPTH ${raw} is not a spawn depth`);
+  return Number(raw);
+}
+
 /**
  * The one way a worker starts, for pstack_worker and for automation runs alike: claim the assignment, hand the host
  * its launch environment, start it in tmux, wait for its handshake, and send the brief. The caller checks ownership.
@@ -358,6 +370,10 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const assignment: Assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
   if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  const depth = spawnDepth(process.env) + 1;
+  const spawns = assignment.capabilities.spawn === true;
+  if (depth > MAX_DEPTH) throw new Error(`Spawn depth is capped at ${MAX_DEPTH} levels (root, sub-coordinator, worker), and this process is at level ${depth - 1}; it cannot spawn workers`);
+  if (spawns && depth === MAX_DEPTH) throw new Error(`Worker ${assignment.workerId} asks for spawn: true at depth ${depth}, the last of ${MAX_DEPTH} levels (root, sub-coordinator, worker); a sub-coordinator's workers cannot spawn`);
   const session = tmuxSessionName(root, runId, assignment.workerId);
   let model: ResolvedModel | null = null;
   let roleDoc: string | null = null;
@@ -379,7 +395,13 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     credentialEnv: model === null ? [] : credentialEnv(model.provider),
   };
   // This process's environment now, not the tmux server's, which dates from when the server started.
-  const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
+  // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
+  const launchEnv = {
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    PSTACK_DEPTH: String(depth),
+    PSTACK_SPAWN: spawns ? '1' : null,
+    ...(spawns ? { PSTACK_TMUX_SOCKET: socket } : {}),
+  };
   const claimDir = join(loaded.workerDir, 'claim');
   // The claim protects an immutable, complete file: omitted defaults are written in while no one holds the claim.
   // Every spawner writes the same bytes, so a racing spawner that claims first loses nothing.
@@ -453,6 +475,15 @@ const WorkerParams = Type.Object({
 });
 
 const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as const, text: value }], details });
+
+/**
+ * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, and pstack_worker only for a
+ * sub-coordinator, the worker its parent spawned with capabilities.spawn (PSTACK_SPAWN=1).
+ */
+export function registerWorkerSideTools(pi: ExtensionAPI, env: NodeJS.ProcessEnv, options: WorkerToolOptions = {}): void {
+  registerEvidenceTool(pi);
+  if (env['PSTACK_SPAWN'] === '1') registerWorkerTools(pi, options);
+}
 
 export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions = {}): void {
   const resolveModel = options.resolveModel ?? literalModelResolver;

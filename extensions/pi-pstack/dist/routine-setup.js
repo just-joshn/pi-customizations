@@ -21,86 +21,19 @@ import { execFile } from "node:child_process";
 import { existsSync as existsSync4, mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync2, rmSync, statSync, writeFileSync as writeFileSync3 } from "node:fs";
 import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as join4, relative as relative2 } from "node:path";
 import { promisify } from "node:util";
-import { StringEnum } from "@earendil-works/pi-ai";
+import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
+import { Type as Type2 } from "typebox";
+
+// src/evidence.ts
+import { StringEnum } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
-
-// src/paths.ts
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-// src/child-env.ts
-var DEPTH_ENV = "PI_PSTACK_DEPTH";
-var AGENT_ENV = "PI_PSTACK_AGENT";
-var PARENT_ENV = "PI_PSTACK_PARENT_PID";
-var READONLY_ENV = "PI_PSTACK_READONLY";
-var ROOT_STORE_ENV = "PI_PSTACK_ROOT_STORE";
-var WORKSPACE_ENV = "PI_PSTACK_WORKSPACE_STATE";
-var ROOT_WORKSPACE_ENV = "PI_PSTACK_ROOT_WORKSPACE";
-var BUILD_PLAN_ENV = "PI_PSTACK_BUILD_PLAN";
-var MACHINE_ENV = "PI_PSTACK_MACHINE";
-var PROJECT_ENV = "PI_PSTACK_PROJECT";
-var AUTOMATION_ENV = "PI_PSTACK_AUTOMATION";
-var ROOT_SESSION_ENV = "PI_PSTACK_ROOT_SESSION";
-var ROOT_PID_ENV = "PI_PSTACK_ROOT_PID";
-function read() {
-  const depth = Number(process.env[DEPTH_ENV] ?? "0");
-  const parentPid = Number(process.env[PARENT_ENV] ?? "");
-  const rootSession = process.env[ROOT_SESSION_ENV];
-  const rootPid = Number(process.env[ROOT_PID_ENV] ?? "");
-  return {
-    depth: Number.isInteger(depth) && depth > 0 ? depth : 0,
-    agentType: process.env[AGENT_ENV],
-    parentPid: Number.isInteger(parentPid) && parentPid > 1 ? parentPid : undefined,
-    readonly: process.env[READONLY_ENV] === "1",
-    rootStore: process.env[ROOT_STORE_ENV] || undefined,
-    workspaceState: process.env[WORKSPACE_ENV] || undefined,
-    rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
-    buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
-    machine: process.env[MACHINE_ENV] || undefined,
-    project: process.env[PROJECT_ENV] || undefined,
-    automation: process.env[AUTOMATION_ENV] === "1",
-    root: depth > 0 && rootSession !== undefined && rootSession !== "" && Number.isInteger(rootPid) && rootPid > 1 ? { sessionId: rootSession, pid: rootPid } : undefined
-  };
-}
-var childIdentity = read();
-delete process.env[DEPTH_ENV];
-delete process.env[AGENT_ENV];
-delete process.env[PARENT_ENV];
-delete process.env[READONLY_ENV];
-delete process.env[ROOT_STORE_ENV];
-delete process.env[WORKSPACE_ENV];
-delete process.env[ROOT_WORKSPACE_ENV];
-delete process.env[BUILD_PLAN_ENV];
-delete process.env[MACHINE_ENV];
-delete process.env[PROJECT_ENV];
-delete process.env[AUTOMATION_ENV];
-delete process.env[ROOT_SESSION_ENV];
-delete process.env[ROOT_PID_ENV];
-
-// src/paths.ts
-var PACKAGE_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-var SKILLS_DIR = join(PACKAGE_ROOT, "skills");
-var AGENTS_DIR = join(PACKAGE_ROOT, "agents");
-
-// src/pi-command.ts
-import { existsSync } from "node:fs";
-import { basename } from "node:path";
-function piCommand() {
-  const script = process.argv[1];
-  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync(script))
-    return [process.execPath, script];
-  return /^(node|bun)(\.exe)?$/.test(basename(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
-}
-
-// src/rpc-client.ts
-import { randomUUID as randomUUID2 } from "node:crypto";
-import { connect } from "node:net";
+import { Value } from "typebox/value";
 
 // src/run-files.ts
 import { createHash } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
-import { basename as basename2, dirname as dirname2, isAbsolute, join as join2, relative, resolve as resolve2, sep } from "node:path";
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -111,16 +44,16 @@ var parseRunId = (value) => parseId(value, "runId");
 var parseWorkerId = (value) => parseId(value, "workerId");
 var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
 var TMUX_SESSION = /^pstack_[a-z0-9-]+_[a-z0-9-]+_[0-9a-f]{8}$/;
-var runsDir = (project) => join2(project, ".pi", "pstack", "runs");
-var runRootOf = (project, runId) => join2(runsDir(project), runId);
-var projectOfRunRoot = (runRoot) => resolve2(runRoot, "..", "..", "..", "..");
-var workerDirOf = (runRoot, workerId) => join2(runRoot, "workers", workerId);
+var runsDir = (project) => join(project, ".pi", "pstack", "runs");
+var runRootOf = (project, runId) => join(runsDir(project), runId);
+var projectOfRunRoot = (runRoot) => resolve(runRoot, "..", "..", "..", "..");
+var workerDirOf = (runRoot, workerId) => join(runRoot, "workers", workerId);
 function controlSocketPath(runRoot, workerId) {
-  const local = join2(workerDirOf(runRoot, workerId), "control.sock");
+  const local = join(workerDirOf(runRoot, workerId), "control.sock");
   if (Buffer.byteLength(local) <= 100)
     return local;
   const uid = process.getuid?.() ?? 0;
-  return join2("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
+  return join("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
 }
 function writeJsonAtomic(path, value, mode = 384) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
@@ -138,15 +71,15 @@ function appendEvent(runRoot, event) {
     data = JSON.stringify(`${data.slice(0, MAX_EVENT_DATA)}…`);
   const line = `{"ts":${JSON.stringify(new Date().toISOString())},"runId":${JSON.stringify(event.runId)}${event.workerId === undefined ? "" : `,"workerId":${JSON.stringify(event.workerId)}`},"kind":${JSON.stringify(event.kind)},"data":${data}}
 `;
-  appendFileSync(join2(runRoot, "events.jsonl"), line, { mode: 384 });
+  appendFileSync(join(runRoot, "events.jsonl"), line, { mode: 384 });
 }
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 function readRun(runRoot) {
-  const raw = readJson(join2(runRoot, "run.json"));
+  const raw = readJson(join(runRoot, "run.json"));
   if (!isRecord(raw) || raw["schemaVersion"] !== 1)
     throw new Error(`${runRoot}/run.json: unsupported schema`);
   const runId = parseRunId(raw["runId"]);
-  if (runId !== basename2(runRoot))
+  if (runId !== basename(runRoot))
     throw new Error(`${runRoot}/run.json: runId ${runId} does not name its directory`);
   const parent = raw["parentSessionFile"];
   if (parent !== null && typeof parent !== "string")
@@ -205,6 +138,8 @@ function parseAssignment(raw, defaults) {
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
   const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
+    throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)
@@ -225,7 +160,7 @@ function parseAssignment(raw, defaults) {
   return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
 }
 function readBrief(workerDir) {
-  const path = join2(workerDir, BRIEF);
+  const path = join(workerDir, BRIEF);
   let fd;
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
@@ -253,23 +188,23 @@ function ownedEntry(path, directory) {
 function loadAssignment(path) {
   if (!isAbsolute(path))
     throw new Error("Assignment path must be absolute");
-  const file = resolve2(path);
-  if (basename2(file) !== "assignment.json")
+  const file = resolve(path);
+  if (basename(file) !== "assignment.json")
     throw new Error("Assignment file must be named assignment.json");
   ownedEntry(file, false);
   if (realpathSync(file) !== file)
     throw new Error("Assignment path must be canonical (no symlinks)");
-  const workerDir = dirname2(file);
+  const workerDir = dirname(file);
   ownedEntry(workerDir, true);
-  const runRoot = dirname2(dirname2(workerDir));
-  if (basename2(dirname2(workerDir)) !== "workers" || basename2(dirname2(runRoot)) !== "runs")
+  const runRoot = dirname(dirname(workerDir));
+  if (basename(dirname(workerDir)) !== "workers" || basename(dirname(runRoot)) !== "runs")
     throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
   const bytes = readFileSync(file);
   const automated = readRun(runRoot).parentSessionFile === null;
   const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), { capabilities: automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES, projectRoot: projectOfRunRoot(runRoot) });
-  if (assignment.workerId !== basename2(workerDir))
+  if (assignment.workerId !== basename(workerDir))
     throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
-  if (assignment.runId !== basename2(runRoot))
+  if (assignment.runId !== basename(runRoot))
     throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
   return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
 }
@@ -277,30 +212,126 @@ var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var MAX_SETTLES = 1e4;
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
 function readHostState(workerDir) {
-  const path = join2(workerDir, "state.json");
-  if (!existsSync2(path))
+  const path = join(workerDir, "state.json");
+  if (!existsSync(path))
     return;
   const raw = readJson(path);
   if (!isRecord(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
     throw new Error(`${path}: malformed host state`);
   return raw;
 }
-var launchEnvPath = (workerDir) => join2(workerDir, "claim", "launch-env.json");
+var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
 var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
-var tmuxIdentityPath = (workerDir) => join2(workerDir, "claim", "tmux.json");
+var tmuxIdentityPath = (workerDir) => join(workerDir, "claim", "tmux.json");
 function parseTmuxIdentity(text) {
   const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
   return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
 }
 function readClaim(workerDir) {
-  const path = join2(workerDir, "claim", "identity.json");
-  if (!existsSync2(path))
+  const path = join(workerDir, "claim", "identity.json");
+  if (!existsSync(path))
     return;
   const raw = readJson(path);
   if (!isRecord(raw) || typeof raw["instance"] !== "string")
     throw new Error(`${path}: malformed claim`);
   return raw;
 }
+
+// src/evidence.ts
+var ReceiptSchema = Type.Object({
+  schemaVersion: Type.Literal(1),
+  id: Type.String({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" }),
+  runId: Type.String(),
+  target: Type.String({ minLength: 1 }),
+  kind: Type.Union(["test", "command", "screenshot", "trace", "review", "measurement", "other"].map((kind) => Type.Literal(kind))),
+  verdict: Type.Union([Type.Literal("pass"), Type.Literal("fail"), Type.Literal("inconclusive")]),
+  commit: Type.Union([Type.String(), Type.Null()]),
+  environment: Type.String(),
+  command: Type.Optional(Type.Array(Type.String())),
+  exitCode: Type.Optional(Type.Integer()),
+  artifacts: Type.Array(Type.Object({ path: Type.String({ minLength: 1 }), sha256: Type.String({ pattern: "^[0-9a-f]{64}$" }) }, { additionalProperties: false })),
+  defects: Type.Optional(Type.Array(Type.String())),
+  reason: Type.Optional(Type.String()),
+  createdAt: Type.String()
+}, { additionalProperties: false });
+var EvidenceParams = Type.Object({
+  action: StringEnum(["record", "verify", "list"], { description: "record stores a receipt file as verification/receipts/<id>.json; verify re-checks every receipt for a target; list shows recorded receipts." }),
+  runId: Type.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  receiptPath: Type.Optional(Type.String({ description: "record: the receipt JSON file, inside the run root." })),
+  target: Type.Optional(Type.String({ description: "verify: a TODO step id, worker id, or commit." }))
+});
+
+// src/paths.ts
+import { dirname as dirname2, join as join2, resolve as resolve2 } from "node:path";
+import { fileURLToPath } from "node:url";
+
+// src/child-env.ts
+var DEPTH_ENV = "PI_PSTACK_DEPTH";
+var AGENT_ENV = "PI_PSTACK_AGENT";
+var PARENT_ENV = "PI_PSTACK_PARENT_PID";
+var READONLY_ENV = "PI_PSTACK_READONLY";
+var ROOT_STORE_ENV = "PI_PSTACK_ROOT_STORE";
+var WORKSPACE_ENV = "PI_PSTACK_WORKSPACE_STATE";
+var ROOT_WORKSPACE_ENV = "PI_PSTACK_ROOT_WORKSPACE";
+var BUILD_PLAN_ENV = "PI_PSTACK_BUILD_PLAN";
+var MACHINE_ENV = "PI_PSTACK_MACHINE";
+var PROJECT_ENV = "PI_PSTACK_PROJECT";
+var AUTOMATION_ENV = "PI_PSTACK_AUTOMATION";
+var ROOT_SESSION_ENV = "PI_PSTACK_ROOT_SESSION";
+var ROOT_PID_ENV = "PI_PSTACK_ROOT_PID";
+function read() {
+  const depth = Number(process.env[DEPTH_ENV] ?? "0");
+  const parentPid = Number(process.env[PARENT_ENV] ?? "");
+  const rootSession = process.env[ROOT_SESSION_ENV];
+  const rootPid = Number(process.env[ROOT_PID_ENV] ?? "");
+  return {
+    depth: Number.isInteger(depth) && depth > 0 ? depth : 0,
+    agentType: process.env[AGENT_ENV],
+    parentPid: Number.isInteger(parentPid) && parentPid > 1 ? parentPid : undefined,
+    readonly: process.env[READONLY_ENV] === "1",
+    rootStore: process.env[ROOT_STORE_ENV] || undefined,
+    workspaceState: process.env[WORKSPACE_ENV] || undefined,
+    rootWorkspace: process.env[ROOT_WORKSPACE_ENV] || undefined,
+    buildPlan: process.env[BUILD_PLAN_ENV] || undefined,
+    machine: process.env[MACHINE_ENV] || undefined,
+    project: process.env[PROJECT_ENV] || undefined,
+    automation: process.env[AUTOMATION_ENV] === "1",
+    root: depth > 0 && rootSession !== undefined && rootSession !== "" && Number.isInteger(rootPid) && rootPid > 1 ? { sessionId: rootSession, pid: rootPid } : undefined
+  };
+}
+var childIdentity = read();
+delete process.env[DEPTH_ENV];
+delete process.env[AGENT_ENV];
+delete process.env[PARENT_ENV];
+delete process.env[READONLY_ENV];
+delete process.env[ROOT_STORE_ENV];
+delete process.env[WORKSPACE_ENV];
+delete process.env[ROOT_WORKSPACE_ENV];
+delete process.env[BUILD_PLAN_ENV];
+delete process.env[MACHINE_ENV];
+delete process.env[PROJECT_ENV];
+delete process.env[AUTOMATION_ENV];
+delete process.env[ROOT_SESSION_ENV];
+delete process.env[ROOT_PID_ENV];
+
+// src/paths.ts
+var PACKAGE_ROOT = join2(dirname2(fileURLToPath(import.meta.url)), "..");
+var SKILLS_DIR = join2(PACKAGE_ROOT, "skills");
+var AGENTS_DIR = join2(PACKAGE_ROOT, "agents");
+
+// src/pi-command.ts
+import { existsSync as existsSync2 } from "node:fs";
+import { basename as basename2 } from "node:path";
+function piCommand() {
+  const script = process.argv[1];
+  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync2(script))
+    return [process.execPath, script];
+  return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
+}
+
+// src/rpc-client.ts
+import { randomUUID as randomUUID2 } from "node:crypto";
+import { connect } from "node:net";
 
 // src/worker-host.ts
 import { execFileSync, spawn } from "node:child_process";
@@ -1123,6 +1154,15 @@ var parentlessModel = ({ model, thinkingLevel }) => {
   const slash = model.indexOf("/");
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
+var MAX_DEPTH = 3;
+function spawnDepth(env) {
+  const raw = env["PSTACK_DEPTH"];
+  if (raw === undefined || raw === "")
+    return 1;
+  if (!/^[1-9]$/.test(raw))
+    throw new Error(`PSTACK_DEPTH ${raw} is not a spawn depth`);
+  return Number(raw);
+}
 function workerSocket(explicit) {
   const socket = explicit ?? process.env["PSTACK_TMUX_SOCKET"] ?? "pstack";
   if (socket === "pstack" && process.env["VITEST"])
@@ -1143,6 +1183,12 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     throw new Error(`Assignment must be ${join4(runRoot, "workers", "<workerId>", "assignment.json")}`);
   if (assignment.capabilities.externalWrite)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  const depth = spawnDepth(process.env) + 1;
+  const spawns = assignment.capabilities.spawn === true;
+  if (depth > MAX_DEPTH)
+    throw new Error(`Spawn depth is capped at ${MAX_DEPTH} levels (root, sub-coordinator, worker), and this process is at level ${depth - 1}; it cannot spawn workers`);
+  if (spawns && depth === MAX_DEPTH)
+    throw new Error(`Worker ${assignment.workerId} asks for spawn: true at depth ${depth}, the last of ${MAX_DEPTH} levels (root, sub-coordinator, worker); a sub-coordinator's workers cannot spawn`);
   const session = tmuxSessionName(root, runId, assignment.workerId);
   let model = null;
   let roleDoc = null;
@@ -1165,7 +1211,12 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     extraArgs: options.extraPiArgs ?? [],
     credentialEnv: model === null ? [] : credentialEnv(model.provider)
   };
-  const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
+  const launchEnv = {
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    PSTACK_DEPTH: String(depth),
+    PSTACK_SPAWN: spawns ? "1" : null,
+    ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
+  };
   const claimDir = join4(loaded.workerDir, "claim");
   if (!existsSync4(claimDir) && readFileSync3(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
 `) {
@@ -1233,14 +1284,14 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     await controlHost(target, "start");
   return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
 }
-var WorkerParams = Type.Object({
-  action: StringEnum(["spawn", "inspect", "steer", "abort", "collect"], {
+var WorkerParams = Type2.Object({
+  action: StringEnum2(["spawn", "inspect", "steer", "abort", "collect"], {
     description: "spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled."
   }),
-  runId: Type.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
-  workerId: Type.Optional(Type.String({ description: "inspect, steer, abort, collect: the worker id." })),
-  assignmentPath: Type.Optional(Type.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
-  message: Type.Optional(Type.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
+  runId: Type2.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  workerId: Type2.Optional(Type2.String({ description: "inspect, steer, abort, collect: the worker id." })),
+  assignmentPath: Type2.Optional(Type2.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
+  message: Type2.Optional(Type2.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
 });
 
 // src/automation/model.ts
