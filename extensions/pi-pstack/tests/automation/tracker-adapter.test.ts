@@ -48,7 +48,7 @@ test('a tracker other than GitHub is written by a dedicated worker that loads th
   const worker = t.spawns[1];
   expect(worker?.runId).not.toBe(caseRun);
   const assignment = JSON.parse(read(worker?.assignmentPath ?? ''));
-  expect(assignment).toMatchObject({ kind: 'pi', capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: false }, workspace: { mode: 'readonly', path: t.project.dir } });
+  expect(assignment).toMatchObject({ kind: 'pi', capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: true }, workspace: { mode: 'readonly', path: t.project.dir } });
   const run = JSON.parse(read(join(dirname(dirname(dirname(worker?.assignmentPath ?? ''))), 'run.json')));
   expect(run.parentSessionFile).toBeNull();
 

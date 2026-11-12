@@ -71,6 +71,8 @@ export interface HostLaunch {
   appendSystemPrompt: string | null;
   /** Pi's --tools allowlist, or null for Pi's defaults. */
   tools: string[] | null;
+  /** Pi's --exclude-tools patterns. Absent means none. */
+  excludeTools?: string[];
   tmuxSession: string;
   extraArgs: string[];
   /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. Their values travel in launch-env.json. */
@@ -114,12 +116,14 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
   const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
+  const excludeTools = raw['excludeTools'] ?? [];
   const container = raw['container'] === null ? null : parseContainerPlan(raw['container']);
   if (!strings(piCommand) || piCommand.length === 0 || (container === null && !isAbsolute(piCommand[0] ?? ''))) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
   if (appendSystemPrompt !== null && !(typeof appendSystemPrompt === 'string' && isAbsolute(appendSystemPrompt))) throw new Error('Launch appendSystemPrompt must be an absolute path or null');
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name)))) throw new Error('Launch tools must be tool names or null');
+  if (!(strings(excludeTools) && excludeTools.every((name) => /^[A-Za-z0-9_*]+$/.test(name)))) throw new Error('Launch excludeTools must be tool names or patterns');
   if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
@@ -132,6 +136,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     thinkingLevel: thinkingLevel as ThinkingLevel | null,
     appendSystemPrompt: appendSystemPrompt as string | null,
     tools: tools as string[] | null,
+    excludeTools,
     tmuxSession,
     extraArgs,
     credentialEnv,
@@ -225,6 +230,7 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
     ...(launch.thinkingLevel === null ? [] : ['--thinking', launch.thinkingLevel]),
     ...(launch.appendSystemPrompt === null ? [] : ['--append-system-prompt', launch.appendSystemPrompt]),
     ...(launch.tools === null ? [] : ['--tools', launch.tools.join(',')]),
+    ...(launch.excludeTools === undefined || launch.excludeTools.length === 0 ? [] : ['--exclude-tools', launch.excludeTools.join(',')]),
     ...(loaded.assignment.capabilities.mcp === 'none' ? ['--no-mcp'] : []),
     ...launch.extraArgs,
   ];

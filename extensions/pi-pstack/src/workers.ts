@@ -62,14 +62,40 @@ import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 export const WAKE_TYPE = 'pstack-worker';
 export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'pstack_evidence'] as const;
 /**
- * Pi keeps MCP tools registered under a --tools list but declares none of them: codemode scripts and tool_search reach
- * them (cli.md "MCP tools"). Neither is a write tool, and codemode calls only the active direct tools and the MCP tools.
- * An mcp__ entry is left out because it would make the list filter MCP tools instead of keeping them.
+ * Pi keeps MCP tools registered under a --tools list unless an entry starts with `mcp__`: codemode scripts and tool_search reach
+ * them all (cli.md "MCP tools"). A readonly worker therefore names the read-only MCP tools it may use as `mcp__<server>__<tool>`
+ * entries, which makes Pi filter the rest for codemode and tool_search alike. With none to name, `--exclude-tools 'mcp__*'` removes them all.
  */
 export const MCP_ACCESS_TOOLS = ['codemode', 'tool_search'] as const;
 
-/** The --tools allowlist of a readonly worker: read-class tools, plus the MCP route unless the worker has no MCP. */
-export const readonlyTools = (mcp: Capabilities['mcp']): string[] => [...READONLY_TOOLS, ...(mcp === 'none' ? [] : MCP_ACCESS_TOOLS)];
+/**
+ * The operator's list of MCP tools a readonly worker may call, `<agent dir>/pstack/readonly-mcp.json`: `{ "tools": ["mcp__<server>__<tool>"] }`.
+ * It is the only authority. A server's `readOnlyHint` annotation is not: Pi reports it, but it is the server's own unverified claim.
+ * Names are exact, so one entry never admits a server's write tool by pattern. A missing file authorizes nothing.
+ */
+export function readonlyMcpTools(env: Readonly<Record<string, string | undefined>>): string[] {
+  const file = join(agentDirOf(env), 'pstack', 'readonly-mcp.json');
+  if (!existsSync(file)) return [];
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(file, 'utf8'));
+  } catch (error) {
+    throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const tools = typeof raw === 'object' && raw !== null ? (raw as { tools?: unknown }).tools : undefined;
+  if (!Array.isArray(tools) || !tools.every((name) => typeof name === 'string' && /^mcp__[A-Za-z0-9_]+$/.test(name))) throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
+  return tools;
+}
+
+/**
+ * Pi's tool selection for a readonly worker: read-class tools, plus the MCP route unless the worker has no MCP. `externalWrite` is
+ * the trusted adapter's grant and keeps every MCP tool; any other worker reaches only the `authorized` ones.
+ */
+export function readonlyTools(capabilities: Pick<Capabilities, 'mcp' | 'externalWrite'>, authorized: readonly string[]): { tools: string[]; excludeTools: string[] } {
+  if (capabilities.mcp === 'none') return { tools: [...READONLY_TOOLS], excludeTools: [] };
+  if (capabilities.externalWrite) return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS], excludeTools: [] };
+  return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS, ...authorized], excludeTools: authorized.length === 0 ? ['mcp__*'] : [] };
+}
 
 export interface ResolvedModel {
   provider: string;
@@ -374,6 +400,8 @@ export const nodeExec: Exec = async (command, args, options) => {
 };
 
 export interface SpawnOptions {
+  /** Trusted code (the tracker adapter) may start a worker whose assignment holds `externalWrite: true`. `pstack_worker` never sets it, so a model cannot. */
+  allowExternalWrite?: boolean;
   /** The assignment's model; null runs Pi's configured default. Defaults to the literal `<provider>/<id>`, and Pi's default for `inherit-parent`, since a run without a parent session has no model to inherit. */
   resolveModel?: (request: ModelRequest) => ResolvedModel | null | Promise<ResolvedModel | null>;
   exec?: Exec;
@@ -507,7 +535,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   let loaded = loadAssignment(assignmentPath);
   const assignment: Assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
-  if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  if (assignment.capabilities.externalWrite && options.allowExternalWrite !== true) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
   const depth = spawnDepth(process.env) + 1;
   const spawns = assignment.capabilities.spawn === true;
   if (depth > MAX_DEPTH) throw new Error(`Spawn depth is capped at ${MAX_DEPTH} levels (root, sub-coordinator, worker), and this process is at level ${depth - 1}; it cannot spawn workers`);
@@ -560,13 +588,15 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     });
   }
   const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
+  const readonly = assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities, assignment.capabilities.mcp === 'none' || assignment.capabilities.externalWrite ? [] : readonlyMcpTools(source)) : undefined;
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
     model: launchModel,
     modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities.mcp) : null,
+    tools: readonly?.tools ?? null,
+    excludeTools: readonly?.excludeTools ?? [],
     tmuxSession: session,
     extraArgs: [...(container?.piArgs ?? []), ...(options.extraPiArgs ?? [])],
     // A container worker's forge token travels under GH_TOKEN, so a minimal environment must let that name through.

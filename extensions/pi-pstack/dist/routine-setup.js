@@ -7833,7 +7833,28 @@ async function controlHost(target, operation, text) {
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 var MCP_ACCESS_TOOLS = ["codemode", "tool_search"];
-var readonlyTools = (mcp) => [...READONLY_TOOLS, ...mcp === "none" ? [] : MCP_ACCESS_TOOLS];
+function readonlyMcpTools(env) {
+  const file = join5(agentDirOf(env), "pstack", "readonly-mcp.json");
+  if (!existsSync5(file))
+    return [];
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync4(file, "utf8"));
+  } catch (error) {
+    throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const tools = typeof raw === "object" && raw !== null ? raw.tools : undefined;
+  if (!Array.isArray(tools) || !tools.every((name) => typeof name === "string" && /^mcp__[A-Za-z0-9_]+$/.test(name)))
+    throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
+  return tools;
+}
+function readonlyTools(capabilities, authorized) {
+  if (capabilities.mcp === "none")
+    return { tools: [...READONLY_TOOLS], excludeTools: [] };
+  if (capabilities.externalWrite)
+    return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS], excludeTools: [] };
+  return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS, ...authorized], excludeTools: authorized.length === 0 ? ["mcp__*"] : [] };
+}
 function onPath(command) {
   if (isAbsolute4(command))
     return command;
@@ -7953,7 +7974,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
     throw new Error(`Assignment must be ${join5(runRoot, "workers", "<workerId>", "assignment.json")}`);
-  if (assignment.capabilities.externalWrite)
+  if (assignment.capabilities.externalWrite && options.allowExternalWrite !== true)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
   const depth = spawnDepth(process.env) + 1;
   const spawns = assignment.capabilities.spawn === true;
@@ -8005,13 +8026,15 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     });
   }
   const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
+  const readonly = assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities, assignment.capabilities.mcp === "none" || assignment.capabilities.externalWrite ? [] : readonlyMcpTools(source)) : undefined;
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: launchModel,
     modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
+    tools: readonly?.tools ?? null,
+    excludeTools: readonly?.excludeTools ?? [],
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
     credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],

@@ -31,7 +31,7 @@ The extension creates the worker's git worktree at `inputCommit`, a full or abbr
 
 ## Readonly worker (`readonly`)
 
-The worker reads `path` with `read`, `grep`, `find`, `ls`, `bash_readonly`, and MCP tools, and writes nothing. Its final reply is its report.
+The worker reads `path` with `read`, `grep`, `find`, `ls`, `bash_readonly`, and the MCP tools the operator authorized in `<agent dir>/pstack/readonly-mcp.json`, and writes nothing. Its final reply is its report.
 
 ```json
 {
