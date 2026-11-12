@@ -1,10 +1,30 @@
 // node tests/workflow-parity/run-family.ts <family|all> [--real]
+// node tests/workflow-parity/run-family.ts --rescore <sandbox> [--family <id>] [--json]: re-evaluate a kept sandbox with the current checkers, no model run.
 // Scripted: the real Pi binary with a scenario model. --real: PSTACK_E2E_REAL_MODEL=<provider>/<id> lets a real model decide.
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { families, familyById } from './families/index.ts';
-import { REAL_MODEL } from './lib/driver.ts';
+import { evaluate, table } from './lib/check.ts';
+import { loadView, REAL_MODEL } from './lib/driver.ts';
 import { report, runFamily, unexpectedFailures, writeEvidence } from './lib/run.ts';
 
-const [target, ...flags] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const rescoreAt = argv.indexOf('--rescore');
+if (rescoreAt !== -1) {
+  const sandbox = argv[rescoreAt + 1];
+  if (sandbox === undefined) {
+    console.error('usage: run-family.ts --rescore <sandbox> [--family <id>] [--json]');
+    process.exit(2);
+  }
+  const named = argv[argv.indexOf('--family') + 1];
+  const id = argv.includes('--family') && named !== undefined ? named : (JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { family: string }).family;
+  const family = familyById(id);
+  const results = evaluate(family.checks, loadView(sandbox));
+  console.log(argv.includes('--json') ? JSON.stringify({ family: id, sandbox, results }) : table(id, 'rescore', results, (family.knownDefects ?? []).map((entry) => entry.checkId)));
+  process.exit(0);
+}
+const [target, ...flags] = argv;
 const driver = flags.includes('--real') ? 'real' : 'scripted';
 if (target === undefined) {
   console.error(`usage: run-family.ts <${families.map((family) => family.id).join('|')}|all> [--real]`);
