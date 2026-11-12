@@ -181,16 +181,27 @@ export interface TrackerConfig {
   labels: { bug: string; performance: string; intake: string; needsRepro: string };
 }
 
+/** The start of a line that links a source: `Source:` after optional whitespace and quote or emphasis characters. */
+const SOURCE_LINE = /^[\s>*_-]*source\s*:/i;
+
 /**
  * Worker-supplied text a parent copies into an external system. It cannot carry an action marker or a `Source:` line,
- * because the parent writes the one footer that later searches trust.
+ * so every `Source:` line a tracker holds was written by the parent or by a person, which is what `linksSource` trusts.
  */
 export const untrustedText = (text: string) =>
   text
     .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
     .split('\n')
-    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
+    .filter((line) => !SOURCE_LINE.test(line))
     .join('\n');
+
+/** Whether `text` has a `Source:` line naming exactly `url`, with or without Slack's `<url|label>` or angle brackets. */
+export const linksSource = (text: string, url: string): boolean =>
+  text.split('\n').some((line) => {
+    const prefix = SOURCE_LINE.exec(line);
+    const named = prefix === null ? undefined : line.slice(prefix[0].length).replace(/^[*_\s]+/, '').split(/\s+/)[0]?.replace(/^<|>$/g, '').split('|')[0];
+    return named === url;
+  });
 
 /** The Slack permalink the parent computes from the immutable source coordinates. */
 export const sourceUrlOf = (event: Pick<AutomationEvent, 'channel' | 'rootTs'>) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}`;
