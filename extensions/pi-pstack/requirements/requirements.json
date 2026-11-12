@@ -2014,6 +2014,30 @@
     "bn.verdict-wait.8": {
       "file": "tests/automation/verdict-wait.test.ts",
       "name": "the settler's own polling dispatches a waiting case once its verdict is posted"
+    },
+    "bn.tracker-adapter.12": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "the create brief has the worker search by the source permalink after the marker and before any write"
+    },
+    "bn.tracker-adapter.13": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "the update brief has the worker search by the source permalink after the marker and before any write"
+    },
+    "bn.tracker-adapter.14": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "the comment brief has the worker search by the source permalink after the marker and before any write"
+    },
+    "bn.tracker-adapter.15": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "the compensation close brief does not search by the permalink, because the issue it closes is linked to it by construction"
+    },
+    "bn.tracker-adapter.16": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue"
+    },
+    "bn.tracker-adapter.17": {
+      "file": "tests/automation/tracker-adapter.test.ts",
+      "name": "already-linked is not an outcome of a compensation close: the close is not recorded as landed"
     }
   },
   "structural": [
@@ -5310,7 +5334,8 @@
         "bn.tracker-github.9",
         "bn.tracker-github.10",
         "bn.tracker-github.11",
-        "bn.tracker-github.12"
+        "bn.tracker-github.12",
+        "bn.tracker-adapter.16"
       ]
     },
     {
@@ -5325,11 +5350,11 @@
         ],
         "anchor": "already linked to a tracker issue"
       },
-      "observable": "Any Source line naming the report's permalink in an issue or comment counts as already linked, except text that came from a worker body, which is stripped of Source lines and markers.",
+      "observable": "Any Source line naming the report's permalink in an issue or comment counts as already linked, except text that came from a worker body, which is stripped of Source lines and markers. For a tracker reached through an adapter skill the worker also searches by the permalink after the marker and before any write, and returns already-linked, which the parent honors by writing nothing and linking the verdict to that issue.",
       "invariants": [
         "Prefer no ticket over a duplicate ticket."
       ],
-      "piMechanism": "githubTracker.findBySource with linksSource, and untrustedText on every worker body.",
+      "piMechanism": "githubTracker.findBySource with linksSource, and untrustedText on every worker body; for adapter trackers the brief's permalink search and the already-linked outcome parseAdapterResult accepts for create, update and comment.",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
@@ -5341,7 +5366,13 @@
         "bn.tracker-adapter.2",
         "bn.tracker-github.7",
         "bn.tracker-github.8",
-        "bn.tracker-github.9"
+        "bn.tracker-github.9",
+        "bn.tracker-adapter.12",
+        "bn.tracker-adapter.13",
+        "bn.tracker-adapter.14",
+        "bn.tracker-adapter.15",
+        "bn.tracker-adapter.16",
+        "bn.tracker-adapter.17"
       ]
     },
     {

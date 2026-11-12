@@ -59,7 +59,7 @@ test('a tracker other than GitHub is written by a dedicated worker that loads th
   expect(brief).toContain('team-placeholder');
   expect(brief).toContain('intake-status-placeholder');
   expect(brief.indexOf('Search first')).toBeGreaterThan(-1);
-  expect(brief.indexOf('Search first')).toBeLessThan(brief.indexOf('Only if the search finds nothing'));
+  expect(brief.indexOf('Search first')).toBeLessThan(brief.indexOf('Only if both searches find nothing'));
   expect(brief).toMatch(/"outcome"/);
   expect(brief).toContain('"labels"');
   expect(brief.match(/^<\/untrusted_action>$/gm)).toHaveLength(1);
@@ -152,4 +152,54 @@ test('an adapter skill the project does not have blocks the case with an explici
 test('an adapter skill name that is not a skill name blocks the case', async () => {
   const t = linear({ adapterSkill: '../../etc/passwd' });
   expect(await t.automation.handle(REPORT)).toMatchObject({ status: 'blocked', missing: ['tracker'], problems: [expect.stringContaining('is not a skill name')] });
+});
+
+const SOURCE_URL = 'https://slack.com/archives/CSOURCE01/p1762900000000100';
+const briefOfWorker = (t: ReturnType<typeof linear>, index: number) => read(join(dirname(t.spawns[index]?.assignmentPath ?? ''), 'brief.md'));
+
+test.for(['create', 'update', 'comment'] as const)('the %s brief has the worker search by the source permalink after the marker and before any write', async (operation) => {
+  const t = linear();
+  const run = await t.automation.handle(REPORT);
+  if (run.status !== 'dispatched') throw new Error('not dispatched');
+  const intent = operation === 'create' ? { operation, title: 'Export button does nothing', body: 'Expected a download.' } : { operation, targetId: 'LIN-7', body: 'Seen again.' };
+  settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText: JSON.stringify({ text: VERDICT, tracker: intent }) });
+  await completeSettledRuns(t.automation);
+  const brief = briefOfWorker(t, 1);
+  const marker = brief.indexOf('Search first');
+  const permalink = brief.indexOf(`\`Source: ${SOURCE_URL}\``);
+  const write = brief.indexOf('Only if both searches find nothing');
+  expect(marker).toBeGreaterThan(-1);
+  expect(permalink).toBeGreaterThan(marker);
+  expect(write).toBeGreaterThan(permalink);
+  expect(brief).toContain('"already-linked"');
+});
+
+test('the compensation close brief does not search by the permalink, because the issue it closes is linked to it by construction', async () => {
+  const t = linear();
+  const { buildTrackerBrief } = await import('../../src/automation/tracker-adapter.ts');
+  const brief = buildTrackerBrief({ id: 'act-0123456789abcdef' as never, kind: 'tracker', operation: 'close', targetId: 'LIN-7', body: '', sourceUrl: SOURCE_URL }, '/skills/linear/SKILL.md', t.project.config('triage').tracker);
+  expect(brief).not.toContain('already-linked');
+  expect(brief).not.toContain('Search by the source permalink');
+});
+
+test('a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue', async () => {
+  const t = linear();
+  await dispatched(t);
+  await completeSettledRuns(t.automation);
+  settleWorker(t.project.dir, t.spawns[1]?.runId as RunId, { phase: 'idle', finalText: '{"outcome":"already-linked","id":"LIN-3","url":"https://linear.app/x/issue/LIN-3"}' });
+  expect(await completeSettledRuns(t.automation)).toBe(1);
+  expect(t.spawns).toHaveLength(2);
+  expect(trackerEntry(t)).toMatchObject({ state: 'done', destinationTs: 'LIN-3', reconciled: true, alreadyLinked: true });
+  expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: `${VERDICT} tracker=https://linear.app/x/issue/LIN-3` }]);
+  const restarted = t.build();
+  await restarted.reconcile();
+  expect(await completeSettledRuns(restarted)).toBe(0);
+  expect(t.spawns).toHaveLength(2);
+  expect(t.slack.posts).toHaveLength(1);
+});
+
+test('already-linked is not an outcome of a compensation close: the close is not recorded as landed', async () => {
+  const { parseAdapterResult } = await import('../../src/automation/tracker-adapter.ts');
+  expect(() => parseAdapterResult('{"outcome":"already-linked","id":"LIN-3"}', 'close')).toThrow(/not found or closed/);
+  expect(parseAdapterResult('{"outcome":"already-linked","id":"LIN-3"}', 'comment')).toMatchObject({ id: 'LIN-3', reconciled: true, alreadyLinked: true });
 });

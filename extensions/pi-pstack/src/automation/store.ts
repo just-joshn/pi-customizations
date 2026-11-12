@@ -30,7 +30,7 @@ export type LogEntry =
 
 export type OutboxEntry =
   | { action: OutboxAction; state: 'pending'; attempts?: number; retryAt?: string; work?: TrackerWork }
-  | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean; /** The tracker's own link to the issue, when it gave one. */ url?: string }
+  | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean; /** The report's permalink was already linked to the issue, so nothing was written. */ alreadyLinked?: true; /** The tracker's own link to the issue, when it gave one. */ url?: string }
   | { action: OutboxAction; state: 'failed'; attempts: number; reason: string };
 
 /** `<project>/.pi/pstack/automation/<name>/`: one directory per automation, written by one source at a time. */
