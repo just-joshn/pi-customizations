@@ -152,9 +152,9 @@ function claim(loaded: LoadedAssignment, instance: string): void {
 }
 
 /**
- * Creates `<workerDir>/worktree` on branch pstack-run/<runId>/<workerId> at the input commit. It runs under this
- * host's exclusive claim, and the path lies inside the claimed worker directory, so no other host can name it. A path
- * that already exists is reused only when it is this repository's registered worktree on that branch.
+ * Creates `<workerDir>/worktree` on a new branch pstack-run/<runId>/<workerId> at the input commit, under this host's
+ * exclusive claim. Anything already at the path, or a branch already by that name, is refused: a worker never reuses
+ * a checkout or a branch, so it always starts from exactly the input commit.
  */
 function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
   const { runId, workerId } = loaded.assignment;
@@ -163,28 +163,18 @@ function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
   const path = join(loaded.workerDir, 'worktree');
   const branch = `pstack-run/${runId}/${workerId}`;
   const git = (...args: string[]) => execFileSync('git', ['-C', project, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120_000 }).trim();
-  const existing = lstatSync(path, { throwIfNoEntry: false });
-  if (existing !== undefined) {
-    const registered = git('worktree', 'list', '--porcelain')
-      .split('\n\n')
-      .map((block) => Object.fromEntries(block.split('\n').map((line) => [line.split(' ')[0], line.slice(line.indexOf(' ') + 1)])))
-      .find((entry) => entry['worktree'] === path);
-    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.['branch'] !== `refs/heads/${branch}`) throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
-    return;
-  }
+  if (lstatSync(path, { throwIfNoEntry: false }) !== undefined) throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit: string;
   try {
     commit = git('rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`);
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
-  let branchExists = true;
   try {
-    git('rev-parse', '--verify', '--quiet', `refs/heads/${branch}`);
-  } catch {
-    branchExists = false;
+    git('worktree', 'add', '--quiet', '-b', branch, path, commit);
+  } catch (error) {
+    throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${(error as { stderr?: string }).stderr?.trim() || message(error)}`);
   }
-  git('worktree', 'add', '--quiet', ...(branchExists ? [path, branch] : ['-b', branch, path, commit]));
 }
 
 function prepareSocket(path: string): void {

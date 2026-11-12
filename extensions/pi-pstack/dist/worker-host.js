@@ -301,29 +301,19 @@ function prepareWorktree(loaded, inputCommit) {
   const path = join2(loaded.workerDir, "worktree");
   const branch = `pstack-run/${runId}/${workerId}`;
   const git = (...args) => execFileSync("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
-  const existing = lstatSync2(path, { throwIfNoEntry: false });
-  if (existing !== undefined) {
-    const registered = git("worktree", "list", "--porcelain").split(`
-
-`).map((block) => Object.fromEntries(block.split(`
-`).map((line) => [line.split(" ")[0], line.slice(line.indexOf(" ") + 1)]))).find((entry) => entry["worktree"] === path);
-    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.["branch"] !== `refs/heads/${branch}`)
-      throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
-    return;
-  }
+  if (lstatSync2(path, { throwIfNoEntry: false }) !== undefined)
+    throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit;
   try {
     commit = git("rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`);
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
-  let branchExists = true;
   try {
-    git("rev-parse", "--verify", "--quiet", `refs/heads/${branch}`);
-  } catch {
-    branchExists = false;
+    git("worktree", "add", "--quiet", "-b", branch, path, commit);
+  } catch (error) {
+    throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${error.stderr?.trim() || message(error)}`);
   }
-  git("worktree", "add", "--quiet", ...branchExists ? [path, branch] : ["-b", branch, path, commit]);
 }
 function prepareSocket(path) {
   const directory = dirname2(path);

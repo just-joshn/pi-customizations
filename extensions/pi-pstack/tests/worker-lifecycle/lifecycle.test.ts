@@ -155,13 +155,21 @@ describe('pstack_worker on real tmux and Pi', () => {
   test.for([
     ['a clone the operator made', (path: string) => execFileSync('git', ['clone', '--quiet', project.dir, path])],
     ['a worktree of this repo on another branch', (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'operator-branch', path, project.commit])],
+    ["this worker's own registered worktree and branch", (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'pstack-run/run1/w12', path, project.commit])],
   ] as const)('spawn refuses to reuse %s at the worktree path', async ([, makeCheckout]) => {
     const path = join(workerDir(project, 'run1', 'w12'), 'worktree');
     const assignmentPath = writeAssignment(project, 'run1', 'w12', '@@script [{"tool":"write","args":{"path":"OWNED.txt","content":"x"}}]', { workspace: { mode: 'worktree', inputCommit: project.commit } });
     makeCheckout(path);
-    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/not this worker's worktree/);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/worktree already exists; a worker never reuses one/);
     await sleep(1_000);
     expect(existsSync(join(path, 'OWNED.txt'))).toBe(false);
+  });
+
+  test("spawn refuses when the worker's branch already exists, rather than check out its old commits", async () => {
+    execFileSync('git', ['-C', project.dir, 'branch', 'pstack-run/run1/w15', project.commit]);
+    const assignmentPath = writeAssignment(project, 'run1', 'w15', '@@say X', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/branch named 'pstack-run\/run1\/w15' already exists/);
+    expect(existsSync(join(workerDir(project, 'run1', 'w15'), 'worktree'))).toBe(false);
   });
 
   test('collect on a worker still running returns its live state, never a result', async () => {
