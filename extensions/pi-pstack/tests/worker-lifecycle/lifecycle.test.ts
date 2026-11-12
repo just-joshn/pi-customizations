@@ -4,7 +4,27 @@ import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { controlSocketPath, loadAssignment, type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
-import { type Entry, FIXTURE, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, TMUX, tmux, transcript, until, wakes, workerDir, writeAssignment } from './harness.ts';
+import {
+  type Entry,
+  FIXTURE,
+  killTmuxServer,
+  liveTmuxSessions,
+  makeParent,
+  makeProject,
+  makeRun,
+  type Parent,
+  type Project,
+  readState,
+  sleep,
+  stopProject,
+  TMUX,
+  tmux,
+  transcript,
+  until,
+  wakes,
+  workerDir,
+  writeAssignment,
+} from './harness.ts';
 
 // The tmux server this file starts inherits it, so an inheriting worker sees it.
 process.env['U04A_PARENT_MARKER'] = 'parent-secret-marker';
@@ -23,8 +43,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await parent.stop();
-  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
-  project.dispose();
+  await stopProject(project);
 });
 
 afterAll(killTmuxServer);

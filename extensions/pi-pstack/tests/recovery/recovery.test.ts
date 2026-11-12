@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
-import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, tmux, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
+import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, stopProject, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
 
 let project: Project;
 let entries: Entry[];
@@ -24,8 +24,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   for (const parent of parents.splice(0)) await parent.stop();
-  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
-  project.dispose();
+  await stopProject(project);
 });
 
 afterAll(killTmuxServer);

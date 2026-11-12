@@ -2,7 +2,7 @@
 // parent ExtensionAPI whose session entries live in memory.
 import { execFile, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import type { ExtensionAPI, ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { registerEvidenceTool } from '../../src/evidence.ts';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { controlSocketPath, type WorkerId } from '../../src/run-files.ts';
 import { registerWorkerTools, type WorkerToolOptions } from '../../src/workers.ts';
 
 const run = promisify(execFile);
@@ -43,6 +44,41 @@ export async function killTmuxServer(): Promise<void> {
 
 export async function liveTmuxSessions(): Promise<string[]> {
   return (await tmux('list-sessions', '-F', '#{session_name}').catch(() => '')).split('\n').filter(Boolean);
+}
+
+const running = (pid: number) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Ends every worker of the project and deletes it. Hosts get SIGHUP from their ending session and shut down on their
+ * own; a host a test SIGKILLed cannot remove its control socket under /tmp, so that file is removed here.
+ */
+export async function stopProject(project: Project): Promise<void> {
+  for (const session of await liveTmuxSessions()) await tmux('kill-session', '-t', session).catch(() => undefined);
+  const runs = join(project.dir, '.pi', 'pstack', 'runs');
+  const workers = (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
+    const dir = join(runs, runId, 'workers');
+    return (existsSync(dir) ? readdirSync(dir) : []).map((workerId) => {
+      const statePath = join(dir, workerId, 'state.json');
+      const state = existsSync(statePath) ? JSON.parse(readFileSync(statePath, 'utf8')) : {};
+      return { socket: controlSocketPath(join(runs, runId), workerId as WorkerId), pids: [state.hostPid, state.childPid].filter((pid): pid is number => typeof pid === 'number') };
+    });
+  });
+  const pids = workers.flatMap((worker) => worker.pids);
+  await until(
+    () => pids.filter(running),
+    (alive) => alive.length === 0,
+    15_000,
+    'worker hosts and Pi processes to exit',
+  );
+  for (const { socket } of workers) rmSync(socket, { force: true });
+  project.dispose();
 }
 
 export interface Project {
