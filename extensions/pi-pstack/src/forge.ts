@@ -176,7 +176,7 @@ export function babysitMode(input: {
 export interface StackPullRequest { ref: string; headSha: string; merged: boolean }
 function verified(pr: { ref: string; headSha: string }, verdict: VerificationVerdict): boolean {
   return verdict.ref === pr.ref && verdict.headSha === pr.headSha
-    && verdict.verdict !== 'FAIL' && verdict.verifier.length > 0 && verdict.author.length > 0
+    && (verdict.verdict === 'PASS' || verdict.verdict === 'PASS+NOTES') && verdict.verifier.length > 0 && verdict.author.length > 0
     && verdict.verifier !== verdict.author;
 }
 export function shippablePrefix<T extends StackPullRequest>(

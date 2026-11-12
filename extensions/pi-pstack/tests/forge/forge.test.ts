@@ -109,6 +109,14 @@ test('stale heads, missing verdicts and self verification block shipping', () =>
   expect(shippablePrefix(stack, [{ ...verdict('7', 'current'), verdict: 'PASS+NOTES' }])).toEqual(stack);
 });
 
+test('an inconclusive or unknown verdict read from disk never ships', () => {
+  const stack = [{ ref: '7', headSha: 'current', merged: false }];
+  for (const value of ['INCONCLUSIVE', 'pass', '', 'BLOCKED']) {
+    const runtime = JSON.parse(JSON.stringify({ ...verdict('7', 'current'), verdict: value }));
+    expect(shippablePrefix(stack, [runtime])).toEqual([]);
+  }
+});
+
 test('merges only with authorization and current independent verification', async () => {
   const input = { ref: '7', headSha: '7', verdict: verdict('7') };
   expect(mergeAllowed(input)).toBe(false);
