@@ -3,7 +3,7 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
@@ -241,7 +241,7 @@ function claim(loaded: LoadedAssignment, instance: string): void {
  * exclusive claim. Anything already at the path, or a branch already by that name, is refused: a worker never reuses
  * a checkout or a branch, so it always starts from exactly the input commit.
  */
-function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
+async function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): Promise<void> {
   const { runId, workerId } = loaded.assignment;
   const project = resolve(loaded.runRoot, '..', '..', '..', '..');
   if (runRootOf(project, runId) !== loaded.runRoot) throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
@@ -255,10 +255,36 @@ function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
+  const release = await takeWorktreeLock(project);
   try {
     git('worktree', 'add', '--quiet', '-b', branch, path, commit);
   } catch (error) {
     throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${(error as { stderr?: string }).stderr?.trim() || message(error)}`);
+  } finally {
+    release();
+  }
+}
+
+const WORKTREE_LOCK_STALE_MS = 150_000;
+
+/**
+ * Every worker's worktree is named `worktree`, so git files each one's admin directory under `.git/worktrees/worktree`,
+ * `worktree1`, and so on. A `git worktree add` that runs while another is half-way through creating its admin
+ * directory reads the unfinished one and dies with "failed to read .git/worktrees/worktreeN/commondir". Hosts of one
+ * project therefore add worktrees one at a time. A lock left by a host that died is taken over after one git call's timeout.
+ */
+async function takeWorktreeLock(project: string): Promise<() => void> {
+  const lock = join(project, '.pi', 'pstack', 'worktree-add.lock');
+  for (;;) {
+    try {
+      mkdirSync(lock);
+      return () => rmSync(lock, { recursive: true, force: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      const held = statSync(lock, { throwIfNoEntry: false });
+      if (held !== undefined && Date.now() - held.mtimeMs > WORKTREE_LOCK_STALE_MS) rmSync(lock, { recursive: true, force: true });
+      await new Promise((done) => setTimeout(done, 25));
+    }
   }
 }
 
@@ -370,7 +396,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
 
   if (assignment.kind === 'pi' && assignment.workspace.mode !== 'readonly') {
     try {
-      if (assignment.workspace.mode === 'worktree') prepareWorktree(loaded, assignment.workspace.inputCommit);
+      if (assignment.workspace.mode === 'worktree') await prepareWorktree(loaded, assignment.workspace.inputCommit);
       else prepareOutput(workerDir);
     } catch (error) {
       phase = 'failed';
