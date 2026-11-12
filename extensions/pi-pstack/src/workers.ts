@@ -297,9 +297,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         }
         for (const transition of transitions) {
           if (delivered.has(transition.transitionId) || sent.has(transition.transitionId)) continue;
-          sent.add(transition.transitionId);
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
+          // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
+          sent.add(transition.transitionId);
         }
       }
     }

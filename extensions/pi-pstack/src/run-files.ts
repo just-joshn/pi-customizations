@@ -286,13 +286,14 @@ export interface HostState {
   briefSent: boolean;
   /** The latest unit of work the host accepted. A worker's result is a settle covering it. */
   generation: number;
-  /** The most recent settles, oldest first, at most MAX_SETTLES. */
+  /** Every settle, oldest first: each one is a wake the parent may not have seen yet. */
   settles: Settle[];
   exit: { code: number | null; signal: string | null } | null;
   updatedAt: string;
 }
 
-export const MAX_SETTLES = 64;
+/** A host with this many settles refuses new work rather than drop a settle the parent may not have seen. */
+export const MAX_SETTLES = 10_000;
 
 export const isTerminal = (phase: HostPhase): boolean => (TERMINAL_PHASES as readonly string[]).includes(phase);
 

@@ -145,14 +145,19 @@ export interface Parent {
  * A parent Pi session as the extension sees it. `entries` is the session file: pass the same array to a second parent
  * to model a restart. With `persist: false`, sendMessage does not append (a follow-up still queued behind a turn).
  */
-export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string } = {}): Parent {
+export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number } = {}): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
   const messages: Parent['messages'] = [];
+  let failures = options.failSends ?? 0;
   const pi = {
     registerTool: (tool: Tool) => tools.set(tool.name, tool),
     on: (event: string, handler: (event: unknown, ctx: ExtensionContext) => unknown) => handlers.set(event, [...(handlers.get(event) ?? []), handler]),
     sendMessage: (message: Parent['messages'][number]['message'], sendOptions: unknown) => {
+      if (failures > 0) {
+        failures -= 1;
+        throw new Error('sendMessage failed');
+      }
       messages.push({ message, options: sendOptions });
       if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
     },

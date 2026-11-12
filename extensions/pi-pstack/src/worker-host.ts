@@ -264,7 +264,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
     const last = settles.at(-1)?.sequence ?? 0;
-    settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }].slice(-MAX_SETTLES);
+    settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
     event('settle', settles.at(-1));
     display('host settled', { phase: settlePhase, reason: why });
@@ -479,6 +479,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
    * where RPC steer or follow_up sent as a run ends would queue behind a run that never starts.
    */
   const forward = async (text: string, streamingBehavior: 'steer' | 'followUp') => {
+    if (settles.length >= MAX_SETTLES) throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
     generation += 1;
     save();
     let result: unknown;

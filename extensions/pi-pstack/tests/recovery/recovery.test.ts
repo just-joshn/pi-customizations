@@ -186,4 +186,43 @@ describe('wake delivery record', () => {
     await sleep(600);
     expect(stranger.messages).toHaveLength(0);
   });
+
+  test('more than 64 settles while no parent runs each wake the restarted parent once', async () => {
+    const first = parentFor();
+    await first.start();
+    await spawn(first, 'w7', '@@say 1');
+    await first.stop();
+    const lastSequence = () => {
+      try {
+        return (readState(project, 'run1', 'w7').settles.at(-1)?.sequence ?? 0) as number;
+      } catch {
+        return 0;
+      }
+    };
+    for (let count = 1; count <= 70; count += 1) {
+      await until(lastSequence, (sequence) => sequence === count, 20_000, `settle ${count}`);
+      if (count < 70) await first.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w7', message: `@@say ${count + 1}` });
+    }
+    expect(first.messages).toHaveLength(0);
+
+    const second = parentFor();
+    await second.start();
+    expect(wakes(second).map((wake) => Number(wake?.transitionId.split(':')[2]))).toEqual(Array.from({ length: 70 }, (_, index) => index + 1));
+    await sleep(600);
+    expect(wakeIds()).toHaveLength(70);
+  }, 180_000);
+
+  test('a wake whose sendMessage threw is sent on the next poll', async () => {
+    const parent = parentFor({ failSends: 1 });
+    await parent.start();
+    await spawn(parent, 'w8', '@@say DONE');
+    await until(
+      () => wakes(parent),
+      (list) => list.length === 1,
+      20_000,
+      'wake after a failed send',
+    );
+    await sleep(600);
+    expect(wakeIds()).toHaveLength(1);
+  });
 });
