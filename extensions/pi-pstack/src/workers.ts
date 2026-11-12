@@ -698,7 +698,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     name: 'pstack_worker',
     label: 'pstack worker',
     description:
-      'Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. spawn returns at once with the tmux attach command; the parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.',
+      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
     promptSnippet: 'Spawn, inspect, steer, abort, or collect tmux-hosted pstack worker processes',
     promptGuidelines: ['Use pstack_worker collect only after a pstack-worker wake message or an inspect that shows the worker settled; before that it returns live state, not a result.'],
     parameters: WorkerParams,
