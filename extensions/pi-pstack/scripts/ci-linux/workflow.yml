@@ -30,6 +30,11 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           bwrap --version
       - run: bun install
+      - name: No new lint diagnostics
+        run: |
+          # Biome is pinned to the version lint-baseline.json was recorded with; the script refuses any other.
+          npm install --no-save --no-package-lock --prefix "$RUNNER_TEMP/biome" @biomejs/biome@2.5.14
+          node scripts/lint-baseline.mjs --check --biome "$RUNNER_TEMP/biome/node_modules/.bin/biome"
       - name: Pi for the worker tests
         run: |
           # The worker, container, and Pi-load tests drive a managed Pi install laid out as <agent>/{bin/pi,install/releases/<v>/...}.

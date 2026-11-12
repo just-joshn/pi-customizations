@@ -8,6 +8,7 @@ import { sourceDigest } from '../../scripts/parity-lib.mjs';
 import { PKG } from '../skill-parity/helpers.ts';
 
 export { PKG };
+
 /** The execution-time sidecar a real run leaves beside its report, for fixtures whose report stands for tests that just ran against this tree. */
 const attributeReports = (args: string[]) => {
   const root = args[args.indexOf('--root') + 1];
@@ -16,7 +17,8 @@ const attributeReports = (args: string[]) => {
   if (!digest) return;
   args.forEach((a, i) => {
     const sidecar = args[i + 1]?.replace(/\.json$/, '.identity.json');
-    if (a === '--results' && sidecar && !(existsSync(sidecar) && JSON.parse(readFileSync(sidecar, 'utf8')).resultsSource !== 'local')) writeFileSync(sidecar, JSON.stringify({ resultsSource: 'local', platform: process.platform, commit: '0'.repeat(40), dirty: false, sourceDigest: digest }));
+    if (a === '--results' && sidecar && !(existsSync(sidecar) && JSON.parse(readFileSync(sidecar, 'utf8')).resultsSource !== 'local'))
+      writeFileSync(sidecar, JSON.stringify({ resultsSource: 'local', platform: process.platform, commit: '0'.repeat(40), dirty: false, sourceDigest: digest }));
   });
 };
 

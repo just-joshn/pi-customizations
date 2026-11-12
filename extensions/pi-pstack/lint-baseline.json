@@ -1,0 +1,3270 @@
+{
+  "biomeVersion": "2.5.14",
+  "scope": "extensions/pi-pstack",
+  "diagnostics": [
+    {
+      "file": "extensions/pi-pstack/adapters/automation-events.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "10dc8cafb2c3eefa",
+      "preview": "import { execFileSync } from 'node:child_process'; import { join } from 'node:pa",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/automation-events.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/automation-events.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "b566bc449e38ba39",
+      "preview": "AUTOMATION_KINDS.triage.replyMarkers!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/automation-events.ts",
+      "category": "lint/style/useImportType",
+      "message": "All these imports are only used as types.",
+      "hash": "6312f09df80b0659",
+      "preview": "{ type Forge } from '../src/automation/forge.ts'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/benny-pack.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "05692d2f71e14a80",
+      "preview": "${#transcript_roots[@]}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0a73c782f202eb15",
+      "preview": "${wt}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0f8c11be4c977d58",
+      "preview": "${transcript_roots[*]-}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "4a6c567dac7cc9a2",
+      "preview": "${value#s}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "65120bd8eec1e4a1",
+      "preview": "${1#\"~/\"}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6c3b6e6aecad427d",
+      "preview": "${1#file://}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "b8495a5dff6f0c81",
+      "preview": "${path.join(here, \"../statechart.ts\")}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "ce4a6990e092af65",
+      "preview": "${path.dirname(launcher)}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "d1c2fab365dc2310",
+      "preview": "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/cursor-to-pi.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "d9100d03fdf6498d",
+      "preview": "${PI_CODING_AGENT_SESSION_DIR:-}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/model-config.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "0b7e0ca577ef598f",
+      "preview": "import { BUDGET_EFFORT, PANEL_ROLES, ROLE_NAMES, parseModelsConfig, type ModelsC",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/model-config.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/model-config.ts",
+      "category": "lint/complexity/noUselessEscapeInRegex",
+      "message": "The character doesn't need to be escaped.",
+      "hash": "8b1f60fade5d66c6",
+      "preview": "\\[",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/model-config.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "50e5083ba399438a",
+      "preview": "entries[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/model-config.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "990fcf40c04c4d30",
+      "preview": "match[2]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/adapters/skill-transforms.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "717c41875a98943b",
+      "preview": "import { readFileSync } from 'node:fs'; import { join } from 'node:path'; import",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/requirements/requirements.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/benny-setup.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "5a88b3d9c7d594fe",
+      "preview": "import { randomBytes } from 'node:crypto'; import { copyFileSync, existsSync, mk",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/benny-setup.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/build-helpers.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "d9db71efc3b89a3a",
+      "preview": "import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/build-helpers.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/check-helpers.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/check-parity.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "469d6deab43058e8",
+      "preview": "import { existsSync, readFileSync } from 'node:fs'; import { dirname, join, rela",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/check-release.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/ci-linux.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/emit-watch-pr-types.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "d990deac8dfdb9d6",
+      "preview": "import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/emit-watch-pr-types.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/parity-lib.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/parity-lib.mjs",
+      "category": "lint/correctness/noUnusedFunctionParameters",
+      "message": "This parameter root is unused.",
+      "hash": "4813494d137e1631",
+      "preview": "root",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/start-run.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "d0e6818d4402ba26",
+      "preview": "import { randomUUID } from 'node:crypto'; import { execFileSync } from 'node:chi",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/scripts/start-run.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/accept.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "8886c0b6b2f8945a",
+      "preview": "import { claimsExistingFix, existingFixUrl, type ProofContext, type Verdict, ver",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/accept.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/configuration.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "b6c29f75fa1a8407",
+      "preview": "import { parse } from 'yaml'; import type { AutomationConfig } from '../../adapt",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/configuration.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/configuration.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "32b02c38b374d3b2",
+      "preview": "sections.get(name)!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/dispatch.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "f18fa6b290d6e7bf",
+      "preview": "import { existsSync } from 'node:fs'; import { join } from 'node:path'; import {",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/dispatch.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/evidence-files.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "6999d9fef7e73613",
+      "preview": "import { type AttachmentLimits, ATTACHMENT_LIMITS, megabytes } from './attachmen",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/fix-guard.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "69a728ec832bd620",
+      "preview": "import { actionIdFor, type AutomationEvent, type EventKey, type OpsStatus, type ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/fix-guard.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/follow-up.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "8f5f0a362303d42a",
+      "preview": "import { createHash } from 'node:crypto'; import type { AutomationConfig } from ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/follow-up.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/forge.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "92ec224a1cc1b229",
+      "preview": "import { execFile } from 'node:child_process'; import { existsSync } from 'node:",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/forge.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/model.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/outbox.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/proof.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/pull-request.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/repro-turns.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "0ca93d269df24f98",
+      "preview": "import type { AutomationConfig } from '../../adapters/automation-events.ts'; imp",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/repro-turns.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/retire.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "d0bbc156d7804b67",
+      "preview": "import type { AbortRun } from './abort.ts'; import type { AutomationConfig } fro",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/retire.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine-cli.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "b7b13c077dd9587d",
+      "preview": "import { randomBytes } from 'node:crypto'; import { chmodSync, mkdirSync, readFi",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine-cli.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "7a7dec9c85fd677f",
+      "preview": "import type { SpawnWorker, ThinkingLevel } from './dispatch.ts'; import { UPSTRE",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "7c69f81b1c4d868f",
+      "preview": "readJson<WebhookEvent>(join(events, `${key}.json`))!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/routine.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "981e7d5bcb7a1926",
+      "preview": "readJson<WebhookEvent>(join(events, file))!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/settings.ts",
+      "category": "lint/complexity/noUselessEscapeInRegex",
+      "message": "The character doesn't need to be escaped.",
+      "hash": "8b1f60fade5d66c6",
+      "preview": "\\[",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/settings.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "24a3adb9a56c122b",
+      "preview": "tokens[i + 2]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/settings.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "baeb7a15f4760b78",
+      "preview": "tokens[i]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/settle.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "749ace9ae439e3d4",
+      "preview": "import { join } from 'node:path'; import type { Automation } from '../../adapter",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/setup-check.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "0556542c7ccf54b4",
+      "preview": "import { mkdtempSync, readFileSync, rmSync } from 'node:fs'; import { tmpdir } f",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/setup-check.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/setup-check.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 3
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/store.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/tracker-adapter.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "5479cbdf604ba575",
+      "preview": "import { createHash } from 'node:crypto'; import type { SpawnWorker } from './di",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/tracker-adapter.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/tracker-github.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/tracker-policy.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/webhook.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/wiring.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "ff4afef13b3f2f71",
+      "preview": "import { type Automation, type AutomationConfig, createAutomation } from '../../",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/automation/wiring.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/commands.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "f5f56160fbdf1ef7",
+      "preview": "import { existsSync, writeSync, linkSync, mkdirSync, mkdtempSync, readdirSync, r",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/commands.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/container-auth.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/evidence.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "444fe62cafd7766a",
+      "preview": "import { createHash, randomUUID } from 'node:crypto'; import { closeSync, consta",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/evidence.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/evidence.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "feceb874f14cbe29",
+      "preview": "tried.at(-1)!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/extension.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/forge.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "3891d6659028a036",
+      "preview": "import { loadWatcher } from './watch-pr.ts'; import type * as Watch from './watc",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/forge.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/model-spec.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "b606359dac160069",
+      "preview": "match[1]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/models.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "6bc2e7c85fc4a775",
+      "preview": "import { readFileSync } from 'node:fs'; import { homedir } from 'node:os'; impor",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/models.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/models.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "27dba06eade7dd3a",
+      "preview": "LEVELS[index]!",
+      "count": 3
+    },
+    {
+      "file": "extensions/pi-pstack/src/models.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "906fd253ec2d3859",
+      "preview": "exact[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/receipt-reference.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/run-files.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/shell-state.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/shell-state.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0ae238768518a8c2",
+      "preview": "${__pstack_fns[@]}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/shell-state.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "75a1c9da43d9a54f",
+      "preview": "${__pstack_vars[@]}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/shell-state.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "76632ef11ea7bef8",
+      "preview": "${!__pstack_b+x}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/skill-routing.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/untrusted-output.ts",
+      "category": "lint/complexity/useOptionalChain",
+      "message": "Change to an optional chain.",
+      "hash": "5313ca259060b303",
+      "preview": "stat !== undefined && stat.isDirectory()",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/vendor-types/watch-pr/github.d.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/vendor-types/watch-pr/types.d.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/vendor-types/watch-pr/types.d.ts",
+      "category": "lint/complexity/noUselessEmptyExport",
+      "message": "This empty export is useless because there's another export or import.",
+      "hash": "2e29cd9a98755c46",
+      "preview": "export {};",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/watch-pr.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the exported names.",
+      "hash": "c804ae52d746c888",
+      "preview": "export type { PullRequestFacts, Check, ReviewThread, RawReviewThread, PrContext,",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/watch-pr.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/watch-pr.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "66c9c427d12be604",
+      "preview": "watcher ??= (async () => { const built = new URL('../dist/watch-pr/', import.met",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/worker-host.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "89d818aec7f24b26",
+      "preview": "import { type ChildProcess, execFileSync, spawn } from 'node:child_process'; imp",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/worker-host.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/workers.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "5ebeb553a4abe780",
+      "preview": "import { execFile, execFileSync } from 'node:child_process'; import { existsSync",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/src/workers.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/test/fixtures/fake-provider/index.ts",
+      "category": "lint/correctness/noUndeclaredDependencies",
+      "message": "Dependency @earendil-works/pi-ai isn't specified in extensions/pi-pstack/test/fixtures/fake-provider/package.json.",
+      "hash": "fb656402589f9654",
+      "preview": "'@earendil-works/pi-ai'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/test/fixtures/fake-provider/index.ts",
+      "category": "lint/correctness/noUndeclaredDependencies",
+      "message": "Dependency @earendil-works/pi-coding-agent isn't specified in extensions/pi-pstack/test/fixtures/fake-provider/package.json.",
+      "hash": "b715a605a3db72a1",
+      "preview": "'@earendil-works/pi-coding-agent'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/test/fixtures/fake-provider/package.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachment-limits.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "da06e60d0f78c424",
+      "preview": "import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHAN",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachment-limits.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachment-limits.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "de280030048eee16",
+      "preview": "(staged as { further: { path: string }[] }).further[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachment-limits.test.ts",
+      "category": "lint/style/useConst",
+      "message": "This let declares a variable that is only assigned once.",
+      "hash": "5654d4106d7025c2",
+      "preview": "let",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachment-limits.test.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachments.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachments.test.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/attachments.test.ts",
+      "category": "lint/style/useImportType",
+      "message": "All these imports are only used as types.",
+      "hash": "c459ea5fe9fe8753",
+      "preview": "{ type Automation } from '../../adapters/automation-events.ts'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-e2e.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-fakes.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "80d11f250410a4e5",
+      "preview": "import { execFileSync } from 'node:child_process'; import { existsSync, mkdirSyn",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-fakes.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-fakes.ts",
+      "category": "lint/complexity/noAdjacentSpacesInRegex",
+      "message": "This regular expression contains unclear uses of consecutive spaces.",
+      "hash": "856eb0f6186c86b9",
+      "preview": "type: \"linear\"[\\s\\S]*?",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-fakes.ts",
+      "category": "lint/complexity/noAdjacentSpacesInRegex",
+      "message": "This regular expression contains unclear uses of consecutive spaces.",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-fakes.ts",
+      "category": "lint/suspicious/noExplicitAny",
+      "message": "Unexpected any. Specify a different type.",
+      "hash": "d6a7cd2a7371b1a1",
+      "preview": "any",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-production-launcher.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-production-launcher.test.ts",
+      "category": "lint/style/useImportType",
+      "message": "All these imports are only used as types.",
+      "hash": "c459ea5fe9fe8753",
+      "preview": "{ type Automation } from '../../adapters/automation-events.ts'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-setup.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "There are too many newlines preceding this statement. Remove these extra newlines.",
+      "hash": "13d193032d1ad60f",
+      "preview": "import { promisify } from 'node:util';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-setup.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-template.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-template.test.ts",
+      "category": "lint/complexity/noAdjacentSpacesInRegex",
+      "message": "This regular expression contains unclear uses of consecutive spaces.",
+      "hash": "856eb0f6186c86b9",
+      "preview": "type: \"linear\"[\\s\\S]*?",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-tmux.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "efdb6f0119d14f66",
+      "preview": "import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'; i",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-tmux.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-tmux.test.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 5
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-tmux.test.ts",
+      "category": "lint/style/useImportType",
+      "message": "All these imports are only used as types.",
+      "hash": "c459ea5fe9fe8753",
+      "preview": "{ type Automation } from '../../adapters/automation-events.ts'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/benny-tmux.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/deadline.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "83937c86dc0a0a93",
+      "preview": "import { abortInTmux, type AbortOutcome } from '../../src/automation/abort.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/deadline.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/deadline.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/evidence.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "b145464af2e3cab9",
+      "preview": "import { mkdirSync, readFileSync, rmSync, symlinkSync, utimesSync, writeFileSync",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/evidence.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/evidence.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/fix-guard.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "6320fc130ab2c284",
+      "preview": "import { readFileSync, rmSync, writeFileSync } from 'node:fs'; import { join } f",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/fix-guard.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/fix-guard.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "f58430b7458ea011",
+      "preview": "t.gh.pulls[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/fix-guard.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/follow-up.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/follow-up.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "536000c211c3af98",
+      "preview": "clock += ms",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/operations.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "536000c211c3af98",
+      "preview": "clock += ms",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/ops-follow-up.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "da06e60d0f78c424",
+      "preview": "import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHAN",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/ops-follow-up.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/ops-follow-up.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/outbox.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/outbox.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "536000c211c3af98",
+      "preview": "clock += ms",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/pack-text.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "cd9ae038e1c2bdf2",
+      "preview": "import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'; impor",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/pack-text.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/parity.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "4685d5286b659cf5",
+      "preview": "import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "9e00e656519d2176",
+      "preview": "import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHAN",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "19c3c9bc97cf6e88",
+      "preview": "fix['url'] = 'Dana said it is fixed'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "416a780a64b25e82",
+      "preview": "fix['url'] = 'https://example.com/pull/9'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "9937dc84a87c7981",
+      "preview": "fix['baseline'] = fix['baseline'].slice(0, 1)",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "af5096026ab9d2b4",
+      "preview": "fix['patched'] = fix['patched'].map((entry: { at: string }) => ({ ...entry, at: ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/proof.test.ts",
+      "category": "lint/suspicious/noExplicitAny",
+      "message": "Unexpected any. Specify a different type.",
+      "hash": "d6a7cd2a7371b1a1",
+      "preview": "any",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/repro-window.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "da06e60d0f78c424",
+      "preview": "import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHAN",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/repro-window.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/repro-window.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/retire.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "da06e60d0f78c424",
+      "preview": "import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHAN",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/retire.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/retire.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "38ca4cb1e9162338",
+      "preview": "import { execFileSync, spawn } from 'node:child_process'; import { chmodSync, co",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "30528559a7a0e9fc",
+      "preview": "brief.split('<webhook_event>\\n')[1]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "3266575c7c3dfc25",
+      "preview": "brief.split('<webhook_event>\\n')[1]!.split('\\n</webhook_event>')[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "9e3a1bbb323816f4",
+      "preview": "assignments[0]!",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "d9132933a2854d81",
+      "preview": "output.split('\\n')[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/routine.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "ee63065c1718ae02",
+      "preview": "readdirSync(join(routine.store.dir, 'received')).find(file => file.endsWith('.js",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/settle-container.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/tracker-adapter.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "c2527aa2a0930671",
+      "preview": "import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'; import",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/tracker-adapter.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/tracker-adapter.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "536000c211c3af98",
+      "preview": "clock += ms",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/tracker-github.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/tracker-url.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/verdict-wait.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/verdict-wait.test.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/automation/verdict-wait.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6720082f5a0ed6da",
+      "preview": "clock += minutes * 60_000",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/concurrent-start.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/container-auth.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "c1e8752eaf862a40",
+      "preview": "import { findProviderPackages, MIN_OAUTH_LIFETIME_MS, prepareContainerAuth, Prov",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/container-auth.test.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/container.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/forge.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "f3bd259aec1efbec",
+      "preview": "import { startGitServer, type GitServer } from './git-https-server.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/forge.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/git-https-server.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/model-smoke.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/provider-auth.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/real-github.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "61d2a767db2deeb5",
+      "preview": "import { execFile, execFileSync } from 'node:child_process'; import { randomByte",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/real-github.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/receipts.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "0929f99f1db1afe2",
+      "preview": "import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, sym",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/container/receipts.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/forge/forge.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "2dc1b9535cfa2a88",
+      "preview": "import { execFileSync } from 'node:child_process'; import { expect, test } from ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/forge/forge.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/forge/forge.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "7ecfdb2796643c86",
+      "preview": "f.calls[0]!.stdin!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/forge/forge.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "dd1cd2562e9197d3",
+      "preview": "f.calls[0]!",
+      "count": 3
+    },
+    {
+      "file": "extensions/pi-pstack/tests/helpers/generated-helpers.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "This statement ends a group that must be preceded by a blank line. Add a newline before this statement.",
+      "hash": "278a43c317d2464c",
+      "preview": "import { expect, onTestFinished, test } from 'vitest';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/helpers/generated-helpers.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/helpers/generated-helpers.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "ed1f87c8b102f1af",
+      "preview": "template!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/helpers/watch-pr-differential.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "This statement ends a group that must be preceded by a blank line. Add a newline before this statement.",
+      "hash": "278a43c317d2464c",
+      "preview": "import { expect, onTestFinished, test } from 'vitest';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/helpers/watch-pr-differential.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/integration/commands.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/integration/pi-load.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/model-routing/models.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "22045a598155de9a",
+      "preview": "import { convertModelRule, migrateModelConfig } from '../../adapters/model-confi",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/model-routing/models.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/licenses.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/package.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-bundles.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "There are too many newlines preceding this statement. Remove these extra newlines.",
+      "hash": "a79a707a3d7729a5",
+      "preview": "import { findEnvKeys } from '../../scripts/pi-standalone-shims.mjs';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "04d40e6640e40655",
+      "preview": "m[2]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "3378ec9b30cc8c39",
+      "preview": "newestHost!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "458f9b10583466ca",
+      "preview": "piAi.get(newestHost!)!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/standalone-shims.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "f319c1c76d0a7c1a",
+      "preview": "m[1]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/packaging/statechart-suite.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/evidence-binding.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "a43c8e5c92310aea",
+      "preview": "import { type MiniRoot, miniRoot, script, SKILL } from './helpers.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "19fc6955f86edd1f",
+      "preview": "ciReport.testResults[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "1b5f525deb5359ea",
+      "preview": "failing.testResults[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "bb21801709ea8ec8",
+      "preview": "evaluate( [record(platforms)], runs.map(([platform, status]) => ({ report: repor",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "d33c942529027797",
+      "preview": "r.results[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/multi-result.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "e4406c461056c164",
+      "preview": "r!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/status-derivation.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "4ed2e46a9b220000",
+      "preview": "evaluate([record(['a passed test'])], report({}, 'failed'), '/x')[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/status-derivation.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "58fd5e1020fc89ad",
+      "preview": "evaluate([record(['twice'])], dup, '/x')[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/parity-manifest/status-derivation.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "ef33a15dbbf3e8ed",
+      "preview": "evaluate([record(tests, extra)], report(results), '/x')[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/security/readonly-fetch.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "50a258b0d1b3c11c",
+      "preview": "import { createServer } from 'node:http'; import { mkdtempSync, realpathSync, rm",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/mid-message.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/review-fixes.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "3c51f1bba09bfc04",
+      "preview": "import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSy",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/review-fixes.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/review-fixes.test.ts",
+      "category": "lint/correctness/noUnsafeOptionalChaining",
+      "message": "Unsafe usage of optional chaining.",
+      "hash": "c8f0829ff9d76fbc",
+      "preview": "?.",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/review-fixes.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "f319c1c76d0a7c1a",
+      "preview": "m[1]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/skill-parity/semantics.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/todo/start-run.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "d990deac8dfdb9d6",
+      "preview": "import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/todo/start-run.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/todo/start-run.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "3475ec0e6cfecdf1",
+      "preview": "todo.split('## Original playbook steps\\n')[1]!",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/todo/start-run.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "74a65a5a726e23b8",
+      "preview": "todo.split('## Original playbook steps\\n')[1]!.split('\\n\\n## Task-specific work'",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/collected-wake.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/evidence.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "270224b1f55b036f",
+      "preview": "import { type ChildProcess, spawn } from 'node:child_process'; import { createHa",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/evidence.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/fixtures/notes-mcp-server.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/host-gone.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "This statement ends a group that must be preceded by a blank line. Add a newline before this statement.",
+      "hash": "fac71bbb34b29476",
+      "preview": "import { expect, test } from 'vitest';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/host-gone.test.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "4ee032cb369052a6",
+      "preview": "child.pid!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/lifecycle.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/nested-spawn.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/readonly-mcp.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "bf47ec419e9380a2",
+      "preview": "import { killTmuxServer, makeParent, makeProject, makeRun, PI, type Parent, type",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/readonly-mcp.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/readonly-tools.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/readonly-worker.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/settle-coverage.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/spawn-depth.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/spawn-outcome.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "fc8b6197788a9e7e",
+      "preview": "import { existsSync, mkdirSync, readFileSync } from 'node:fs'; import { join } f",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/worker-lifecycle/zero-setup.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/budget.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "b0c9861688e319fe",
+      "preview": "import { join } from 'node:path'; import { describe, expect, test } from 'vitest",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/checks.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "292f3e27b6426eb5",
+      "preview": "import { evaluate } from './lib/check.ts'; import { carries, commitsNotFromWorke",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/checks.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/checks.test.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "db34cae1b1762c7f",
+      "preview": "${s}",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/driver.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "270e722783d6f264",
+      "preview": "import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'; import ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/driver.test.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "a5d68d694dd27a37",
+      "preview": "sandbox = ctx.sandbox",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build-measured.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "f5155c0fd92b65e2",
+      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { appendFil",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build-measured.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build-measured.ts",
+      "category": "lint/complexity/noUselessEscapeInRegex",
+      "message": "The character doesn't need to be escaped.",
+      "hash": "7a063e4cb04c8b9d",
+      "preview": "\\/",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build-measured.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "e4eeff96ce5a9c42",
+      "preview": "recorded.receipt.artifacts[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "061a9bd16e992660",
+      "preview": "import { allWorkers, assignmentOf, artifactText, branchCommits, redFirst, delega",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/build.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/codemode.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/concurrency.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/design.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "f9468c5241be446b",
+      "preview": "import { allWorkers, assignmentOf, briefCarries, briefsContain, collectOrder, ex",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/design.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/design.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/forensics.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "40c14b1d40e4b0cf",
+      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { createHas",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/forensics.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/forensics.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/gates.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/headless.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "4652401ec96a384b",
+      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { existsSyn",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
+      "category": "lint/complexity/noFlatMapIdentity",
+      "message": "Avoid unnecessary callback in flatMap call.",
+      "hash": "e050baa42d28216c",
+      "preview": "rows.flatMap((row) => row)",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
+      "category": "lint/style/useTemplate",
+      "message": "Template literals are preferred over string concatenation.",
+      "hash": "947768d233e8d941",
+      "preview": "files.map((chat) => `Chat ${chat.id}\\ntopic: ${chat.text}\\ngoal: coupons\\ndecisi",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/index.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "776c9c25d8515991",
+      "preview": "import { buildFamilies } from './build.ts'; import { measuredFamilies } from './",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/index.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/interaction.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/investigation.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "dc94d9b9f5f6bf24",
+      "preview": "import { writeFileSync } from 'node:fs'; import { join } from 'node:path'; impor",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/investigation.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/investigation.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/maintain.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "0a7d26f7c1256578",
+      "preview": "import { PKG, SCRIPTED_ROLES, type Commit } from '../lib/driver.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/maintain.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/maintain.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "c6d45cdcf5209067",
+      "preview": "runs.at(-1)!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/mcp.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/meta.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/meta.ts",
+      "category": "lint/style/useTemplate",
+      "message": "Template literals are preferred over string concatenation.",
+      "hash": "31522922e06c6cf9",
+      "preview": "join(worker?.dir ?? '', 'worktree') + '/'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/ops.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/ops.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "b04a2631de7b001e",
+      "preview": "${csvRow(['name', 'qty', 'price', 'line_total'])}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "5df1d2fe56767074",
+      "preview": "import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "2f6d36c6e93a1899",
+      "preview": "spawns[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0d3d62e8c3a66260",
+      "preview": "${name.toUpperCase()}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6d20d61554cd67b2",
+      "preview": "${name}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "b055052f368debf1",
+      "preview": "import { forgeEnv, type ForgeHandle, settleChecks, setupForge, WATCH_PR } from '",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "2f6d36c6e93a1899",
+      "preview": "spawns[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "60ef267d587d19b6",
+      "preview": "collect[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "fa745ff08b7a61bb",
+      "preview": "wakes[0]!",
+      "count": 5
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
+      "category": "lint/suspicious/noThenProperty",
+      "message": "This object defines a then property.",
+      "hash": "21af6f1260f927f5",
+      "preview": "then",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "d9fd0d035fd06397",
+      "preview": "import { join } from 'node:path'; import { Parent, scenario } from '../fixtures/",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit.ts",
+      "category": "lint/suspicious/noThenProperty",
+      "message": "This object defines a then property.",
+      "hash": "21af6f1260f927f5",
+      "preview": "then",
+      "count": 6
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 4
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate-sub.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "65d7a61d2e7f80f2",
+      "preview": "import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate-sub.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate-sub.ts",
+      "category": "lint/complexity/useOptionalChain",
+      "message": "Change to an optional chain.",
+      "hash": "b06b7e7d64d319bb",
+      "preview": "worker.session !== null && worker.session.toolCalls.every((call) => call.name !=",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate-sub.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0d3d62e8c3a66260",
+      "preview": "${name.toUpperCase()}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate-sub.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6d20d61554cd67b2",
+      "preview": "${name}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "40396c7f4f3f72de",
+      "preview": "import { join } from 'node:path'; import { Parent, scenario, Worker } from '../f",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "0d3d62e8c3a66260",
+      "preview": "${name.toUpperCase()}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-orchestrate.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6d20d61554cd67b2",
+      "preview": "${name}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-real-forge.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "1f994a9354202577",
+      "preview": "import { existsSync, readFileSync, writeFileSync } from 'node:fs'; import { join",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-real-forge.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-real-forge.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6d20d61554cd67b2",
+      "preview": "${name}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-review.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "488ce5457b83714c",
+      "preview": "import { check, checkAbsence, src, type Src, when } from '../lib/check.ts'; impo",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-review.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-review.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "6d20d61554cd67b2",
+      "preview": "${name}",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-review.ts",
+      "category": "lint/suspicious/noTemplateCurlyInString",
+      "message": "Unexpected template string placeholder.",
+      "hash": "bce695641b8eb354",
+      "preview": "${JSON.stringify({ body: process.argv[3] }",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shared.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort the imported names.",
+      "hash": "263875439112e759",
+      "preview": "import { type Check, check, checkAbsence, fail, pass, src, type Src, when } from",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shared.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shared.ts",
+      "category": "lint/style/useImportType",
+      "message": "Some named imports are only used as types.",
+      "hash": "22e23ccac72db977",
+      "preview": "{ Parent, shQuote } from '../fixtures/dsl.ts'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shipping.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "6642fcce42a70184",
+      "preview": "import { spawnSync } from 'node:child_process'; import { join } from 'node:path'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shipping.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/rules.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/shared.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "49a2b114bda8179e",
+      "preview": "import { type Check, check, fail, pass, src, when, type Src } from '../lib/check",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/shared.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/skills.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/verification.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/complexity/noCommaOperator",
+      "message": "The comma operator is disallowed.",
+      "hash": "d03502c43d74a30b",
+      "preview": ",",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/complexity/useOptionalChain",
+      "message": "Change to an optional chain.",
+      "hash": "5332914bce7729a2",
+      "preview": "reads.length === SLIDES.length && reads.every((call) => !call.isError && existsS",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "08494584c3435601",
+      "preview": "SLIDES[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "53374a79e58788dd",
+      "preview": "SLIDES[index]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "5a39073f2eb34377",
+      "preview": "found[index]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "77781f97cce5b2b0",
+      "preview": "SLIDES[index - 1]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "979383a194bf8155",
+      "preview": "file.frames[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "97be2d92d46d9629",
+      "preview": "spec.slides[0]!",
+      "count": 2
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "cda24853f7c0272b",
+      "preview": "decoded.frames[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "5d20e358a064020b",
+      "preview": "slide.shapes = spec.slides[0]!.shapes",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "6cd610a7c8b06337",
+      "preview": "slide.subtitle = spec.slides[0]!.subtitle",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/families/video.ts",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 3
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/dsl.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "lint/correctness/noUnusedFunctionParameters",
+      "message": "This parameter state is unused.",
+      "hash": "4ba69735ca53765e",
+      "preview": "state",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "lint/correctness/noUnusedVariables",
+      "message": "This function threadsOf is unused.",
+      "hash": "3bf395012beb50c6",
+      "preview": "threadsOf",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "lint/style/useTemplate",
+      "message": "Template literals are preferred over string concatenation.",
+      "hash": "d340038740a397bc",
+      "preview": "checks.map((check) => `${check.name}\\t${check.bucket}\\t${check.link}`).join('\\n'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "lint/suspicious/noThenProperty",
+      "message": "This object defines a then property.",
+      "hash": "21af6f1260f927f5",
+      "preview": "then",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs",
+      "category": "lint/suspicious/noThenProperty",
+      "message": "This object defines a then property.",
+      "hash": "379f6ea4448cdd42",
+      "preview": "check.then",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "3635da741d62bb5a",
+      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { chmodSync",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/mcp-server.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/real-forge.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "e03697bf26c0f2f0",
+      "preview": "import { execFileSync, spawn, spawnSync } from 'node:child_process'; import { ch",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/real-forge.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/receipt.mjs",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "56b183d54faad776",
+      "preview": "import { createHash } from 'node:crypto'; import { execFileSync } from 'node:chi",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/receipt.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/render-video.mjs",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/render-video.mjs",
+      "category": "lint/suspicious/useIterableCallbackReturn",
+      "message": "This callback passed to forEach() iterable method should not return a value.",
+      "hash": "0842ac641339bc12",
+      "preview": "forEach",
+      "count": 3
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/repos.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/sim-provider/package.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/integrity.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "1b5a4edf6fabaadb",
+      "preview": "import { readFileSync } from 'node:fs'; import { join } from 'node:path'; import",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/integrity.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/inventory.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "There are too many newlines preceding this statement. Remove these extra newlines.",
+      "hash": "a035bb6320abc43f",
+      "preview": "import { families } from './families/index.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/inventory.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/check.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/checks.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "5d8309a13acb20a4",
+      "preview": "import { createHash } from 'node:crypto'; import { existsSync, readdirSync, read",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/checks.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/checks.ts",
+      "category": "lint/suspicious/noUselessEscapeInString",
+      "message": "The character doesn't need to be escaped.",
+      "hash": "265fda17a34611b1",
+      "preview": "'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/define.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "c5b2130d71474cf3",
+      "preview": "import { afterAll, beforeAll, describe, expect, test } from 'vitest'; import typ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/define.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/driver.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/driver.ts",
+      "category": "lint/style/noNonNullAssertion",
+      "message": "Forbidden non-null assertion.",
+      "hash": "19a8dd0891670c04",
+      "preview": "oneShotSessions[0]!",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/driver.ts",
+      "category": "lint/suspicious/noAssignInExpressions",
+      "message": "The assignment should not be in an expression.",
+      "hash": "d7f453f202a071a6",
+      "preview": "history[id] ??= []",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/mutate.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/preflight.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/real-run.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/run.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/tlc.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/view.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/lib/view.ts",
+      "category": "lint/complexity/useIndexOf",
+      "message": "Prefer Array#indexOf() over Array#findIndex() when looking for the index of an item.",
+      "hash": "4115001947d91764",
+      "preview": "lines.findIndex((line) => line === '## Original playbook steps')",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/providers.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "There are too many newlines preceding this statement. Remove these extra newlines.",
+      "hash": "7bce0a9276ac067b",
+      "preview": "import { packagesRegistering, withoutOauthRefresh } from './lib/providers.ts';",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/real-forge-evidence/babysit-drive-real.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/real-forge-evidence/opening-a-pr-real.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/real-forge-evidence/shipping-real.json",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/real-forge.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Sort these imports.",
+      "hash": "dfb1b16247a00e9d",
+      "preview": "import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, ",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/real-forge.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/refactoring-pin.test.ts",
+      "category": "assist/source/organizeImports",
+      "message": "Some imports or exports are not organized.",
+      "hash": "2dfba4c21938e4f9",
+      "preview": "import { refactoringFamily } from './families/build-measured.ts'; import { evalu",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/refactoring-pin.test.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/refactoring-pin.test.ts",
+      "category": "lint/style/useTemplate",
+      "message": "Template literals are preferred over string concatenation.",
+      "hash": "b55a0c021d40a9dd",
+      "preview": "pinOf('add', \"require('../src/add.js').add(1, 2)\", '3') + '// edited\\n'",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/render-real-evidence.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    },
+    {
+      "file": "extensions/pi-pstack/tests/workflow-parity/run-family.ts",
+      "category": "format",
+      "message": "File content differs from formatting output",
+      "hash": "e3b0c44298fc1c14",
+      "preview": "",
+      "count": 1
+    }
+  ]
+}

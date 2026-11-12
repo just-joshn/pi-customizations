@@ -35,6 +35,7 @@
       "!!extensions/pi-pstack/generated",
       "!!extensions/pi-pstack/automations",
       "!!extensions/pi-pstack/upstream.lock.json",
+      "!!extensions/pi-pstack/lint-baseline.json",
       "!!extensions/pi-maintainer/parity/coverage.json",
       "!!extensions/pi-maintainer/parity/ledger.json",
       "!!extensions/pi-maintainer/test/fixtures/watch"

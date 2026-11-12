@@ -38,6 +38,7 @@ try {
   };
   for (const f of files) place(join(root, f), `${PACKAGE_DIR}/${f}`);
   place(join(repoRoot, 'tsconfig.json'), 'tsconfig.json');
+  place(join(repoRoot, 'biome.json'), 'biome.json');
   place(join(root, 'scripts/ci-linux/workflow.yml'), '.github/workflows/linux-tests.yml');
   writeFileSync(join(snapshot, PACKAGE_DIR, 'ci-snapshot.json'), `${JSON.stringify({ commit, files: files.length })}\n`);
   const git = (...args) => run('git', ['-C', snapshot, ...args]);
