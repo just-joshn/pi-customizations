@@ -304,6 +304,22 @@ describe('a container worker that points its outputs at host files', () => {
   }, 180_000);
 });
 
+describe('a container worker that plants symlinks inside its evidence directory', () => {
+  test('collect lists its real evidence and never walks a link to / or to a host file', async () => {
+    const dir = workerDir(project, RUN_ID, 'f');
+    const command = [`echo real > ${dir}/evidence/real.txt`, `ln -s / ${dir}/evidence/x`, `ln -s ${project.dir}/README.md ${dir}/evidence/readme-link.txt`, `ln -s ${project.dir} ${dir}/evidence/checkout`].join(' && ');
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+    await spawn('f', `@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`);
+    await settled('f');
+
+    const result = await collect('f');
+
+    expect(result.details.evidence).toEqual(['real.txt']);
+    expect(result.text).not.toContain('fixture');
+    await abort('f');
+  }, 180_000);
+});
+
 describe('a container whose host dies without cleaning up', () => {
   test('ends with its stdin, so no container outlives the host', async () => {
     writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');

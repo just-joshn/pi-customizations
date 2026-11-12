@@ -23,7 +23,6 @@ import {
   type ClaimIdentity,
   formatTmuxIdentity,
   type HostState,
-  isInside,
   isTerminal,
   type LoadedAssignment,
   launchEnvPath,
@@ -53,6 +52,7 @@ import {
   workerDirOf,
   writeJsonAtomic,
 } from './run-files.ts';
+import { listFilesBelow, readFileBelow } from './untrusted-output.ts';
 import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
@@ -257,10 +257,10 @@ function defaultProvider(env: Record<string, string | undefined>): string | unde
   }
 }
 
-function finalAssistantText(sessionFile: string | null): string | null {
-  if (sessionFile === null || !existsSync(sessionFile)) return null;
+function finalAssistantText(transcript: string | null): string | null {
+  if (transcript === null) return null;
   let text: string | null = null;
-  for (const line of readFileSync(sessionFile, 'utf8').split('\n')) {
+  for (const line of transcript.split('\n')) {
     if (line.trim() === '') continue;
     const entry = JSON.parse(line) as { type?: string; message?: { role?: string; content?: unknown } };
     if (entry.type !== 'message' || entry.message?.role !== 'assistant') continue;
@@ -269,6 +269,33 @@ function finalAssistantText(sessionFile: string | null): string | null {
     if (parts.length > 0) text = parts.join('');
   }
   return text;
+}
+
+const readTranscript = (sessionFile: string | null): string | null => (sessionFile === null || !existsSync(sessionFile) ? null : readFileSync(sessionFile, 'utf8'));
+
+/**
+ * What collect reads from a worker's directory. A container worker writes through `<workerDir>/out`, which it controls, so
+ * its report, session file, and evidence are read from there without following a symlink (see untrusted-output.ts).
+ */
+function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
+  const { workerDir, assignment } = loaded;
+  if (assignment.workspace.mode !== 'container') {
+    const report = join(workerDir, 'report.md');
+    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText: finalAssistantText(readTranscript(sessionFile)), evidence: listFiles(join(workerDir, 'evidence')) };
+  }
+  const out = outDirOf(workerDir);
+  const read = (rel: string): string | null | { refused: string } => {
+    const file = readFileBelow(out, rel);
+    return file.kind === 'ok' ? file.bytes.toString('utf8') : file.kind === 'missing' ? null : { refused: file.reason };
+  };
+  const report = read('report.md');
+  const sessionRel = sessionFile === null ? null : relative(workerDir, sessionFile);
+  const transcript = sessionRel === null || sessionRel.startsWith('..') || sessionRel.split('/')[0] !== 'session' ? null : read(sessionRel);
+  return {
+    report: report === null || typeof report === 'string' ? report : '(refused: report.md leaves the worker output directory)',
+    finalText: finalAssistantText(typeof transcript === 'string' ? transcript : null),
+    evidence: listFilesBelow(out, 'evidence'),
+  };
 }
 
 function listFiles(dir: string): string[] {
@@ -807,18 +834,13 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         const live = inspected.available ? inspected.state : { phase: 'unavailable', reason: inspected.reason, lastState: inspected.lastState };
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
-      // A container worker writes through a directory it controls, so what the parent reads must not leave it by a symlink.
-      const trusted = (path: string) => loaded.assignment.workspace.mode !== 'container' || isInside(outDirOf(loaded.workerDir), path);
-      const report = join(loaded.workerDir, 'report.md');
-      const evidence = join(loaded.workerDir, 'evidence');
+      const worker = collectOutputs(loaded, state.sessionFile);
       const result = {
         settled: true,
         available: inspected.available,
         phase: inspected.available ? state.phase : 'unavailable',
         lastSettle,
-        report: !existsSync(report) ? null : trusted(report) ? readFileSync(report, 'utf8') : '(refused: report.md leaves the worker output directory)',
-        finalText: finalAssistantText(state.sessionFile !== null && trusted(state.sessionFile) ? state.sessionFile : null),
-        evidence: trusted(evidence) ? listFiles(evidence).filter((file) => trusted(join(evidence, file))) : [],
+        ...worker,
         sessionFile: state.sessionFile,
       };
       return text(
