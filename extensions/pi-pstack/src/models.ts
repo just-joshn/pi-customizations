@@ -98,21 +98,33 @@ export function resolveRole(role: string, registry: Registry, parent: ResolvedMo
       return index === -1 ? preferred.length : index;
     };
     candidates.sort((a, b) => rank(a.id) - rank(b.id));
-    let resolved: ResolvedModel | undefined;
     const minimum = target === 'off' || target === 'minimal' ? LEVELS.indexOf(target) : LEVELS.indexOf('low');
-    for (let index = LEVELS.indexOf(target); index >= minimum && !resolved; index--) {
-      const level = LEVELS[index]!;
-      for (const model of candidates) {
-        if (!getSupportedThinkingLevels(model).includes(level)) continue;
-        resolved = { provider: model.provider, id: model.id, thinkingLevel: level };
-        break;
+    const search = (pool: typeof candidates): ResolvedModel | undefined => {
+      for (let index = LEVELS.indexOf(target); index >= minimum; index--) {
+        const level = LEVELS[index]!;
+        const model = pool.find((entry) => getSupportedThinkingLevels(entry).includes(level));
+        if (model) return { provider: model.provider, id: model.id, thinkingLevel: level };
+      }
+      return undefined;
+    };
+    // The requested model keeps the role: its own nearest level wins over another model of the family at the target.
+    const exact = candidates.filter((model) => model.id === id);
+    let resolved = search(exact);
+    if (!resolved) {
+      for (let index = LEVELS.indexOf(target) + 1; index < LEVELS.length && !resolved; index++) {
+        const model = exact.find((entry) => getSupportedThinkingLevels(entry).includes(LEVELS[index]!));
+        if (model) resolved = { provider: model.provider, id: model.id, thinkingLevel: LEVELS[index]! };
       }
     }
+    resolved ??= search(candidates);
     if (!resolved) {
       limitations.push(`${choice} is unavailable at or below ${target}; role needs a model choice`);
       continue;
     }
-    if (resolved.id !== id || resolved.thinkingLevel !== target) limitations.push(`${choice} resolved to ${resolved.provider}/${resolved.id}:${resolved.thinkingLevel}`);
+    if (resolved.id !== id || resolved.thinkingLevel !== target) {
+      const why = exact.length === 0 ? `${provider}/${id} is not available` : resolved.id !== id ? `${id} has no usable thinking level near ${target}` : `${id} supports ${getSupportedThinkingLevels(exact[0]!).join(', ')}, not ${target}`;
+      limitations.push(`${choice} resolved to ${resolved.provider}/${resolved.id}:${resolved.thinkingLevel} (${why})`);
+    }
     if (role === 'arena cross-judge pool' && modelFamily(resolved.id) === modelFamily(parent.id)) continue;
     models.push(resolved);
     if (role === 'arena cross-judge pool') break;

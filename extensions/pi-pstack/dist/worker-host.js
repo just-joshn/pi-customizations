@@ -439,9 +439,13 @@ function parseLaunch(text) {
     throw new Error("Launch extraArgs must be strings");
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     throw new Error("Launch credentialEnv must be variable names");
+  const modelNote = raw["modelNote"] ?? null;
+  if (modelNote !== null && typeof modelNote !== "string")
+    throw new Error("Launch modelNote must be a string or null");
   return {
     piCommand,
     model,
+    modelNote,
     thinkingLevel,
     appendSystemPrompt,
     tools,
@@ -636,6 +640,7 @@ async function runHost(assignmentFile, launchText) {
     phase,
     reason,
     model,
+    ...launch.modelNote ? { modelNote: launch.modelNote } : {},
     sessionFile,
     briefSent,
     generation,

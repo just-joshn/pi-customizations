@@ -15018,6 +15018,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: launchModel,
+    modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
@@ -15082,7 +15083,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       runId,
       workerId: assignment.workerId,
       kind: "spawn",
-      data: { tmuxSession: session, model: launch.model, ...container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } } }
+      data: { tmuxSession: session, model: launch.model, ...launch.modelNote === null ? {} : { modelNote: launch.modelNote }, ...container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } } }
     });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
@@ -15105,7 +15106,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
   if (assignment.kind === "pi")
     await controlHost(target, "start");
-  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model, modelNote: launch.modelNote ?? null };
 }
 var WorkerParams = _Object_({
   action: StringEnum(["spawn", "inspect", "steer", "abort", "collect"], {

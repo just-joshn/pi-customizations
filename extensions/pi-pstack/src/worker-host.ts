@@ -65,6 +65,8 @@ export interface HostLaunch {
   /** Pi's argv before its arguments: absolute on the host, and a command found on the image's PATH inside a container. */
   piCommand: string[];
   model: { provider: string; id: string } | null;
+  /** Why the model is not the one the assignment named, or null when it is. Copied into the host state. */
+  modelNote?: string | null;
   thinkingLevel: ThinkingLevel | null;
   appendSystemPrompt: string | null;
   /** Pi's --tools allowlist, or null for Pi's defaults. */
@@ -121,9 +123,12 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
+  const modelNote = raw['modelNote'] ?? null;
+  if (modelNote !== null && typeof modelNote !== 'string') throw new Error('Launch modelNote must be a string or null');
   return {
     piCommand,
     model: model as HostLaunch['model'],
+    modelNote,
     thinkingLevel: thinkingLevel as ThinkingLevel | null,
     appendSystemPrompt: appendSystemPrompt as string | null,
     tools: tools as string[] | null,
@@ -341,6 +346,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     phase,
     reason,
     model,
+    ...(launch.modelNote ? { modelNote: launch.modelNote } : {}),
     sessionFile,
     briefSent,
     generation,

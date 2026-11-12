@@ -31,7 +31,26 @@ test('reports a missing provider without returning a nonexistent model', () => {
 test('falls down the supported effort ladder', () => {
   const result = resolveRole('bug-fix', registry, parent, config({ 'bug-fix': 'openai/gpt-6.1-sol:max' }));
   expect(result.models).toEqual([{ ...parent, thinkingLevel: 'high' }]);
-  expect(result.limitations).toEqual(['openai/gpt-6.1-sol:max resolved to openai/gpt-6.1-sol:high']);
+  expect(result.limitations).toEqual(['openai/gpt-6.1-sol:max resolved to openai/gpt-6.1-sol:high (gpt-6.1-sol supports off, minimal, low, medium, high, not max)']);
+});
+
+test('a model without the requested level keeps the role at its nearest level instead of handing it to a family sibling', () => {
+  // glm-5.3-flash has no off; glm-4.7 does. The sibling must not win just because it matches the level.
+  const flash = model('zai', 'glm-5.3-flash', { off: null, minimal: null, low: 'low', medium: null, high: 'high', max: 'max' });
+  const sibling = model('zai', 'glm-4.7');
+  const zai = { getAvailable: () => [sibling, flash] };
+  const off = resolveRole('bug-fix', zai, parent, config({ 'bug-fix': 'zai/glm-5.3-flash:off' }));
+  expect(off.models).toEqual([{ provider: 'zai', id: 'glm-5.3-flash', thinkingLevel: 'low' }]);
+  expect(off.limitations[0]).toMatch(/glm-5\.3-flash supports low, high, max, not off/);
+  const budget = resolveRole('bug-fix', zai, parent, config({ 'bug-fix': 'zai/glm-5.3-flash' }));
+  expect(budget.models).toEqual([{ provider: 'zai', id: 'glm-5.3-flash', thinkingLevel: 'high' }]);
+});
+
+test('a family sibling stands in only when the requested model is unavailable, and the reason names it', () => {
+  const sibling = model('zai', 'glm-4.7');
+  const result = resolveRole('bug-fix', { getAvailable: () => [sibling] }, parent, config({ 'bug-fix': 'zai/glm-5.3-flash:high' }));
+  expect(result.models).toEqual([{ provider: 'zai', id: 'glm-4.7', thinkingLevel: 'high' }]);
+  expect(result.limitations).toEqual(['zai/glm-5.3-flash:high resolved to zai/glm-4.7:high (zai/glm-5.3-flash is not available)']);
 });
 
 test('uses another listed same-family model when the selected id is absent', () => {

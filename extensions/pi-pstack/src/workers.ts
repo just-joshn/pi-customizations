@@ -75,6 +75,8 @@ export interface ResolvedModel {
   provider: string;
   id: string;
   thinkingLevel: ThinkingLevel | null;
+  /** Why the resolved model or level is not the assignment's, when it is not. Recorded in the worker state, the spawn event, and the spawn reply. */
+  note?: string;
 }
 
 /** Turns an assignment's model spec into a concrete model. src/models.ts supplies the role-aware one. */
@@ -107,6 +109,7 @@ export interface SpawnResult {
   attach: string;
   sessionFile: string | null;
   model: { provider: string; id: string } | null;
+  modelNote: string | null;
 }
 
 export interface Transition {
@@ -549,6 +552,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
     model: launchModel,
+    modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities.mcp) : null,
@@ -615,7 +619,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       runId,
       workerId: assignment.workerId,
       kind: 'spawn',
-      data: { tmuxSession: session, model: launch.model, ...(container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } }) },
+      data: { tmuxSession: session, model: launch.model, ...(launch.modelNote === null ? {} : { modelNote: launch.modelNote }), ...(container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } }) },
     });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
@@ -632,7 +636,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // A watch command that already exited has produced its event; only a failure stops the spawn.
   if (state.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
   if (assignment.kind === 'pi') await controlHost(target, 'start');
-  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model, modelNote: launch.modelNote ?? null };
 }
 
 const WorkerParams = Type.Object({
@@ -932,7 +936,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       if (params.action === 'spawn') {
         const result = await spawnWorker(ctx, params.runId, params.assignmentPath, params.playbook);
         return text(
-          `Spawned worker ${result.workerId} (${result.model === null ? 'watch' : `${result.model.provider}/${result.model.id}`}).\nAttach: ${result.attach}\nSession file: ${result.sessionFile ?? '(none)'}\nYou will get a pstack-worker message when it settles.`,
+          `Spawned worker ${result.workerId} (${result.model === null ? 'watch' : `${result.model.provider}/${result.model.id}`}).${result.modelNote === null ? '' : `\nModel note: ${result.modelNote}`}\nAttach: ${result.attach}\nSession file: ${result.sessionFile ?? '(none)'}\nYou will get a pstack-worker message when it settles.`,
           result,
         );
       }

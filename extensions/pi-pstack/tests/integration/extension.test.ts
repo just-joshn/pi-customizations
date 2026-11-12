@@ -155,7 +155,20 @@ describe('roleModelResolver', () => {
 
   test('a named model resolves against the registry; null keeps its default level; a level clamps to a supported one', async () => {
     expect(await resolve({ model: 'scripted/plain', thinkingLevel: null, role: 'general' }, ctx())).toEqual({ provider: 'scripted', id: 'plain', thinkingLevel: null });
-    expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'max', role: 'general' }, ctx())).toEqual({ provider: 'openai', id: 'gpt-6.1-sol', thinkingLevel: 'high' });
+    expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'max', role: 'general' }, ctx())).toMatchObject({ provider: 'openai', id: 'gpt-6.1-sol', thinkingLevel: 'high' });
     expect(() => resolve({ model: 'missing/model', thinkingLevel: null, role: 'general' }, ctx())).toThrow('Model missing/model is not available');
+  });
+
+  test('a changed level or model is reported with its reason; an exact match carries no note', async () => {
+    expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'max', role: 'general' }, ctx())).toMatchObject({ note: expect.stringMatching(/requested openai\/gpt-6\.1-sol:max, running openai\/gpt-6\.1-sol:high; .*not max/) });
+    expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'high', role: 'general' }, ctx())).not.toHaveProperty('note');
+    expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: null, role: 'general' }, ctx())).not.toHaveProperty('note');
+  });
+
+  test('a null level on a model that cannot turn thinking off stays on that model, not on a sibling that can', async () => {
+    const flash = { ...model('zai', 'glm-5.3-flash'), thinkingLevelMap: { off: null, minimal: null, low: 'low', medium: null, high: 'high', max: 'max' } } as Model<Api>;
+    const registry = { getAvailable: () => [model('zai', 'glm-4.7'), flash] };
+    const zaiCtx = { model: flash, thinkingLevel: 'high', modelRegistry: registry } as unknown as ExtensionContext;
+    expect(await resolve({ model: 'zai/glm-5.3-flash', thinkingLevel: null, role: 'general' }, zaiCtx)).toEqual({ provider: 'zai', id: 'glm-5.3-flash', thinkingLevel: null });
   });
 });

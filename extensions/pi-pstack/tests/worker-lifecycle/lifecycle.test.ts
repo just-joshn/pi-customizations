@@ -534,6 +534,21 @@ describe('capability boundary', () => {
     }
   });
 
+  test('a model the parent had to resolve elsewhere is named in the spawn reply, the spawn event, and the worker state', async () => {
+    const note = 'requested zai/glm-5.3-flash, running zai/glm-4.7:high; zai/glm-5.3-flash is not available';
+    const owner = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null, note }) });
+    const reply = await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'n1', '@@say X') });
+    expect(reply.text).toContain(`Model note: ${note}`);
+    expect(events()).toContain(JSON.stringify(note));
+    expect(readState(project, 'run1', 'n1')).toMatchObject({ modelNote: note });
+    const plain = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null }) });
+    const quiet = await plain.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'n2', '@@say X') });
+    expect(quiet.text).not.toContain('Model note');
+    expect(readState(project, 'run1', 'n2')).not.toHaveProperty('modelNote');
+    await owner.stop();
+    await plain.stop();
+  });
+
   test('spawn refuses a worker that asks for external write authority', async () => {
     const path = writeAssignment(project, 'run1', 'c3', '@@say X', { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
     await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/externalWrite/);

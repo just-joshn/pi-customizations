@@ -33,7 +33,11 @@ export const roleModelResolver =
     }
     const [resolved] = result.models;
     if (resolved === undefined) throw new Error(`Model ${model} is not available: ${result.limitations.join('; ')}`);
-    return { provider: resolved.provider, id: resolved.id, thinkingLevel: model !== 'inherit-parent' && thinkingLevel === null ? null : resolved.thinkingLevel };
+    const level = model !== 'inherit-parent' && thinkingLevel === null ? null : resolved.thinkingLevel;
+    const substituted = model !== 'inherit-parent' && `${resolved.provider}/${resolved.id}` !== model;
+    const releveled = thinkingLevel !== null && resolved.thinkingLevel !== thinkingLevel;
+    const note = substituted || releveled ? `requested ${model}${thinkingLevel === null ? '' : `:${thinkingLevel}`}, running ${resolved.provider}/${resolved.id}:${resolved.thinkingLevel}; ${result.limitations.join('; ')}` : undefined;
+    return { provider: resolved.provider, id: resolved.id, thinkingLevel: level, ...(note === undefined ? {} : { note }) };
   };
 
 export default function pstack(pi: ExtensionAPI): void {

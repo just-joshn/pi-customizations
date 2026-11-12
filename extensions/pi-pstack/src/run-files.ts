@@ -348,6 +348,8 @@ export interface HostState {
   phase: HostPhase;
   reason: string | null;
   model: { provider: string; id: string } | null;
+  /** Why `model` is not the assignment's model, when the parent had to resolve it to another model or level. */
+  modelNote?: string;
   sessionFile: string | null;
   briefSent: boolean;
   /** The latest unit of work the host accepted. A worker's result is a settle covering it. */
