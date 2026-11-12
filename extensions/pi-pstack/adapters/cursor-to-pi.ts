@@ -374,6 +374,7 @@ export const RULES: readonly Rule[] = [
   rule('autonomous-run.askquestion', 'ask-question', PB('autonomous-run'), 'or use `AskQuestion`.', 'or stop to ask the user a question.'),
   rule('autopilot-full.owner', 'cloud-environment', PB('autopilot-full'), 'Each owner is a Cursor cloud agent that builds', 'Each owner is a container worker (`role: "owner"`) that builds'),
   rule('autopilot-full.loop', 'loop', PB('autopilot-full'), "On the operator's go, arm `/loop 1h` to audit", 'On the operator\'s go, arm an hourly watch loop (`watch.argv: ["sleep", "3600"]`) to audit'),
+  rule('autopilot-full.tick-from-trunk', 'upstream-repo-path', PB('autopilot-full'), 'Each tick re-reads this playbook from trunk', 'Each tick re-reads this playbook from the installed pi-pstack package'),
   rule('babysit.builtin-babysit', 'cursor-builtin-babysit', PB('babysit'), "This playbook replaces Cursor's built-in babysit skill for these requests", 'This playbook replaces any other babysit skill for these requests'),
   rule('babysit.loop', 'loop', PB('babysit'), 'Run `drive` and `background` under `/loop` in dynamic mode.', 'Run `drive` and `background` under a watch loop whose `watch.argv` is the watcher command.'),
   rule('bug-fix.loop', 'loop', PB('bug-fix'), "Drive a long or stubborn hunt with Cursor's `/loop` command.", 'Drive a long or stubborn hunt with a watch loop (the Subagents section).'),

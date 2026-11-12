@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 155,
-    "spans": 219
+    "rules": 156,
+    "spans": 220
   },
   "skills": [
     "architect",
@@ -419,6 +419,15 @@
       "id": "autopilot-full.loop",
       "primitives": [
         "loop"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "autopilot-full.tick-from-trunk",
+      "primitives": [
+        "upstream-repo-path"
       ],
       "files": {
         "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
@@ -3298,6 +3307,21 @@
       ],
       "original": "On the operator's go, arm `/loop 1h` to audit",
       "replacement": "On the operator's go, arm an hourly watch loop (`watch.argv: [\"sleep\", \"3600\"]`) to audit",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.tick-from-trunk",
+      "offset": [
+        5503,
+        5546
+      ],
+      "lines": [
+        22,
+        22
+      ],
+      "original": "Each tick re-reads this playbook from trunk",
+      "replacement": "Each tick re-reads this playbook from the installed pi-pstack package",
       "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
     },
     {
