@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
@@ -92,13 +92,18 @@ test("a cancel whose run settled before Pi was quiescent records the abort when 
   ).toMatchObject({ lastSettle: { phase: 'aborted', generation: 1 } });
 });
 
-test('a run settle and a recheck whose get_state answers arrive reversed record the settle once', async () => {
-  await spawn('w5', '@@reverse ONE');
+test.for([
+  ['forward', 'recheck'],
+  ['reverse', 'recheck'],
+  ['forward', 'runs'],
+  ['reverse', 'runs'],
+] as const)('two overlapping quiescence checks answered in %s order (%s) record their runs once', async ([order, kind]) => {
+  await spawn('w5', `@@overlap ${order} ${kind} ONE`);
   await until(
     () => readState(project, 'run1', 'w5').settles.length,
     (count) => count >= 1,
     10_000,
-    'the reversed run settles',
+    'the overlapping checks settle',
   );
   await parent.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w5', message: '@@say TWO' });
   const settles = await until(
@@ -108,4 +113,52 @@ test('a run settle and a recheck whose get_state answers arrive reversed record 
     'the steer settles',
   );
   expect(settles.map((settle) => settle.generation)).toEqual([1, 2]);
+});
+
+test('a quiescent get_state answered after a newer prompt was acknowledged never covers that prompt', async () => {
+  await spawn('w6', '@@stale ONE');
+  const session = join(workerDir(project, 'run1', 'w6'), 'session');
+  await until(() => existsSync(join(session, 'held')), Boolean, 10_000, 'the check after ONE is held');
+  await parent.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w6', message: '@@wait TWO' });
+  const [first] = await until(
+    () => readState(project, 'run1', 'w6').settles as { generation: number }[],
+    (current) => current.length > 0,
+    10_000,
+    'the held answer is handled',
+  );
+  expect(first?.generation).toBe(1);
+  expect(await collect('w6')).toMatchObject({ settled: false });
+
+  writeFileSync(join(session, 'release'), '');
+  const done = await until(
+    () => collect('w6'),
+    (result) => result.settled === true,
+    10_000,
+    'TWO settles',
+  );
+  expect(done.finalText).toBe('TWO');
+  expect(readState(project, 'run1', 'w6').settles.map((settle: { generation: number }) => settle.generation)).toEqual([1, 2]);
+});
+
+test('a prompt acknowledged after its run settled and that settle was checked still settles', async () => {
+  await spawn('w7', '@@late-ack ONE');
+  expect(
+    await until(
+      () => collect('w7'),
+      (result) => result.settled === true,
+      5_000,
+      'the late acknowledgement is covered',
+    ),
+  ).toMatchObject({ lastSettle: { generation: 1 }, finalText: 'ONE' });
+});
+
+test('a quiescent answer that arrives after its run started but before that run settled never records the run', async () => {
+  await spawn('w8', '@@error-window overloaded');
+  await until(
+    () => collect('w8'),
+    (result) => result.settled === true,
+    5_000,
+    'the failed run settles',
+  );
+  expect(readState(project, 'run1', 'w8').settles).toMatchObject([{ generation: 1, phase: 'failed', reason: 'overloaded' }]);
 });

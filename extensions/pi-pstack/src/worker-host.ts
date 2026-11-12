@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import {
   appendEvent,
   type Capabilities,
+  type ClaimIdentity,
   controlSocketPath,
   type HostPhase,
   type HostState,
@@ -20,6 +21,7 @@ import {
   launchEnvPath,
   loadAssignment,
   MAX_SETTLES,
+  processStartTime,
   readBrief,
   runRootOf,
   type SettlePhase,
@@ -56,6 +58,16 @@ const MINIMAL_ENV = ['PATH', 'HOME', 'LANG', 'TERM', 'TMPDIR', 'PI_CODING_AGENT_
 export const HOST_OPERATIONS = ['inspect', 'start', 'prompt', 'steer', 'follow-up', 'cancel', 'shutdown'] as const;
 export type HostOperation = (typeof HOST_OPERATIONS)[number];
 const TEXT_OPERATIONS: readonly HostOperation[] = ['prompt', 'steer', 'follow-up'];
+
+type Outcome = { phase: SettlePhase; reason: string | null };
+
+/** What the host had observed when it sent a quiescence check's get_state; the answer covers no more than this. */
+interface QuiescenceCheck {
+  acknowledged: number;
+  runs: number;
+  /** The outcome recorded when the answer finds acknowledged work uncovered but no unrecorded run. */
+  otherwise: Outcome;
+}
 
 export interface ControlRequest {
   id: string;
@@ -175,7 +187,10 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
  * same assignment fails here and never starts Pi.
  */
 function claim(loaded: LoadedAssignment, instance: string): void {
-  writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
+  const hostStarted = processStartTime(process.pid);
+  if (hostStarted === undefined) throw new Error(`Cannot read the start time of this host process ${process.pid}`);
+  const identity: ClaimIdentity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
+  writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify(identity)}\n`, { mode: 0o600, flag: 'wx' });
 }
 
 /**
@@ -231,21 +246,19 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let model: HostState['model'] = null;
   let sessionFile: string | null = null;
   let briefSent = false;
-  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. Both change only while
-  // handling a response record, in stdout order, so a settle sees exactly the acknowledgements that preceded it.
+  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged.
   let generation = 0;
   let acknowledged = 0;
   // Prompt request id to the generation it carries, until Pi answers it, even after its deadline.
   const unacknowledged = new Map<string, number>();
-  // get_state request id to the outcome its quiescence check records when no run's outcome is unrecorded. Like
-  // generations, runs (each agent_settled) are counted, and a settle covers every run that settled before it. A check
-  // records only when its answer finds a run or acknowledged work no settle covers yet, so overlapping checks
-  // answered in any order record each settle once.
-  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null }>();
+  // Pi handles RPC commands concurrently, so a get_state answer can arrive after records Pi emitted later than its
+  // snapshot. Each quiescence check keeps the acknowledged generation and the run count (each agent_settled) observed
+  // when it was sent, and its answer covers only those. A check records only when its answer finds a run or
+  // acknowledged work no settle covers yet, so overlapping checks answered in any order record each run once.
+  const quiescenceChecks = new Map<string, QuiescenceCheck>();
   let runs = 0;
   let recordedRuns = 0;
-  // The outcome of the latest agent_settled while no settle has recorded it, because Pi was not quiescent yet.
-  let unrecorded: { phase: SettlePhase; reason: string | null } | undefined;
+  let lastRun: Outcome | undefined;
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -292,7 +305,6 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
-    unrecorded = undefined;
     recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
@@ -380,9 +392,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       });
     });
   /** Asks Pi whether it is quiescent after a run settles or another quiescent transition; the response branch records the settle when it is. */
-  const checkQuiescence = (outcome: { phase: SettlePhase; reason: string | null }) => {
+  const checkQuiescence = (otherwise: Outcome) => {
     const id = nextRequestId();
-    quiescenceChecks.set(id, outcome);
+    quiescenceChecks.set(id, { acknowledged, runs, otherwise });
     request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
       quiescenceChecks.delete(id);
       if (!childExited && phase !== 'stopping') void fail(error);
@@ -485,9 +497,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
-      unrecorded = { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) };
+      lastRun = { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) };
       runs += 1;
-      checkQuiescence(unrecorded);
+      checkQuiescence(lastRun);
     } else if (type === 'compaction_end' || type === 'auto_retry_end') {
       // Either can end after the run's agent_settled found Pi busy; no other settle may follow.
       checkQuiescence({ phase: 'idle', reason: null });
@@ -502,17 +514,23 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         // A rejected prompt is no work. A handled one ran as a command and joins no run, so its settle comes from here.
         else if (generation === carried) generation -= 1;
         save();
+        // Every check in flight was sent before this acknowledgement, so none covers it. When no run is in progress,
+        // the run that carried it may already have settled, and only a new check can cover it.
         if (success && isRecord(data) && data['disposition'] === 'handled') checkQuiescence({ phase: 'handled', reason: null });
+        else if (success && phase === 'idle') checkQuiescence(lastRun ?? { phase: 'idle', reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
-        // Pi is quiescent: no run active and nothing queued, so every acknowledged prompt has run to this settle.
+        // Pi is quiescent: no run active and nothing queued, so the work observed when the check was sent has run.
         // Otherwise the settle covers nothing and the next one decides. A shutdown records its own single settle.
         const quiescent = success && isRecord(data) && data['isStreaming'] === false && data['pendingMessageCount'] === 0;
-        const outstanding = runs > recordedRuns || acknowledged > (settles.at(-1)?.generation ?? 0);
-        const outcome = unrecorded ?? check;
-        if (quiescent && phase !== 'stopping' && !isTerminal(phase) && outstanding) settle(outcome.phase, outcome.reason, acknowledged);
+        // A run that started or settled after the request went out may hold work this snapshot already counts as done,
+        // with an outcome the snapshot cannot know; that run's own check decides.
+        const current = runs === check.runs && phase !== 'running';
+        const uncovered = runs > recordedRuns || check.acknowledged > (settles.at(-1)?.generation ?? 0);
+        const outcome = runs > recordedRuns && lastRun !== undefined ? lastRun : check.otherwise;
+        if (quiescent && current && uncovered && phase !== 'stopping' && !isTerminal(phase)) settle(outcome.phase, outcome.reason, check.acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {

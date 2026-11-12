@@ -9,29 +9,36 @@ import type { RunId } from '../../src/run-files.ts';
 import { FAKE_PI, killTmuxServer, makeProject, makeRun, type Project, readState, stopProject, TMUX, transcript, until, workerTestEnv, writeAssignment } from '../worker-lifecycle/harness.ts';
 
 const KEY = 'ANTHROPIC_API_KEY';
+const SENTINEL = 'U04A7_NOT_A_CREDENTIAL';
 let project: Project;
-let saved: string | undefined;
+let saved: Record<string, string | undefined>;
 
 beforeEach(() => {
   project = makeProject();
   makeRun(project, 'auto1', null);
-  saved = process.env[KEY];
+  saved = { [KEY]: process.env[KEY], [SENTINEL]: process.env[SENTINEL] };
 });
 
 afterEach(async () => {
-  if (saved === undefined) delete process.env[KEY];
-  else process.env[KEY] = saved;
+  for (const [name, value] of Object.entries(saved)) {
+    if (value === undefined) delete process.env[name];
+    else process.env[name] = value;
+  }
   await stopProject(project);
 });
+
+const spawnAutomation = (brief: string) =>
+  spawnInTmux(project.dir, { tmuxSocket: TMUX, piCommand: [process.execPath, FAKE_PI], extraEnv: workerTestEnv(project), agentsDir: project.agentsDir })(
+    'auto1' as RunId,
+    writeAssignment(project, 'auto1', 'general', brief, { model: 'inherit-parent' }),
+  );
 
 afterAll(killTmuxServer);
 
 test("an automation worker on Pi's default model gets that provider's credential from the parent under env minimal", async () => {
   writeFileSync(join(project.agentDir, 'settings.json'), JSON.stringify({ defaultProvider: 'anthropic', defaultModel: 'claude-sonnet-5' }));
   process.env[KEY] = 'parent-only-credential';
-  const assignmentPath = writeAssignment(project, 'auto1', 'general', `@@env ${KEY}`, { model: 'inherit-parent' });
-
-  await spawnInTmux(project.dir, { tmuxSocket: TMUX, piCommand: [process.execPath, FAKE_PI], extraEnv: workerTestEnv(project), agentsDir: project.agentsDir })('auto1' as RunId, assignmentPath);
+  await spawnAutomation(`@@env ${KEY}`);
 
   await until(
     () => readState(project, 'auto1', 'general').settles.length,
@@ -41,4 +48,18 @@ test("an automation worker on Pi's default model gets that provider's credential
   );
   expect(readState(project, 'auto1', 'general')).toMatchObject({ phase: 'idle' });
   expect(transcript(project, 'auto1', 'general')).toEqual(['assistant:parent-only-credential']);
+});
+
+test('an automation worker whose default provider Pi picks itself gets every provider credential the parent has and no other variable under env minimal', async () => {
+  process.env[KEY] = 'parent-only-credential';
+  process.env[SENTINEL] = 'parent-only-value';
+  await spawnAutomation(`@@env-json ${KEY} ${SENTINEL}`);
+
+  await until(
+    () => readState(project, 'auto1', 'general').settles.length,
+    (count) => count > 0,
+    15_000,
+    'the automation worker settles',
+  );
+  expect(transcript(project, 'auto1', 'general')).toEqual([`assistant:${JSON.stringify({ [KEY]: 'parent-only-credential', [SENTINEL]: null })}`]);
 });

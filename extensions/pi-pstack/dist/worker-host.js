@@ -1,5 +1,5 @@
 // src/worker-host.ts
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
@@ -8,6 +8,7 @@ import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
 // src/run-files.ts
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -187,6 +188,21 @@ function loadAssignment(path) {
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var MAX_SETTLES = 1e4;
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
+function processStartTime(pid) {
+  if (process.platform === "linux") {
+    try {
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      return stat.slice(stat.lastIndexOf(")") + 2).split(" ")[19];
+    } catch {
+      return;
+    }
+  }
+  try {
+    return execFileSync("/bin/ps", ["-o", "lstart=", "-p", String(pid)], { encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).trim() || undefined;
+  } catch {
+    return;
+  }
+}
 var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
 
 // src/worker-host.ts
@@ -310,7 +326,11 @@ function piArgs(loaded, launch) {
   ];
 }
 function claim(loaded, instance) {
-  writeFileSync2(join2(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}
+  const hostStarted = processStartTime(process.pid);
+  if (hostStarted === undefined)
+    throw new Error(`Cannot read the start time of this host process ${process.pid}`);
+  const identity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
+  writeFileSync2(join2(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify(identity)}
 `, { mode: 384, flag: "wx" });
 }
 function prepareWorktree(loaded, inputCommit) {
@@ -320,7 +340,7 @@ function prepareWorktree(loaded, inputCommit) {
     throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
   const path = join2(loaded.workerDir, "worktree");
   const branch = `pstack-run/${runId}/${workerId}`;
-  const git = (...args) => execFileSync("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
+  const git = (...args) => execFileSync2("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
   if (lstatSync2(path, { throwIfNoEntry: false }) !== undefined)
     throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit;
@@ -367,7 +387,7 @@ async function runHost(assignmentFile, launchText) {
   const quiescenceChecks = new Map;
   let runs = 0;
   let recordedRuns = 0;
-  let unrecorded;
+  let lastRun;
   let settles = [];
   let childPid = null;
   let stderrTail = "";
@@ -413,7 +433,6 @@ async function runHost(assignmentFile, launchText) {
   const display = (kind, value) => process.stdout.write(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
 `);
   const settle = (settlePhase, why, covers = generation) => {
-    unrecorded = undefined;
     recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
@@ -501,9 +520,9 @@ async function runHost(assignmentFile, launchText) {
       reject(error);
     });
   });
-  const checkQuiescence = (outcome) => {
+  const checkQuiescence = (otherwise) => {
     const id = nextRequestId();
-    quiescenceChecks.set(id, outcome);
+    quiescenceChecks.set(id, { acknowledged, runs, otherwise });
     request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
       quiescenceChecks.delete(id);
       if (!childExited && phase !== "stopping")
@@ -616,9 +635,9 @@ async function runHost(assignmentFile, launchText) {
       const aborted = record["aborted"] === true;
       if (phase === "running")
         phase = "idle";
-      unrecorded = { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null };
+      lastRun = { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null };
       runs += 1;
-      checkQuiescence(unrecorded);
+      checkQuiescence(lastRun);
     } else if (type === "compaction_end" || type === "auto_retry_end") {
       checkQuiescence({ phase: "idle", reason: null });
     } else if (type === "response") {
@@ -635,15 +654,18 @@ async function runHost(assignmentFile, launchText) {
         save();
         if (success && isRecord2(data) && data["disposition"] === "handled")
           checkQuiescence({ phase: "handled", reason: null });
+        else if (success && phase === "idle")
+          checkQuiescence(lastRun ?? { phase: "idle", reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
-        const outstanding = runs > recordedRuns || acknowledged > (settles.at(-1)?.generation ?? 0);
-        const outcome = unrecorded ?? check;
-        if (quiescent && phase !== "stopping" && !isTerminal(phase) && outstanding)
-          settle(outcome.phase, outcome.reason, acknowledged);
+        const current = runs === check.runs && phase !== "running";
+        const uncovered = runs > recordedRuns || check.acknowledged > (settles.at(-1)?.generation ?? 0);
+        const outcome = runs > recordedRuns && lastRun !== undefined ? lastRun : check.otherwise;
+        if (quiescent && current && uncovered && phase !== "stopping" && !isTerminal(phase))
+          settle(outcome.phase, outcome.reason, check.acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {

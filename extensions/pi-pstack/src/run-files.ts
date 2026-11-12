@@ -327,6 +327,31 @@ export interface ClaimIdentity {
   digest: string;
   instance: string;
   hostPid: number;
+  /** processStartTime(hostPid) as the host read it, so a later process that reuses the pid is never taken for the host. */
+  hostStarted: string;
+}
+
+/**
+ * When the process with this pid started, as text that reads the same for the same process from any process, or
+ * undefined when no process has the pid. Linux: starttime (clock ticks after boot) from /proc/<pid>/stat. Elsewhere:
+ * `ps -o lstart=` in UTC under the C locale, to the second.
+ */
+export function processStartTime(pid: number): string | undefined {
+  if (process.platform === 'linux') {
+    try {
+      const stat = readFileSync(`/proc/${pid}/stat`, 'utf8');
+      // The command name, field 2, may contain spaces and parentheses; starttime is field 22.
+      return stat.slice(stat.lastIndexOf(')') + 2).split(' ')[19];
+    } catch {
+      return undefined;
+    }
+  }
+  try {
+    return execFileSync('/bin/ps', ['-o', 'lstart=', '-p', String(pid)], { encoding: 'utf8', env: { LC_ALL: 'C', TZ: 'UTC' }, stdio: ['ignore', 'pipe', 'ignore'], timeout: 5_000 }).trim() || undefined;
+  } catch {
+    // ps exits non-zero when no process has the pid.
+    return undefined;
+  }
 }
 
 /**
@@ -369,6 +394,6 @@ export function readClaim(workerDir: string): ClaimIdentity | undefined {
   const path = join(workerDir, 'claim', 'identity.json');
   if (!existsSync(path)) return undefined;
   const raw = readJson(path);
-  if (!isRecord(raw) || typeof raw['instance'] !== 'string') throw new Error(`${path}: malformed claim`);
+  if (!isRecord(raw) || typeof raw['instance'] !== 'string' || typeof raw['hostStarted'] !== 'string') throw new Error(`${path}: malformed claim`);
   return raw as unknown as ClaimIdentity;
 }
