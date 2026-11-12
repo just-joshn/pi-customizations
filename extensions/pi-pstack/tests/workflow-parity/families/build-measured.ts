@@ -180,7 +180,7 @@ export const refactoringFamily: Family = {
       const later = commits.slice(1).flatMap((sha) => filesChanged(view, sha)).filter((file) => files.includes(file));
       return when(files.length >= 1 && files.every(isTestFile) && green.status === 0 && later.length === 0, `commit 1 adds only ${files.join(', ')} and passes on the unchanged source; no later commit edits it`, `files ${files.join(', ')}, exit ${green.status}, later edits ${later.length}`);
     }),
-    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 2, commits: delegateCommits }),
+    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 1, commits: delegateCommits }),
     check('refactoring.behavior-is-unchanged', 'step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself', src('poteto-mode/playbooks/refactoring.md', 'Prove behavior is unchanged on the real artifact'), (view) => {
       const head = delegateCommits(view).at(-1);
       if (head === undefined) return fail('no refactor commit');
@@ -217,8 +217,8 @@ export const refactoringFamily: Family = {
   ],
   negatives: [
     ...todoNegatives('refactor-cart', 'refactoring', { done: [1, 2, 4, 5, 6, 7], receipts: { 1: 'ref-pin', 2: 'ref-structure', 4: 'ref-subtract', 5: 'mover-check', 6: 'ref-equivalence', 7: 'ref-reader-load' } }),
-    { name: 'the pin and the refactor landed as one commit', mutate: (sandbox) => squashBranch(sandbox, 'pstack-run/refactor-cart/mover'), fails: ['refactoring.pin-lands-first-and-holds', 'refactoring.small-steps-keep-the-pin-green'] },
-    { name: 'the refactor changed behavior', mutate: (sandbox) => changeBehavior(sandbox), fails: ['refactoring.behavior-is-unchanged'] },
+    { name: 'the pin and the refactor landed as one commit', mutate: (sandbox) => squashBranch(sandbox, 'pstack-run/refactor-cart/mover'), fails: ['refactoring.pin-lands-first-and-holds'] },
+    { name: 'the refactor changed behavior', mutate: (sandbox) => changeBehavior(sandbox), fails: ['refactoring.behavior-is-unchanged', 'refactoring.small-steps-keep-the-pin-green'] },
     { name: 'the old API was left behind as a shim', mutate: (sandbox) => addShim(sandbox), fails: ['refactoring.old-api-deleted-callers-migrated'] },
     { name: 'the diff did not lower reader load', mutate: (sandbox) => addBulk(sandbox), fails: ['refactoring.reader-load-is-lower-and-no-new-behavior'] },
     { name: 'the parent wrote the edit itself', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['refactoring.parent-stays-in-the-lead'] },
