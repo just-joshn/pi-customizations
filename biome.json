@@ -31,7 +31,6 @@
       "!!parity/requirements.json",
       "!!parity/source-lock.json",
       "!!parity/scenarios",
-      "!!extensions/pi-pstack/skills",
       "!!extensions/pi-pstack/vendor",
       "!!extensions/pi-pstack/generated",
       "!!extensions/pi-pstack/automations",

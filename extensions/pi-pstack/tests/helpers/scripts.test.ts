@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -15,9 +15,12 @@ afterEach(() => rmSync(scratch, { recursive: true, force: true }));
 
 describe('bundled scripts run from the package (SCRIPT-001)', () => {
   test("the scripts' own test script (watch-pr, check-plan) passes once the CLIs' bootstrap has installed their dependencies", () => {
-    const bootstrap = spawnSync('bun', ['-e', "(await import('./bootstrap.ts')).ensureDependenciesInstalled()"], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
+    // A copy, so the bootstrap's node_modules never lands in generated/ and changes what build-helpers bundles.
+    const copy = join(scratch, 'scripts');
+    cpSync(SCRIPTS, copy, { recursive: true, filter: (source) => !source.includes('/node_modules') });
+    const bootstrap = spawnSync('bun', ['-e', "(await import('./bootstrap.ts')).ensureDependenciesInstalled()"], { cwd: copy, encoding: 'utf8', timeout: 120_000 });
     expect(bootstrap.status).toBe(0);
-    const result = spawnSync('bun', ['run', 'test'], { cwd: SCRIPTS, encoding: 'utf8', timeout: 120_000 });
+    const result = spawnSync('bun', ['run', 'test'], { cwd: copy, encoding: 'utf8', timeout: 120_000 });
     expect(result.stderr).toMatch(/\n 61 pass\n 0 fail\n/);
     expect(result.status).toBe(0);
   });

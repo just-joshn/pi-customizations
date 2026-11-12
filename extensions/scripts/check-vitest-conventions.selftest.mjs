@@ -163,7 +163,7 @@ try {
   await mkdir(join(workspace, 'bad-extension/upstream'));
   await writeFile(join(workspace, 'bad-extension/upstream/snapshot.test.ts'), noAssertion);
   assert.equal((await testFiles(workspace)).length, discoveredNames.length + 1, 'audit discovered tests inside reference snapshots');
-  for (const directory of ['pi-pstack/skills/poteto-mode/scripts']) {
+  for (const directory of ['pi-pstack/generated/skills/poteto-mode/scripts', 'pi-pstack/vendor/upstream-pstack/skills/statechart/scripts/test']) {
     await mkdir(join(workspace, directory), { recursive: true });
     await writeFile(join(workspace, directory, 'contract.test.ts'), noAssertion);
   }
