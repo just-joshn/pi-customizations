@@ -7009,6 +7009,7 @@ import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as jo
 import { promisify } from "node:util";
 import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
+import { getBuiltinProviders } from "@earendil-works/pi-ai/providers/all";
 import { Type as Type3 } from "typebox";
 
 // src/evidence.ts
@@ -8088,6 +8089,8 @@ var AMBIENT_CREDENTIALS = {
   "google-vertex": ["GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_CLOUD_PROJECT", "GCLOUD_PROJECT", "GOOGLE_CLOUD_LOCATION"]
 };
 function credentialEnv(provider) {
+  if (provider === undefined)
+    return [...new Set(getBuiltinProviders().flatMap(credentialEnv))];
   return [...findEnvKeys(provider) ?? [], ...AMBIENT_CREDENTIALS[provider] ?? []];
 }
 function defaultProvider(env) {
@@ -8195,7 +8198,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: provider === undefined ? [] : credentialEnv(provider)
+    credentialEnv: assignment.kind === "pi" ? credentialEnv(provider) : []
   };
   const launchEnv = {
     ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),

@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 
 import { StringEnum } from '@earendil-works/pi-ai';
 import { findEnvKeys } from '@earendil-works/pi-ai/compat';
+import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { registerEvidenceTool } from './evidence.ts';
@@ -227,10 +228,12 @@ const AMBIENT_CREDENTIALS: Record<string, string[]> = {
 };
 
 /**
- * The environment variables that carry the provider's credentials, so a minimal worker environment keeps them.
+ * The environment variables that carry the provider's credentials, so a minimal worker environment keeps them. With no
+ * provider, Pi picks one itself, so every known provider's variables are kept.
  * Credentials from /login live in auth.json under PI_CODING_AGENT_DIR (or HOME's ~/.pi/agent), which env 'minimal' keeps.
  */
-function credentialEnv(provider: string): string[] {
+function credentialEnv(provider: string | undefined): string[] {
+  if (provider === undefined) return [...new Set(getBuiltinProviders().flatMap(credentialEnv))];
   return [...(findEnvKeys(provider) ?? []), ...(AMBIENT_CREDENTIALS[provider] ?? [])];
 }
 
@@ -414,7 +417,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: provider === undefined ? [] : credentialEnv(provider),
+    credentialEnv: assignment.kind === 'pi' ? credentialEnv(provider) : [],
   };
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
   const launchEnv = {
