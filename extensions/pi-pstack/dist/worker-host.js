@@ -69,7 +69,8 @@ var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT
 var CONTAINER_HOME = "/tmp/pstack-home";
 var CONTAINER_WORKSPACE = "/tmp/workspace";
 var READY_RECORD = "pstack_container_ready";
-var hostOnlyEnv = (name) => ["PATH", "HOME", "TMPDIR", "PWD", "OLDPWD", "SHELL", "USER", "LOGNAME", "HOSTNAME", "TMUX", "TMUX_PANE", "PI_CODING_AGENT_DIR"].includes(name) || /^(DOCKER|XDG|SSH)_/.test(name);
+var isTmuxIdentityEnv = (name) => name === "TMUX" || name === "TMUX_PANE";
+var hostOnlyEnv = (name) => ["PATH", "HOME", "TMPDIR", "PWD", "OLDPWD", "SHELL", "USER", "LOGNAME", "HOSTNAME", "PI_CODING_AGENT_DIR"].includes(name) || isTmuxIdentityEnv(name) || /^(DOCKER|XDG|SSH)_/.test(name);
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var MOUNT_PATH = /^\/[^\0\n,]*$/;
 function parseContainerPlan(raw) {
@@ -450,7 +451,7 @@ function parseLaunch(text) {
 }
 function launchEnvironment(mode, credentialEnv, source) {
   if (mode === "inherit")
-    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined));
+    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
   const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
@@ -673,7 +674,8 @@ async function runHost(assignmentFile, launchText) {
     }
   }
   const readonly = assignment.kind === "pi" && assignment.workspace.mode === "readonly";
-  const piEnv = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
+  const ownPane = Object.fromEntries(Object.entries(process.env).filter((entry) => entry[1] !== undefined && isTmuxIdentityEnv(entry[0])));
+  const piEnv = { ...workerEnv(loaded, launch, launchEnv), ...ownPane, PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
   const { container } = launch;
   const dockerEnv = clientEnv(launchEnv);
   const piCommand = [...launch.piCommand, ...piArgs(loaded, launch)];

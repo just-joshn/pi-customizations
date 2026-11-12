@@ -4115,6 +4115,7 @@ var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT
 var CONTAINER_WORKSPACE = "/tmp/workspace";
 var CONTAINER_PI_ROOT = "/opt/pstack/pi/node_modules";
 var READY_RECORD = "pstack_container_ready";
+var isTmuxIdentityEnv = (name) => name === "TMUX" || name === "TMUX_PANE";
 class ContainerUnavailableError extends Error {
   constructor(reason) {
     super(`ContainerUnavailable: ${reason}`);
@@ -7691,7 +7692,7 @@ var CONTAINER_START_MS = 30 * 60000;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
 function launchEnvironment(mode, credentialEnv, source) {
   if (mode === "inherit")
-    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined));
+    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
   const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }

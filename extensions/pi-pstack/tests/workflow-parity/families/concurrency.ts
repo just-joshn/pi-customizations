@@ -109,7 +109,6 @@ export const concurrencyFamily: Family = {
     }),
     settledAndCollected('worker-concurrency.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
-  knownDefects: [{ checkId: 'worker-concurrency.workers-get-their-own-pane-env', defect: 'src/workers.ts:520-526 builds the worker environment from the parent snapshot (launchEnvironment), which carries the parent\'s TMUX and TMUX_PANE over the values tmux gives the worker pane; only container workers drop them (src/container.ts:49 hostOnlyEnv). A host worker that runs a bare tmux command targets its parent\'s pane.' }],
   negatives: [
     { name: 'two workers share one tmux session', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-b/state.json'), (text) => text.replace(/"tmuxSession": "[^"]+"/, `"tmuxSession": "${/"tmuxSession": "([^"]+)"/.exec(readFileSync(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-a/state.json'), 'utf8'))?.[1]}"`)), fails: ['worker-concurrency.distinct-sessions-and-panes'] },
     { name: 'a worker ran inside another worker\'s worktree', mutate: (sandbox) => setSessionCwd(workerSessionFile(sandbox, RUN, 'worker-b'), join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-a/worktree')), fails: ['worker-concurrency.distinct-worktrees-and-branches'] },

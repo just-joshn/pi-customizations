@@ -9,17 +9,18 @@ import { FAKE_PI, makeParent, makeProject, makeRun, type Parent, type Project, s
 
 const socket = `pstack-test-env-${randomBytes(4).toString('hex')}`;
 const names = ['HOME', 'PATH', 'AWS_SESSION_TOKEN', 'U04A_REMOVED', 'U04A_ADDED'] as const;
+const saveNames = [...names, 'TMUX', 'TMUX_PANE'] as const;
 let project: Project;
 let saved: Record<string, string | undefined>;
 
 beforeEach(() => {
   project = makeProject();
   makeRun(project, 'run1');
-  saved = Object.fromEntries(names.map((name) => [name, process.env[name]]));
+  saved = Object.fromEntries(saveNames.map((name) => [name, process.env[name]]));
 });
 
 afterEach(async () => {
-  for (const name of names) {
+  for (const name of saveNames) {
     if (saved[name] === undefined) delete process.env[name];
     else process.env[name] = saved[name];
   }
@@ -63,6 +64,23 @@ test('variables changed or unset in the parent after the tmux server started are
     expect(await collectJson(owner, 'i1')).toEqual({ HOME: home, PATH: path, AWS_SESSION_TOKEN: null, U04A_REMOVED: null, U04A_ADDED: 'added-later' });
   } finally {
     for (const workerId of ['m1', 'i1']) await owner.call('pstack_worker', { action: 'abort', runId: 'run1', workerId }).catch(() => undefined);
+    await owner.stop();
+  }
+});
+
+test("a worker's TMUX_PANE is its own pane, not the pane its parent runs in", async () => {
+  process.env['TMUX'] = '/tmp/parent-tmux,1,0';
+  process.env['TMUX_PANE'] = '%987654';
+  const owner = makeParent(project, [], { tmuxSocket: socket, piCommand: [process.execPath, FAKE_PI], extraEnv: {}, resolveModel: () => ({ provider: 'amazon-bedrock', id: 'fake', thinkingLevel: null }) });
+  await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'p1', '@@env-json TMUX TMUX_PANE') });
+  try {
+    const seen = await collectJson(owner, 'p1');
+    const panes = execFileSync('tmux', ['-L', socket, 'list-panes', '-a', '-F', '#{pane_id}'], { encoding: 'utf8' }).split('\n');
+    expect(seen.TMUX_PANE).not.toBe('%987654');
+    expect(seen.TMUX).not.toBe('/tmp/parent-tmux,1,0');
+    expect(panes).toContain(seen.TMUX_PANE);
+  } finally {
+    await owner.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'p1' }).catch(() => undefined);
     await owner.stop();
   }
 });

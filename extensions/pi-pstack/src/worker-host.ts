@@ -16,6 +16,7 @@ import {
   containerPreamble,
   containerRunArgs,
   hostOnlyEnv,
+  isTmuxIdentityEnv,
   outDirOf,
   parseContainerPlan,
   READY_RECORD,
@@ -137,7 +138,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
  * environment the tmux server started with.
  */
 export function launchEnvironment(mode: Capabilities['env'], credentialEnv: readonly string[], source: Record<string, string | undefined>): Record<string, string | null> {
-  if (mode === 'inherit') return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  if (mode === 'inherit') return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
   const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith('PSTACK_'))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
@@ -375,7 +376,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   }
   const readonly = assignment.kind === 'pi' && assignment.workspace.mode === 'readonly';
-  const piEnv = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
+  // tmux gave this host its pane's identity; the parent's snapshot has the parent's, so the worker inherits the host's.
+  const ownPane = Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined && isTmuxIdentityEnv(entry[0])));
+  const piEnv = { ...workerEnv(loaded, launch, launchEnv), ...ownPane, PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
   const { container } = launch;
   // Pi's environment goes into the container over stdin. The docker client gets only what reaches the engine.
   const dockerEnv = clientEnv(launchEnv);

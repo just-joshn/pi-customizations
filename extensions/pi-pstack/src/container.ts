@@ -45,8 +45,11 @@ export const CONTAINER_PI_ROOT = '/opt/pstack/pi/node_modules';
 /** The first stdout record of a container worker: the clone and install are done and Pi starts next. */
 export const READY_RECORD = 'pstack_container_ready';
 
+/** The variables tmux sets for the pane a process runs in. A snapshot of the parent's would override the worker pane's own. */
+export const isTmuxIdentityEnv = (name: string): boolean => name === 'TMUX' || name === 'TMUX_PANE';
+
 /** Names the container must not inherit from the host: they describe the host's own filesystem, shell, and engine. */
-export const hostOnlyEnv = (name: string): boolean => ['PATH', 'HOME', 'TMPDIR', 'PWD', 'OLDPWD', 'SHELL', 'USER', 'LOGNAME', 'HOSTNAME', 'TMUX', 'TMUX_PANE', 'PI_CODING_AGENT_DIR'].includes(name) || /^(DOCKER|XDG|SSH)_/.test(name);
+export const hostOnlyEnv = (name: string): boolean => ['PATH', 'HOME', 'TMPDIR', 'PWD', 'OLDPWD', 'SHELL', 'USER', 'LOGNAME', 'HOSTNAME', 'PI_CODING_AGENT_DIR'].includes(name) || isTmuxIdentityEnv(name) || /^(DOCKER|XDG|SSH)_/.test(name);
 
 export class ContainerUnavailableError extends Error {
   constructor(reason: string) {
