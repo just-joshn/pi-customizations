@@ -7,9 +7,10 @@ import { opsFamilies } from './ops.ts';
 import { verificationFamilies } from './verification.ts';
 import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
+import { babysitFamilies } from './pr-babysit.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies];
+export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...babysitFamilies];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);

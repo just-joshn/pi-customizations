@@ -57,6 +57,8 @@ export interface RunSpec {
   prepare?: (ctx: Ctx) => void;
   /** Removes anything the run left outside the sandbox. */
   cleanup?: (ctx: Ctx) => void;
+  /** Extra environment for the Pi process, applied last: a fake forge on PATH, a container engine, a scenario a container can read. */
+  env?: (ctx: Ctx, driver: 'scripted' | 'real') => Record<string, string>;
   timeoutMs?: number;
 }
 
@@ -269,6 +271,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   for (const name of Object.keys(env).filter((key) => key.startsWith('PSTACK_') && key !== 'PSTACK_TMUX_SOCKET')) delete env[name];
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
+  Object.assign(env, spec.env?.(ctx, driver));
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
   const child = spawn(PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
   const rpc = new Rpc(child);
