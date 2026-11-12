@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 const node = process.env['PSTACK_HELPER_NODE'] ?? process.execPath;
 const npmBin = realpathSync(spawnSync('/bin/sh', ['-c', 'command -v npm'], { encoding: 'utf8' }).stdout.trim());
 const npm = npmBin.endsWith('.js') ? npmBin : join(dirname(node), '../lib/node_modules/npm/bin/npm-cli.js');
-const peers = ['@earendil-works/pi-ai', '@earendil-works/pi-agent-core', '@earendil-works/pi-coding-agent', '@earendil-works/pi-tui', 'typebox'];
+const peers = ['@earendil-works/pi-ai', '@earendil-works/pi-coding-agent', 'typebox'];
 const artifacts = ['dist/supervisor-main.js', 'dist/release-machine.js', 'skills/statechart/scripts/statechart.js', 'skills/statechart/scripts/worker.js'];
 const receipts = process.env['PSTACK_HELPER_RECEIPTS'];
 // Node alone on PATH: Homebrew and /usr/local install Bun beside Node, and the consumer must not see it.
@@ -125,7 +125,7 @@ async function supervisor(command: string, prefix: string[], cwd: string, env: N
   expect(existsSync(lockFile)).toBe(false);
 }
 
-test('the consumer installs all production dependencies with exactly the five host peers omitted', () => {
+test('the consumer installs all production dependencies with exactly the host peers omitted', () => {
   for (const peer of peers) expect(existsSync(join(installation, 'node_modules', peer)), peer).toBe(false);
   const listing = run(node, [npm, 'ls', '--omit=dev', '--all', '--json'], installation, environment(installation));
   const tree = JSON.parse(listing.stdout) as { problems?: string[] };
@@ -184,7 +184,7 @@ test('the installed supervisor launches a local fire with its relocated package 
   );
   await supervisor(join(installation, 'node_modules/.bin/pstack-routines-supervisor'), [], cwd, { ...env, PI_PSTACK_PI_COMMAND: JSON.stringify([node, fakePi]), FIXTURE_ARGS: received }, state, signal, async () => {
     await expect.poll(() => existsSync(received), { timeout: 5_000 }).toBe(true);
-    expect(JSON.parse(readFileSync(received, 'utf8'))).toEqual(['--mode', 'json', '-e', installed, '-p', '--', 'fixture prompt']);
+    expect(JSON.parse(readFileSync(received, 'utf8'))).toEqual(['--mode', 'json', '-e', join(installed, 'src', 'index.ts'), '--skill', join(installed, 'skills'), '-p', '--', 'fixture prompt']);
     await expect.poll(() => (JSON.parse(readFileSync(registryFile, 'utf8')) as DurableRegistry).subscriptions[0]?.lastOutcome?.text).toBe('fixture complete');
   });
 });
@@ -329,7 +329,7 @@ test('source installs contain the same ready-to-run helpers without consumer bui
     expect(readFileSync(join(root, artifact))).toEqual(readFileSync(join(installed, artifact)));
   }
   for (const lifecycle of ['preinstall', 'install', 'postinstall', 'prepare']) expect(manifest.scripts[lifecycle]).toBeUndefined();
-  expect(manifest.pi.extensions).toEqual(['./src/index.ts']);
+  expect(manifest.pi.extensions).toEqual(['./src/extension.ts']);
   mkdirSync(source);
   cpSync(join(root, 'package.json'), join(source, 'package.json'));
   for (const entry of manifest.files) cpSync(join(root, entry), join(source, entry), { recursive: true, filter: (path) => basename(path) !== 'node_modules' });

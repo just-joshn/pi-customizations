@@ -15,16 +15,17 @@
       "./extensions/pi-anthropic-oauth/src/index.ts",
       "./extensions/pi-antigravity-oauth/src/index.ts",
       "./extensions/pi-maintainer/src/index.ts",
-      "./extensions/pi-pstack/src/index.ts",
+      "./extensions/pi-pstack/src/extension.ts",
       "./extensions/pi-rea/src/index.ts",
       "./extensions/pi-x-subscription-oauth/src/index.ts"
     ],
     "skills": [
-      "./extensions/pi-pstack/skills",
+      "./extensions/pi-pstack/generated/skills",
       "./extensions/pi-rea/skills",
       "./skills"
     ],
     "prompts": [
+      "./extensions/pi-pstack/generated/prompts",
       "./extensions/pi-rea/prompts"
     ]
   },

@@ -4,7 +4,8 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { PACKAGE_ROOT } from '../../src/paths.ts';
+import { PACKAGE_ROOT, SKILLS_DIR } from '../../src/paths.ts';
+import { LEGACY_ENTRY } from '../../src/task/runner.ts';
 
 const PI_CLI = join(PACKAGE_ROOT, 'node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js');
 const SCRIPTED_MODEL = join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts');
@@ -38,7 +39,10 @@ export function makeSandbox(settings: Record<string, unknown> = {}): Sandbox {
   const workDir = join(root, 'work');
   mkdirSync(agentDir);
   mkdirSync(workDir);
-  writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ packages: [PACKAGE_ROOT], extensions: [SCRIPTED_MODEL], quietStartup: true, ...settings }));
+  // The package manifest names the native runtime; these tests exercise the old one, so they load it by path.
+  const { extensions = [SCRIPTED_MODEL], ...rest } = settings as { extensions?: string[] };
+  const runtime = 'packages' in settings ? { extensions } : { extensions: [LEGACY_ENTRY, ...extensions], skills: [SKILLS_DIR] };
+  writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ ...runtime, quietStartup: true, ...rest }));
   // HOME moves too, so user-level resources such as ~/.agents/skills stay out of the run.
   // Cloud agents use the worktree driver unless a test asks for a container machine, so the suite needs no container engine.
   const env = { ...process.env, HOME: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_CLOUD_DRIVER: 'worktree' } as Record<string, string>;

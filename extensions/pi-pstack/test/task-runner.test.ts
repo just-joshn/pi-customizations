@@ -31,7 +31,7 @@ describe('usage cost provenance', () => {
 
 describe('childArgs (SEC-001, TASK-008)', () => {
   test('always runs one RPC session per agent ID with this package loaded, so its owner can stop it (C-H4)', () => {
-    expect(childArgs(base)).toEqual(['--mode', 'rpc', '--session-dir', '/state/subagents', '--session-id', base.agentId, '-e', PACKAGE_ROOT]);
+    expect(childArgs(base)).toEqual(['--mode', 'rpc', '--session-dir', '/state/subagents', '--session-id', base.agentId, '-e', join(PACKAGE_ROOT, 'src/index.ts'), '--skill', join(PACKAGE_ROOT, 'skills')]);
   });
 
   test('adds trust, model, thinking, and readonly tools in that order', () => {
@@ -43,7 +43,9 @@ describe('childArgs (SEC-001, TASK-008)', () => {
       '--session-id',
       base.agentId,
       '-e',
-      PACKAGE_ROOT,
+      join(PACKAGE_ROOT, 'src/index.ts'),
+      '--skill',
+      join(PACKAGE_ROOT, 'skills'),
       '--approve',
       '--model',
       'p/m',

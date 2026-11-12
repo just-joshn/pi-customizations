@@ -2154,7 +2154,7 @@ function runPi(prompt, name, meta, cwd, env) {
       reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): no pi command`));
       return;
     }
-    const child = spawn(executable, [...prefix, "--mode", "json", "-e", PACKAGE_ROOT, ...freshArgs(meta), prompt], {
+    const child = spawn(executable, [...prefix, "--mode", "json", "-e", join13(PACKAGE_ROOT, "src", "index.ts"), "--skill", SKILLS_DIR, ...freshArgs(meta), prompt], {
       cwd,
       env: { ...env, PI_CODING_AGENT_DIR: resolve4(stateDir(), "..") },
       stdio: ["ignore", "pipe", "pipe"]

@@ -6,7 +6,7 @@ import { StringDecoder } from 'node:string_decoder';
 
 import { MACHINE_ENV } from '../child-env.ts';
 import { type Machine, machinePreface, provisionMachine, releaseMachine, selectDriver } from '../cloud/machine.ts';
-import { machinesDir, PACKAGE_ROOT, projectsDir, stateDir, subagentDir, worktreesDir } from '../paths.ts';
+import { machinesDir, PACKAGE_ROOT, projectsDir, SKILLS_DIR, stateDir, subagentDir, worktreesDir } from '../paths.ts';
 import { addWorktree, planWorktree } from '../task/worktree.ts';
 import { memoryDir } from './memories.ts';
 import { createSupervisor, type FreshMeta } from './supervisor.ts';
@@ -92,7 +92,7 @@ function runPi(prompt: string, name: string, meta: FreshMeta, cwd: string, env: 
       reject(new Error(`Could not spawn fire for "${name}" (${meta.subscriptionId}): no pi command`));
       return;
     }
-    const child = spawn(executable, [...prefix, '--mode', 'json', '-e', PACKAGE_ROOT, ...freshArgs(meta), prompt], {
+    const child = spawn(executable, [...prefix, '--mode', 'json', '-e', join(PACKAGE_ROOT, 'src', 'index.ts'), '--skill', SKILLS_DIR, ...freshArgs(meta), prompt], {
       cwd,
       env: { ...env, PI_CODING_AGENT_DIR: resolve(stateDir(), '..') },
       stdio: ['ignore', 'pipe', 'pipe'],
