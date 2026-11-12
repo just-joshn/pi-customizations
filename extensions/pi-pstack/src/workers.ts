@@ -344,12 +344,13 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
   const startupMs = options.startupMs ?? 30_000;
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
-  const runRoot = runRootOf(realpathSync(project), runId);
+  const root = realpathSync(project);
+  const runRoot = runRootOf(root, runId);
   const loaded = loadAssignment(assignmentPath);
   const assignment: Assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
   if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
-  const session = tmuxSessionName(realpathSync(project), runId, assignment.workerId);
+  const session = tmuxSessionName(root, runId, assignment.workerId);
   let model: ResolvedModel | null = null;
   let roleDoc: string | null = null;
   if (assignment.kind === 'pi') {

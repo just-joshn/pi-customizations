@@ -1,6 +1,7 @@
 // A worker's environment is the parent's at spawn time, never the tmux server's from when the server started.
 import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, expect, test } from 'vitest';
@@ -27,6 +28,7 @@ afterEach(async () => {
   } catch {
     // Already gone.
   }
+  rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   await stopProject(project);
 });
 
