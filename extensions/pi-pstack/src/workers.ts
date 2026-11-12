@@ -20,6 +20,7 @@ import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rp
 import {
   type Assignment,
   appendEvent,
+  type Capabilities,
   type ClaimIdentity,
   formatTmuxIdentity,
   ensureRunStateIgnored,
