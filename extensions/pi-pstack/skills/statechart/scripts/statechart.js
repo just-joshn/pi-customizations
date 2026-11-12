@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-// skills/statechart/scripts/statechart.ts
+// generated/skills/statechart/scripts/statechart.ts
 import { spawn as spawn2 } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 
-// skills/statechart/scripts/run.ts
+// generated/skills/statechart/scripts/run.ts
 import { execFile, spawn } from "node:child_process";
 import { inspect } from "node:util";
 
-// skills/statechart/scripts/ir.ts
+// generated/skills/statechart/scripts/ir.ts
 var EC = {
   TLC_INVARIANT_VIOLATED_INITIAL: 2107,
   TLC_PROPERTY_VIOLATED_INITIAL: 2108,
@@ -36,7 +36,7 @@ var PART = 1 << 24;
 var keys = new WeakMap;
 var CHECK_DEADLOCK = "CHECK_DEADLOCK";
 
-// skills/statechart/scripts/backends/plain-text.ts
+// generated/skills/statechart/scripts/backends/plain-text.ts
 var PREFIX = {
   [LEVEL.ERROR]: "Error: ",
   [LEVEL.TLCBUG]: "TLC Bug: ",
@@ -44,7 +44,7 @@ var PREFIX = {
   [LEVEL.STATE]: "State "
 };
 
-// skills/statechart/scripts/frontends/config.ts
+// generated/skills/statechart/scripts/frontends/config.ts
 var SECTIONS = new Map;
 for (const section of [
   { key: "CONSTANT", plural: "CONSTANTS" },
@@ -71,7 +71,7 @@ for (const section of [
     SECTIONS.set(section.plural, section);
 }
 
-// skills/statechart/scripts/frontends/value.ts
+// generated/skills/statechart/scripts/frontends/value.ts
 var BRACKET = new Int8Array(128);
 for (const c of "<{[(")
   BRACKET[c.charCodeAt(0)] = 1;
@@ -87,7 +87,7 @@ var PUNCT = new Map([
 ]);
 var models = new Map;
 
-// skills/statechart/scripts/frontends/verdict.ts
+// generated/skills/statechart/scripts/frontends/verdict.ts
 var NAMED = new Map([
   [EC.TLC_INVARIANT_VIOLATED_INITIAL, ["invariant", /^Invariant (.+) is violated by the initial/]],
   [EC.TLC_INVARIANT_VIOLATED_BEHAVIOR, ["invariant", /^Invariant (.+) is violated\.$/m]],
@@ -100,12 +100,12 @@ var DISTINCT = new Map([
   [EC.TLC_STATS, /(\d+) distinct states found/]
 ]);
 
-// skills/statechart/scripts/run.ts
+// generated/skills/statechart/scripts/run.ts
 var killGroup = (pid) => new Promise((resolve) => spawn("/bin/sh", ["-c", 'kill -s KILL -- "-$1"', "sh", String(pid)], { stdio: "ignore" }).on("exit", resolve));
 var messageOf = (error) => typeof error === "object" && error !== null && ("message" in error) && typeof error.message === "string" ? error.message : inspect(error);
 var utf8 = new TextDecoder("utf-8", { ignoreBOM: true });
 
-// skills/statechart/scripts/statechart.ts
+// generated/skills/statechart/scripts/statechart.ts
 var USAGE = `Usage: statechart SPEC.tla [--config FILE] [--view FILE] [--out DIR]
 
 Checks SPEC.tla with TLC and draws its state graph as Mermaid. Above 500 states, the chart
@@ -184,10 +184,10 @@ try {
       "--allow-write",
       "--allow-run",
       "--allow-env"
-    ] : process.versions.bun ? process.execArgv : [...process.execArgv, "--single-threaded"];
+    ] : process.execArgv;
     const worker = spawn2(process.execPath, [
       ...runtime,
-      path.join(import.meta.dirname, "worker.js"),
+      path.join(import.meta.dirname, import.meta.url.endsWith(".js") ? "worker.js" : "worker.ts"),
       stage,
       specFile,
       configFile,

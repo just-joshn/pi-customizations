@@ -232,6 +232,31 @@ function rule(id: string, primitives: PrimitiveId | PrimitiveId[], files: string
 }
 
 export const RULES: readonly Rule[] = [
+  rule('statechart.bundled-worker', 'cursor-path', SK('statechart/scripts/statechart.ts'),
+    'path.join(import.meta.dirname, "worker.ts"),',
+    'path.join(import.meta.dirname, import.meta.url.endsWith(".js") ? "worker.js" : "worker.ts"),',
+  ),
+  rule('statechart.preinstalled-renderers', 'cursor-path', SK('statechart/scripts/test/render.test.ts'),
+    "const cache = path.join(\n  process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), \".cache\"),\n  \"statechart\",\n);\nconst install = (name: string, ...packages: string[]) => {\n  const dir = path.join(cache, name);\n  execFileSync(\n    \"npm\",\n    [\"install\", \"--prefix\", dir, \"--no-audit\", \"--no-fund\", \"--save-exact\", ...packages],\n    { stdio: [\"ignore\", \"pipe\", \"pipe\"] },\n  );\n  return createRequire(path.join(dir, \"package.json\"));\n};\n",
+    'const install = (_name: string, ..._packages: string[]) => createRequire(import.meta.url);\n',
+  ),
+  rule('statechart.no-renderer-child-process', 'cursor-path', SK('statechart/scripts/test/render.test.ts'),
+    'import { execFileSync } from "node:child_process";\n', '',
+  ),
+  rule('statechart.no-renderer-cache-home', 'cursor-path', SK('statechart/scripts/test/render.test.ts'),
+    'import os from "node:os";\n', '',
+  ),
+  rule(
+    'watch-pr.installed-launcher',
+    'cursor-path',
+    SC('watch-pr/watch-pr'),
+    '#!/usr/bin/env bun\nimport { ensureDependenciesInstalled } from "../bootstrap.ts";\n\nensureDependenciesInstalled();\nconst { main } = await import("./cli.ts");\nprocess.exitCode = await main(process.argv.slice(2));',
+    '#!/usr/bin/env node\nif (process.versions.bun) {\n  const { main } = await import("./cli.ts");\n  process.exitCode = await main(process.argv.slice(2));\n} else {\n  await import("../../../../../dist/watch-pr.js");\n}',
+  ),
+  rule('watch-pr.bundle-entry', 'cursor-path', SC('watch-pr/cli.ts'),
+    '  runtime.stdout(render(verdict));\n  return verdict.exitCode;\n}',
+    '  runtime.stdout(render(verdict));\n  return verdict.exitCode;\n}\n\nif (import.meta.main) process.exitCode = await main(process.argv.slice(2));',
+  ),
   // Shared constructs, each with an expected count per file.
   rule(
     'shared.task-tool-rejects',
@@ -486,7 +511,7 @@ export const RULES: readonly Rule[] = [
     SC('worktree-audit.sh'),
     '# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf \'%s\' "$main_wt" | sed \'s#^/##; s#/#-#g\')\ntranscripts="$HOME/.cursor/projects/$slug/agent-transcripts"',
     // biome-ignore lint/suspicious/noTemplateCurlyInString: shell parameter expansion in the replacement script text
-    '# Transcripts dir: the Pi session folder for the repository, ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slugified-repo-path>--.\nslug=$(printf \'%s\' "$main_wt" | sed \'s#^/##; s#/#-#g\')\ntranscripts="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--"',
+    '# Pi sessions are grouped by cwd, including each worktree cwd. Search all groups for references to the candidate.\ntranscripts="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions"',
   ),
   rule(
     'check-plan.loop-marker',

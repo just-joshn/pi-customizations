@@ -7,8 +7,10 @@ const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 const helpers = [
   ['src/subscriptions/supervisor-main.ts', 'dist/supervisor-main.js'],
   ['src/cloud/release-main.ts', 'dist/release-machine.js'],
-  ['skills/statechart/scripts/statechart.ts', 'skills/statechart/scripts/statechart.js'],
-  ['skills/statechart/scripts/worker.ts', 'skills/statechart/scripts/worker.js'],
+  ['generated/skills/statechart/scripts/statechart.ts', 'skills/statechart/scripts/statechart.js'],
+  ['generated/skills/statechart/scripts/worker.ts', 'skills/statechart/scripts/worker.js'],
+  ['generated/skills/poteto-mode/scripts/watch-pr/cli.ts', 'dist/watch-pr.js'],
+  ['src/worker-host.ts', 'dist/worker-host.js'],
 ];
 const check = process.argv.slice(2).includes('--check');
 

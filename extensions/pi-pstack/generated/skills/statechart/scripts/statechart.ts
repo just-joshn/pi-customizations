@@ -101,7 +101,7 @@ try {
       process.execPath,
       [
         ...runtime,
-        path.join(import.meta.dirname, "worker.ts"),
+        path.join(import.meta.dirname, import.meta.url.endsWith(".js") ? "worker.js" : "worker.ts"),
         stage,
         specFile,
         configFile,
