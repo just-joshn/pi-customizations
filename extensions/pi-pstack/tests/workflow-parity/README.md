@@ -49,6 +49,12 @@ Families: `pr-babysit.ts` (drive, check, docs-only, threads-only, queued, origin
 
 Real model for one family, for example `PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash node --disable-warning=ExperimentalWarning tests/workflow-parity/run-family.ts babysit-drive --real`. The container families need a container engine and a real provider Pi can load inside the container, so run them on a model with a stored credential and a package the container can mount (`PSTACK_CONTAINER_PROVIDER_PACKAGES`).
 
+## PR workflows on a real forge (opt-in)
+
+`fixtures/real-forge.ts`, `families/pr-real-forge.ts` and `lib/real-run.ts` run `babysit-drive-real`, `shipping-real` and `opening-a-pr-real` against a throwaway GitHub repository (`just-joshn/pstack-parity-sandbox`, or `PSTACK_REAL_FORGE_REPO`). Each run pushes a fresh trunk and branch set under `pf/<stamp>/<family>/`, opens real PRs, and relies on a workflow committed with the fixture history (`.ci-mode` on a branch picks pass, fail or a flake that passes on rerun). The scripted model drives the real `pi` binary, `gh` is the real one (the parent gets the operator's token in `GH_TOKEN`, a container worker gets it through `PSTACK_CONTAINER_FORGE_TOKEN`), and the real `watch-pr` runs unchanged. After the run, `RealForge.capture` reads the repository's state from the GitHub API into `real-facts.json`. The fact checks are pure functions of those facts. Negative cases break one fact, or one thing in the parent's session, and must be caught. The run then closes its PRs and deletes its branches (`RealForge.cleanup` sweeps by prefix, so it is safe after a crash and safe to repeat).
+
+It is opt-in so the merge gate stays offline: `PSTACK_REAL_FORGE=1 npx vitest run tests/workflow-parity/real-forge.test.ts -t "real forge live"`, or `node --disable-warning=ExperimentalWarning tests/workflow-parity/run-real-family.ts <family> --record`. The committed records in `real-forge-evidence/` and `docs/real-forge-evidence.md` (rendered by `render-real-evidence.ts`) are re-checked offline by the replay tests in the same file. `tests/container/real-github.test.ts` is the opt-in proof that a container worker pushes to github.com.
+
 ## Known product defects, asserted with `test.fails`
 
 See `knownDefects` in `families/design.ts` (swarm) and `families/meta.ts` (eval).

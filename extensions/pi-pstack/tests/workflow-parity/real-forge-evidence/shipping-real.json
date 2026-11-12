@@ -1,0 +1,695 @@
+{
+  "family": "shipping-real",
+  "recordedAt": "2026-11-12T12:26:53.304Z",
+  "piRunMs": 34683,
+  "facts": {
+    "repo": "just-joshn/pstack-parity-sandbox",
+    "family": "shipping",
+    "capturedAt": "2026-11-12T12:26:51.215Z",
+    "trunk": "pf/mwdirr4g/shipping/trunk",
+    "trunkBase": "400b888b6fe1f38a10f2a86011ad7372eb51da0d",
+    "trunkCommits": [
+      {
+        "sha": "a70fc8f3eaaabb1b921c705588822adb314a4cce",
+        "message": "feat(stack): one (#15)",
+        "parents": 1
+      },
+      {
+        "sha": "400b888b6fe1f38a10f2a86011ad7372eb51da0d",
+        "message": "ci: parity sandbox workflow",
+        "parents": 1
+      },
+      {
+        "sha": "91b73cebea9ff31de5dffc69156a92dd3d067f19",
+        "message": "refactor: split money helpers and add checkout (#130)",
+        "parents": 1
+      },
+      {
+        "sha": "391c955b5588b906909516cab89ed9aa2fe250c3",
+        "message": "fix: round totals to cents (#124)",
+        "parents": 1
+      },
+      {
+        "sha": "e05dd77d70b7b90e0ad5ae7203b643626cf7c575",
+        "message": "feat: coupon percent off (#118)",
+        "parents": 1
+      },
+      {
+        "sha": "0ebf7d2bf9207772b6b9bc5bfd0ffc4296a58005",
+        "message": "feat: cart subtotal (#101)",
+        "parents": 0
+      }
+    ],
+    "prefix": "pf/mwdirr4g/shipping",
+    "settled": true,
+    "prs": [
+      {
+        "number": 15,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/15",
+        "title": "feat(stack): one",
+        "body": "## Why\nThe stack starts with one.\n",
+        "state": "closed",
+        "merged": true,
+        "mergedAt": "2026-11-12T12:26:32Z",
+        "mergeCommit": "a70fc8f3eaaabb1b921c705588822adb314a4cce",
+        "base": "pf/mwdirr4g/shipping/trunk",
+        "head": "pf/mwdirr4g/shipping/s-1",
+        "headSha": "95b709e354d6a51c702130864d524911abff5ffd",
+        "owner": "owner-21",
+        "isDraft": false,
+        "mergeableState": "unknown",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [
+          {
+            "author": "just-joshn",
+            "body": "PSTACK-VERDICT: PASS head=95b709e354d6a51c702130864d524911abff5ffd verifier=verifier-1 patch=9c6feb2bdb495f25b7f2408e134e86b1cb99efbb",
+            "createdAt": "2026-11-12T12:26:26Z"
+          }
+        ],
+        "threads": [],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "95b709e354d6a51c702130864d524911abff5ffd"
+          },
+          {
+            "event": "merged",
+            "actor": "just-joshn",
+            "createdAt": "2026-11-12T12:26:32Z",
+            "sha": "a70fc8f3eaaabb1b921c705588822adb314a4cce"
+          },
+          {
+            "event": "closed",
+            "actor": "just-joshn",
+            "createdAt": "2026-11-12T12:26:33Z",
+            "sha": null
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43217855611,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217855611/job/131181557157"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43217855611,
+            "headSha": "95b709e354d6a51c702130864d524911abff5ffd",
+            "attempt": 1,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217855611",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217855611",
+                "startedAt": "2026-11-12T12:26:09Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "9c6feb2bdb495f25b7f2408e134e86b1cb99efbb",
+        "parentSha": "400b888b6fe1f38a10f2a86011ad7372eb51da0d",
+        "testPassesAtHead": true
+      },
+      {
+        "number": 16,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/16",
+        "title": "feat(stack): two",
+        "body": "## Why\nTwo builds on one.\n",
+        "state": "open",
+        "merged": false,
+        "mergedAt": null,
+        "mergeCommit": "38a0279fbe310a89120f6a89ce53b30616abcc19",
+        "base": "pf/mwdirr4g/shipping/s-1",
+        "head": "pf/mwdirr4g/shipping/s-2",
+        "headSha": "219defbc9289028dd08db81c205bc9025e4d85e8",
+        "owner": "owner-22",
+        "isDraft": false,
+        "mergeableState": "clean",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [
+          {
+            "author": "just-joshn",
+            "body": "PSTACK-VERDICT: FAIL head=219defbc9289028dd08db81c205bc9025e4d85e8 verifier=verifier-2 patch=974c25fc9044f4472235574e7784eb1f59a39aab",
+            "createdAt": "2026-11-12T12:26:25Z"
+          }
+        ],
+        "threads": [],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "219defbc9289028dd08db81c205bc9025e4d85e8"
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43217857799,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217857799/job/131181564862"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43217857799,
+            "headSha": "219defbc9289028dd08db81c205bc9025e4d85e8",
+            "attempt": 1,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217857799",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217857799",
+                "startedAt": "2026-11-12T12:26:09Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "974c25fc9044f4472235574e7784eb1f59a39aab",
+        "parentSha": "95b709e354d6a51c702130864d524911abff5ffd",
+        "testPassesAtHead": false
+      },
+      {
+        "number": 17,
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/pull/17",
+        "title": "feat(stack): three",
+        "body": "## Why\nThree builds on two.\n",
+        "state": "open",
+        "merged": false,
+        "mergedAt": null,
+        "mergeCommit": "b6ad7eb62626bcd02a1dcd8c4c470f2feadb23a8",
+        "base": "pf/mwdirr4g/shipping/s-2",
+        "head": "pf/mwdirr4g/shipping/s-3",
+        "headSha": "9c670c9e3988ea9ad1801e154ac2f56a0dcc0e7f",
+        "owner": "owner-23",
+        "isDraft": false,
+        "mergeableState": "clean",
+        "autoMerge": false,
+        "reviewDecision": "",
+        "comments": [
+          {
+            "author": "just-joshn",
+            "body": "PSTACK-VERDICT: PASS head=9c670c9e3988ea9ad1801e154ac2f56a0dcc0e7f verifier=verifier-3 patch=a79fa07a498aa8b7475e3c97091e69ae8964a5e4",
+            "createdAt": "2026-11-12T12:26:25Z"
+          }
+        ],
+        "threads": [],
+        "timeline": [
+          {
+            "event": "committed",
+            "actor": "",
+            "createdAt": "",
+            "sha": "9c670c9e3988ea9ad1801e154ac2f56a0dcc0e7f"
+          }
+        ],
+        "checks": [
+          {
+            "name": "build",
+            "status": "completed",
+            "conclusion": "success",
+            "runId": 43217864021,
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217864021/job/131181586648"
+          }
+        ],
+        "runs": [
+          {
+            "id": 43217864021,
+            "headSha": "9c670c9e3988ea9ad1801e154ac2f56a0dcc0e7f",
+            "attempt": 1,
+            "conclusion": "success",
+            "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217864021",
+            "attempts": [
+              {
+                "attempt": 1,
+                "conclusion": "success",
+                "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217864021",
+                "startedAt": "2026-11-12T12:26:12Z"
+              }
+            ]
+          }
+        ],
+        "patchId": "a79fa07a498aa8b7475e3c97091e69ae8964a5e4",
+        "parentSha": "219defbc9289028dd08db81c205bc9025e4d85e8",
+        "testPassesAtHead": true
+      }
+    ],
+    "operator": [],
+    "notes": {},
+    "watch": null,
+    "actions": [
+      {
+        "name": "PR 15 run 43217855611",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217855611"
+      },
+      {
+        "name": "PR 16 run 43217857799",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217857799"
+      },
+      {
+        "name": "PR 17 run 43217864021",
+        "url": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43217864021"
+      }
+    ]
+  },
+  "results": [
+    {
+      "id": "slash.poteto-mode",
+      "title": "/poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:10",
+      "evidence": "first user message routes to generated/skills/poteto-mode/SKILL.md"
+    },
+    {
+      "id": "reads.shipping.poteto-mode-and-playbook",
+      "title": "the parent opens poteto-mode SKILL.md and playbooks/shipping.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "poteto-mode and the playbook were opened"
+    },
+    {
+      "id": "reads.shipping.named-skills",
+      "title": "the parent opens each skill the playbook steps name (control-ui, control-cli)",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "parent opened control-ui, control-cli"
+    },
+    {
+      "id": "todo.shipping.run-from-playbook",
+      "title": "a run for the shipping playbook exists with run.json and TODO.md pinned to the upstream revision",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "run ship-stack-real: playbook=shipping revision=a5539b15a3d5"
+    },
+    {
+      "id": "todo.shipping.steps-verbatim-in-order",
+      "title": "the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "6 steps match the playbook text in order"
+    },
+    {
+      "id": "todo.shipping.initial-states-open",
+      "title": "the first TODO.md the run wrote has every original step open",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "6 steps open in the first snapshot"
+    },
+    {
+      "id": "todo.shipping.every-step-resolved",
+      "title": "every original step ends done with evidence or skipped with a reason, none open",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "6 steps, all resolved"
+    },
+    {
+      "id": "todo.shipping.done-steps-proven",
+      "title": "each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass)",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "6 done steps, every cited receipt re-verifies"
+    },
+    {
+      "id": "todo.shipping.skips-explained",
+      "title": "a skipped step names its reason, and no mandatory step is skipped",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "skips: none"
+    },
+    {
+      "id": "todo.shipping.resolved-in-order",
+      "title": "step N is not resolved before step N-1 is resolved",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "resolution order over 8 snapshots follows the source order"
+    },
+    {
+      "id": "todo.shipping.parent-sole-writer",
+      "title": "no worker writes the run TODO.md",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/SKILL.md:127",
+      "evidence": "4 workers, none touched TODO.md"
+    },
+    {
+      "id": "real.ship.forge-resolved-once-gh-fallback-recorded",
+      "title": "the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "resolved once at 12 before the first forge call at 16; recorded gh"
+    },
+    {
+      "id": "real.ship.one-container-verifier-per-pr-with-a-real-forge-token",
+      "title": "three verifiers, one per PR, each a container worker at its PR head with capabilities mcp inherit, env minimal, externalWrite false, forge true, none the PR owner, each ran in a container clone of the real repository, and each posted its verdict with its own gh call",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "verifier-1, verifier-2, verifier-3: container, forge capability, ran in /tmp/workspace, posted with gh"
+    },
+    {
+      "id": "real.ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes",
+      "title": "the three verifiers were spawned in one message, and each was collected after its own pstack-worker wake",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "spawned together at 30; each collected after its wake"
+    },
+    {
+      "id": "real.ship.each-verifier-recorded-its-own-receipt",
+      "title": "each verifier left a receipt in its own evidence folder that the host ingested, the artifact hashes re-verify, and the receipt verdict matches the verdict on the PR",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "three ingested receipts, artifacts inside each verifier's folder, verdicts consistent"
+    },
+    {
+      "id": "real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back",
+      "title": "the parent typed exactly one `gh pr merge`, for the root PR, with --match-head-commit equal to the head the verdict covers, and read it back with state,mergedAt,baseRefName",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:6",
+      "evidence": "one merge of PR 15 pinned to 95b709e3, read back"
+    },
+    {
+      "id": "real.ship.parent-posted-no-verdict",
+      "title": "the parent typed no `gh pr comment`: every verdict on the PRs came from a verifier worker",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "no comment or review typed by the parent"
+    },
+    {
+      "id": "real.ship.ceiling-watched-with-the-queued-watcher-until-COMPLETE",
+      "title": "the run was watched with the queued watcher over exactly the landing run, in a watcher worker, until COMPLETE at the ceiling",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:9",
+      "evidence": "queued watcher over 15 exited COMPLETE (0)"
+    },
+    {
+      "id": "real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap",
+      "title": "the reply gives the verified run and ceiling, each verdict with its producer, what landed and how it was confirmed, and what the next gap needs",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:12",
+      "evidence": "all parts present"
+    },
+    {
+      "id": "real.ship.no-tool-errors",
+      "title": "no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:10",
+      "evidence": "49 tool calls, none failed"
+    },
+    {
+      "id": "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+      "title": "one verdict per PR, from a verifier that did not write it, naming the PR head and its patch-id, and the PR test run at that head by the checker agrees with it",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "three verdicts, each at its head, from its own verifier, equal to a fresh test run"
+    },
+    {
+      "id": "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+      "title": "the prefix computed here from the verdicts is exactly the PRs GitHub shows merged, in trunk order, each squash commit is on trunk with the PR number, and nothing above the first unverified PR merged or armed",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:6",
+      "evidence": "independent prefix 15; merged 15; trunk gained feat(stack): one (#15); the rest open and unarmed"
+    },
+    {
+      "id": "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker",
+      "title": "each merged PR has a PASS verdict posted before it merged, naming the head that merged, whose patch-id equals the merged head, from a worker that did not write the PR",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "1 merge(s), each verified at its head by another worker before it merged"
+    },
+    {
+      "id": "real.ship.green-ci-did-not-decide",
+      "title": "every check run on every PR is success on GitHub, including the PR that failed verification, and the failed PR and the PR above it did not merge",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:5",
+      "evidence": "all 3 check runs success; the failed PR and the one above it are open"
+    },
+    {
+      "id": "real.ship.stack-left-alone-above-the-ceiling",
+      "title": "no PR above the ceiling was retargeted or force-pushed, and the PR bases are the ones the run opened with",
+      "verdict": "PASS",
+      "source": "generated/skills/poteto-mode/playbooks/shipping.md:9",
+      "evidence": "no force-push or retarget on any PR; bases form the original chain"
+    }
+  ],
+  "negatives": [
+    {
+      "name": "a step was left open",
+      "expected": [
+        "todo.shipping.every-step-resolved"
+      ],
+      "failedChecks": [
+        "todo.shipping.every-step-resolved"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step is done with no receipt id",
+      "expected": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step cites a receipt that was never recorded",
+      "expected": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the artifact changed after the receipt hashed it",
+      "expected": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "failedChecks": [
+        "todo.shipping.done-steps-proven"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a step was skipped with no reason",
+      "expected": [
+        "todo.shipping.skips-explained"
+      ],
+      "failedChecks": [
+        "todo.shipping.skips-explained"
+      ],
+      "detected": true
+    },
+    {
+      "name": "steps were resolved out of order",
+      "expected": [
+        "todo.shipping.resolved-in-order"
+      ],
+      "failedChecks": [
+        "todo.shipping.resolved-in-order"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a playbook step was deleted from TODO.md",
+      "expected": [
+        "todo.shipping.steps-verbatim-in-order"
+      ],
+      "failedChecks": [
+        "todo.shipping.steps-verbatim-in-order"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the tip was merged because it passed, over the failed middle",
+      "expected": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.green-ci-did-not-decide"
+      ],
+      "failedChecks": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.green-ci-did-not-decide"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the failed middle PR was merged",
+      "expected": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.green-ci-did-not-decide",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "failedChecks": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker",
+        "real.ship.green-ci-did-not-decide"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the root was never merged",
+      "expected": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "failedChecks": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "detected": true
+    },
+    {
+      "name": "auto-merge was armed on the PR above the ceiling",
+      "expected": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up"
+      ],
+      "failedChecks": [
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the verdict of the failed PR was flipped to PASS",
+      "expected": [
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up"
+      ],
+      "failedChecks": [
+        "real.ship.each-verifier-recorded-its-own-receipt",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the root was merged with no verdict at all",
+      "expected": [
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head"
+      ],
+      "failedChecks": [
+        "real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the owner verified its own PR",
+      "expected": [
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head"
+      ],
+      "failedChecks": [
+        "real.ship.one-container-verifier-per-pr-with-a-real-forge-token",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the verdict covers an older head",
+      "expected": [
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "failedChecks": [
+        "real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back",
+        "real.ship.verdicts-match-what-the-code-does-and-cover-the-head",
+        "real.ship.only-the-contiguous-verified-prefix-merged-bottom-up",
+        "real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a check was red",
+      "expected": [
+        "real.ship.green-ci-did-not-decide"
+      ],
+      "failedChecks": [
+        "real.ship.green-ci-did-not-decide"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the stack was rebased while it landed",
+      "expected": [
+        "real.ship.stack-left-alone-above-the-ceiling"
+      ],
+      "failedChecks": [
+        "real.ship.stack-left-alone-above-the-ceiling"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the shipper retargeted the PR above the ceiling",
+      "expected": [
+        "real.ship.stack-left-alone-above-the-ceiling"
+      ],
+      "failedChecks": [
+        "real.ship.stack-left-alone-above-the-ceiling"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the merge was not pinned to the verified head",
+      "expected": [
+        "real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back"
+      ],
+      "failedChecks": [
+        "real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the parent posted a verdict itself",
+      "expected": [
+        "real.ship.parent-posted-no-verdict"
+      ],
+      "failedChecks": [
+        "real.ship.parent-posted-no-verdict"
+      ],
+      "detected": true
+    },
+    {
+      "name": "a verifier ran in a worktree instead of a container",
+      "expected": [
+        "real.ship.one-container-verifier-per-pr-with-a-real-forge-token"
+      ],
+      "failedChecks": [
+        "real.ship.one-container-verifier-per-pr-with-a-real-forge-token"
+      ],
+      "detected": true
+    },
+    {
+      "name": "the reply left out the next gap",
+      "expected": [
+        "real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap"
+      ],
+      "failedChecks": [
+        "real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap"
+      ],
+      "detected": true
+    }
+  ],
+  "cleanup": {
+    "leftoverPrs": [],
+    "leftoverBranches": []
+  },
+  "table": "== shipping-real (real forge, scripted model driver): 25 PASS ==\nPASS   slash.poteto-mode\n       /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request\n       source: generated/skills/poteto-mode/SKILL.md:10\n       evidence: first user message routes to generated/skills/poteto-mode/SKILL.md\nPASS   reads.shipping.poteto-mode-and-playbook\n       the parent opens poteto-mode SKILL.md and playbooks/shipping.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: poteto-mode and the playbook were opened\nPASS   reads.shipping.named-skills\n       the parent opens each skill the playbook steps name (control-ui, control-cli)\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: parent opened control-ui, control-cli\nPASS   todo.shipping.run-from-playbook\n       a run for the shipping playbook exists with run.json and TODO.md pinned to the upstream revision\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: run ship-stack-real: playbook=shipping revision=a5539b15a3d5\nPASS   todo.shipping.steps-verbatim-in-order\n       the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: 6 steps match the playbook text in order\nPASS   todo.shipping.initial-states-open\n       the first TODO.md the run wrote has every original step open\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 6 steps open in the first snapshot\nPASS   todo.shipping.every-step-resolved\n       every original step ends done with evidence or skipped with a reason, none open\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/SKILL.md:127\n       evidence: 6 steps, all resolved\nPASS   todo.shipping.done-steps-proven\n       each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass)\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 6 done steps, every cited receipt re-verifies\nPASS   todo.shipping.skips-explained\n       a skipped step names its reason, and no mandatory step is skipped\n       source: generated/skills/poteto-mode/SKILL.md:127, generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: skips: none\nPASS   todo.shipping.resolved-in-order\n       step N is not resolved before step N-1 is resolved\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: resolution order over 8 snapshots follows the source order\nPASS   todo.shipping.parent-sole-writer\n       no worker writes the run TODO.md\n       source: generated/skills/poteto-mode/SKILL.md:127\n       evidence: 4 workers, none touched TODO.md\nPASS   real.ship.forge-resolved-once-gh-fallback-recorded\n       the forge is resolved with `command -v origin` once, before the first forge call, the choice (gh, origin CLI absent) is recorded, and the real gh answered every call\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: resolved once at 12 before the first forge call at 16; recorded gh\nPASS   real.ship.one-container-verifier-per-pr-with-a-real-forge-token\n       three verifiers, one per PR, each a container worker at its PR head with capabilities mcp inherit, env minimal, externalWrite false, forge true, none the PR owner, each ran in a container clone of the real repository, and each posted its verdict with its own gh call\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: verifier-1, verifier-2, verifier-3: container, forge capability, ran in /tmp/workspace, posted with gh\nPASS   real.ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes\n       the three verifiers were spawned in one message, and each was collected after its own pstack-worker wake\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: spawned together at 30; each collected after its wake\nPASS   real.ship.each-verifier-recorded-its-own-receipt\n       each verifier left a receipt in its own evidence folder that the host ingested, the artifact hashes re-verify, and the receipt verdict matches the verdict on the PR\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: three ingested receipts, artifacts inside each verifier's folder, verdicts consistent\nPASS   real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back\n       the parent typed exactly one `gh pr merge`, for the root PR, with --match-head-commit equal to the head the verdict covers, and read it back with state,mergedAt,baseRefName\n       source: generated/skills/poteto-mode/playbooks/shipping.md:6\n       evidence: one merge of PR 15 pinned to 95b709e3, read back\nPASS   real.ship.parent-posted-no-verdict\n       the parent typed no `gh pr comment`: every verdict on the PRs came from a verifier worker\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: no comment or review typed by the parent\nPASS   real.ship.ceiling-watched-with-the-queued-watcher-until-COMPLETE\n       the run was watched with the queued watcher over exactly the landing run, in a watcher worker, until COMPLETE at the ceiling\n       source: generated/skills/poteto-mode/playbooks/shipping.md:9\n       evidence: queued watcher over 15 exited COMPLETE (0)\nPASS   real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap\n       the reply gives the verified run and ceiling, each verdict with its producer, what landed and how it was confirmed, and what the next gap needs\n       source: generated/skills/poteto-mode/playbooks/shipping.md:12\n       evidence: all parts present\nPASS   real.ship.no-tool-errors\n       no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure\n       source: generated/skills/poteto-mode/playbooks/shipping.md:10\n       evidence: 49 tool calls, none failed\nPASS   real.ship.verdicts-match-what-the-code-does-and-cover-the-head\n       one verdict per PR, from a verifier that did not write it, naming the PR head and its patch-id, and the PR test run at that head by the checker agrees with it\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: three verdicts, each at its head, from its own verifier, equal to a fresh test run\nPASS   real.ship.only-the-contiguous-verified-prefix-merged-bottom-up\n       the prefix computed here from the verdicts is exactly the PRs GitHub shows merged, in trunk order, each squash commit is on trunk with the PR number, and nothing above the first unverified PR merged or armed\n       source: generated/skills/poteto-mode/playbooks/shipping.md:6\n       evidence: independent prefix 15; merged 15; trunk gained feat(stack): one (#15); the rest open and unarmed\nPASS   real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker\n       each merged PR has a PASS verdict posted before it merged, naming the head that merged, whose patch-id equals the merged head, from a worker that did not write the PR\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: 1 merge(s), each verified at its head by another worker before it merged\nPASS   real.ship.green-ci-did-not-decide\n       every check run on every PR is success on GitHub, including the PR that failed verification, and the failed PR and the PR above it did not merge\n       source: generated/skills/poteto-mode/playbooks/shipping.md:5\n       evidence: all 3 check runs success; the failed PR and the one above it are open\nPASS   real.ship.stack-left-alone-above-the-ceiling\n       no PR above the ceiling was retargeted or force-pushed, and the PR bases are the ones the run opened with\n       source: generated/skills/poteto-mode/playbooks/shipping.md:9\n       evidence: no force-push or retarget on any PR; bases form the original chain\nDETECTED a step was left open -> must fail todo.shipping.every-step-resolved; failed todo.shipping.every-step-resolved\nDETECTED a step is done with no receipt id -> must fail todo.shipping.done-steps-proven; failed todo.shipping.done-steps-proven\nDETECTED a step cites a receipt that was never recorded -> must fail todo.shipping.done-steps-proven; failed todo.shipping.done-steps-proven\nDETECTED the artifact changed after the receipt hashed it -> must fail todo.shipping.done-steps-proven; failed todo.shipping.done-steps-proven\nDETECTED a step was skipped with no reason -> must fail todo.shipping.skips-explained; failed todo.shipping.skips-explained\nDETECTED steps were resolved out of order -> must fail todo.shipping.resolved-in-order; failed todo.shipping.resolved-in-order\nDETECTED a playbook step was deleted from TODO.md -> must fail todo.shipping.steps-verbatim-in-order; failed todo.shipping.steps-verbatim-in-order\nDETECTED the tip was merged because it passed, over the failed middle -> must fail real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.green-ci-did-not-decide; failed real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.green-ci-did-not-decide\nDETECTED the failed middle PR was merged -> must fail real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.green-ci-did-not-decide, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker; failed real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker, real.ship.green-ci-did-not-decide\nDETECTED the root was never merged -> must fail real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker; failed real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker\nDETECTED auto-merge was armed on the PR above the ceiling -> must fail real.ship.only-the-contiguous-verified-prefix-merged-bottom-up; failed real.ship.only-the-contiguous-verified-prefix-merged-bottom-up\nDETECTED the verdict of the failed PR was flipped to PASS -> must fail real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.only-the-contiguous-verified-prefix-merged-bottom-up; failed real.ship.each-verifier-recorded-its-own-receipt, real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.only-the-contiguous-verified-prefix-merged-bottom-up\nDETECTED the root was merged with no verdict at all -> must fail real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker, real.ship.verdicts-match-what-the-code-does-and-cover-the-head; failed real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back, real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker\nDETECTED the owner verified its own PR -> must fail real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker, real.ship.verdicts-match-what-the-code-does-and-cover-the-head; failed real.ship.one-container-verifier-per-pr-with-a-real-forge-token, real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker\nDETECTED the verdict covers an older head -> must fail real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker; failed real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back, real.ship.verdicts-match-what-the-code-does-and-cover-the-head, real.ship.only-the-contiguous-verified-prefix-merged-bottom-up, real.ship.every-merge-has-a-pass-verdict-at-the-merged-head-from-another-worker\nDETECTED a check was red -> must fail real.ship.green-ci-did-not-decide; failed real.ship.green-ci-did-not-decide\nDETECTED the stack was rebased while it landed -> must fail real.ship.stack-left-alone-above-the-ceiling; failed real.ship.stack-left-alone-above-the-ceiling\nDETECTED the shipper retargeted the PR above the ceiling -> must fail real.ship.stack-left-alone-above-the-ceiling; failed real.ship.stack-left-alone-above-the-ceiling\nDETECTED the merge was not pinned to the verified head -> must fail real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back; failed real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back\nDETECTED the parent posted a verdict itself -> must fail real.ship.parent-posted-no-verdict; failed real.ship.parent-posted-no-verdict\nDETECTED a verifier ran in a worktree instead of a container -> must fail real.ship.one-container-verifier-per-pr-with-a-real-forge-token; failed real.ship.one-container-verifier-per-pr-with-a-real-forge-token\nDETECTED the reply left out the next gap -> must fail real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap; failed real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap",
+  "timedOut": false,
+  "piStderr": ""
+}

@@ -1,0 +1,14 @@
+{
+  "repo": "just-joshn/pstack-parity-sandbox",
+  "ref": "refs/heads/pfprobe/fe55be/pushed",
+  "sha": "abb86eeb859fbe05cddf7df8dbb9d59fb47e6a49",
+  "apiSha": "abb86eeb859fbe05cddf7df8dbb9d59fb47e6a49",
+  "author": "container-worker",
+  "message": "probe: pushed from a container",
+  "recordedAt": "2026-11-12T12:23:59.405Z",
+  "runId": "rgh-fe55be",
+  "workerId": "pusher",
+  "workspace": "container",
+  "forgeCapability": true,
+  "tokenInjectedBy": "PSTACK_CONTAINER_FORGE_TOKEN"
+}
