@@ -5,6 +5,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { appendFileSync, closeSync, constants, existsSync, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
+import { MODEL_SPEC_FORMS, parseFamilyDefault } from './model-spec.ts';
+
 export type RunId = string & { readonly __brand: 'RunId' };
 export type WorkerId = string & { readonly __brand: 'WorkerId' };
 
@@ -227,7 +229,7 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   const role = raw['role'];
   if (typeof role !== 'string' || !(WORKER_ROLES as readonly string[]).includes(role)) throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(', ')}`);
   const model = raw['model'];
-  if (typeof model !== 'string' || !MODEL_SPEC.test(model)) throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
+  if (typeof model !== 'string' || !(MODEL_SPEC.test(model) || parseFamilyDefault(model) !== undefined)) throw new Error(`Assignment model must be ${MODEL_SPEC_FORMS}${typeof model === 'string' ? `; got '${model}'` : ''}`);
   const thinkingLevel = raw['thinkingLevel'] ?? null;
   if (thinkingLevel !== null && !(typeof thinkingLevel === 'string' && (THINKING_LEVELS as readonly string[]).includes(thinkingLevel))) throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(', ')}`);
   const workspace = raw['workspace'];
@@ -348,6 +350,8 @@ export interface HostState {
   phase: HostPhase;
   reason: string | null;
   model: { provider: string; id: string } | null;
+  /** Why `model` is not the assignment's model, when the parent had to resolve it to another model or level. */
+  modelNote?: string;
   sessionFile: string | null;
   briefSent: boolean;
   /** The latest unit of work the host accepted. A worker's result is a settle covering it. */

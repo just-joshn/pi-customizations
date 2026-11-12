@@ -18,6 +18,8 @@ import { STYLE_SKILL, setStyle, styleOn, styleSkillPath } from './style.ts';
 import { type SpawnOptions, spawnAssignment, workerSocket } from './workers.ts';
 
 export const MODELS_PATH = join(homedir(), '.pi', 'agent', 'pstack', 'models.json');
+/** The Markdown rule an earlier pstack host wrote. Nothing reads it; doctor only points at it. */
+const LEGACY_MODEL_RULE_PATH = join(homedir(), '.pi', 'agent', 'pstack', 'pstack-models.md');
 export const USAGE = 'Usage: /pstack on | off | status | doctor | workers | pause <run-id> | resume <run-id> | audit <run-id> | automation start|stop|status <name>';
 
 export type PstackCommand =
@@ -473,13 +475,13 @@ async function containerEngine(exec: Exec): Promise<string> {
   return podman ?? 'none found (container workers are unavailable)';
 }
 
-function modelLines(ctx: ExtensionContext): string[] {
-  if (!existsSync(MODELS_PATH)) return [`models.json: missing at ${MODELS_PATH}; the skill defaults apply (run /setup-pstack)`, ...roleLines(ctx, loadModelsConfig(MODELS_PATH))];
+export function modelLines(ctx: ExtensionContext, modelsPath = MODELS_PATH, legacyPath = LEGACY_MODEL_RULE_PATH): string[] {
+  if (!existsSync(modelsPath)) return [`models.json: missing at ${modelsPath}; the skill defaults apply (run /setup-pstack)${existsSync(legacyPath) ? `. ${legacyPath} exists but pi-pstack never reads it; /setup-pstack writes models.json from its role lines` : ''}`, ...roleLines(ctx, loadModelsConfig(modelsPath))];
   try {
-    const config = loadModelsConfig(MODELS_PATH);
-    return [`models.json: valid at ${MODELS_PATH} (budget ${config.budget}, ${Object.keys(config.roles).length} role lines)`, ...roleLines(ctx, config)];
+    const config = loadModelsConfig(modelsPath);
+    return [`models.json: valid at ${modelsPath} (budget ${config.budget}, ${Object.keys(config.roles).length} role lines)`, ...roleLines(ctx, config)];
   } catch (error) {
-    return [`models.json: INVALID at ${MODELS_PATH} (${(error as Error).message}); worker spawns fail until it is fixed`];
+    return [`models.json: INVALID at ${modelsPath} (${(error as Error).message}); worker spawns fail until it is fixed`];
   }
 }
 

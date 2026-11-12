@@ -75,6 +75,8 @@ export interface ResolvedModel {
   provider: string;
   id: string;
   thinkingLevel: ThinkingLevel | null;
+  /** Why the resolved model or level is not the assignment's, when it is not. Recorded in the worker state, the spawn event, and the spawn reply. */
+  note?: string;
 }
 
 /** Turns an assignment's model spec into a concrete model. src/models.ts supplies the role-aware one. */
@@ -93,6 +95,7 @@ export const literalModelResolver: ModelResolver = ({ model, thinkingLevel }, ct
     return { provider: ctx.model.provider, id: ctx.model.id, thinkingLevel: thinkingLevel ?? (ctx.thinkingLevel as ThinkingLevel | undefined) ?? null };
   }
   const slash = model.indexOf('/');
+  if (slash === -1) throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 
@@ -107,6 +110,7 @@ export interface SpawnResult {
   attach: string;
   sessionFile: string | null;
   model: { provider: string; id: string } | null;
+  modelNote: string | null;
 }
 
 export interface Transition {
@@ -439,9 +443,19 @@ async function checkStart(exec: Exec, socket: string, session: string, workerDir
   }
 }
 
+/** Whether the brief names report.md; a worker whose brief never does is not missing a report it was never asked for. */
+function briefAsksForReport(workerDir: string): boolean {
+  try {
+    return /report\.md/i.test(readBrief(workerDir).toString('utf8'));
+  } catch {
+    return false;
+  }
+}
+
 const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel | null => {
   if (model === 'inherit-parent') return null;
   const slash = model.indexOf('/');
+  if (slash === -1) throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 
@@ -549,6 +563,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
     model: launchModel,
+    modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities.mcp) : null,
@@ -615,7 +630,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       runId,
       workerId: assignment.workerId,
       kind: 'spawn',
-      data: { tmuxSession: session, model: launch.model, ...(container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } }) },
+      data: { tmuxSession: session, model: launch.model, ...(launch.modelNote === null ? {} : { modelNote: launch.modelNote }), ...(container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } }) },
     });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
@@ -632,7 +647,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // A watch command that already exited has produced its event; only a failure stops the spawn.
   if (state.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
   if (assignment.kind === 'pi') await controlHost(target, 'start');
-  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model, modelNote: launch.modelNote ?? null };
 }
 
 const WorkerParams = Type.Object({
@@ -932,7 +947,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       if (params.action === 'spawn') {
         const result = await spawnWorker(ctx, params.runId, params.assignmentPath, params.playbook);
         return text(
-          `Spawned worker ${result.workerId} (${result.model === null ? 'watch' : `${result.model.provider}/${result.model.id}`}).\nAttach: ${result.attach}\nSession file: ${result.sessionFile ?? '(none)'}\nYou will get a pstack-worker message when it settles.`,
+          `Spawned worker ${result.workerId} (${result.model === null ? 'watch' : `${result.model.provider}/${result.model.id}`}).${result.modelNote === null ? '' : `\nModel note: ${result.modelNote}`}\nAttach: ${result.attach}\nSession file: ${result.sessionFile ?? '(none)'}\nYou will get a pstack-worker message when it settles.`,
           result,
         );
       }
@@ -980,7 +995,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       const settledLine = `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).`;
       if (loaded.assignment.workspace.mode === 'readonly') return text(`${settledLine}\n\nReport (a readonly worker's final reply, since it cannot write report.md):\n${result.finalText ?? '(none)'}${rejected}`, result);
       return text(
-        `${settledLine}\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
+        `${settledLine}\n\nreport.md:\n${result.report ?? (briefAsksForReport(loaded.workerDir) ? '(missing: the brief asked for it and the worker did not write it)' : '(none requested: the brief never names report.md; the final assistant text below is the report)')}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },

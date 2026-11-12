@@ -1,6 +1,6 @@
 // Families: ketchup, recall, reflect, show-me-your-work (spec 12.5). History is Pi's own session files.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
@@ -17,6 +17,7 @@ import {
   playbookReads,
   primaryRun,
   promptRoutes,
+  expectedModels,
   replyOfTurn,
   repoUntouched,
   settledAndCollected,
@@ -28,7 +29,7 @@ import {
   workersCheck,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, parentSession, patchAssignment, removeWorker, rewriteFinalReply } from '../lib/mutate.ts';
+import { appendToolCall, dirtyRepo, parentSession, patchAssignment, removeWorker, rewriteFinalReply, rewriteSession } from '../lib/mutate.ts';
 import type { Ctx } from '../lib/driver.ts';
 import type { RunView } from '../lib/view.ts';
 import { worktreeOf } from './shared.ts';
@@ -50,7 +51,10 @@ The cart tests pass, so the cart works as it did before. Nothing else changed si
 Action items
 - Merge the coupon fix into main. My pick: wait until you have looked at it. It stops a coupon over 100 percent from paying the customer. The evidence is that the cart tests pass today. Low risk: it only bounds one number.`;
 
-const READ_ONLY_SHELL = /^\s*(git (status|log|branch|diff|show|rev-parse|worktree list)|ls|cat|pwd|echo)\b/;
+/** A shell command that only reads: it starts like a reader and writes to no file (a redirect to /dev/null or a stream is not a write). */
+const READ_ONLY_SHELL = /^\s*(git (status|log|branch|diff|show|rev-parse|worktree list)|ls|cat|pwd|echo|pi list|pi mcp list|rg|grep|head|tail|wc|find)\b/;
+const SHELL_WRITES = /(?<![\d&])>(?!&|\s*\/dev\/null)|\btee\b|\bsed\s+-i|\b(rm|mv|cp|mkdir|touch|chmod)\s/;
+const readsOnly = (command: string) => READ_ONLY_SHELL.test(command) && !SHELL_WRITES.test(command);
 
 export const ketchupFamily: Family = {
   id: 'ketchup',
@@ -83,7 +87,7 @@ export const ketchupFamily: Family = {
     parentReads('ketchup.reads-skill-and-voice', "the parent opens ketchup and bro, whose voice it uses", src('ketchup/SKILL.md', "Use [`/bro`](../bro/SKILL.md)'s voice"), ['ketchup', 'bro']),
     check('ketchup.turn-is-read-only', 'the catch-up turn changes nothing: no write, no worker, only read-only shell commands, and the repository is untouched', src('ketchup/SKILL.md', 'Keep this turn read-only'), (view) => {
       const calls = callsInTurn(view, 1);
-      const bad = calls.filter((call) => call.name === 'write' || call.name === 'edit' || call.name === 'pstack_worker' || (call.name === 'bash' && !READ_ONLY_SHELL.test(String(call.args['command']))));
+      const bad = calls.filter((call) => call.name === 'write' || call.name === 'edit' || call.name === 'pstack_worker' || (call.name === 'bash' && !readsOnly(String(call.args['command']))));
       return when(calls.length > 0 && bad.length === 0 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, `${calls.length} calls, all read-only`, `state-changing calls: ${bad.map((call) => `${call.name} ${JSON.stringify(call.args).slice(0, 60)}`).join('; ') || 'none'}; dirty ${view.git.dirty.join(', ') || 'none'}`);
     }),
     check('ketchup.opens-with-one-sentence-naming-what-waits', 'the reply opens with one short sentence that names what waits on the user', src('ketchup/SKILL.md', 'Open with one short sentence that names what waits on the user'), (view) => {
@@ -108,6 +112,10 @@ export const ketchupFamily: Family = {
     }),
   ],
   negatives: [
+    { name: 'the catch-up lists extension packages with pi list, piped to head', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'pi list 2>&1 | head -30' }), fails: [], passes: ['ketchup.turn-is-read-only'] },
+    { name: 'the catch-up reads with grep and rg', mutate: (sandbox) => { appendToolCall(parentSession(sandbox), 'bash', { command: 'grep -rn coupon src' }); appendToolCall(parentSession(sandbox), 'bash', { command: 'rg -n coupon src | head' }); }, fails: [], passes: ['ketchup.turn-is-read-only'] },
+    { name: 'the catch-up writes a file with a redirect from a reader command', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'grep -rn coupon src > notes.txt' }), fails: ['ketchup.turn-is-read-only'] },
+    { name: 'the reply starts with an empty text block before the sentence', mutate: (sandbox) => rewriteFinalReply(sandbox, /^/, '\n\n'), fails: [], passes: ['ketchup.opens-with-one-sentence-naming-what-waits'] },
     { name: 'the reply quotes a commit hash', mutate: (sandbox) => rewriteFinalReply(sandbox, 'cart tests pass', 'cart tests pass at 3a9f1c2'), fails: ['ketchup.plain-words'] },
     { name: 'the reply names a file path', mutate: (sandbox) => rewriteFinalReply(sandbox, 'bounds one number', 'bounds one number in src/cart.js'), fails: ['ketchup.plain-words'] },
     { name: 'the turn wrote a file', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/NOTES.md`, content: 'x' }), fails: ['ketchup.turn-is-read-only'] },
@@ -172,9 +180,11 @@ Problems
 Next move
 - Review the coupon-fix branch and decide whether to merge it.`;
 
+/** A heading line as the reply writes it: bare, a markdown heading of any level, or bold (`Capsule`, `## Capsule`, `**Capsule**`). */
+const headingLine = (name: string) => new RegExp(`^(?:#{1,6}\\s*|\\*\\*)?${name}(?:\\*\\*)?:?\\s*$`, 'm');
 const section = (reply: string, name: string, next: string[]): string => {
-  const after = reply.split(new RegExp(`^${name}\\s*$`, 'm'))[1] ?? '';
-  return next.reduce((text, boundary) => text.split(new RegExp(`^${boundary}\\s*$`, 'm'))[0] ?? text, after);
+  const after = reply.split(headingLine(name))[1] ?? '';
+  return next.reduce((text, boundary) => text.split(headingLine(boundary))[0] ?? text, after);
 };
 const bullets = (text: string) => text.split('\n').filter((line) => line.startsWith('- '));
 
@@ -256,6 +266,7 @@ export const recallFamily: Family = {
     settledAndCollected('recall.settled-and-collected', src('recall/SKILL.md', 'The main thread gets only their findings')),
   ],
   negatives: [
+    { name: 'the brief uses markdown headings and bold labels for its sections', mutate: (sandbox) => rewriteFinalReply(sandbox, /^(Capsule|Threads|Problems)$/gm, (_m, name: string) => (name === 'Capsule' ? `## ${name}` : name === 'Threads' ? `**${name}**` : `### ${name}`)), fails: [], passes: ['recall.brief-meets-the-output-contract', 'recall.threads-cite-real-chats'] },
     { name: 'a miner read another project\'s transcript', mutate: (sandbox) => appendToolCall(workerSessionOf(sandbox, 'miner-1'), 'read', { path: join(sandbox, 'sessions-other/--another-project--/x.jsonl') }), fails: ['recall.stays-in-this-workspace'] },
     { name: 'a thread has no status tag', mutate: (sandbox) => rewriteFinalReply(sandbox, '[merged #118] ', ''), fails: ['recall.brief-meets-the-output-contract'] },
     { name: 'the capsule has six bullets', mutate: (sandbox) => rewriteFinalReply(sandbox, '\n\nThreads', '\n- one\n- two\n- three\n\nThreads'), fails: ['recall.brief-meets-the-output-contract'] },
@@ -349,7 +360,9 @@ export const reflectFamily: Family = {
     spawnedTogether('reflect.reviewers-in-parallel', src('reflect/SKILL.md', '## 2. Spawn three reviewers in parallel'), ['reviewer']),
     check('reflect.lenses-use-the-role-lines', 'the tooling reviewer is on the "reflect tooling" line and the judgment and divergent reviewers on the judgment line', src('reflect/SKILL.md', '| Tooling | `reflect tooling`'), (view) => {
       const by = (id: string) => String(assignmentOf(allWorkers(view).find((worker) => worker.id === id) as never).model);
-      return when(by('tooling') === model('reflect tooling') && by('judgment') === model('reflect judgment, divergent, synthesizer') && by('divergent') === model('reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`);
+      // The lines are the run's own models.json (the scripted roles for a scripted run, the real model for a real one); a spec may carry a level.
+      const on = (id: string, line: string) => expectedModels(view, line).includes(by(id));
+      return when(on('tooling', 'reflect tooling') && on('judgment', 'reflect judgment, divergent, synthesizer') && on('divergent', 'reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')} (line ${expectedModels(view, 'reflect tooling').join('|')}), judgment ${by('judgment')}, divergent ${by('divergent')} (line ${expectedModels(view, 'reflect judgment, divergent, synthesizer').join('|')})`);
     }),
     check('reflect.reviewers-get-the-real-transcript', "each reviewer brief names this conversation's own Pi session file, which exists", src('reflect/SKILL.md', "find this conversation's Pi session file"), (view) => {
       const reviewers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'reviewer');
@@ -369,13 +382,17 @@ export const reflectFamily: Family = {
       const first = callsInTurn(view, 0);
       const early = first.filter((call) => (call.name === 'write' || call.name === 'edit') && /\/\.pi\/skills\/|generated\/skills\//.test(String(call.args['path'])) || (call.name === 'bash' && /(cp|mv|rm) .*skills/.test(String(call.args['command']))));
       const ask = replyOfTurn(view, 0);
-      return when(userTurns(view).length === 2 && early.length === 0 && /Accepted/.test(ask) && /Rejected/.test(ask) && /Backlog/.test(ask) && /approve/i.test(ask), 'the list was presented and nothing was edited before approval', `early edits ${early.length}; the ask ${ask.slice(-100)}`);
+      return when(userTurns(view).length === 2 && early.length === 0 && /Accepted/.test(ask) && /Rejected/.test(ask) && /Backlog/.test(ask) && /approv/i.test(ask), 'the list was presented and nothing was edited before approval', `early edits ${early.length}; the ask ${ask.slice(-100)}`);
     }),
-    check('reflect.edits-a-project-copy-never-the-installed-package', 'after approval the edit lands in .pi/skills/<skill>/, and the installed pstack package is unchanged', src('reflect/SKILL.md', 'Never edit a skill inside an installed Pi package'), (view) => {
-      const copy = read(join(view.repo, '.pi/skills/how/SKILL.md'));
-      const edit = callsInTurn(view, 1).find((call) => call.name === 'edit');
+    check('reflect.edits-a-project-copy-never-the-installed-package', 'after approval the edit lands in a copy under .pi/skills/<skill>/ that differs from the installed skill, and the installed pstack package is unchanged', src('reflect/SKILL.md', 'Never edit a skill inside an installed Pi package'), (view) => {
+      // Any skill the run chose to improve: the edit's path names the copy, whatever the skill is called.
+      const copyPath = /(?:^|\/)\.pi\/skills\/([\w-]+)\//;
+      const edit = callsInTurn(view, 1).find((call) => (call.name === 'edit' || call.name === 'write') && copyPath.test(String(call.args['path'])));
+      const skill = copyPath.exec(String(edit?.args['path']))?.[1] ?? '';
+      const copy = read(join(view.repo, '.pi/skills', skill, 'SKILL.md'));
+      const installed = read(join(view.pkg, 'generated/skills', skill, 'SKILL.md'));
       const packageDirty = spawnSync('git', ['-C', view.pkg, 'status', '--porcelain', '--', 'generated/skills'], { encoding: 'utf8' }).stdout.trim();
-      return when(/Cite file and line/.test(copy) && String(edit?.args['path']).includes('/.pi/skills/how/') && packageDirty === '', 'the copy is edited, the package is clean', `copy edited ${/Cite file and line/.test(copy)}; edit path ${String(edit?.args['path'])}; package dirty: ${packageDirty || 'no'}`);
+      return when(edit !== undefined && copy !== '' && copy !== installed && packageDirty === '', `the ${skill} copy is edited, the package is clean`, `edit path ${String(edit?.args['path'])}; copy differs from the installed skill ${copy !== installed}; package dirty: ${packageDirty || 'no'}`);
     }),
     check('reflect.never-opens-a-pr-or-pushes', 'no PR and no push', src('reflect/SKILL.md', 'Never open a PR or push'), (view) => {
       const bad = view.parent.toolCalls.filter((call) => call.name === 'bash' && /\b(gh pr|origin pr|git push)\b/.test(String(call.args['command'])));
@@ -390,6 +407,8 @@ export const reflectFamily: Family = {
   ],
   negatives: [
     { name: 'a skill was edited before approval', mutate: (sandbox) => appendEarlyEdit(sandbox), fails: ['reflect.approval-gate-before-any-edit'] },
+    { name: 'the edit landed in the installed package instead of a project copy', mutate: (sandbox) => rewriteSession(parentSession(sandbox), '/.pi/skills/how/SKILL.md', '/generated/skills/how/SKILL.md'), fails: ['reflect.edits-a-project-copy-never-the-installed-package'] },
+    { name: 'the approval ask says "approve" in another form and the project copy is of the reflect skill', mutate: (sandbox) => { rewriteFinalReply(sandbox, /Nothing is edited until you approve\./, 'Nothing is edited until you approval it.'); }, fails: [], passes: ['reflect.approval-gate-before-any-edit'] },
     { name: 'only two reviewers ran', mutate: (sandbox) => removeWorker(sandbox, 'reflect-chat', 'divergent'), fails: ['reflect.three-reviewers'] },
     { name: 'a reviewer was denied MCP', mutate: (sandbox) => patchAssignment(sandbox, 'reflect-chat', 'tooling', (assignment) => (assignment['capabilities'] = { mcp: 'none', env: 'inherit', externalWrite: false })), fails: ['reflect.three-reviewers'] },
     { name: 'the tooling lens ran on the judgment model', mutate: (sandbox) => patchAssignment(sandbox, 'reflect-chat', 'tooling', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['reflect.lenses-use-the-role-lines'] },
@@ -485,7 +504,7 @@ export const showWorkFamily: Family = {
     }),
     check('trail.reply-ends-with-attention', 'the reply ends with an Attention section that leads with "reviewed by <model>" and points at rows', src('show-me-your-work/SKILL.md', 'ends with an "Attention" section'), (view) => {
       const reply = finalReply(view);
-      const attention = reply.split(/^Attention\s*$/m)[1] ?? '';
+      const attention = reply.split(/^(?:#{1,6}\s*|\*\*)?Attention(?:\*\*)?:?\s*$/m)[1] ?? '';
       const lines = attention.split('\n').filter(Boolean);
       return when(/^reviewed by \S+/.test(lines[0] ?? '') && lines.slice(1).some((line) => /row \d/i.test(line)), `Attention: ${lines[0]}`, `Attention section: ${JSON.stringify(lines.slice(0, 2))}`);
     }),
@@ -493,6 +512,12 @@ export const showWorkFamily: Family = {
     noToolErrors('trail.no-tool-errors', src('show-me-your-work/SKILL.md', '## Logging a row')),
   ],
   negatives: [
+    { name: 'the trail is at decisions.tsv in the work dir, not in the run directory', mutate: (sandbox) => renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/decisions.tsv')), fails: [], passes: ['trail.log-format', 'trail.append-only-wrong-call-gets-a-superseding-row'] },
+    { name: 'the trail is at .audit/cart.tsv, as the skill allows when several efforts run at once', mutate: (sandbox) => { mkdirSync(join(sandbox, 'repo/.audit')); renameSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv'), join(sandbox, 'repo/.audit/cart.tsv')); }, fails: [], passes: ['trail.log-format'] },
+    { name: 'there is no trail anywhere', mutate: (sandbox) => rmSync(join(sandbox, 'repo/.pi/pstack/runs/trail-cart/decisions.tsv')), fails: ['trail.log-format'] },
+    { name: 'the Attention heading is bold', mutate: (sandbox) => rewriteFinalReply(sandbox, /^Attention$/m, '**Attention**'), fails: [], passes: ['trail.reply-ends-with-attention'] },
+    { name: 'the Attention heading is a markdown heading', mutate: (sandbox) => rewriteFinalReply(sandbox, /^Attention$/m, '## Attention'), fails: [], passes: ['trail.reply-ends-with-attention'] },
+    { name: 'the reply has no Attention section', mutate: (sandbox) => rewriteFinalReply(sandbox, /\n\nAttention[\s\S]*$/, ''), fails: ['trail.reply-ends-with-attention'] },
     { name: 'the wrong row was edited in place', mutate: (sandbox) => rewriteTsv(sandbox, (text) => text.replace(/\ttests green\n/, '\ttests not run\n')), fails: ['trail.append-only-wrong-call-gets-a-superseding-row'] },
     { name: 'the wrong row was deleted', mutate: (sandbox) => rewriteTsv(sandbox, (text) => text.split('\n').filter((line) => !line.includes('tests green')).join('\n')), fails: ['trail.append-only-wrong-call-gets-a-superseding-row'] },
     { name: 'a formula cell was written raw', mutate: (sandbox) => rewriteTsv(sandbox, (text) => text.replace("'=SUM", '=SUM')), fails: ['trail.cells-are-spreadsheet-safe'] },

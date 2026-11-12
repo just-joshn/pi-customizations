@@ -9,7 +9,7 @@ const { values } = parseArgs({
   options: {
     out: { type: 'string' }, 'run-id': { type: 'string' }, id: { type: 'string' }, target: { type: 'string' }, kind: { type: 'string', default: 'command' },
     commit: { type: 'string' }, env: { type: 'string', default: 'local' }, artifact: { type: 'string', multiple: true }, exit: { type: 'string', default: '0' },
-    cmd: { type: 'string' }, git: { type: 'string' }, verdict: { type: 'string' }, reason: { type: 'string' },
+    cmd: { type: 'string' }, git: { type: 'string' }, verdict: { type: 'string' }, reason: { type: 'string' }, 'expected-fail': { type: 'boolean', default: false },
   },
 });
 const sha = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -20,6 +20,7 @@ const receipt = {
   command: values.cmd ? ['sh', '-c', values.cmd] : undefined, exitCode,
   artifacts: (values.artifact ?? []).map((path) => ({ path, sha256: sha(path) })), createdAt: new Date().toISOString(),
   ...(values.reason ? { reason: values.reason } : {}),
+  ...(values['expected-fail'] ? { expectedFail: true } : {}),
 };
 mkdirSync(dirname(values.out), { recursive: true });
 writeFileSync(values.out, `${JSON.stringify(receipt, null, 2)}\n`);

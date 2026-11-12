@@ -193,6 +193,17 @@ import { execFileSync } from "node:child_process";
 import { createHash as createHash2, randomBytes } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
+
+// src/model-spec.ts
+var FAMILY_DEFAULT_LEVELS = ["minimal", "low", "medium", "high", "xhigh", "max"];
+var FAMILY_DEFAULT = new RegExp(`^([a-z][a-z0-9]*(?:[-.][a-z0-9]+)*?)-(${FAMILY_DEFAULT_LEVELS.join("|")})(-fast)?$`);
+function parseFamilyDefault(spec) {
+  const match = FAMILY_DEFAULT.exec(spec);
+  return match === null ? undefined : { id: match[1], level: match[2], fast: match[3] !== undefined };
+}
+var MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";
+
+// src/run-files.ts
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -283,8 +294,8 @@ function parseAssignment(raw, defaults) {
   if (typeof role !== "string" || !WORKER_ROLES.includes(role))
     throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(", ")}`);
   const model = raw["model"];
-  if (typeof model !== "string" || !MODEL_SPEC.test(model))
-    throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
+  if (typeof model !== "string" || !(MODEL_SPEC.test(model) || parseFamilyDefault(model) !== undefined))
+    throw new Error(`Assignment model must be ${MODEL_SPEC_FORMS}${typeof model === "string" ? `; got '${model}'` : ""}`);
   const thinkingLevel = raw["thinkingLevel"] ?? null;
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
@@ -439,9 +450,13 @@ function parseLaunch(text) {
     throw new Error("Launch extraArgs must be strings");
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     throw new Error("Launch credentialEnv must be variable names");
+  const modelNote = raw["modelNote"] ?? null;
+  if (modelNote !== null && typeof modelNote !== "string")
+    throw new Error("Launch modelNote must be a string or null");
   return {
     piCommand,
     model,
+    modelNote,
     thinkingLevel,
     appendSystemPrompt,
     tools,
@@ -656,6 +671,7 @@ async function runHost(assignmentFile, launchText) {
     phase,
     reason,
     model,
+    ...launch.modelNote ? { modelNote: launch.modelNote } : {},
     sessionFile,
     briefSent,
     generation,

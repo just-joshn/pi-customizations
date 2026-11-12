@@ -4,6 +4,8 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { join, relative } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { ReceiptSchema, registerEvidenceTool } from '../../src/evidence.ts';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { makeParent, makeProject, makeRun, type Parent, type Project, until } from './harness.ts';
 
@@ -82,6 +84,28 @@ describe('pstack_evidence', () => {
     expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', receipts: ['r1'] });
   });
 
+  test('an intended failing-before proof records as expectedFail and verifies as pass only when the command failed', async () => {
+    await evidence({ action: 'record', receiptPath: receipt('red', { target: 'step-3-before', expectedFail: true, exitCode: 1 }) });
+    expect((await evidence({ action: 'verify', target: 'step-3-before' })).details).toEqual({ kind: 'pass', receipts: ['red'] });
+    await evidence({ action: 'record', receiptPath: receipt('green-claimed-red', { target: 'step-4-before', expectedFail: true, exitCode: 0 }) });
+    expect((await evidence({ action: 'verify', target: 'step-4-before' })).details).toMatchObject({ kind: 'fail', defects: ['green-claimed-red: expected the command to fail, but it exited 0'] });
+    const bare = receipt('red-no-exit', { target: 'step-5-before', expectedFail: true });
+    writeFileSync(bare, JSON.stringify({ ...JSON.parse(readFileSync(bare, 'utf8')), exitCode: undefined }));
+    await evidence({ action: 'record', receiptPath: bare });
+    expect((await evidence({ action: 'verify', target: 'step-5-before' })).details).toMatchObject({ kind: 'inconclusive' });
+  });
+
+  test('a non-zero pass without expectedFail still fails, and says how to record an intended failure', async () => {
+    await evidence({ action: 'record', receiptPath: receipt('r1', { exitCode: 2 }) });
+    expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', defects: [expect.stringContaining('set expectedFail: true')] });
+  });
+
+  test('an expected-fail receipt with a pass-claiming artifact still fails when the artifact changed', async () => {
+    await evidence({ action: 'record', receiptPath: receipt('red', { target: 'step-3-before', expectedFail: true, exitCode: 1 }) });
+    writeFileSync(join(runRoot, 'workers', 'w1', 'evidence', 'test.log'), 'tampered\n');
+    expect((await evidence({ action: 'verify', target: 'step-3-before' })).details.kind).toBe('fail');
+  });
+
   test('a pass with no artifacts is inconclusive', async () => {
     await evidence({ action: 'record', receiptPath: receipt('r1', { artifacts: [] }) });
     expect((await evidence({ action: 'verify', target: 'step-3' })).details.kind).toBe('inconclusive');
@@ -105,6 +129,32 @@ describe('pstack_evidence', () => {
   test('record rejects a malformed receipt and names its path and the offending property', async () => {
     const path = receipt('r1', { verdict: 'probably' });
     await expect(evidence({ action: 'record', receiptPath: path })).rejects.toThrow(new RegExp(`Invalid receipt ${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}: .*verdict`));
+  });
+
+  test('a validation error names each bad field with the values it allows, once per field', async () => {
+    const kind = receipt('r1', { kind: 'unit-test', verdict: 'passed' });
+    await expect(evidence({ action: 'record', receiptPath: kind })).rejects.toThrow(/kind: [^;]*\(must be one of test, command, screenshot, trace, review, measurement, other\); verdict: [^;]*\(must be one of pass, fail, inconclusive\)$/);
+    const extra = receipt('r2', { receipt: {}, receiptPath: 'x' });
+    await expect(evidence({ action: 'record', receiptPath: extra })).rejects.toThrow(/receipt: unknown field \(allowed fields: schemaVersion, id, runId, target, kind, verdict, commit, environment, command, exitCode, artifacts, defects, reason, expectedFail, createdAt\)/);
+    const missing = receipt('r3');
+    writeFileSync(missing, JSON.stringify({ schemaVersion: 1, id: 'r3', runId: 'run1', target: 't', kind: 'test', verdict: 'pass', commit: null, environment: 'x', artifacts: [] }));
+    await expect(evidence({ action: 'record', receiptPath: missing })).rejects.toThrow(/createdAt: missing \(must be an ISO timestamp string\)/);
+  });
+
+  test('the tool description lists the receipt fields and the kind enum', async () => {
+    let tools = '';
+    registerEvidenceTool({ registerTool: (tool: { description: string }) => (tools = tool.description) } as unknown as ExtensionAPI);
+    expect(tools).toContain('kind (one of test, command, screenshot, trace, review, measurement, other)');
+    expect(tools).toContain('createdAt (an ISO timestamp string)');
+    expect(tools).toContain('expectedFail');
+  });
+
+  test('the worker reference and the tool description document every schema field and kind', () => {
+    const reference = readFileSync(join(PACKAGE_ROOT, 'generated/skills/poteto-mode/references/worker-assignment.md'), 'utf8');
+    let description = '';
+    registerEvidenceTool({ registerTool: (tool: { description: string }) => (description = tool.description) } as unknown as ExtensionAPI);
+    const kinds = (ReceiptSchema.properties.kind.anyOf as { const: string }[]).map((entry) => entry.const);
+    for (const text of [reference, description]) for (const word of [...Object.keys(ReceiptSchema.properties), ...kinds]) expect(text, word).toContain(word);
   });
 
   test('record names a missing property', async () => {

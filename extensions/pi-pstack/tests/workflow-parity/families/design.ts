@@ -1,4 +1,5 @@
 // Families: arena, architect, swarm, interrogate (spec 12.2).
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -18,9 +19,9 @@ import {
   openedAt,
   panelCheck,
   parentOpenedFiles,
+  commitsNotFromWorkers,
   parentReads,
   promptRoutes,
-  receiptsFor,
   repoUntouched,
   settledAndCollected,
   skillFile,
@@ -33,8 +34,8 @@ import {
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { corruptArtifact, deleteReceipt, dirtyRepo, type Negative, parentSession, patchAssignment, patchGit, patchReceipt, removeWorker, rewriteFinalReply, setRoleLine, setSessionCwd, unspawnWorker, workerSessionFile } from '../lib/mutate.ts';
-import type { RunView } from '../lib/view.ts';
+import { appendToolCall, corruptArtifact, deleteReceipt, dirtyRepo, type Negative, parentSession, patchAssignment, patchGit, patchReceipt, removeWorker, rewriteFinalReply, setRoleLine, setSessionCwd, unspawnWorker, workerSessionFile } from '../lib/mutate.ts';
+import type { RunDir, RunView, WorkerView } from '../lib/view.ts';
 import { rewriteBrief } from './build.ts';
 import { markPhase, phaseItems, phasesBeforeLaunch, replyHas, worktreeOf, writer } from './shared.ts';
 import type { Family } from './types.ts';
@@ -165,26 +166,36 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
   }),
   whenJudged(check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
-    const criteria = (judge?.brief ?? '').split('\n').filter((line) => line.startsWith('- ') && !/^- candidate/.test(line)).map((line) => line.slice(2));
+    // The skill sets the rubric's size (3 to 6 criteria) and no list syntax: a dash, a star, or a number each counts; a candidate's path label does not.
+    const criteria = (judge?.brief ?? '').split('\n').filter((line) => /^\s*(?:[-*]|\d+[.)])\s+\S/.test(line) && !/^\s*[-*]\s+\W*candidate/i.test(line) && !/worktree/i.test(line)).map((line) => line.replace(/^\s*(?:[-*]|\d+[.)])\s+/, ''));
     if (criteria.length < 3 || criteria.length > 6) return fail(`the judge brief carries ${criteria.length} rubric criteria, want 3 to 6`);
     const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && criteria.some((criterion) => (worker.brief ?? '').includes(criterion)));
     return when(leaked.length === 0, `${criteria.length} criteria in the judge brief, none in ${allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').length} candidate briefs`, `rubric leaked to ${leaked.map((worker) => worker.id).join(', ')}`);
   })),
   writableWorkerRecords(`${prefix}.candidate-records`, src('arena/SKILL.md', 'instructions to produce the artifact and a short rationale'), ['candidate']),
-  check(`${prefix}.candidates-committed`, 'each candidate committed its artifact on its own branch', src('arena/SKILL.md', 'instructions to produce the artifact and a short rationale'), (view) => {
+  // The skill asks each candidate for "the artifact and a short rationale" in its own output location: a commit is how a scripted candidate
+  // leaves it, and uncommitted files in the candidate's worktree are the same artifact, which the parent reads from there.
+  check(`${prefix}.candidates-leave-an-artifact`, 'each candidate left its artifact in its own worktree, committed on its own branch or as files', src('arena/SKILL.md', 'Give each candidate its own output location'), (view) => {
     const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').filter((worker) => {
       const run = view.runs.find((entry) => entry.workers.includes(worker));
-      return (view.git.branchCommits[`pstack-run/${run?.id}/${worker.id}`]?.length ?? 0) < 1;
+      const committed = (view.git.branchCommits[`pstack-run/${run?.id}/${worker.id}`]?.length ?? 0) >= 1;
+      const files = Object.entries(view.git.worktreeDirty).some(([path, dirty]) => path.includes(`/${worker.id}/worktree`) && dirty.length > 0);
+      return !committed && !files;
     });
-    return when(bad.length === 0, 'every candidate branch holds at least one commit', `no commit on: ${bad.map((worker) => worker.id).join(', ')}`);
+    return when(bad.length === 0, 'every candidate worktree holds its artifact, committed or as files', `no artifact in: ${bad.map((worker) => worker.id).join(', ')}`);
   }),
   whenJudged(workersCheck(`${prefix}.judge`, 'one judge, role judge, readonly on the repository root, model from the cross-judge pool', src('arena/SKILL.md', 'Spawn one judge worker with `role: "judge"`'), { role: 'judge', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'arena cross-judge pool' })),
   whenJudged(judgeNotParentFamily(`${prefix}.judge-not-parent-family`)),
   whenJudged(spawnedAfterCollect(`${prefix}.judge-after-candidates`, "the judge is spawned only after every candidate completes: \"Don't spawn it while candidates are still writing\"", src('arena/SKILL.md', "Don't spawn it while candidates are still writing"), ['judge'], ['candidate'])),
-  whenJudged(briefsContain(`${prefix}.judge-brief`, 'the judge brief carries the rubric and the candidates by path label', src('arena/SKILL.md', 'The judge sees the rubric and the candidates by path label'), ['judge'], [
-    { name: 'rubric', pattern: /Rubric/ },
-    { name: 'candidate path labels', pattern: /candidate-?[\w-]*: \/.+worktree/ },
-  ])),
+  whenJudged(check(`${prefix}.judge-brief`, 'the judge brief carries the rubric and each candidate by a label and the path of its worktree', src('arena/SKILL.md', 'The judge sees the rubric and the candidates by path label'), (view) => {
+    const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
+    const brief = judge?.brief ?? '';
+    const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate');
+    // A label then its path on one line, in any list or bold style: "- cand-1: /x/worktree", "- **candidate-A** worktree: `/x/worktree`".
+    const unlabelled = candidates.filter((worker) => !brief.split('\n').some((line) => new RegExp(`^[\\s\\-*>\\x60]*[A-Za-z][^/\\n]*\\/[^\\n]*/${worker.id}/worktree`).test(line)));
+    const missing = [...(/Rubric/i.test(brief) ? [] : ['the rubric']), ...unlabelled.map((worker) => `a labelled path for ${worker.id}`)];
+    return when(judge !== undefined && candidates.length > 0 && missing.length === 0, `the judge brief has the rubric and a labelled worktree path for ${candidates.length} candidates`, judge === undefined ? 'no judge' : `judge brief lacks ${missing.join(', ')}`);
+  })),
   parentOpenedFiles(`${prefix}.read-every-candidate`, 'the parent read every candidate end to end before picking', src('arena/SKILL.md', 'Read every candidate end to end before picking'), (view) => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').map((worker) => `${worker.id}/worktree/src/coupon.js`)),
   check(`${prefix}.verified`, 'a passing test or command receipt verifies the synthesized artifact (Phase F): its target is arena-verify, the Verify phase item, or the synthesized commit', src('arena/SKILL.md', 'Verify the synthesized artifact like any other output'), (view) => {
     const verifyItems = view.runs.flatMap((run) => (run.todoText ?? '').split('\n').flatMap((line) => /^- \[.\] (\S+?)\.? +Verify\b/.exec(line)?.[1] ?? []));
@@ -209,10 +220,40 @@ const swapNegatives = (id: string, prefix: string): Negative[] => [
   { name: 'two candidates ran in the same worktree', mutate: (sandbox) => setSessionCwd(workerSessionFile(sandbox, id, 'candidate-2'), join(sandbox, 'repo/.pi/pstack/runs', id, 'workers/candidate-1/worktree')), fails: [`${prefix}.separate-writable-locations`] },
   { name: 'the judge is the parent model family', mutate: (sandbox) => patchAssignment(sandbox, id, 'judge', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: [`${prefix}.judge-not-parent-family`] },
   { name: 'the rubric leaked into a candidate brief', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', id, 'workers/candidate-1/brief.md'), `${candidateBrief('x')}\n${RUBRIC[0]}`), fails: [`${prefix}.rubric-held-back`, `${prefix}.same-prompt`] },
+  {
+    name: 'the judge brief numbers its rubric and labels each candidate in bold, the way a real judge brief reads',
+    mutate: (sandbox) => {
+      const dir = join(sandbox, 'repo/.pi/pstack/runs', id, 'workers');
+      const label = (n: number) => `- **candidate-${n}** worktree: \`${join(dir, `candidate-${n}`, 'worktree')}\``;
+      writeFileSync(join(dir, 'judge/brief.md'), `Rubric\n\n${RUBRIC.map((criterion, index) => `${index + 1}. **${criterion}.**`).join('\n')}\n\n## Candidates\n\n${label(1)}\n${label(2)}\n`);
+    },
+    fails: [],
+    passes: [`${prefix}.rubric-held-back`, `${prefix}.judge-brief`],
+  },
+  {
+    name: 'the judge brief lists the candidate paths with no label, and only two numbered criteria',
+    mutate: (sandbox) => {
+      const dir = join(sandbox, 'repo/.pi/pstack/runs', id, 'workers');
+      writeFileSync(join(dir, 'judge/brief.md'), `Rubric\n\n1. one\n2. two\n\n${join(dir, 'candidate-1', 'worktree')}\n${join(dir, 'candidate-2', 'worktree')}\n`);
+    },
+    fails: [`${prefix}.judge-brief`, `${prefix}.rubric-held-back`],
+  },
+  {
+    name: 'a candidate left its artifact as files in its worktree and committed nothing',
+    mutate: (sandbox) =>
+      patchGit(sandbox, (git) => {
+        git['branchCommits'] = {};
+        const dirty: Record<string, string[]> = {};
+        for (const n of [1, 2]) dirty[join(sandbox, 'repo/.pi/pstack/runs', id, 'workers', `candidate-${n}`, 'worktree')] = ['src/coupon.js'];
+        git['worktreeDirty'] = dirty;
+      }),
+    fails: [],
+    passes: [`${prefix}.candidates-leave-an-artifact`],
+  },
   { name: 'candidates did not share one prompt', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', id, 'workers/candidate-2/brief.md'), 'Do something else.'), fails: [`${prefix}.same-prompt`] },
   { name: 'only one runner ran', mutate: (sandbox) => removeWorker(sandbox, id, 'candidate-2'), fails: [`${prefix}.candidates`] },
   { name: 'both runners are the same model', mutate: (sandbox) => patchAssignment(sandbox, id, 'candidate-2', (assignment) => (assignment['model'] = model('arena runners', 0))), fails: [`${prefix}.candidates`] },
-  { name: 'a candidate produced no commit', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: [`${prefix}.candidates-committed`] },
+  { name: 'a candidate produced no commit', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: [`${prefix}.candidates-leave-an-artifact`] },
   { name: 'the synthesized artifact was never verified', mutate: (sandbox) => deleteReceipt(sandbox, id, 'arena-verify'), fails: [`${prefix}.verified`] },
   { name: 'the verification artifact was tampered with', mutate: (sandbox) => corruptArtifact(sandbox, id, 'arena-verify'), fails: [`${prefix}.verified`] },
   { name: 'the reply forgot the cross-judge verdict', mutate: (sandbox) => rewriteFinalReply(sandbox, /cross-judge/gi, 'panel'), fails: [`${prefix}.synthesis-note`] },
@@ -420,15 +461,31 @@ export const architectFamily: Family = {
       if (positions.includes(-1)) return fail(`rationale lacks ${RATIONALE_HEADINGS.filter((_, index) => positions[index] === -1).join(', ')}`);
       return when(positions.every((position, index) => index === 0 || position > (positions[index - 1] as number)) && !/Filled in by arena\./.test(text), `rationale at ${String(write.args['path'])} has all eight sections in order and a filled synthesis decision`, 'sections are out of order or the synthesis decision is still the template note');
     }),
-    check('architect.proceeds-to-implementation', 'with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge (or, with the judge skipped, the candidates) was collected', src('architect/SKILL.md', 'Default: proceed directly to implementation with the synthesized design'), (view) => {
-      const implement = allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto' || /implement/.test(worker.id));
+    check('architect.proceeds-to-implementation', 'with no checkpoint requested, implementation follows the synthesis directly: after the judge (or, with the judge skipped, the candidates) was collected, a writable worker commits, or the parent writes and commits on the checkout itself (Phase D names no worker)', src('architect/SKILL.md', 'Default: proceed directly to implementation with the synthesized design'), (view) => {
       const run = view.runs[0];
-      const commits = view.git.branchCommits[`pstack-run/${run?.id}/${implement?.id}`] ?? [];
       const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
       const gate = judge === undefined ? Math.max(...allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').map((worker) => collectOrder(view, worker.id))) : collectOrder(view, judge.id);
-      return when(implement !== undefined && commits.length >= 1 && (judge !== undefined || judgeSkipped(view)) && spawnOrder(view, implement.id) > gate, `${implement?.id} committed ${commits.length} after ${judge === undefined ? 'the candidates' : 'the judge'} was collected`, `implementer ${implement?.id}, commits ${commits.length}, judge ${judge?.id ?? 'none and not reported as skipped'}`);
+      const gated = judge !== undefined || judgeSkipped(view);
+      const implement = allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto' || /implement/.test(worker.id));
+      const workerCommits = view.git.branchCommits[`pstack-run/${run?.id}/${implement?.id}`] ?? [];
+      if (implement !== undefined && workerCommits.length >= 1) return when(gated && spawnOrder(view, implement.id) > gate, `${implement.id} committed ${workerCommits.length} after ${judge === undefined ? 'the candidates' : 'the judge'} was collected`, `implementer ${implement.id} spawned before the gate or the judge is neither collected nor reported skipped`);
+      const inRepository = (path: string) => (path.startsWith(`${view.repo}/`) || !path.startsWith('/')) && !path.includes('/.pi/') && !path.startsWith('.pi/') && !path.endsWith('.md');
+      const ownWrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError && call.order > gate && inRepository(String(call.args['path'] ?? '')));
+      const ownCommits = commitsNotFromWorkers(view);
+      return when(gated && ownWrites.length >= 1 && ownCommits.length >= 1, `the parent wrote ${ownWrites.length} file(s) and committed ${ownCommits.length} on the checkout after the ${judge === undefined ? 'candidates' : 'judge'} was collected`, `implementer ${implement?.id}, worker commits ${workerCommits.length}, parent commits ${ownCommits.length}, parent writes after the gate ${ownWrites.length}, judge ${judge?.id ?? 'none and not reported as skipped'}`);
     }),
-    receiptsFor('architect.implementation-verified', 'the implementation worker recorded a passing test receipt', src('architect/SKILL.md', 'Replace `not implemented` bodies with code'), (receipt) => receipt.target === 'implement' && receipt.kind === 'test', 1),
+    // The implementation's test receipt targets "implement" in a scripted run; a run that implemented on the checkout targets the commit it made (a SHA, with or without a note after it).
+    check('architect.implementation-verified', 'a passing test receipt covers the implementation: it targets "implement" or a commit of the implementation', src('architect/SKILL.md', 'Replace `not implemented` bodies with code'), (view) => {
+      const commits = [...view.git.commitsSinceBase, ...Object.values(view.git.branchCommits).flat()];
+      const covers = (receipt: { target: string }) => {
+        if (receipt.target === 'implement') return true;
+        const sha = /^[0-9a-f]{7,40}\b/.exec(receipt.target)?.[0];
+        return sha !== undefined && commits.some((commit) => commit.startsWith(sha));
+      };
+      const hits = view.runs.flatMap((run) => run.receipts.filter((receipt) => receipt.kind === 'test' && receipt.verdict === 'pass' && covers(receipt)).map((receipt) => ({ run, receipt })));
+      const problems = hits.map(({ run, receipt }) => verifyReceipt(run, receipt)).filter((problem): problem is string => problem !== null);
+      return when(hits.length >= 1 && problems.length === 0, `${hits.length} matching receipts re-verify: ${hits.map(({ receipt }) => receipt.id).join(', ')}`, problems.join('; ') || `${hits.length} passing test receipts target "implement" or a commit of the implementation, want 1`);
+    }),
     settledAndCollected('architect.settled-and-collected', src('arena/SKILL.md', 'After all Phase B candidates complete')),
     noToolErrors('architect.no-tool-errors', src('architect/SKILL.md', '## Outputs')),
   ],
@@ -438,6 +495,24 @@ export const architectFamily: Family = {
     { name: 'both candidates wrote the same design', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/architect-coupon/workers/candidate-2/worktree/design.md'), DESIGN_A(SHAPE_1)), fails: ['architect.designs-are-distinct'] },
     { name: 'the rationale kept the template note for the synthesis decision', mutate: (sandbox) => rewriteSessionSynthesis(sandbox), fails: ['architect.rationale-shipped'] },
     { name: 'the implementation committed nothing', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: ['architect.proceeds-to-implementation'] },
+    {
+      name: 'the parent implemented on the checkout itself after the judge and verified its own commit',
+      mutate: (sandbox) => {
+        const head = commitOnCheckout(sandbox, 'implement clampPercent');
+        appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/src/coupon.js`, content: COUPON_A });
+        patchReceipt(sandbox, 'architect-coupon', 'implement-check', { target: `${head.slice(0, 7)} (implementation commit)` });
+      },
+      fails: [],
+      passes: ['architect.proceeds-to-implementation', 'architect.implementation-verified'],
+    },
+    {
+      name: 'the parent committed on the checkout but wrote no file after the judge, and its receipt names no commit',
+      mutate: (sandbox) => {
+        commitOnCheckout(sandbox, 'nothing');
+        patchReceipt(sandbox, 'architect-coupon', 'implement-check', { target: 'something-else' });
+      },
+      fails: ['architect.proceeds-to-implementation', 'architect.implementation-verified'],
+    },
     { name: 'the implementation receipt is gone', mutate: (sandbox) => deleteReceipt(sandbox, 'architect-coupon', 'implement-check'), fails: ['architect.implementation-verified'] },
     {
       name: 'no other-family judge could run, so the judge was skipped and the final message says so',
@@ -452,6 +527,18 @@ export const architectFamily: Family = {
     { name: 'the phase entries were written after workers launched', mutate: (sandbox) => writeFileSync(join(sandbox, 'claims.json'), JSON.stringify([{ runId: 'architect-coupon', workerId: 'ground', seq: -1 }])), fails: ['architect.phase-todos-before-work'] },
   ],
 };
+
+/** A commit of the parent's own on the checkout, with the worker branches forgotten: the implementation as a run that had no implementer would leave it. */
+function commitOnCheckout(sandbox: string, message: string): string {
+  execFileSync('git', ['-C', join(sandbox, 'repo'), '-c', 'user.name=m', '-c', 'user.email=m@x', 'commit', '-q', '--allow-empty', '-m', message]);
+  const head = execFileSync('git', ['-C', join(sandbox, 'repo'), 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  patchGit(sandbox, (git) => {
+    git['branchCommits'] = {};
+    git['commitsSinceBase'] = [head];
+    git['head'] = head;
+  });
+  return head;
+}
 
 function rewriteSessionSynthesis(sandbox: string): void {
   const file = parentSession(sandbox);
@@ -491,6 +578,29 @@ Issues
 Gaps and dropouts
 - slice-3 first result did not record the commit SHA or the method, so it did not count and was respawned once as slice-3b.
 Race rule: none, this was a coverage partition.`;
+
+/** A result-table row: a pipe row whose first cell is a src/ path, plain or in a code span (Phase D asks only for "a result table"). */
+const LANE_ROW = /^\|\s*`?src\//;
+const laneRows = (reply: string) => reply.split('\n').filter((line) => LANE_ROW.test(line));
+const SLICE_FILE = /src\/[\w.-]+\.js/;
+const settledIdle = (worker: WorkerView) => ((worker.state?.['settles'] as { phase: string }[] | undefined) ?? []).some((settle) => settle.phase === 'idle');
+
+/**
+ * The worker a result row rests on: the worker the row cites (by id, or by `receipt <id>-check`), else the last worker that settled for the
+ * slice's file, the file being the first src/ path its brief names. The skill asks for a table and no citation format.
+ */
+function laneWorker(view: RunView, row: string): WorkerView | undefined {
+  const workers = allWorkers(view);
+  const cited = /receipt ([\w-]+?)-check/.exec(row)?.[1];
+  const named = [...workers].sort((a, b) => b.id.length - a.id.length).find((worker) => worker.id === cited || row.includes(worker.id));
+  if (named !== undefined) return named;
+  const file = SLICE_FILE.exec(row)?.[0];
+  const forFile = workers.filter((worker) => worker.brief?.match(SLICE_FILE)?.[0] === file);
+  return [...forFile].reverse().find(settledIdle) ?? forFile.at(-1);
+}
+
+/** The receipts a worker's result rests on: its own id or target, or an artifact in its evidence directory. */
+const receiptsOfWorker = (run: RunDir, worker: WorkerView) => run.receipts.filter((receipt) => receipt.target === worker.id || receipt.id === `${worker.id}-check` || receipt.id.startsWith(`${worker.id}-`) || receipt.artifacts.some((artifact) => artifact.path.includes(`workers/${worker.id}/evidence/`)));
 
 export const swarmFamily: Family = {
   id: 'swarm',
@@ -591,12 +701,11 @@ export const swarmFamily: Family = {
     ]),
     check('swarm.results-record-sha-and-method', "every lane the report accepts rests on a result that records the commit SHA and the method its brief names; a result that does not is not a pass", src('swarm/SKILL.md', 'Drop a result that does not record the SHAs and method its brief names'), (view) => {
       const reply = finalReply(view);
-      const rows = reply.split('\n').filter((line) => /^\|\s*src\//.test(line));
+      const rows = laneRows(reply);
       const problems = rows.flatMap((row) => {
-        const id = /receipt (slice-[\w]+?)-check/.exec(row)?.[1];
-        const worker = allWorkers(view).find((entry) => entry.id === id);
-        if (worker === undefined) return [`${row.slice(0, 40)} cites no worker receipt`];
-        return worker.finalText.includes(view.base) && /method/i.test(worker.finalText) ? [] : [`${worker.id} is accepted but its result lacks the SHA or the method`];
+        const worker = laneWorker(view, row);
+        if (worker === undefined) return [`${row.slice(0, 40)} rests on no worker`];
+        return worker.finalText.includes(view.base.slice(0, 7)) && /method|sampl/i.test(worker.finalText) ? [] : [`${worker.id} is accepted but its result lacks the SHA or the method`];
       });
       return when(rows.length === SLICES.length && problems.length === 0, `${rows.length} accepted lanes all record the SHA and method`, problems.join('; ') || `${rows.length} rows`);
     }),
@@ -613,22 +722,21 @@ export const swarmFamily: Family = {
     }),
     check('swarm.pass-lanes-have-receipts', 'every lane the report calls PASS has a recorded receipt that re-verifies, and an abandoned result is not a passing lane', src('swarm/SKILL.md', 'Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence'), (view) => {
       const reply = finalReply(view);
-      const rows = reply.split('\n').filter((line) => /^\|\s*src\//.test(line));
+      const rows = laneRows(reply);
       const problems = rows.filter((row) => /\|\s*PASS\s*\|/.test(row)).flatMap((row) => {
-        const id = /receipt (slice-[\w-]+?)-check/.exec(row)?.[1];
         const run = view.runs[0];
-        const receipt = run?.receipts.find((entry) => entry.id === `${id}-check`);
-        if (id === undefined || run === undefined || receipt === undefined) return [`${row.slice(0, 40)} has no recorded receipt`];
-        const problem = verifyReceipt(run, receipt);
-        return problem === null ? [] : [problem];
+        const worker = laneWorker(view, row);
+        const receipts = run === undefined || worker === undefined ? [] : receiptsOfWorker(run, worker);
+        if (run === undefined || receipts.length === 0) return [`${row.slice(0, 40)} has no recorded receipt`];
+        return receipts.flatMap((receipt) => verifyReceipt(run, receipt) ?? []);
       });
       return when(rows.length === SLICES.length && problems.length === 0, `${rows.length} lanes, every PASS lane has a re-verifying receipt`, problems.join('; ') || `${rows.length} lane rows, want ${SLICES.length}`);
     }),
     check('swarm.report-keeps-outcome-distinctions', 'the report is one table with PASS, ISSUES, or BLOCKED per slice, issue one-liners, and gaps; no raw worker dumps', src('swarm/SKILL.md', 'Return one consolidated in-chat report'), (view) => {
       const reply = finalReply(view);
-      const rows = reply.split('\n').filter((line) => /^\|\s*src\//.test(line));
+      const rows = laneRows(reply);
       const outcomes = rows.map((row) => row.split('|')[2]?.trim());
-      return when(rows.length === SLICES.length && outcomes.every((outcome) => ['PASS', 'ISSUES', 'BLOCKED'].includes(String(outcome))) && outcomes.includes('ISSUES') && /Gaps and dropouts/.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
+      return when(rows.length === SLICES.length && outcomes.every((outcome) => ['PASS', 'ISSUES', 'BLOCKED'].includes(String(outcome))) && outcomes.includes('ISSUES') && /gaps?\b[^.\n]{0,12}\bdropouts?/i.test(reply) && !allWorkers(view).some((worker) => worker.finalText.length > 80 && reply.includes(worker.finalText)), `outcomes ${outcomes.join(', ')}`, `rows ${rows.length}, outcomes ${outcomes.join(', ')}`);
     }),
     settledAndCollected('swarm.settled-and-collected', src('swarm/SKILL.md', '## Phase C: Aggregate')),
     writableWorkerRecords('swarm.worker-records', src('swarm/SKILL.md', 'Reports use `PASS`, `ISSUES`, or `BLOCKED` with evidence')),
@@ -636,6 +744,11 @@ export const swarmFamily: Family = {
   negatives: [
     { name: 'two workers shared a worktree', mutate: (sandbox) => setSessionCwd(workerSessionFile(sandbox, 'swarm-rounding', 'slice-2'), join(sandbox, 'repo/.pi/pstack/runs/swarm-rounding/workers/slice-1/worktree')), fails: ['swarm.separate-writable-outputs'] },
     { name: 'a PASS lane has no receipt', mutate: (sandbox) => deleteReceipt(sandbox, 'swarm-rounding', 'slice-1-check'), fails: ['swarm.pass-lanes-have-receipts'] },
+    { name: 'the result table puts each path in a code span and the gaps are headed "Gaps or dropouts"', mutate: (sandbox) => rewriteFinalReply(sandbox, /\| (src\/[\w.]+) \|/g, (_m, path: string) => `| \`${path}\` |`), fails: [], passes: ['swarm.results-record-sha-and-method', 'swarm.pass-lanes-have-receipts', 'swarm.report-keeps-outcome-distinctions'] },
+    { name: 'the gaps section is headed "Gaps or dropouts"', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Gaps and dropouts', 'Gaps or dropouts'), fails: [], passes: ['swarm.report-keeps-outcome-distinctions'] },
+    { name: 'the report has no gaps or dropouts section at all', mutate: (sandbox) => rewriteFinalReply(sandbox, /Gaps and dropouts\n[^\n]*\n/, ''), fails: ['swarm.report-keeps-outcome-distinctions'] },
+    { name: 'a PASS row without a receipt cited rests on the slice\'s worker, which recorded none', mutate: (sandbox) => { rewriteFinalReply(sandbox, '| src/cart.js | PASS | receipt slice-1-check at', '| src/cart.js | PASS | clean at'); deleteReceipt(sandbox, 'swarm-rounding', 'slice-1-check'); }, fails: ['swarm.pass-lanes-have-receipts'] },
+    { name: 'a PASS row without a receipt cited still passes when its worker\'s receipt is recorded', mutate: (sandbox) => rewriteFinalReply(sandbox, '| src/cart.js | PASS | receipt slice-1-check at', '| src/cart.js | PASS | clean at'), fails: [], passes: ['swarm.pass-lanes-have-receipts', 'swarm.results-record-sha-and-method'] },
     { name: 'a PASS lane receipt was tampered with', mutate: (sandbox) => corruptArtifact(sandbox, 'swarm-rounding', 'slice-3b-check'), fails: ['swarm.pass-lanes-have-receipts'] },
     { name: 'a brief names no SHA', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/swarm-rounding/workers/slice-2/brief.md'), 'Goal: audit. Scope: src/money.js. Report PASS, ISSUES, or BLOCKED.'), fails: ['swarm.briefs-stand-alone'] },
     { name: 'the abandoned result was counted as a pass', mutate: (sandbox) => rewriteFinalReply(sandbox, '| src/checkout.js | PASS | receipt slice-3b-check', '| src/checkout.js | PASS | slice-3 receipt slice-3-check'), fails: ['swarm.results-record-sha-and-method'] },
@@ -697,17 +810,21 @@ export const swarmFamily: Family = {
 const NAN_REPRO = `node --input-type=module -e "import('./src/coupon.js').then((m)=>console.log(String(m.clampPercent(NaN))))"`;
 const flat = (text: string) => text.replace(/\s+/g, ' ').trim();
 const SHELL_COMMAND = /^(node|npm|npx|pnpm|yarn|grep|git|sh|bash|cat|test|python3?|\.\/)/;
-/** A report label on a line of its own: plain, a heading, or bold, with an optional colon. */
-const LABEL = (name: string) => new RegExp(`^\\s*(#{1,4}\\s*)?\\**${name}\\**:?\\s*$`, 'm');
+/**
+ * A report label (interrogate SKILL.md "## Output" lists `- **Intent**: the restatement.`): alone on a line, as a heading, or bold with
+ * its text after it on the same line (`**Intent.** ...`, `**Intent**: ...`). Plain prose that begins with the word is not a label.
+ */
+const LABEL = (name: string) => new RegExp(`^\\s*(?:#{1,4}\\s*)?(?:[-*]\\s+)?(?:\\*\\*${name}[.:]?\\*\\*[.:]?(?:\\s|$)|${name}:?\\s*$|${name}:\\s)`, 'm');
 const LABELS = ['Intent', 'Findings', 'Dropped'];
-/** The lines under a label, up to the next label or heading. */
+/** The text under a label: what follows it on its own line, then the lines up to the next label or heading. */
 function sectionOf(reply: string, label: string): string {
   const lines = reply.split('\n');
   const start = lines.findIndex((line) => LABEL(label).test(line));
   if (start === -1) return '';
+  const inline = (lines[start] as string).replace(LABEL(label), '');
   const rest = lines.slice(start + 1);
   const end = rest.findIndex((line) => /^\s*#{1,4}\s/.test(line) || LABELS.some((other) => LABEL(other).test(line)));
-  return (end === -1 ? rest : rest.slice(0, end)).join('\n');
+  return [inline, ...(end === -1 ? rest : rest.slice(0, end))].join('\n');
 }
 
 const INTENT = 'The change makes a coupon percent safe: clampPercent(percent) must return a number from 0 to 100 for any input.';
@@ -788,7 +905,10 @@ export const interrogateFamily: Family = {
         return when(problems.length === 0, `${bullets.length} finding(s) re-run with the reported output`, problems.join('; '));
       }
       // A prose report cites each finding's command as a code span; the skill asks for the rerun, and prescribes no list format.
-      const commands = [...findings.matchAll(/`([^`\n]+)`/g)].map((match) => match[1] as string).filter((span) => SHELL_COMMAND.test(span));
+      // The command may sit in a code span or on a line of a fenced block, with a trailing `# note` or an elided tail (`node -e "...`).
+      const fenced = findings.split('\n').filter((line) => !line.startsWith('```')).map((line) => line.replace(/\s+#.*$/, '').trim());
+      const spans = [...findings.matchAll(/`([^`\n]+)`/g)].map((match) => match[1] as string);
+      const commands = [...spans, ...fenced].filter((span) => SHELL_COMMAND.test(span)).map((command) => command.split(/\.\.\.|…/)[0]?.trim() ?? command);
       const missing = commands.filter((command) => !ran(command));
       return when(commands.length > 0 && missing.length === 0, `${commands.length} cited command(s) re-run by the parent`, commands.length === 0 ? 'the findings cite no command to re-run' : `the parent never re-ran: ${missing.map((command) => command.slice(0, 50)).join(' | ')}`);
     }),
@@ -796,8 +916,19 @@ export const interrogateFamily: Family = {
       const reply = finalReply(view);
       const reviewers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'reviewer');
       const dropped = sectionOf(reply, 'Dropped');
-      const counted = (id: string) => dropped.split('\n').some((line) => line.includes(id) && /dropped/i.test(line) && /\b(\d+|no|none|zero|nothing|one|two|three|four)\b/i.test(line.slice(line.toLowerCase().indexOf('dropp') - 12)));
-      const missing = reviewers.filter((worker) => !counted(worker.id));
+      // A reviewer's count is the text from its id to the next reviewer's id, so one line may carry every reviewer.
+      const ids = reviewers.map((worker) => worker.id);
+      const counted = (id: string) =>
+        dropped.split('\n').some((line) => {
+          const at = line.indexOf(id);
+          if (at === -1) return false;
+          const next = ids.map((other) => line.indexOf(other, at + id.length)).filter((index) => index !== -1);
+          const segment = line.slice(at + id.length, next.length === 0 ? undefined : Math.min(...next));
+          return /dropped/i.test(segment) && /\b(\d+|no|none|zero|nothing|one|two|three|four)\b/i.test(segment);
+        });
+      // "No findings were dropped for any adversary" is the count, zero, for each of them (SKILL.md: "for each adversary, the count of dropped findings and why").
+      const allZero = /\b(no|zero|none of the)\b[^.\n]*\bdropped\b[^.\n]*\b(any|each|every|all|either)\b/i.test(dropped);
+      const missing = allZero ? [] : reviewers.filter((worker) => !counted(worker.id));
       const nitpick = allWorkers(view).find((worker) => /No command was run/.test(worker.finalText));
       const findings = sectionOf(reply, 'Findings');
       return when(missing.length === 0 && reviewers.length > 0 && (nitpick === undefined || !findings.includes('clearer')), `${reviewers.length} reviewers each have a dropped count; the unrun finding is not listed`, `no dropped count for ${missing.map((worker) => worker.id).join(', ')}; unrun finding listed: ${String(findings.includes('clearer'))}`);
@@ -832,6 +963,11 @@ export const interrogateFamily: Family = {
     },
     { name: 'an adversary brief carries no intent', mutate: (sandbox) => rewriteBrief(sandbox, 'interrogate-clamp', 'reviewer-2', /^Intent: [^\n]*\n/m, ''), fails: ['interrogate.adversary-brief'] },
     { name: 'the report uses headings and prose: a heading per label, the finding\'s command in a code span the parent re-ran', mutate: (sandbox) => rewriteFinalReply(sandbox, /Intent\n([^\n]*)\n\nFindings\n- clampPercent\(NaN\) returns NaN\. Command: (.*?)\. Output: NaN\.[^\n]*\n\nDropped\n- reviewer-1: 0 dropped\.\n- reviewer-2: 1 dropped, ([^\n]*)\n- reviewer-3: 0 dropped, no findings\./s, (_m, intent: string, command: string, why: string) => `## Intent\n${intent}\n\n## Findings\nThe verified finding is that clampPercent(NaN) returns NaN, shown by \`${command}\`, which printed NaN.\n\n## Dropped\n\`reviewer-1\` dropped 0 of 1.\n\`reviewer-2\` dropped one finding, ${why}\n\`reviewer-3\` dropped none.`), fails: [], passes: ['interrogate.output-shape', 'interrogate.findings-verified-by-rerun', 'interrogate.unrun-findings-dropped'] },
+    { name: 'the report labels each part inline in bold, as the Output list does (`**Intent.** text`, `**Findings**: text`), with the finding\'s command in a fenced block the parent re-ran', mutate: (sandbox) => rewriteFinalReply(sandbox, /Intent\n([^\n]*)\n\nFindings\n- clampPercent\(NaN\) returns NaN\. Command: (.*?)\. Output: NaN\.[^\n]*\n\nDropped\n- reviewer-1: 0 dropped\.\n- reviewer-2: 1 dropped, ([^\n]*)\n- reviewer-3: 0 dropped, no findings\./s, (_m, intent: string, command: string, why: string) => `**Intent.** ${intent}\n\n**Findings**: one verified finding, clampPercent(NaN) returns NaN.\n\n\`\`\`\n${command}   # prints NaN\n\`\`\`\n\n**Dropped.** reviewer-1 dropped 0. reviewer-2 dropped 1, ${why} reviewer-3 dropped 0.`), fails: [], passes: ['interrogate.output-shape', 'interrogate.findings-verified-by-rerun', 'interrogate.unrun-findings-dropped'] },
+    { name: 'the inline-labelled report cites a fenced command the parent never ran', mutate: (sandbox) => rewriteFinalReply(sandbox, /Intent\n([^\n]*)\n\nFindings\n[^\n]*\n\nDropped\n[^\n]*\n[^\n]*\n[^\n]*/s, (_m, intent: string) => `**Intent.** ${intent}\n\n**Findings**: the clamp lets NaN through.\n\n\`\`\`\nnode never-ran.mjs   # prints NaN\n\`\`\`\n\n**Dropped.** reviewer-1 dropped 0. reviewer-2 dropped 1. reviewer-3 dropped 0.`), fails: ['interrogate.findings-verified-by-rerun'] },
+    { name: 'prose that merely begins with the word Findings is not a label', mutate: (sandbox) => rewriteFinalReply(sandbox, /\nFindings\n/, '\nFindings were few, and the parent kept them all.\n'), fails: ['interrogate.output-shape'] },
+    { name: 'the report says one collective zero was dropped for every adversary', mutate: (sandbox) => rewriteFinalReply(sandbox, /Dropped\n- reviewer-1: 0 dropped\.\n- reviewer-2: 1 dropped, [^\n]*\n- reviewer-3: 0 dropped, no findings\./s, '**Dropped.** No findings were dropped for any adversary, because every one ran.'), fails: [], passes: ['interrogate.unrun-findings-dropped', 'interrogate.output-shape'] },
+    { name: 'the report says findings were dropped without a count for any adversary', mutate: (sandbox) => rewriteFinalReply(sandbox, /Dropped\n- reviewer-1: 0 dropped\.\n- reviewer-2: 1 dropped, [^\n]*\n- reviewer-3: 0 dropped, no findings\./s, '**Dropped.** Some findings were dropped along the way.'), fails: ['interrogate.unrun-findings-dropped'] },
     { name: 'the report heads its findings with a command the parent never ran', mutate: (sandbox) => rewriteFinalReply(sandbox, /Intent\n([^\n]*)\n\nFindings\n[^\n]*\n\nDropped/s, (_m, intent: string) => `## Intent\n${intent}\n\n## Findings\nThe clamp lets NaN through, shown by \`node never-ran.mjs\`.\n\n## Dropped`), fails: ['interrogate.findings-verified-by-rerun'] },
     { name: 'the report names no label for what was dropped', mutate: (sandbox) => rewriteFinalReply(sandbox, /\n\nDropped[\s\S]*$/, ''), fails: ['interrogate.output-shape', 'interrogate.unrun-findings-dropped'] },
     { name: 'the dropped section is missing', mutate: (sandbox) => rewriteFinalReply(sandbox, 'reviewer-2: 1 dropped', 'reviewer-2'), fails: ['interrogate.unrun-findings-dropped'] },

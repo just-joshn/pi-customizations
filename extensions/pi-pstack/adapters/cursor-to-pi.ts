@@ -1,3 +1,5 @@
+import { RECEIPT_REFERENCE } from '../src/receipt-reference.ts';
+
 export type PrimitiveId =
   | 'task-tool'
   | 'subagent-type'
@@ -176,14 +178,14 @@ const watchWorker = (argv: string) =>
 
 export const WORKER_CONTRACT = `## Pi worker
 
-You run as a pstack worker: an independent Pi process in tmux that a parent session started with the \`pstack_worker\` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no \`pstack_worker\` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets \`capabilities.spawn: true\`, as for a sub-coordinator, you have \`pstack_worker\` and own your children's runs. They live under your workspace's \`.pi/pstack/runs/\`, their wakes come to you, and you collect and read their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get \`capabilities.spawn: true\`. A readonly worker (a workspace of mode \`readonly\`, with only read tools and \`bash_readonly\`) cannot write files, so it writes no \`report.md\` and records no receipts. Its final reply is its report, and it names each check it ran there, with the command and its result. Every other worker writes its final report to \`report.md\` in the worker directory the brief names, saves each check it ran as a receipt under that directory's \`evidence/\`, and registers it with \`pstack_evidence\` \`record\`. In a container you record the same way, with paths in your worker directory, and the parent takes the receipt into the run when it next reads the run's receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.
+You run as a pstack worker: an independent Pi process in tmux that a parent session started with the \`pstack_worker\` tool. Your brief is your whole task. Read every skill the brief names before other work. You have no \`pstack_worker\` tool by default. Without it, when the brief or a skill asks for another worker, do that work yourself, or name the request in your report and stop. When your assignment sets \`capabilities.spawn: true\`, as for a sub-coordinator, you have \`pstack_worker\` and own your children's runs. They live under your workspace's \`.pi/pstack/runs/\`, their wakes come to you, and you collect and read their results yourself. Nesting stops at three levels (root, sub-coordinator, worker), so your children cannot get \`capabilities.spawn: true\`. A readonly worker (a workspace of mode \`readonly\`, with only read tools and \`bash_readonly\`) cannot write files, so it writes no \`report.md\` and records no receipts. Its final reply is its report, and it names each check it ran there, with the command and its result. Every other worker writes its final report to \`report.md\` in the worker directory the brief names, saves each check it ran as a receipt under that directory's \`evidence/\`, and registers it with \`pstack_evidence\` \`record\`. The receipt's fields and \`kind\` values are listed in the \`pstack_evidence\` tool description and in the "Evidence receipt" section of ${ASSIGNMENT_REF}. A check that is meant to fail before the fix is a receipt with \`expectedFail: true\`. In a container you record the same way, with paths in your worker directory, and the parent takes the receipt into the run when it next reads the run's receipts. Never claim a check you did not run. The parent reads your report, your receipts, and your session file after you settle.
 `;
 
 const WORKERS = `**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write \`brief.md\` and \`assignment.json\` under \`.pi/pstack/runs/<runId>/workers/<workerId>/\` and call \`pstack_worker\` with \`{ action: "spawn", runId, assignmentPath }\`. Every assignment has \`schemaVersion: 1\`, \`runId\`, \`workerId\`, \`kind\` (\`"pi"\` for a Pi worker, \`"watch"\` for a watch), \`role\`, \`model\`, \`thinkingLevel\`, \`workspace\`, and \`skills\`. \`skills\` and \`thinkingLevel\` are optional. \`skills\` defaults to \`[]\`, for a brief that names no skill, and \`thinkingLevel\` to \`null\`, the model's default level. A \`"pi"\` worker adds \`brief: "brief.md"\`, and a watch adds \`watch: { argv, cwd }\` with an absolute \`cwd\` and an absolute path for any script in \`argv\`. \`references/worker-assignment.md\` holds one complete example per workspace mode and kind, so start from the closest one. The assignment's \`role\` picks the role instruction: \`poteto\`, \`explorer\`, \`investigator\`, \`candidate\`, \`judge\`, \`verifier\`, \`reviewer\`, \`owner\`, \`watcher\`, \`comment-sicko\`, or \`general\`. Its \`workspace\` is \`{ mode: "worktree", inputCommit }\` for a writable worker or \`{ mode: "readonly", path }\`, with an absolute \`path\`, for a worker limited to \`read\`, \`grep\`, \`find\`, \`ls\`, \`bash_readonly\`, and MCP tools. \`bash_readonly\` is an OS-sandboxed read-only shell that allows \`git\`, \`gh\`, and network reads and blocks writes. Its \`model\` is a model spec or \`inherit-parent\`. Its \`capabilities\` default to \`{ mcp: "inherit", env: "inherit", externalWrite: false }\`, with \`spawn\` false. A container worker's \`env\` defaults to \`"minimal"\` instead: it holds its model provider's credential and the \`PSTACK_\` variables, and no other variable of yours. Name \`env: "inherit"\` to give it yours. A container worker that must clone a private repository, push, or run \`gh\` against the forge sets \`capabilities.forge: true\` as well (with \`mcp\`, \`env\`, and \`externalWrite\` named), which gives it your \`gh\` token and no other credential of yours. Spawn fails with \`ForgeUnavailable\` when you have no token to give. A default written as a family and level, such as \`claude-opus-5-5-xhigh\` or \`grok-4.7-xhigh-fast\`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A \`pstack-worker\` wake message reports each worker that settles. Then call \`collect\` for its report. Use \`inspect\` for live state, \`steer\` to redirect a live worker, and \`abort\` to stop one. A worker has no \`pstack_worker\` tool by default, so it does delegated work itself. A worker you assign \`capabilities.spawn: true\` has \`pstack_worker\` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get \`capabilities.spawn: true\`. A container worker has \`workspace: { mode: "container", inputCommit }\` and runs a writable clone of the pushed remote inside the container that \`.pi/environment.json\` configures, so \`inputCommit\` must be pushed first. Spawn refuses it with \`ContainerUnavailable\` when no container engine answers. Then a step that names a local fallback uses it, and a step without one reports itself blocked. A watch loop is a \`pstack_worker\` spawn with \`kind: "watch"\`. Its \`watch.argv\` runs in tmux in its \`watch.cwd\`, and its exit wakes you. A fixed interval uses \`["sleep", "<seconds>"]\`, and an event uses the watcher's command. A watch fires once. Spawn it again after each wake until the stop predicate holds. After a parent restart, re-arm each open watch loop from the run's \`TODO.md\` or plan, because nothing spawns it again on its own. The model rule is \`~/.pi/agent/pstack/models.json\`, and each of its role keys is a line.
 
 **Defaults for every \`pstack_worker\` spawn.** Keep working after the spawn returns (a \`steer\` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use \`workspace.mode: "worktree"\` unless the step asks for a readonly worker, file pointers not inlined context,`;
 
-const TODO = `Start the run with \`node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>\`, where \`<pi-pstack>\` is the pi-pstack package root (\`pi list\` names it). It writes the run's \`TODO.md\` under \`.pi/pstack/runs/<runId>/\`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under \`## Task-specific work\`. You are its only writer. Check a step as \`- [x] N. <text> (evidence: <receipt id>)\` once \`pstack_evidence\` \`verify\` passes for it. A step you choose not to do stays in the list as \`- [~] N. <text> (skip: <reason>)\`. A skill outside a playbook keeps its list under \`## Task-specific work\` in the active run's \`TODO.md\`. With no active run, it keeps the list in its reply and updates it at each phase.`;
+const TODO = `Start the run with \`node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>\`, where \`<pi-pstack>\` is the pi-pstack package root (\`pi list\` names it). It writes the run's \`TODO.md\` under \`.pi/pstack/runs/<runId>/\`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under \`## Task-specific work\`. You are its only writer. Check a step as \`- [x] N. <text> (evidence: <receipt id>)\` once \`pstack_evidence\` \`verify\` passes for it. The receipt's fields and \`kind\` values are in the \`pstack_evidence\` tool description and in the "Evidence receipt" section of \`references/worker-assignment.md\`. A failing-before proof is a receipt with \`expectedFail: true\` under its own target. A step you choose not to do stays in the list as \`- [~] N. <text> (skip: <reason>)\`. A skill outside a playbook keeps its list under \`## Task-specific work\` in the active run's \`TODO.md\`. With no active run, it keeps the list in its reply and updates it at each phase.`;
 
 const MODELS_JSON = `{
   "schemaVersion": 1,
@@ -555,6 +557,13 @@ export const RULES: readonly Rule[] = [
     PB('session-pickup'),
     ', a cloud-agent URL, or a pushed branch.',
     `, a worker's run directory (\`.pi/pstack/runs/<runId>/workers/<workerId>/\`, with its \`report.md\` and ${WORKER_SESSIONS}), or a pushed branch.`,
+  ),
+  rule(
+    'session-pickup.worker-branch',
+    'project-tracker',
+    PB('session-pickup'),
+    'The branch and worktree, what already landed',
+    "The branch and worktree (a pstack worker's commits sit on the branch `pstack-run/<runId>/<workerId>`, in the worktree `.pi/pstack/runs/<runId>/workers/<workerId>/worktree/`. List the branches with `git branch --list 'pstack-run/<runId>/*'`, because the branch you are on is not the worker's), what already landed",
   ),
   rule(
     'shipping.verifier',
@@ -970,7 +979,7 @@ A bot UI needs a routine with these fields:`,
     "Enumerate the model slugs you can pass to a `Task` subagent in this session. That is the dependable source. If Cursor also exposes a models API or CLI that lists the user's entitled models, prefer it for completeness.",
     'Enumerate the models you can pass to a `pstack_worker` spawn in this session with `pi --list-models`. That is the dependable source. It prints each model\'s provider, model id, context window, maximum output, whether it supports thinking (`yes` or `no`), and whether it takes images. It lists no thinking levels per model. A model spec is `<provider>/<id>`, with an optional `:<level>` on Pi\'s ladder (`off`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`). Pi clamps a level the model does not support down to the highest level it supports.',
   ),
-  rule('setup-pstack.current-state', 'cursor-model-rule', SK('setup-pstack/SKILL.md'), 'treat its `# budget` line and its role values as the current choices', 'treat its `budget` and its `roles` values as the current choices'),
+  rule('setup-pstack.current-state', 'cursor-model-rule', SK('setup-pstack/SKILL.md'), 'treat its `# budget` line and its role values as the current choices', 'treat its `budget` and its `roles` values as the current choices. pi-pstack reads only `models.json`. A `~/.pi/agent/pstack/pstack-models.md` that an earlier pstack host wrote is never read, so while `models.json` is missing, treat the role lines of that Markdown file as the current choices, and step 5 writes `models.json` from them'),
   rule(
     'setup-pstack.apply-budget',
     'cursor-model-slug',
@@ -1005,7 +1014,7 @@ A bot UI needs a routine with these fields:`,
     'cursor-model-rule',
     SK('setup-pstack/SKILL.md'),
     'Tell the user the rule was written and that it applies to new sessions.',
-    'Tell the user the file was written and that it applies to every later `pstack_worker` spawn.',
+    'Tell the user the file was written and that it applies to every later `pstack_worker` spawn. Say that `models.json` is the only model file pi-pstack reads, and that a `pstack-models.md` beside it has no effect.',
   ),
   rule(
     'show-me-your-work.transcript',
@@ -1013,6 +1022,13 @@ A bot UI needs a routine with these fields:`,
     SK('show-me-your-work/SKILL.md'),
     "Read this run's transcript under the active workspace's `agent-transcripts/` directory (the system prompt names the path).",
     `Read this run's Pi session file (\`$PI_SESSION_FILE\`) and its workers' sessions under ${WORKER_SESSIONS}.`,
+  ),
+  rule(
+    'show-me-your-work.decisions-path',
+    'project-tracker',
+    SK('show-me-your-work/SKILL.md'),
+    'Keep it at `decisions.tsv` in the work dir, or',
+    'Keep it at `.pi/pstack/runs/<runId>/decisions.tsv` (the run directory beside its `TODO.md`; with no run, `decisions.tsv` in the work dir), or',
   ),
   rule('swarm.parent-model', 'task-tool', SK('swarm/SKILL.md'), 'omit `model` so the workers run on the parent model.', 'set `model: "inherit-parent"` so the workers run on the parent model.'),
   rule(
@@ -1098,7 +1114,8 @@ ${assignmentExample({ workerId: 'audit-tick-1', kind: 'watch', role: 'watcher', 
 An event watch runs the watcher's command by absolute path. Here \`<pi-pstack>\`, the pi-pstack package root that \`pi list\` names, is \`/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack\`.
 
 ${assignmentExample({ workerId: 'pr-1234-watch', kind: 'watch', role: 'watcher', model: 'inherit-parent', thinkingLevel: null, workspace: { mode: 'readonly', path: EXAMPLE_ROOT }, skills: [], watch: { argv: ['/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/generated/skills/poteto-mode/scripts/watch-pr/watch-pr', '--pr', '1234'], cwd: EXAMPLE_ROOT } })}
-`;
+
+${RECEIPT_REFERENCE}`;
 
 export const AGENT_OUTPUTS: Readonly<Record<string, string>> = {
   'vendor/upstream-pstack/agents/poteto-agent.md': 'poteto.md',

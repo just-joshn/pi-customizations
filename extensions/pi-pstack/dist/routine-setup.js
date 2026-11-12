@@ -1464,6 +1464,9 @@ function IsBigInt2(value) {
   return IsKind(value, "BigInt");
 }
 // ../../node_modules/.bun/typebox@1.3.27/node_modules/typebox/build/type/types/boolean.mjs
+function Boolean2(options) {
+  return Create({ "~kind": "Boolean" }, { type: "boolean" }, options);
+}
 function IsBoolean3(value) {
   return IsKind(value, "Boolean");
 }
@@ -7392,6 +7395,17 @@ var Edit = Union([Insert2, Update2, Delete]);
 import { createHash as createHash2, randomBytes } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, rmSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { basename, dirname as dirname2, isAbsolute as isAbsolute3, join as join3, relative as relative3, resolve as resolve4, sep as sep2 } from "node:path";
+
+// src/model-spec.ts
+var FAMILY_DEFAULT_LEVELS = ["minimal", "low", "medium", "high", "xhigh", "max"];
+var FAMILY_DEFAULT = new RegExp(`^([a-z][a-z0-9]*(?:[-.][a-z0-9]+)*?)-(${FAMILY_DEFAULT_LEVELS.join("|")})(-fast)?$`);
+function parseFamilyDefault(spec) {
+  const match = FAMILY_DEFAULT.exec(spec);
+  return match === null ? undefined : { id: match[1], level: match[2], fast: match[3] !== undefined };
+}
+var MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";
+
+// src/run-files.ts
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -7493,8 +7507,8 @@ function parseAssignment(raw, defaults) {
   if (typeof role !== "string" || !WORKER_ROLES.includes(role))
     throw new Error(`Assignment role must be one of ${WORKER_ROLES.join(", ")}`);
   const model = raw["model"];
-  if (typeof model !== "string" || !MODEL_SPEC.test(model))
-    throw new Error("Assignment model must be 'inherit-parent' or '<provider>/<id>'");
+  if (typeof model !== "string" || !(MODEL_SPEC.test(model) || parseFamilyDefault(model) !== undefined))
+    throw new Error(`Assignment model must be ${MODEL_SPEC_FORMS}${typeof model === "string" ? `; got '${model}'` : ""}`);
   const thinkingLevel = raw["thinkingLevel"] ?? null;
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
@@ -7613,18 +7627,71 @@ function readClaim(workerDir) {
   return raw;
 }
 
+// src/receipt-reference.ts
+var RECEIPT_KINDS = ["test", "command", "screenshot", "trace", "review", "measurement", "other"];
+var RECEIPT_VERDICTS = ["pass", "fail", "inconclusive"];
+var RECEIPT_FIELD_HINTS = {
+  schemaVersion: "the number 1",
+  id: 'letters, digits, ".", "_", "-"; starts with a letter or digit; at most 128 characters',
+  runId: "the run's id, the folder name under .pi/pstack/runs",
+  target: "a TODO step id, worker id, or commit; non-empty",
+  kind: `one of ${RECEIPT_KINDS.join(", ")}`,
+  verdict: `one of ${RECEIPT_VERDICTS.join(", ")}`,
+  commit: "the commit SHA the check examined, or null",
+  environment: "text saying where the check ran",
+  command: "optional; the command as an array of strings",
+  exitCode: "optional; the command exit status, an integer",
+  artifacts: "an array of { path, sha256 }, [] when there is no file; path is relative to the run root or absolute inside it; sha256 is 64 lowercase hex characters of the file",
+  defects: "optional; an array of strings",
+  reason: "optional; text",
+  expectedFail: "optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero",
+  createdAt: "an ISO timestamp string"
+};
+var RECEIPT_FIELDS = Object.keys(RECEIPT_FIELD_HINTS);
+var RECEIPT_REFERENCE = `## Evidence receipt
+
+A receipt is one JSON file for one check you ran. A writable worker saves it under its worker directory's \`evidence/\` and registers it with \`pstack_evidence\` \`record\` (\`{ action: "record", runId, receiptPath }\`). The parent saves its own under the run directory. \`record\` rejects a field not listed here and names the field it rejects.
+
+${RECEIPT_FIELDS.map((field) => `- \`${field}\`: ${RECEIPT_FIELD_HINTS[field]}.`).join(`
+`)}
+
+\`pstack_evidence\` \`verify\` takes a \`target\` and re-checks every receipt recorded for it. A missing receipt is \`inconclusive\`. A \`pass\` with no artifacts is \`inconclusive\`, because it is an assertion and not evidence. A \`pass\` whose \`exitCode\` is not 0 fails, unless \`expectedFail\` is \`true\`. A \`fail\` receipt makes the target fail. \`verify\` also fails a receipt whose artifact is missing or does not match its \`sha256\`, and, when the target is a commit, one whose \`commit\` differs.
+
+To prove a check fails before the fix, run it and record a receipt with \`expectedFail: true\`, \`verdict: "pass"\`, the non-zero \`exitCode\`, and the failing output as the artifact, under its own target such as \`<step>-before\`. Record the passing run after the fix under the step's target. A receipt without \`expectedFail\` that says \`pass\` with a non-zero \`exitCode\` is rejected as contradicting itself.
+
+\`\`\`json receipt
+{
+  "schemaVersion": 1,
+  "id": "repro-before",
+  "runId": "fix-login-redirect",
+  "target": "4-before",
+  "kind": "test",
+  "verdict": "pass",
+  "expectedFail": true,
+  "commit": "4f2c1a9e0b7d3c5a8e6f1b2d4c9a7e3f5b1d8c6a",
+  "environment": "worker worktree, node 22",
+  "command": ["npx", "vitest", "run", "redirect.test.ts"],
+  "exitCode": 1,
+  "artifacts": [{ "path": "workers/fix/evidence/repro-before.txt", "sha256": "<64 hex characters of that file>" }],
+  "createdAt": "2026-11-12T10:00:00Z"
+}
+\`\`\`
+`;
+var RECEIPT_TOOL_SUMMARY = `A receipt is a JSON object with exactly these fields: ${RECEIPT_FIELDS.map((field) => `${field} (${RECEIPT_FIELD_HINTS[field]})`).join("; ")}.`;
+
 // src/evidence.ts
 var ReceiptSchema = _Object_({
   schemaVersion: Literal(1),
   id: String2({ pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" }),
   runId: String2(),
   target: String2({ minLength: 1 }),
-  kind: Union(["test", "command", "screenshot", "trace", "review", "measurement", "other"].map((kind) => Literal(kind))),
-  verdict: Union([Literal("pass"), Literal("fail"), Literal("inconclusive")]),
+  kind: Union(RECEIPT_KINDS.map((kind) => Literal(kind))),
+  verdict: Union(RECEIPT_VERDICTS.map((verdict) => Literal(verdict))),
   commit: Union([String2(), Null()]),
   environment: String2(),
   command: Optional(_Array_(String2())),
   exitCode: Optional(Integer()),
+  expectedFail: Optional(Boolean2()),
   artifacts: _Array_(_Object_({ path: String2({ minLength: 1 }), sha256: String2({ pattern: "^[0-9a-f]{64}$" }) }, { additionalProperties: false })),
   defects: Optional(_Array_(String2())),
   reason: Optional(String2()),
@@ -7849,6 +7916,8 @@ var parentlessModel = ({ model, thinkingLevel }) => {
   if (model === "inherit-parent")
     return null;
   const slash = model.indexOf("/");
+  if (slash === -1)
+    throw new Error(`Model ${model} is a family default; it needs the model registry to name a provider`);
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 var MAX_DEPTH = 3;
@@ -7933,6 +8002,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: launchModel,
+    modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
@@ -7997,7 +8067,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       runId,
       workerId: assignment.workerId,
       kind: "spawn",
-      data: { tmuxSession: session, model: launch.model, ...container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } } }
+      data: { tmuxSession: session, model: launch.model, ...launch.modelNote === null ? {} : { modelNote: launch.modelNote }, ...container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } } }
     });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
@@ -8020,7 +8090,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
   if (assignment.kind === "pi")
     await controlHost(target, "start");
-  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model, modelNote: launch.modelNote ?? null };
 }
 var WorkerParams = _Object_({
   action: StringEnum(["spawn", "inspect", "steer", "abort", "collect"], {

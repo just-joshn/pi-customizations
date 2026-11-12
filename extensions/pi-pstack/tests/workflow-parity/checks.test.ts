@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { afterAll, describe, expect, test } from 'vitest';
 
 import { evaluate } from './lib/check.ts';
-import { carries, commitsNotFromWorkers, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
+import { carries, commitsNotFromWorkers, everyCommitGreen, shellCommands, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
 import type { RunView, Session, WorkerView } from './lib/view.ts';
 
 const call = (order: number, args: Record<string, unknown>, resultText: string) => ({ order, name: 'pstack_worker', args, resultText, isError: false });
@@ -238,5 +238,90 @@ describe('a writable worker\'s recorded receipts', () => {
   });
   test('a receipt for another worker is not', () => {
     expect(verdictFor([receipt('candidate-2-node-test', 'candidate-2', 'workers/candidate-2/evidence/node-test.log')], ['node-test.log'])).toBe('FAIL');
+  });
+});
+
+describe('a shell loop that opens skill files', () => {
+  const session = (command: string) => ({ toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] }) as unknown as Session;
+  const loop = 'for s in how why tdd; do cat "generated/skills/$s/SKILL.md"; done';
+  test.for(['how', 'why', 'tdd'])('opens %s', (name) => {
+    expect(openedAt(session(loop), `generated/skills/${name}/SKILL.md`)).toBe(3);
+  });
+  test('braced variables and a trailing done on its own line expand too', () => {
+    expect(openedAt(session('for s in how why\ndo head -50 generated/skills/${s}/SKILL.md\ndone'), 'generated/skills/why/SKILL.md')).toBe(3);
+    expect(openedAt(session('for s in how why; do head -50 generated/skills/${s}/SKILL.md; done'), 'generated/skills/why/SKILL.md')).toBe(3);
+  });
+  test('a skill the loop does not list is not opened, and a loop that never reads opens nothing', () => {
+    expect(openedAt(session(loop), 'generated/skills/arena/SKILL.md')).toBe(-1);
+    expect(openedAt(session('for s in how why; do echo generated/skills/$s/SKILL.md; done'), 'generated/skills/how/SKILL.md')).toBe(-1);
+  });
+  test('the expansion keeps the command itself', () => {
+    expect(shellCommands('cat a.md')).toEqual(['cat a.md']);
+  });
+});
+
+describe('what the playbook has the parent write itself', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wf-allow-'));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const writeCall = (path: string) => ({ order: 1, name: 'write', args: { path }, resultText: '', isError: false });
+  const view = (writes: string[]) => ({ repo: dir, parent: { toolCalls: writes.map(writeCall) }, git: { dirty: [], commitsSinceBase: [], branchCommits: {} } }) as unknown as RunView;
+  test('the failing repro under test/ is allowed when the playbook says so, and production source still is not', () => {
+    expect(parentProductionWrites(view([`${dir}/test/cart.test.js`]), /^test\//)).toEqual([]);
+    expect(parentProductionWrites(view([`${dir}/test/cart.test.js`, `${dir}/src/cart.js`]), /^test\//)).toEqual([`${dir}/src/cart.js`]);
+    expect(parentProductionWrites(view([`${dir}/test/cart.test.js`]))).toEqual([`${dir}/test/cart.test.js`]);
+  });
+});
+
+describe('a writable worker owes only the records its brief asks for', () => {
+  const run = (worker: Record<string, unknown>) => ({ runs: [{ workers: [{ id: 'w1', assignment: { kind: 'pi', role: 'poteto', workspace: { mode: 'worktree' } }, report: null, evidenceFiles: [], finalText: 'Done: the change is committed.', ...worker }], receipts: [] }] }) as unknown as RunView;
+  const verdictOf = (worker: Record<string, unknown>) => evaluate([writableWorkerRecords('t.records', { file: 'poteto-mode/playbooks/feature.md', anchor: 'Delegate code-writing' }, ['poteto'])], run(worker))[0];
+  test('a brief that names no report, worker directory, or receipt leaves the final reply as the report', () => {
+    expect(verdictOf({ brief: 'Add the export. Commit when green.' })?.verdict).toBe('PASS');
+  });
+  test('a brief that asks for report.md fails the worker that wrote none', () => {
+    expect(verdictOf({ brief: 'Add the export. Write report.md in your worker directory.' })?.verdict).toBe('FAIL');
+  });
+  test('a brief that asks for a receipt fails the worker that recorded none', () => {
+    expect(verdictOf({ brief: 'Add the export. Record a receipt.', report: 'done' })?.verdict).toBe('FAIL');
+  });
+  test('a worker with no report and no final reply fails whatever the brief says', () => {
+    expect(verdictOf({ brief: 'Add the export.', finalText: '' })?.verdict).toBe('FAIL');
+  });
+});
+
+describe('every commit of a worker branch passes, except a failing test that comes first', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wf-green-'));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const git = (...args: string[]) => execFileSync('git', ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@x', ...args], { encoding: 'utf8' }).trim();
+  const commit = (files: Record<string, string>, message: string) => {
+    for (const [path, content] of Object.entries(files)) {
+      mkdirSync(join(dir, path, '..'), { recursive: true });
+      writeFileSync(join(dir, path), content);
+    }
+    git('add', '-A');
+    git('commit', '-q', '-m', message);
+    return git('rev-parse', 'HEAD');
+  };
+  git('init', '-q', '-b', 'main');
+  const base = commit({ 'package.json': '{"scripts":{"test":"node --test"}}' }, 'base');
+  const TEST = "const test = require('node:test'); const assert = require('node:assert'); test('adds', () => assert.equal(require('../src/add.js').add(1, 2), 3));";
+  const red = commit({ 'test/add.test.js': TEST }, 'test: add');
+  const green = commit({ 'src/add.js': 'exports.add = (a, b) => a + b;' }, 'feat: add');
+  const broken = commit({ 'src/add.js': 'exports.add = (a, b) => a - b;' }, 'refactor: break add');
+  const verdictOf = (commits: string[]) => {
+    const view = { repo: dir, base, git: { branchCommits: { 'pstack-run/r/w': [...commits].reverse() } }, runs: [{ id: 'r' }] } as unknown as RunView;
+    return evaluate([everyCommitGreen('t.green', { file: 'poteto-mode/playbooks/feature.md', anchor: 'building, verifying, and committing' }, () => 'r', 'w', { min: 2 })], view)[0]?.verdict;
+  };
+  test('a test-only commit that fails, followed by a commit that passes, is the failing test first', () => {
+    expect(verdictOf([red, green])).toBe('PASS');
+  });
+  test('a test-only red commit that no later commit turns green is still red', () => {
+    expect(verdictOf([red, green, broken])).toBe('FAIL');
+  });
+  test('a red commit that changes production source is red even before a green one', () => {
+    git('checkout', '-q', '-b', 'other', base);
+    const redProd = commit({ 'src/add.js': 'exports.add = () => 0;', 'test/add.test.js': TEST }, 'feat: wrong');
+    git('checkout', '-q', 'main');
+    expect(verdictOf([redProd, green])).toBe('FAIL');
   });
 });

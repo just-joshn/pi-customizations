@@ -9,8 +9,18 @@ import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
+  artifactText,
   branchCommits,
+  checkoutCommits,
+  delegateCommits,
+  delegateOf,
   everyCommitGreen,
+  isTestFile,
+  namesCommit,
+  ranBefore,
+  recordOrder,
+  spawnOrder,
+  stepReceipts,
   filesChanged,
   finalReply,
   noToolErrors,
@@ -87,6 +97,9 @@ Open decisions: whether name should be required on cart items.`;
 /** The delegate the playbook's step 4 spawns: the poteto worker, whatever the parent named it. */
 const featureWriter = (view: RunView): string => allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto')?.id ?? 'impl';
 
+/** The brief names the data shape and how it is organized (feature.md step 4: "a state machine over scattered booleans, a table/registry over branching, a typed model"); it needs not say "data shape". */
+const DATA_SHAPE = /data (shape|model|structure)|state machine|\b(table|registry|schema|typed model)\b/i;
+
 /** The brief says what done means. The playbook names "success criteria" as content, so a labelled section, an exact contract, or a stated test or exit condition each say it. */
 const SUCCESS_CRITERIA = /success criteria|acceptance (criteria|tests?)|definition of done|done when|exact contract|\bmust (pass|return|keep|stay|exit)\b|\bcover at least\b|(node --test|npm test) passes|exits? (0|zero)\b/i;
 
@@ -158,11 +171,11 @@ export const featureFamily: Family = {
     check('feature.brief-names-scope', 'the delegate brief carries file paths, the named data shape, and success criteria', src('poteto-mode/playbooks/feature.md', 'with a specific scope (file paths, named data shape'), (view) => {
       const worker = allWorkers(view).find((entry) => assignmentOf(entry).role === 'poteto');
       const brief = worker?.brief ?? '';
-      const missing = [{ name: 'file paths', pattern: /src\/\w+\.js/ }, { name: 'data shape', pattern: /data shape/i }, { name: 'success criteria', pattern: SUCCESS_CRITERIA }].filter(({ pattern }) => !pattern.test(brief)).map(({ name }) => name);
+      const missing = [{ name: 'file paths', pattern: /src\/\w+\.js/ }, { name: 'a named data shape and its organizing structure', pattern: DATA_SHAPE }, { name: 'success criteria', pattern: SUCCESS_CRITERIA }].filter(({ pattern }) => !pattern.test(brief)).map(({ name }) => name);
       return when(missing.length === 0 && assignmentOf(worker as never).workspace?.inputCommit === view.base, 'the brief names paths, the data shape, success criteria, and the base commit is the input', `brief lacks ${missing.join(', ')}`);
     }),
     parentWritesOnlyScratch('feature.parent-stays-in-the-lead', 'the parent wrote no production code and the main checkout is clean: it plans, reviews, verifies', src('poteto-mode/playbooks/feature.md', 'Delegate implementation. Stay in the lead.')),
-    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', featureWriter, { min: 2 }),
+    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', featureWriter, { min: 2, commits: delegateCommits }),
     check('feature.surface-receipt-is-the-delivered-commit', 'the surface receipt (the one step 5 cites) records the commit the worker delivered', src('poteto-mode/playbooks/feature.md', 'Verify on the matching surface'), (view) => {
       const run = primaryRun(view, 'feature');
       const head = branchCommits(view, run?.id ?? '', featureWriter(view)).at(-1);
@@ -176,7 +189,7 @@ export const featureFamily: Family = {
     settledAndCollected('feature.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
     check('feature.reply-has-the-contract', 'the reply carries what was built, the throughput checkpoint, and open decisions', src('poteto-mode/playbooks/feature.md', '**Reply:** what you built'), (view) => {
       const reply = finalReply(view);
-      const missing = [{ name: 'checkpoint', pattern: /Throughput checkpoint/i }, { name: 'open decisions', pattern: /Open decisions?/i }, { name: 'built', pattern: /Built/i }].filter(({ pattern }) => !pattern.test(reply)).map(({ name }) => name);
+      const missing = [{ name: 'checkpoint', pattern: /Throughput checkpoint/i }, { name: 'open decisions', pattern: /Open decisions?/i }, { name: 'what was built', pattern: /\b(built|build|added|implemented|delivered|shipped)\b|what you (got|built)/i }].filter(({ pattern }) => !pattern.test(reply)).map(({ name }) => name);
       return when(missing.length === 0, 'reply has built, checkpoint, open decisions', `reply lacks ${missing.join(', ')}`);
     }),
     noToolErrors('feature.no-tool-errors', src('poteto-mode/playbooks/feature.md', '**Reply:** what you built')),
@@ -192,6 +205,10 @@ export const featureFamily: Family = {
     { name: 'a throughput item was dropped', mutate: (sandbox) => removeTodoItem(sandbox, 'feature-export', 'Shared mutable state'), fails: ['feature.throughput-checkpoint-four-items'] },
     { name: 'the surface receipt names a commit nobody delivered', mutate: (sandbox) => patchReceipt(sandbox, 'feature-export', 'feat-surface', { commit: 'deadbeefdeadbeef' }), fails: ['feature.surface-receipt-is-the-delivered-commit'] },
     { name: 'the delegate brief has no success criteria', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Success criteria:[^\n]*/g, 'Hope it works.'), fails: ['feature.brief-names-scope'] },
+    { name: 'the brief names the structure as a table and never says "data shape"', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Data shape:[^\n]*/g, 'Organize the columns as a table, chosen before any logic.'), fails: [], passes: ['feature.brief-names-scope'] },
+    { name: 'the brief names no data shape or structure', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Data shape:[^\n]*/g, 'Make it work.'), fails: ['feature.brief-names-scope'] },
+    { name: 'the reply says nothing of what was built', mutate: (sandbox) => rewriteFinalReply(sandbox, /Built exportCsv\(items\)[^\n]*\n/, 'Here you go.\n'), fails: ['feature.reply-has-the-contract'] },
+    { name: 'the reply says "implemented" instead of "Built"', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Built exportCsv', 'Implemented exportCsv'), fails: [], passes: ['feature.reply-has-the-contract'] },
     { name: 'the delegate left no commit', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: ['feature.small-ordered-verified-commits'] },
     { name: 'the throughput items carry ordinals, C1 to C4', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs/feature-export/TODO.md'), (text) => ['Blocking first steps', 'Independent workstreams', 'Shared mutable state', 'Smallest safe decomposition'].reduce((acc, name, index) => acc.replace(`- [ ] ${name}`, `- [ ] C${index + 1}. ${name}`), text)), fails: [], passes: ['feature.throughput-checkpoint-four-items'] },
     { name: 'the brief states an exact contract instead of a success criteria heading', mutate: (sandbox) => rewriteBrief(sandbox, 'feature-export', 'impl', /Success criteria:[^\n]*/g, 'Exact contract: exportCsv returns the header and the row.'), fails: [], passes: ['feature.brief-names-scope'] },
@@ -251,7 +268,7 @@ export const bugFixFamily: Family = {
       const workers: Record<string, Worker> = {};
       parent.beginPlaybook('bug-fix', 'Bug fix: coupon over 100 percent pays the customer');
       for (const skill of ['principle-sequence-verifiable-units', 'control-cli', 'how', 'why', 'tdd']) parent.readSkill(skill);
-      parent.proof({ id: 'bug-repro-before', target: 'step-1', command: REPRO, kind: 'command', commit: ctx.base, verdict: 'pass', reason: 'defect reproduced: total=-5' });
+      parent.proof({ id: 'bug-repro-before', target: 'step-1', command: REPRO, kind: 'command', commit: ctx.base, verdict: 'pass', expectedFail: true, reason: 'defect reproduced: total=-5' });
       parent.done('bug-fix', 1, 'bug-repro-before');
       parent.spawn('hunter', { role: 'investigator', model: model('why investigators'), workspace: parent.readonly(), capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: false } }, 'Rule hypotheses out with runtime evidence. H1 rounding drift. H2 coupon above 100 percent is not bounded. Report each with the command you ran.');
       workers['hunter'] = new Worker().call('bash_readonly', { command: 'node --input-type=module -e "import(\'./src/cart.js\').then((m)=>console.log(\'total=\'+m.total([{price:10,qty:1}],0)))"' }).call('bash_readonly', { command: REPRO }).text(INVESTIGATION_REPORT);
@@ -284,13 +301,17 @@ export const bugFixFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('bug-fix', ['architect']),
     ...todoChecks({ playbook: 'bug-fix', skipReason: { 6: /PR|remote/i } }),
-    check('bug-fix.reproduced-first-on-the-surface', 'step 1: the parent reproduced the defect itself, before any worker fixed it; the receipt records a failing exit status', src('poteto-mode/playbooks/bug-fix.md', 'Reproduce it yourself on the matching surface'), (view) => {
+    check('bug-fix.reproduced-first-on-the-surface', 'step 1: the parent reproduced the defect itself and recorded it, before any worker fixed it; the receipt shows the defect (a failing exit status or the wrong output)', src('poteto-mode/playbooks/bug-fix.md', 'Reproduce it yourself on the matching surface'), (view) => {
       const run = primaryRun(view, 'bug-fix');
-      const before = run?.receipts.find((entry) => entry.id === 'bug-repro-before');
-      const fixSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/fix/'));
-      const ran = view.parent.toolCalls.find((call) => call.name === 'bash' && String(call.args['command']).includes('bug-repro-before'));
-      const output = before?.artifacts[0] === undefined ? '' : safe(before.artifacts[0].path);
-      return when(before !== undefined && before.exitCode !== 0 && /total=-\d/.test(output) && ran !== undefined && fixSpawn !== undefined && ran.order < fixSpawn.order, `repro ran at ${ran?.order} before the fix spawn at ${fixSpawn?.order}, exit ${String(before?.exitCode)}, output ${output.trim()}`, `receipt ${JSON.stringify(before?.exitCode)} output ${output.trim()} ran ${ran?.order} fix spawn ${fixSpawn?.order}`);
+      const [before] = stepReceipts(run, 1);
+      const delegate = delegateOf(view);
+      const fixSpawn = delegate === undefined ? -1 : spawnOrder(view, delegate.id);
+      const recorded = before === undefined ? -1 : recordOrder(view, before.id);
+      const early = ranBefore(view, run, before, delegate);
+      const output = artifactText(run, before);
+      // A repro that exits 0 may still print the wrong result: the receipt shows the defect either way.
+      const showsDefect = before !== undefined && ((before.exitCode !== undefined && before.exitCode !== 0) || (before.exitCode === undefined && before['expectedFail'] === true) || /-\d|fail|wrong|negative|expected|but got|defect|bug|violat/i.test(output));
+      return when(before !== undefined && showsDefect && early, `${before?.id} ran before the fix spawn (recorded at ${recorded}, spawn at ${fixSpawn}), exit ${String(before?.exitCode)}, output ${output.trim().slice(0, 80)}`, `step 1 receipt ${before?.id ?? 'none'} (exit ${String(before?.exitCode)}, shows the defect ${String(showsDefect)}) ran before the fix spawn: ${String(early)} (recorded at ${recorded}, spawn at ${fixSpawn})`);
     }),
     check('bug-fix.hypotheses-eliminated-with-runtime-evidence', 'step 2: an investigator ruled hypotheses out and confirmed the survivor, each with a command it ran', src('poteto-mode/playbooks/bug-fix.md', 'Binary-search the cause'), (view) => {
       const hunter = allWorkers(view).find((worker) => assignmentOf(worker).role === 'investigator');
@@ -301,51 +322,62 @@ export const bugFixFamily: Family = {
     workersCheck('bug-fix.investigator-readonly', 'the investigator is readonly on the repository root', src('poteto-mode/playbooks/bug-fix.md', 'Delegate investigation and the fix to subagents'), { role: 'investigator', min: 1, mode: 'readonly', rootPath: true, mcpInherit: true }),
     workersCheck('bug-fix.fix-delegated', 'step 3: the fix is delegated to a poteto worker in its own worktree on the "bug-fix" model line', src('poteto-mode/playbooks/bug-fix.md', 'Delegate implementation to a subagent using your configured bug-fix model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'bug-fix' }),
     check('bug-fix.failing-repro-lands-before-the-fix', 'step 5: the first commit adds only the regression test and fails there; the last commit changes the source and passes', src('poteto-mode/playbooks/bug-fix.md', 'so the failing repro lands before the fix in git history'), (view) => {
-      const commits = branchCommits(view, primaryRun(view, 'bug-fix')?.id ?? '', 'fix');
-      if (commits.length < 2) return fail(`${commits.length} commits on the fix branch, want the test and the fix apart`);
+      // The failing repro lands before the fix in git history wherever it was committed: on the delegate's branch, or on the checkout by the parent before it spawned the delegate (whose branch then starts there).
+      const onBranch = delegateCommits(view);
+      const commits = onBranch.length >= 2 ? onBranch : checkoutCommits(view).length >= 2 ? checkoutCommits(view) : onBranch;
+      if (commits.length < 2) return fail(`${commits.length} commits on the delegate's branch and ${checkoutCommits(view).length} on the checkout, want the test and the fix apart`);
       const first = commits[0] as string;
       const last = commits.at(-1) as string;
       const firstFiles = filesChanged(view, first);
       const lastFiles = filesChanged(view, last);
       const red = runAtCommit(view, first, 'node --test');
       const green = runAtCommit(view, last, 'node --test');
-      return when(firstFiles.every((file) => file.startsWith('test/')) && lastFiles.includes('src/cart.js') && red.status !== 0 && green.status === 0, `commit 1 (${firstFiles.join(',')}) fails, last (${lastFiles.join(',')}) passes`, `first touches ${firstFiles.join(',')} exit ${red.status}; last touches ${lastFiles.join(',')} exit ${green.status}`);
+      return when(firstFiles.every(isTestFile) && lastFiles.some((file) => !isTestFile(file)) && red.status !== 0 && green.status === 0, `commit 1 (${firstFiles.join(',')}) fails, last (${lastFiles.join(',')}) passes`, `first touches ${firstFiles.join(',')} exit ${red.status}; last touches ${lastFiles.join(',')} exit ${green.status}`);
     }),
     check('bug-fix.smallest-change', 'only the evidence-justified change ships: the fix commit touches src/cart.js and nothing else', src('poteto-mode/playbooks/bug-fix.md', 'The smallest change the evidence justifies ships, nothing more'), (view) => {
-      const last = branchCommits(view, primaryRun(view, 'bug-fix')?.id ?? '', 'fix').at(-1);
+      const last = delegateCommits(view).at(-1);
       const files = last === undefined ? [] : filesChanged(view, last);
       return when(files.length === 1 && files[0] === 'src/cart.js', `fix commit touches ${files.join(', ')}`, `fix commit touches ${files.join(', ') || 'nothing'}`);
     }),
-    check('bug-fix.same-repro-fails-before-passes-after', 'step 4: the same repro command fails at the base and passes at the delivered commit, and re-running it confirms both', src('poteto-mode/playbooks/bug-fix.md', 'Verify on the same surface. The original repro now passes'), (view) => {
+    check('bug-fix.same-repro-fails-before-passes-after', 'step 4: the original repro fails at the base and passes at the delivered commit, confirmed by re-running it, and the step 4 receipt names a delivered commit', src('poteto-mode/playbooks/bug-fix.md', 'Verify on the same surface. The original repro now passes'), (view) => {
       const run = primaryRun(view, 'bug-fix');
-      const before = run?.receipts.find((entry) => entry.id === 'bug-repro-before');
-      const after = run?.receipts.find((entry) => entry.id === 'bug-repro-after');
-      const head = branchCommits(view, run?.id ?? '', 'fix').at(-1);
-      if (before === undefined || after === undefined || head === undefined) return fail('missing a repro receipt or the delivered commit');
-      const same = JSON.stringify(before.command) === JSON.stringify(after.command);
+      const [before] = stepReceipts(run, 1);
+      const [after] = stepReceipts(run, 4);
+      const delivered = [...delegateCommits(view), ...view.git.commitsSinceBase, view.git.head];
+      const head = delegateCommits(view).at(-1) ?? view.git.head;
+      if (before === undefined || after === undefined || delegateCommits(view).length === 0) return fail(`missing the step 1 receipt (${before?.id ?? 'none'}), the step 4 receipt (${after?.id ?? 'none'}), or the delivered commit`);
+      // The playbook has the same repro run before and after; the repository's repro is re-run here at both commits, so each receipt's own wording does not matter.
       const rerunBefore = runAtCommit(view, view.base, REPRO);
       const rerunAfter = runAtCommit(view, head, REPRO);
-      return when(same && before.commit === view.base && after.commit === head && after.exitCode === 0 && rerunBefore.status !== 0 && rerunAfter.status === 0, `same command; base exit ${rerunBefore.status} (${rerunBefore.output.trim()}), delivered exit ${rerunAfter.status} (${rerunAfter.output.trim()})`, `same command ${same}; before.commit ${String(before.commit).slice(0, 8)}, after.commit ${String(after.commit).slice(0, 8)} vs head ${head.slice(0, 8)}; reruns ${rerunBefore.status}/${rerunAfter.status}`);
+      const delegateInput = String(assignmentOf(delegateOf(view) as never).workspace?.inputCommit);
+      // The repro ran on unfixed code: the base, or the commit the delegate was spawned at (the parent may have committed the failing test first).
+      const beforeAtBase = before.commit === null || namesCommit(before.commit, [view.base, delegateInput]);
+      return when(beforeAtBase && namesCommit(after.commit, delivered) && (after.exitCode === undefined || after.exitCode === 0) && rerunBefore.status !== 0 && rerunAfter.status === 0, `${before.id} at the base, ${after.id} at ${after.commit?.slice(0, 8)}; base exit ${rerunBefore.status} (${rerunBefore.output.trim()}), delivered exit ${rerunAfter.status} (${rerunAfter.output.trim()})`, `${before.id}.commit ${String(before.commit).slice(0, 8)}, ${after.id}.commit ${String(after.commit).slice(0, 8)} (exit ${String(after.exitCode)}) vs delivered ${head.slice(0, 8)}; reruns ${rerunBefore.status}/${rerunAfter.status}`);
     }),
     check('bug-fix.reply-pastes-failing-then-passing-output', 'the reply pastes the failing then the passing repro output verbatim', src('poteto-mode/playbooks/bug-fix.md', '**Reply:** what was broken, root cause, fix'), (view) => {
       const run = primaryRun(view, 'bug-fix');
-      const outputs = ['bug-repro-before', 'bug-repro-after'].map((id) => {
-        const receipt = run?.receipts.find((entry) => entry.id === id);
-        return receipt?.artifacts[0] === undefined ? '' : safe(receipt.artifacts[0].path).trim();
-      });
+      const outputs = [1, 4].map((step) => artifactText(run, stepReceipts(run, step)[0]).trim());
       const reply = finalReply(view);
       const positions = outputs.map((output) => (output === '' ? -1 : reply.indexOf(output)));
       return when(!positions.includes(-1) && (positions[0] as number) < (positions[1] as number), `before ${JSON.stringify(outputs[0])} precedes after ${JSON.stringify(outputs[1])}`, `positions ${positions.join(',')} for ${JSON.stringify(outputs)}`);
     }),
-    parentWritesOnlyScratch('bug-fix.parent-stays-in-the-lead', 'the parent delegates the fix: it wrote no production code', src('poteto-mode/playbooks/bug-fix.md', 'Delegate investigation and the fix to subagents, stay in the lead')),
+    parentWritesOnlyScratch('bug-fix.parent-stays-in-the-lead', 'the parent delegates the fix: it wrote no production code (the failing repro it writes under test/ is step 1 and 5, not the fix)', src('poteto-mode/playbooks/bug-fix.md', 'Delegate investigation and the fix to subagents, stay in the lead'), /^test\//),
     writableWorkerRecords('bug-fix.worker-records', src('poteto-mode/playbooks/bug-fix.md', 'Delegate investigation and the fix to subagents'), ['poteto']),
     settledAndCollected('bug-fix.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
   negatives: [
     ...todoNegatives('bugfix-coupon', 'bug-fix', { done: [1, 2, 3, 4, 5], receipts: { 1: 'bug-repro-before', 2: 'bug-hypotheses', 3: 'fix-check', 4: 'bug-repro-after', 5: 'bug-order' } }),
     { name: 'the fix landed in one commit with its test', mutate: (sandbox) => squashBranch(sandbox, 'pstack-run/bugfix-coupon/fix'), fails: ['bug-fix.failing-repro-lands-before-the-fix'] },
-    { name: 'the repro never failed at the base', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { exitCode: 0 }), fails: ['bug-fix.reproduced-first-on-the-surface'] },
-    { name: 'the after receipt used a different command', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-after', { command: ['sh', '-c', 'node --test'] }), fails: ['bug-fix.same-repro-fails-before-passes-after'] },
+    { name: 'the repro never failed at the base: it exited 0 and printed a healthy total', mutate: (sandbox) => { patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { exitCode: 0 }); writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/bugfix-coupon/verification/artifacts/bug-repro-before.txt'), 'total=10\n'); }, fails: ['bug-fix.reproduced-first-on-the-surface'] },
+    { name: 'the repro exited 0 but printed the wrong total, as a repro script that reports instead of failing does', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { exitCode: 0 }), fails: [], passes: ['bug-fix.reproduced-first-on-the-surface'] },
+    { name: 'the receipts target the steps as "1" and "4", and the repro was run with different wording', mutate: (sandbox) => { patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { target: '1', command: ['node', 'repro.js'] }); patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-after', { target: '4', command: ['node', 'repro.js'] }); }, fails: [], passes: ['bug-fix.reproduced-first-on-the-surface', 'bug-fix.same-repro-fails-before-passes-after'] },
+    { name: 'the repro ran after the fix worker was already running', mutate: (sandbox) => {
+        rewriteSession(parentSession(sandbox), 'bug-repro-before.receipt.json', 'later-batch.json');
+        const events = join(sandbox, 'repo/.pi/pstack/runs/bugfix-coupon/events.jsonl');
+        writeFileSync(events, readFileSync(events, 'utf8').split('\n').map((line) => (line.includes('"workerId":"fix"') && line.includes('"kind":"spawn"') ? line.replace(/"ts":"[^"]+"/, '"ts":"2000-01-01T00:00:00.000Z"') : line)).join('\n'));
+      }, fails: ['bug-fix.reproduced-first-on-the-surface'] },
+    { name: 'the after receipt names a commit nobody delivered', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-after', { commit: 'deadbeefdeadbeef' }), fails: ['bug-fix.same-repro-fails-before-passes-after'] },
+    { name: 'the parent wrote the failing repro test itself', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/test/coupon-over-100.test.js`, content: FIX_TEST }), fails: [], passes: ['bug-fix.parent-stays-in-the-lead'] },
     { name: 'the investigator confirmed nothing', mutate: (sandbox) => rewriteHunter(sandbox), fails: ['bug-fix.hypotheses-eliminated-with-runtime-evidence'] },
     { name: 'the reply did not paste the failing output', mutate: (sandbox) => rewriteReply(sandbox, 'total=-5', 'it was negative'), fails: ['bug-fix.reply-pastes-failing-then-passing-output'] },
     { name: 'the parent wrote the fix itself', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'edit', { path: `${sandbox}/repo/src/cart.js`, edits: [] }), fails: ['bug-fix.parent-stays-in-the-lead'] },
@@ -365,14 +397,6 @@ function rewriteHunter(sandbox: string): void {
 
 function readCart(repo: string): string {
   return readFileSync(join(repo, 'src/cart.js'), 'utf8');
-}
-
-function safe(path: string): string {
-  try {
-    return readFileSync(path, 'utf8');
-  } catch {
-    return '';
-  }
 }
 
 // ---- tdd

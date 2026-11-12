@@ -59,6 +59,10 @@ how, simple path: one explainer and no explorers, with no run set up beforehand 
 
 Negative cases, each of which must FAIL the named checks:
 
+- the explainer opened with a sentence the parent dropped before presenting the sections → 
+- no message presents the explainer sections at all → `how.output-sections`
+- the presented answer opens with one H2 title above the five sections → 
+- the presented answer has an H2 title and a second H2 further down → `how.output-sections`
 - the presented answer opens with one H1 title above the five sections → 
 - the presented answer lowercases the second word of its section titles → 
 - the presented answer adds a section the how template does not have → `how.output-sections`
@@ -91,7 +95,7 @@ why: code anchor, MCP discovery, investigators, synthesizer, honest gaps (spec 1
 | `why.sources-consulted-covers-seven-categories` | Sources Consulted names all seven evidence categories, each with a result or the reason it was skipped | `generated/skills/why/SKILL.md:92` |
 | `why.no-invented-sources` | every PR number and commit the reply cites exists in git history or in a tool result the run saw | `generated/skills/why/references/investigator-prompt.md:43` |
 | `why.output-sections` | the reply keeps the eight why sections | `generated/skills/why/SKILL.md:92` |
-| `why.citations-resolve` | the reply cites at least 1 file:line references, and each resolves in the repository | `generated/skills/why/SKILL.md:3` |
+| `why.citations-resolve` | the reply's file:line citations each resolve in the repository (at least 1 required) | `generated/skills/why/SKILL.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -126,10 +130,12 @@ teach: how and why run in parallel and are woven into one plain explanation (spe
 | `teach.no-framing-labels` | the reply prints none of the labels the skill bans | `generated/skills/teach/SKILL.md:15` |
 | `teach.no-long-dashes` | the reply contains no long dash | `generated/skills/teach/SKILL.md:19` |
 | `teach.why-hedges-kept-verbatim` | the why synthesizer's What We Don't Know lines reach the reply intact (at least half, verbatim) | `generated/skills/teach/SKILL.md:11` |
-| `teach.citations-resolve` | the reply cites at least 2 file:line references, and each resolves in the repository | `generated/skills/teach/SKILL.md:17` |
+| `teach.citations-resolve` | the reply's file:line citations each resolve in the repository (at least 0 required) | `generated/skills/teach/SKILL.md:17` |
 
 Negative cases, each of which must FAIL the named checks:
 
+- the reply cites a file and line that do not exist → `teach.citations-resolve`
+- the reply cites no file at all → 
 - the reply opens with TL;DR → `teach.no-framing-labels`
 - the reply softens the why hedge → `teach.why-hedges-kept-verbatim`
 - the reply uses a long dash → `teach.no-long-dashes`
@@ -165,7 +171,7 @@ Investigation playbook: read-only, routed through how, cited answer, no PR (spec
 | `investigation.no-architect` | no architect skill, no PR playbook, and no babysit | `generated/skills/poteto-mode/playbooks/investigation.md:12` |
 | `investigation.no-pr-commands` | the parent ran no PR command | `generated/skills/poteto-mode/playbooks/investigation.md:12` |
 | `investigation.output-is-how-shaped` | the reply has the how-shaped sections, or for a decision between alternatives a recommendation with a tradeoffs table | `generated/skills/poteto-mode/playbooks/investigation.md:9`, `generated/skills/poteto-mode/playbooks/investigation.md:9` |
-| `investigation.citations-resolve` | the reply cites at least 2 file:line references, and each resolves in the repository | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+| `investigation.citations-resolve` | the reply's file:line citations each resolve in the repository (at least 2 required) | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `investigation.applies-unslop` | the parent opened the unslop skill for the reply | `generated/skills/poteto-mode/playbooks/investigation.md:10` |
 | `investigation.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
 | `investigation.receipts-recorded` | four receipts are recorded under verification/receipts and re-verify | `generated/skills/poteto-mode/SKILL.md:127` |
@@ -204,11 +210,11 @@ arena: independent candidates in separate worktrees, blind rubric, cross-family 
 | `arena.same-prompt` | every candidate got the same prompt: briefs are identical once each worker's own id, label, and path are removed | `generated/skills/arena/SKILL.md:13` |
 | `arena.rubric-held-back` | the rubric reaches the judge and never a candidate: "Candidates only see the task" | `generated/skills/arena/SKILL.md:16`, `generated/skills/arena/SKILL.md:28` |
 | `arena.candidate-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/arena/SKILL.md:22` |
-| `arena.candidates-committed` | each candidate committed its artifact on its own branch | `generated/skills/arena/SKILL.md:22` |
+| `arena.candidates-leave-an-artifact` | each candidate left its artifact in its own worktree, committed on its own branch or as files | `generated/skills/arena/SKILL.md:18` |
 | `arena.judge` | one judge, role judge, readonly on the repository root, model from the cross-judge pool | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `arena.judge-not-parent-family` | the judge is never from the parent's model family | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `arena.judge-after-candidates` | the judge is spawned only after every candidate completes: "Don't spawn it while candidates are still writing" | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
-| `arena.judge-brief` | the judge brief carries the rubric and the candidates by path label | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
+| `arena.judge-brief` | the judge brief carries the rubric and each candidate by a label and the path of its worktree | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `arena.read-every-candidate` | the parent read every candidate end to end before picking | `generated/skills/arena/SKILL.md:32` |
 | `arena.verified` | a passing test or command receipt verifies the synthesized artifact (Phase F): its target is arena-verify, the Verify phase item, or the synthesized commit | `generated/skills/arena/SKILL.md:44` |
 | `arena.synthesis-note` | the synthesis note names the base, the cross-judge verdict, the grafts with their source, what was rejected, convergence or dropouts, and the verification | `generated/skills/arena/SKILL.md:48` |
@@ -220,10 +226,13 @@ Negative cases, each of which must FAIL the named checks:
 - two candidates ran in the same worktree → `arena.separate-writable-locations`
 - the judge is the parent model family → `arena.judge-not-parent-family`
 - the rubric leaked into a candidate brief → `arena.rubric-held-back`, `arena.same-prompt`
+- the judge brief numbers its rubric and labels each candidate in bold, the way a real judge brief reads → 
+- the judge brief lists the candidate paths with no label, and only two numbered criteria → `arena.judge-brief`, `arena.rubric-held-back`
+- a candidate left its artifact as files in its worktree and committed nothing → 
 - candidates did not share one prompt → `arena.same-prompt`
 - only one runner ran → `arena.candidates`
 - both runners are the same model → `arena.candidates`
-- a candidate produced no commit → `arena.candidates-committed`
+- a candidate produced no commit → `arena.candidates-leave-an-artifact`
 - the synthesized artifact was never verified → `arena.verified`
 - the verification artifact was tampered with → `arena.verified`
 - the reply forgot the cross-judge verdict → `arena.synthesis-note`
@@ -255,8 +264,8 @@ architect: ground with how, two structurally distinct designs through arena, red
 | `architect.judge-from-another-family` | arena Phase C ran: one judge, readonly, from the cross-judge pool | `generated/skills/architect/SKILL.md:29`, `generated/skills/arena/SKILL.md:28` |
 | `architect.judge-after-candidates` | the judge is spawned after every candidate completes | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `architect.rationale-shipped` | the rationale ships alongside, shaped per rationale-template.md, with the usage section before the shape | `generated/skills/architect/SKILL.md:79` |
-| `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge (or, with the judge skipped, the candidates) was collected | `generated/skills/architect/SKILL.md:43` |
-| `architect.implementation-verified` | the implementation worker recorded a passing test receipt | `generated/skills/architect/SKILL.md:53` |
+| `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: after the judge (or, with the judge skipped, the candidates) was collected, a writable worker commits, or the parent writes and commits on the checkout itself (Phase D names no worker) | `generated/skills/architect/SKILL.md:43` |
+| `architect.implementation-verified` | a passing test receipt covers the implementation: it targets "implement" or a commit of the implementation | `generated/skills/architect/SKILL.md:53` |
 | `architect.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/arena/SKILL.md:28` |
 | `architect.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/architect/SKILL.md:77` |
 
@@ -267,6 +276,8 @@ Negative cases, each of which must FAIL the named checks:
 - both candidates wrote the same design → `architect.designs-are-distinct`
 - the rationale kept the template note for the synthesis decision → `architect.rationale-shipped`
 - the implementation committed nothing → `architect.proceeds-to-implementation`
+- the parent implemented on the checkout itself after the judge and verified its own commit → 
+- the parent committed on the checkout but wrote no file after the judge, and its receipt names no commit → `architect.proceeds-to-implementation`, `architect.implementation-verified`
 - the implementation receipt is gone → `architect.implementation-verified`
 - no other-family judge could run, so the judge was skipped and the final message says so → 
 - the judge shares the parent family → `architect.judge-not-parent-family`
@@ -299,6 +310,11 @@ Negative cases, each of which must FAIL the named checks:
 
 - two workers shared a worktree → `swarm.separate-writable-outputs`
 - a PASS lane has no receipt → `swarm.pass-lanes-have-receipts`
+- the result table puts each path in a code span and the gaps are headed "Gaps or dropouts" → 
+- the gaps section is headed "Gaps or dropouts" → 
+- the report has no gaps or dropouts section at all → `swarm.report-keeps-outcome-distinctions`
+- a PASS row without a receipt cited rests on the slice's worker, which recorded none → `swarm.pass-lanes-have-receipts`
+- a PASS row without a receipt cited still passes when its worker's receipt is recorded → 
 - a PASS lane receipt was tampered with → `swarm.pass-lanes-have-receipts`
 - a brief names no SHA → `swarm.briefs-stand-alone`
 - the abandoned result was counted as a pass → `swarm.results-record-sha-and-method`
@@ -346,6 +362,11 @@ Negative cases, each of which must FAIL the named checks:
 - the adversary briefs label the scope and the intent in bold → 
 - an adversary brief carries no intent → `interrogate.adversary-brief`
 - the report uses headings and prose: a heading per label, the finding's command in a code span the parent re-ran → 
+- the report labels each part inline in bold, as the Output list does (`**Intent.** text`, `**Findings**: text`), with the finding's command in a fenced block the parent re-ran → 
+- the inline-labelled report cites a fenced command the parent never ran → `interrogate.findings-verified-by-rerun`
+- prose that merely begins with the word Findings is not a label → `interrogate.output-shape`
+- the report says one collective zero was dropped for every adversary → 
+- the report says findings were dropped without a count for any adversary → `interrogate.unrun-findings-dropped`
 - the report heads its findings with a command the parent never ran → `interrogate.findings-verified-by-rerun`
 - the report names no label for what was dropped → `interrogate.output-shape`, `interrogate.unrun-findings-dropped`
 - the dropped section is missing → `interrogate.unrun-findings-dropped`
@@ -374,7 +395,7 @@ Feature playbook: ground with how, checkpoint, delegate to one worker, verify un
 | `feature.delegated-to-one-writer` | step 4: code-writing is delegated to a fresh poteto worker in its own worktree at the base commit, on the "feature, refactoring" model line | `generated/skills/poteto-mode/playbooks/feature.md:12` |
 | `feature.brief-names-scope` | the delegate brief carries file paths, the named data shape, and success criteria | `generated/skills/poteto-mode/playbooks/feature.md:12` |
 | `feature.parent-stays-in-the-lead` | the parent wrote no production code and the main checkout is clean: it plans, reviews, verifies | `generated/skills/poteto-mode/playbooks/feature.md:3` |
-| `feature.small-ordered-verified-commits` | the worker's branch holds at least 2 commits and every one passes `node --test` on its own | `generated/skills/poteto-mode/playbooks/feature.md:15` |
+| `feature.small-ordered-verified-commits` | the worker's branch holds at least 2 commits and every one passes `node --test` on its own, except a test-only commit that fails and is followed by a passing one | `generated/skills/poteto-mode/playbooks/feature.md:15` |
 | `feature.surface-receipt-is-the-delivered-commit` | the surface receipt (the one step 5 cites) records the commit the worker delivered | `generated/skills/poteto-mode/playbooks/feature.md:13` |
 | `feature.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/feature.md:12` |
 | `feature.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
@@ -399,6 +420,10 @@ Negative cases, each of which must FAIL the named checks:
 - a throughput item was dropped → `feature.throughput-checkpoint-four-items`
 - the surface receipt names a commit nobody delivered → `feature.surface-receipt-is-the-delivered-commit`
 - the delegate brief has no success criteria → `feature.brief-names-scope`
+- the brief names the structure as a table and never says "data shape" → 
+- the brief names no data shape or structure → `feature.brief-names-scope`
+- the reply says nothing of what was built → `feature.reply-has-the-contract`
+- the reply says "implemented" instead of "Built" → 
 - the delegate left no commit → `feature.small-ordered-verified-commits`
 - the throughput items carry ordinals, C1 to C4 → 
 - the brief states an exact contract instead of a success criteria heading → 
@@ -423,15 +448,15 @@ Bug fix playbook: reproduce first, eliminate hypotheses with runtime evidence, f
 | `todo.bug-fix.skips-explained` | a skipped step names its reason, and no mandatory step is skipped | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/bug-fix.md:7` |
 | `todo.bug-fix.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
 | `todo.bug-fix.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
-| `bug-fix.reproduced-first-on-the-surface` | step 1: the parent reproduced the defect itself, before any worker fixed it; the receipt records a failing exit status | `generated/skills/poteto-mode/playbooks/bug-fix.md:7` |
+| `bug-fix.reproduced-first-on-the-surface` | step 1: the parent reproduced the defect itself and recorded it, before any worker fixed it; the receipt shows the defect (a failing exit status or the wrong output) | `generated/skills/poteto-mode/playbooks/bug-fix.md:7` |
 | `bug-fix.hypotheses-eliminated-with-runtime-evidence` | step 2: an investigator ruled hypotheses out and confirmed the survivor, each with a command it ran | `generated/skills/poteto-mode/playbooks/bug-fix.md:8` |
 | `bug-fix.investigator-readonly` | the investigator is readonly on the repository root | `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
 | `bug-fix.fix-delegated` | step 3: the fix is delegated to a poteto worker in its own worktree on the "bug-fix" model line | `generated/skills/poteto-mode/playbooks/bug-fix.md:9` |
 | `bug-fix.failing-repro-lands-before-the-fix` | step 5: the first commit adds only the regression test and fails there; the last commit changes the source and passes | `generated/skills/poteto-mode/playbooks/bug-fix.md:11` |
 | `bug-fix.smallest-change` | only the evidence-justified change ships: the fix commit touches src/cart.js and nothing else | `generated/skills/poteto-mode/playbooks/bug-fix.md:5` |
-| `bug-fix.same-repro-fails-before-passes-after` | step 4: the same repro command fails at the base and passes at the delivered commit, and re-running it confirms both | `generated/skills/poteto-mode/playbooks/bug-fix.md:10` |
+| `bug-fix.same-repro-fails-before-passes-after` | step 4: the original repro fails at the base and passes at the delivered commit, confirmed by re-running it, and the step 4 receipt names a delivered commit | `generated/skills/poteto-mode/playbooks/bug-fix.md:10` |
 | `bug-fix.reply-pastes-failing-then-passing-output` | the reply pastes the failing then the passing repro output verbatim | `generated/skills/poteto-mode/playbooks/bug-fix.md:15` |
-| `bug-fix.parent-stays-in-the-lead` | the parent delegates the fix: it wrote no production code | `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
+| `bug-fix.parent-stays-in-the-lead` | the parent delegates the fix: it wrote no production code (the failing repro it writes under test/ is step 1 and 5, not the fix) | `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
 | `bug-fix.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
 | `bug-fix.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
 
@@ -445,8 +470,12 @@ Negative cases, each of which must FAIL the named checks:
 - steps were resolved out of order → `todo.bug-fix.resolved-in-order`
 - a playbook step was deleted from TODO.md → `todo.bug-fix.steps-verbatim-in-order`
 - the fix landed in one commit with its test → `bug-fix.failing-repro-lands-before-the-fix`
-- the repro never failed at the base → `bug-fix.reproduced-first-on-the-surface`
-- the after receipt used a different command → `bug-fix.same-repro-fails-before-passes-after`
+- the repro never failed at the base: it exited 0 and printed a healthy total → `bug-fix.reproduced-first-on-the-surface`
+- the repro exited 0 but printed the wrong total, as a repro script that reports instead of failing does → 
+- the receipts target the steps as "1" and "4", and the repro was run with different wording → 
+- the repro ran after the fix worker was already running → `bug-fix.reproduced-first-on-the-surface`
+- the after receipt names a commit nobody delivered → `bug-fix.same-repro-fails-before-passes-after`
+- the parent wrote the failing repro test itself → 
 - the investigator confirmed nothing → `bug-fix.hypotheses-eliminated-with-runtime-evidence`
 - the reply did not paste the failing output → `bug-fix.reply-pastes-failing-then-passing-output`
 - the parent wrote the fix itself → `bug-fix.parent-stays-in-the-lead`
@@ -500,11 +529,11 @@ Refactoring playbook: pin first, subtract, small green steps, independent equiva
 | `refactoring.contract-learned-with-how` | step 1: how ran to learn the contract, a readonly explainer on the repository root | `generated/skills/poteto-mode/playbooks/refactoring.md:7` |
 | `refactoring.mechanical-edits-delegated` | step 5: the mechanical edits go to a poteto worker in its own worktree on the "feature, refactoring" model line | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.pin-lands-first-and-holds` | step 1: the first commit is the characterization test alone, green on the unchanged code, and no later commit edits it | `generated/skills/poteto-mode/playbooks/refactoring.md:7` |
-| `refactoring.small-steps-keep-the-pin-green` | the worker's branch holds at least 2 commits and every one passes `node --test` on its own | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
+| `refactoring.small-steps-keep-the-pin-green` | the worker's branch holds at least 2 commits and every one passes `node --test` on its own, except a test-only commit that fails and is followed by a passing one | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.behavior-is-unchanged` | step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself | `generated/skills/poteto-mode/playbooks/refactoring.md:12` |
 | `refactoring.old-api-deleted-callers-migrated` | the old API is deleted in the same wave: no lineTotal remains and no compatibility shim was added | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.reader-load-is-lower-and-no-new-behavior` | step 7: src/cart.js has fewer lines and fewer functions, and exports nothing new | `generated/skills/poteto-mode/playbooks/refactoring.md:13` |
-| `refactoring.parent-stays-in-the-lead` | the parent wrote no production code: the contract is its, the edits are the worker's | `generated/skills/poteto-mode/playbooks/refactoring.md:3` |
+| `refactoring.parent-stays-in-the-lead` | the parent wrote no production code: the contract is its, the edits are the worker's (the pin it writes under test/ is step 1) | `generated/skills/poteto-mode/playbooks/refactoring.md:3` |
 | `refactoring.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
 | `refactoring.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/refactoring.md:16` |
@@ -543,15 +572,15 @@ Perf issue playbook: baseline before the fix, vetted harness, mantras in order, 
 | `todo.perf-issue.skips-explained` | a skipped step names its reason, and no mandatory step is skipped | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/perf-issue.md:5` |
 | `todo.perf-issue.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
 | `todo.perf-issue.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
-| `perf-issue.baseline-before-the-fix-and-vetted` | step 1: the baseline ran at the base commit before any fix was spawned, with the harness printing its error count and work done | `generated/skills/poteto-mode/playbooks/perf-issue.md:5` |
-| `perf-issue.same-command-after-on-the-delivered-commit` | step 3: the post-fix number is the same command on the delivered commit, with no errors, and lower | `generated/skills/poteto-mode/playbooks/perf-issue.md:17` |
+| `perf-issue.baseline-before-the-fix-and-vetted` | step 1: the baseline ran before any fix was spawned, at the delegate's input commit (or the base), with the harness printing its error count and work done | `generated/skills/poteto-mode/playbooks/perf-issue.md:5` |
+| `perf-issue.same-command-after-on-the-delivered-commit` | step 3: the post-fix number is the same benchmark on a delivered commit, with no errors, and lower | `generated/skills/poteto-mode/playbooks/perf-issue.md:17` |
 | `perf-issue.numbers-reproduce` | the recorded numbers reproduce when the checker runs the benchmark at the base and at the delivered commit | `generated/skills/poteto-mode/playbooks/perf-issue.md:3` |
 | `perf-issue.reply-explains-the-number` | the reply gives the baseline number, the post-fix number, a delta that matches them, and an artifact path that exists | `generated/skills/poteto-mode/playbooks/perf-issue.md:25` |
-| `perf-issue.mantras-in-order` | the delegate brief lists the seven performance mantras in the playbook order | `generated/skills/poteto-mode/playbooks/perf-issue.md:7` |
+| `perf-issue.mantras-in-order` | the mantras were tried in the playbook order: the delegate brief lists all seven in order, or the run's own notes (TODO.md, the brief, the reply) walk "Mantra 1", "Mantra 2", ... upward from the cheapest | `generated/skills/poteto-mode/playbooks/perf-issue.md:7` |
 | `perf-issue.fix-delegated` | step 3: the fix is delegated to a poteto worker in its own worktree on the "perf-issue" model line | `generated/skills/poteto-mode/playbooks/perf-issue.md:17` |
 | `perf-issue.harness-untouched` | the benchmark is frozen: the delivered commit leaves bench/ as it was | `generated/skills/poteto-mode/playbooks/perf-issue.md:5` |
-| `perf-issue.commits-green` | the worker's branch holds at least 1 commits and every one passes `node --test` on its own | `generated/skills/poteto-mode/playbooks/perf-issue.md:18` |
-| `perf-issue.parent-stays-in-the-lead` | the parent wrote no production code | `generated/skills/poteto-mode/playbooks/perf-issue.md:3` |
+| `perf-issue.commits-green` | the worker's branch holds at least 1 commits and every one passes `node --test` on its own, except a test-only commit that fails and is followed by a passing one | `generated/skills/poteto-mode/playbooks/perf-issue.md:18` |
+| `perf-issue.parent-stays-in-the-lead` | the parent wrote no production code (the benchmark and test files it writes under bench/ and test/ are step 1) | `generated/skills/poteto-mode/playbooks/perf-issue.md:3` |
 | `perf-issue.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/perf-issue.md:17` |
 | `perf-issue.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |
 
@@ -568,7 +597,15 @@ Negative cases, each of which must FAIL the named checks:
 - the post-fix run used another command → `perf-issue.same-command-after-on-the-delivered-commit`
 - the recorded baseline is not what the benchmark prints → `perf-issue.numbers-reproduce`
 - the reply claims a delta the numbers do not give → `perf-issue.reply-explains-the-number`
+- the reply states the delta as a drop from the baseline to the post-fix number, with no percent → 
 - the mantras were handed over out of order → `perf-issue.mantras-in-order`
+- the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target → 
+- the run notes cite the mantras downward: Mantra 3 first, then Mantra 1 → `perf-issue.mantras-in-order`
+- the reply writes the baseline with a thousands separator → 
+- the reply names an artifact that does not exist → `perf-issue.reply-explains-the-number`
+- the parent committed its benchmark harness on the checkout before spawning the delegate → 
+- the parent committed an empty commit on the checkout → `perf-issue.parent-stays-in-the-lead`
+- the parent wrote its timing harness under bench/ → 
 - the benchmark was edited → `perf-issue.harness-untouched`
 - the parent edited production code → `perf-issue.parent-stays-in-the-lead`
 - the fix ran on the wrong model line → `perf-issue.fix-delegated`
@@ -582,7 +619,8 @@ Hillclimb playbook: frozen harness, baseline and gate first, one change per atte
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
 | `reads.hillclimb.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/hillclimb.md | `generated/skills/poteto-mode/SKILL.md:127` |
 | `reads.hillclimb.named-skills` | the parent opens each skill the playbook steps name (how, benchmark-checklist, show-me-your-work) | `generated/skills/poteto-mode/playbooks/hillclimb.md:7` |
-| `reads.hillclimb.principle-leaves` | the parent opens each principle leaf the playbook steps apply (principle-build-the-lever, principle-guard-the-context-window, principle-separate-before-serializing-shared-state, principle-sequence-verifiable-units, principle-laziness-protocol) | `generated/skills/poteto-mode/SKILL.md:42` |
+| `reads.hillclimb.principle-leaves` | the parent opens each principle leaf the playbook steps apply (principle-build-the-lever, principle-guard-the-context-window, principle-sequence-verifiable-units, principle-laziness-protocol) | `generated/skills/poteto-mode/SKILL.md:42` |
+| `reads.hillclimb.separate-before-serializing` | when attempts fan out in parallel, the parent opens principle-separate-before-serializing-shared-state: "fan them to parallel subagents, each in its own worktree (the separate-before-serializing-shared-state principle skill)" | `generated/skills/poteto-mode/playbooks/hillclimb.md:12` |
 | `todo.hillclimb.run-from-playbook` | a run for the hillclimb playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
 | `todo.hillclimb.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/hillclimb.md:7` |
 | `todo.hillclimb.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
@@ -611,6 +649,8 @@ Negative cases, each of which must FAIL the named checks:
 - a step was skipped with no reason → `todo.hillclimb.skips-explained`
 - steps were resolved out of order → `todo.hillclimb.resolved-in-order`
 - a playbook step was deleted from TODO.md → `todo.hillclimb.steps-verbatim-in-order`
+- the parent never opened the separate-before-serializing leaf although the attempts ran in parallel → `reads.hillclimb.separate-before-serializing`
+- the baseline and gate receipts target the steps as "1" and "2" → 
 - a reverted attempt kept its commit → `hillclimb.keep-or-revert-matches-the-measurements`
 - a win was logged as reverted → `hillclimb.keep-or-revert-matches-the-measurements`
 - the log row lies about the measurement → `hillclimb.decision-log-shape`
@@ -639,10 +679,10 @@ Prototype playbook: settle an empirical fork by observing a throwaway, not by as
 | `todo.prototype.skips-explained` | a skipped step names its reason, and no mandatory step is skipped | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/prototype.md:7` |
 | `todo.prototype.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
 | `todo.prototype.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
-| `prototype.decision-scoped` | step 1: the decision the prototype makes is written down before building | `generated/skills/poteto-mode/playbooks/prototype.md:7` |
-| `prototype.throwaway-scratch-outside-production` | step 3: the prototype lives in an isolated scratch directory outside the repository, with no tests, no dependencies, no production edits | `generated/skills/poteto-mode/playbooks/prototype.md:9` |
+| `prototype.decision-scoped` | step 1: the decision the prototype makes is written down before building: a task item of TODO.md, or the artifact of the step 1 receipt | `generated/skills/poteto-mode/playbooks/prototype.md:7` |
+| `prototype.throwaway-scratch-outside-production` | step 3: the prototype lives in an isolated scratch directory, outside production source (outside the repository, or under .pi/), with no tests, no dependencies, no production edits | `generated/skills/poteto-mode/playbooks/prototype.md:9` |
 | `prototype.variants-behind-one-switcher` | step 4: at least two labeled variants run behind one switcher | `generated/skills/poteto-mode/playbooks/prototype.md:10` |
-| `prototype.observation-is-the-evidence` | step 5: the decision rests on observed output: one receipt holds every variant's output on the same inputs, and the variants differ on them | `generated/skills/poteto-mode/playbooks/prototype.md:11` |
+| `prototype.observation-is-the-evidence` | step 5: the decision rests on observed output: the step 5 receipt holds every variant's output, and the variants differ | `generated/skills/poteto-mode/playbooks/prototype.md:11` |
 | `prototype.decides-without-asking-the-human` | an empirical fork is settled by running it: the reply gives a recommendation and does not hand the choice back as a question | `generated/skills/poteto-mode/SKILL.md:22` |
 | `prototype.reply-names-tradeoffs-scratch-and-throwaway` | the reply gives the variants, tradeoffs, the scratch path, says the prototype is throwaway, and hands the real build to Feature | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
 | `prototype.repository-untouched` | no prototype code entered the repository | `generated/skills/poteto-mode/playbooks/prototype.md:12` |
@@ -661,6 +701,9 @@ Negative cases, each of which must FAIL the named checks:
 - the prototype grew a test suite → `prototype.throwaway-scratch-outside-production`
 - only one variant was built → `prototype.variants-behind-one-switcher`
 - the variants printed the same output → `prototype.observation-is-the-evidence`
+- the decision is written only in a step 1 artifact, not as a task item → `prototype.decision-scoped`
+- the reply recommends in bold with a period and states tradeoffs in prose, naming the scratch folder in a code span → 
+- the reply names no scratch location at all → `prototype.throwaway-scratch-outside-production`
 - the reply asks the human to pick → `prototype.decides-without-asking-the-human`
 - the reply forgot to call the prototype throwaway → `prototype.reply-names-tradeoffs-scratch-and-throwaway`
 
@@ -674,8 +717,8 @@ verify-this: a falsifiable claim, baseline and treatment on the same command, ra
 | `verify-this.reads-skill` | the parent opens the verify-this skill | `generated/skills/verify-this/SKILL.md:6` |
 | `verify-this.artifact-layout` | the claim directory holds claim.md, timeline.md, baseline/, treatment/, diff/ and verdict.md | `generated/skills/verify-this/SKILL.md:42` |
 | `verify-this.claim-is-falsifiable` | the claim states a condition, a metric, and a threshold | `generated/skills/verify-this/SKILL.md:21` |
-| `verify-this.baseline-is-the-old-state-same-command` | the baseline is the parent commit, the treatment is the changed commit, and both ran the same command | `generated/skills/verify-this/SKILL.md:24` |
-| `verify-this.raw-artifacts-compared` | raw output exists for both sides and the diff holds their difference | `generated/skills/verify-this/SKILL.md:25` |
+| `verify-this.baseline-is-the-old-state-same-command` | the baseline is the parent commit, the treatment is the changed commit (both named in the claim, timeline, or verdict), and both ran the same command | `generated/skills/verify-this/SKILL.md:24` |
+| `verify-this.raw-artifacts-compared` | raw output exists for both sides, the two differ, and the diff holds their difference | `generated/skills/verify-this/SKILL.md:25` |
 | `verify-this.one-verdict-and-it-is-the-true-one` | exactly one verdict is returned, the reply and verdict.md agree, and it equals what the checker derives by running the command on both commits itself | `generated/skills/verify-this/SKILL.md:26` |
 | `verify-this.output-shape` | the reply has the verdict line, Claim, an Evidence line with baseline, treatment, delta and threshold, and Reasoning | `generated/skills/verify-this/SKILL.md:61` |
 | `verify-this.leaves-the-repository-alone` | verification changes nothing in the repository | `generated/skills/verify-this/SKILL.md:8` |
@@ -684,7 +727,10 @@ Negative cases, each of which must FAIL the named checks:
 
 - the verdict was upgraded without the evidence → `verify-this.one-verdict-and-it-is-the-true-one`
 - a clear verdict was softened to inconclusive → `verify-this.one-verdict-and-it-is-the-true-one`
-- the baseline is not the old state → `verify-this.baseline-is-the-old-state-same-command`
+- the baseline is not the old state: the timeline names another commit → `verify-this.baseline-is-the-old-state-same-command`
+- the run keeps no commit.txt or command.txt, and its two sides hold the same files → 
+- the sides hold different measurements, with no command recorded → `verify-this.baseline-is-the-old-state-same-command`
+- the reply is the Output block in a text fence, with the evidence values carrying units and Reasoning on one line → 
 - the treatment used another command → `verify-this.baseline-is-the-old-state-same-command`
 - the diff directory is empty → `verify-this.raw-artifacts-compared`
 - the claim has no threshold → `verify-this.claim-is-falsifiable`
@@ -703,15 +749,17 @@ Needs tlc; its absence is reported, never passed.
 | `slash.statechart` | /statechart reaches Pi as the pstack statechart skill prompt with the request | `generated/skills/statechart/SKILL.md:7` |
 | `statechart.reads-skill` | the parent opens the statechart skill | `generated/skills/statechart/SKILL.md:7` |
 | `statechart.scratch-outside-the-repo` | the spec, config and view live in a scratch folder outside the repository | `generated/skills/statechart/SKILL.md:13` |
-| `statechart.next-is-a-disjunction-and-rule-is-an-invariant` | Next is a disjunction of the actions, and the rule the reader agreed to is an INVARIANT in the config and defined in the spec | `generated/skills/statechart/SKILL.md:25` |
-| `statechart.model-checker-really-ran` | tlc.out is real TLC output: its banner, the model and the violation it found | `generated/skills/statechart/SKILL.md:70` |
-| `statechart.report-has-the-shortest-bug-path` | the report names the broken rule and its shortest path from the start, in the reader's words | `generated/skills/statechart/SKILL.md:3` |
-| `statechart.chart-is-mermaid-and-marks-the-bug` | chart.mmd is a Mermaid state diagram that marks the state that breaks the rule and stays small | `generated/skills/statechart/SKILL.md:74` |
+| `statechart.next-is-a-disjunction-and-rule-is-an-invariant` | Next is a disjunction of the actions, and each rule is an INVARIANT in the config and defined in the spec | `generated/skills/statechart/SKILL.md:25` |
+| `statechart.model-checker-really-ran` | tlc.out is real TLC output: its banner and either the invariant violation it found or its clean finish | `generated/skills/statechart/SKILL.md:70` |
+| `statechart.report-has-the-shortest-bug-path` | when TLC found a broken rule, the report names it and its shortest path from the start, in the reader's words; when none broke, there is no bug path to hold | `generated/skills/statechart/SKILL.md:3` |
+| `statechart.chart-is-mermaid-and-marks-the-bug` | chart.mmd is a Mermaid state diagram that marks the state that breaks a rule (when one breaks) and stays small, with no variable names in its labels | `generated/skills/statechart/SKILL.md:74` |
 | `statechart.command-reproduces-the-chart-and-report` | running the same command again produces the identical chart and report | `generated/skills/statechart/SKILL.md:80` |
-| `statechart.hand-off` | the hand-off quotes the chart as a mermaid block, names each bug as rule plus path, says what the model leaves out, and gives the command with a new --out | `generated/skills/statechart/SKILL.md:78` |
+| `statechart.hand-off` | the hand-off quotes the chart as a mermaid block, names each broken rule with its path (when one broke), says what the model leaves out, and gives the command with a new --out | `generated/skills/statechart/SKILL.md:78` |
 
 Negative cases, each of which must FAIL the named checks:
 
+- the spec has other names (Card.tla, Card.cfg) and its rule holds: no bug path is owed, and the checker's own files are used → 
+- the rule was broken in the spec but the report was regenerated from a spec where it holds → `statechart.model-checker-really-ran`
 - the chart was drawn without running the model checker → `statechart.model-checker-really-ran`
 - the chart does not match what the checker computes → `statechart.command-reproduces-the-chart-and-report`
 - the rule was weakened to make it hold → `statechart.next-is-a-disjunction-and-rule-is-an-invariant`, `statechart.command-reproduces-the-chart-and-report`
@@ -732,14 +780,15 @@ create-formal-verification-skill: a project-local skill whose check passes on th
 | `formal.reads-skill` | the parent opens the create-formal-verification-skill skill | `generated/skills/create-formal-verification-skill/SKILL.md:7` |
 | `formal.skill-registers` | the generated skill has frontmatter with a name and a description, so it registers | `generated/skills/create-formal-verification-skill/SKILL.md:33` |
 | `formal.coverage-record-and-sync-commit` | the skill records the covered files and functions and a sync commit that resolves in the repository | `generated/skills/create-formal-verification-skill/SKILL.md:29` |
-| `formal.states-property-harm-bounds-and-gaps` | the skill states the property, the harm, the bounds, what is not covered, and one run command | `generated/skills/create-formal-verification-skill/SKILL.md:26` |
-| `formal.check-passes-on-the-code` | the skill's one command, run by the checker, passes on the real code | `generated/skills/create-formal-verification-skill/SKILL.md:28` |
-| `formal.check-can-fail` | the same command, run by the checker on a copy whose clamp is removed, fails and prints the counterexample | `generated/skills/create-formal-verification-skill/SKILL.md:24` |
+| `formal.states-property-harm-bounds-and-gaps` | the skill states the property, the harm, the bounds, what is not covered, and a run command | `generated/skills/create-formal-verification-skill/SKILL.md:26` |
+| `formal.check-passes-on-the-code` | the skill's command, run by the checker, passes on the real code | `generated/skills/create-formal-verification-skill/SKILL.md:28` |
+| `formal.check-can-fail` | the same command, run by the checker on a copy whose clamp is removed, fails | `generated/skills/create-formal-verification-skill/SKILL.md:24` |
 | `formal.skill-was-run-on-a-real-break-and-restored` | the parent saw the check fail on a scratch break in the real code, dropped the break, and saw it pass again, ending with a clean tree | `generated/skills/create-formal-verification-skill/SKILL.md:39` |
 | `formal.hand-off` | the hand-off says what was verified, the tool and why, the bounds, what the check found, how to run it, and what it does not cover | `generated/skills/create-formal-verification-skill/SKILL.md:41` |
 
 Negative cases, each of which must FAIL the named checks:
 
+- the skill folder has another name, its section labels are bold, and its coverage line is written in prose → 
 - the skill has no frontmatter → `formal.skill-registers`
 - the check always passes → `formal.check-can-fail`
 - the sync commit does not exist → `formal.coverage-record-and-sync-commit`
@@ -761,13 +810,15 @@ create-verification-skill: a project-local skill with a real-app harness and fea
 | `verify-skill.registers-with-the-required-sections` | the skill has frontmatter and the Launch, Doctor, Drive, Evidence, Cleanup and Helpers sections, with no placeholders | `generated/skills/create-verification-skill/SKILL.md:25` |
 | `verify-skill.feature-map` | the feature map has a README index and one file per feature, each with the four H2s from the user's point of view | `generated/skills/create-verification-skill/SKILL.md:36` |
 | `verify-skill.helper-is-executable-and-shown` | every helper script is executable and its invocation is shown in the skill body | `generated/skills/create-verification-skill/SKILL.md:32` |
-| `verify-skill.doctor-and-drive-work-on-the-real-app` | the checker runs doctor and drives the mapped total feature, and the output equals the observable end state the feature file promises | `generated/skills/create-verification-skill/SKILL.md:40` |
+| `verify-skill.doctor-and-drive-work-on-the-real-app` | the checker runs the skill's doctor command and the first drive its feature map shows, and the output carries the end state the feature file promises | `generated/skills/create-verification-skill/SKILL.md:40` |
 | `verify-skill.evidence-survives-cleanup` | after cleanup the evidence still exists at the location the skill names | `generated/skills/create-verification-skill/SKILL.md:40` |
-| `verify-skill.was-run-before-handoff` | the parent ran launch, doctor, one drive, and cleanup, in that order, and the cleanup step confirmed the evidence file | `generated/skills/create-verification-skill/SKILL.md:40` |
-| `verify-skill.production-code-untouched` | no production file changed | `generated/skills/create-verification-skill/SKILL.md:21` |
+| `verify-skill.was-run-before-handoff` | the parent ran the skill's doctor command, then drove a feature the way the feature map shows, and cleaned up when the skill has a cleanup command | `generated/skills/create-verification-skill/SKILL.md:40` |
+| `verify-skill.production-code-untouched` | no production file changed (the skill under .pi/ and the evidence under artifacts/ are the deliverable) | `generated/skills/create-verification-skill/SKILL.md:21` |
 
 Negative cases, each of which must FAIL the named checks:
 
+- the helper folder is helpers/ instead of scripts/, the evidence location is a code span with slots, and the usage line has <feature> and <label> arguments → 
+- the run saved its proof under artifacts/ in the repository → 
 - a required section is missing → `verify-skill.registers-with-the-required-sections`
 - a feature file lacks its Gotchas → `verify-skill.feature-map`
 - the feature map is only an index → `verify-skill.feature-map`
@@ -794,6 +845,10 @@ ketchup: a read-only catch-up in plain words, every call waiting on the user wit
 
 Negative cases, each of which must FAIL the named checks:
 
+- the catch-up lists extension packages with pi list, piped to head → 
+- the catch-up reads with grep and rg → 
+- the catch-up writes a file with a redirect from a reader command → `ketchup.turn-is-read-only`
+- the reply starts with an empty text block before the sentence → 
 - the reply quotes a commit hash → `ketchup.plain-words`
 - the reply names a file path → `ketchup.plain-words`
 - the turn wrote a file → `ketchup.turn-is-read-only`
@@ -825,6 +880,7 @@ recall: scope stated, history mined in this workspace only, the shared record sw
 
 Negative cases, each of which must FAIL the named checks:
 
+- the brief uses markdown headings and bold labels for its sections → 
 - a miner read another project's transcript → `recall.stays-in-this-workspace`
 - a thread has no status tag → `recall.brief-meets-the-output-contract`
 - the capsule has six bullets → `recall.brief-meets-the-output-contract`
@@ -852,7 +908,7 @@ reflect: three independent reviewers, a synthesizer, an approval gate, edits onl
 | `reflect.synthesizer-after-reviewers` | the synthesizer is spawned after every reviewer returns | `generated/skills/reflect/SKILL.md:37` |
 | `reflect.synthesizer-brief-inlines-every-output` | each reviewer's full output is inlined where the template marks it, and framed as untrusted | `generated/skills/reflect/references/synthesizer.md:3` |
 | `reflect.approval-gate-before-any-edit` | the Accepted / Rejected / Backlog list is presented and the turn ends asking for approval, with no skill edit or copy before the user approves | `generated/skills/reflect/SKILL.md:47` |
-| `reflect.edits-a-project-copy-never-the-installed-package` | after approval the edit lands in .pi/skills/<skill>/, and the installed pstack package is unchanged | `generated/skills/reflect/SKILL.md:51` |
+| `reflect.edits-a-project-copy-never-the-installed-package` | after approval the edit lands in a copy under .pi/skills/<skill>/ that differs from the installed skill, and the installed pstack package is unchanged | `generated/skills/reflect/SKILL.md:51` |
 | `reflect.never-opens-a-pr-or-pushes` | no PR and no push | `generated/skills/reflect/SKILL.md:51` |
 | `reflect.summary-shape` | the summary lists Edits applied, New skills created, Backlog filed and Dropped, one line each | `generated/skills/reflect/SKILL.md:62` |
 | `reflect.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/reflect/SKILL.md:35` |
@@ -860,6 +916,8 @@ reflect: three independent reviewers, a synthesizer, an approval gate, edits onl
 Negative cases, each of which must FAIL the named checks:
 
 - a skill was edited before approval → `reflect.approval-gate-before-any-edit`
+- the edit landed in the installed package instead of a project copy → `reflect.edits-a-project-copy-never-the-installed-package`
+- the approval ask says "approve" in another form and the project copy is of the reflect skill → 
 - only two reviewers ran → `reflect.three-reviewers`
 - a reviewer was denied MCP → `reflect.three-reviewers`
 - the tooling lens ran on the judgment model → `reflect.lenses-use-the-role-lines`
@@ -889,6 +947,12 @@ show-me-your-work: a well-formed append-only trail, audited against the transcri
 
 Negative cases, each of which must FAIL the named checks:
 
+- the trail is at decisions.tsv in the work dir, not in the run directory → 
+- the trail is at .audit/cart.tsv, as the skill allows when several efforts run at once → 
+- there is no trail anywhere → `trail.log-format`
+- the Attention heading is bold → 
+- the Attention heading is a markdown heading → 
+- the reply has no Attention section → `trail.reply-ends-with-attention`
 - the wrong row was edited in place → `trail.append-only-wrong-call-gets-a-superseding-row`
 - the wrong row was deleted → `trail.append-only-wrong-call-gets-a-superseding-row`
 - a formula cell was written raw → `trail.cells-are-spreadsheet-safe`
@@ -973,6 +1037,8 @@ Negative cases, each of which must FAIL the named checks:
 - a step was skipped with no reason → `todo.pause-safely.skips-explained`
 - steps were resolved out of order → `todo.pause-safely.resolved-in-order`
 - a playbook step was deleted from TODO.md → `todo.pause-safely.steps-verbatim-in-order`
+- the reply names the resume note in a code span and says where the work stands in other words → 
+- no nested worker existed when the pause came → 
 - the nested worker was never aborted → `pause.nested-workers-cancelled`
 - the tree was left dirty → `pause.one-wip-commit-and-clean-tree`
 - the work was never committed → `pause.one-wip-commit-and-clean-tree`
@@ -1309,7 +1375,7 @@ Visual parity playbook: baseline before any migration, anti-shortcut clauses hel
 | `vp.one-owner-per-component-own-worktree` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/poteto-mode/playbooks/visual-parity.md:7` |
 | `vp.each-owner-touches-only-its-component` | each owner commit changes its own component file and nothing else | `generated/skills/poteto-mode/playbooks/visual-parity.md:7` |
 | `vp.migration-descends-from-the-baseline` | every migration branch is built on the baseline commit, so no migration predates the baseline | `generated/skills/poteto-mode/playbooks/visual-parity.md:5` |
-| `vp.owner-commits-keep-parity` | the worker's branch holds at least 1 commits and every one passes `for c in button; do for s in idle hover; do node ui/render.mjs $c $s / cmp -s - ui/baseline/$c-$s.ppm // { echo "diff at $c $s"; exit 1; }; done; done; echo diff=0` on its own | `generated/skills/poteto-mode/playbooks/visual-parity.md:8` |
+| `vp.owner-commits-keep-parity` | the worker's branch holds at least 1 commits and every one passes `for c in button; do for s in idle hover; do node ui/render.mjs $c $s / cmp -s - ui/baseline/$c-$s.ppm // { echo "diff at $c $s"; exit 1; }; done; done; echo diff=0` on its own, except a test-only commit that fails and is followed by a passing one | `generated/skills/poteto-mode/playbooks/visual-parity.md:8` |
 | `vp.reply-has-components-diffs-baseline-and-whats-left` | the reply names the components migrated, the diff result for each, the baseline harness location, and what is left | `generated/skills/poteto-mode/playbooks/visual-parity.md:11` |
 | `vp.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/visual-parity.md:7` |
 | `vp.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/poteto-mode/SKILL.md:97` |

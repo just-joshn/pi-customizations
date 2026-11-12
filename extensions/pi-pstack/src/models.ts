@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { getSupportedThinkingLevels, type ModelThinkingLevel } from '@earendil-works/pi-ai';
 import type { ModelRegistry } from '@earendil-works/pi-coding-agent';
 import { Type, type Static } from 'typebox';
+import type { FamilyDefault, FamilyDefaultLevel } from './model-spec.ts';
 import { Value } from 'typebox/value';
 
 export const ROLE_NAMES = [
@@ -49,6 +50,25 @@ export function loadModelsConfig(path = join(homedir(), '.pi/agent/pstack/models
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { schemaVersion: 1, budget: 'large', roles: {} };
     throw error;
   }
+}
+
+/**
+ * A family default (`claude-opus-5-5-xhigh`, `grok-4.7-xhigh-fast`) as a concrete `<provider>/<id>` the registry lists. The
+ * parent's provider wins among providers that list the model. The fast variant is preferred when asked for and listed. When
+ * the model itself is unlisted, another model of its family stands in and `note` says so; when no family model is listed
+ * the error names what is.
+ */
+export function resolveFamilyDefault(spec: string, family: FamilyDefault, registry: Registry, parent: ResolvedModel | undefined): { spec: string; level: FamilyDefaultLevel; note?: string } {
+  const available = registry.getAvailable();
+  const inParentProviderFirst = (models: typeof available) => models.find((entry) => entry.provider === parent?.provider) ?? models[0];
+  const ids = family.fast ? [`${family.id}-fast`, family.id] : [family.id];
+  for (const id of ids) {
+    const found = inParentProviderFirst(available.filter((entry) => entry.id === id));
+    if (found) return { spec: `${found.provider}/${found.id}`, level: family.level };
+  }
+  const sibling = inParentProviderFirst(available.filter((entry) => modelFamily(entry.id) === modelFamily(family.id)));
+  if (sibling) return { spec: `${sibling.provider}/${sibling.id}`, level: family.level, note: `${spec}: ${family.id} is not available; using ${sibling.provider}/${sibling.id}` };
+  throw new Error(`Model ${spec} is not available: no ${modelFamily(family.id)} model is listed. Available: ${available.map((entry) => `${entry.provider}/${entry.id}`).join(', ') || '(none)'}`);
 }
 
 export function modelFamily(id: string): string {
@@ -98,21 +118,33 @@ export function resolveRole(role: string, registry: Registry, parent: ResolvedMo
       return index === -1 ? preferred.length : index;
     };
     candidates.sort((a, b) => rank(a.id) - rank(b.id));
-    let resolved: ResolvedModel | undefined;
     const minimum = target === 'off' || target === 'minimal' ? LEVELS.indexOf(target) : LEVELS.indexOf('low');
-    for (let index = LEVELS.indexOf(target); index >= minimum && !resolved; index--) {
-      const level = LEVELS[index]!;
-      for (const model of candidates) {
-        if (!getSupportedThinkingLevels(model).includes(level)) continue;
-        resolved = { provider: model.provider, id: model.id, thinkingLevel: level };
-        break;
+    const search = (pool: typeof candidates): ResolvedModel | undefined => {
+      for (let index = LEVELS.indexOf(target); index >= minimum; index--) {
+        const level = LEVELS[index]!;
+        const model = pool.find((entry) => getSupportedThinkingLevels(entry).includes(level));
+        if (model) return { provider: model.provider, id: model.id, thinkingLevel: level };
+      }
+      return undefined;
+    };
+    // The requested model keeps the role: its own nearest level wins over another model of the family at the target.
+    const exact = candidates.filter((model) => model.id === id);
+    let resolved = search(exact);
+    if (!resolved) {
+      for (let index = LEVELS.indexOf(target) + 1; index < LEVELS.length && !resolved; index++) {
+        const model = exact.find((entry) => getSupportedThinkingLevels(entry).includes(LEVELS[index]!));
+        if (model) resolved = { provider: model.provider, id: model.id, thinkingLevel: LEVELS[index]! };
       }
     }
+    resolved ??= search(candidates);
     if (!resolved) {
       limitations.push(`${choice} is unavailable at or below ${target}; role needs a model choice`);
       continue;
     }
-    if (resolved.id !== id || resolved.thinkingLevel !== target) limitations.push(`${choice} resolved to ${resolved.provider}/${resolved.id}:${resolved.thinkingLevel}`);
+    if (resolved.id !== id || resolved.thinkingLevel !== target) {
+      const why = exact.length === 0 ? `${provider}/${id} is not available` : resolved.id !== id ? `${id} has no usable thinking level near ${target}` : `${id} supports ${getSupportedThinkingLevels(exact[0]!).join(', ')}, not ${target}`;
+      limitations.push(`${choice} resolved to ${resolved.provider}/${resolved.id}:${resolved.thinkingLevel} (${why})`);
+    }
     if (role === 'arena cross-judge pool' && modelFamily(resolved.id) === modelFamily(parent.id)) continue;
     models.push(resolved);
     if (role === 'arena cross-judge pool') break;

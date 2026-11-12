@@ -551,6 +551,34 @@ describe('capability boundary', () => {
     }
   });
 
+  test('a model the parent had to resolve elsewhere is named in the spawn reply, the spawn event, and the worker state', async () => {
+    const note = 'requested zai/glm-5.3-flash, running zai/glm-4.7:high; zai/glm-5.3-flash is not available';
+    const owner = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null, note }) });
+    const reply = await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'n1', '@@say X') });
+    expect(reply.text).toContain(`Model note: ${note}`);
+    expect(events()).toContain(JSON.stringify(note));
+    expect(readState(project, 'run1', 'n1')).toMatchObject({ modelNote: note });
+    const plain = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null }) });
+    const quiet = await plain.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 'n2', '@@say X') });
+    expect(quiet.text).not.toContain('Model note');
+    expect(readState(project, 'run1', 'n2')).not.toHaveProperty('modelNote');
+    await owner.stop();
+    await plain.stop();
+  });
+
+  test('collect names a missing report.md only when the brief asked for one', async () => {
+    const worktree = { workspace: { mode: 'worktree', inputCommit: project.commit } };
+    const collected = async (workerId: string, brief: string) => {
+      await parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', workerId, brief, worktree) });
+      const settled = await until(async () => parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId }), (result) => result.details.settled === true, 30_000, `${workerId} settles`);
+      return settled.text;
+    };
+    expect(await collected('r-asked', '@@say DONE report.md was never written')).toContain('report.md:\n(missing: the brief asked for it and the worker did not write it)');
+    const unasked = await collected('r-unasked', '@@say DONE');
+    expect(unasked).toContain('report.md:\n(none requested');
+    expect(unasked).not.toContain('(missing');
+  });
+
   test('spawn refuses a worker that asks for external write authority', async () => {
     const path = writeAssignment(project, 'run1', 'c3', '@@say X', { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
     await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/externalWrite/);

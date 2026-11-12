@@ -68,7 +68,7 @@ Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/psta
   kind: 'pi' | 'watch',
   role: 'poteto' | 'explorer' | 'investigator' | 'candidate' | 'judge' | 'verifier' | 'reviewer' | 'owner' | 'watcher' | 'comment-sicko' | 'general',
   brief: 'brief.md',                 // relative to the worker dir; kind 'pi' only
-  model: 'inherit-parent' | '<provider>/<id>',
+  model: 'inherit-parent' | '<provider>/<id>' | '<model>-<level>[-fast]',
   thinkingLevel: 'off'|'minimal'|'low'|'medium'|'high'|'xhigh'|'max' | null,
   workspace: { mode: 'worktree', inputCommit: string }   // writable: extension creates worktree/ at inputCommit
            | { mode: 'readonly', path: string }           // absolute; tools: read,grep,find,ls,bash_readonly,pstack_evidence (+MCP per capabilities)
@@ -106,8 +106,10 @@ Receipt:
 ```ts
 { schemaVersion: 1, id: string, runId: RunId, target: string, kind: 'test'|'command'|'screenshot'|'trace'|'review'|'measurement'|'other',
   verdict: 'pass'|'fail'|'inconclusive', commit: string|null, environment: string,
-  command?: string[], exitCode?: number, artifacts: { path: string, sha256: string }[], defects?: string[], reason?: string, createdAt: string }
+  command?: string[], exitCode?: number, expectedFail?: boolean, artifacts: { path: string, sha256: string }[], defects?: string[], reason?: string, createdAt: string }
 ```
+
+`verify` fails a `pass` whose `exitCode` is non-zero as self-contradictory. `expectedFail: true` is the form for an intended failing-before proof (tdd step 4 and the bug-fix reply ask for the failing run): `verdict: 'pass'` then means the command failed as intended, an `exitCode` of 0 is a defect, and a missing `exitCode` is inconclusive. Validation errors name each bad field and the values it allows (`src/receipt-reference.ts` is the one text for the tool description, those errors, and the "Evidence receipt" section of `references/worker-assignment.md`).
 
 ## Wakeups (spec 9.1, 11.3)
 
@@ -119,7 +121,7 @@ Fork policy: a run's owner is the session file in its `run.json`, and a fork or 
 
 `src/extension.ts` is the package's one extension. With `PSTACK_WORKER=1` it calls only `registerWorkerSideTools(pi, process.env)`. Otherwise it registers `pstack_worker` (through `registerWorkerTools` with the resolver below), `pstack_evidence`, the persistent style, slash routing, and `/pstack`. No other model-facing tool and no other command.
 
-Model resolver. `pstack_worker` spawn resolves an assignment's `model` with `resolveRole` from `src/models.ts` and `~/.pi/agent/pstack/models.json`: the spec stands in as the line of a single-model role, so it gets the role fallback and level clamping. `inherit-parent` with `thinkingLevel: null` is the session's model and level; with a level, the session's model at that level, clamped. A named model with `thinkingLevel: null` keeps its default level (the worker gets `null`); it is matched at `off`, or at the budget level when it cannot turn thinking off. No match is a spawn error naming the limitations. An invalid `models.json` fails the spawn.
+Model resolver. A family default (`claude-opus-5-5-xhigh`, `grok-4.7-xhigh-fast`, the forms poteto-mode's spawn defaults are written in) resolves first against the registry to a listed `<provider>/<id>` at that level, the parent's provider first and the `-fast` variant when listed; an unlisted model falls to a listed model of its family with a note, and none listed is an error naming what is. `pstack_worker` spawn resolves an assignment's `model` with `resolveRole` from `src/models.ts` and `~/.pi/agent/pstack/models.json`: the spec stands in as the line of a single-model role, so it gets the role fallback and level clamping. `inherit-parent` with `thinkingLevel: null` is the session's model and level; with a level, the session's model at that level, clamped. A named model with `thinkingLevel: null` keeps its default level (the worker gets `null`); it is matched at `off`, or at the nearest level the named model itself supports (a family sibling stands in only when the named model is not listed). A resolved model or level that differs from the assignment's is recorded as `modelNote` in `state.json`, the `spawn` event, and the spawn reply. No match is a spawn error naming the limitations. An invalid `models.json` fails the spawn.
 
 Persistent style (spec 8.3). `/pstack on` and `/pstack off` append a custom entry `pstack/style` with `{ on: boolean }`; the last one on the active branch is the state, so resume, fork, and reload restore it. On a run with `messageType: 'user'` only, `before_agent_start` adds one `custom_message` of type `pstack-style`, `display: false`: with the style on, the loaded `poteto-mode` skill block (`details.kind: 'skill'`) when the compaction-aware context (`buildContextEntries()`) holds no `pstack-style` skill message after the last off notice; with the style off and that skill still in context, one notice to stop following it (`details.kind: 'off'`). A later task, a wake turn, or a compaction that kept the skill adds nothing; a compaction that summarized it away brings it back once.
 
@@ -303,7 +305,7 @@ The same-uid credential limitation above still applies. This is not OS credentia
 
 ## Models (spec 10.3)
 
-`~/.pi/agent/pstack/models.json` with the spec's schema: `schemaVersion: 1`, `budget`, `roles` keyed by the 17 role labels in `pstack-models.md`. A value is a model spec string or an array of them for the panel roles (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`). A model spec is `inherit-parent`, `auto`, or `<provider>/<id>[:<level>]`. `src/models.ts` exports `resolveRole(role, registry, parent)` returning resolved `{ provider, id, thinkingLevel }[]` plus `limitations: string[]` (e.g. "panel has 2 entries but 1 family").
+`~/.pi/agent/pstack/models.json` is the one model file pi-pstack reads (specification 10.3 and its mapping table, `.cursor/rules/pstack-models.mdc` to `models.json`). `pstack-models.md`, the Markdown rule an earlier pstack host wrote, is the origin of the role labels and the source of a one-time conversion (`adapters/model-config.ts`); nothing reads it at run time, `/setup-pstack` says so, and `/pstack doctor` points at it when `models.json` is missing. The file has the spec's schema: `schemaVersion: 1`, `budget`, `roles` keyed by the 17 role labels in `pstack-models.md`. A value is a model spec string or an array of them for the panel roles (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`). A model spec is `inherit-parent`, `auto`, or `<provider>/<id>[:<level>]`. `src/models.ts` exports `resolveRole(role, registry, parent)` returning resolved `{ provider, id, thinkingLevel }[]` plus `limitations: string[]` (e.g. "panel has 2 entries but 1 family").
 
 ## TODO.md (spec 11.1)
 

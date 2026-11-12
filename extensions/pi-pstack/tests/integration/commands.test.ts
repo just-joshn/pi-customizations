@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
-import { auditRun, hardLinkCheck, parsePstackArgs, parseTodo, registerPstackCommand, report } from '../../src/commands.ts';
+import { auditRun, hardLinkCheck, modelLines, parsePstackArgs, parseTodo, registerPstackCommand, report } from '../../src/commands.ts';
 import { recordReceipt } from '../../src/evidence.ts';
 import { type RunId, readHostState } from '../../src/run-files.ts';
 import { registerStyle } from '../../src/style.ts';
@@ -111,6 +111,22 @@ describe('status and doctor', () => {
     expect(text).toContain(`hard links: supported at ${project}`);
     expect(text).toContain('slash names: 1 conflict(s), use /pstack:<name>\n  /how is extension command /how (x.ts); use /pstack:how');
     expect(existsSync(join(project, '.pi'))).toBe(false);
+  });
+
+  test('doctor says a pstack-models.md beside a missing models.json is never read, and says nothing when models.json exists', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'pstack-models-'));
+    try {
+      const json = join(dir, 'models.json');
+      const markdown = join(dir, 'pstack-models.md');
+      const ctx = { model: undefined } as never;
+      expect(modelLines(ctx, json, markdown)[0]).toBe(`models.json: missing at ${json}; the skill defaults apply (run /setup-pstack)`);
+      writeFileSync(markdown, '# budget: large\nbug-fix: zai/glm-5.3-flash:high\n');
+      expect(modelLines(ctx, json, markdown)[0]).toContain(`${markdown} exists but pi-pstack never reads it`);
+      writeFileSync(json, JSON.stringify({ schemaVersion: 1, budget: 'large', roles: { 'bug-fix': 'inherit-parent' } }));
+      expect(modelLines(ctx, json, markdown)[0]).toBe(`models.json: valid at ${json} (budget large, 1 role lines)`);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test('the hard-link check probes the nearest existing directory and leaves nothing behind', () => {

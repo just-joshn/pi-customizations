@@ -252,7 +252,9 @@ export function loadRun(project: string, id: string): RunDir {
   const dir = join(project, '.pi', 'pstack', 'runs', id);
   const todoPath = join(dir, 'TODO.md');
   const todoText = existsSync(todoPath) ? readFileSync(todoPath, 'utf8') : null;
-  const decisionsPath = join(dir, 'decisions.tsv');
+  // The trail's default home is the run directory (show-me-your-work, compiled); with no run it is decisions.tsv in the work dir, or .audit/<task-slug>.tsv.
+  const audit = join(project, '.audit');
+  const decisionsPath = [join(dir, 'decisions.tsv'), join(project, 'decisions.tsv'), ...(existsSync(audit) ? readdirSync(audit).filter((file) => file.endsWith('.tsv')).sort().map((file) => join(audit, file)) : [])].find((candidate) => existsSync(candidate)) ?? join(dir, 'decisions.tsv');
   const eventsPath = join(dir, 'events.jsonl');
   const receiptsDir = join(dir, 'verification', 'receipts');
   const workersDir = join(dir, 'workers');

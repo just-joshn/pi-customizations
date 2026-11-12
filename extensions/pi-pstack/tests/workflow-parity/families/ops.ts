@@ -1,11 +1,11 @@
 // Families: session-pickup, pause-safely, autonomous-run, worktree-cleanup.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { BENCH_JS, cartHistory, DEDUPE_JS, perfHistory, SET_DEDUPE_JS } from '../fixtures/repos.ts';
-import { check, fail, src, when } from '../lib/check.ts';
+import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
@@ -255,6 +255,8 @@ export const pauseFamily: Family = {
     ...playbookReads('pause-safely'),
     ...todoChecks({ playbook: 'pause-safely' }),
     check('pause.nested-workers-cancelled', 'step 1: every live nested worker is aborted through pstack_worker and its host records the abort', src('poteto-mode/playbooks/pause-safely.md', 'cancel any nested subagents'), (view) => {
+      // A pause owes an abort only for a nested worker that existed to be stopped.
+      if (allWorkers(view).length === 0) return pass('no nested worker existed, so none was left to abort');
       const watch = view.runs.find((run) => run.id === WATCH_RUN);
       const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && !call.isError);
       const event = watch?.events.find((entry) => entry['kind'] === 'abort');
@@ -272,7 +274,10 @@ export const pauseFamily: Family = {
       return when(bad.length === 0, 'no push and no PR', bad.map((call) => String(call.args['command'])).join(' | '));
     }),
     check('pause.resume-note-is-cold-start-ready', 'step 4: the resume note covers intent, doing, progress, state, next steps, key files and gotchas, names the wip commit, and its key files exist', src('poteto-mode/playbooks/pause-safely.md', 'Write the resume note off-context'), (view) => {
-      const path = /resume note at (\S+?) and/.exec(finalReply(view))?.[1] ?? '';
+      // The reply names the note in any words: "resume note at <path>", or a path in a code span near "resume note" or any .md file it names.
+      const reply = finalReply(view);
+      const named = /resume note[^`\n]{0,40}?`?((?:\/|\.\/)?[\w./-]+\.md)`?/i.exec(reply)?.[1] ?? /`((?:\/|\.\/)?[\w./-]+\.md)`/.exec(reply)?.[1] ?? '';
+      const path = [named, join(view.repo, named), join(view.sandbox, named)].find((candidate) => named !== '' && existsSync(candidate)) ?? named;
       const text = read(path);
       const missing = ['Intent', 'Doing', 'Progress', 'state', 'Next steps', 'Key files', 'Gotchas'].filter((heading) => !new RegExp(`^## .*${heading}`, 'im').test(text));
       const head = spawnSync('git', ['-C', view.repo, 'rev-parse', '--short=12', 'HEAD'], { encoding: 'utf8' }).stdout.trim();
@@ -281,12 +286,14 @@ export const pauseFamily: Family = {
     }),
     check('pause.reply-is-a-pause-not-a-report', 'the reply gives where the work stands, what is on disk, the commits and clean tree, and the first action on resume, and says it is a pause', src('poteto-mode/playbooks/pause-safely.md', 'This is a pause, not a final report'), (view) => {
       const reply = finalReply(view);
-      const missing = [/Where I am/i, /On disk/i, /Commits/i, /First action on resume/i, /This is a pause, not a final report/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/Where (I am|you are|things stand|the work stands)/i, /On disk/i, /Commits/i, /First action on resume/i, /This is a pause, not a final report/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
   ],
   negatives: [
     ...todoNegatives('pause-cart', 'pause-safely', { done: [1, 2, 3, 4], receipts: { 1: 'pause-stopped', 2: 'pause-nothing-irreversible', 3: 'pause-wip', 4: 'pause-note' } }),
+    { name: 'the reply names the resume note in a code span and says where the work stands in other words', mutate: (sandbox) => rewriteFinalReply(sandbox, /Where I am: paused between the watcher and the comment\. On disk: the resume note at (\S+) and one wip commit\./, (_m, note: string) => `Where things stand: paused between the watcher and the comment. On disk: \`${note}\` is the resume note, and there is one wip commit.`), fails: [], passes: ['pause.resume-note-is-cold-start-ready', 'pause.reply-is-a-pause-not-a-report'] },
+    { name: 'no nested worker existed when the pause came', mutate: (sandbox) => rmSync(join(sandbox, 'repo/.pi/pstack/runs', 'watch-run', 'workers'), { recursive: true, force: true }), fails: [], passes: ['pause.nested-workers-cancelled'] },
     { name: 'the nested worker was never aborted', mutate: (sandbox) => rewriteSession(sandbox, '"action":"abort"', '"action":"inspect"'), fails: ['pause.nested-workers-cancelled'] },
     { name: 'the tree was left dirty', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['pause.one-wip-commit-and-clean-tree'] },
     { name: 'the work was never committed', mutate: (sandbox) => patchGit(sandbox, (g) => (g['commitsSinceBase'] = [])), fails: ['pause.one-wip-commit-and-clean-tree'] },

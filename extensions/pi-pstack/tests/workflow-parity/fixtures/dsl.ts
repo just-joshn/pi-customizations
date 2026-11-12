@@ -64,6 +64,8 @@ export interface ProofOptions {
   /** Overrides the verdict the exit status implies, for a check whose pass means a defect reproduced. */
   verdict?: 'pass' | 'fail' | 'inconclusive';
   reason?: string;
+  /** The command is meant to fail (a failing-before proof): the receipt says so, and a non-zero exit is the pass. */
+  expectedFail?: boolean;
   /** More files to hash into the receipt besides the command's output. */
   artifacts?: string[];
   id: string;
@@ -188,7 +190,7 @@ export function proofSteps<T extends Actor>(actor: T, ctx: Ctx, options: ProofOp
     `mkdir -p ${JSON.stringify(dir)}`,
     `cd ${JSON.stringify(options.cwd ?? ctx.repo)}`,
     `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
-    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${shQuote(options.command)} --artifact ${JSON.stringify(artifact)} ${(options.artifacts ?? []).map((extra) => `--artifact ${JSON.stringify(extra)}`).join(' ')}`,
+    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} ${options.expectedFail === true ? '--expected-fail' : ''} --exit $code --cmd ${shQuote(options.command)} --artifact ${JSON.stringify(artifact)} ${(options.artifacts ?? []).map((extra) => `--artifact ${JSON.stringify(extra)}`).join(' ')}`,
     'exit 0',
   ].join('\n');
   actor.bash(script);

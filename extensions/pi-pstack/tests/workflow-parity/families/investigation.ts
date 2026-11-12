@@ -115,7 +115,13 @@ function byPath(id: string, title: string, sources: Src[], simple: (view: RunVie
  */
 function presentedHow(view: RunView): string {
   const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
-  const probe = (text: string) => text.replace(/\s+/g, ' ').trim().slice(0, 60);
+  // The explainer may open with a sentence before its first section ("All checks done. ..."); a light edit drops it (how SKILL.md: "Light
+  // edits for clarity ... are fine"), so the opening that must survive is the first how section's.
+  const body = (text: string) => {
+    const section = new RegExp(`^#{1,4}\\s*(${HOW_SECTIONS.join('|')})\\b`, 'im').exec(text);
+    return text.slice(section?.index ?? 0);
+  };
+  const probe = (text: string) => body(text).replace(/\s+/g, ' ').trim().slice(0, 60);
   if (explainer === undefined || probe(explainer.finalText) === '') return '';
   return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.replace(/\s+/g, ' ').includes(probe(explainer.finalText)))?.text ?? '';
 }
@@ -179,8 +185,11 @@ function howChecks(): Check[] {
       const reply = presentedHow(view);
       if (explainer === undefined || reply === '') return fail(`no assistant message presents the explainer output (${explainer === undefined ? 'no explainer' : 'none repeats its opening'})`);
       const all = [...reply.matchAll(/^(#{1,4})\s*(.+)$/gm)].map((match) => ({ level: (match[1] as string).length, text: (match[2] as string).trim() }));
-      // A single H1 that opens the reply is the answer's title, not a section: how's five sections sit below it.
-      const headings = (all[0]?.level === 1 && all.slice(1).every((heading) => heading.level > 1) ? all.slice(1) : all).map((heading) => heading.text);
+      // One H1 or H2 that opens the reply is the answer's title, not a section: how's five sections sit below it, at a deeper level.
+      const isSection = (text: string) => HOW_SECTIONS.some((section) => section.toLowerCase() === text.toLowerCase());
+      const [first] = all;
+      const titled = first !== undefined && first.level <= 2 && !isSection(first.text) && all.slice(1).every((heading) => heading.level > first.level);
+      const headings = (titled ? all.slice(1) : all).map((heading) => heading.text);
       const unknown = headings.filter((heading) => !HOW_SECTIONS.some((section) => section.toLowerCase() === heading.toLowerCase()));
       return when(headings.length > 0 && unknown.length === 0, `sections ${headings.join(', ')}; the explainer output is presented`, `unknown headings: ${unknown.join(', ') || 'none'}`);
     }),
@@ -263,6 +272,10 @@ export const howSimpleFamily: Family = {
   },
   checks: howChecks(),
   negatives: [
+    { name: 'the explainer opened with a sentence the parent dropped before presenting the sections', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, 'how-money', 'explainer'), '### Overview', 'All checks done, my report follows.\\n\\n### Overview'), fails: [], passes: ['how.output-sections'] },
+    { name: 'no message presents the explainer sections at all', mutate: (sandbox) => rewriteFinalReply(sandbox, /### Overview[\s\S]*### Gotchas[^\n]*\n?[^\n]*/, 'It formats money.'), fails: ['how.output-sections'] },
+    { name: 'the presented answer opens with one H2 title above the five sections', mutate: (sandbox) => rewriteFinalReply(sandbox, '### Overview', '## How formatMoney builds its label\n\n### Overview'), fails: [], passes: ['how.output-sections'] },
+    { name: 'the presented answer has an H2 title and a second H2 further down', mutate: (sandbox) => rewriteFinalReply(sandbox, /### Overview[\s\S]*### Gotchas/, (text) => `## Title\n\n${text.replace('### Gotchas', '## Gotchas')}`), fails: ['how.output-sections'] },
     { name: 'the presented answer opens with one H1 title above the five sections', mutate: (sandbox) => rewriteFinalReply(sandbox, '### Overview', '# How formatMoney builds its label\n\n### Overview'), fails: [], passes: ['how.output-sections'] },
     { name: 'the presented answer lowercases the second word of its section titles', mutate: (sandbox) => rewriteFinalReply(sandbox, /### (Key|Where|How) (Concepts|Things|It)/g, (_m, a: string, b: string) => `### ${a} ${b.toLowerCase()}`), fails: [], passes: ['how.output-sections'] },
     { name: 'the presented answer adds a section the how template does not have', mutate: (sandbox) => rewriteFinalReply(sandbox, '### Gotchas', '### Extras\nmore\n### Gotchas'), fails: ['how.output-sections'] },
@@ -570,9 +583,12 @@ export const teachFamily: Family = {
       const kept = hedges.filter((hedge) => reply.includes(hedge));
       return when(kept.length * 2 >= hedges.length, `${kept.length} of the synthesizer's ${hedges.length} What We Don't Know lines reach the reply verbatim`, `reply keeps ${kept.length} of ${hedges.length} What We Don't Know lines; missing: ${hedges.filter((hedge) => !kept.includes(hedge)).map((hedge) => hedge.slice(0, 60)).join(' | ')}`);
     }),
-    citationsResolve('teach.citations-resolve', src('teach/SKILL.md', 'Open the diff, the code, or the debugger'), { min: 2 }),
+    // teach asks to open the code and says nothing of citing it, so a reply owes no file:line; one that cites must cite what exists.
+    citationsResolve('teach.citations-resolve', src('teach/SKILL.md', 'Open the diff, the code, or the debugger'), { min: 0 }),
   ],
   negatives: [
+    { name: 'the reply cites a file and line that do not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, 'A cart total is', 'A cart total (src/nope.js:3) is'), fails: ['teach.citations-resolve'] },
+    { name: 'the reply cites no file at all', mutate: (sandbox) => rewriteFinalReply(sandbox, /\b[\w/.-]+\.js:\d+/g, 'the cart module'), fails: [], passes: ['teach.citations-resolve'] },
     { name: 'the reply opens with TL;DR', mutate: (sandbox) => rewriteFinalReply(sandbox, 'A cart total is', 'TL;DR A cart total is'), fails: ['teach.no-framing-labels'] },
     { name: 'the reply softens the why hedge', mutate: (sandbox) => rewriteFinalReply(sandbox, 'is not recorded in the sources searched. The history', 'is obviously a product call. The history'), fails: ['teach.why-hedges-kept-verbatim'] },
     { name: 'the reply uses a long dash', mutate: (sandbox) => rewriteFinalReply(sandbox, 'rounded to cents,', 'rounded to cents \u2014'), fails: ['teach.no-long-dashes'] },
