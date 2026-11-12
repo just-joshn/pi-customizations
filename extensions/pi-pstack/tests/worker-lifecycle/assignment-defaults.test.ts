@@ -93,17 +93,15 @@ describe('the worker-assignment reference', () => {
   const examples = [...reference.matchAll(/```json\n([\s\S]*?)\n```/g)].map((match) => JSON.parse(match[1] ?? '') as Record<string, unknown> & { workspace: Record<string, unknown> });
   const root = '/Users/you/src/app';
   const defaults = { capabilities: ENGINEERING_CAPABILITIES, projectRoot: root };
-  const runnable = examples.filter((example) => example.workspace['mode'] !== 'container');
-
-  test('holds an example per runnable workspace mode and kind', () => {
-    expect(runnable.map((example) => `${example['kind']}/${example.workspace['mode']}`).sort()).toEqual(['pi/readonly', 'pi/worktree', 'watch/readonly', 'watch/readonly']);
+  test('holds an example per workspace mode and kind', () => {
+    expect(examples.map((example) => `${example['kind']}/${example.workspace['mode']}`).sort()).toEqual(['pi/container', 'pi/readonly', 'pi/worktree', 'watch/readonly', 'watch/readonly']);
   });
 
-  test.for(runnable.map((example) => [example['workerId'], example] as const))('%s parses unchanged, with the role default capabilities added', ([, example]) => {
+  test.for(examples.map((example) => [example['workerId'], example] as const))('%s parses unchanged, with the role default capabilities added', ([, example]) => {
     expect(parseAssignment(example, defaults)).toStrictEqual({ ...example, capabilities: ENGINEERING_CAPABILITIES });
   });
 
-  test.for(runnable.map((example) => [example['workerId'], example] as const))('%s with every defaulted field left out parses to the same assignment', ([, example]) => {
+  test.for(examples.map((example) => [example['workerId'], example] as const))('%s with every defaulted field left out parses to the same assignment', ([, example]) => {
     const { schemaVersion: _version, kind, skills, thinkingLevel, ...rest } = example;
     const stripped: Record<string, unknown> = { ...rest, workspace: example.workspace['path'] === root ? { mode: 'readonly' } : example.workspace };
     if (kind !== 'pi') stripped['kind'] = kind;

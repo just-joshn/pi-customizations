@@ -111,7 +111,7 @@ export type WorkerRole = (typeof WORKER_ROLES)[number];
 export const THINKING_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
 export type ThinkingLevel = (typeof THINKING_LEVELS)[number];
 
-export type Workspace = { mode: 'worktree'; inputCommit: string } | { mode: 'readonly'; path: string };
+export type Workspace = { mode: 'worktree'; inputCommit: string } | { mode: 'readonly'; path: string } | { mode: 'container'; inputCommit: string };
 
 /** What a worker may reach beyond its workspace (contract "Capability boundary"). */
 export interface Capabilities {
@@ -185,11 +185,11 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   const workspace = raw['workspace'];
   if (!isRecord(workspace)) throw new Error('Assignment workspace must be an object');
   let parsedWorkspace: Workspace;
-  if (workspace['mode'] === 'worktree' && Object.keys(workspace).length === 2 && typeof workspace['inputCommit'] === 'string' && COMMIT.test(workspace['inputCommit']))
-    parsedWorkspace = { mode: 'worktree', inputCommit: workspace['inputCommit'] };
+  if ((workspace['mode'] === 'worktree' || workspace['mode'] === 'container') && Object.keys(workspace).length === 2 && typeof workspace['inputCommit'] === 'string' && COMMIT.test(workspace['inputCommit']))
+    parsedWorkspace = { mode: workspace['mode'], inputCommit: workspace['inputCommit'] };
   else if (workspace['mode'] === 'readonly' && Object.keys(workspace).every((key) => key === 'mode' || key === 'path') && (workspace['path'] === undefined || (typeof workspace['path'] === 'string' && isAbsolute(workspace['path']))))
     parsedWorkspace = { mode: 'readonly', path: (workspace['path'] as string | undefined) ?? defaults.projectRoot };
-  else throw new Error("Assignment workspace must be { mode: 'worktree', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
+  else throw new Error("Assignment workspace must be { mode: 'worktree' | 'container', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
   const skills = raw['skills'] ?? [];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];

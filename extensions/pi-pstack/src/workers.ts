@@ -11,6 +11,7 @@ import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
+import { connectEngine, ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeWorkerContainers } from './container.ts';
 import { registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
@@ -22,6 +23,7 @@ import {
   type ClaimIdentity,
   formatTmuxIdentity,
   type HostState,
+  isInside,
   isTerminal,
   type LoadedAssignment,
   launchEnvPath,
@@ -312,6 +314,11 @@ export interface SpawnOptions {
   extraEnv?: Record<string, string>;
   /** Folder with the role instruction documents (`<role>.md`, `general.md`). */
   agentsDir?: string;
+  /** A container worker's Pi: the JS entry (`.../node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js`) of the install to mount. Defaults to PSTACK_CONTAINER_PI, then the running Pi. */
+  containerPi?: string;
+  /** Read-only host paths a container worker can also read, mounted at the same path. */
+  containerMounts?: string[];
+  /** How long the host may take to answer. A container worker's clone and install count, so it defaults to 5 minutes there and 30 seconds otherwise. */
   startupMs?: number;
   /** How long a lost tmux answer is reconciled before a worker with no host and no session counts as never started. */
   startCheckMs?: number;
@@ -400,7 +407,6 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const exec = options.exec ?? nodeExec;
   const socket = workerSocket(options.tmuxSocket);
   const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
-  const startupMs = options.startupMs ?? 30_000;
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
   const root = realpathSync(project);
   const runRoot = runRootOf(root, runId);
@@ -425,19 +431,38 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // This process's environment now, not the tmux server's, which dates from when the server started.
   const source = { ...process.env, ...options.extraEnv };
   const provider = model?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
+  // Everything a container needs is settled before the claim, so a refusal leaves no claim behind.
+  let container: PreparedContainer | null = null;
+  if (assignment.kind === 'pi' && assignment.workspace.mode === 'container')
+    container = await prepareContainer({
+      project: root,
+      runId,
+      workerId: assignment.workerId,
+      session,
+      inputCommit: assignment.workspace.inputCommit,
+      source,
+      packageRoot: PACKAGE_ROOT,
+      piEntry: options.containerPi ?? source['PSTACK_CONTAINER_PI'] ?? process.argv[1],
+      roleDoc,
+      extraMounts: options.containerMounts ?? [],
+    });
+  const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
   const launch: HostLaunch = {
-    piCommand: [onPath(command[0] as string), ...command.slice(1)],
+    piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
     model: model === null ? null : { provider: model.provider, id: model.id },
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
-    extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: assignment.kind === 'pi' ? credentialEnv(provider) : [],
+    extraArgs: [...(container?.piArgs ?? []), ...(options.extraPiArgs ?? [])],
+    credentialEnv: assignment.kind === 'pi' ? [...credentialEnv(provider), ...(container === null ? [] : GIT_CREDENTIAL_ENV)] : [],
+    container: container?.plan ?? null,
   };
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
+    // The docker client's own configuration travels with the snapshot, and the host keeps it out of the container.
+    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source),
+    ...container?.env,
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? '1' : null,
     ...(spawns ? { PSTACK_TMUX_SOCKET: socket } : {}),
@@ -485,7 +510,12 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       tmuxIdentity = check.identity;
     }
     if (tmuxIdentity !== undefined) writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
-    appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
+    appendEvent(runRoot, {
+      runId,
+      workerId: assignment.workerId,
+      kind: 'spawn',
+      data: { tmuxSession: session, model: launch.model, ...(container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } }) },
+    });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
       state = await inspectHost(target).catch(() => undefined);
@@ -705,6 +735,19 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return { disposition: 'abandoned', reason: 'No host started for this claim. The claim stays, so the worker is never spawned again; retry with a fresh worker id' };
   };
 
+  /** Removes the worker's container by label once abort has stopped its host, whichever way the host ended. */
+  const removeContainers = async (project: string, loaded: LoadedAssignment) => {
+    if (loaded.assignment.workspace.mode !== 'container') return;
+    const { runId, workerId } = loaded.assignment;
+    try {
+      const engine = await connectEngine({ ...process.env, ...options.extraEnv });
+      const ids = await removeWorkerContainers(engine.docker, engine.env, tmuxSessionName(project, runId, workerId));
+      if (ids.length > 0) appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removed', data: { ids } });
+    } catch (error) {
+      appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removal_failed', data: { error: error instanceof Error ? error.message : String(error) } });
+    }
+  };
+
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
     try {
       return { available: true, state: await inspectHost(hostTarget(loaded)) };
@@ -752,6 +795,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           if (!(error instanceof HostUnavailableError)) throw error;
           receipt = await abortUnreachable(project, loaded, error.message);
         }
+        await removeContainers(project, loaded);
         appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
         return text(`Aborted worker ${workerId}.`, receipt);
       }
@@ -763,15 +807,18 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         const live = inspected.available ? inspected.state : { phase: 'unavailable', reason: inspected.reason, lastState: inspected.lastState };
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
+      // A container worker writes through a directory it controls, so what the parent reads must not leave it by a symlink.
+      const trusted = (path: string) => loaded.assignment.workspace.mode !== 'container' || isInside(outDirOf(loaded.workerDir), path);
       const report = join(loaded.workerDir, 'report.md');
+      const evidence = join(loaded.workerDir, 'evidence');
       const result = {
         settled: true,
         available: inspected.available,
         phase: inspected.available ? state.phase : 'unavailable',
         lastSettle,
-        report: existsSync(report) ? readFileSync(report, 'utf8') : null,
-        finalText: finalAssistantText(state.sessionFile),
-        evidence: listFiles(join(loaded.workerDir, 'evidence')),
+        report: !existsSync(report) ? null : trusted(report) ? readFileSync(report, 'utf8') : '(refused: report.md leaves the worker output directory)',
+        finalText: finalAssistantText(state.sessionFile !== null && trusted(state.sessionFile) ? state.sessionFile : null),
+        evidence: trusted(evidence) ? listFiles(evidence).filter((file) => trusted(join(evidence, file))) : [],
         sessionFile: state.sessionFile,
       };
       return text(

@@ -6944,22 +6944,22 @@ var require_public_api = __commonJS(function(exports) {
 });
 
 // src/automation/serve-cli.ts
-import { realpathSync as realpathSync4 } from "node:fs";
-import { resolve as resolve5 } from "node:path";
+import { realpathSync as realpathSync5 } from "node:fs";
+import { resolve as resolve6 } from "node:path";
 import { parseArgs } from "node:util";
 
 // adapters/automation-events.ts
 import { execFileSync } from "node:child_process";
 
 // src/automation/dispatch.ts
-import { existsSync as existsSync5 } from "node:fs";
-import { join as join5 } from "node:path";
+import { existsSync as existsSync6 } from "node:fs";
+import { join as join6 } from "node:path";
 
 // src/workers.ts
-import { execFile } from "node:child_process";
-import { existsSync as existsSync3, mkdirSync, readdirSync, readFileSync as readFileSync2, realpathSync as realpathSync2, rmSync, statSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { execFile as execFile2 } from "node:child_process";
+import { existsSync as existsSync4, mkdirSync, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync3, rmSync, statSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { homedir } from "node:os";
-import { basename as basename3, delimiter, isAbsolute as isAbsolute2, join as join3, relative as relative2 } from "node:path";
+import { basename as basename3, delimiter as delimiter2, isAbsolute as isAbsolute3, join as join4, relative as relative3 } from "node:path";
 import { promisify } from "node:util";
 
 // scripts/pi-standalone-shims.mjs
@@ -10841,6 +10841,252 @@ function Priority(types) {
   const result = Sort(types);
   return result;
 }
+// src/container.ts
+import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+var DEFAULT_IMAGE = "node:24-bookworm";
+var ENVIRONMENT_FILE = join(".pi", "environment.json");
+var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
+var GIT_CREDENTIAL_ENV = ["GH_TOKEN", "GITHUB_TOKEN"];
+var CONTAINER_WORKSPACE = "/tmp/workspace";
+var CONTAINER_PI_ROOT = "/opt/pstack/pi/node_modules";
+var READY_RECORD = "pstack_container_ready";
+class ContainerUnavailableError extends Error {
+  constructor(reason) {
+    super(`ContainerUnavailable: ${reason}`);
+    this.name = "ContainerUnavailable";
+  }
+}
+var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var MOUNT_PATH = /^\/[^\0\n,]*$/;
+function dockerCli(docker, args, env, timeoutMs) {
+  return new Promise((resolveRun, reject) => {
+    const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: "utf8", maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
+      if (error === null)
+        resolveRun(stdout);
+      else
+        reject(new Error(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`));
+    });
+    child.stdin?.end();
+  });
+}
+function clientEnv(source) {
+  const names = ["PATH", "HOME", ...ENGINE_ENV];
+  return Object.fromEntries(names.flatMap((name) => typeof source[name] === "string" ? [[name, source[name]]] : []));
+}
+function findOnPath(command, path) {
+  for (const dir of (path ?? "").split(delimiter)) {
+    const candidate = join(dir, command);
+    if (dir !== "" && existsSync(candidate))
+      return candidate;
+  }
+  return;
+}
+async function connectEngine(source) {
+  const env = clientEnv(source);
+  const docker = findOnPath("docker", env["PATH"]);
+  if (docker === undefined)
+    throw new ContainerUnavailableError("there is no `docker` on PATH, so no container engine can run a container worker");
+  try {
+    const version = (await dockerCli(docker, ["version", "--format", "{{.Server.Version}}"], env, 1e4)).trim();
+    if (version === "")
+      throw new Error("the engine reported no server version");
+    return { docker, env, version };
+  } catch (error) {
+    throw new ContainerUnavailableError(`no container engine answers \`docker version\` (${error instanceof Error ? error.message : String(error)}). Start Docker or OrbStack, or point DOCKER_HOST at an engine.`);
+  }
+}
+var fail = (path, problem) => {
+  throw new Error(`${path}: ${problem}`);
+};
+function optionalString(path, value, field) {
+  if (value === undefined)
+    return;
+  if (typeof value !== "string" || value.trim() === "")
+    return fail(path, `${field} must be a non-empty string`);
+  return value;
+}
+function readEnvironment(project) {
+  const path = join(project, ENVIRONMENT_FILE);
+  if (!existsSync(path))
+    return { source: undefined, image: { kind: "pull", reference: DEFAULT_IMAGE }, install: undefined };
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    return fail(path, `not valid JSON (${error instanceof Error ? error.message : String(error)})`);
+  }
+  if (!isRecord(raw))
+    return fail(path, "must be a JSON object");
+  const unknown = Object.keys(raw).filter((key) => !["image", "build", "install"].includes(key));
+  if (unknown.length > 0)
+    fail(path, `unsupported field${unknown.length === 1 ? "" : "s"} ${unknown.join(", ")}; a container worker reads image, build, and install`);
+  const reference = optionalString(path, raw["image"], "image");
+  const install = optionalString(path, raw["install"], "install");
+  if (raw["build"] === undefined)
+    return { source: path, image: { kind: "pull", reference: reference ?? DEFAULT_IMAGE }, install };
+  if (reference !== undefined)
+    fail(path, "set image or build, not both");
+  const build = raw["build"];
+  if (!isRecord(build))
+    return fail(path, "build must be an object with a dockerfile");
+  const dockerfile = optionalString(path, build["dockerfile"], "build.dockerfile");
+  if (dockerfile === undefined)
+    return fail(path, "build.dockerfile is required");
+  const base = join(project, ".pi");
+  const file = resolve(base, dockerfile);
+  if (!existsSync(file))
+    fail(path, `build.dockerfile ${file} does not exist`);
+  const context = resolve(base, optionalString(path, build["context"], "build.context") ?? ".");
+  const digest = createHash("sha256").update(readFileSync(file)).update("\x00").update(relative(project, context)).digest("hex").slice(0, 16);
+  return { source: path, image: { kind: "build", dockerfile: file, context, tag: `pstack-env:${digest}` }, install };
+}
+async function ensureImage(engine, environment) {
+  const { image } = environment;
+  const inspect = (reference) => dockerCli(engine.docker, ["image", "inspect", "--format", "{{.Id}}", reference], engine.env, 30000);
+  let reference;
+  if (image.kind === "pull") {
+    reference = image.reference;
+    if (!await inspect(reference).then(() => true, () => false))
+      await dockerCli(engine.docker, ["pull", "--quiet", reference], engine.env, 30 * 60000);
+  } else {
+    reference = image.tag;
+    await dockerCli(engine.docker, ["build", "--quiet", "-f", image.dockerfile, "-t", reference, image.context], engine.env, 30 * 60000);
+  }
+  return { reference, id: (await inspect(reference)).trim() };
+}
+function git(cwd, args, env) {
+  return new Promise((resolveRun, reject) => {
+    const child = execFile("git", ["-C", cwd, ...args], { env: { ...env, GIT_TERMINAL_PROMPT: "0" }, timeout: 60000, encoding: "utf8", maxBuffer: 16 << 20 }, (error, stdout, stderr) => {
+      if (error === null)
+        resolveRun(stdout.trim());
+      else
+        reject(new Error(stderr.trim() || error.message));
+    });
+    child.stdin?.end();
+  });
+}
+var tryGit = (cwd, args, env) => git(cwd, args, env).catch(() => {
+  return;
+});
+function localPathOf(url, project) {
+  if (url.startsWith("file://"))
+    return fileURLToPath(url);
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url) || /^[^/]*:/.test(url))
+    return null;
+  return resolve(project, url);
+}
+async function resolveRemote(project, env) {
+  const names = (await tryGit(project, ["remote"], env) ?? "").split(`
+`).filter(Boolean);
+  const name = names.includes("origin") ? "origin" : names.length === 1 ? names[0] : undefined;
+  if (name === undefined)
+    throw new Error(names.length === 0 ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.` : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`);
+  const url = await git(project, ["remote", "get-url", name], env);
+  const localPath = localPathOf(url, project);
+  return { name, url: localPath ?? url, localPath };
+}
+async function verifyPushed(project, remote, inputCommit, env) {
+  const full = await tryGit(project, ["rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`], env);
+  if (full === undefined)
+    throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
+  const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.url], env).catch((error) => {
+    throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
+  });
+  const tips = [...new Set(listed.split(`
+`).flatMap((line) => line === "" ? [] : [line.split("\t")[0]]))];
+  for (const tip of tips) {
+    if (tip === full)
+      return full;
+    if (await tryGit(project, ["cat-file", "-e", `${tip}^{commit}`], env) !== undefined && await tryGit(project, ["merge-base", "--is-ancestor", full, tip], env) !== undefined)
+      return full;
+  }
+  throw new Error(`inputCommit ${full} is not on the remote ${remote.name} (${remote.url}). A container worker clones the pushed remote, so push the commit first (git push ${remote.name} <branch>), or fetch if the remote moved ahead of this checkout.`);
+}
+function resolvePiInstall(entry) {
+  if (entry === undefined || !existsSync(entry))
+    throw new Error("Cannot locate Pi's JS install to mount into the container: set PSTACK_CONTAINER_PI to its cli.js (node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js)");
+  const real = realpathSync(entry);
+  const marker = `${sep}node_modules${sep}@earendil-works${sep}pi-coding-agent${sep}`;
+  const at = real.lastIndexOf(marker);
+  if (at === -1)
+    throw new Error(`${real} is not inside a node_modules/@earendil-works/pi-coding-agent install, so it cannot be mounted into the container`);
+  const root = real.slice(0, at + `${sep}node_modules`.length);
+  return { root, script: join(CONTAINER_PI_ROOT, relative(root, real)) };
+}
+var ENTRYPOINT = `fail() { echo "pstack: $*" >&2; exit 1; }
+for tool in node git base64; do command -v "$tool" >/dev/null 2>&1 || fail "the image has no $tool; a container worker's image needs node, git, and base64"; done
+while IFS= read -r line; do
+  [ -n "$line" ] || break
+  name=\${line%%=*}
+  value=$(printf %s "\${line#*=}" | base64 -d; printf x)
+  export "$name=\${value%x}"
+done
+[ -n "\${PSTACK_CONTAINER_CLONE_URL:-}" ] || fail "the launch environment did not arrive on stdin"
+WS=${CONTAINER_WORKSPACE}
+{
+  mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
+  git config --global --add safe.directory '*'
+  [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
+  [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
+  if [ -n "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ]; then
+    git config --global credential.https://github.com.helper '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
+  fi
+  git clone --quiet --no-checkout "$PSTACK_CONTAINER_CLONE_URL" "$WS" || fail "could not clone the remote"
+  git -C "$WS" rev-parse --verify --quiet "$PSTACK_CONTAINER_COMMIT^{commit}" >/dev/null || fail "commit $PSTACK_CONTAINER_COMMIT is not on the remote"
+  git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
+  if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
+} >&2
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL
+printf '{"type":"%s"}\\n' ${READY_RECORD}
+cd "$WS"
+exec "$@"
+`;
+var within = (parent, child) => {
+  const path = relative(parent, child);
+  return path === "" || !path.startsWith("..") && !isAbsolute(path);
+};
+async function prepareContainer(request) {
+  const { project, runId, workerId, session, source, packageRoot } = request;
+  const engine = await connectEngine(source);
+  const remote = await resolveRemote(project, source);
+  const commit = await verifyPushed(project, remote, request.inputCommit, source);
+  const environment = readEnvironment(project);
+  const image = await ensureImage(engine, environment);
+  const pi = resolvePiInstall(request.piEntry);
+  const mounts = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];
+  for (const path of [packageRoot, ...request.roleDoc === null ? [] : [resolve(request.roleDoc, "..")], ...request.extraMounts])
+    if (!mounts.some((mount) => mount.dst === path || mount.readonly && within(mount.dst, path)))
+      mounts.push({ src: path, dst: path, readonly: true });
+  if (remote.localPath !== null)
+    mounts.push({ src: remote.localPath, dst: remote.localPath, readonly: false });
+  for (const { src, dst } of mounts)
+    if (!existsSync(src) || !MOUNT_PATH.test(src) || !MOUNT_PATH.test(dst))
+      throw new Error(`Cannot mount ${src}: it must exist and be an absolute path without commas`);
+  const [name, email] = await Promise.all([tryGit(project, ["config", "user.name"], source), tryGit(project, ["config", "user.email"], source)]);
+  const uid = process.getuid?.();
+  const gid = process.getgid?.();
+  return {
+    plan: { docker: engine.docker, name: session, runId, image: image.id, user: uid === undefined || gid === undefined || uid === 0 ? null : `${uid}:${gid}`, mounts },
+    env: {
+      PSTACK_CONTAINER_CLONE_URL: remote.url,
+      PSTACK_CONTAINER_COMMIT: commit,
+      PSTACK_CONTAINER_BRANCH: `pstack-run/${runId}/${workerId}`,
+      ...environment.install === undefined ? {} : { PSTACK_CONTAINER_INSTALL: environment.install },
+      ...name === undefined || name === "" ? {} : { PSTACK_CONTAINER_GIT_NAME: name },
+      ...email === undefined || email === "" ? {} : { PSTACK_CONTAINER_GIT_EMAIL: email }
+    },
+    piCommand: ["node", pi.script],
+    piArgs: ["--extension", join(packageRoot, "src", "extension.ts"), "--skill", join(packageRoot, "generated", "skills")],
+    engineVersion: engine.version,
+    image,
+    remote: remote.name
+  };
+}
+
 // ../../node_modules/.bun/typebox@1.3.27/node_modules/typebox/build/schema/types/_refine.mjs
 function IsRefine2(value) {
   return HasPropertyKey(value, "~refine") && IsArray(value["~refine"]) && Every(value["~refine"], 0, (value) => IsObject(value) && HasPropertyKey(value, "check") && HasPropertyKey(value, "error") && IsFunction(value.check) && IsFunction(value.error));
@@ -13814,9 +14060,9 @@ var Delete = _Object_({
 });
 var Edit = Union([Insert2, Update2, Delete]);
 // src/run-files.ts
-import { createHash } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
-import { basename, dirname, isAbsolute, join, relative, resolve as resolve2, sep } from "node:path";
+import { createHash as createHash2 } from "node:crypto";
+import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync as readFileSync2, realpathSync as realpathSync2, renameSync, writeFileSync } from "node:fs";
+import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve3, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -13825,17 +14071,17 @@ function parseId(value, what) {
 }
 var parseRunId = (value) => parseId(value, "runId");
 var parseWorkerId = (value) => parseId(value, "workerId");
-var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
-var runsDir = (project) => join(project, ".pi", "pstack", "runs");
-var runRootOf = (project, runId) => join(runsDir(project), runId);
-var projectOfRunRoot = (runRoot) => resolve2(runRoot, "..", "..", "..", "..");
-var workerDirOf = (runRoot, workerId) => join(runRoot, "workers", workerId);
+var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash2("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
+var runsDir = (project) => join2(project, ".pi", "pstack", "runs");
+var runRootOf = (project, runId) => join2(runsDir(project), runId);
+var projectOfRunRoot = (runRoot) => resolve3(runRoot, "..", "..", "..", "..");
+var workerDirOf = (runRoot, workerId) => join2(runRoot, "workers", workerId);
 function controlSocketPath(runRoot, workerId) {
-  const local = join(workerDirOf(runRoot, workerId), "control.sock");
+  const local = join2(workerDirOf(runRoot, workerId), "control.sock");
   if (Buffer.byteLength(local) <= 100)
     return local;
   const uid = process.getuid?.() ?? 0;
-  return join("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
+  return join2("/tmp", `pstack-${uid}`, `${createHash2("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
 }
 function writeJsonAtomic(path, value, mode = 384) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
@@ -13844,7 +14090,7 @@ function writeJsonAtomic(path, value, mode = 384) {
   renameSync(temporary, path);
 }
 function readJson(path) {
-  return JSON.parse(readFileSync(path, "utf8"));
+  return JSON.parse(readFileSync2(path, "utf8"));
 }
 var MAX_EVENT_DATA = 4096;
 function appendEvent(runRoot, event) {
@@ -13853,12 +14099,12 @@ function appendEvent(runRoot, event) {
     data = JSON.stringify(`${data.slice(0, MAX_EVENT_DATA)}…`);
   const line = `{"ts":${JSON.stringify(new Date().toISOString())},"runId":${JSON.stringify(event.runId)}${event.workerId === undefined ? "" : `,"workerId":${JSON.stringify(event.workerId)}`},"kind":${JSON.stringify(event.kind)},"data":${data}}
 `;
-  appendFileSync(join(runRoot, "events.jsonl"), line, { mode: 384 });
+  appendFileSync(join2(runRoot, "events.jsonl"), line, { mode: 384 });
 }
-var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 function readRun(runRoot) {
-  const raw = readJson(join(runRoot, "run.json"));
-  if (!isRecord(raw) || raw["schemaVersion"] !== 1)
+  const raw = readJson(join2(runRoot, "run.json"));
+  if (!isRecord2(raw) || raw["schemaVersion"] !== 1)
     throw new Error(`${runRoot}/run.json: unsupported schema`);
   const runId = parseRunId(raw["runId"]);
   if (runId !== basename(runRoot))
@@ -13873,7 +14119,7 @@ var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
 function parseCapabilities(raw) {
-  if (!isRecord(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
+  if (!isRecord2(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
     throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
   return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
 }
@@ -13881,7 +14127,7 @@ var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 var COMMIT = /^[0-9a-f]{7,64}$/;
 function parseAssignment(raw, defaults) {
-  if (!isRecord(raw))
+  if (!isRecord2(raw))
     throw new Error("Assignment must be a JSON object");
   const allowed = ["schemaVersion", "runId", "workerId", "kind", "role", "brief", "model", "thinkingLevel", "workspace", "skills", "watch", "capabilities"];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
@@ -13904,15 +14150,15 @@ function parseAssignment(raw, defaults) {
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
   const workspace = raw["workspace"];
-  if (!isRecord(workspace))
+  if (!isRecord2(workspace))
     throw new Error("Assignment workspace must be an object");
   let parsedWorkspace;
-  if (workspace["mode"] === "worktree" && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
-    parsedWorkspace = { mode: "worktree", inputCommit: workspace["inputCommit"] };
-  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute(workspace["path"])))
+  if ((workspace["mode"] === "worktree" || workspace["mode"] === "container") && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
+    parsedWorkspace = { mode: workspace["mode"], inputCommit: workspace["inputCommit"] };
+  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute2(workspace["path"])))
     parsedWorkspace = { mode: "readonly", path: workspace["path"] ?? defaults.projectRoot };
   else
-    throw new Error("Assignment workspace must be { mode: 'worktree', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
+    throw new Error("Assignment workspace must be { mode: 'worktree' | 'container', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
   const skills = raw["skills"] ?? [];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== "string" || skill.length === 0))
     throw new Error("Assignment skills must be an array of skill names");
@@ -13931,18 +14177,18 @@ function parseAssignment(raw, defaults) {
     return { ...base, kind, brief };
   }
   const watch = raw["watch"];
-  if (!isRecord(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
+  if (!isRecord2(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
     throw new Error("Assignment kind 'watch' needs watch: { argv, cwd }");
   const argv = watch["argv"];
   if (!Array.isArray(argv) || argv.length === 0 || argv.some((part) => typeof part !== "string" || part.includes("\x00")))
     throw new Error("Assignment watch.argv must be a non-empty string array");
   const cwd = watch["cwd"] ?? defaults.projectRoot;
-  if (typeof cwd !== "string" || !isAbsolute(cwd))
+  if (typeof cwd !== "string" || !isAbsolute2(cwd))
     throw new Error("Assignment watch.cwd must be absolute");
   return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
 }
 function readBrief(workerDir) {
-  const path = join(workerDir, BRIEF);
+  const path = join2(workerDir, BRIEF);
   let fd;
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
@@ -13953,9 +14199,9 @@ function readBrief(workerDir) {
   }
   try {
     const stat = fstatSync(fd);
-    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(path) !== path)
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync2(path) !== path)
       throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
-    return readFileSync(fd);
+    return readFileSync2(fd);
   } finally {
     closeSync(fd);
   }
@@ -13968,52 +14214,52 @@ function ownedEntry(path, directory) {
     throw new Error(`${path} is not owned by this user`);
 }
 function loadAssignment(path) {
-  if (!isAbsolute(path))
+  if (!isAbsolute2(path))
     throw new Error("Assignment path must be absolute");
-  const file = resolve2(path);
+  const file = resolve3(path);
   if (basename(file) !== "assignment.json")
     throw new Error("Assignment file must be named assignment.json");
   ownedEntry(file, false);
-  if (realpathSync(file) !== file)
+  if (realpathSync2(file) !== file)
     throw new Error("Assignment path must be canonical (no symlinks)");
   const workerDir = dirname(file);
   ownedEntry(workerDir, true);
   const runRoot = dirname(dirname(workerDir));
   if (basename(dirname(workerDir)) !== "workers" || basename(dirname(runRoot)) !== "runs")
     throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
-  const bytes = readFileSync(file);
+  const bytes = readFileSync2(file);
   const automated = readRun(runRoot).parentSessionFile === null;
   const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), { capabilities: automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES, projectRoot: projectOfRunRoot(runRoot) });
   if (assignment.workerId !== basename(workerDir))
     throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
   if (assignment.runId !== basename(runRoot))
     throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
-  return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
+  return { assignment, file, runRoot, workerDir, digest: createHash2("sha256").update(bytes).digest("hex") };
 }
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
 function readHostState(workerDir) {
-  const path = join(workerDir, "state.json");
-  if (!existsSync(path))
+  const path = join2(workerDir, "state.json");
+  if (!existsSync2(path))
     return;
   const raw = readJson(path);
-  if (!isRecord(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
+  if (!isRecord2(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
     throw new Error(`${path}: malformed host state`);
   return raw;
 }
-var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
+var launchEnvPath = (workerDir) => join2(workerDir, "claim", "launch-env.json");
 var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
-var tmuxIdentityPath = (workerDir) => join(workerDir, "claim", "tmux.json");
+var tmuxIdentityPath = (workerDir) => join2(workerDir, "claim", "tmux.json");
 function parseTmuxIdentity(text) {
   const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
   return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
 }
 function readClaim(workerDir) {
-  const path = join(workerDir, "claim", "identity.json");
-  if (!existsSync(path))
+  const path = join2(workerDir, "claim", "identity.json");
+  if (!existsSync2(path))
     return;
   const raw = readJson(path);
-  if (!isRecord(raw) || typeof raw["instance"] !== "string" || typeof raw["hostStarted"] !== "string")
+  if (!isRecord2(raw) || typeof raw["instance"] !== "string" || typeof raw["hostStarted"] !== "string")
     throw new Error(`${path}: malformed claim`);
   return raw;
 }
@@ -14043,16 +14289,16 @@ var EvidenceParams = _Object_({
 });
 
 // src/paths.ts
-import { dirname as dirname2, join as join2 } from "node:path";
-import { fileURLToPath } from "node:url";
-var PACKAGE_ROOT = join2(dirname2(fileURLToPath(import.meta.url)), "..");
+import { dirname as dirname2, join as join3 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+var PACKAGE_ROOT = join3(dirname2(fileURLToPath2(import.meta.url)), "..");
 
 // src/pi-command.ts
-import { existsSync as existsSync2 } from "node:fs";
+import { existsSync as existsSync3 } from "node:fs";
 import { basename as basename2 } from "node:path";
 function piCommand() {
   const script = process.argv[1];
-  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync2(script))
+  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync3(script))
     return [process.execPath, script];
   return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
 }
@@ -14093,6 +14339,7 @@ import { connect } from "node:net";
 var MAX_CONTROL_BYTES = 65536;
 var MAX_RPC_RECORD = 8 * 1024 * 1024;
 var MAX_BRIEF_BYTES = 1024 * 1024;
+var CONTAINER_START_MS = 30 * 60000;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
 function launchEnvironment(mode, credentialEnv, source) {
   if (mode === "inherit")
@@ -14164,11 +14411,11 @@ async function controlHost(target, operation, text) {
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 function onPath(command) {
-  if (isAbsolute2(command))
+  if (isAbsolute3(command))
     return command;
-  for (const dir of (process.env["PATH"] ?? "").split(delimiter)) {
-    const candidate = join3(dir, command);
-    if (dir !== "" && existsSync3(candidate))
+  for (const dir of (process.env["PATH"] ?? "").split(delimiter2)) {
+    const candidate = join4(dir, command);
+    if (dir !== "" && existsSync4(candidate))
       return candidate;
   }
   throw new Error(`${command} is not on PATH`);
@@ -14177,13 +14424,13 @@ function nodeExecutable() {
   return /^node(\.exe)?$/i.test(basename3(process.execPath)) ? process.execPath : onPath("node");
 }
 function hostEntry() {
-  const built = join3(PACKAGE_ROOT, "dist", "worker-host.js");
-  return existsSync3(built) ? built : join3(PACKAGE_ROOT, "src", "worker-host.ts");
+  const built = join4(PACKAGE_ROOT, "dist", "worker-host.js");
+  return existsSync4(built) ? built : join4(PACKAGE_ROOT, "src", "worker-host.ts");
 }
 function roleDocument(agentsDir, role) {
-  const own = join3(agentsDir, `${role}.md`);
-  const path = (role === "poteto" || role === "comment-sicko") && existsSync3(own) ? own : join3(agentsDir, "general.md");
-  if (!existsSync3(path))
+  const own = join4(agentsDir, `${role}.md`);
+  const path = (role === "poteto" || role === "comment-sicko") && existsSync4(own) ? own : join4(agentsDir, "general.md");
+  if (!existsSync4(path))
     throw new Error(`Role instructions are missing: ${path}`);
   return path;
 }
@@ -14210,15 +14457,15 @@ function credentialEnv(provider) {
 function defaultProvider(env) {
   const home = env["HOME"] ?? homedir();
   const configured = env["PI_CODING_AGENT_DIR"];
-  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join3(home, ".pi", "agent");
+  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join4(home, ".pi", "agent");
   try {
-    const provider = JSON.parse(readFileSync2(join3(agentDir, "settings.json"), "utf8")).defaultProvider;
+    const provider = JSON.parse(readFileSync3(join4(agentDir, "settings.json"), "utf8")).defaultProvider;
     return typeof provider === "string" ? provider : undefined;
   } catch {
     return;
   }
 }
-var execFileAsync = promisify(execFile);
+var execFileAsync = promisify(execFile2);
 var nodeExec = async (command, args, options) => {
   try {
     const { stdout, stderr } = await execFileAsync(command, args, { timeout: options.timeout, encoding: "utf8" });
@@ -14243,7 +14490,7 @@ async function checkStart(exec, socket, session, workerDir, waitMs) {
       const row = rows.find(([, panePid]) => panePid === String(claim.hostPid));
       return { outcome: "started", identity: row === undefined ? undefined : parseTmuxIdentity(row.slice(2).join(" ")) };
     }
-    const sessionPresent = rows.length > 0 || listed.code !== 0 && !noServer || existsSync3(join3(workerDir, "claim", "identity.json"));
+    const sessionPresent = rows.length > 0 || listed.code !== 0 && !noServer || existsSync4(join4(workerDir, "claim", "identity.json"));
     if (Date.now() >= deadline)
       return sessionPresent ? { outcome: "unknown" } : { outcome: "not-started" };
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -14273,15 +14520,14 @@ function workerSocket(explicit) {
 async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const exec = options.exec ?? nodeExec;
   const socket = workerSocket(options.tmuxSocket);
-  const agentsDir = options.agentsDir ?? join3(PACKAGE_ROOT, "generated", "agents");
-  const startupMs = options.startupMs ?? 30000;
+  const agentsDir = options.agentsDir ?? join4(PACKAGE_ROOT, "generated", "agents");
   const attach = (session) => `tmux -L ${socket} attach -t ${session}`;
-  const root = realpathSync2(project);
+  const root = realpathSync3(project);
   const runRoot = runRootOf(root, runId);
   let loaded = loadAssignment(assignmentPath);
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
-    throw new Error(`Assignment must be ${join3(runRoot, "workers", "<workerId>", "assignment.json")}`);
+    throw new Error(`Assignment must be ${join4(runRoot, "workers", "<workerId>", "assignment.json")}`);
   if (assignment.capabilities.externalWrite)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
   const depth = spawnDepth(process.env) + 1;
@@ -14297,31 +14543,48 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     model = await (options.resolveModel ?? parentlessModel)({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role });
     roleDoc = roleDocument(agentsDir, assignment.role);
     readBrief(loaded.workerDir);
-    if (assignment.workspace.mode === "readonly" && (!existsSync3(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()))
+    if (assignment.workspace.mode === "readonly" && (!existsSync4(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()))
       throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
-  } else if (!existsSync3(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory())
+  } else if (!existsSync4(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory())
     throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? piCommand();
   const source = { ...process.env, ...options.extraEnv };
   const provider = model?.provider ?? (assignment.kind === "pi" ? defaultProvider(source) : undefined);
+  let container = null;
+  if (assignment.kind === "pi" && assignment.workspace.mode === "container")
+    container = await prepareContainer({
+      project: root,
+      runId,
+      workerId: assignment.workerId,
+      session,
+      inputCommit: assignment.workspace.inputCommit,
+      source,
+      packageRoot: PACKAGE_ROOT,
+      piEntry: options.containerPi ?? source["PSTACK_CONTAINER_PI"] ?? process.argv[1],
+      roleDoc,
+      extraMounts: options.containerMounts ?? []
+    });
+  const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
   const launch = {
-    piCommand: [onPath(command[0]), ...command.slice(1)],
+    piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: model === null ? null : { provider: model.provider, id: model.id },
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
-    extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: assignment.kind === "pi" ? credentialEnv(provider) : []
+    extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
+    credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...container === null ? [] : GIT_CREDENTIAL_ENV] : [],
+    container: container?.plan ?? null
   };
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
+    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source),
+    ...container?.env,
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? "1" : null,
     ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
   };
-  const claimDir = join3(loaded.workerDir, "claim");
-  if (!existsSync3(claimDir) && readFileSync2(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
+  const claimDir = join4(loaded.workerDir, "claim");
+  if (!existsSync4(claimDir) && readFileSync3(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
 `) {
     writeJsonAtomic(loaded.file, assignment);
     loaded = loadAssignment(loaded.file);
@@ -14363,7 +14626,12 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     }
     if (tmuxIdentity !== undefined)
       writeFileSync2(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
-    appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: "spawn", data: { tmuxSession: session, model: launch.model } });
+    appendEvent(runRoot, {
+      runId,
+      workerId: assignment.workerId,
+      kind: "spawn",
+      data: { tmuxSession: session, model: launch.model, ...container === null ? {} : { container: { name: session, image: container.image, engine: container.engineVersion, remote: container.remote } } }
+    });
     const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
       state = await inspectHost(target).catch(() => {
@@ -14398,7 +14666,7 @@ var WorkerParams = _Object_({
 });
 
 // src/automation/model.ts
-import { createHash as createHash2 } from "node:crypto";
+import { createHash as createHash3 } from "node:crypto";
 var IDENTIFIER = /^[a-z0-9][a-z0-9-]{0,39}$/;
 var CHANNEL = /^[A-Z0-9]{2,32}$/;
 var SLACK_TS = /^\d{1,12}\.\d{1,9}$/;
@@ -14455,7 +14723,7 @@ var AUTOMATION_KINDS = {
 };
 var AUTOMATION_CAPABILITIES2 = { mcp: "none", env: "minimal", externalWrite: false };
 var WORKER_ID = "owner";
-var shortHash = (...parts) => createHash2("sha256").update(parts.join("\x00")).digest("hex").slice(0, 16);
+var shortHash = (...parts) => createHash3("sha256").update(parts.join("\x00")).digest("hex").slice(0, 16);
 function runIdFor(automation, key) {
   return `auto-${shortHash(automation, key)}`;
 }
@@ -14476,11 +14744,11 @@ function eligibleTrackerAction(intent, policy) {
 }
 
 // src/automation/store.ts
-import { appendFileSync as appendFileSync2, existsSync as existsSync4, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync3, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync3 } from "node:fs";
-import { dirname as dirname3, join as join4 } from "node:path";
+import { appendFileSync as appendFileSync2, existsSync as existsSync5, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync3 } from "node:fs";
+import { dirname as dirname3, join as join5 } from "node:path";
 function automationStore(projectRoot, name) {
-  const dir = join4(projectRoot, ".pi", "pstack", "automation", name);
-  return { dir, log: join4(dir, "events.jsonl"), cursor: join4(dir, "cursor.json"), outbox: join4(dir, "outbox"), lock: join4(dir, "source.lock") };
+  const dir = join5(projectRoot, ".pi", "pstack", "automation", name);
+  return { dir, log: join5(dir, "events.jsonl"), cursor: join5(dir, "cursor.json"), outbox: join5(dir, "outbox"), lock: join5(dir, "source.lock") };
 }
 var temporary = (path) => `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
 function writeAtomic(path, text) {
@@ -14507,9 +14775,9 @@ function createExclusive(path, text) {
 var json = (value) => `${JSON.stringify(value, null, 2)}
 `;
 function readJson2(path) {
-  if (!existsSync4(path))
+  if (!existsSync5(path))
     return;
-  return JSON.parse(readFileSync3(path, "utf8"));
+  return JSON.parse(readFileSync4(path, "utf8"));
 }
 function appendLog(store, entry) {
   mkdirSync2(store.dir, { recursive: true, mode: 448 });
@@ -14517,10 +14785,10 @@ function appendLog(store, entry) {
 `, { mode: 384 });
 }
 function readLog(store) {
-  if (!existsSync4(store.log))
+  if (!existsSync5(store.log))
     return [];
   const entries = [];
-  for (const line of readFileSync3(store.log, "utf8").split(`
+  for (const line of readFileSync4(store.log, "utf8").split(`
 `)) {
     if (line === "")
       continue;
@@ -14536,11 +14804,11 @@ function readCursor(store) {
 function writeCursor(store, ts) {
   writeAtomic(store.cursor, json({ ts }));
 }
-var outboxFile = (store, id) => join4(store.outbox, `${id}.json`);
+var outboxFile = (store, id) => join5(store.outbox, `${id}.json`);
 function outboxEntries(store) {
-  if (!existsSync4(store.outbox))
+  if (!existsSync5(store.outbox))
     return [];
-  return readdirSync2(store.outbox).filter((file) => file.endsWith(".json")).sort().map((file) => readJson2(join4(store.outbox, file))).filter((entry) => entry !== undefined);
+  return readdirSync2(store.outbox).filter((file) => file.endsWith(".json")).sort().map((file) => readJson2(join5(store.outbox, file))).filter((entry) => entry !== undefined);
 }
 var alive = (pid) => {
   try {
@@ -14581,8 +14849,8 @@ async function missingPrerequisites(kind, probes) {
   }
   return missing;
 }
-var runDir = (projectRoot, runId) => join5(projectRoot, ".pi", "pstack", "runs", runId);
-var workerDir = (projectRoot, runId) => join5(runDir(projectRoot, runId), "workers", WORKER_ID);
+var runDir = (projectRoot, runId) => join6(projectRoot, ".pi", "pstack", "runs", runId);
+var workerDir = (projectRoot, runId) => join6(runDir(projectRoot, runId), "workers", WORKER_ID);
 var fenced = (value) => JSON.stringify(value, null, 2).replace(/</g, "\\u003c");
 function buildBrief(config, event) {
   const kind = AUTOMATION_KINDS[config.kind];
@@ -14638,7 +14906,7 @@ async function dispatchRun(config, event, runId, deps) {
   const root = runDir(config.projectRoot, runId);
   const worker = workerDir(config.projectRoot, runId);
   const assignment = buildAssignment(config, runId, deps.inputCommit);
-  createExclusive(join5(root, "run.json"), json({
+  createExclusive(join6(root, "run.json"), json({
     schemaVersion: 1,
     runId,
     title: `Benny ${config.kind} ${event.key}`,
@@ -14648,10 +14916,10 @@ async function dispatchRun(config, event, runId, deps) {
     parentSessionFile: null,
     inputCommit: assignment.workspace.mode === "worktree" ? assignment.workspace.inputCommit : null
   }));
-  createExclusive(join5(worker, "brief.md"), buildBrief(config, event));
-  const assignmentPath = join5(worker, "assignment.json");
+  createExclusive(join6(worker, "brief.md"), buildBrief(config, event));
+  const assignmentPath = join6(worker, "assignment.json");
   createExclusive(assignmentPath, json(assignment));
-  if (existsSync5(join5(worker, "claim")))
+  if (existsSync6(join6(worker, "claim")))
     return;
   await deps.spawnWorker(runId, assignmentPath);
 }
@@ -14751,15 +15019,15 @@ function slackDestination(api) {
 }
 
 // src/automation/webhook.ts
-import { createHash as createHash3, timingSafeEqual } from "node:crypto";
+import { createHash as createHash4, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 
 // src/automation/credentials.ts
-import { readFileSync as readFileSync4, statSync as statSync2 } from "node:fs";
+import { readFileSync as readFileSync5, statSync as statSync2 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
-import { join as join6 } from "node:path";
-var credentialsDir = () => join6(homedir2(), ".pi", "agent", "pstack", "credentials");
-var defaultCredentialFile = (connector) => join6(credentialsDir(), `${connector}.json`);
+import { join as join7 } from "node:path";
+var credentialsDir = () => join7(homedir2(), ".pi", "agent", "pstack", "credentials");
+var defaultCredentialFile = (connector) => join7(credentialsDir(), `${connector}.json`);
 function readCredential(file, field) {
   let mode;
   try {
@@ -14770,7 +15038,7 @@ function readCredential(file, field) {
   if ((mode & 63) !== 0)
     return { ok: false, reason: "not-0600" };
   try {
-    const value = JSON.parse(readFileSync4(file, "utf8"))?.[field];
+    const value = JSON.parse(readFileSync5(file, "utf8"))?.[field];
     return typeof value === "string" && value.length >= 16 ? { ok: true, value } : { ok: false, reason: "malformed" };
   } catch {
     return { ok: false, reason: "malformed" };
@@ -14782,7 +15050,7 @@ var SAME_UID_LIMIT = "Workers run as your uid. The tool and env boundary keeps t
 var MAX_BODY_BYTES = 64 * 1024;
 var HOST = "127.0.0.1";
 var PATH = "/events";
-var digest = (text) => createHash3("sha256").update(text).digest();
+var digest = (text) => createHash4("sha256").update(text).digest();
 function secretMatches(presented, expected) {
   if (presented === undefined || expected === undefined)
     return false;
@@ -14836,7 +15104,7 @@ function startWebhookReceiver(options) {
         send(response, await options.onEvent(parsed, {
           ...typeof id === "string" ? { eventId: id } : {},
           headers,
-          body_digest: createHash3("sha256").update(raw).digest("hex"),
+          body_digest: createHash4("sha256").update(raw).digest("hex"),
           body,
           timestamp_ms: Date.now()
         }));
@@ -15040,8 +15308,8 @@ async function startEventSource(automation, source) {
 }
 
 // src/automation/configuration.ts
-import { readFileSync as readFileSync5 } from "node:fs";
-import { join as join7, relative as relative3, resolve as resolve3 } from "node:path";
+import { readFileSync as readFileSync6 } from "node:fs";
+import { join as join8, relative as relative4, resolve as resolve4 } from "node:path";
 
 // ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
 var composer = require_composer();
@@ -15090,9 +15358,9 @@ var $visit = visit.visit;
 var $visitAsync = visit.visitAsync;
 
 // src/automation/tracker-github.ts
-import { execFile as execFile2 } from "node:child_process";
+import { execFile as execFile3 } from "node:child_process";
 var nodeGh = (args) => new Promise((resolve, reject) => {
-  execFile2("gh", args, { encoding: "utf8", timeout: 60000, maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => error === null ? resolve(stdout) : reject(new Error(`gh ${args.slice(0, 3).join(" ")} failed: ${stderr.trim() || error.message}`)));
+  execFile3("gh", args, { encoding: "utf8", timeout: 60000, maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => error === null ? resolve(stdout) : reject(new Error(`gh ${args.slice(0, 3).join(" ")} failed: ${stderr.trim() || error.message}`)));
 });
 var REPO = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9._-]+$/;
 var ISSUE_ID = /^[1-9][0-9]{0,9}$/;
@@ -15193,8 +15461,8 @@ function text(value, name) {
     throw new Error(`missing Benny ${name}`);
   return value;
 }
-function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny/configuration.yaml")) {
-  const raw = object3($parse(readFileSync5(path, "utf8")), "configuration");
+function loadBennyConfig(projectRoot, kind, path = join8(projectRoot, ".pi/benny/configuration.yaml")) {
+  const raw = object3($parse(readFileSync6(path, "utf8")), "configuration");
   if (raw["schema_version"] !== 1)
     throw new Error("unsupported Benny schema_version");
   const sections = new Map(["automations", "slack", "repository", "tracker", "routing", "control", "verdict_markers", "status_emoji", "budgets", "models"].map((key) => [key, object3(raw[key], key)]));
@@ -15229,7 +15497,7 @@ function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny
     if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
       throw new Error(`invalid Benny budget ${budget}`);
   }
-  const configPath = relative3(resolve3(projectRoot), resolve3(path));
+  const configPath = relative4(resolve4(projectRoot), resolve4(path));
   if (configPath.startsWith(".."))
     throw new Error("Benny configuration must be project-owned");
   const tracker = {
@@ -15238,17 +15506,17 @@ function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny
     labels: { bug: text(labels["bug"], "tracker.labels.bug"), performance: text(labels["performance"], "tracker.labels.performance"), intake: text(labels["intake"], "tracker.labels.intake"), needsRepro: text(labels["needs_repro"], "tracker.labels.needs_repro") }
   };
   const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };
-  return { name, kind, projectRoot: resolve3(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control };
+  return { name, kind, projectRoot: resolve4(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control };
 }
 
 // src/automation/settle.ts
-import { existsSync as existsSync6, readFileSync as readFileSync6 } from "node:fs";
-import { join as join8 } from "node:path";
+import { existsSync as existsSync7, readFileSync as readFileSync7 } from "node:fs";
+import { join as join9 } from "node:path";
 function finalAssistantText(sessionFile) {
-  if (sessionFile === null || !existsSync6(sessionFile))
+  if (sessionFile === null || !existsSync7(sessionFile))
     return null;
   let text = null;
-  for (const line of readFileSync6(sessionFile, "utf8").split(`
+  for (const line of readFileSync7(sessionFile, "utf8").split(`
 `)) {
     if (line.trim() === "")
       continue;
@@ -15272,7 +15540,7 @@ var alive2 = (pid) => {
 };
 var oneLine = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
 async function collectRun(projectRoot, runId, inspect = inspectHost) {
-  const loaded = loadAssignment(join8(workerDir(projectRoot, runId), "assignment.json"));
+  const loaded = loadAssignment(join9(workerDir(projectRoot, runId), "assignment.json"));
   let live;
   try {
     live = await inspect(hostTarget(loaded));
@@ -15364,19 +15632,19 @@ function startSettler(automation, options) {
 }
 
 // src/automation/control-adapter.ts
-import { existsSync as existsSync7, readFileSync as readFileSync7, realpathSync as realpathSync3, statSync as statSync3 } from "node:fs";
-import { join as join9, relative as relative4, resolve as resolve4 } from "node:path";
+import { existsSync as existsSync8, readFileSync as readFileSync8, realpathSync as realpathSync4, statSync as statSync3 } from "node:fs";
+import { join as join10, relative as relative5, resolve as resolve5 } from "node:path";
 var REQUIRED_SECTIONS = ["How a user gets there", "How the control adapter drives it"];
 function featureMapProblem(projectRoot, featureMapPath) {
-  const root = realpathSync3(resolve4(projectRoot));
-  const file = resolve4(root, featureMapPath);
-  if (relative4(root, file).startsWith(".."))
+  const root = realpathSync4(resolve5(projectRoot));
+  const file = resolve5(root, featureMapPath);
+  if (relative5(root, file).startsWith(".."))
     return "the feature map is outside the project";
-  if (!existsSync7(file) || !statSync3(file).isFile())
+  if (!existsSync8(file) || !statSync3(file).isFile())
     return `the feature map ${featureMapPath} does not exist`;
-  if (relative4(root, realpathSync3(file)).startsWith(".."))
+  if (relative5(root, realpathSync4(file)).startsWith(".."))
     return "the feature map resolves outside the project";
-  const sections = readFileSync7(file, "utf8").split(/^### /m).slice(1);
+  const sections = readFileSync8(file, "utf8").split(/^### /m).slice(1);
   if (sections.length === 0)
     return "the feature map has no feature section";
   for (const section of sections) {
@@ -15393,7 +15661,7 @@ function featureMapProblem(projectRoot, featureMapPath) {
 function controlSkillProblem(skillName, packageRoot = PACKAGE_ROOT) {
   if (!isIdentifier(skillName))
     return `control skill name ${JSON.stringify(skillName)} is not a skill name`;
-  return existsSync7(join9(packageRoot, "generated", "skills", skillName, "SKILL.md")) ? undefined : `control skill ${skillName} is not in generated/skills`;
+  return existsSync8(join10(packageRoot, "generated", "skills", skillName, "SKILL.md")) ? undefined : `control skill ${skillName} is not in generated/skills`;
 }
 function controlProbes(projectRoot, control, packageRoot = PACKAGE_ROOT) {
   return {
@@ -15452,8 +15720,8 @@ var settlePollMs = Number(values["settle-poll-ms"]);
 if (values.project === undefined || kind !== "triage" && kind !== "reproduce" || !Number.isInteger(port) || port < 0 || port > 65535 || !Number.isInteger(settlePollMs) || settlePollMs < 100) {
   throw new Error("usage: automation-serve.mjs --project <root> --kind triage|reproduce [--port <port>] [--settle-poll-ms <ms>]");
 }
-var project = realpathSync4(resolve5(values.project));
-var configFile = resolve5(project, ".pi/benny/configuration.yaml");
+var project = realpathSync5(resolve6(values.project));
+var configFile = resolve6(project, ".pi/benny/configuration.yaml");
 var config = loadBennyConfig(project, kind, configFile);
 var slackFile = defaultCredentialFile("slack");
 var slack = readCredential(slackFile, "token");

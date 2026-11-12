@@ -3,12 +3,24 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
+import {
+  CONTAINER_HOME,
+  type ContainerPlan,
+  clientEnv,
+  containerPreamble,
+  containerRunArgs,
+  hostOnlyEnv,
+  outDirOf,
+  parseContainerPlan,
+  READY_RECORD,
+  removeWorkerContainers,
+} from './container.ts';
 import {
   appendEvent,
   type Capabilities,
@@ -37,9 +49,12 @@ const MAX_RPC_RECORD = 8 * 1024 * 1024;
 const MAX_BRIEF_BYTES = 1024 * 1024;
 const RPC_DEADLINE_MS = 10_000;
 const ABORT_DEADLINE_MS = 60_000;
+/** A container worker's clone and install happen before Pi starts, so the first RPC waits this long for the ready record. */
+const CONTAINER_START_MS = 30 * 60_000;
 
 /** What the parent decided at spawn time and the immutable assignment cannot say (the resolved model, how to run Pi). */
 export interface HostLaunch {
+  /** Pi's argv before its arguments: absolute on the host, and a command found on the image's PATH inside a container. */
   piCommand: string[];
   model: { provider: string; id: string } | null;
   thinkingLevel: ThinkingLevel | null;
@@ -50,6 +65,8 @@ export interface HostLaunch {
   extraArgs: string[];
   /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. Their values travel in launch-env.json. */
   credentialEnv: string[];
+  /** The container Pi runs in, for a `container` workspace; null runs Pi on the host. */
+  container: ContainerPlan | null;
 }
 
 /** What env 'minimal' keeps besides PSTACK_* and the provider's credential variables (contract "Capability boundary"). */
@@ -87,7 +104,8 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
   const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
-  if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute(piCommand[0] ?? '')) throw new Error('Launch piCommand must start with an absolute executable');
+  const container = raw['container'] === null ? null : parseContainerPlan(raw['container']);
+  if (!strings(piCommand) || piCommand.length === 0 || (container === null && !isAbsolute(piCommand[0] ?? ''))) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
   if (appendSystemPrompt !== null && !(typeof appendSystemPrompt === 'string' && isAbsolute(appendSystemPrompt))) throw new Error('Launch appendSystemPrompt must be an absolute path or null');
@@ -104,6 +122,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     tmuxSession,
     extraArgs,
     credentialEnv,
+    container,
   };
 }
 
@@ -163,7 +182,23 @@ export function validateControl(value: unknown, loaded: LoadedAssignment, instan
 function workspaceDir(loaded: LoadedAssignment): string {
   const { assignment } = loaded;
   if (assignment.kind === 'watch') return assignment.watch.cwd;
-  return assignment.workspace.mode === 'worktree' ? join(loaded.workerDir, 'worktree') : assignment.workspace.path;
+  if (assignment.workspace.mode === 'readonly') return assignment.workspace.path;
+  return assignment.workspace.mode === 'worktree' ? join(loaded.workerDir, 'worktree') : loaded.workerDir;
+}
+
+/**
+ * The container writes through `<workerDir>/out`, which it sees as `<workerDir>`. These links make the report, evidence,
+ * and session paths the host and the parent read the same ones the worker writes.
+ */
+function prepareOutput(workerDir: string): void {
+  const out = outDirOf(workerDir);
+  for (const name of ['session', 'evidence']) mkdirSync(join(out, name), { recursive: true, mode: 0o700 });
+  for (const name of ['session', 'evidence', 'report.md']) if (lstatSync(join(workerDir, name), { throwIfNoEntry: false }) === undefined) symlinkSync(join('out', name), join(workerDir, name));
+}
+
+/** The environment inside the container: the worker's own, less what describes the host, with its own home. */
+function containerEnv(piEnv: Record<string, string>): Record<string, string> {
+  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent` };
 }
 
 /** Pi's argv after the launch command, for a kind 'pi' worker. */
@@ -313,9 +348,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     display('host settled', { phase: settlePhase, reason: why });
   };
 
-  if (assignment.kind === 'pi' && assignment.workspace.mode === 'worktree') {
+  if (assignment.kind === 'pi' && assignment.workspace.mode !== 'readonly') {
     try {
-      prepareWorktree(loaded, assignment.workspace.inputCommit);
+      if (assignment.workspace.mode === 'worktree') prepareWorktree(loaded, assignment.workspace.inputCommit);
+      else prepareOutput(workerDir);
     } catch (error) {
       phase = 'failed';
       reason = message(error);
@@ -327,12 +363,16 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   }
   const readonly = assignment.kind === 'pi' && assignment.workspace.mode === 'readonly';
-  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
-  const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
+  const piEnv = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...(readonly ? { PSTACK_READONLY: '1' } : {}) };
+  const { container } = launch;
+  // Pi's environment goes into the container over stdin. The docker client gets only what reaches the engine.
+  const dockerEnv = clientEnv(launchEnv);
+  const piCommand = [...launch.piCommand, ...piArgs(loaded, launch)];
+  const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : container === null ? piCommand : [container.docker, ...containerRunArgs(container, workerDir, piCommand)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
     detached: true,
-    env,
+    env: container === null ? piEnv : dockerEnv,
     stdio: assignment.kind === 'watch' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
   });
   childPid = child.pid ?? null;
@@ -352,12 +392,23 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       if ((error as NodeJS.ErrnoException).code !== 'ESRCH') throw error;
     }
   };
+  /** Removes the worker's container by label. The container normally ends with its stdin, so this only confirms it, and covers a docker client that died first. */
+  const removeContainer = async () => {
+    if (container === null) return;
+    try {
+      event('container_removed', { name: container.name, ids: await removeWorkerContainers(container.docker, dockerEnv, container.name) });
+    } catch (error) {
+      display('host diagnostic', `container removal failed: ${message(error)}`);
+      event('container_removal_failed', { name: container.name, error: message(error) });
+    }
+  };
   const closed = new Promise<void>((resolveClosed) => {
-    child.once('close', (code, signal) => {
+    child.once('close', async (code, signal) => {
       childExited = true;
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event('child_exit', exit);
+      await removeContainer();
       if (phase === 'stopping') {
         save();
       } else if (fatal === undefined) {
@@ -376,6 +427,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       if (childExited || stdin === null || stdin.destroyed) return reject(new Error('Pi is unavailable; outcome unknown'));
       stdin.write(`${JSON.stringify(record)}\n`, (error) => (error ? reject(error) : resolveWrite()));
     });
+  let markReady: () => void = () => undefined;
+  const containerReady = new Promise<void>((resolveReady) => {
+    markReady = resolveReady;
+  });
   const nextRequestId = () => `${instance}-${++requestNumber}`;
   const request = (type: string, fields: Record<string, unknown> = {}, deadline = RPC_DEADLINE_MS, id = nextRequestId()) =>
     new Promise<unknown>((resolveRequest, reject) => {
@@ -452,6 +507,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     child.stdin?.on('error', (error) => {
       if (phase !== 'stopping' && !childExited) void fail(error);
     });
+    // The first thing a container reads, ahead of every RPC record: its environment.
+    if (container !== null) child.stdin?.write(containerPreamble(containerEnv(piEnv)));
     child.stderr?.on('data', (chunk: Buffer) => {
       const text = chunk.toString('utf8');
       stderrTail = `${stderrTail}${text}`.slice(-8192);
@@ -479,7 +536,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const onRecord = (record: unknown) => {
     if (!isRecord(record) || typeof record['type'] !== 'string') throw new Error('Malformed Pi RPC record');
     const type = record['type'];
-    if (type === 'agent_start') {
+    if (type === READY_RECORD) {
+      markReady();
+      display('container ready', container?.name ?? '');
+    } else if (type === 'agent_start') {
       runFailure = undefined;
       if (phase === 'idle') phase = 'running';
       save();
@@ -682,6 +742,12 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   try {
     event('launch', { command, hostPid: process.pid, childPid: child.pid, instance });
     save();
+    if (container !== null) {
+      // The clone and install run before Pi. A container that ends first has already failed the host through `closed`.
+      const deadline = setTimeout(() => void fail(new Error(`The container was not ready within ${CONTAINER_START_MS / 60_000} minutes`)), CONTAINER_START_MS);
+      await Promise.race([containerReady, closed]);
+      clearTimeout(deadline);
+    }
     if (assignment.kind === 'pi') await inspectPi();
     if (!isTerminal(phase)) phase = assignment.kind === 'watch' ? 'running' : 'idle';
     save();
