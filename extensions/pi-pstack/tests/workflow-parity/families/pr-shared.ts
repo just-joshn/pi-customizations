@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Parent, shQuote } from '../fixtures/dsl.ts';
 import { byParent, type ForgeAction, isRefUpdate, readForge, WRITES } from '../fixtures/forge.ts';
-import { type Check, check, fail, pass, src, type Src, when } from '../lib/check.ts';
+import { type Check, check, checkAbsence, fail, pass, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors } from '../lib/checks.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 
@@ -41,7 +41,7 @@ export const actionsOf = (view: RunView): ForgeAction[] => readForge(view).actio
 
 /** No merge, queue entry, or auto-merge was requested, and no PR of the run reads merged. */
 export function neverMerges(id: string, title: string, source: Src | Src[]): Check {
-  return check(id, title, source, (view) => {
+  return checkAbsence(id, title, source, (view) => {
     const { state, actions } = readForge(view);
     const merges = actions.filter((action) => MERGE_KINDS.includes(action.kind));
     const merged = Object.values(state.prs).filter((pr) => pr.state === 'MERGED' || pr.autoMerge === true || pr.queued === true);

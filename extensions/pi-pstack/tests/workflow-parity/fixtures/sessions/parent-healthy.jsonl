@@ -1,0 +1,5 @@
+{"type":"session","id":"s3","cwd":"/sandbox/repo"}
+{"type":"message","message":{"role":"user","content":[{"type":"text","text":"/poteto-mode babysit PR 71"}]}}
+{"type":"message","message":{"role":"assistant","content":[{"type":"toolCall","id":"c1","name":"bash","arguments":{"command":"gh pr view 71"}}],"provider":"sim","model":"claude-sim","stopReason":"toolUse"}}
+{"type":"message","message":{"role":"toolResult","toolCallId":"c1","content":[{"type":"text","text":"open"}],"isError":false}}
+{"type":"message","message":{"role":"assistant","content":[{"type":"text","text":"PR 71 is open and not merged."}],"provider":"sim","model":"claude-sim","stopReason":"stop"}}

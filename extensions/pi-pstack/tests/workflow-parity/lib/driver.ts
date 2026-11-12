@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
+import { assess, type Inconclusive } from './integrity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
@@ -56,6 +57,8 @@ export interface DriveApi {
   restart: () => Promise<void>;
   /** Sends a user message to the current parent and returns once Pi accepted it. */
   prompt: (message: string) => Promise<void>;
+  /** Records something the hook could not observe (a wait that timed out) in meta.json and the report, without aborting the run. */
+  finding: (message: string) => void;
 }
 
 export interface Scenario {
@@ -133,7 +136,7 @@ export function realTmux(socket: string): string[] {
   return listed.status === 0 ? listed.stdout.split('\n').filter(Boolean) : [];
 }
 
-function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; socket: string } {
+function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real', realModel: string): { ctx: Ctx; socket: string } {
   mkdirSync(SANDBOX_ROOT, { recursive: true });
   const sandbox = realpathSync(mkdtempSync(join(SANDBOX_ROOT, 'wf-')));
   const repo = join(sandbox, 'repo');
@@ -174,10 +177,10 @@ function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; s
     settings['defaultProvider'] = 'sim';
     settings['defaultModel'] = 'claude-sim';
   } else {
-    const [provider = '', ...id] = REAL_MODEL.split('/');
+    const [provider = '', ...id] = realModel.split('/');
     settings['defaultProvider'] = provider;
     settings['defaultModel'] = id.join('/');
-    const needed = [...new Set(Object.values(spec.roles ?? realRoles()).flat().map(providerOf).concat(providerOf(REAL_MODEL)))];
+    const needed = [...new Set(Object.values(spec.roles ?? realRoles()).flat().map(providerOf).concat(providerOf(realModel)))];
     settings['packages'] = [PKG, ...new Set(needed.flatMap((provider) => packagesRegistering(provider)))];
     for (const file of ['auth.json', 'models.json', 'models-store.json']) {
       const source = join(process.env['PSTACK_E2E_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi', 'agent'), file);
@@ -372,6 +375,12 @@ export interface Meta {
   piStderr: string;
   /** One entry per parent restart: the Pi process that was stopped and the one that replaced it. */
   restarts?: { stoppedPid: number | undefined; startedPid: number | undefined }[];
+  /** The drive hook threw: its message. The run is INCONCLUSIVE (crash). */
+  crashed?: string;
+  /** Observations a drive hook recorded instead of throwing. */
+  findings?: string[];
+  /** The run is not evidence: its provider failed, the parent did nothing, or the drive hook crashed. */
+  inconclusive?: Inconclusive;
 }
 
 export interface RunOutcome {
@@ -386,14 +395,16 @@ export interface DriverOptions {
   pi?: string;
   /** Replaces the run's budget; a test of the stop rules uses limits of a few seconds. */
   budget?: Budget;
+  /** The model the parent runs on, instead of PSTACK_E2E_REAL_MODEL: a preflight checks each model the run will use. */
+  model?: string;
   /** How long one RPC request may go unanswered. */
   rpcTimeoutMs?: number;
 }
 
 /** Runs the workflow; a run that fails leaves no sandbox behind, because its error already carries pi's stderr. */
 export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions = {}): Promise<RunOutcome> {
-  if (driver === 'real' && REAL_MODEL === '') throw new Error('PSTACK_E2E_REAL_MODEL is not set');
-  const built = buildSandbox(spec, driver);
+  if (driver === 'real' && (options.model ?? REAL_MODEL) === '') throw new Error('PSTACK_E2E_REAL_MODEL is not set');
+  const built = buildSandbox(spec, driver, options.model ?? REAL_MODEL);
   try {
     return await execute(spec, driver, options, built);
   } catch (error) {
@@ -412,7 +423,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   Object.assign(env, spec.env?.(ctx, driver));
-  const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
+  const model = driver === 'scripted' ? 'sim/claude-sim' : (options.model ?? REAL_MODEL);
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
   const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
@@ -460,6 +471,8 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     return stopWhy;
   };
   let timedOut = false;
+  let crashed: string | undefined;
+  const findings: string[] = [];
   let parentSessionFile: string | null = null;
   try {
     if (mode !== 'rpc') {
@@ -499,7 +512,9 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       const accepted = await rpc.request({ type: 'prompt', message }, options.rpcTimeoutMs);
       if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
       if (message === prompt && spec.drive !== undefined)
+        try {
         await spec.drive({
+          finding: (note) => void findings.push(note),
           ctx,
           socket,
           request: (command) => rpc.request(command),
@@ -519,6 +534,10 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
             parentSessionFile = ((resumed['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? parentSessionFile;
           },
         });
+        } catch (error) {
+          crashed = error instanceof Error ? error.message : String(error);
+          break;
+        }
       if (!(await untilQuiet())) {
         timedOut = true;
         break;
@@ -533,12 +552,17 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   }
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }) };
+  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
   writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base), null, 2));
   const view = loadView(ctx.sandbox);
+  const inconclusive = assess(view, crashed);
+  if (inconclusive !== undefined) {
+    meta.inconclusive = inconclusive;
+    writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
+  }
   return {
     sandbox: ctx.sandbox,
     view,
@@ -568,7 +592,7 @@ export function loadView(sandbox: string): RunView {
   const modelsPath = join(sandbox, 'home', '.pi', 'agent', 'pstack', 'models.json');
   const sessionFiles = readdirSync(join(sandbox, 'sessions')).filter((file) => file.endsWith('.jsonl'));
   const parentFile = meta.parentSessionFile !== null && existsSync(meta.parentSessionFile) ? meta.parentSessionFile : join(sandbox, 'sessions', sessionFiles[0] ?? 'missing.jsonl');
-  const parent: Session = existsSync(parentFile) ? loadSession(parentFile) : { file: parentFile, cwd: null, messages: [], toolCalls: [], models: [] };
+  const parent: Session = existsSync(parentFile) ? loadSession(parentFile) : { file: parentFile, cwd: null, messages: [], toolCalls: [], models: [], errors: [] };
   return {
     family: meta.family,
     driver: meta.driver,

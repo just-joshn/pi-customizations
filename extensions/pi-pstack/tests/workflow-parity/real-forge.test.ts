@@ -45,7 +45,7 @@ function replay(facts: Facts, checks: FactCheck[], mutate?: (sandbox: string) =>
     const mutated = JSON.parse(readFileSync(join(dir, 'real-facts.json'), 'utf8')) as Facts;
     return checks.filter((entry) => {
       const outcome = entry.run(mutated);
-      return 'skip' in outcome ? false : !outcome.ok;
+      return 'skip' in outcome || 'inconclusive' in outcome ? false : !outcome.ok;
     }).map((entry) => entry.id);
   } finally {
     rmSync(dir, { recursive: true, force: true });

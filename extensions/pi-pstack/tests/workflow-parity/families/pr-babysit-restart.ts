@@ -39,6 +39,8 @@ const sessionText = (sessionsDir: string): string =>
     .map((name) => readFileSync(join(sessionsDir, name), 'utf8'))
     .join('\n');
 
+const LIVE_PHASES = new Set(['starting', 'running']);
+
 const readJson = (path: string): Record<string, unknown> | undefined => {
   try {
     return existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>) : undefined;
@@ -106,7 +108,15 @@ export const babysitRestartFamily: Family = {
     drive: async (api) => {
       const { ctx } = api;
       const workerDir = join(ctx.repo, '.pi', 'pstack', 'runs', RUN, 'workers', WATCHER);
-      await poll(() => (/Armed the one watcher/.test(sessionText(ctx.sessionsDir)) && /"kind"/.test(String(readJson(join(workerDir, 'state.json'))?.['output'] ?? '')) ? true : undefined), 'the first parent to arm the watcher and the watcher to print');
+      try {
+        await poll(() => {
+          const state = readJson(join(workerDir, 'state.json'));
+          const kind = state?.['kind'] ?? readJson(join(workerDir, 'assignment.json'))?.['kind'];
+          return kind === 'watch' && LIVE_PHASES.has(String(state?.['phase'])) && /"kind"/.test(String(state?.['output'] ?? '')) ? true : undefined;
+        }, 'the watcher to have a watch worker with a live phase and printed output in state.json and a live phase');
+      } catch (error) {
+        api.finding(error instanceof Error ? error.message : String(error));
+      }
       await api.restart();
       await api.prompt(PROMPT_AFTER_RESTART);
       await poll(() => (/Worker watch-restart: running/.test(sessionText(ctx.sessionsDir)) ? true : undefined), 'the restarted parent to inspect the live watcher');

@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { PKG } from './driver.ts';
+import { parentRan } from './integrity.ts';
 import type { RunView } from './view.ts';
 
 export interface Src {
@@ -13,19 +14,21 @@ export interface Src {
   anchor: string;
 }
 
-export type Outcome = { ok: true; evidence: string } | { ok: false; evidence: string } | { skip: string };
+export type Outcome = { ok: true; evidence: string } | { ok: false; evidence: string } | { skip: string } | { inconclusive: string };
 
 export interface Check {
   id: string;
   title: string;
   src: Src[];
   run: (view: RunView) => Outcome;
+  /** The check's PASS rests on an action not happening. It is INCONCLUSIVE unless the parent completed without error and made a tool call. */
+  absence?: boolean;
 }
 
 export interface CheckResult {
   id: string;
   title: string;
-  verdict: 'PASS' | 'FAIL' | 'SKIP';
+  verdict: 'PASS' | 'FAIL' | 'SKIP' | 'INCONCLUSIVE';
   source: string;
   evidence: string;
 }
@@ -37,6 +40,12 @@ export const when = (condition: boolean, good: string, bad: string): Outcome => 
 export function check(id: string, title: string, src: Src | Src[], run: Check['run']): Check {
   return { id, title, src: Array.isArray(src) ? src : [src], run };
 }
+
+/** Marks a check whose PASS rests on the absence of an action. Applied here once, so no family re-implements the guard. */
+export const absence = (entry: Check): Check => ({ ...entry, absence: true });
+
+/** `check` for a PASS that rests on the absence of an action. */
+export const checkAbsence = (...args: Parameters<typeof check>): Check => absence(check(...args));
 
 export const src = (file: string, anchor: string): Src => ({ file, anchor });
 
@@ -71,6 +80,11 @@ export function evaluate(checks: Check[], view: RunView): CheckResult[] {
     } catch (error) {
       outcome = fail(`checker threw: ${error instanceof Error ? error.message : String(error)}`);
     }
+    if (entry.absence === true && 'ok' in outcome && outcome.ok) {
+      const unproven = parentRan(view);
+      if (unproven !== undefined) outcome = { inconclusive: `${unproven}; would have passed: ${outcome.evidence}` };
+    }
+    if ('inconclusive' in outcome) return { id: entry.id, title: entry.title, verdict: 'INCONCLUSIVE', source, evidence: outcome.inconclusive };
     if ('skip' in outcome) return { id: entry.id, title: entry.title, verdict: 'SKIP', source, evidence: outcome.skip };
     return { id: entry.id, title: entry.title, verdict: outcome.ok ? 'PASS' : 'FAIL', source, evidence: outcome.evidence };
   });
@@ -81,7 +95,7 @@ export function table(family: string, driver: string, results: CheckResult[], kn
   const shown = results.map((result) => ({ ...result, shown: result.verdict === 'FAIL' && known.includes(result.id) ? 'DEFECT' : result.verdict }));
   const rows = shown.map((result) => `${result.shown.padEnd(6)} ${result.id}\n       ${result.title}\n       source: ${result.source}\n       evidence: ${result.evidence.replace(/\n/g, ' ').slice(0, 300)}`);
   const count = (verdict: string) => shown.filter((result) => result.shown === verdict).length;
-  const summary = ['PASS', 'FAIL', 'DEFECT', 'SKIP'].map((verdict) => [verdict, count(verdict)] as const).filter(([verdict, n]) => n > 0 || verdict === 'PASS').map(([verdict, n]) => `${n} ${verdict}`).join(', ');
+  const summary = ['PASS', 'FAIL', 'DEFECT', 'INCONCLUSIVE', 'SKIP'].map((verdict) => [verdict, count(verdict)] as const).filter(([verdict, n]) => n > 0 || verdict === 'PASS').map(([verdict, n]) => `${n} ${verdict}`).join(', ');
   return `== ${family} (${driver} driver): ${summary} ==\n${rows.join('\n')}`;
 }
 

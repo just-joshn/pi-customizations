@@ -23,6 +23,32 @@ PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash node --disable-warning=Experimenta
 PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash npx vitest run tests/workflow-parity/build.test.ts -t feature
 ```
 
+## Inconclusive runs and exit codes
+
+A real-model run reports only what it observed. After the run the harness reads every assistant message in the parent and worker sessions. A run is INCONCLUSIVE, not scored, in three cases.
+
+- `provider-error`: an assistant message has `stopReason: "error"` or an `errorMessage` (429, auth, model not found). The first error text is printed.
+- `no-activity`: the parent made no tool call and produced no reply.
+- `crash`: the family's `drive` hook threw. meta.json records `crashed: <message>`, `sandbox kept: <dir>` is printed, and the sandbox stays on disk.
+
+An inconclusive run prints `== <family> (real driver): INCONCLUSIVE <kind>: <message> ==`, skips the checker table and the negative cases, and records `inconclusive` in meta.json and the evidence record. A `drive` hook records a wait that timed out with `api.finding(...)` instead of throwing. Findings go to meta.json and the report.
+
+A check whose PASS rests on an action not happening (no merge, no ref update, no tool errors, no writes) is built with `checkAbsence` (or wrapped with `absence`) in `lib/check.ts`. It is INCONCLUSIVE unless the parent completed without error and made at least one tool call.
+
+Exit codes of `run-family.ts`: `0` every check passed, `1` a check failed or a negative case was missed, `2` usage, `3` INCONCLUSIVE.
+
+`--real` preflights each model the run uses (`PSTACK_E2E_REAL_MODEL`, `PSTACK_E2E_REAL_MODEL_B`) with one tiny request, the same one as `--model-check`, before building any sandbox. A provider error stops with exit 3. `--stop-on-provider-error` stops an `all` batch at the first provider-error run. A batch loop that stops on exit 3:
+
+```sh
+for family in feature babysit-drive babysit-restart; do
+  node --disable-warning=ExperimentalWarning tests/workflow-parity/run-family.ts "$family" --real
+  [ $? -eq 3 ] && { echo "inconclusive at $family: batch stopped"; break; }
+done
+```
+
+`run-family.ts all --real --stop-on-provider-error` does the same inside one process.
+
+
 `--keep` leaves the sandbox on disk. Each run writes an evidence record (the table, the sandbox path, the negative-case results) to `$PSTACK_E2E_EVIDENCE_DIR`, default `$TMPDIR/pstack-workflow-parity`.
 
 `CHECKS.md` lists every check with the upstream source span it enforces and every negative case. Regenerate it with `node --disable-warning=ExperimentalWarning tests/workflow-parity/list-checks.ts > tests/workflow-parity/CHECKS.md`.

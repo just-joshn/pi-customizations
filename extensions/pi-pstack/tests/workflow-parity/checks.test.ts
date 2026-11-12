@@ -72,7 +72,7 @@ describe('file references', () => {
 });
 
 describe('tool errors', () => {
-  const run = (name: string, resultText: string) => evaluate([noToolErrors('t.errors', { file: 'how/SKILL.md', anchor: '## 4. Present' })], { parent: { toolCalls: [{ order: 1, name, args: {}, resultText, isError: true }] } } as unknown as RunView)[0]?.verdict;
+  const run = (name: string, resultText: string) => evaluate([noToolErrors('t.errors', { file: 'how/SKILL.md', anchor: '## 4. Present' })], { parent: { errors: [], toolCalls: [{ order: 1, name, args: {}, resultText, isError: true }] } } as unknown as RunView)[0]?.verdict;
 
   test('a bash probe that exited non-zero is not a failed tool', () => {
     expect(run('bash', '.\n..\n.git\n\n\nCommand exited with code 1')).toBe('PASS');
@@ -136,7 +136,7 @@ describe('a brief that carries a worker\'s findings', () => {
 });
 
 describe('opening a file through a worktree directory', () => {
-  const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
+  const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], errors: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
   const suffix = 'candidate-1/worktree/src/coupon.js';
 
   test('cd into the worktree and cat the file opens it', () => {
