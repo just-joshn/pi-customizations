@@ -190,7 +190,11 @@ export interface Parent {
  * With `sessionManager`, a real Pi SessionManager is the session and sendMessage appends to it as Pi does.
  * With `beforeTmux`, every tmux call waits for it first.
  */
-export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager; beforeTmux?: () => Promise<void> } = {}): Parent {
+export function makeParent(
+  project: Project,
+  entries: Entry[],
+  options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager; beforeTmux?: () => Promise<void> } = {},
+): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
   const messages: Parent['messages'] = [];

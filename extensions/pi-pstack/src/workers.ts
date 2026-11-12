@@ -14,14 +14,14 @@ import {
   type Assignment,
   appendEvent,
   type ClaimIdentity,
+  formatTmuxIdentity,
   type HostState,
   isTerminal,
-  formatTmuxIdentity,
-  launchEnvPath,
   type LoadedAssignment,
-  parseTmuxIdentity,
+  launchEnvPath,
   loadAssignment,
   parseRunId,
+  parseTmuxIdentity,
   parseWorkerId,
   projectRoot,
   type RunId,
@@ -33,8 +33,8 @@ import {
   runRootOf,
   runsDir,
   type Settle,
-  TMUX_IDENTITY_FORMAT,
   type ThinkingLevel,
+  TMUX_IDENTITY_FORMAT,
   tmuxIdentityPath,
   tmuxSessionName,
   type WakePhase,
@@ -419,11 +419,9 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     let started: Awaited<ReturnType<ExtensionAPI['exec']>>;
     try {
       writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
-      started = await pi.exec(
-        'tmux',
-        ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)],
-        { timeout: 10_000 },
-      );
+      started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+        timeout: 10_000,
+      });
       if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
     } catch (error) {
       // No host started, so nothing holds the claim.
