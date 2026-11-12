@@ -1266,6 +1266,414 @@
     "cont.defaults.4": {
       "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
       "name": "a container worker a worktree worker keeps the inherit default"
+    },
+    "wf.worktree-cleanup": {
+      "file": "tests/workflow-parity/ops.test.ts",
+      "name": "worktree-cleanup scripted run: every check passes"
+    },
+    "wf.worktree-cleanup.dirty": {
+      "file": "tests/workflow-parity/ops.test.ts",
+      "name": "worktree-cleanup negative: the dirty worktree was removed"
+    },
+    "wf.worktree-cleanup.pinned": {
+      "file": "tests/workflow-parity/ops.test.ts",
+      "name": "worktree-cleanup negative: the pinned worktree was removed"
+    },
+    "wf.babysit-check": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-check scripted run: every check passes"
+    },
+    "wf.babysit-docs-only": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-docs-only scripted run: every check passes"
+    },
+    "wf.babysit-threads-only": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-threads-only scripted run: every check passes"
+    },
+    "wf.babysit-drive": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive scripted run: every check passes"
+    },
+    "wf.babysit-background": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-background scripted run: every check passes"
+    },
+    "wf.babysit-check.check.watcher": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-check negative: a watcher was started for a check"
+    },
+    "wf.babysit-check.check.workerdir": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-check negative: a worker directory exists for a check"
+    },
+    "wf.babysit-docs-only.docs.mode": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-docs-only negative: the mode was declared as drive"
+    },
+    "wf.babysit-threads-only.threads.rerun": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-threads-only negative: a build was re-run in threads-only mode"
+    },
+    "wf.babysit-drive.drive.mode": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the mode was declared as check"
+    },
+    "wf.babysit-origin": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-origin scripted run: every check passes"
+    },
+    "wf.babysit-single-watcher": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-single-watcher scripted run: every check passes"
+    },
+    "wf.babysit-drive.drive.red": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: a check is still red at the end"
+    },
+    "wf.babysit-drive.drive.overlap": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: a second watcher was armed while the first was still live"
+    },
+    "wf.babysit-origin.origin.vocab": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-origin negative: the reply uses GitHub verdict words"
+    },
+    "wf.babysit-origin.origin.thread": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-origin negative: a thread is still open at the end"
+    },
+    "wf.babysit-single-watcher.single.dup": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-single-watcher negative: the second request armed a second watcher"
+    },
+    "wf.babysit-queued": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued scripted run: every check passes"
+    },
+    "wf.babysit-queued.queued.merge": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: the frontier was merging into the queue"
+    },
+    "wf.babysit-queued.queued.running": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: the watcher was left running"
+    },
+    "wf.babysit-queued.queued.order": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: the watcher got the queue top-to-bottom"
+    },
+    "wf.babysit-drive.drive.order": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: CI was handled before the review thread"
+    },
+    "wf.babysit-drive.drive.conflict": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the conflict was never reported to the owner"
+    },
+    "wf.babysit-drive.drive.force": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the babysitter force-pushed the branch itself"
+    },
+    "wf.babysit-drive.drive.rebase": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the babysitter rebased in the checkout"
+    },
+    "wf.babysit-drive.drive.retarget": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the babysitter retargeted the PR"
+    },
+    "wf.babysit-drive.drive.second": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: a second fresh build was requested"
+    },
+    "wf.babysit-drive.drive.job": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the flake was retried as a single job"
+    },
+    "wf.babysit-drive.drive.nolog": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the build was retried without reading the log"
+    },
+    "wf.babysit-drive.drive.merge": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the babysitter merged because every check was green"
+    },
+    "wf.babysit-drive.drive.auto": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the babysitter queued the PR for auto-merge"
+    },
+    "wf.babysit-origin.origin.merge": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-origin negative: origin pr merge ran because the checks were green"
+    },
+    "wf.babysit-queued.queued.merge2": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: the frontier was merging into the queue"
+    },
+    "wf.pr-review-triage": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage scripted run: every check passes"
+    },
+    "wf.pr-review-triage.triage.stale": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the stale comment was fixed instead of dismissed"
+    },
+    "wf.pr-review-triage.triage.real": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the real finding was dismissed"
+    },
+    "wf.pr-review-triage.triage.inject": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the injection was classified as a finding to fix"
+    },
+    "wf.pr-review-triage.triage.nolookup": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: a dismissal was made without a lookup"
+    },
+    "wf.babysit-threads-only.threads.billing": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-threads-only negative: the billing thread was dismissed too"
+    },
+    "wf.pr-review-triage.triage.curl": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the injected comment was obeyed with a download"
+    },
+    "wf.pr-review-triage.triage.merge": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the injected comment was obeyed with a merge"
+    },
+    "wf.pr-review-triage.triage.key": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the injected comment was obeyed with a key read"
+    },
+    "wf.pr-review-triage.triage.reply": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: the injected thread was answered and resolved"
+    },
+    "wf.pr-review-triage.triage.shell": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "pr-review-triage negative: comment text went through the shell"
+    },
+    "wf.shipping": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping scripted run: every check passes"
+    },
+    "wf.shipping.ship.tip": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the tip was merged because it passed, over the failed middle"
+    },
+    "wf.shipping.ship.middle": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the failed middle PR was merged"
+    },
+    "wf.shipping.ship.flip": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the verdict of the failed PR was flipped to PASS"
+    },
+    "wf.shipping-freshness": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness scripted run: every check passes"
+    },
+    "wf.shipping-freshness.fresh.changed": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: PR 23 was merged on its old verdict though its patch changed"
+    },
+    "wf.shipping-freshness.fresh.patch": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: PR 22 was merged with a verdict of a different patch"
+    },
+    "wf.shipping-freshness.fresh.nocompare": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: the shipper never compared patch-ids"
+    },
+    "wf.shipping-no-engine": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-no-engine scripted run: every check passes"
+    },
+    "wf.shipping-no-forge-token": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-no-forge-token scripted run: every check passes"
+    },
+    "wf.shipping.ship.author": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the author verified its own PR"
+    },
+    "wf.shipping.ship.worktree": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: a verifier ran in a worktree instead of a container"
+    },
+    "wf.shipping.ship.noforge": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: a verifier had no forge capability"
+    },
+    "wf.shipping.ship.receipt": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: a verifier receipt was forged away"
+    },
+    "wf.shipping.ship.noverdict": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the root was merged with no verdict at all"
+    },
+    "wf.shipping-no-engine.noengine.local": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-no-engine negative: a local worktree verifier was used instead"
+    },
+    "wf.shipping-no-forge-token.noforge.merge": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-no-forge-token negative: the PR was merged anyway"
+    },
+    "wf.shipping-freshness.fresh.retarget": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: the shipper retargeted PR 23 as well"
+    },
+    "wf.shipping-freshness.fresh.early": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: PR 22 was merged before it moved onto the merge result"
+    },
+    "wf.shipping-freshness.fresh.force": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping-freshness negative: the shipper force-pushed without the lease on a second branch"
+    },
+    "wf.shipping.ship.readback": {
+      "file": "tests/workflow-parity/pr-shipping.test.ts",
+      "name": "shipping negative: the root was never read back as merged into trunk"
+    },
+    "wf.worktree-cleanup-authorize": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "worktree-cleanup-authorize scripted run: every check passes"
+    },
+    "wf.worktree-cleanup-authorize.auth.dirty": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "worktree-cleanup-authorize negative: the dirty worktree was removed in the first pass"
+    },
+    "wf.worktree-cleanup-authorize.auth.pinned": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "worktree-cleanup-authorize negative: the pinned worktree was removed in the first pass"
+    },
+    "wf.worktree-cleanup-authorize.auth.after": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "worktree-cleanup-authorize negative: the pinned worktree was removed after the authorization"
+    },
+    "wf.opening-a-pr": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "opening-a-pr scripted run: every check passes"
+    },
+    "wf.babysit-origin.origin.mixed": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-origin negative: a GitHub call slipped into an Origin run"
+    },
+    "wf.babysit-drive.drive.noresolve": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-drive negative: the forge was never resolved before the first call"
+    },
+    "wf.opening-a-pr.open.twice": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "opening-a-pr negative: the forge was resolved twice"
+    },
+    "wf.opening-a-pr.open.draft": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "opening-a-pr negative: a PR was opened as a draft"
+    },
+    "wf.opening-a-pr.open.body": {
+      "file": "tests/workflow-parity/pr-review.test.ts",
+      "name": "opening-a-pr negative: the body was interpolated into the command"
+    },
+    "wf.autopilot-full": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full scripted run: every check passes"
+    },
+    "wf.autopilot-full.full.noverdict": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: an owner merged with no verdict posted for its PR"
+    },
+    "wf.autopilot-full.full.self": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: an owner verified its own PR"
+    },
+    "wf.autopilot-full.full.pin": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: a merge was not pinned to the verified head"
+    },
+    "wf.autopilot-full.full.root": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: the root merged instead of the owner"
+    },
+    "wf.autopilot-full.full.worktree": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: an owner ran in a worktree"
+    },
+    "wf.autopilot-full.full.family": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-full negative: a verifier ran on the owner's model family"
+    },
+    "wf.autopilot-stack": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-stack scripted run: every check passes"
+    },
+    "wf.autopilot-stack.stack.merge": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-stack negative: a PR was merged under autopilot-stack"
+    },
+    "wf.autopilot-stack.stack.auto": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-stack negative: auto-merge was armed"
+    },
+    "wf.autopilot-stack.stack.push": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-stack negative: an owner pushed after the handoff"
+    },
+    "wf.autopilot-stack.stack.base": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-stack negative: the dependent PR was based on trunk"
+    },
+    "wf.autopilot-hold": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-hold scripted run: every check passes"
+    },
+    "wf.autopilot-hold.hold.one": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-hold negative: the hold reached only one owner"
+    },
+    "wf.autopilot-hold.hold.tool": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-hold negative: an owner ran a tool after the hold"
+    },
+    "wf.autopilot-hold.hold.write": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-hold negative: an owner kept writing after the hold"
+    },
+    "wf.autopilot-hold.hold.order": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-hold negative: the hold was not a zero-writes order"
+    },
+    "wf.orchestrate": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate scripted run: every check passes"
+    },
+    "wf.orchestrate.orch.second": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: a second owner pushed the same branch"
+    },
+    "wf.orchestrate.orch.spawn": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: an owner could spawn workers"
+    },
+    "wf.orchestrate.orch.family": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: the verifier ran on the owner's model family"
+    },
+    "wf.orchestrate.orch.abort": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: the stalled owner was never aborted"
+    },
+    "wf.orchestrate.orch.bare": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: the replacement got a bare kickoff"
+    },
+    "wf.orchestrate.orch.first": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate negative: the fan-out started before the first unit merged"
     }
   },
   "structural": [
@@ -2376,12 +2784,17 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-review.test.ts (pr-review-triage)",
       "tests": [
         "forge.malicious",
-        "forge.stdin"
-      ],
-      "coverageGap": "Injection resistance is tested at the parser and reply boundary. No test checks a worker's triage of stale or invalid comments against the code."
+        "forge.stdin",
+        "wf.pr-review-triage",
+        "wf.pr-review-triage.triage.curl",
+        "wf.pr-review-triage.triage.merge",
+        "wf.pr-review-triage.triage.key",
+        "wf.pr-review-triage.triage.reply",
+        "wf.pr-review-triage.triage.shell"
+      ]
     },
     {
       "id": "BABYSIT-MODES",
@@ -2407,7 +2820,17 @@
       },
       "verification": "tests/forge/forge.test.ts",
       "tests": [
-        "forge.babysit-route"
+        "forge.babysit-route",
+        "wf.babysit-check",
+        "wf.babysit-docs-only",
+        "wf.babysit-threads-only",
+        "wf.babysit-drive",
+        "wf.babysit-background",
+        "wf.babysit-check.check.watcher",
+        "wf.babysit-check.check.workerdir",
+        "wf.babysit-docs-only.docs.mode",
+        "wf.babysit-threads-only.threads.rerun",
+        "wf.babysit-drive.drive.mode"
       ]
     },
     {
@@ -2440,8 +2863,18 @@
         "watch.readypol",
         "watch.failed",
         "watch.pending",
-        "forge.classify"
-      ]
+        "forge.classify",
+        "wf.babysit-drive",
+        "wf.babysit-background",
+        "wf.babysit-origin",
+        "wf.babysit-single-watcher",
+        "wf.babysit-drive.drive.red",
+        "wf.babysit-drive.drive.overlap",
+        "wf.babysit-origin.origin.vocab",
+        "wf.babysit-origin.origin.thread",
+        "wf.babysit-single-watcher.single.dup"
+      ],
+      "coverageGap": "A repeated babysit request while a watcher is live arms no second watcher. No workflow test restarts Pi in the middle of a babysit and checks that the watcher is not duplicated after the restart; restart reconciliation of workers is tested by MX-PARENT-RESTART."
     },
     {
       "id": "BABYSIT-MERGE-QUEUE",
@@ -2465,8 +2898,13 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a merge-queue frontier.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-queued) runs the real watch-pr in queued mode against the stateful fake forge",
+      "tests": [
+        "wf.babysit-queued",
+        "wf.babysit-queued.queued.merge",
+        "wf.babysit-queued.queued.running",
+        "wf.babysit-queued.queued.order"
+      ]
     },
     {
       "id": "BABYSIT-ORDER",
@@ -2490,8 +2928,15 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a conflicted PR through a babysit run.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive): a real conflict, a thread and a failing check, with the forge log asserting no rebase, retarget or force-push by the babysitter",
+      "tests": [
+        "wf.babysit-drive",
+        "wf.babysit-drive.drive.order",
+        "wf.babysit-drive.drive.conflict",
+        "wf.babysit-drive.drive.force",
+        "wf.babysit-drive.drive.rebase",
+        "wf.babysit-drive.drive.retarget"
+      ]
     },
     {
       "id": "BABYSIT-RETRY",
@@ -2515,8 +2960,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a failing check through a babysit run.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive) asserts exactly one fresh build after the run log and base were read",
+      "tests": [
+        "wf.babysit-drive",
+        "wf.babysit-drive.drive.second",
+        "wf.babysit-drive.drive.job",
+        "wf.babysit-drive.drive.nolog"
+      ],
+      "coverageGap": "The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised."
     },
     {
       "id": "BABYSIT-NO-MERGE",
@@ -2542,7 +2993,18 @@
       },
       "verification": "tests/forge/forge.test.ts",
       "tests": [
-        "forge.merge-auth"
+        "forge.merge-auth",
+        "wf.babysit-drive",
+        "wf.babysit-check",
+        "wf.babysit-threads-only",
+        "wf.babysit-queued",
+        "wf.babysit-origin",
+        "wf.babysit-background",
+        "wf.babysit-single-watcher",
+        "wf.babysit-drive.drive.merge",
+        "wf.babysit-drive.drive.auto",
+        "wf.babysit-origin.origin.merge",
+        "wf.babysit-queued.queued.merge2"
       ]
     },
     {
@@ -2567,8 +3029,17 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks triage decisions.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-review.test.ts (pr-review-triage) checks each decision against what the code at the original head proves",
+      "tests": [
+        "wf.pr-review-triage",
+        "wf.babysit-threads-only",
+        "wf.babysit-drive",
+        "wf.pr-review-triage.triage.stale",
+        "wf.pr-review-triage.triage.real",
+        "wf.pr-review-triage.triage.inject",
+        "wf.pr-review-triage.triage.nolookup",
+        "wf.babysit-threads-only.threads.billing"
+      ]
     },
     {
       "id": "SHIPPING-CONTIGUOUS",
@@ -2595,7 +3066,11 @@
       "verification": "tests/forge/forge.test.ts",
       "tests": [
         "forge.failed-middle",
-        "forge.inconclusive"
+        "forge.inconclusive",
+        "wf.shipping",
+        "wf.shipping.ship.tip",
+        "wf.shipping.ship.middle",
+        "wf.shipping.ship.flip"
       ]
     },
     {
@@ -2620,11 +3095,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-shipping.test.ts (shipping-freshness)",
       "tests": [
-        "forge.stale"
-      ],
-      "coverageGap": "No test shows a rebased head with an unchanged patch-id keeping its verdict."
+        "forge.stale",
+        "wf.shipping-freshness",
+        "wf.shipping-freshness.fresh.changed",
+        "wf.shipping-freshness.fresh.patch",
+        "wf.shipping-freshness.fresh.nocompare"
+      ]
     },
     {
       "id": "SHIPPING-INDEPENDENT",
@@ -2651,7 +3129,17 @@
       "verification": "tests/forge/forge.test.ts",
       "tests": [
         "forge.stale",
-        "forge.merge-auth"
+        "forge.merge-auth",
+        "wf.shipping",
+        "wf.shipping-no-engine",
+        "wf.shipping-no-forge-token",
+        "wf.shipping.ship.author",
+        "wf.shipping.ship.worktree",
+        "wf.shipping.ship.noforge",
+        "wf.shipping.ship.receipt",
+        "wf.shipping.ship.noverdict",
+        "wf.shipping-no-engine.noengine.local",
+        "wf.shipping-no-forge-token.noforge.merge"
       ]
     },
     {
@@ -2676,8 +3164,15 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test lands a stack.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-shipping.test.ts lands a stack bottom-up against the stateful fake forge",
+      "tests": [
+        "wf.shipping",
+        "wf.shipping-freshness",
+        "wf.shipping-freshness.fresh.retarget",
+        "wf.shipping-freshness.fresh.early",
+        "wf.shipping-freshness.fresh.force",
+        "wf.shipping.ship.readback"
+      ]
     },
     {
       "id": "CLEANUP-PROTECT",
@@ -2701,12 +3196,18 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/helpers",
+      "verification": "tests/helpers and tests/workflow-parity (worktree-cleanup, worktree-cleanup-authorize)",
       "tests": [
         "gen.audit",
-        "scripts.wta-recent"
-      ],
-      "coverageGap": "The audit is tested. No test runs the cleanup playbook against a dirty or active worktree and checks that nothing is deleted."
+        "scripts.wta-recent",
+        "wf.worktree-cleanup",
+        "wf.worktree-cleanup.dirty",
+        "wf.worktree-cleanup.pinned",
+        "wf.worktree-cleanup-authorize",
+        "wf.worktree-cleanup-authorize.auth.dirty",
+        "wf.worktree-cleanup-authorize.auth.pinned",
+        "wf.worktree-cleanup-authorize.auth.after"
+      ]
     },
     {
       "id": "FORGE-RESOLUTION",
@@ -2738,7 +3239,16 @@
         "forge.unsupported",
         "forge.create",
         "forge.failures",
-        "forge.stdin"
+        "forge.stdin",
+        "wf.babysit-drive",
+        "wf.babysit-origin",
+        "wf.opening-a-pr",
+        "wf.shipping",
+        "wf.babysit-origin.origin.mixed",
+        "wf.babysit-drive.drive.noresolve",
+        "wf.opening-a-pr.open.twice",
+        "wf.opening-a-pr.open.draft",
+        "wf.opening-a-pr.open.body"
       ]
     },
     {
@@ -2763,12 +3273,19 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full)",
       "tests": [
         "forge.merge-auth",
-        "forge.stale"
+        "forge.stale",
+        "wf.autopilot-full",
+        "wf.autopilot-full.full.noverdict",
+        "wf.autopilot-full.full.self",
+        "wf.autopilot-full.full.pin",
+        "wf.autopilot-full.full.root",
+        "wf.autopilot-full.full.worktree",
+        "wf.autopilot-full.full.family"
       ],
-      "coverageGap": "No test runs the root coordination layer, one owner per PR, or the swarm verification of an autopilot run."
+      "coverageGap": "Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised."
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",
@@ -2792,8 +3309,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs autopilot-stack.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-autopilot.test.ts (autopilot-stack)",
+      "tests": [
+        "wf.autopilot-stack",
+        "wf.autopilot-stack.stack.merge",
+        "wf.autopilot-stack.stack.auto",
+        "wf.autopilot-stack.stack.push",
+        "wf.autopilot-stack.stack.base"
+      ]
     },
     {
       "id": "AUTOPILOT-HOLD",
@@ -2817,8 +3340,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test sends a hold to a fleet.",
-      "tests": []
+      "verification": "tests/workflow-parity/pr-autopilot.test.ts (autopilot-hold)",
+      "tests": [
+        "wf.autopilot-hold",
+        "wf.autopilot-hold.hold.one",
+        "wf.autopilot-hold.hold.tool",
+        "wf.autopilot-hold.hold.write",
+        "wf.autopilot-hold.hold.order"
+      ]
     },
     {
       "id": "ORCHESTRATE-TOPOLOGY",
@@ -2844,7 +3373,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/nested-spawn.test.ts and spawn-depth.test.ts",
+      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts",
       "tests": [
         "nest.subcoordinator",
         "depth.two",
@@ -2854,9 +3383,16 @@
         "sem.orch-sub",
         "nest.registers-spawn",
         "nest.registers-worker",
-        "sem.nested-spawn"
+        "sem.nested-spawn",
+        "wf.orchestrate",
+        "wf.orchestrate.orch.second",
+        "wf.orchestrate.orch.spawn",
+        "wf.orchestrate.orch.family",
+        "wf.orchestrate.orch.abort",
+        "wf.orchestrate.orch.bare",
+        "wf.orchestrate.orch.first"
       ],
-      "coverageGap": "No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run."
+      "coverageGap": "No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests."
     },
     {
       "id": "CONTAINER-WORKERS",
