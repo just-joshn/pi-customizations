@@ -98,7 +98,7 @@ export function realTmux(socket: string): string[] {
 }
 
 function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; socket: string } {
-  const sandbox = realpathSync(mkdtempSync(join(tmpdir(), `pstack-wf-${spec.family}-`)));
+  const sandbox = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-wf-')));
   const repo = join(sandbox, 'repo');
   const home = join(sandbox, 'home');
   const agentDir = join(home, '.pi', 'agent');
