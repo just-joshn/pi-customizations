@@ -1,3 +1,7 @@
+import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { SessionManager } from '@earendil-works/pi-coding-agent';
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
 import { type Entry, killTmuxServer, liveTmuxSessions, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, tmux, transcript, until, wakes, writeAssignment } from '../worker-lifecycle/harness.ts';
@@ -224,5 +228,65 @@ describe('wake delivery record', () => {
     );
     await sleep(600);
     expect(wakeIds()).toHaveLength(1);
+  });
+});
+
+describe('wake delivery on a real session tree', () => {
+  const realSession = () => {
+    const sessionDir = join(project.home, 'real-sessions');
+    mkdirSync(sessionDir, { recursive: true });
+    const session = SessionManager.create(project.dir, sessionDir);
+    const root = session.appendMessage({ role: 'user', content: 'start the run', timestamp: Date.now() });
+    makeRun(project, 'run2', session.getSessionFile() as string);
+    return { session, root };
+  };
+  const spawnIn = (parent: Parent, workerId: string, brief: string) => parent.call('pstack_worker', { action: 'spawn', runId: 'run2', assignmentPath: writeAssignment(project, 'run2', workerId, brief, { runId: 'run2' }) });
+  const branchWakes = (session: SessionManager) => session.getBranch().filter((entry) => entry.type === 'custom_message' && entry.customType === 'pstack-worker');
+
+  test('navigating the tree to before a wake makes the parent deliver it again on the new branch', async () => {
+    const { session, root } = realSession();
+    const parent = parentFor({ sessionManager: session });
+    await parent.start();
+    await spawnIn(parent, 'w1', '@@say DONE');
+    await until(
+      () => parent.messages.length,
+      (count) => count === 1,
+      20_000,
+      'first wake',
+    );
+    expect(branchWakes(session)).toHaveLength(1);
+
+    session.branch(root);
+    expect(branchWakes(session)).toHaveLength(0);
+    await parent.fire('session_tree', { newLeafId: root, oldLeafId: null, fromExtension: false });
+    await until(
+      () => branchWakes(session).length,
+      (count) => count === 1,
+      5_000,
+      'wake on the new branch',
+    );
+    await sleep(600);
+    expect(parent.messages).toHaveLength(2);
+    expect(new Set(parent.messages.map((entry) => entry.message.details?.transitionId)).size).toBe(1);
+  });
+
+  test('a parent reopened from the session file finds the wake on its branch and does not resend it', async () => {
+    const { session } = realSession();
+    const first = parentFor({ sessionManager: session });
+    await first.start();
+    await spawnIn(first, 'w2', '@@say DONE');
+    await until(
+      () => first.messages.length,
+      (count) => count === 1,
+      20_000,
+      'first wake',
+    );
+    await first.stop();
+
+    const reopened = SessionManager.open(session.getSessionFile() as string);
+    const second = parentFor({ sessionManager: reopened });
+    await second.start();
+    await sleep(600);
+    expect(second.messages).toHaveLength(0);
   });
 });

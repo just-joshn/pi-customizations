@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
 
-import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
+import type { ExtensionAPI, ExtensionContext, SessionManager } from '@earendil-works/pi-coding-agent';
 import { registerEvidenceTool } from '../../src/evidence.ts';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { registerWorkerTools, type WorkerToolOptions } from '../../src/workers.ts';
@@ -139,13 +139,15 @@ export interface Parent {
   call: (tool: string, params: Record<string, unknown>) => Promise<{ text: string; details: Details }>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
+  fire: (event: string, payload?: Record<string, unknown>) => Promise<void>;
 }
 
 /**
  * A parent Pi session as the extension sees it. `entries` is the session file: pass the same array to a second parent
  * to model a restart. With `persist: false`, sendMessage does not append (a follow-up still queued behind a turn).
+ * With `sessionManager`, a real Pi SessionManager is the session and sendMessage appends to it as Pi does.
  */
-export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number } = {}): Parent {
+export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager } = {}): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
   const messages: Parent['messages'] = [];
@@ -159,7 +161,8 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
         throw new Error('sendMessage failed');
       }
       messages.push({ message, options: sendOptions });
-      if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
+      if (options.sessionManager !== undefined) options.sessionManager.appendCustomMessageEntry(message.customType, message.content, true, message.details);
+      else if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
     },
     exec: async (command: string, args: string[], execOptions: { timeout?: number } = {}) => {
       try {
@@ -171,8 +174,10 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
       }
     },
   };
-  const sessionFile = options.sessionFile ?? project.sessionFile;
-  const ctx = { cwd: project.dir, model: undefined, sessionManager: { getSessionFile: () => sessionFile, getEntries: () => entries } } as unknown as ExtensionContext;
+  const sessionFile = options.sessionFile ?? options.sessionManager?.getSessionFile() ?? project.sessionFile;
+  // Without a real session, every entry is on the active branch.
+  const sessionManager = options.sessionManager ?? { getSessionFile: () => sessionFile, getEntries: () => entries, getBranch: () => entries };
+  const ctx = { cwd: project.dir, model: undefined, sessionManager } as unknown as ExtensionContext;
   registerWorkerTools(pi as unknown as ExtensionAPI, {
     tmuxSocket: TMUX,
     piCommand: [PI],
@@ -183,8 +188,8 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     ...options,
   });
   registerEvidenceTool(pi as unknown as ExtensionAPI);
-  const fire = async (event: string) => {
-    for (const handler of handlers.get(event) ?? []) await handler({ type: event, reason: 'startup' }, ctx);
+  const fire = async (event: string, payload: Record<string, unknown> = { reason: 'startup' }) => {
+    for (const handler of handlers.get(event) ?? []) await handler({ type: event, ...payload }, ctx);
   };
   return {
     ctx,
@@ -197,6 +202,7 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     },
     start: () => fire('session_start'),
     stop: () => fire('session_shutdown'),
+    fire,
   };
 }
 

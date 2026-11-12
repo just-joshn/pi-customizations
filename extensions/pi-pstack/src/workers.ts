@@ -133,9 +133,10 @@ async function liveSessions(pi: ExtensionAPI, socket: string): Promise<Set<strin
   );
 }
 
+/** Wakes on the active branch: from the root to the current leaf, the conversation the parent model sees. */
 function deliveredTransitions(ctx: ExtensionContext): Set<string> {
   const ids = new Set<string>();
-  for (const entry of ctx.sessionManager.getEntries()) {
+  for (const entry of ctx.sessionManager.getBranch()) {
     if (entry.type !== 'custom_message' || entry.customType !== WAKE_TYPE) continue;
     const id = (entry.details as { transitionId?: unknown } | undefined)?.transitionId;
     if (typeof id === 'string') ids.add(id);
@@ -270,7 +271,8 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
   const pollMs = options.pollMs ?? 1_000;
   const startupMs = options.startupMs ?? 30_000;
-  // Wakes this instance handed to Pi. A follow-up queued behind a running turn is not in the session entries yet.
+  // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
+  // not on the branch yet.
   const sent = new Set<string>();
   let current: { ctx: ExtensionContext; project: string } | undefined;
   let timer: NodeJS.Timeout | undefined;
@@ -325,7 +327,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   pi.on('session_start', async (_event, ctx) => {
+    sent.clear();
     watch(ctx);
+    await poll();
+  });
+  pi.on('session_tree', async () => {
+    sent.clear();
     await poll();
   });
   pi.on('session_shutdown', async () => {
