@@ -164,7 +164,7 @@ capabilities: {
 }
 ```
 
-Default: `{ mcp: 'inherit', env: 'inherit', externalWrite: false }` for engineering roles, and `{ mcp: 'none', env: 'minimal', externalWrite: false }` for automation-dispatched workers. A worker is automation-dispatched when its `run.json` has `parentSessionFile: null`. An explicit `capabilities` object must name `mcp`, `env`, and `externalWrite`; `spawn` is optional. `pstack_worker` spawn refuses `externalWrite: true`.
+Default: `{ mcp: 'inherit', env: 'inherit', externalWrite: false }` for engineering roles, and `{ mcp: 'none', env: 'minimal', externalWrite: false }` for automation-dispatched workers. A `container` workspace changes only `env`: it defaults to `'minimal'` (see Container workers), whichever the role, because an upstream cloud agent holds no host credentials beyond what it is given. A worker is automation-dispatched when its `run.json` has `parentSessionFile: null`. An explicit `capabilities` object must name `mcp`, `env`, and `externalWrite`; `spawn` is optional. `pstack_worker` spawn refuses `externalWrite: true`.
 
 Sub-coordinators. A worker with `capabilities.spawn: true` is a sub-coordinator for Orchestrate. It needs `workspace.mode: 'worktree'`, and the parser refuses `spawn: true` with any other workspace: it writes its workers' assignments, and a readonly worker can write nothing. The mechanics:
 
@@ -214,7 +214,7 @@ The container runs `/bin/sh -c <script> pstack-container node <pi> <args>` with 
 
 The container's environment is the worker's own (the snapshot, narrowed for `minimal` as for any worker) less names that describe the host: `PATH`, `HOME`, `TMPDIR`, `PWD`, `OLDPWD`, `SHELL`, `USER`, `LOGNAME`, `HOSTNAME`, `TMUX`, `TMUX_PANE`, `PI_CODING_AGENT_DIR`, and `DOCKER_*`, `XDG_*`, `SSH_*`. The docker client gets `PATH`, `HOME`, and `DOCKER_HOST`, `DOCKER_CONTEXT`, `DOCKER_CONFIG`, `DOCKER_CERT_PATH`, `DOCKER_TLS_VERIFY`, `DOCKER_API_VERSION`, which the snapshot carries for a container worker even under `minimal`, and which never reach the container. The clone's source URL, commit, branch, install command, and git identity travel as `PSTACK_CONTAINER_*` snapshot entries, because a remote URL can hold a token. The container's `--mount` arguments, name, and labels are non-secret and ride in the launch argument.
 
-Capabilities keep the engineering defaults for a container worker: `env: 'inherit'` passes the parent's whole environment, less the host-only names above, into the container. Assign `capabilities: { mcp: 'none', env: 'minimal', externalWrite: false }` to a worker that should hold only its provider credentials and the git tokens.
+A container worker's `env` defaults to `'minimal'`: the container holds the resolved provider's credential (see Model authentication), the capabilities the assignment names (see Forge access), `PSTACK_*`, and `LANG` and `TERM`, and nothing else of the parent's environment. `env: 'inherit'` is honored only when the assignment names it; it passes the parent's whole environment, less the host-only names above, into the container. The default applies when `capabilities` is omitted. An explicit `capabilities` object means what it says.
 
 ### Outputs
 

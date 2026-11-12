@@ -125,6 +125,9 @@ export const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'in
 /** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
 const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', externalWrite: false };
 
+/** A container worker holds only its provider credential and what it is explicitly given, as an upstream cloud agent holds no host credentials: its environment defaults to 'minimal'. */
+const defaultCapabilities = (role: Capabilities, workspace: Workspace): Capabilities => (workspace.mode === 'container' ? { ...role, env: 'minimal' } : role);
+
 function parseCapabilities(raw: unknown): Capabilities {
   if (
     !isRecord(raw) ||
@@ -194,7 +197,7 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];
   if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw['capabilities'] === undefined ? defaults.capabilities : parseCapabilities(raw['capabilities']);
+  const capabilities = raw['capabilities'] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw['capabilities']);
   if (capabilities.spawn === true && parsedWorkspace.mode !== 'worktree') throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[], capabilities };
   if (kind === 'pi') {

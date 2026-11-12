@@ -102,7 +102,7 @@ describe('a container worker', () => {
     mkdirSync(join(project.dir, '.pi'), { recursive: true });
     writeFileSync(join(project.dir, '.pi', 'Dockerfile'), 'FROM node:24-bookworm\nRUN echo from-the-built-image > /etc/pstack-environment\n');
     writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ build: { dockerfile: 'Dockerfile' }, install: 'echo installed-by-environment > .pstack-installed' }));
-    parent = makeContainerParent({ PSTACK_TEST_CREDENTIAL: SECRET });
+    parent = makeContainerParent({ PSTACK_TEST_CREDENTIAL: SECRET, HOST_ONLY_SENTINEL: 'host-env-value' });
     await parent.start();
     const dir = workerDir(project, RUN_ID, 'a');
     // The worker prints facts about its own world. Its brief is one scripted bash call.
@@ -255,6 +255,31 @@ describe('a container worker that fails while it starts', () => {
     for (const file of ['state.json', join('..', '..', 'events.jsonl')]) expect(readFileSync(join(dir, file), 'utf8')).not.toContain(SECRET);
     expect(readFileSync(join(dir, 'state.json'), 'utf8')).toContain('leaking ***');
     writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+  }, 180_000);
+});
+
+describe('the environment a container worker holds', () => {
+  const printed = (workerId: string) =>
+    transcript(project, RUN_ID, workerId)
+      .filter((line) => line.startsWith('assistant:RESULTS:'))
+      .join('\n');
+  const printEnv = `printf 'SENTINEL=%s CREDENTIAL=%s\\n' "$HOST_ONLY_SENTINEL" "$PSTACK_TEST_CREDENTIAL"`;
+
+  test('is minimal by default: the host environment stays out, the PSTACK_ variables stay in', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+    await spawn('minimal', `@@script ${JSON.stringify([{ tool: 'bash', args: { command: printEnv } }])}`);
+    await settled('minimal');
+
+    expect(printed('minimal')).toContain(`SENTINEL= CREDENTIAL=${SECRET}`);
+    await abort('minimal');
+  }, 180_000);
+
+  test('is the whole host environment, less what describes the host, only when the assignment names inherit', async () => {
+    await spawn('inherit', `@@script ${JSON.stringify([{ tool: 'bash', args: { command: printEnv } }])}`, { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: false } });
+    await settled('inherit');
+
+    expect(printed('inherit')).toContain(`SENTINEL=host-env-value CREDENTIAL=${SECRET}`);
+    await abort('inherit');
   }, 180_000);
 });
 

@@ -7206,6 +7206,7 @@ var WORKER_ROLES = ["poteto", "explorer", "investigator", "candidate", "judge", 
 var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
+var defaultCapabilities = (role, workspace) => workspace.mode === "container" ? { ...role, env: "minimal" } : role;
 function parseCapabilities(raw) {
   if (!isRecord2(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
     throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
@@ -7253,7 +7254,7 @@ function parseAssignment(raw, defaults) {
   const brief = raw["brief"];
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  const capabilities = raw["capabilities"] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw["capabilities"]);
   if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
     throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
