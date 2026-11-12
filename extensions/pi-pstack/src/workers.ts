@@ -603,6 +603,107 @@ const WorkerParams = Type.Object({
 
 const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as const, text: value }], details });
 
+/** What aborting a worker needs besides the worker: how to run tmux, which server, and how long to wait to learn whether a launch started. */
+export interface AbortContext {
+  exec: Exec;
+  socket: string;
+  startCheckMs: number;
+}
+
+const listedSessions = async ({ exec, socket }: AbortContext): Promise<string[]> => {
+  const listed = await exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
+  return listed.code === 0 ? listed.stdout.split('\n') : [];
+};
+
+/**
+ * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
+ * when the claimed session id still names the session created then, on the same server; anything else is left running.
+ */
+const endHostSession = async (context: AbortContext, loaded: LoadedAssignment, reason: string) => {
+  const owned = readTmuxIdentity(loaded.workerDir);
+  if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
+  const line = formatTmuxIdentity(owned);
+  if (!(await listedSessions(context)).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
+  // tmux checks the identity and kills in one server command, so the session cannot change in between.
+  const same = `#{&&:#{==:#{pid},${owned.serverPid}},#{&&:#{==:#{start_time},${owned.serverStarted}},#{==:#{session_created},${owned.created}}}}`;
+  await context.exec('tmux', ['-L', context.socket, 'if-shell', '-F', '-t', owned.sessionId, same, `kill-session -t ${owned.sessionId}`], { timeout: 10_000 });
+  return (await listedSessions(context)).includes(line) ? { disposition: 'refused', reason: `${reason}; tmux session ${line} did not end` } : { disposition: 'session-ended', reason };
+};
+
+/**
+ * Whether the host that claimed the worker can never run again: the session recorded in claim/tmux.json is gone from
+ * the server, and no live process has the claim's host pid with the host's start time. A host that may still be
+ * starting would read launch-env.json, so only then may the file go.
+ */
+const claimingHostGone = async (context: AbortContext, loaded: LoadedAssignment): Promise<boolean> => {
+  const claim = readClaim(loaded.workerDir);
+  const owned = readTmuxIdentity(loaded.workerDir);
+  if (claim === undefined || owned === undefined || (await listedSessions(context)).includes(formatTmuxIdentity(owned))) return false;
+  return claimedHostGone(claim.hostPid, claim.hostStarted);
+};
+
+/**
+ * A claim with no identity.json may belong to a spawn whose parent died before tmux started a host. When no host and
+ * no session by the worker's name appear within the wait, the worker is abandoned: its launch secrets are removed and
+ * its claim stays, so it is never spawned again. A fresh worker id is the retry.
+ */
+async function abortUnreachable(context: AbortContext, project: string, loaded: LoadedAssignment, reason: string) {
+  const { runId, workerId } = loaded.assignment;
+  const claimDir = join(loaded.workerDir, 'claim');
+  if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) {
+    const ended = await endHostSession(context, loaded, reason);
+    if (!existsSync(launchEnvPath(loaded.workerDir)) || !(await claimingHostGone(context, loaded))) return ended;
+    rmSync(launchEnvPath(loaded.workerDir), { force: true });
+    return { ...ended, reason: `${ended.reason}; the host that claimed the worker is gone, so its unread launch-env.json was removed` };
+  }
+  const check = await checkStart(context.exec, context.socket, tmuxSessionName(project, runId, workerId), loaded.workerDir, context.startCheckMs);
+  if (check.outcome === 'started') {
+    try {
+      return await controlHost(hostTarget(loaded), 'shutdown');
+    } catch (error) {
+      if (!(error instanceof HostUnavailableError)) throw error;
+      return endHostSession(context, loaded, error.message);
+    }
+  }
+  if (check.outcome === 'unknown') return { disposition: 'refused', reason: `${reason}; a tmux session by the worker's name exists but no host claimed the worker, so nothing was ended` };
+  rmSync(launchEnvPath(loaded.workerDir), { force: true });
+  appendEvent(loaded.runRoot, { runId, workerId, kind: 'abandoned', data: { reason } });
+  return { disposition: 'abandoned', reason: 'No host started for this claim. The claim stays, so the worker is never spawned again; retry with a fresh worker id' };
+}
+
+/** Removes the worker's container by label once abort has stopped its host, whichever way the host ended. */
+async function removeContainers(project: string, loaded: LoadedAssignment) {
+  if (loaded.assignment.workspace.mode !== 'container') return;
+  const { runId, workerId } = loaded.assignment;
+  // A worker with no claim never started a container, so there is nothing to remove.
+  if (!existsSync(join(loaded.workerDir, 'claim'))) return;
+  try {
+    const ids = await removeRecordedContainers(loaded.workerDir, tmuxSessionName(project, runId, workerId));
+    if (ids.length > 0) appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removed', data: { ids } });
+  } catch (error) {
+    appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removal_failed', data: { error: error instanceof Error ? error.message : String(error) } });
+  }
+}
+
+/**
+ * The `abort` action of pstack_worker: the host's `shutdown`, then, for a host that cannot be reached, the verified
+ * paths above (end the claimed tmux session, or abandon a claim no host ever took), then container removal, and the
+ * `abort` event with the receipt. Automation sources call this too, so a deadline reaches a worker the same way.
+ */
+export async function abortWorker(project: string, loaded: LoadedAssignment, options: { exec?: Exec; tmuxSocket?: string; startCheckMs?: number } = {}): Promise<unknown> {
+  const context: AbortContext = { exec: options.exec ?? nodeExec, socket: workerSocket(options.tmuxSocket), startCheckMs: options.startCheckMs ?? 10_000 };
+  let receipt: unknown;
+  try {
+    receipt = await controlHost(hostTarget(loaded), 'shutdown');
+  } catch (error) {
+    if (!(error instanceof HostUnavailableError)) throw error;
+    receipt = await abortUnreachable(context, project, loaded, error.message);
+  }
+  await removeContainers(project, loaded);
+  appendEvent(loaded.runRoot, { runId: loaded.assignment.runId, workerId: loaded.assignment.workerId, kind: 'abort', data: receipt });
+  return receipt;
+}
+
 /**
  * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, bash_readonly in a readonly workspace
  * (PSTACK_READONLY=1), and pstack_worker only for a sub-coordinator, the worker its parent spawned with
@@ -733,81 +834,6 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return result;
   };
 
-  const sessions = async () => {
-    const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
-    return listed.code === 0 ? listed.stdout.split('\n') : [];
-  };
-
-  /**
-   * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
-   * when the claimed session id still names the session created then, on the same server; anything else is left running.
-   */
-  const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
-    const owned = readTmuxIdentity(loaded.workerDir);
-    if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
-    const line = formatTmuxIdentity(owned);
-    if (!(await sessions()).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
-    // tmux checks the identity and kills in one server command, so the session cannot change in between.
-    const same = `#{&&:#{==:#{pid},${owned.serverPid}},#{&&:#{==:#{start_time},${owned.serverStarted}},#{==:#{session_created},${owned.created}}}}`;
-    await pi.exec('tmux', ['-L', socket, 'if-shell', '-F', '-t', owned.sessionId, same, `kill-session -t ${owned.sessionId}`], { timeout: 10_000 });
-    return (await sessions()).includes(line) ? { disposition: 'refused', reason: `${reason}; tmux session ${line} did not end` } : { disposition: 'session-ended', reason };
-  };
-
-  /**
-   * Whether the host that claimed the worker can never run again: the session recorded in claim/tmux.json is gone from
-   * the server, and no live process has the claim's host pid with the host's start time. A host that may still be
-   * starting would read launch-env.json, so only then may the file go.
-   */
-  const claimingHostGone = async (loaded: LoadedAssignment): Promise<boolean> => {
-    const claim = readClaim(loaded.workerDir);
-    const owned = readTmuxIdentity(loaded.workerDir);
-    if (claim === undefined || owned === undefined || (await sessions()).includes(formatTmuxIdentity(owned))) return false;
-    return claimedHostGone(claim.hostPid, claim.hostStarted);
-  };
-
-  /**
-   * A claim with no identity.json may belong to a spawn whose parent died before tmux started a host. When no host and
-   * no session by the worker's name appear within the wait, the worker is abandoned: its launch secrets are removed and
-   * its claim stays, so it is never spawned again. A fresh worker id is the retry.
-   */
-  const abortUnreachable = async (project: string, loaded: LoadedAssignment, reason: string) => {
-    const { runId, workerId } = loaded.assignment;
-    const claimDir = join(loaded.workerDir, 'claim');
-    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) {
-      const ended = await endHostSession(loaded, reason);
-      if (!existsSync(launchEnvPath(loaded.workerDir)) || !(await claimingHostGone(loaded))) return ended;
-      rmSync(launchEnvPath(loaded.workerDir), { force: true });
-      return { ...ended, reason: `${ended.reason}; the host that claimed the worker is gone, so its unread launch-env.json was removed` };
-    }
-    const check = await checkStart(exec, socket, tmuxSessionName(project, runId, workerId), loaded.workerDir, startCheckMs);
-    if (check.outcome === 'started') {
-      try {
-        return await controlHost(hostTarget(loaded), 'shutdown');
-      } catch (error) {
-        if (!(error instanceof HostUnavailableError)) throw error;
-        return endHostSession(loaded, error.message);
-      }
-    }
-    if (check.outcome === 'unknown') return { disposition: 'refused', reason: `${reason}; a tmux session by the worker's name exists but no host claimed the worker, so nothing was ended` };
-    rmSync(launchEnvPath(loaded.workerDir), { force: true });
-    appendEvent(loaded.runRoot, { runId, workerId, kind: 'abandoned', data: { reason } });
-    return { disposition: 'abandoned', reason: 'No host started for this claim. The claim stays, so the worker is never spawned again; retry with a fresh worker id' };
-  };
-
-  /** Removes the worker's container by label once abort has stopped its host, whichever way the host ended. */
-  const removeContainers = async (project: string, loaded: LoadedAssignment) => {
-    if (loaded.assignment.workspace.mode !== 'container') return;
-    const { runId, workerId } = loaded.assignment;
-    // A worker with no claim never started a container, so there is nothing to remove.
-    if (!existsSync(join(loaded.workerDir, 'claim'))) return;
-    try {
-      const ids = await removeRecordedContainers(loaded.workerDir, tmuxSessionName(project, runId, workerId));
-      if (ids.length > 0) appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removed', data: { ids } });
-    } catch (error) {
-      appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removal_failed', data: { error: error instanceof Error ? error.message : String(error) } });
-    }
-  };
-
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
     try {
       return { available: true, state: await inspectHost(hostTarget(loaded)) };
@@ -848,15 +874,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        let receipt: unknown;
-        try {
-          receipt = await controlHost(hostTarget(loaded), 'shutdown');
-        } catch (error) {
-          if (!(error instanceof HostUnavailableError)) throw error;
-          receipt = await abortUnreachable(project, loaded, error.message);
-        }
-        await removeContainers(project, loaded);
-        appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
+        const receipt = await abortWorker(project, loaded, { exec, tmuxSocket: socket, startCheckMs });
         return text(`Aborted worker ${workerId}.`, receipt);
       }
       const inspected = await inspectWorker(loaded);
