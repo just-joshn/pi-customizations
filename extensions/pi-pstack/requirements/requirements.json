@@ -1267,7 +1267,6 @@
       "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
       "name": "a container worker a worktree worker keeps the inherit default"
     },
-<<<<<<< HEAD
     "bn.attachments.1": {
       "file": "tests/automation/attachments.test.ts",
       "name": "the event keeps what a download needs from each Slack file, and the brief's event block does not carry the private link"
@@ -2015,7 +2014,7 @@
     "bn.verdict-wait.8": {
       "file": "tests/automation/verdict-wait.test.ts",
       "name": "the settler's own polling dispatches a waiting case once its verdict is posted"
-=======
+    },
     "hl.print": {
       "file": "tests/workflow-parity/headless.test.ts",
       "name": "headless-print scripted run: every check passes"
@@ -2175,7 +2174,6 @@
     "wf.why": {
       "file": "tests/workflow-parity/investigation.test.ts",
       "name": "why scripted run: every check passes"
->>>>>>> pstack/native-u16c
     }
   },
   "structural": [
