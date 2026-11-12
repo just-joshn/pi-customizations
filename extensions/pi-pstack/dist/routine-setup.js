@@ -291,6 +291,15 @@ function parseTmuxIdentity(text) {
   const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
   return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
 }
+function readClaim(workerDir) {
+  const path = join2(workerDir, "claim", "identity.json");
+  if (!existsSync2(path))
+    return;
+  const raw = readJson(path);
+  if (!isRecord(raw) || typeof raw["instance"] !== "string")
+    throw new Error(`${path}: malformed claim`);
+  return raw;
+}
 
 // src/worker-host.ts
 import { execFileSync, spawn } from "node:child_process";
@@ -1067,6 +1076,27 @@ var nodeExec = async (command, args, options) => {
     return { stdout: failure.stdout ?? "", stderr: failure.stderr ?? String(error), code: typeof failure.code === "number" ? failure.code : 1, killed: failure.killed === true };
   }
 };
+async function checkStart(exec, socket, session, workerDir, waitMs) {
+  const deadline = Date.now() + waitMs;
+  for (;; ) {
+    const listed = await exec("tmux", ["-L", socket, "list-panes", "-a", "-F", `#{session_name} #{pane_pid} ${TMUX_IDENTITY_FORMAT}`], { timeout: 5000 });
+    const noServer = listed.code !== 0 && /no server running|error connecting|No such file/.test(listed.stderr);
+    const rows = listed.code === 0 ? listed.stdout.split(`
+`).map((line) => line.split(" ")).filter(([name]) => name === session) : [];
+    let claim;
+    try {
+      claim = readClaim(workerDir);
+    } catch {}
+    if (claim !== undefined) {
+      const row = rows.find(([, panePid]) => panePid === String(claim.hostPid));
+      return { outcome: "started", identity: row === undefined ? undefined : parseTmuxIdentity(row.slice(2).join(" ")) };
+    }
+    const sessionPresent = rows.length > 0 || listed.code !== 0 && !noServer || existsSync4(join4(workerDir, "claim", "identity.json"));
+    if (Date.now() >= deadline)
+      return sessionPresent ? { outcome: "unknown" } : { outcome: "not-started" };
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
 var parentlessModel = ({ model, thinkingLevel }) => {
   if (model === "inherit-parent")
     return null;
@@ -1118,27 +1148,37 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     throw error;
   }
   const secrets = launchEnvPath(loaded.workerDir);
-  let started;
-  try {
-    writeFileSync3(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
-    started = await exec("tmux", ["-L", socket, "new-session", "-d", "-P", "-F", TMUX_IDENTITY_FORMAT, "-s", session, "-c", loaded.workerDir, "--", nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
-      timeout: 1e4
-    });
-    if (started.code !== 0)
-      throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
-  } catch (error) {
+  const release = (error) => {
     rmSync(claimDir, { recursive: true, force: true });
-    throw error;
-  }
-  const tmuxIdentity = parseTmuxIdentity(started.stdout);
-  if (tmuxIdentity === undefined)
-    throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
-  writeFileSync3(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
-  appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: "spawn", data: { tmuxSession: session, model: launch.model } });
+    return error;
+  };
   const target = hostTarget(loaded);
-  const deadline = Date.now() + startupMs;
   let state;
   try {
+    try {
+      writeFileSync3(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
+    } catch (error) {
+      throw release(error);
+    }
+    const started = await exec("tmux", ["-L", socket, "new-session", "-d", "-P", "-F", TMUX_IDENTITY_FORMAT, "-s", session, "-c", loaded.workerDir, "--", nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+      timeout: 1e4
+    }).catch((error) => ({ stdout: "", stderr: error instanceof Error ? error.message : String(error), code: 1, killed: true }));
+    if (started.code !== 0 && !started.killed)
+      throw release(new Error(`tmux could not start ${session}: ${started.stderr.trim()}`));
+    let tmuxIdentity = started.code === 0 ? parseTmuxIdentity(started.stdout) : undefined;
+    if (tmuxIdentity === undefined) {
+      const check = await checkStart(exec, socket, session, loaded.workerDir, options.startCheckMs ?? 1e4);
+      const lost = `tmux gave no session identity for ${session} (${(started.stderr || started.stdout).trim()})`;
+      if (check.outcome === "not-started")
+        throw release(new Error(`${lost}, and no host started or claimed it within the wait: the worker did not start and its claim is released`));
+      if (check.outcome === "unknown")
+        throw new Error(`${lost}; a session by that name exists but no host claimed the worker, so whether it started is unknown. The claim stays: abort it, or spawn a fresh worker id. Attach: ${attach(session)}`);
+      tmuxIdentity = check.identity;
+    }
+    if (tmuxIdentity !== undefined)
+      writeFileSync3(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
+    appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: "spawn", data: { tmuxSession: session, model: launch.model } });
+    const deadline = Date.now() + startupMs;
     while (Date.now() < deadline) {
       state = await inspectHost(target).catch(() => {
         return;
