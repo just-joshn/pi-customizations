@@ -68,6 +68,14 @@ const collect = (workerId: string) => parent.call('pstack_worker', { action: 'co
 const abort = (workerId: string) => parent.call('pstack_worker', { action: 'abort', runId: RUN_ID, workerId });
 const sessionOf = (workerId: string) => tmuxSessionName(project.dir, RUN_ID as never, workerId as never);
 const containersOf = (workerId: string) => docker('ps', '--all', '--quiet', '--filter', `label=pstack.worker=${sessionOf(workerId)}`).then((out) => out.split('\n').filter(Boolean));
+/** Waits for the host to record a settle without collecting it: a collected settle owes the parent no wake. */
+const settledUncollected = (workerId: string) =>
+  until(
+    async () => ((await parent.call('pstack_worker', { action: 'inspect', runId: RUN_ID, workerId })).details.state?.settles ?? []).length,
+    (count) => count > 0,
+    90_000,
+    `${workerId} to settle`,
+  );
 const settled = (workerId: string) =>
   until(
     async () => (await collect(workerId)).details.settled,
@@ -122,7 +130,7 @@ describe('a container worker', () => {
     ];
     const command = [...facts, `echo report-from-container > ${dir}/report.md`, `echo evidence-from-container > ${dir}/evidence/check.txt`].join(' ; ');
     await spawn('a', `@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`, { capabilities: { mcp: 'none', env: 'inherit', externalWrite: false } });
-    await settled('a');
+    await settledUncollected('a');
     const text = transcript(project, RUN_ID, 'a')
       .filter((line) => line.startsWith('assistant:RESULTS:'))
       .join('\n');
@@ -131,12 +139,6 @@ describe('a container worker', () => {
   }, 240_000);
 
   test('runs a scripted prompt through the real host and settles, collectable with its report and evidence', async () => {
-    const result = await collect('a');
-
-    expect(result.details).toMatchObject({ settled: true, available: true, phase: 'idle', lastSettle: { phase: 'idle' } });
-    expect(result.details.report).toBe('report-from-container\n');
-    expect(result.details.evidence).toEqual(['check.txt']);
-    expect(result.details.finalText).toContain('RESULTS:');
     await until(
       () => wakes(parent).map((wake) => wake?.phase),
       (phases) => phases.length === 1,
@@ -144,6 +146,12 @@ describe('a container worker', () => {
       'settle wake',
     );
     expect(wakes(parent).map((wake) => wake?.phase)).toEqual(['idle']);
+    const result = await collect('a');
+
+    expect(result.details).toMatchObject({ settled: true, available: true, phase: 'idle', lastSettle: { phase: 'idle' } });
+    expect(result.details.report).toBe('report-from-container\n');
+    expect(result.details.evidence).toEqual(['check.txt']);
+    expect(result.details.finalText).toContain('RESULTS:');
     expect(await liveTmuxSessions()).toContain(sessionOf('a'));
   });
 
