@@ -1287,9 +1287,9 @@
       "file": "tests/workflow-parity/mcp.test.ts",
       "name": "why-no-mcp scripted run: every check passes"
     },
-    "mcp.defect": {
-      "file": "tests/workflow-parity/mcp.test.ts",
-      "name": "why-mcp known product defect: why-mcp.readonly-investigator-reaches-mcp"
+    "cm.compose": {
+      "file": "tests/workflow-parity/codemode.test.ts",
+      "name": "codemode scripted run: every check passes"
     }
   },
   "structural": [
@@ -2086,8 +2086,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No pstack test exercises Codemode.",
-      "tests": []
+      "verification": "tests/workflow-parity/codemode.test.ts runs codemode scripts against a stdio MCP server in the parent and in a pstack worker on the real pi binary",
+      "tests": [
+        "cm.compose"
+      ]
     },
     {
       "id": "MX-MODEL-ROUTING",

@@ -1360,3 +1360,26 @@ Negative cases, each of which must FAIL the named checks:
 - the reply cites what no tool returned → `why-no-mcp.citations-come-from-tool-output`
 - the reply drops the missing-coverage line → `why-no-mcp.citations-come-from-tool-output`
 
+## codemode
+
+codemode composes concurrent tool calls with isolated results, in the parent and in a worker (MX-CODEMODE)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `codemode.parent-isolated` | in the parent, each concurrent call's result lands in its own slot: three labels in order, the error result flagged only on its own slot, the missing tool rejected only on its own | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.parent-concurrent` | the parent's three 700 ms calls ran at the same time: the server received all three within 300 ms, and the script took under 1500 ms | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-isolated` | in the worker, each concurrent call's result lands in its own slot: three labels in order, the error result flagged only on its own slot, the missing tool rejected only on its own | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-concurrent` | the worker's three 700 ms calls ran at the same time: the server received all three within 300 ms, and the script took under 1500 ms | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-ran-codemode` | the worker is a pstack worker with its own worktree that ran codemode itself | `generated/skills/swarm/SKILL.md:27` |
+| `codemode.sessions-do-not-share` | the parent and the worker each ran their own MCP server process, and no label crossed from one to the other | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.large-output-is-bounded` | a 60000 character tool result with max_output_tokens 200 reaches the model truncated with the full text saved to a file, and a script that reduces it returns only a summary | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- two parent results swapped slots → `codemode.parent-isolated`
+- the worker calls ran one after another → `codemode.worker-concurrent`
+- a worker label appeared in the parent → `codemode.worker-isolated`, `codemode.sessions-do-not-share`
+- the large result reached the model whole → `codemode.large-output-is-bounded`
+- the worker was readonly, with no codemode → `codemode.worker-ran-codemode`
+
