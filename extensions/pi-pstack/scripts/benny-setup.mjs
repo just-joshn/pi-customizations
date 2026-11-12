@@ -11,6 +11,8 @@ import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
 import { mergeBennySettings } from '../src/automation/settings.ts';
+import { loadBennyConfig } from '../src/automation/configuration.ts';
+import { controlSkillProblem, featureMapProblem } from '../src/automation/control-adapter.ts';
 import { createAutomation } from '../adapters/automation-events.ts';
 import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
 
@@ -76,6 +78,20 @@ async function harmlessTestEvent() {
   }
 }
 
+/** What still stops each automation from acting on the project's own configuration. Informational: setup succeeds either way. */
+function readiness(root) {
+  const result = {};
+  for (const kind of ['triage', 'reproduce']) {
+    try {
+      const config = loadBennyConfig(root, kind);
+      result[kind] = { config: 'ok', tracker: config.tracker.type, featureMap: featureMapProblem(root, config.control.featureMapPath) ?? 'ok', controlSkill: controlSkillProblem(config.control.skillName) ?? 'ok' };
+    } catch (error) {
+      result[kind] = { config: error.message };
+    }
+  }
+  return result;
+}
+
 const { values } = parseArgs({ options: { project: { type: 'string' }, name: { type: 'string', default: 'benny-triage' }, credentials: { type: 'string' } } });
 if (values.project === undefined) {
   console.error('usage: benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]');
@@ -102,6 +118,7 @@ const credential = readCredential(credentialFile, 'key');
 report.connector = { webhookSecret: credential.ok ? 'present, 0600' : credential.reason };
 report.sameUidLimit = SAME_UID_LIMIT;
 report.testEvent = await harmlessTestEvent();
+report.readiness = readiness(project);
 
 console.log(JSON.stringify(report, null, 2));
 process.exit(report.testEvent.ok ? 0 : 1);

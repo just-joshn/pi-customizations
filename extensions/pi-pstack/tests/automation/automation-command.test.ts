@@ -70,10 +70,10 @@ test('a webhook routine starts as a watch worker running routine-setup --serve, 
   expect(await statusUntil('nightly', (text) => text.includes('not running'))).toContain('source-1 (watch, watcher): stopped; tmux session gone');
 });
 
-test('Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe', async () => {
+test('Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case whose tracker has no shipped adapter', async () => {
   mkdirSync(join(project, '.pi', 'benny'), { recursive: true });
   // A real Slack channel id: the template's placeholder has underscores, which the event parser refuses.
-  writeFileSync(join(project, '.pi/benny/configuration.yaml'), readFileSync(join(PKG, 'automations/benny/templates/configuration.example.yaml'), 'utf8').replace('"SOURCE_CHANNEL_ID"', '"CTEST123"'));
+  writeFileSync(join(project, '.pi/benny/configuration.yaml'), readFileSync(join(PKG, 'automations/benny/templates/configuration.example.yaml'), 'utf8').replace('"SOURCE_CHANNEL_ID"', '"CTEST123"').replace('type: "github"\n  repo: "example-org/example-repo"', 'type: "linear"\n  adapter_skill_name: "x"\n  team: "t"\n  project: "p"\n  status: "s"'));
   const key = 'k'.repeat(40);
   credential('benny-triage', 'key', key);
   await fake.pstack('automation start benny-triage');
