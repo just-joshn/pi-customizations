@@ -49,6 +49,7 @@ export const babysitDriveFamily: Family = {
   title: 'babysit drive on GitHub: conflict reported not resolved, then threads, then CI, one fresh build for a verified flake, stop at READY, never merge (spec 13.2)',
   spec: {
     family: 'babysit-drive',
+    holdWatchers: /^watch-[1-4]$/,
     runId: DRIVE_RUN,
     history: cartHistory,
     timeoutMs: 240_000,
@@ -590,6 +591,7 @@ export const babysitOriginFamily: Family = {
   title: 'babysit drive on Origin: origin pr commands only, a check watch instead of watch-pr, stops at the Origin merge-ready condition without GitHub verdicts, never merges (spec 13.2)',
   spec: {
     family: 'babysit-origin',
+    holdWatchers: /^watch-origin$/,
     runId: ORIGIN_RUN,
     history: cartHistory,
     timeoutMs: 120_000,
@@ -694,6 +696,7 @@ export const babysitBackgroundFamily: Family = {
   title: 'babysit background: the watcher is armed and the plan keeps executing, the parent is woken by the verdict and stops at READY without merging (spec 13.2)',
   spec: {
     family: 'babysit-background',
+    holdWatchers: /^watch-bg$/,
     runId: BG_RUN,
     history: cartHistory,
     timeoutMs: 120_000,
@@ -877,6 +880,7 @@ export const babysitFlakeTwiceFamily: Family = {
   title: 'babysit CI: a flake gets one fresh build, an identical second failure is reclassified from the logs, never retried again, and reported to the owner (spec 13.2)',
   spec: {
     family: 'babysit-flake-twice',
+    holdWatchers: /^watch-[12]$/,
     runId: TWICE_RUN,
     history: cartHistory,
     timeoutMs: 120_000,

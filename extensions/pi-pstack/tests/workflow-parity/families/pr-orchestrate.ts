@@ -84,6 +84,7 @@ export const orchestrateFamily: Family = {
   title: 'orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)',
   spec: {
     family: 'orchestrate',
+    holdWatchers: /^watch-52$/,
     runId: RUN,
     history: cartHistory,
     timeoutMs: 480_000,

@@ -60,6 +60,8 @@ export interface RunSpec {
   /** Extra environment for the Pi process, applied last: a fake forge on PATH, a container engine, a scenario a container can read. */
   env?: (ctx: Ctx, driver: 'scripted' | 'real') => Record<string, string>;
   timeoutMs?: number;
+  /** Watch workers whose id matches hold the run open while they run, because the scenario waits for their exit. Other watches never do. */
+  holdWatchers?: RegExp;
 }
 
 export const SCRIPTED_ROLES: ModelRoles = {
@@ -201,7 +203,7 @@ class Rpc {
 
 const WORKING = new Set(['starting', 'running', 'cancelling', 'stopping']);
 
-function workerPhases(repo: string): string[] {
+function workerPhases(repo: string, hold?: RegExp): string[] {
   const runs = join(repo, '.pi', 'pstack', 'runs');
   if (!existsSync(runs)) return [];
   return readdirSync(runs).flatMap((runId) => {
@@ -210,7 +212,7 @@ function workerPhases(repo: string): string[] {
     return readdirSync(workers).flatMap((id) => {
       const assignment = join(workers, id, 'assignment.json');
       // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
-      if (existsSync(assignment) && (JSON.parse(readFileSync(assignment, 'utf8')) as Json)['kind'] === 'watch') return [];
+      if (existsSync(assignment) && (JSON.parse(readFileSync(assignment, 'utf8')) as Json)['kind'] === 'watch' && !hold?.test(id)) return [];
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
       if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
@@ -293,7 +295,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
       let workerSignature = '';
       while (true) {
         await sleep(300);
-        const signature = JSON.stringify(workerPhases(ctx.repo));
+        const signature = JSON.stringify(workerPhases(ctx.repo, spec.holdWatchers));
         if (rpc.events.length !== seen || signature !== workerSignature) {
           seen = rpc.events.length;
           workerSignature = signature;
@@ -303,7 +305,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
         if (Date.now() - quietSince < 2_500) continue;
         const parent = ((await rpc.request({ type: 'get_state' }))['data'] ?? {}) as Json;
         const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
-        if (idle && !workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) return true;
+        if (idle && !workerPhases(ctx.repo, spec.holdWatchers).some((phase) => WORKING.has(phase))) return true;
       }
     };
     for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {

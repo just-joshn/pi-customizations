@@ -168,6 +168,7 @@ const shippingSpec = (id: string, runId: string, store: typeof SHIP_STORE, scena
   runId,
   history: cartHistory,
   timeoutMs: 420_000,
+  holdWatchers: /^watch-ceiling$/,
   prepare: (ctx) => prepareStack(ctx, store, (c) => scenarioOf(c, store), extra),
   env: (ctx, driver) => forgeEnv(ctx, store.handle as ForgeHandle, { container: true, scripted: driver === 'scripted' }),
   cleanup: () => removeRunContainers(runId),
