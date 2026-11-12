@@ -7,6 +7,8 @@ export default defineConfig({
     pool: 'forks',
     isolate: true,
     testTimeout: 60_000,
+    globalSetup: ['tests/global-tmux.ts'],
+    env: { PSTACK_TMUX_SOCKET: `pstack-test-run-${process.pid}` },
     exclude: [...configDefaults.exclude, 'skills/**', 'automations/**', 'docs/**', 'vendor/**', 'generated/**'],
     coverage: {
       provider: 'v8',

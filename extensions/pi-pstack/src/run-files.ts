@@ -259,7 +259,8 @@ export function loadAssignment(path: string): LoadedAssignment {
 export const LIVE_PHASES = ['starting', 'idle', 'running', 'cancelling', 'stopping'] as const;
 export const TERMINAL_PHASES = ['stopped', 'failed', 'exited'] as const;
 export type HostPhase = (typeof LIVE_PHASES)[number] | (typeof TERMINAL_PHASES)[number];
-export type SettlePhase = 'idle' | 'failed' | 'aborted' | 'exited';
+/** 'handled': an extension command answered the prompt and no run started. */
+export type SettlePhase = 'idle' | 'handled' | 'failed' | 'aborted' | 'exited';
 export type WakePhase = SettlePhase | 'unavailable';
 
 export interface Settle {

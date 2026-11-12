@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   appendEvent,
+  type Capabilities,
   controlSocketPath,
   type HostPhase,
   type HostState,
@@ -94,8 +95,20 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   };
 }
 
+/**
+ * The worker's whole environment before the PSTACK_* identity variables, as the parent writes it to launch-env.json:
+ * everything the parent has for env 'inherit', and for 'minimal' every allowed name, null where the parent has none.
+ * The host builds the child's environment from this alone, never from its own, which tmux gave it from whatever
+ * environment the tmux server started with.
+ */
+export function launchEnvironment(mode: Capabilities['env'], credentialEnv: readonly string[], source: Record<string, string | undefined>): Record<string, string | null> {
+  if (mode === 'inherit') return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith('PSTACK_'))]);
+  return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
+}
+
 /** Reads the parent's launch-env.json once and unlinks it, so the values exist only in this process from here on. */
-function takeLaunchEnv(workerDir: string): Record<string, string> {
+function takeLaunchEnv(workerDir: string): Record<string, string | null> {
   const path = launchEnvPath(workerDir);
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   let raw: unknown;
@@ -107,16 +120,16 @@ function takeLaunchEnv(workerDir: string): Record<string, string> {
     closeSync(fd);
     unlinkSync(path);
   }
-  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== 'string')) throw new Error(`${path} must map variable names to strings`);
-  return raw as Record<string, string>;
+  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[^=\0]+$/.test(name) || (typeof value !== 'string' && value !== null))) throw new Error(`${path} must map variable names to strings or null`);
+  return raw as Record<string, string | null>;
 }
 
-/** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
-function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string>, inherited: NodeJS.ProcessEnv): Record<string, string> {
-  const all = { ...inherited, ...launchEnv };
-  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
+/** The worker's environment before the PSTACK_* identity variables: the parent's snapshot, narrowed again for env 'minimal'. */
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string | null>): Record<string, string> {
+  const present = Object.entries(launchEnv).filter((entry): entry is [string, string] => entry[1] !== null);
+  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(present);
   const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
-  return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
+  return Object.fromEntries(present.filter(([name]) => allowed.has(name) || name.startsWith('PSTACK_')));
 }
 
 export function validateControl(value: unknown, loaded: LoadedAssignment, instance: string): ControlRequest {
@@ -224,8 +237,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let acknowledged = 0;
   // Prompt request id to the generation it carries, until Pi answers it, even after its deadline.
   const unacknowledged = new Map<string, number>();
-  // get_state request id to the outcome of the agent_settled that sent it.
-  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null }>();
+  // get_state request id to the outcome its quiescence check records. A run's own settle records even when no new
+  // generation is outstanding; any other check records only to cover acknowledged work no settle covers yet.
+  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null; always: boolean }>();
+  // The outcome of the latest agent_settled while no settle has recorded it, because Pi was not quiescent yet.
+  let unrecorded: { phase: SettlePhase; reason: string | null } | undefined;
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -272,6 +288,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
+    unrecorded = undefined;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
@@ -292,7 +309,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -356,6 +373,17 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         reject(error);
       });
     });
+  /** Asks Pi whether it is quiescent; the response branch records the settle when it is. */
+  const checkQuiescence = (outcome: { phase: SettlePhase; reason: string | null; always: boolean }) => {
+    const id = nextRequestId();
+    quiescenceChecks.set(id, outcome);
+    request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
+      quiescenceChecks.delete(id);
+      if (!childExited && phase !== 'stopping') void fail(error);
+    });
+  };
+  /** After a quiescent transition that is not a run's settle: covers acknowledged work no settle covers yet. */
+  const recheck = (fallback: { phase: SettlePhase; reason: string | null }) => checkQuiescence({ ...(unrecorded ?? fallback), always: false });
   const closeChild = async () => {
     if (childExited) return closed;
     if (assignment.kind === 'watch') signalChild('SIGTERM');
@@ -453,12 +481,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
-      const id = nextRequestId();
-      quiescenceChecks.set(id, { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) });
-      request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
-        quiescenceChecks.delete(id);
-        if (!childExited && phase !== 'stopping') void fail(error);
-      });
+      unrecorded = { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) };
+      checkQuiescence({ ...unrecorded, always: true });
+    } else if (type === 'compaction_end' || type === 'auto_retry_end') {
+      // Either can end after the run's agent_settled found Pi busy; no other settle may follow.
+      recheck({ phase: 'idle', reason: null });
     } else if (type === 'response') {
       const id = typeof record['id'] === 'string' ? record['id'] : undefined;
       const success = record['success'] === true;
@@ -466,10 +493,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const carried = id === undefined ? undefined : unacknowledged.get(id);
       if (id !== undefined && carried !== undefined) {
         unacknowledged.delete(id);
-        // A rejected or handled prompt joins no run, so no settle will cover it.
-        if (success && !(isRecord(data) && data['disposition'] === 'handled')) acknowledged = Math.max(acknowledged, carried);
+        if (success) acknowledged = Math.max(acknowledged, carried);
+        // A rejected prompt is no work. A handled one ran as a command and joins no run, so its settle comes from here.
         else if (generation === carried) generation -= 1;
         save();
+        if (success && isRecord(data) && data['disposition'] === 'handled') recheck({ phase: 'handled', reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
@@ -477,7 +505,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         // Pi is quiescent: no run active and nothing queued, so every acknowledged prompt has run to this settle.
         // Otherwise the settle covers nothing and the next one decides. A shutdown records its own single settle.
         const quiescent = success && isRecord(data) && data['isStreaming'] === false && data['pendingMessageCount'] === 0;
-        if (quiescent && phase !== 'stopping' && !isTerminal(phase)) settle(check.phase, check.reason, acknowledged);
+        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
+        if (quiescent && phase !== 'stopping' && !isTerminal(phase) && (check.always || outstanding)) settle(check.phase, check.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {
@@ -548,6 +577,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         if (after['isStreaming'] === true || after['pendingMessageCount'] !== 0) throw new Error('Cancellation did not reach quiescence');
         phase = 'idle';
         save();
+        recheck({ phase: 'aborted', reason: 'Run cancelled' });
         return { disposition: 'cancelled', removed, wasStreaming: before['isStreaming'] === true };
       }
       const before = phase;

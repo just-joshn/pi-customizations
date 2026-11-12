@@ -3,7 +3,7 @@
 // it reconciles against the destination.
 import { execFileSync } from 'node:child_process';
 
-import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker } from '../src/automation/dispatch.ts';
+import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
 import { AUTOMATION_KINDS, eligibleTrackerAction, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
 import { enqueue, flushOutbox, type ThreadDestination, type TrackerDestination } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
@@ -19,7 +19,8 @@ export interface AutomationConfig extends DispatchConfig {
 }
 
 export interface AutomationDeps {
-  spawnWorker: SpawnWorker;
+  /** Defaults to a tmux worker started as pstack_worker starts one. */
+  spawnWorker?: SpawnWorker;
   tracker?: TrackerDestination;
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
   trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent) => Promise<TrackerEligibility>;
@@ -77,6 +78,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const now = deps.now ?? (() => new Date());
   const stamp = () => now().toISOString();
   const inputCommit = deps.inputCommit ?? gitHead(config.projectRoot);
+  const spawnWorker = deps.spawnWorker ?? spawnInTmux(config.projectRoot);
   let queue: Promise<unknown> = Promise.resolve();
   const serial = <T>(work: () => Promise<T>): Promise<T> => {
     const next = queue.then(work);
@@ -100,7 +102,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? '', AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? '')) return reject('missing, untrusted or ambiguous triage marker');
     }
     const runId = runIdFor(config.name, key);
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker: deps.spawnWorker, inputCommit, now });
+    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };

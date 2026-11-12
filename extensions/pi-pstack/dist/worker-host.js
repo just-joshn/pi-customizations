@@ -233,6 +233,12 @@ function parseLaunch(text) {
     credentialEnv
   };
 }
+function launchEnvironment(mode, credentialEnv, source) {
+  if (mode === "inherit")
+    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined));
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
+  return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
+}
 function takeLaunchEnv(workerDir) {
   const path = launchEnvPath(workerDir);
   const fd = openSync2(path, constants2.O_RDONLY | constants2.O_NOFOLLOW);
@@ -246,16 +252,16 @@ function takeLaunchEnv(workerDir) {
     closeSync2(fd);
     unlinkSync(path);
   }
-  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== "string"))
-    throw new Error(`${path} must map variable names to strings`);
+  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[^=\0]+$/.test(name) || typeof value !== "string" && value !== null))
+    throw new Error(`${path} must map variable names to strings or null`);
   return raw;
 }
-function workerEnv(loaded, launch, launchEnv, inherited) {
-  const all = { ...inherited, ...launchEnv };
+function workerEnv(loaded, launch, launchEnv) {
+  const present = Object.entries(launchEnv).filter((entry) => entry[1] !== null);
   if (loaded.assignment.capabilities.env === "inherit")
-    return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined));
+    return Object.fromEntries(present);
   const allowed = new Set([...MINIMAL_ENV, ...launch.credentialEnv]);
-  return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith("PSTACK_"))));
+  return Object.fromEntries(present.filter(([name]) => allowed.has(name) || name.startsWith("PSTACK_")));
 }
 function validateControl(value, loaded, instance) {
   if (!isRecord2(value))
@@ -356,6 +362,7 @@ async function runHost(assignmentFile, launchText) {
   let acknowledged = 0;
   const unacknowledged = new Map;
   const quiescenceChecks = new Map;
+  let unrecorded;
   let settles = [];
   let childPid = null;
   let stderrTail = "";
@@ -401,6 +408,7 @@ async function runHost(assignmentFile, launchText) {
   const display = (kind, value) => process.stdout.write(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
 `);
   const settle = (settlePhase, why, covers = generation) => {
+    unrecorded = undefined;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
@@ -420,7 +428,7 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -486,6 +494,16 @@ async function runHost(assignmentFile, launchText) {
       reject(error);
     });
   });
+  const checkQuiescence = (outcome) => {
+    const id = nextRequestId();
+    quiescenceChecks.set(id, outcome);
+    request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
+      quiescenceChecks.delete(id);
+      if (!childExited && phase !== "stopping")
+        fail(error);
+    });
+  };
+  const recheck = (fallback) => checkQuiescence({ ...unrecorded ?? fallback, always: false });
   const closeChild = async () => {
     if (childExited)
       return closed;
@@ -592,13 +610,10 @@ async function runHost(assignmentFile, launchText) {
       const aborted = record["aborted"] === true;
       if (phase === "running")
         phase = "idle";
-      const id = nextRequestId();
-      quiescenceChecks.set(id, { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null });
-      request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
-        quiescenceChecks.delete(id);
-        if (!childExited && phase !== "stopping")
-          fail(error);
-      });
+      unrecorded = { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null };
+      checkQuiescence({ ...unrecorded, always: true });
+    } else if (type === "compaction_end" || type === "auto_retry_end") {
+      recheck({ phase: "idle", reason: null });
     } else if (type === "response") {
       const id = typeof record["id"] === "string" ? record["id"] : undefined;
       const success = record["success"] === true;
@@ -606,17 +621,20 @@ async function runHost(assignmentFile, launchText) {
       const carried = id === undefined ? undefined : unacknowledged.get(id);
       if (id !== undefined && carried !== undefined) {
         unacknowledged.delete(id);
-        if (success && !(isRecord2(data) && data["disposition"] === "handled"))
+        if (success)
           acknowledged = Math.max(acknowledged, carried);
         else if (generation === carried)
           generation -= 1;
         save();
+        if (success && isRecord2(data) && data["disposition"] === "handled")
+          recheck({ phase: "handled", reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
-        if (quiescent && phase !== "stopping" && !isTerminal(phase))
+        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
+        if (quiescent && phase !== "stopping" && !isTerminal(phase) && (check.always || outstanding))
           settle(check.phase, check.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
@@ -694,6 +712,7 @@ async function runHost(assignmentFile, launchText) {
           throw new Error("Cancellation did not reach quiescence");
         phase = "idle";
         save();
+        recheck({ phase: "aborted", reason: "Run cancelled" });
         return { disposition: "cancelled", removed, wasStreaming: before["isStreaming"] === true };
       }
       const before = phase;
@@ -844,6 +863,7 @@ export {
   HOST_OPERATIONS,
   MAX_CONTROL_BYTES,
   MAX_INSTRUCTION_BYTES,
+  launchEnvironment,
   parseLaunch,
   piArgs,
   runHost,

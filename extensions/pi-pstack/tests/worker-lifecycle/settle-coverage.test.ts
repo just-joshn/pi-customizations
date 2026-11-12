@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
-import { FAKE_PI, killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, sleep, stopProject, until, workerDir, writeAssignment } from './harness.ts';
+import { FAKE_PI, killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, sleep, stopProject, tmux, until, workerDir, writeAssignment } from './harness.ts';
 
 let project: Project;
 let parent: Parent;
@@ -59,4 +59,35 @@ test.for([
     'the steer settles',
   );
   expect(done.finalText).toBe('TWO');
+});
+
+test('a settle answered while Pi is still busy is recorded when the compaction that kept it busy ends', async () => {
+  await spawn('w3', '@@settle-busy ONE');
+  expect(
+    await until(
+      () => collect('w3'),
+      (result) => result.settled === true,
+      5_000,
+      'the run settles after compaction_end',
+    ),
+  ).toMatchObject({ lastSettle: { phase: 'idle', generation: 1 }, finalText: 'ONE' });
+});
+
+test("a cancel whose run settled before Pi was quiescent records the abort when the host's cancel completes", async () => {
+  await spawn('w4', '@@hold-late ONE');
+  const { tmuxSession } = await until(
+    () => state('w4'),
+    (current) => current.phase === 'running',
+    10_000,
+    'held run',
+  );
+  await tmux('send-keys', '-t', tmuxSession, 'cancel', 'Enter');
+  expect(
+    await until(
+      () => collect('w4'),
+      (result) => result.settled === true,
+      5_000,
+      'the cancelled run settles',
+    ),
+  ).toMatchObject({ lastSettle: { phase: 'aborted', generation: 1 } });
 });
