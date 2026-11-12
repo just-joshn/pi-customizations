@@ -230,21 +230,64 @@ const OTHER_CAUSES: readonly [RegExp, string][] = [
   [/No test files found|No tests found|no tests (were )?(found|run)|collected 0 items|Ran 0 tests|^\s*Tests\s+0\b|\b0 tests? (run|found|executed)/im, 'zero tests ran'],
   [/Segmentation fault|core dumped|Unhandled (rejection|exception)|FATAL ERROR|panic:|JavaScript heap out of memory/i, 'a crash'],
 ];
-const FAILURE_MARK = /\b(FAIL|FAILED|failed|not ok|AssertionError|AssertionFailed|Assertion failed)\b|[×✗✖❌]/;
+const FAILURE_MARK = /\b(FAIL|FAILED|failed|not ok|AssertionError|AssertionFailed|Assertion failed)\b|[×✗✖❌✕]/;
 const PASS_MARK = /^\s*(✓|√|✔|PASS\b|ok\b)|\bpassed\b/;
+/** The line that opens one test's result in the runners' text output: vitest and jest, node:test spec and TAP, mocha, pytest, go test, and cargo. */
+const RESULT_HEADER = /^\s*(?:(?:--- )?(?:FAIL|FAILED|PASS|PASSED)\b|(?:not )?ok\s+\d+|[✓√✔✕×✗✖❌●]|\d+\)\s|-{3,} .+ -{3,}$|_{3,} .+ _{3,}$|test .+ \.\.\. (?:ok|FAILED)\b)/;
+/** Headers that only ever introduce a failure's own section. */
+const FAILURE_SECTION = /^\s*(?:●|\d+\)\s|-{3,} |_{3,} )/;
 
-/** Why a recorded run does not prove its named tests failed for the stated reason; empty when it does. `crashed` marks a failure of some other cause. */
-export function expectedFailProblems(output: string, tests: readonly string[], reason: string): { problems: string[]; otherCause: boolean } {
+/** One failing test's own result: what names it and the text its failure holds. */
+interface FailedResult {
+  label: string;
+  detail: string;
+}
+
+/** The failed assertions of a Vitest or Jest JSON results file, each with only its own failure messages. */
+function failedInJson(output: string): FailedResult[] | undefined {
+  let report: unknown;
+  try {
+    report = JSON.parse(output);
+  } catch {
+    return undefined;
+  }
+  const files = (report as { testResults?: unknown } | null)?.testResults;
+  if (!Array.isArray(files)) return undefined;
+  const results = files.flatMap((file: { assertionResults?: unknown }) => (Array.isArray(file.assertionResults) ? file.assertionResults : [])) as { fullName?: string; title?: string; status?: string; failureMessages?: unknown }[];
+  return results.filter((result) => result.status === 'failed').map((result) => ({ label: `${result.fullName ?? ''}\n${result.title ?? ''}`, detail: Array.isArray(result.failureMessages) ? result.failureMessages.join('\n') : '' }));
+}
+
+/** Splits text output at each test's result line. Each block runs to the next result line, so a failure message stays with the test it came from. */
+function resultBlocks(output: string): { header: string; text: string }[] {
+  const lines = output.split('\n');
+  const starts = lines.flatMap((line, index) => (RESULT_HEADER.test(line) ? [index] : []));
+  return starts.map((start, i) => ({ header: lines[start] as string, text: lines.slice(start, starts[i + 1] ?? lines.length).join('\n') }));
+}
+
+const isFailureHeader = (header: string): boolean => !PASS_MARK.test(header) && (FAILURE_MARK.test(header) || FAILURE_SECTION.test(header));
+
+/**
+ * Why a recorded run does not prove its named tests failed for the stated reason; empty when it does. A test counts as failing only when
+ * its own result says so, and the reason must be in that test's own failure: the runner's JSON results when the artifact is one, else the
+ * test's own result block. `otherCause` marks a failure of some other cause. `ambiguous` marks output with no per-test results at all, which
+ * cannot tie any failure to a name and so proves nothing either way.
+ */
+export function expectedFailProblems(output: string, tests: readonly string[], reason: string): { problems: string[]; otherCause: boolean; ambiguous: boolean } {
   const problems: string[] = [];
   const causes = OTHER_CAUSES.filter(([pattern]) => pattern.test(output)).map(([, label]) => label);
   if (causes.length > 0) problems.push(`the recorded output shows ${causes.join(' and ')}, not a test failing`);
-  const lines = output.split('\n');
-  for (const name of tests) {
-    const failed = lines.some((line, index) => line.includes(name) && !PASS_MARK.test(line) && lines.slice(index, index + 6).some((near) => FAILURE_MARK.test(near)));
-    if (!failed) problems.push(`the recorded output does not show "${name}" failing`);
+  const blocks = resultBlocks(output);
+  const structured = failedInJson(output);
+  const failed: FailedResult[] = structured ?? blocks.filter((block) => isFailureHeader(block.header)).map((block) => ({ label: block.header, detail: block.text }));
+  const ambiguous = causes.length === 0 && structured === undefined && blocks.length === 0;
+  if (!ambiguous) {
+    for (const name of tests) {
+      const own = failed.filter((entry) => entry.label.includes(name));
+      if (own.length === 0) problems.push(`the recorded output does not show "${name}" failing`);
+      else if (!own.some((entry) => entry.detail.includes(reason))) problems.push(`the recorded output shows "${name}" failing, but its own failure does not contain the stated reason "${reason}"`);
+    }
   }
-  if (!output.includes(reason)) problems.push(`the recorded output does not contain the stated reason "${reason}"`);
-  return { problems, otherCause: causes.length > 0 };
+  return { problems, otherCause: causes.length > 0, ambiguous };
 }
 
 function readArtifactsText(base: string, receipt: Receipt): string {
@@ -288,8 +331,9 @@ export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, targ
       else if (expectedFail && receipt.expectedFailReason === undefined) unverifiable.push(`${receipt.id}: an expected-fail pass must state why the named tests fail in expectedFailReason`);
       else if (expectedFail && receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: an expected-fail pass needs the failing command's output as an artifact, to confirm the named tests failed`);
       else if (expectedFail && !defects.some((defect) => defect.startsWith(`${receipt.id}: artifact`))) {
-        const { problems } = expectedFailProblems(readArtifactsText(base, receipt), receipt.expectedFailTests ?? [], receipt.expectedFailReason ?? '');
+        const { problems, ambiguous } = expectedFailProblems(readArtifactsText(base, receipt), receipt.expectedFailTests ?? [], receipt.expectedFailReason ?? '');
         for (const problem of problems) defects.push(`${receipt.id}: expected failure not confirmed: ${problem}`);
+        if (ambiguous) unverifiable.push(`${receipt.id}: the output has no per-test results, so no failure or reason can be tied to the named tests; record the runner's JSON or TAP results, or its normal per-test output, as the artifact`);
       }
       else if (!expectedFail && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself; for an intended failing-before proof set expectedFail: true`);
       else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);

@@ -135,6 +135,64 @@ describe('pstack_evidence', () => {
       expect(await verifyRed(id, log)).toMatchObject({ kind: 'fail', defects: expect.arrayContaining([expect.stringContaining(word === 'zero tests' ? 'zero tests ran' : 'not a test failing')]) });
     });
 
+    describe('the failure and its reason belong to the named test', () => {
+      const NAME = 'redirects to the page the user asked for';
+      const REASON = "expected '/login' to equal '/orders'";
+      const named = (log: string, fields: Record<string, unknown> = {}) => verifyRed(`r${Math.random().toString(36).slice(2, 8)}`, log, fields);
+      const notShown = { kind: 'fail', defects: [expect.stringContaining(`does not show "${NAME}" failing`)] };
+      const reasonElsewhere = { kind: 'fail', defects: [expect.stringContaining('stated reason')] };
+
+      test('a test that is only listed, while another test fails for the reason, is not shown failing', async () => {
+        expect(await named(`Discovered tests: ${NAME}\n FAIL  different.test.ts > unrelated behavior\nAssertionError: ${REASON}\n`)).toMatchObject(notShown);
+      });
+
+      test('the named test failing for a different reason, while another test fails for the stated one, is refused', async () => {
+        expect(await named(` FAIL  a.test.ts > ${NAME}\nAssertionError: boom\n FAIL  b.test.ts > unrelated\nAssertionError: ${REASON}\n`)).toMatchObject(reasonElsewhere);
+      });
+
+      test('a later unrelated failure that states the reason does not lend it to the named test, whichever order they print in', async () => {
+        expect(await named(` FAIL  b.test.ts > unrelated\nAssertionError: ${REASON}\n FAIL  a.test.ts > ${NAME}\nAssertionError: boom\n`)).toMatchObject(reasonElsewhere);
+      });
+
+      test('a named test that passed, beside another that failed for the reason, is not shown failing', async () => {
+        expect(await named(` ✓ ${NAME}\n × other behavior\nAssertionError: ${REASON}\n`)).toMatchObject(notShown);
+      });
+
+      test('vitest default output: the failure block of the named test holds the reason', async () => {
+        const log = ` ❯ redirect.test.ts (2 tests | 1 failed) 3ms\n   × ${NAME} 2ms\n\n⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  redirect.test.ts > ${NAME}\nAssertionError: ${REASON} // Object.is equality\n ❯ redirect.test.ts:3:73\n\n Tests  1 failed | 1 passed (2)\n`;
+        expect(await named(log)).toMatchObject({ kind: 'pass' });
+      });
+
+      const TAP = (reasonOfNamed: string, reasonOfOther: string) => `TAP version 13\n# Subtest: keeps the path\nok 1 - keeps the path\n  ---\n  duration_ms: 0.3\n  ...\n# Subtest: ${NAME}\nnot ok 2 - ${NAME}\n  ---\n  failureType: 'testCodeFailure'\n  error: |-\n    ${reasonOfNamed}\n  ...\n# Subtest: unrelated behavior\nnot ok 3 - unrelated behavior\n  ---\n  error: |-\n    ${reasonOfOther}\n  ...\n1..3\n# fail 2\n`;
+      test('node:test TAP: the error of the named test is its own', async () => {
+        expect(await named(TAP(REASON, 'boom'))).toMatchObject({ kind: 'pass' });
+        expect(await named(TAP('boom', REASON))).toMatchObject(reasonElsewhere);
+      });
+
+      test('node:test spec output: the failing-tests section holds the error under the named test', async () => {
+        const spec = (own: string, other: string) => `✔ keeps the path (0.3ms)\n✖ ${NAME} (0.5ms)\n✖ unrelated behavior (0.4ms)\nℹ tests 3\nℹ fail 2\n\n✖ failing tests:\n\ntest at test/a.test.js:4:1\n✖ ${NAME} (0.5ms)\n  AssertionError [ERR_ASSERTION]: ${own}\n\ntest at test/a.test.js:5:1\n✖ unrelated behavior (0.4ms)\n  AssertionError [ERR_ASSERTION]: ${other}\n`;
+        expect(await named(spec(REASON, 'boom'))).toMatchObject({ kind: 'pass' });
+        expect(await named(spec('boom', REASON))).toMatchObject(reasonElsewhere);
+      });
+
+      test('a JSON results file ties the failure messages to the named test', async () => {
+        const json = (own: string, other: string) => JSON.stringify({ numFailedTests: 2, testResults: [{ name: '/p/a.test.ts', assertionResults: [{ fullName: 'keeps the path', title: 'keeps the path', status: 'passed', failureMessages: [] }, { fullName: NAME, title: NAME, status: 'failed', failureMessages: [`AssertionError: ${own}\n    at /p/a.test.ts:3:7`] }, { fullName: 'unrelated behavior', title: 'unrelated behavior', status: 'failed', failureMessages: [`AssertionError: ${other}`] }] }] });
+        expect(await named(json(REASON, 'boom'))).toMatchObject({ kind: 'pass' });
+        expect(await named(json('boom', REASON))).toMatchObject(reasonElsewhere);
+        expect(await named(JSON.stringify({ testResults: [{ assertionResults: [{ fullName: NAME, title: NAME, status: 'passed', failureMessages: [] }] }] }))).toMatchObject(notShown);
+      });
+
+      test('pytest and go test one-line and block results', async () => {
+        expect(await named(`FAILED tests/test_redirect.py::${NAME} - AssertionError: ${REASON}\n`)).toMatchObject({ kind: 'pass' });
+        expect(await named(`--- FAIL: ${NAME} (0.00s)\n    redirect_test.go:12: ${REASON}\nFAIL\n`)).toMatchObject({ kind: 'pass' });
+        expect(await named(`--- FAIL: unrelated (0.00s)\n    redirect_test.go:12: ${REASON}\n--- FAIL: ${NAME} (0.00s)\n    redirect_test.go:20: boom\nFAIL\n`)).toMatchObject(reasonElsewhere);
+      });
+
+      test('output with no per-test results cannot tie the failure to the test, so it is inconclusive, not a pass or a fail', async () => {
+        expect(await named(`${NAME}: ${REASON}\n`)).toMatchObject({ kind: 'inconclusive', reason: expect.stringContaining('per-test') });
+      });
+    });
+
     test('fail when the artifact changed after recording', async () => {
       await evidence({ action: 'record', receiptPath: redReceipt('red', RED_LOG) });
       writeFileSync(join(runRoot, 'workers', 'w1', 'evidence', 'red.log'), 'tampered\n');
