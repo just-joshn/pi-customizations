@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 163,
-    "spans": 227
+    "rules": 166,
+    "spans": 231
   },
   "skills": [
     "architect",
@@ -516,6 +516,24 @@
       }
     },
     {
+      "id": "multi-phase-plan.bugbot-triage-path",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 1
+      }
+    },
+    {
+      "id": "multi-phase-plan.shipping-path",
+      "primitives": [
+        "upstream-repo-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md": 2
+      }
+    },
+    {
       "id": "multi-phase-plan.repo-path",
       "primitives": [
         "upstream-repo-path"
@@ -756,6 +774,15 @@
       "id": "worktree-cleanup.background",
       "primitives": [
         "await-shell"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
+      }
+    },
+    {
+      "id": "worktree-cleanup.audit-path",
+      "primitives": [
+        "upstream-repo-path"
       ],
       "files": {
         "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
@@ -3099,7 +3126,7 @@
         96
       ],
       "original": "**Defaults for every `Task` call.** `run_in_background: true` (a steer or resume of a running agent too, because a foreground call holds your turn while other reports wait), agent mode (readonly strips MCP), file pointers not inlined context,",
-      "replacement": "**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write `brief.md` and `assignment.json` under `.pi/pstack/runs/<runId>/workers/<workerId>/` and call `pstack_worker` with `{ action: \"spawn\", runId, assignmentPath }`. The assignment's `role` picks the role instruction: `poteto`, `explorer`, `investigator`, `candidate`, `judge`, `verifier`, `reviewer`, `owner`, `watcher`, `comment-sicko`, or `general`. Its `workspace` is `{ mode: \"worktree\", inputCommit }` for a writable worker or `{ mode: \"readonly\", path }` for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`, and MCP tools. `bash_readonly` is an OS-sandboxed read-only shell that allows `git`, `gh`, and network reads and blocks writes. Its `model` is a model spec or `inherit-parent`. Its `capabilities` default to `{ mcp: \"inherit\", env: \"inherit\", externalWrite: false }`, with `spawn` false. A default written as a family and level, such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A `pstack-worker` wake message reports each worker that settles. Then call `collect` for its report. Use `inspect` for live state, `steer` to redirect a live worker, and `abort` to stop one. A worker has no `pstack_worker` tool by default, so it does delegated work itself. A worker you assign `capabilities.spawn: true` has `pstack_worker` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get `capabilities.spawn: true`. A container worker has `workspace: { mode: \"container\", inputCommit }` and runs a writable clone inside the container that `.pi/environment.json` configures. Spawn refuses it with `ContainerUnavailable` until a container environment is installed. Then a step that names a local fallback uses it, and a step without one reports itself blocked. A watch loop is a `pstack_worker` spawn with `kind: \"watch\"`. Its `watch.argv` runs in tmux, and its exit wakes you. A fixed interval uses `[\"sleep\", \"<seconds>\"]`, and an event uses the watcher's command. A watch fires once. Spawn it again after each wake until the stop predicate holds. After a parent restart, re-arm each open watch loop from the run's `TODO.md` or plan, because nothing spawns it again on its own. The model rule is `~/.pi/agent/pstack/models.json`, and each of its role keys is a line.\n\n**Defaults for every `pstack_worker` spawn.** Keep working after the spawn returns (a `steer` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use `workspace.mode: \"worktree\"` unless the step asks for a readonly worker, file pointers not inlined context,",
+      "replacement": "**Workers.** A subagent here is a pstack worker: an independent Pi process in tmux. To spawn one, write `brief.md` and `assignment.json` under `.pi/pstack/runs/<runId>/workers/<workerId>/` and call `pstack_worker` with `{ action: \"spawn\", runId, assignmentPath }`. Every assignment has `schemaVersion: 1`, `runId`, `workerId`, `kind` (`\"pi\"` for a Pi worker, `\"watch\"` for a watch), `role`, `model`, `thinkingLevel`, `workspace`, and `skills`. `skills` and `thinkingLevel` are required even when empty, so write `[]` when the brief names no skill and `null` when the model takes its default level. A `\"pi\"` worker adds `brief: \"brief.md\"`, and a watch adds `watch: { argv, cwd }` with an absolute `cwd` and an absolute path for any script in `argv`. `references/worker-assignment.md` holds one complete example per workspace mode and kind, so start from the closest one. The assignment's `role` picks the role instruction: `poteto`, `explorer`, `investigator`, `candidate`, `judge`, `verifier`, `reviewer`, `owner`, `watcher`, `comment-sicko`, or `general`. Its `workspace` is `{ mode: \"worktree\", inputCommit }` for a writable worker or `{ mode: \"readonly\", path }`, with an absolute `path`, for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`, and MCP tools. `bash_readonly` is an OS-sandboxed read-only shell that allows `git`, `gh`, and network reads and blocks writes. Its `model` is a model spec or `inherit-parent`. Its `capabilities` default to `{ mcp: \"inherit\", env: \"inherit\", externalWrite: false }`, with `spawn` false. A default written as a family and level, such as `claude-opus-5-5-xhigh` or `grok-4.7-xhigh-fast`, means that family's model at that thinking level, fast variant included. Spawn returns at once with a tmux attach command. A `pstack-worker` wake message reports each worker that settles. Then call `collect` for its report. Use `inspect` for live state, `steer` to redirect a live worker, and `abort` to stop one. A worker has no `pstack_worker` tool by default, so it does delegated work itself. A worker you assign `capabilities.spawn: true` has `pstack_worker` within the depth limit of three levels (you, it, and its workers). It owns its children's runs and receives their wakes, and its own children cannot get `capabilities.spawn: true`. A container worker has `workspace: { mode: \"container\", inputCommit }` and runs a writable clone inside the container that `.pi/environment.json` configures. Spawn refuses it with `ContainerUnavailable` until a container environment is installed. Then a step that names a local fallback uses it, and a step without one reports itself blocked. A watch loop is a `pstack_worker` spawn with `kind: \"watch\"`. Its `watch.argv` runs in tmux in its `watch.cwd`, and its exit wakes you. A fixed interval uses `[\"sleep\", \"<seconds>\"]`, and an event uses the watcher's command. A watch fires once. Spawn it again after each wake until the stop predicate holds. After a parent restart, re-arm each open watch loop from the run's `TODO.md` or plan, because nothing spawns it again on its own. The model rule is `~/.pi/agent/pstack/models.json`, and each of its role keys is a line.\n\n**Defaults for every `pstack_worker` spawn.** Keep working after the spawn returns (a `steer` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use `workspace.mode: \"worktree\"` unless the step asks for a readonly worker, file pointers not inlined context,",
       "output": "generated/skills/poteto-mode/SKILL.md"
     },
     {
@@ -3219,7 +3246,7 @@
         124
       ],
       "original": "Open a todolist whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos. A step you choose not to do stays in the list with a one-line `skip: <reason>`.",
-      "replacement": "Start the run with `node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>`, where `<pi-pstack>` is the pi-pstack package root, three directories above this file. It writes the run's `TODO.md` under `.pi/pstack/runs/<runId>/`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under `## Task-specific work`. You are its only writer. Check a step as `- [x] N. <text> (evidence: <receipt id>)` once `pstack_evidence` `verify` passes for it. A step you choose not to do stays in the list as `- [~] N. <text> (skip: <reason>)`. A skill outside a playbook keeps its list under `## Task-specific work` in the active run's `TODO.md`. With no active run, it keeps the list in its reply and updates it at each phase.",
+      "replacement": "Start the run with `node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>`, where `<pi-pstack>` is the pi-pstack package root (`pi list` names it). It writes the run's `TODO.md` under `.pi/pstack/runs/<runId>/`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under `## Task-specific work`. You are its only writer. Check a step as `- [x] N. <text> (evidence: <receipt id>)` once `pstack_evidence` `verify` passes for it. A step you choose not to do stays in the list as `- [~] N. <text> (skip: <reason>)`. A skill outside a playbook keeps its list under `## Task-specific work` in the active run's `TODO.md`. With no active run, it keeps the list in its reply and updates it at each phase.",
       "output": "generated/skills/poteto-mode/SKILL.md"
     },
     {
@@ -3294,7 +3321,7 @@
         6
       ],
       "original": "Pick the wake mechanism using Cursor's `/loop` command (a built-in, not a pstack skill).",
-      "replacement": "Pick the wake mechanism as a watch loop (a `pstack_worker` spawn with `kind: \"watch\"`, per the Subagents section).",
+      "replacement": "Pick the wake mechanism as a watch loop, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"sleep\", \"<seconds>\"]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. A watch on an event puts the watcher's command, with absolute script paths, in place of `sleep` (the Subagents section).",
       "output": "generated/skills/poteto-mode/playbooks/autonomous-run.md"
     },
     {
@@ -3414,7 +3441,7 @@
         22
       ],
       "original": "On the operator's go, arm `/loop 1h` to audit until no delegated work is left, because long runs drift and agents stall silently.",
-      "replacement": "On the operator's go, arm an hourly watch loop to audit until no delegated work is left, because long runs drift and agents stall silently. Spawn a `kind: \"watch\"` worker with `watch.argv: [\"sleep\", \"3600\"]`, run the tick when it wakes you, and spawn a fresh one after each wake until no delegated work is left. After a parent restart, re-arm it from the run's `TODO.md`.",
+      "replacement": "On the operator's go, arm an hourly watch loop to audit until no delegated work is left, because long runs drift and agents stall silently. Spawn a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"sleep\", \"3600\"]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`, run the tick when it wakes you, and spawn a fresh one after each wake until no delegated work is left. After a parent restart, re-arm it from the run's `TODO.md`.",
       "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
     },
     {
@@ -3459,7 +3486,7 @@
         12
       ],
       "original": "Run `drive` and `background` under `/loop` in dynamic mode.",
-      "replacement": "Run `drive` and `background` under a watch loop whose `watch.argv` is the watcher command.",
+      "replacement": "Run `drive` and `background` under a watch loop, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"<pi-pstack>/generated/skills/poteto-mode/scripts/watch-pr/watch-pr\", <args>]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`.",
       "output": "generated/skills/poteto-mode/playbooks/babysit.md"
     },
     {
@@ -3474,7 +3501,7 @@
         8
       ],
       "original": "Drive a long or stubborn hunt with Cursor's `/loop` command.",
-      "replacement": "Drive a long or stubborn hunt with a watch loop (the Subagents section).",
+      "replacement": "Drive a long or stubborn hunt with a watch loop, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"sleep\", \"<seconds>\"]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. To wake on the hunt's own check, put that check, with absolute script paths, in place of `sleep` (the Subagents section).",
       "output": "generated/skills/poteto-mode/playbooks/bug-fix.md"
     },
     {
@@ -3744,7 +3771,7 @@
         41
       ],
       "original": "arm the audit tick as `/loop 1h` with the tick prompt below.",
-      "replacement": "arm the audit tick as an hourly watch loop with the tick prompt below. Spawn a `kind: \"watch\"` worker with `watch.argv: [\"sleep\", \"3600\"]`, run the tick when it wakes you, and spawn a fresh one after each wake until the plan's stop condition holds (every PR merged or at its handoff, or the operator's stand-down). After a parent restart, re-arm it from this plan.",
+      "replacement": "arm the audit tick as an hourly watch loop with the tick prompt below. Spawn a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"sleep\", \"3600\"]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`, run the tick when it wakes you, and spawn a fresh one after each wake until the plan's stop condition holds (every PR merged or at its handoff, or the operator's stand-down). After a parent restart, re-arm it from this plan.",
       "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
     },
     {
@@ -3779,6 +3806,21 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.bugbot-triage-path",
+      "offset": [
+        7693,
+        7725
+      ],
+      "lines": [
+        60,
+        60
+      ],
+      "original": "`../references/bugbot-triage.md`",
+      "replacement": "`<pi-pstack>/generated/skills/poteto-mode/references/bugbot-triage.md`",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
       "rule": "multi-phase-plan.repo-path",
       "offset": [
         8351,
@@ -3790,6 +3832,36 @@
       ],
       "original": "pstack/skills/",
       "replacement": "<pi-pstack>/generated/skills/",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.shipping-path",
+      "offset": [
+        9023,
+        9046
+      ],
+      "lines": [
+        66,
+        66
+      ],
+      "original": "`playbooks/shipping.md`",
+      "replacement": "`<pi-pstack>/generated/skills/poteto-mode/playbooks/shipping.md`",
+      "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md",
+      "rule": "multi-phase-plan.shipping-path",
+      "offset": [
+        9138,
+        9161
+      ],
+      "lines": [
+        67,
+        67
+      ],
+      "original": "`playbooks/shipping.md`",
+      "replacement": "`<pi-pstack>/generated/skills/poteto-mode/playbooks/shipping.md`",
       "output": "generated/skills/poteto-mode/playbooks/multi-phase-plan.md"
     },
     {
@@ -3969,7 +4041,7 @@
         5
       ],
       "original": "Spawn workers with `Task`. Keep the program's state in the Project tracker (`notes.md`) and the Project store. Watch each PR with PR and CI event subscriptions when your harness has them.",
-      "replacement": "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you. That watch is the harness event, not one of your scripts or polling loops.",
+      "replacement": "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"<pi-pstack>/generated/skills/poteto-mode/scripts/watch-pr/watch-pr\", <args>]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. Its exit wakes you. That watch is the harness event, not one of your scripts or polling loops.",
       "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
     },
     {
@@ -4014,7 +4086,7 @@
         12
       ],
       "original": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. Message a worker only for a follow-up on the same work. Never message one to check on it, because a message restarts an idle agent.",
-      "replacement": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. To fork, once that worker settles, spawn a fresh worker whose `workspace.inputCommit` is the source worker's worktree `HEAD`, with the source's report in its brief. Have the source commit its changes in its own worktree before it settles, and have the new brief restart any process the work needs, because neither carries over otherwise. Steer a worker only for a follow-up on the same work. Never steer one to check on it, because a steer starts a turn on an idle worker. Use `inspect` instead.",
+      "replacement": "**Fork when new work needs a worker's built state,** such as its checkout, uncommitted changes, or a running process. To fork, once that worker settles, spawn a fresh worker from the source's committed state, with the source's report in its brief. Have the source commit its changes before it settles, and have the new brief restart any process the work needs, because neither carries over otherwise. For a local worktree worker (`workspace.mode: \"worktree\"`), the new `workspace.inputCommit` is the source's worktree `HEAD`. A source in a container has a checkout that is not visible here, so its brief has it push its branch before it settles, and the new `workspace.inputCommit` is that pushed head. When the source has no pushed head, report the fork blocked. Steer a worker only for a follow-up on the same work. Never steer one to check on it, because a steer starts a turn on an idle worker. Use `inspect` instead.",
       "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
     },
     {
@@ -4119,7 +4191,7 @@
         9
       ],
       "original": "under `/loop` until it reports",
-      "replacement": "under a watch loop until it reports",
+      "replacement": "under a watch loop, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"<pi-pstack>/generated/skills/poteto-mode/scripts/watch-pr/watch-pr\", \"--queued-stack\", \"--stack-prs\", <bottom-to-top>]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`, until it reports",
       "output": "generated/skills/poteto-mode/playbooks/shipping.md"
     },
     {
@@ -4134,8 +4206,23 @@
         8
       ],
       "original": "`/loop` per component until the diff is zero.",
-      "replacement": "Loop per component until the diff is zero.",
+      "replacement": "Run a watch loop per component until the diff is zero.",
       "output": "generated/skills/poteto-mode/playbooks/visual-parity.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "rule": "worktree-cleanup.audit-path",
+      "offset": [
+        77,
+        144
+      ],
+      "lines": [
+        3,
+        3
+      ],
+      "original": "then run `scripts/worktree-audit.sh [-b <pr-base-ref>] [repo-path]`",
+      "replacement": "then run `<pi-pstack>/generated/skills/poteto-mode/scripts/worktree-audit.sh [-b <pr-base-ref>] [repo-path]` from the repository root",
+      "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
@@ -4164,7 +4251,7 @@
         3
       ],
       "original": "The transcript scan is slow, so background it.",
-      "replacement": "The transcript scan is slow, so run it as a watch (`kind: \"watch\"`, `watch.argv: [\"sh\", \"-c\", \"scripts/worktree-audit.sh <args> > <file>\"]`), keep working, and read `<file>` when its exit wakes you.",
+      "replacement": "The transcript scan is slow, so run it as a watch, a `kind: \"watch\"` worker with `role: \"watcher\"`, `watch.argv: [\"sh\", \"-c\", \"<pi-pstack>/generated/skills/poteto-mode/scripts/worktree-audit.sh <args> > <absolute file>\"]`, and `watch.cwd: \"<absolute repository root>\"`, every other field as in the watch example of `<pi-pstack>/generated/skills/poteto-mode/references/worker-assignment.md`. Keep working, and read `<absolute file>` when its exit wakes you.",
       "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
     },
     {

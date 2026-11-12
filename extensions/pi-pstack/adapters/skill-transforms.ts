@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { parse } from 'yaml';
-import { AGENT_OUTPUTS, BUILTIN_COMMANDS, GENERAL_ROLE, KEEPS, type Keep, PRIMITIVES, type PrimitiveId, promptTemplate, RULES, type Rule } from './cursor-to-pi.ts';
+import { AGENT_OUTPUTS, BUILTIN_COMMANDS, GENERAL_ROLE, KEEPS, type Keep, PRIMITIVES, type PrimitiveId, promptTemplate, RULES, type Rule, WORKER_ASSIGNMENT_PATH, WORKER_ASSIGNMENT_REFERENCE } from './cursor-to-pi.ts';
 import { buildDependencyManifest, detectPrimitives, type Hit, lineAt } from './dependencies.ts';
 import { UPSTREAM, VENDOR_ROOTS } from './provenance.ts';
 
@@ -171,6 +171,7 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
     outputs.push({ path: output, source, text: transform(source, output, [stripFrontmatter(text, source)]) });
   }
   outputs.push({ path: 'generated/agents/general.md', source: null, text: GENERAL_ROLE });
+  outputs.push({ path: WORKER_ASSIGNMENT_PATH, source: null, text: WORKER_ASSIGNMENT_REFERENCE });
   for (const rule of rules) {
     for (const file of Object.keys(rule.files)) if (!touched.has(file)) problems.push(`rule ${rule.id} names ${file}, which the compile does not produce`);
   }
