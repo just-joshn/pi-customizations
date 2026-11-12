@@ -239,6 +239,13 @@ function rule(id: string, primitives: PrimitiveId | PrimitiveId[], files: string
 }
 
 export const RULES: readonly Rule[] = [
+  rule(
+    'statechart.installed-entry',
+    'cursor-path',
+    SK('statechart/scripts/statechart'),
+    'entry=$(dirname "$self")/statechart.ts',
+    'entry=$(dirname "$self")/../../../../dist/statechart.js',
+  ),
   rule('statechart.bundled-worker', 'cursor-path', SK('statechart/scripts/statechart.ts'),
     'path.join(import.meta.dirname, "worker.ts"),',
     'path.join(import.meta.dirname, import.meta.url.endsWith(".js") ? "worker.js" : "worker.ts"),',

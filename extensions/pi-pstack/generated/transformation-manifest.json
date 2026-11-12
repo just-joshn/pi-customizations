@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 179,
-    "spans": 244
+    "rules": 180,
+    "spans": 245
   },
   "skills": [
     "architect",
@@ -76,6 +76,15 @@
     "why"
   ],
   "rules": [
+    {
+      "id": "statechart.installed-entry",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/statechart": 1
+      }
+    },
     {
       "id": "statechart.bundled-worker",
       "primitives": [
@@ -5150,6 +5159,21 @@
       "original": "`~/.cursor/projects/*/`",
       "replacement": "`~/.pi/agent/sessions/*/`",
       "output": "generated/skills/show-me-your-work/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/statechart",
+      "rule": "statechart.installed-entry",
+      "offset": [
+        160,
+        198
+      ],
+      "lines": [
+        10,
+        10
+      ],
+      "original": "entry=$(dirname \"$self\")/statechart.ts",
+      "replacement": "entry=$(dirname \"$self\")/../../../../dist/statechart.js",
+      "output": "generated/skills/statechart/scripts/statechart"
     },
     {
       "file": "vendor/upstream-pstack/skills/statechart/scripts/statechart.ts",

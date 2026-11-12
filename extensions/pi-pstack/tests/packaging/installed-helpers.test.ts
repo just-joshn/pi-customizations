@@ -123,10 +123,7 @@ process.exit(fs.existsSync(exit) ? Number(fs.readFileSync(exit, 'utf8')) : 0);
   expect(result.stdout).toContain(`Wrote ${out}`);
 }
 
-// test.fails: generated/skills/statechart/scripts/statechart runs statechart.ts, and Node refuses to strip types under
-// node_modules (ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING). The removed skills/ copy ran a prebuilt statechart.js.
-// Known gap, docs/parity-status.md.
-test.fails('the installed statechart entry and worker render a custom view', () => {
+test('the installed statechart entry and worker render a custom view', () => {
   chart(installed);
 });
 

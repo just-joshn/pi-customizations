@@ -10,6 +10,8 @@ const helpers = [
   ['src/worker-host.ts', 'dist/worker-host.js'],
   ['src/automation/routine-cli.mjs', 'dist/routine-setup.js'],
   ['src/automation/serve-cli.ts', 'dist/automation-serve.js'],
+  ['generated/skills/statechart/scripts/statechart.ts', 'dist/statechart.js'],
+  ['generated/skills/statechart/scripts/worker.ts', 'dist/worker.js'],
 ];
 const check = process.argv.slice(2).includes('--check');
 
