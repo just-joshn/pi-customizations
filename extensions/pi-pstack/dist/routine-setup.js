@@ -1122,9 +1122,15 @@ var parentlessModel = ({ model, thinkingLevel }) => {
   const slash = model.indexOf("/");
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
+function workerSocket(explicit) {
+  const socket = explicit ?? process.env["PSTACK_TMUX_SOCKET"] ?? "pstack";
+  if (socket === "pstack" && process.env["VITEST"])
+    throw new Error("tests must not use the real pstack tmux server; set PSTACK_TMUX_SOCKET or pass tmuxSocket");
+  return socket;
+}
 async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const exec = options.exec ?? nodeExec;
-  const socket = options.tmuxSocket ?? "pstack";
+  const socket = workerSocket(options.tmuxSocket);
   const agentsDir = options.agentsDir ?? join4(PACKAGE_ROOT, "generated", "agents");
   const startupMs = options.startupMs ?? 30000;
   const attach = (session) => `tmux -L ${socket} attach -t ${session}`;

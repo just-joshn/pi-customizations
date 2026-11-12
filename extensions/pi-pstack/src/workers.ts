@@ -338,9 +338,16 @@ const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel 
  * The one way a worker starts, for pstack_worker and for automation runs alike: claim the assignment, hand the host
  * its launch environment, start it in tmux, wait for its handshake, and send the brief. The caller checks ownership.
  */
+/** The tmux server pstack workers live on. Under vitest the real `pstack` server is forbidden, so no test can touch a user's workers. */
+export function workerSocket(explicit?: string): string {
+  const socket = explicit ?? process.env['PSTACK_TMUX_SOCKET'] ?? 'pstack';
+  if (socket === 'pstack' && process.env['VITEST']) throw new Error('tests must not use the real pstack tmux server; set PSTACK_TMUX_SOCKET or pass tmuxSocket');
+  return socket;
+}
+
 export async function spawnAssignment(project: string, runId: RunId, assignmentPath: string, options: SpawnOptions = {}): Promise<SpawnResult> {
   const exec = options.exec ?? nodeExec;
-  const socket = options.tmuxSocket ?? 'pstack';
+  const socket = workerSocket(options.tmuxSocket);
   const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
   const startupMs = options.startupMs ?? 30_000;
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
@@ -442,7 +449,7 @@ const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as
 
 export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions = {}): void {
   const resolveModel = options.resolveModel ?? literalModelResolver;
-  const socket = options.tmuxSocket ?? 'pstack';
+  const socket = workerSocket(options.tmuxSocket);
   const pollMs = options.pollMs ?? 1_000;
   const startCheckMs = options.startCheckMs ?? 10_000;
   const exec: Exec = (command, args, execOptions) => pi.exec(command, args, execOptions);
