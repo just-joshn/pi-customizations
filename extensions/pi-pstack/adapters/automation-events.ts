@@ -39,8 +39,11 @@ export type HandleOutcome =
   | { status: 'dispatched'; key: EventKey; runId: RunId }
   | { status: 'duplicate'; key: EventKey; runId: RunId };
 
-/** `retrying`: an action is still pending and the next attempt is owed; the run stays pending and `complete` is called again. */
-export type CompleteOutcome = { status: 'queued' | 'already-queued' | 'retrying'; key: EventKey } | { status: 'refused'; reason: string };
+/**
+ * `retrying`: an action is still pending and the next attempt is owed; the run stays pending and `complete` is called again.
+ * `failed`: the reply could not land after the retry limit. The run is closed, and the log says what was compensated.
+ */
+export type CompleteOutcome = { status: 'queued' | 'already-queued' | 'retrying' | 'failed'; key: EventKey } | { status: 'refused'; reason: string };
 
 export interface Automation {
   config: AutomationConfig;
@@ -112,6 +115,25 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return { status: 'dispatched', key, runId };
   };
 
+  /**
+   * The reply could not land, so an issue this run created has no announcement and no one to find it. Closing it is the
+   * tracker's compensation action, queued like any other and verified by the adapter. A closure that cannot be verified
+   * is reported in the run log only, never in the thread.
+   */
+  const compensate = async (event: AutomationEvent, trackerId: ActionId): Promise<'retrying' | 'done'> => {
+    const created = entryOf(trackerId);
+    if (created?.state !== 'done' || created.action.kind !== 'tracker' || created.action.operation !== 'create') return 'done';
+    const id = actionIdFor(config.name, event.key, 'compensate');
+    enqueue(store, { id, kind: 'tracker', operation: 'close', targetId: created.destinationTs, body: '', sourceUrl: sourceUrlOf(event) });
+    await flush();
+    const closing = entryOf(id);
+    if (closing?.state === 'pending') return 'retrying';
+    if (!readLog(store).some((entry) => entry.kind === 'compensated' && entry.key === event.key)) {
+      appendLog(store, { ts: stamp(), kind: 'compensated', key: event.key, issue: created.destinationTs, verified: closing?.state === 'done', ...(closing?.state === 'failed' ? { reason: closing.reason } : {}) });
+    }
+    return 'done';
+  };
+
   const reject = (reason: string): HandleOutcome => {
     appendLog(store, { ts: stamp(), kind: 'rejected', reason });
     return { status: 'rejected', reason };
@@ -175,9 +197,11 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         const replyId = actionIdFor(config.name, event.key, 'result');
         const queued = enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
         await flush();
-        if (entryOf(replyId)?.state === 'pending') return { status: 'retrying', key: event.key };
+        const reply = entryOf(replyId);
+        if (reply?.state === 'pending') return { status: 'retrying', key: event.key };
+        if (reply?.state === 'failed' && (await compensate(event, trackerId)) === 'retrying') return { status: 'retrying', key: event.key };
         if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
-        return { status: queued ? 'queued' : 'already-queued', key: event.key };
+        return { status: reply?.state === 'failed' ? 'failed' : queued ? 'queued' : 'already-queued', key: event.key };
       }),
     flush: () => serial(flush),
     pendingRuns: () => {

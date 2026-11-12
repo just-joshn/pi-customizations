@@ -90,3 +90,20 @@ test('a comment footer links the source of its own issue too', async () => {
   expect((await tracker.findBySource(SOURCE)).map((issue) => issue.id)).toEqual(['1']);
   expect(await tracker.findBySource('https://slack.com/archives/COTHER/p9')).toEqual([]);
 });
+
+test('compensate closes the issue, verifies it is closed, leaves a marked note, and is found by that marker', async () => {
+  const gh = fakeGh([{ title: 'Created by the run', body: 'x', state: 'open' }]);
+  const tracker = githubTracker({ exec: gh.exec, repo: REPO });
+  const close = action({ id: 'act-cccccccccccccccc' as ActionId, operation: 'close', targetId: '1', body: '' });
+  expect(await tracker.compensate?.(close)).toEqual({ id: '1' });
+  expect(gh.issues[0]?.state).toBe('closed');
+  expect(gh.issues[0]?.comments[0]?.body).toContain('<!-- pstack-action:act-cccccccccccccccc -->');
+  expect(await tracker.searchByMarker('act-cccccccccccccccc')).toEqual([{ id: '1' }]);
+});
+
+test('compensate fails when the issue is still open afterwards', async () => {
+  const gh = fakeGh([{ title: 'Created by the run', body: 'x', state: 'open' }]);
+  const stubborn = async (args: string[]) => (args.includes('PATCH') ? '1\n' : gh.exec(args));
+  const tracker = githubTracker({ exec: stubborn, repo: REPO });
+  await expect(tracker.compensate?.(action({ operation: 'close', targetId: '1', body: '' }))).rejects.toThrow('not closed after the compensation');
+});

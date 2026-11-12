@@ -18,8 +18,9 @@
 //   - clearly broken rather than a feature request, and not known to be fixed (rules 2 and 3)
 //   - whether two reports share a signature, area, trigger, and symptom; the parent only verifies the target it names
 //   - cause tracing, routing, and the wording of the issue
-// Not performed by the parent: compensation. The outbox retries a verdict post until it lands, so a created issue is
-// closed by an operator through the tracker's `close`, not automatically.
+// Compensation is the parent's too, but it runs after the reply fails to land (see `compensate` in the automation
+// adapter): the outbox retries the verdict post up to its limit, then closes the issue this run created through the
+// adapter's compensation action and verifies the closure.
 import type { AutomationEvent, TrackerConfig, TrackerEligibility, TrackerIntent } from './model.ts';
 import { classificationOf, sourceUrlOf } from './model.ts';
 import type { ThreadDestination } from './outbox.ts';

@@ -54,7 +54,7 @@ async function harmlessTestEvent() {
           spawns.push({ runId, assignmentPath });
         },
         destination: {
-          readThread: async () => thread,
+          readThread: async () => [{ ts: '1700000000.000100' }, ...thread],
           post: async (action) => {
             thread.push({ ts: `${thread.length + 1}.000000`, marker: action.id });
             return { ts: `${thread.length}.000000` };

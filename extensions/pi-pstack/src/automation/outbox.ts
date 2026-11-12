@@ -94,8 +94,17 @@ export async function flushOutbox(store: AutomationStore, destination: ThreadDes
         writeAtomic(outboxFile(store, action.id), json(landing.status === 'landed' ? { action, state: 'done', destinationTs: landing.id, reconciled: landing.reconciled } : { action, state: 'pending', ...(entry.attempts === undefined ? {} : { attempts: entry.attempts }), work: landing.work }));
         continue;
       }
-      const landed = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
-      const destinationTs = landed?.ts ?? (await destination.post(action)).ts;
+      const before = await destination.readThread(action.channel, action.threadTs);
+      const landed = before.find((message) => message.marker === action.id);
+      // Preflight: a reply goes only under a parent that is still there. Nothing is posted, and nothing at the root.
+      if (landed === undefined && !before.some((message) => message.ts === action.threadTs)) throw new Error(`the thread parent ${action.threadTs} is not in ${action.channel}; nothing was posted`);
+      let destinationTs = landed?.ts;
+      if (destinationTs === undefined) {
+        destinationTs = (await destination.post(action)).ts;
+        // Read back: the reply must be a reply in that thread, not only a success the destination reported.
+        const seen = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
+        if (seen === undefined || seen.ts === action.threadTs) throw new Error(`the reply was posted but is not visible under the thread ${action.threadTs}`);
+      }
       const reconciled = landed !== undefined;
       writeAtomic(outboxFile(store, action.id), json({ action, state: 'done', destinationTs, reconciled }));
       appendLog(store, { ts: now().toISOString(), kind: 'posted', actionId: action.id, destinationTs, reconciled });

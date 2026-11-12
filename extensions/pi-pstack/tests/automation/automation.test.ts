@@ -33,7 +33,7 @@ function fakeThread() {
   const replies: (ThreadMessage & { text: string })[] = [];
   const posts: Extract<OutboxAction, { kind: 'thread-reply' }>[] = [];
   const destination: ThreadDestination = {
-    readThread: async () => replies.map(({ ts, marker }) => (marker === undefined ? { ts } : { ts, marker })),
+    readThread: async () => [{ ts: REPORT.ts }, ...replies.map(({ ts, marker }) => (marker === undefined ? { ts } : { ts, marker }))],
     post: async (action) => {
       posts.push(action);
       replies.push({ ts: `1762900001.00000${replies.length}`, marker: action.id, text: action.text });
@@ -46,7 +46,7 @@ function fakeThread() {
 function setup(overrides: Partial<AutomationDeps> = {}, config: Partial<AutomationConfig> = {}) {
   const spawns: { runId: RunId; assignmentPath: string }[] = [];
   const thread = fakeThread();
-  if (config.kind === 'reproduce') thread.destination.readThread = async () => [{ ts: '1762900001.000000', user: 'UTRUSTED', text: '[benny:bug]' }];
+  if (config.kind === 'reproduce') thread.destination.readThread = async () => [{ ts: REPORT.ts }, { ts: '1762900001.000000', user: 'UTRUSTED', text: '[benny:bug]' }];
   const fullConfig: AutomationConfig = { name: 'benny-triage', kind: 'triage', triageIdentityUserId: 'UTRUSTED', projectRoot: project, sourceChannelId: CHANNEL, configPath: '.pi/benny/configuration.yaml', ...config };
   const deps: AutomationDeps = {
     spawnWorker: async (runId, assignmentPath) => {

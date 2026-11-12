@@ -14701,8 +14701,17 @@ async function flushOutbox(store, destination, tracker, options = {}) {
         writeAtomic(outboxFile(store, action.id), json(landing.status === "landed" ? { action, state: "done", destinationTs: landing.id, reconciled: landing.reconciled } : { action, state: "pending", ...entry.attempts === undefined ? {} : { attempts: entry.attempts }, work: landing.work }));
         continue;
       }
-      const landed = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
-      const destinationTs = landed?.ts ?? (await destination.post(action)).ts;
+      const before = await destination.readThread(action.channel, action.threadTs);
+      const landed = before.find((message) => message.marker === action.id);
+      if (landed === undefined && !before.some((message) => message.ts === action.threadTs))
+        throw new Error(`the thread parent ${action.threadTs} is not in ${action.channel}; nothing was posted`);
+      let destinationTs = landed?.ts;
+      if (destinationTs === undefined) {
+        destinationTs = (await destination.post(action)).ts;
+        const seen = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
+        if (seen === undefined || seen.ts === action.threadTs)
+          throw new Error(`the reply was posted but is not visible under the thread ${action.threadTs}`);
+      }
       const reconciled = landed !== undefined;
       writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs, reconciled }));
       appendLog(store, { ts: now().toISOString(), kind: "posted", actionId: action.id, destinationTs, reconciled });
@@ -14953,6 +14962,21 @@ function createAutomation(config, deps) {
     appendLog(store, { ts: stamp(), kind: "dispatched", key, runId });
     return { status: "dispatched", key, runId };
   };
+  const compensate = async (event, trackerId) => {
+    const created = entryOf(trackerId);
+    if (created?.state !== "done" || created.action.kind !== "tracker" || created.action.operation !== "create")
+      return "done";
+    const id = actionIdFor(config.name, event.key, "compensate");
+    enqueue(store, { id, kind: "tracker", operation: "close", targetId: created.destinationTs, body: "", sourceUrl: sourceUrlOf(event) });
+    await flush();
+    const closing = entryOf(id);
+    if (closing?.state === "pending")
+      return "retrying";
+    if (!readLog(store).some((entry) => entry.kind === "compensated" && entry.key === event.key)) {
+      appendLog(store, { ts: stamp(), kind: "compensated", key: event.key, issue: created.destinationTs, verified: closing?.state === "done", ...closing?.state === "failed" ? { reason: closing.reason } : {} });
+    }
+    return "done";
+  };
   const reject = (reason) => {
     appendLog(store, { ts: stamp(), kind: "rejected", reason });
     return { status: "rejected", reason };
@@ -15019,11 +15043,14 @@ function createAutomation(config, deps) {
       const replyId = actionIdFor(config.name, event.key, "result");
       const queued = enqueue(store, { id: replyId, kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
       await flush();
-      if (entryOf(replyId)?.state === "pending")
+      const reply = entryOf(replyId);
+      if (reply?.state === "pending")
+        return { status: "retrying", key: event.key };
+      if (reply?.state === "failed" && await compensate(event, trackerId) === "retrying")
         return { status: "retrying", key: event.key };
       if (!readLog(store).some((entry) => entry.kind === "completed" && entry.runId === runId))
         appendLog(store, { ts: stamp(), kind: "completed", key: event.key, runId });
-      return { status: queued ? "queued" : "already-queued", key: event.key };
+      return { status: reply?.state === "failed" ? "failed" : queued ? "queued" : "already-queued", key: event.key };
     }),
     flush: () => serial(flush),
     pendingRuns: () => {
@@ -15197,6 +15224,15 @@ ${footer(action)}`, "--jq", ".number"]));
     async comment(action) {
       const id = issueId(action.targetId ?? "");
       await exec(["api", "-X", "POST", `repos/${repo}/issues/${id}/comments`, "-f", `body=${footer(action)}`, "--jq", ".id"]);
+      return { id };
+    },
+    async compensate(action) {
+      const id = issueId(action.targetId ?? "");
+      await exec(["api", "-X", "PATCH", `repos/${repo}/issues/${id}`, "-f", "state=closed", "--jq", ".number"]);
+      const closed = await this.read(id);
+      if (closed?.state !== "closed")
+        throw new Error(`GitHub issue ${id} is not closed after the compensation`);
+      await exec(["api", "-X", "POST", `repos/${repo}/issues/${id}/comments`, "-f", `body=${footer({ ...action, body: "Closed by the automation: the triage reply for this report could not be posted." })}`, "--jq", ".id"]);
       return { id };
     },
     async findBySource(sourceUrl) {

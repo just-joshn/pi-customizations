@@ -25,13 +25,20 @@ function fixture(messages: ThreadMessage[] = [], kind: 'triage' | 'reproduce' = 
   const tickets: string[] = [];
   let spawns = 0;
   let crash = true;
+  const posted: ThreadMessage[] = [];
   const deps: AutomationDeps = {
     spawnWorker: async () => {
       spawns++;
     },
     inputCommit: () => 'a'.repeat(40),
     prerequisites: { tracker: async () => true, controlAdapter: async () => true, featureMap: async () => true },
-    destination: { readThread: async () => messages, post: async () => ({ ts: '2.000001' }) },
+    destination: {
+      readThread: async () => [{ ts: event.ts }, ...messages, ...posted],
+      post: async (action) => {
+        posted.push({ ts: '2.000001', marker: action.id });
+        return { ts: '2.000001' };
+      },
+    },
     tracker: {
       searchByMarker: async (marker: string) => (tickets.includes(marker) ? [{ id: 'ticket' }] : []),
       create: async (action: { id: string }) => {

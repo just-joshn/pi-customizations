@@ -101,6 +101,14 @@ export function githubTracker(options: { exec: GhExec; repo: string; now?: () =>
       await exec(['api', '-X', 'POST', `repos/${repo}/issues/${id}/comments`, '-f', `body=${footer(action)}`, '--jq', '.id']);
       return { id };
     },
+    async compensate(action) {
+      const id = issueId(action.targetId ?? '');
+      await exec(['api', '-X', 'PATCH', `repos/${repo}/issues/${id}`, '-f', 'state=closed', '--jq', '.number']);
+      const closed = await this.read(id);
+      if (closed?.state !== 'closed') throw new Error(`GitHub issue ${id} is not closed after the compensation`);
+      await exec(['api', '-X', 'POST', `repos/${repo}/issues/${id}/comments`, '-f', `body=${footer({ ...action, body: 'Closed by the automation: the triage reply for this report could not be posted.' })}`, '--jq', '.id']);
+      return { id };
+    },
     async findBySource(sourceUrl) {
       const written = new RegExp(`${escapeRegExp(`Source: ${sourceUrl}`)}\\n\\n<!-- ${MARKER_PREFIX}act-[0-9a-f]{16} -->`);
       const ids = new Set(await containing((text) => written.test(text)));
