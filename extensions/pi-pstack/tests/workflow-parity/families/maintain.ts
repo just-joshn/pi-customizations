@@ -203,7 +203,8 @@ export const maintainFormalFamily: Family = {
     prompt: () => '/maintain-formal-verification-skill is the payment model still true to the code',
     scenario: (ctx) => {
       const parent = new Parent(ctx);
-      const [, , , verifySha, cancelSha] = ctx.commits.map((sha) => sha.slice(0, 10)) as [string, string, string, string, string];
+      const verifySha = (ctx.commits[mfHistory.findIndex((commit) => commit.message.startsWith('verify:'))] as string).slice(0, 10);
+      const cancelSha = (ctx.commits[mfHistory.findIndex((commit) => commit.message.includes('let a merchant cancel'))] as string).slice(0, 10);
       const tla = join(ctx.repo, VDIR, 'model/Pay.tla');
       const stamp = `h=$(git rev-parse HEAD) && node -e "const fs=require('fs');const f=process.argv[1];fs.writeFileSync(f,fs.readFileSync(f,'utf8').replace(/Sync commit: .*/,'Sync commit: '+process.argv[2]))" ${VDIR}/SKILL.md $h`;
       parent.readSkill('maintain-formal-verification-skill').bash(`node ${join(ctx.pkg, 'scripts', 'start-run.mjs')} --playbook feature --title "maintain the payment model" --run-id ${ctx.runId}`);
