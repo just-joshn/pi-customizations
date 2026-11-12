@@ -152,6 +152,58 @@ describe('pstack_worker on real tmux and Pi', () => {
     expect(result.details.report).toBeUndefined();
   });
 
+  test('collect after the host accepted a steer never returns the earlier settle', async () => {
+    await spawn('w13', '@@say ONE');
+    await until(
+      () => settleCount('w13'),
+      (count) => count === 1,
+    );
+    const { childPid, tmuxSession } = (await inspect('w13')).state;
+    // A stopped Pi holds the steer between the host accepting it and the run starting. The operator's terminal sends
+    // it, because pstack_worker's handshake would wait on the stopped Pi first.
+    process.kill(childPid, 'SIGSTOP');
+    await tmux('send-keys', '-t', tmuxSession, 'steer @@say TWO', 'Enter');
+    await sleep(500);
+    const early = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' });
+    process.kill(childPid, 'SIGCONT');
+    expect(early.details.settled).toBe(false);
+    await until(
+      () => settleCount('w13'),
+      (count) => count === 2,
+    );
+    expect((await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' })).details).toMatchObject({ settled: true, finalText: 'TWO' });
+
+    await parent.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w13', message: '@@sleep 300 THREE' });
+    const immediate = (await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w13' })).details;
+    expect(immediate.settled === false || immediate.finalText === 'THREE').toBe(true);
+  });
+
+  test('a host killed after accepting work but before the run started leaves collect with no result', async () => {
+    await spawn('w14', '@@say ONE');
+    await until(
+      () => settleCount('w14'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid, tmuxSession } = (await inspect('w14')).state;
+    process.kill(childPid, 'SIGSTOP');
+    await tmux('send-keys', '-t', tmuxSession, 'steer @@say TWO', 'Enter');
+    await sleep(500);
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Already gone.
+    }
+    const collected = await parent.call('pstack_worker', { action: 'collect', runId: 'run1', workerId: 'w14' });
+    expect(collected.details).toMatchObject({ settled: false, live: { phase: 'unavailable' } });
+  });
+
   test('a Pi crash is failed, never success', async () => {
     await spawn('w6', '@@say UP');
     await until(

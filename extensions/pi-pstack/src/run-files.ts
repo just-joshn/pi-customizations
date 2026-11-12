@@ -261,6 +261,8 @@ export type WakePhase = SettlePhase | 'unavailable';
 
 export interface Settle {
   sequence: number;
+  /** The latest unit of work this outcome covers. */
+  generation: number;
   phase: SettlePhase;
   reason: string | null;
   at: string;
@@ -282,6 +284,8 @@ export interface HostState {
   model: { provider: string; id: string } | null;
   sessionFile: string | null;
   briefSent: boolean;
+  /** The latest unit of work the host accepted. A worker's result is a settle covering it. */
+  generation: number;
   /** The most recent settles, oldest first, at most MAX_SETTLES. */
   settles: Settle[];
   exit: { code: number | null; signal: string | null } | null;

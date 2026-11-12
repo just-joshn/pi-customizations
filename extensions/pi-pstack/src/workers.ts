@@ -473,7 +473,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       const inspected = await inspectWorker(loaded);
       const state = inspected.available ? inspected.state : inspected.lastState;
       const lastSettle = state?.settles.at(-1) ?? null;
-      const settled = state !== null && lastSettle !== null && (isTerminal(state.phase) || state.phase === 'idle');
+      const settled = state !== null && lastSettle !== null && lastSettle.generation === state.generation && (isTerminal(state.phase) || state.phase === 'idle');
       if (!settled) {
         const live = inspected.available ? inspected.state : { phase: 'unavailable', reason: inspected.reason, lastState: inspected.lastState };
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });

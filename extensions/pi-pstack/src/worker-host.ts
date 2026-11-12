@@ -68,6 +68,9 @@ export interface ControlRequest {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
+/** Pi answered the command with a failure, so it did not take the command as work. */
+class PiRejected extends Error {}
+
 export function parseLaunch(text: string | undefined): HostLaunch {
   if (text === undefined) throw new Error('Missing launch argument');
   const raw: unknown = JSON.parse(text);
@@ -210,6 +213,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let model: HostState['model'] = null;
   let sessionFile: string | null = null;
   let briefSent = false;
+  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. A settle covers the
+  // generations Pi acknowledged before it: Pi answers a prompt before that prompt's run can settle.
+  let generation = 0;
+  let acknowledged = 0;
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -240,6 +247,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     model,
     sessionFile,
     briefSent,
+    generation,
     settles,
     exit,
     updatedAt: new Date().toISOString(),
@@ -253,9 +261,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   };
   const save = () => writeJsonAtomic(join(workerDir, 'state.json'), observation());
   const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
-  const settle = (settlePhase: SettlePhase, why: string | null) => {
+  /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
+  const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
     const last = settles.at(-1)?.sequence ?? 0;
-    settles = [...settles, { sequence: last + 1, phase: settlePhase, reason: why, at: new Date().toISOString() }].slice(-MAX_SETTLES);
+    settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }].slice(-MAX_SETTLES);
     save();
     event('settle', settles.at(-1));
     display('host settled', { phase: settlePhase, reason: why });
@@ -435,14 +444,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // A shutdown records its own single settle; the run it aborts is part of it.
-      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null));
+      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null), acknowledged);
     } else if (type === 'response') {
       const pending = typeof record['id'] === 'string' ? waiting.get(record['id']) : undefined;
       if (pending !== undefined && typeof record['id'] === 'string') {
         waiting.delete(record['id']);
         clearTimeout(pending.timer);
         if (record['success'] === true) pending.resolve(record['data']);
-        else pending.reject(new Error(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
+        else pending.reject(new PiRejected(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
       }
     } else if (type === 'extension_ui_request') {
       // Nobody answers a dialog inside a worker; cancelling keeps the run from blocking forever.
@@ -464,11 +473,30 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     return observation();
   };
 
-  const sendText = async (operation: 'prompt' | 'steer' | 'follow-up', text: string) => {
-    // RPC steer and follow_up only queue: on an idle Pi they would wait for a run that never starts.
-    // A prompt with a streaming behavior starts a run when idle and queues when a run started in between.
-    if (phase === 'running' && operation !== 'prompt') return request(operation === 'steer' ? 'steer' : 'follow_up', { message: text });
-    return request('prompt', { message: text, streamingBehavior: operation === 'steer' ? 'steer' : 'followUp' });
+  /**
+   * Forwards one unit of work, persisted as unsettled first so a collect never reads an older settle as its result.
+   * Always a prompt with a streaming behavior: it starts a run when Pi is idle and joins the active run otherwise,
+   * where RPC steer or follow_up sent as a run ends would queue behind a run that never starts.
+   */
+  const forward = async (text: string, streamingBehavior: 'steer' | 'followUp') => {
+    generation += 1;
+    save();
+    let result: unknown;
+    try {
+      result = await request('prompt', { message: text, streamingBehavior });
+    } catch (error) {
+      if (error instanceof PiRejected) {
+        generation -= 1;
+        save();
+      }
+      throw error;
+    }
+    const disposition = isRecord(result) ? result['disposition'] : undefined;
+    // A handled prompt started no run and joined none, so no settle will cover it.
+    if (disposition === 'handled') generation -= 1;
+    else acknowledged = generation;
+    save();
+    return { disposition };
   };
 
   const dispatch = async (operation: HostOperation, text?: string): Promise<unknown> => {
@@ -483,15 +511,12 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         if (briefSent) throw new Error('Brief already sent; request not replayed');
         const brief = readBrief(workerDir);
         if (brief.length === 0 || brief.length > MAX_BRIEF_BYTES) throw new Error(`Brief must contain 1 to ${MAX_BRIEF_BYTES} bytes`);
-        const result = await request('prompt', { message: brief.toString('utf8') });
+        const result = await forward(brief.toString('utf8'), 'followUp');
         briefSent = true;
         save();
-        return { disposition: isRecord(result) ? result['disposition'] : undefined };
+        return result;
       }
-      if (operation === 'prompt' || operation === 'steer' || operation === 'follow-up') {
-        const result = await sendText(operation, text as string);
-        return { disposition: isRecord(result) ? result['disposition'] : undefined };
-      }
+      if (operation === 'prompt' || operation === 'steer' || operation === 'follow-up') return forward(text as string, operation === 'steer' ? 'steer' : 'followUp');
       if (operation === 'cancel') {
         const before = (await request('get_state')) as Record<string, unknown>;
         phase = 'cancelling';

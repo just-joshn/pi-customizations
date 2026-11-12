@@ -83,9 +83,9 @@ Exactly two model-facing tools, TypeBox-validated.
 
 - `{ action: 'spawn', runId, assignmentPath }`. Validates the assignment and its path (must be `<runRoot>/workers/<workerId>/assignment.json`). Resolves the model. Starts `tmux -L pstack new-session -d -s <session name> -- node <pkg>/dist-or-src/worker-host entry <assignment>`. The host creates the worktree after it takes `claim/`, so only the claim holder creates it. An existing `worktree/` is reused only when `git worktree list --porcelain` registers it in this repository on branch `pstack-run/<runId>/<workerId>`; anything else fails the host. Waits for the host handshake. Sends the brief as the first prompt. Returns `{ workerId, tmuxSession, attach: 'tmux -L pstack attach -t <session>', sessionFile, model }` immediately. Refuses when `claim/` exists.
 - `{ action: 'inspect', workerId, runId }`. Live host state, or `unavailable` with reason.
-- `{ action: 'steer', workerId, runId, message }`. RPC `steer` when running, `follow_up` when idle.
+- `{ action: 'steer', workerId, runId, message }`. RPC `prompt` with `streamingBehavior: 'steer'`: it joins the active run, or starts one when Pi is idle. RPC `steer` sent as a run ends would queue behind a run that never starts.
 - `{ action: 'abort', workerId, runId }`. clear_queue, abort, then orderly shutdown of that host only.
-- `{ action: 'collect', workerId, runId }`. Final state, `report.md`, final assistant text from the native session file, evidence file list. A worker that is not settled returns its live state, never a result.
+- `{ action: 'collect', workerId, runId }`. Final state, `report.md`, final assistant text from the native session file, evidence file list. A worker that is not settled returns its live state, never a result. Settled means the latest settle covers the latest work generation: the host counts each prompt, steer, or follow-up it forwards as a generation and persists it in `state.json` before forwarding. A run's settle covers the generations Pi acknowledged before it, and the host ending covers all of them. A host that is gone with a generation no settle covers returns no result.
 
 `pstack_evidence`:
 
