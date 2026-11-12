@@ -1,12 +1,14 @@
 // Slash parity (spec 8.2). generated/prompts gives every skill its original `/name`. A name another command owns gets
 // `/pstack:<name>`, which the input event rewrites to Pi's own `/skill:<name>`. A `/name` later in a message attaches
-// its skill as Cursor does (`skillReferences`, `referenceInput`).
+// its skill as Cursor does (`skillReferences`, `referenceInput`), only inside an active pstack workflow (`workflowActive`),
+// and then for every skill Pi loaded.
 import { existsSync, readdirSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 import type { ExtensionAPI, InputEvent, InputEventResult, SlashCommandInfo } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from './paths.ts';
 import { skillBlock } from './skill-block.ts';
+import { styleOn } from './style.ts';
 
 export const GENERATED_SKILLS = join(PACKAGE_ROOT, 'generated', 'skills');
 export const GENERATED_PROMPTS = join(PACKAGE_ROOT, 'generated', 'prompts');
@@ -128,7 +130,7 @@ export function referenceInput(
     return { action: 'continue' };
   }
   const blocks = new Map<string, string>();
-  for (const name of skillReferences(text, names)) {
+  for (const name of skillReferences(text, new Set(skills.keys()))) {
     const path = skills.get(name);
     const block = path === undefined || name === first || text.includes(`<skill name="${name}" location=`) ? undefined : skillBlock(name, path);
     if (block !== undefined) blocks.set(name, block);
@@ -139,16 +141,29 @@ export function referenceInput(
   return { action: 'transform', text: args === '' ? `/skill:${lead}` : `/skill:${lead} ${args}`, ...(event.images === undefined ? {} : { images: event.images }) };
 }
 
+/**
+ * A pstack workflow is active for a message when the persistent style is on, or the message invokes a pstack skill: a
+ * leading `/name`, `/skill:name`, or `/pstack:name`, or a pstack skill named mid-message. Outside it Pi runs natively.
+ */
+export function workflowActive(text: string, styleIsOn: boolean, names: ReadonlySet<string>, conflicts: ReadonlySet<string>): boolean {
+  if (styleIsOn) return true;
+  const leading = /^\/(?:skill:|pstack:)?([a-z0-9-]+)(?=\s|$)/.exec(text)?.[1];
+  if (leading !== undefined && names.has(leading) && (!conflicts.has(leading) || /^\/(?:skill|pstack):/.test(text))) return true;
+  return skillReferences(text, names).length > 0;
+}
+
 export function registerSkillRouting(pi: ExtensionAPI, names: readonly string[] = generatedSkillNames()): { conflicts: () => SlashConflict[] } {
   const conflicts = () => slashConflicts(pi.getCommands(), names);
-  pi.on('input', (event) => {
+  pi.on('input', (event, ctx) => {
     if (event.source === 'extension') return { action: 'continue' };
     const commands = pi.getCommands();
     const owned = new Set(conflicts().map((conflict) => conflict.name));
     const skills = loadedSkills(commands);
     const aliased = event.text.startsWith(`/${ALIAS_PREFIX}`) ? aliasInput(event, owned, new Set(skills.keys())) : { action: 'continue' as const };
     const current = aliased.action === 'transform' ? { text: aliased.text, ...(event.images === undefined ? {} : { images: event.images }) } : event;
-    const referenced = referenceInput(current, skills, new Set(names), owned, commands);
+    const pstack = new Set(names);
+    if (!workflowActive(current.text, styleOn(ctx.sessionManager.getBranch()), pstack, owned)) return aliased;
+    const referenced = referenceInput(current, skills, pstack, owned, commands);
     return referenced.action === 'transform' ? referenced : aliased;
   });
   return { conflicts };

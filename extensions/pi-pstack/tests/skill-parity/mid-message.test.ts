@@ -8,6 +8,7 @@ import { expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
 import { skillBlock } from '../../src/skill-block.ts';
 import { registerSkillRouting, skillReferences } from '../../src/skill-routing.ts';
+import { STYLE_ENTRY } from '../../src/style.ts';
 import { fakePi, packageCommands } from '../integration/fake-pi.ts';
 
 const block = (name: string) => skillBlock(name, join(PACKAGE_ROOT, 'generated', 'skills', name, 'SKILL.md')) ?? '';
@@ -92,4 +93,32 @@ test('images ride along, and /pstack:<name> still routes to the skill ahead of a
 test('every attached block is the text Pi builds for /skill:<name>', () => {
   const path = join(PACKAGE_ROOT, 'generated', 'skills', 'how', 'SKILL.md');
   expect(block('how')).toBe(`<skill name="how" location="${path}">\nReferences are relative to ${join(PACKAGE_ROOT, 'generated', 'skills', 'how')}.\n\n${readFileSync(path, 'utf8').replace(/^---[\s\S]*?---\n/, '').trim()}\n</skill>`);
+});
+
+const mine = { name: 'skill:mine', source: 'skill' as const, sourceInfo: { path: join(PACKAGE_ROOT, 'package.json'), source: 'local', scope: 'user' as const, origin: 'top-level' as const } };
+const mineBlock = () => skillBlock('mine', mine.sourceInfo.path) ?? '';
+const withMine = [...packageCommands(), mine];
+
+test('inside a pstack workflow a loaded non-pstack skill attaches too, in first-reference order', async () => {
+  expect(text(await route('run /mine then /how', { commands: withMine }))).toBe(`/skill:mine ${block('how')}\n\nrun /mine then /how`);
+  expect(text(await route('/how then /mine', { commands: withMine }))).toBe(`/skill:how ${mineBlock()}\n\nthen /mine`);
+  expect(text(await route('/skill:how /mine /mine', { commands: withMine }))).toBe(`/skill:how ${mineBlock()}\n\n/mine /mine`);
+});
+
+test('with the pstack style on, a non-pstack skill attaches without a pstack name', async () => {
+  const host = fakePi({ cwd: PACKAGE_ROOT, commands: withMine });
+  registerSkillRouting(host.pi);
+  const [off] = await host.fire('input', { text: 'use /mine', source: 'rpc' });
+  expect(off).toEqual({ action: 'continue' });
+  host.session.appendCustomEntry(STYLE_ENTRY, { on: true });
+  const [on] = await host.fire('input', { text: 'use /mine', source: 'rpc' });
+  expect(on).toEqual({ action: 'transform', text: '/skill:mine use /mine' });
+  const [code] = await host.fire('input', { text: 'use `/mine` and /usr/bin/env', source: 'rpc' });
+  expect(code).toEqual({ action: 'continue' });
+});
+
+test('outside a pstack workflow a non-pstack skill name leaves the input untouched', async () => {
+  for (const message of ['use /mine', 'use /mine and /mine', '/skill:mine go /mine', 'use /mine and /how/x']) {
+    expect(await route(message, { commands: withMine })).toEqual({ action: 'continue' });
+  }
 });

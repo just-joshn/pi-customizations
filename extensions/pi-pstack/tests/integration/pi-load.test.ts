@@ -51,9 +51,9 @@ function sandbox(options: { env?: Record<string, string> }): { root: string; wor
 }
 
 /** `pi -p <message>` with the package loaded and the scripted model: stdout is the assistant's final text. */
-function printPi(message: string): string {
+function printPi(message: string, extra: string[] = []): string {
   const { work, env } = sandbox({});
-  const args = ['-p', '--offline', '--no-extensions', '--extension', join(PKG, 'src/extension.ts'), '--extension', SCRIPTED_MODEL, '--skill', join(PKG, 'generated/skills'), '--prompt-template', join(PKG, 'generated/prompts'), '--model', 'scripted/echo', message];
+  const args = ['-p', '--offline', '--no-extensions', '--extension', join(PKG, 'src/extension.ts'), '--extension', SCRIPTED_MODEL, '--skill', join(PKG, 'generated/skills'), ...extra, '--prompt-template', join(PKG, 'generated/prompts'), '--model', 'scripted/echo', message];
   const result = spawnSync(PI, args, { cwd: work, env, encoding: 'utf8', timeout: 45_000 });
   if (result.status !== 0) throw new Error(`pi -p exited ${result.status}: ${result.stderr}`);
   return result.stdout;
@@ -246,6 +246,21 @@ test('a skill named mid-message attaches the same way in print mode, and a leadi
   expect(printPi('please /deslop it and /why').trim()).toBe(`ECHO: ${block('deslop')}\n\n${block('why')}\n\nplease /deslop it and /why`);
   expect(printPi('/how plain').trim()).toContain('Request: plain');
   expect(printPi('see /usr/bin/env and `/how`').trim()).toBe('ECHO: see /usr/bin/env and `/how`');
+}, 120_000);
+
+test('a loaded non-pstack skill attaches mid-message only inside a pstack workflow', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-fixture-')));
+  sandboxes.push(root);
+  const dir = join(root, 'mine');
+  mkdirSync(dir);
+  const file = join(dir, 'SKILL.md');
+  writeFileSync(file, '---\nname: mine\ndescription: fixture skill\n---\nMINE BODY\n');
+  const block = (name: string, path: string) => skillBlock(name, path) ?? '';
+  const how = block('how', join(PKG, 'generated/skills/how/SKILL.md'));
+  const run = (message: string) => printPi(message, ['--skill', dir]).trim();
+  expect(run('use /mine and /how')).toBe(`ECHO: ${block('mine', file)}\n\n${how}\n\nuse /mine and /how`);
+  expect(run('use /mine now')).toBe('ECHO: use /mine now');
+  expect(run('see `/how` and /mine')).toBe('ECHO: see `/how` and /mine');
 }, 120_000);
 
 test('pi install of a copy without node_modules loads the manifest: generated skills, prompts, /pstack, and the pstack tools', async () => {
