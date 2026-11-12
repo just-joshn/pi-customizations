@@ -409,7 +409,7 @@ export const hillclimbFamily: Family = {
       parent.done('hillclimb', 1, 'hill-baseline');
       parent.done('hillclimb', 2, 'hill-harness', 'hill-gate');
       parent.bash(`printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' ${HILL_HEADER.join(' ')} > ${JSON.stringify(log)}`);
-      parent.proof({ id: 'hill-log', target: 'step-3', command: `head -1 ${log} | grep -q '^id\\thypothesis'`, kind: 'review' });
+      parent.proof({ id: 'hill-log', target: 'step-3', command: `head -1 ${log} | awk -F'\\t' '$1 == "id" && $2 == "hypothesis" { found = 1 } END { exit !found }'`, kind: 'review' });
       parent.done('hillclimb', 3, 'hill-log');
       parent.skip('hillclimb', 4, 'the hypotheses are ordered by the mantras in each attempt brief, with no separate output');
       const attempts: [string, string, string][] = [
