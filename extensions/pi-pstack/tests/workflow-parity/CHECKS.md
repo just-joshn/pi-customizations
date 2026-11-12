@@ -1255,3 +1255,62 @@ Negative cases, each of which must FAIL the named checks:
 - the owners did not start from the migrated primitive → `vp.primitives-first-as-a-blocking-phase`
 - the reply hid a nonzero diff → `vp.reply-has-components-diffs-baseline-and-whats-left`
 
+## headless-print
+
+a pstack playbook start under pi -p: TODO.md, a worker that settles, a delivered wake (MX-HEADLESS)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `todo.investigation.run-from-playbook` | a run for the investigation playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.investigation.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/investigation.md:7` |
+| `todo.investigation.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `headless-print.worker-spawned` | the worker was spawned as its own readonly Pi process under the one-shot parent | `generated/skills/swarm/SKILL.md:27` |
+| `headless-print.worker-settled-and-woke-parent` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-print.exits-without-a-dialog` | the process exits on its own with status 0 and no UI prompt left it waiting | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-print.stdout-carries-the-final-answer` | stdout is the final assistant text that follows the wake | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-print.no-state-lost` | every worker settle and wake is durable: state.json, events.jsonl and the parent session agree | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-print.parent-wrote-nothing-outside-the-run` | the headless run leaves the repository clean | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the wake was never delivered into the parent → `headless-print.worker-settled-and-woke-parent`, `headless-print.no-state-lost`
+- the process was killed instead of exiting → `headless-print.exits-without-a-dialog`
+- stdout lost the final answer → `headless-print.stdout-carries-the-final-answer`
+
+## headless-json
+
+a pstack playbook start under pi --mode json: TODO.md, a worker that settles, a delivered wake (MX-HEADLESS)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `todo.investigation.run-from-playbook` | a run for the investigation playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.investigation.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/investigation.md:7` |
+| `todo.investigation.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `headless-json.worker-spawned` | the worker was spawned as its own readonly Pi process under the one-shot parent | `generated/skills/swarm/SKILL.md:27` |
+| `headless-json.worker-settled-and-woke-parent` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-json.exits-without-a-dialog` | the process exits on its own with status 0 and no UI prompt left it waiting | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-json.stdout-carries-the-final-answer` | the JSON stream is valid JSONL: a session header, the wake as a message, the final answer, and agent_settled last | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-json.no-state-lost` | every worker settle and wake is durable: state.json, events.jsonl and the parent session agree | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-json.parent-wrote-nothing-outside-the-run` | the headless run leaves the repository clean | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the wake was never delivered into the parent → `headless-json.worker-settled-and-woke-parent`, `headless-json.no-state-lost`
+- the process was killed instead of exiting → `headless-json.exits-without-a-dialog`
+- stdout lost the final answer → `headless-json.stdout-carries-the-final-answer`
+
+## headless-command
+
+a UI-reporting /pstack command under pi -p neither hangs nor drops its report (MX-HEADLESS)
+
+Known product defect, asserted with test.fails: `headless-command.report-reaches-stdout`. src/commands.ts:609 and :611 deliver every /pstack subcommand result through ctx.ui.notify, which prints nothing under pi -p and pi --mode json: status, doctor, workers and audit output is dropped without an error.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `headless-command.exits-without-hanging` | pi -p /pstack doctor exits 0 by itself, so a UI call is never waited on | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-command.report-reaches-stdout` | the doctor report reaches stdout, so no output is silently lost without a UI | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the command hung until the driver killed it → `headless-command.exits-without-hanging`
+

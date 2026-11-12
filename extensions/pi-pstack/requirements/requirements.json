@@ -1266,6 +1266,18 @@
     "cont.defaults.4": {
       "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
       "name": "a container worker a worktree worker keeps the inherit default"
+    },
+    "hl.print": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-print scripted run: every check passes"
+    },
+    "hl.json": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-json scripted run: every check passes"
+    },
+    "hl.command": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-command scripted run: every check passes"
     }
   },
   "structural": [
@@ -1993,12 +2005,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/integration/pi-load.test.ts runs RPC mode only",
+      "verification": "tests/workflow-parity/headless.test.ts runs a playbook start under pi -p, pi --mode json and a UI-reporting command on the real pi binary; tests/integration/pi-load.test.ts runs RPC mode",
       "tests": [
         "load.skills",
-        "ext.entry"
-      ],
-      "coverageGap": "No test runs print or JSON mode. The load test uses RPC mode only."
+        "ext.entry",
+        "hl.print",
+        "hl.json",
+        "hl.command"
+      ]
     },
     {
       "id": "MX-MCP",
