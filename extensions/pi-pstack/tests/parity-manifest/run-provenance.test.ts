@@ -133,6 +133,21 @@ describe('a report is attributed to the code it ran against, never to the checko
     expect(g.stderr).toContain('uncommitted changes');
   });
 
+  test('a source file that appears while Vitest runs is not attributed to the revision', () => {
+    repo();
+    const r = build({ report: complete(passing), touchWhileRunning: 'tests/appeared.test.ts' });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('tests/appeared.test.ts');
+    expect(existsSync(manifestPath())).toBe(false);
+  });
+
+  test('a result file a test writes under parity-results while Vitest runs is a legitimate artifact', () => {
+    repo();
+    execFileSync('mkdir', ['-p', join(mini.root, 'parity-results/local')]);
+    const r = build({ report: complete(passing), touchWhileRunning: 'parity-results/local/artifact.json' });
+    expect(r.status, r.stderr).toBe(0);
+  });
+
   test('code that changes while Vitest runs is not attributed to either revision', () => {
     repo();
     const r = build({ report: complete(passing), touchWhileRunning: 'tests/t.test.ts' });
@@ -156,6 +171,12 @@ describe('a Vitest run is accepted only when it finished and reported completely
     ['exit 0 with a failed test', { report: complete({ 'suite fails': 'failed' }) }, 'exited 0 but its report records failures'],
     ['exit 1 with success:false and no failure to name', { report: complete(passing, { success: false }), exit: 1 }, 'names no failed test'],
     ['exit 1 with a report that says success', { report: complete(passing), exit: 1 }, 'says it succeeded'],
+    ['aggregate counts that contradict the listed statuses', { report: complete(passing, { numPassedTests: 0 }) }, 'counts 0 passed, 0 failed, 0 skipped but lists 1 passed, 0 failed, 0 skipped'],
+    [
+      'a skipped count with no skipped test listed',
+      { report: complete({ 'suite passes': 'passed', 'suite skips': 'skipped' }, { numPassedTests: 2, numPendingTests: 0 }) },
+      'counts 2 passed, 0 failed, 0 skipped but lists 1 passed, 0 failed, 1 skipped',
+    ],
   ];
   test.each(aborts)('%s aborts the build and writes nothing', (_name, fake, message) => {
     repo();

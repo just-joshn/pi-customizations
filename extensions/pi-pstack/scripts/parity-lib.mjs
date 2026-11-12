@@ -303,7 +303,18 @@ export function sourceState(root) {
       return null;
     }
   };
-  return { commit: git('rev-parse', 'HEAD'), dirty: Boolean(git('status', '--porcelain', '--', '.')), sourceDigest: sourceDigest(root) };
+  const status = git('status', '--porcelain', '--untracked-files=all', '--', '.');
+  // Paths that are not committed, minus machine-written results (excluded from the digest too): a path that appears here during a
+  // run is an input the digest cannot see.
+  const changes =
+    status === null
+      ? null
+      : status
+          .split('\n')
+          .filter(Boolean)
+          .map((line) => line.slice(3))
+          .filter((path) => !/(^|\/)parity-results\//.test(path));
+  return { commit: git('rev-parse', 'HEAD'), dirty: Boolean(status), changes, sourceDigest: sourceDigest(root) };
 }
 
 /** `attributed` overrides what this checkout would say, so a report recorded at another time or place is never stamped with the current code. */
@@ -348,6 +359,15 @@ export function vitestRunOutcome({ status, signal, error }, reportText) {
   if (report.testResults.length !== report.numTotalTestSuites) return { problem: `the Vitest JSON report has ${report.testResults.length} file result(s) for ${report.numTotalTestSuites} test file(s)` };
   const listed = report.testResults.reduce((n, f) => n + (f.assertionResults?.length ?? 0), 0);
   if (listed !== report.numTotalTests) return { problem: `the Vitest JSON report lists ${listed} test(s) of ${report.numTotalTests}` };
+  const statuses = report.testResults.flatMap((f) => (f.assertionResults ?? []).map((a) => a.status));
+  const listedPassed = statuses.filter((s) => s === 'passed').length;
+  const listedFailed = statuses.filter((s) => s === 'failed').length;
+  const countedSkipped = (report.numPendingTests ?? 0) + (report.numTodoTests ?? 0);
+  if (report.numPassedTests !== listedPassed || report.numFailedTests !== listedFailed || countedSkipped !== statuses.length - listedPassed - listedFailed) {
+    return {
+      problem: `the Vitest JSON report counts ${report.numPassedTests} passed, ${report.numFailedTests} failed, ${countedSkipped} skipped but lists ${listedPassed} passed, ${listedFailed} failed, ${statuses.length - listedPassed - listedFailed} skipped`,
+    };
+  }
   const failed = failedTests(report, '/').length;
   if (status === 0 && (report.success !== true || failed || report.numFailedTests)) return { problem: 'Vitest exited 0 but its report records failures' };
   if (status === 1 && report.success !== false) return { problem: 'Vitest exited 1 but its report says it succeeded' };

@@ -49,7 +49,12 @@ if (!resultFiles.length || values.save) {
     console.error('parity manifest: the code changed while Vitest ran, so the report cannot be attributed to one revision; nothing written');
     process.exit(1);
   }
-  const identity = runIdentity(root, report, 'local', before);
+  const appeared = (after.changes ?? []).filter((path) => !(before.changes ?? []).includes(path));
+  if (before.changes === null || after.changes === null || appeared.length) {
+    console.error(`parity manifest: ${appeared.length ? `files changed while Vitest ran (${appeared.join(', ')})` : 'git status failed'}, so the report cannot be attributed to the committed tree; nothing written`);
+    process.exit(1);
+  }
+  const identity = runIdentity(root, report, 'local', { commit: before.commit, dirty: before.dirty, sourceDigest: before.sourceDigest });
   if (values.save) {
     const target = resolve(values.save);
     mkdirSync(dirname(target), { recursive: true });
