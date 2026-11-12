@@ -10,7 +10,7 @@ import { VERSION } from '@earendil-works/pi-coding-agent';
 import type { BennyAutomationKind } from './automation/model.ts';
 import { listReceipts, verifyTarget } from './evidence.ts';
 import { loadModelsConfig, type ResolvedModel, ROLE_NAMES, resolveRole } from './models.ts';
-import { PACKAGE_ROOT } from './paths.ts';
+import { PACKAGE_ROOT, upstreamRevision } from './paths.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
 import { appendEvent, loadAssignment, parseRunId, parseWorkerId, projectRoot, type RunId, readHostState, readRun, runRootOf, runsDir, tmuxSessionName, type WorkerId, workerDirOf, writeJsonAtomic } from './run-files.ts';
 import { GENERATED_SKILLS, generatedSkillNames, type SlashConflict } from './skill-routing.ts';
@@ -438,14 +438,6 @@ async function automationStatus(exec: Exec, socket: string, ctx: ExtensionContex
 }
 
 // ---- status and doctor
-
-function upstreamRevision(): string {
-  try {
-    return (JSON.parse(readFileSync(join(PACKAGE_ROOT, 'generated', 'upstream-lock.json'), 'utf8')) as { revision: string }).revision;
-  } catch {
-    return 'unknown';
-  }
-}
 
 function statusText(pi: ExtensionAPI, ctx: ExtensionContext): string {
   const on = styleOn(ctx.sessionManager.getBranch());

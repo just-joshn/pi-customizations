@@ -9,20 +9,20 @@ how: explorers and an explainer, all readonly (spec 12.1)
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.how` | /how reaches Pi as the pstack how skill prompt with the request | `generated/skills/how/SKILL.md:7` |
-| `how.reads-skill-and-templates` | the parent opens how SKILL.md and both prompt templates before its first spawn | `generated/skills/how/SKILL.md:24`, `generated/skills/how/SKILL.md:28` |
-| `how.reads-templates` | the parent opens references/explorer-prompt.md and explainer-prompt.md | `generated/skills/how/SKILL.md:24` |
-| `how.explorers` | 2 to 4 explorers, role explorer, readonly on the repository root, on the "how explorer" model line | `generated/skills/how/SKILL.md:24`, `generated/skills/how/SKILL.md:11` |
+| `how.reads-skill-and-templates` | the parent opens how SKILL.md before its first spawn | `generated/skills/how/SKILL.md:28` |
+| `how.reads-templates` | the parent opens the explainer template, and the explorer template when it spawns explorers | `generated/skills/how/SKILL.md:17`, `generated/skills/how/SKILL.md:24` |
+| `how.explorers` | complex: 2 to 4 explorers, role explorer, readonly on the repository root, on the "how explorer" line. Simple: no explorers | `generated/skills/how/SKILL.md:17`, `generated/skills/how/SKILL.md:24` |
 | `how.explainer` | exactly one explainer, role general, readonly on the repository root, on the "how explainer" model line | `generated/skills/how/SKILL.md:11` |
-| `how.explorers-in-one-message` | the explorer workers were spawned in a single assistant message | `generated/skills/how/SKILL.md:24` |
-| `how.explainer-after-explorers` | the explainer is spawned only after every explorer has returned | `generated/skills/how/SKILL.md:28` |
-| `how.explainer-brief-has-findings` | the explainer's brief carries every explorer's findings | `generated/skills/how/SKILL.md:28` |
-| `how.explorer-output-shape` | each explorer's reply has the template's Components Found, Flow, Files Read, Boundaries sections | `generated/skills/how/references/explorer-prompt.md:19` |
+| `how.explorers-in-one-message` | complex: the explorers were spawned in a single message | `generated/skills/how/SKILL.md:24`, `generated/skills/how/SKILL.md:24` |
+| `how.explainer-after-explorers` | complex: the explainer is spawned only after every explorer has returned. Simple: it is the only worker | `generated/skills/how/SKILL.md:28`, `generated/skills/how/SKILL.md:17` |
+| `how.explainer-brief-has-findings` | complex: the explainer's brief carries every explorer's findings. Simple: its brief has no explorer-findings section | `generated/skills/how/SKILL.md:28`, `generated/skills/how/SKILL.md:17` |
+| `how.explorer-output-shape` | complex: each explorer's reply has the template's Components Found, Flow, Files Read, Boundaries sections | `generated/skills/how/SKILL.md:24`, `generated/skills/how/references/explorer-prompt.md:19` |
 | `how.readonly-enforced` | readonly workers (explorer, general) ran only read-class tools and every write-class call was refused | `generated/skills/how/SKILL.md:11` |
 | `how.no-writes` | the repository is untouched: how is read-only | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
-| `how.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/how/SKILL.md:28` |
-| `how.output-sections` | the reply uses only the five how sections and presents the explainer output | `generated/skills/how/SKILL.md:32` |
-| `how.citations-resolve` | the reply cites at least 3 file:line references, and each resolves in the repository | `generated/skills/how/references/explainer-prompt.md:38` |
-| `how.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/how/SKILL.md:30` |
+| `how.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/how/SKILL.md:30` |
+| `how.output-sections` | the explainer output is presented with only the five how sections | `generated/skills/how/SKILL.md:32` |
+| `how.references-resolve` | the reply references at least 3 repository files, and every file it names exists and every line it gives is inside its file | `generated/skills/how/references/explainer-prompt.md:38` |
+| `how.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/how/SKILL.md:30` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -31,9 +31,40 @@ Negative cases, each of which must FAIL the named checks:
 - an explorer got a writable worktree → `how.explorers`
 - only one explorer ran → `how.explorers`
 - an explorer ran on the wrong model line → `how.explorers`
-- the reply cites a file that does not exist → `how.citations-resolve`
+- the reply cites a file that does not exist → `how.references-resolve`
 - the parent never opened the how skill → `how.reads-skill-and-templates`
 - no wake reached the parent → `how.settled-and-collected`
+
+## how-simple
+
+how, simple path: one explainer and no explorers, with no run set up beforehand (spec 12.1)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.how` | /how reaches Pi as the pstack how skill prompt with the request | `generated/skills/how/SKILL.md:7` |
+| `how.reads-skill-and-templates` | the parent opens how SKILL.md before its first spawn | `generated/skills/how/SKILL.md:28` |
+| `how.reads-templates` | the parent opens the explainer template, and the explorer template when it spawns explorers | `generated/skills/how/SKILL.md:17`, `generated/skills/how/SKILL.md:24` |
+| `how.explorers` | complex: 2 to 4 explorers, role explorer, readonly on the repository root, on the "how explorer" line. Simple: no explorers | `generated/skills/how/SKILL.md:17`, `generated/skills/how/SKILL.md:24` |
+| `how.explainer` | exactly one explainer, role general, readonly on the repository root, on the "how explainer" model line | `generated/skills/how/SKILL.md:11` |
+| `how.explorers-in-one-message` | complex: the explorers were spawned in a single message | `generated/skills/how/SKILL.md:24`, `generated/skills/how/SKILL.md:24` |
+| `how.explainer-after-explorers` | complex: the explainer is spawned only after every explorer has returned. Simple: it is the only worker | `generated/skills/how/SKILL.md:28`, `generated/skills/how/SKILL.md:17` |
+| `how.explainer-brief-has-findings` | complex: the explainer's brief carries every explorer's findings. Simple: its brief has no explorer-findings section | `generated/skills/how/SKILL.md:28`, `generated/skills/how/SKILL.md:17` |
+| `how.explorer-output-shape` | complex: each explorer's reply has the template's Components Found, Flow, Files Read, Boundaries sections | `generated/skills/how/SKILL.md:24`, `generated/skills/how/references/explorer-prompt.md:19` |
+| `how.readonly-enforced` | readonly workers (explorer, general) ran only read-class tools and every write-class call was refused | `generated/skills/how/SKILL.md:11` |
+| `how.no-writes` | the repository is untouched: how is read-only | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+| `how.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/how/SKILL.md:30` |
+| `how.output-sections` | the explainer output is presented with only the five how sections | `generated/skills/how/SKILL.md:32` |
+| `how.references-resolve` | the reply references at least 3 repository files, and every file it names exists and every line it gives is inside its file | `generated/skills/how/references/explainer-prompt.md:38` |
+| `how.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/how/SKILL.md:30` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- an explorer ran alongside the explainer: one explorer is not 2 to 4 → `how.explorers`
+- the simple path brief still carries an explorer-findings section → `how.explainer-brief-has-findings`
+- a second worker ran after the explainer → `how.explainer`, `how.explainer-after-explorers`
+- the explainer got a writable worktree → `how.explainer`
+- the parent never opened the explainer template → `how.reads-templates`
+- the explainer wrote a file → `how.readonly-enforced`
 
 ## why
 
@@ -44,14 +75,15 @@ why: code anchor, MCP discovery, investigators, synthesizer, honest gaps (spec 1
 | `slash.why` | /why reaches Pi as the pstack why skill prompt with the request | `generated/skills/why/SKILL.md:7` |
 | `why.reads-skill-and-references` | the parent opens why SKILL.md and its epistemics and prompt templates before spawning | `generated/skills/why/SKILL.md:17` |
 | `why.code-anchor` | the parent builds the code anchor (git blame, git log --follow, git log) before any investigator spawns | `generated/skills/why/SKILL.md:27` |
-| `why.mcp-discovery` | the parent discovers MCP servers (pi mcp list) before spawning investigators | `generated/skills/why/SKILL.md:35` |
-| `why.investigators` | one investigator per evidence category that has an MCP (source control always), readonly on the root, MCP inherited, on the "why investigators" line | `generated/skills/why/SKILL.md:49`, `generated/skills/why/SKILL.md:13` |
+| `why.mcp-discovery` | the parent discovers MCP servers before spawning investigators: `pi mcp list`, or the mcp__ tools the session already lists | `generated/skills/why/SKILL.md:35`, `generated/skills/why/SKILL.md:35` |
+| `why.investigators` | one investigator per evidence category that has an MCP (source control always, so 1 to 7), readonly on the root, MCP inherited, on the "why investigators" line | `generated/skills/why/SKILL.md:49`, `generated/skills/why/SKILL.md:13` |
 | `why.synthesizer` | one synthesizer, role general, readonly, MCP inherited, on the "why synthesizer" line | `generated/skills/why/SKILL.md:79` |
 | `why.synthesizer-after-investigators` | the synthesizer is spawned after every investigator is collected | `generated/skills/why/SKILL.md:77` |
 | `why.synthesizer-brief-has-findings` | the synthesizer's brief carries the investigator findings | `generated/skills/why/SKILL.md:80` |
 | `why.readonly-enforced` | readonly workers (investigator, general) ran only read-class tools and every write-class call was refused | `generated/skills/why/SKILL.md:13` |
 | `why.no-writes` | the repository is untouched | `generated/skills/why/SKILL.md:13` |
 | `why.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/why/SKILL.md:86` |
+| `why.inline-answer-is-justified` | an inline answer says explicitly that every category search would be redundant | `generated/skills/why/SKILL.md:75` |
 | `why.sources-consulted-covers-seven-categories` | Sources Consulted names all seven evidence categories, each with a result or the reason it was skipped | `generated/skills/why/SKILL.md:92` |
 | `why.no-invented-sources` | every PR number and commit the reply cites exists in git history or in a tool result the run saw | `generated/skills/why/references/investigator-prompt.md:43` |
 | `why.output-sections` | the reply keeps the eight why sections | `generated/skills/why/SKILL.md:92` |
@@ -65,6 +97,10 @@ Negative cases, each of which must FAIL the named checks:
 - no code anchor before the spawn → `why.code-anchor`
 - the investigator wrote a file → `why.readonly-enforced`
 - the tree was edited → `why.no-writes`
+- an eighth investigator beyond the seven categories → `why.investigators`
+- an inline answer after confirming every category search would be redundant → 
+- an inline answer that never says the searches were redundant → `why.inline-answer-is-justified`
+- investigators ran without any MCP discovery → `why.mcp-discovery`
 
 ## teach
 
@@ -73,12 +109,13 @@ teach: how and why run in parallel and are woven into one plain explanation (spe
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.teach` | /teach reaches Pi as the pstack teach skill prompt with the request | `generated/skills/teach/SKILL.md:7` |
-| `teach.reads-how-and-why` | the parent opens teach, how, why, and unslop | `generated/skills/teach/SKILL.md:11` |
-| `teach.how-ran` | how ran: an explainer worker, readonly on the root, on the "how explainer" line | `generated/skills/teach/SKILL.md:11` |
-| `teach.why-ran` | why ran: an investigator, readonly, MCP inherited, and a synthesizer, on the why lines | `generated/skills/teach/SKILL.md:11` |
-| `teach.how-and-why-in-parallel` | how and why workers were spawned together, "run them in parallel" | `generated/skills/teach/SKILL.md:14` |
-| `teach.why-narrowed` | the why investigator's brief narrows the sweep and records skipped categories | `generated/skills/teach/SKILL.md:14` |
-| `teach.readonly-enforced` | readonly workers (general, investigator) ran only read-class tools and every write-class call was refused | `generated/skills/teach/SKILL.md:9` |
+| `teach.reads-the-skills-it-ran` | the parent opens teach and unslop, and how and why for whichever of them ran | `generated/skills/teach/SKILL.md:11`, `generated/skills/teach/SKILL.md:19` |
+| `teach.ran-how-or-why` | at least one of how and why ran: "maybe one is enough" for a small change | `generated/skills/teach/SKILL.md:14` |
+| `teach.how-ran` | when how ran: readonly workers on the root, explorers on the "how explorer" line and the explainer on the "how explainer" line | `generated/skills/teach/SKILL.md:11` |
+| `teach.why-ran` | when why ran: investigators (readonly, MCP inherited, "why investigators" line), then one synthesizer on the "why synthesizer" line | `generated/skills/teach/SKILL.md:11` |
+| `teach.how-and-why-in-parallel` | when both ran, both were started before either was collected: "Run them in parallel and combine the results" | `generated/skills/teach/SKILL.md:14` |
+| `teach.why-scope-recorded` | when why ran short of all seven categories, the synthesizer is told which were not searched, so the skipped categories stay on record | `generated/skills/teach/SKILL.md:14` |
+| `teach.readonly-enforced` | readonly workers (general, investigator, explorer) ran only read-class tools and every write-class call was refused | `generated/skills/teach/SKILL.md:9` |
 | `teach.no-writes` | teach changes nothing in the repository | `generated/skills/teach/SKILL.md:9` |
 | `teach.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/teach/SKILL.md:11` |
 | `teach.no-framing-labels` | the reply prints none of the labels the skill bans | `generated/skills/teach/SKILL.md:15` |
@@ -91,7 +128,12 @@ Negative cases, each of which must FAIL the named checks:
 - the reply opens with TL;DR → `teach.no-framing-labels`
 - the reply softens the why hedge → `teach.why-hedges-kept-verbatim`
 - the reply uses a long dash → `teach.no-long-dashes`
-- why was never run → `teach.why-ran`
+- why ran without its investigator → `teach.why-ran`
+- a small change that needed only how → 
+- a question that needed only why → 
+- neither how nor why ran → `teach.ran-how-or-why`
+- the why spawn is missing, so how and why did not overlap → `teach.how-and-why-in-parallel`
+- the why synthesizer was not told what went unsearched → `teach.why-scope-recorded`
 - the repository was edited → `teach.no-writes`
 
 ## investigation
@@ -112,17 +154,17 @@ Investigation playbook: read-only, routed through how, cited answer, no PR (spec
 | `todo.investigation.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
 | `todo.investigation.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
 | `investigation.throughput-checkpoint-line` | the one-line throughput checkpoint is written verbatim | `generated/skills/poteto-mode/playbooks/investigation.md:8` |
-| `investigation.routed-through-how` | the question was routed through how: an explainer or explorers, readonly on the root | `generated/skills/poteto-mode/playbooks/investigation.md:7` |
+| `investigation.routed-through-how` | the question was routed through how: an explainer, or explorers then an explainer, readonly on the root, each on its own how model line | `generated/skills/poteto-mode/playbooks/investigation.md:7` |
 | `investigation.readonly-enforced` | readonly workers (general, explorer) ran only read-class tools and every write-class call was refused | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `investigation.no-code-change` | no code change: the tree is clean, HEAD is at the base commit, parent writes stay under .pi/pstack | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `investigation.no-architect` | no architect skill, no PR playbook, and no babysit | `generated/skills/poteto-mode/playbooks/investigation.md:12` |
 | `investigation.no-pr-commands` | the parent ran no PR command | `generated/skills/poteto-mode/playbooks/investigation.md:12` |
-| `investigation.output-is-how-shaped` | the reply has the how-shaped sections and cited file:line references | `generated/skills/poteto-mode/playbooks/investigation.md:9` |
+| `investigation.output-is-how-shaped` | the reply has the how-shaped sections, or for a decision between alternatives a recommendation with a tradeoffs table | `generated/skills/poteto-mode/playbooks/investigation.md:9`, `generated/skills/poteto-mode/playbooks/investigation.md:9` |
 | `investigation.citations-resolve` | the reply cites at least 2 file:line references, and each resolves in the repository | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
 | `investigation.applies-unslop` | the parent opened the unslop skill for the reply | `generated/skills/poteto-mode/playbooks/investigation.md:10` |
 | `investigation.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
 | `investigation.receipts-recorded` | four receipts are recorded under verification/receipts and re-verify | `generated/skills/poteto-mode/SKILL.md:127` |
-| `investigation.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/investigation.md:14` |
+| `investigation.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/investigation.md:14` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -136,6 +178,8 @@ Negative cases, each of which must FAIL the named checks:
 - the main checkout was edited during a read-only investigation → `investigation.no-code-change`
 - the parent opened the architect skill → `investigation.no-architect`
 - the parent opened a PR → `investigation.no-pr-commands`
+- a decision question answered with a recommendation and a tradeoffs table → 
+- a reply with neither the how sections nor a tradeoffs table → `investigation.output-is-how-shaped`
 - a worker wrote the TODO.md → `todo.investigation.parent-sole-writer`
 
 ## arena
@@ -151,18 +195,18 @@ arena: independent candidates in separate worktrees, blind rubric, cross-family 
 | `arena.fan-out-without-waiting` | all candidate workers are spawned before the parent waits on or collects any of them | `generated/skills/arena/SKILL.md:22` |
 | `arena.separate-writable-locations` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/arena/SKILL.md:18` |
 | `arena.same-prompt` | every candidate got the same prompt: briefs are identical once each worker's own path is removed | `generated/skills/arena/SKILL.md:13` |
-| `arena.rubric-held-back` | the rubric reaches the judge and never a candidate: "Candidates only see the task" | `generated/skills/arena/SKILL.md:16` |
+| `arena.rubric-held-back` | the rubric reaches the judge and never a candidate: "Candidates only see the task" | `generated/skills/arena/SKILL.md:16`, `generated/skills/arena/SKILL.md:28` |
 | `arena.candidate-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/arena/SKILL.md:22` |
 | `arena.candidates-committed` | each candidate committed its artifact on its own branch | `generated/skills/arena/SKILL.md:22` |
-| `arena.judge` | one judge, role judge, readonly on the repository root, model from the cross-judge pool | `generated/skills/arena/SKILL.md:28` |
-| `arena.judge-not-parent-family` | the judge is never from the parent's model family | `generated/skills/arena/SKILL.md:28` |
-| `arena.judge-after-candidates` | the judge is spawned only after every candidate completes: "Don't spawn it while candidates are still writing" | `generated/skills/arena/SKILL.md:28` |
-| `arena.judge-brief` | the judge brief carries the rubric and the candidates by path label | `generated/skills/arena/SKILL.md:28` |
+| `arena.judge` | one judge, role judge, readonly on the repository root, model from the cross-judge pool | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
+| `arena.judge-not-parent-family` | the judge is never from the parent's model family | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
+| `arena.judge-after-candidates` | the judge is spawned only after every candidate completes: "Don't spawn it while candidates are still writing" | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
+| `arena.judge-brief` | the judge brief carries the rubric and the candidates by path label | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `arena.read-every-candidate` | the parent read every candidate end to end before picking | `generated/skills/arena/SKILL.md:32` |
 | `arena.verified` | a passing receipt verifies the synthesized artifact (Phase F) | `generated/skills/arena/SKILL.md:44` |
 | `arena.synthesis-note` | the synthesis note names the base, the cross-judge verdict, the grafts with their source, what was rejected, convergence or dropouts, and the verification | `generated/skills/arena/SKILL.md:48` |
 | `arena.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/arena/SKILL.md:28` |
-| `arena.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/arena/SKILL.md:46` |
+| `arena.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/arena/SKILL.md:46` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -176,6 +220,8 @@ Negative cases, each of which must FAIL the named checks:
 - the synthesized artifact was never verified → `arena.verified`
 - the verification artifact was tampered with → `arena.verified`
 - the reply forgot the cross-judge verdict → `arena.synthesis-note`
+- no other-family judge could run, so the judge was skipped and the note says so → 
+- the judge was dropped without saying so → `arena.judge`, `arena.synthesis-note`
 - the phase entries were written after the fan-out → `arena.phase-todos-before-fan-out`
 
 ## architect
@@ -192,14 +238,14 @@ architect: ground with how, two structurally distinct designs through arena, red
 | `architect.runners-from-architect-line` | Phase B: candidates run on the "architect runners" line, at least two structurally distinct designs, in separate writable worktrees | `generated/skills/architect/SKILL.md:31` |
 | `architect.designs-are-distinct` | at least two candidate design packages exist and differ ("Design it twice") | `generated/skills/architect/SKILL.md:33` |
 | `architect.separate-writable-locations` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/arena/SKILL.md:18` |
-| `architect.judge-not-parent-family` | the judge is never from the parent's model family | `generated/skills/arena/SKILL.md:28` |
-| `architect.judge-from-another-family` | arena Phase C ran: one judge, readonly, from the cross-judge pool | `generated/skills/architect/SKILL.md:29` |
-| `architect.judge-after-candidates` | the judge is spawned after every candidate completes | `generated/skills/arena/SKILL.md:28` |
+| `architect.judge-not-parent-family` | the judge is never from the parent's model family | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
+| `architect.judge-from-another-family` | arena Phase C ran: one judge, readonly, from the cross-judge pool | `generated/skills/architect/SKILL.md:29`, `generated/skills/arena/SKILL.md:28` |
+| `architect.judge-after-candidates` | the judge is spawned after every candidate completes | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `architect.rationale-shipped` | the rationale ships alongside, shaped per rationale-template.md, with the usage section before the shape | `generated/skills/architect/SKILL.md:79` |
-| `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge was collected | `generated/skills/architect/SKILL.md:43` |
+| `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge (or, with the judge skipped, the candidates) was collected | `generated/skills/architect/SKILL.md:43` |
 | `architect.implementation-verified` | the implementation worker recorded a passing test receipt | `generated/skills/architect/SKILL.md:53` |
 | `architect.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/arena/SKILL.md:28` |
-| `architect.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/architect/SKILL.md:77` |
+| `architect.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/architect/SKILL.md:77` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -209,6 +255,7 @@ Negative cases, each of which must FAIL the named checks:
 - the rationale kept the template note for the synthesis decision → `architect.rationale-shipped`
 - the implementation committed nothing → `architect.proceeds-to-implementation`
 - the implementation receipt is gone → `architect.implementation-verified`
+- no other-family judge could run, so the judge was skipped and the final message says so → 
 - the judge shares the parent family → `architect.judge-not-parent-family`
 - the phase entries were written after workers launched → `architect.phase-todos-before-work`
 
@@ -221,11 +268,11 @@ swarm: partitioned workers, container first with a worktree fallback, PASS/ISSUE
 | `slash.swarm` | /swarm reaches Pi as the pstack swarm skill prompt with the request | `generated/skills/swarm/SKILL.md:7` |
 | `swarm.reads-skill` | the parent opens the swarm skill | `generated/skills/swarm/SKILL.md:7` |
 | `swarm.phase-todos-before-fan-out` | TODO.md lists one entry per phase (Frame, Fan out, Aggregate, Report) in order, before the first worker is spawned, and each ends resolved | `generated/skills/swarm/SKILL.md:11` |
-| `swarm.container-tried-first` | Phase B tries a container workspace first for the first worker | `generated/skills/swarm/SKILL.md:27` |
-| `swarm.container-refusal-is-ContainerUnavailable` | a refused container spawn answers ContainerUnavailable, which the swarm skill reads as its fallback signal | `generated/skills/swarm/SKILL.md:27` |
-| `swarm.falls-back-to-worktree` | after the refusal each worker is spawned with a worktree workspace at the base commit | `generated/skills/swarm/SKILL.md:27` |
+| `swarm.container-tried-first` | Phase B asks for a container workspace first, or its brief names what it needs on the user's computer | `generated/skills/swarm/SKILL.md:27`, `generated/skills/swarm/SKILL.md:27` |
+| `swarm.container-refusal-is-ContainerUnavailable` | a refused spawn answers ContainerUnavailable, which the swarm skill reads as its fallback signal; with no refusal the container workers ran | `generated/skills/swarm/SKILL.md:27` |
+| `swarm.falls-back-to-worktree` | each worker runs in a container at the base commit, or in a worktree at the base commit after a refused container spawn or because its brief names a local need | `generated/skills/swarm/SKILL.md:27` |
 | `swarm.workers-use-the-swarm-model-line` | workers are role general on the "swarm workers" model line | `generated/skills/swarm/SKILL.md:22` |
-| `swarm.fan-out-without-waiting` | the first N workers are spawned together before the parent collects any | `generated/skills/swarm/SKILL.md:27` |
+| `swarm.fan-out-without-waiting` | the workers are spawned together before the parent collects any; only replacements for a dropped result come later | `generated/skills/swarm/SKILL.md:27` |
 | `swarm.separate-writable-outputs` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/swarm/SKILL.md:23` |
 | `swarm.briefs-stand-alone` | every brief names the goal, the scope, the exact commit SHA, the measurement method, and the PASS, ISSUES, BLOCKED report | `generated/skills/swarm/SKILL.md:31` |
 | `swarm.results-record-sha-and-method` | every lane the report accepts rests on a result that records the commit SHA and the method its brief names; a result that does not is not a pass | `generated/skills/swarm/SKILL.md:37` |
@@ -245,6 +292,7 @@ Negative cases, each of which must FAIL the named checks:
 - the slice was respawned twice → `swarm.one-replacement-per-slice`
 - the report invented an outcome → `swarm.report-keeps-outcome-distinctions`
 - the workers ran on the wrong model line → `swarm.workers-use-the-swarm-model-line`
+- the container workers were accepted, so no fallback was needed → 
 - a worker was a read-only container-less fallback → `swarm.falls-back-to-worktree`
 
 ## interrogate
@@ -266,7 +314,7 @@ interrogate: independent adversaries in worktrees, only run-proven findings surv
 | `interrogate.reports-without-fixing` | findings are reported and no fix is applied to the repository | `generated/skills/interrogate/SKILL.md:9` |
 | `interrogate.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/interrogate/SKILL.md:15` |
 | `interrogate.reviewer-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/interrogate/SKILL.md:19` |
-| `interrogate.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/interrogate/SKILL.md:27` |
+| `interrogate.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/interrogate/SKILL.md:27` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -307,7 +355,7 @@ Feature playbook: ground with how, checkpoint, delegate to one worker, verify un
 | `feature.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/feature.md:12` |
 | `feature.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
 | `feature.reply-has-the-contract` | the reply carries what was built, the throughput checkpoint, and open decisions | `generated/skills/poteto-mode/playbooks/feature.md:21` |
-| `feature.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/feature.md:21` |
+| `feature.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/feature.md:21` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -426,7 +474,7 @@ Refactoring playbook: pin first, subtract, small green steps, independent equiva
 | `refactoring.parent-stays-in-the-lead` | the parent wrote no production code: the contract is its, the edits are the worker's | `generated/skills/poteto-mode/playbooks/refactoring.md:3` |
 | `refactoring.worker-records` | a writable worker leaves report.md and recorded receipts; a readonly worker leaves its report as its final reply | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
-| `refactoring.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/refactoring.md:16` |
+| `refactoring.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/refactoring.md:16` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -565,7 +613,7 @@ Prototype playbook: settle an empirical fork by observing a throwaway, not by as
 | `prototype.decides-without-asking-the-human` | an empirical fork is settled by running it: the reply gives a recommendation and does not hand the choice back as a question | `generated/skills/poteto-mode/SKILL.md:22` |
 | `prototype.reply-names-tradeoffs-scratch-and-throwaway` | the reply gives the variants, tradeoffs, the scratch path, says the prototype is throwaway, and hands the real build to Feature | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
 | `prototype.repository-untouched` | no prototype code entered the repository | `generated/skills/poteto-mode/playbooks/prototype.md:12` |
-| `prototype.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
+| `prototype.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/prototype.md:14` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -804,7 +852,7 @@ show-me-your-work: a well-formed append-only trail, audited against the transcri
 | `trail.reviewer-brief-names-the-trail-and-transcript` | the reviewer brief names the trail and this run's real session file | `generated/skills/show-me-your-work/SKILL.md:67` |
 | `trail.reply-ends-with-attention` | the reply ends with an Attention section that leads with "reviewed by <model>" and points at rows | `generated/skills/show-me-your-work/SKILL.md:74` |
 | `trail.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/show-me-your-work/SKILL.md:65` |
-| `trail.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/show-me-your-work/SKILL.md:34` |
+| `trail.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/show-me-your-work/SKILL.md:34` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -842,7 +890,7 @@ Session pickup playbook: read the prior trail inside this workspace, name the re
 | `pickup.verdict-and-route` | the verdict is one of the four, and the playbook it routes to was opened | `generated/skills/poteto-mode/playbooks/session-pickup.md:8` |
 | `pickup.inherited-claims-verified-on-the-real-artifact` | the inherited claim is verified on the prior branch head: the receipt names that commit and the checker re-runs the tests there | `generated/skills/poteto-mode/playbooks/session-pickup.md:9` |
 | `pickup.reply-has-the-four-parts` | the reply says where the prior agent stopped, inherited versus redone, the resume point, and the outcome | `generated/skills/poteto-mode/playbooks/session-pickup.md:11` |
-| `pickup.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/session-pickup.md:3` |
+| `pickup.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/session-pickup.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -924,7 +972,7 @@ Autonomous run playbook: a checkable exit predicate, watch loops that re-arm aft
 | `auto.one-row-per-iteration` | each iteration leaves a decisions.tsv row naming what changed and whether the predicate moved | `generated/skills/poteto-mode/playbooks/autonomous-run.md:10` |
 | `auto.discarded-change-is-gone-and-the-win-is-one-small-commit` | a change that did not move the predicate is discarded in full, and the one that did is one commit touching only its file | `generated/skills/poteto-mode/playbooks/autonomous-run.md:7` |
 | `auto.stops-when-met-and-does-not-ask` | the reply gives the exit condition, iterations, what landed, what was discarded and the final state, and does not stop to ask the user a question | `generated/skills/poteto-mode/playbooks/autonomous-run.md:13` |
-| `auto.no-unexpected-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `auto.no-unexpected-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -965,7 +1013,7 @@ Worktree cleanup playbook: audit as a watch, the pinned set wins, dirty work pau
 | `cleanup.branches-survive` | no commit is lost: every branch ref still exists after the prune | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:7` |
 | `cleanup.pinned-set-wins-and-usage-was-verified` | the pinned set the user named is recorded, and a readonly worker read the chat transcript to confirm what it touches | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:4` |
 | `cleanup.reply-has-disk-pruned-and-held-back-with-reasons` | the reply gives df before and after, what was pruned, and a reason for each held-back worktree | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:12` |
-| `cleanup.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:10` |
+| `cleanup.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/worktree-cleanup.md:10` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1007,7 +1055,7 @@ Authoring a skill playbook: Pi's docs followed, a valid project-local skill, val
 | `author.validation-ran-and-recorded` | a validator ran on the skill and its receipt records a pass | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:6` |
 | `author.reply-has-summary-decisions-validation` | the reply gives a summary of the skill, key design decisions, and validation notes | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
 | `author.production-code-untouched` | no production file changed | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:3` |
-| `author.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
+| `author.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/authoring-a-skill.md:12` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1140,7 +1188,7 @@ Runtime forensics playbook: a real CPU profile of the live process, reduced by a
 | `rt.no-fix-unless-asked` | the deliverable is a diagnosis: the program and the repository are unchanged | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:11` |
 | `rt.reply-has-the-five-parts` | the reply gives the signal captured, the reduced finding, how the mechanism was proved, the source location, and the artifact paths | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:11` |
 | `rt.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
-| `rt.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:3` |
+| `rt.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/runtime-forensics.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 
@@ -1184,7 +1232,7 @@ Trace forensics playbook: a handed-over profile loaded into sqlite, narrowed, at
 | `trace.throughput-checkpoint-line` | the checkpoint stays one literal line | `generated/skills/poteto-mode/playbooks/trace-forensics.md:12` |
 | `trace.no-fix-unless-asked` | the deliverable is a diagnosis: nothing in the repository changed | `generated/skills/poteto-mode/playbooks/trace-forensics.md:12` |
 | `trace.reply-has-the-four-parts` | the reply gives the artifact and format, the reduced finding, the source location, the artifact paths, and whether a paired capture confirmed it | `generated/skills/poteto-mode/playbooks/trace-forensics.md:14` |
-| `trace.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/trace-forensics.md:3` |
+| `trace.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/trace-forensics.md:3` |
 
 Negative cases, each of which must FAIL the named checks:
 

@@ -29,8 +29,8 @@ test.for(families.map((family) => family.id))('%s: sources resolve, ids are uniq
   expect(new Set(ids).size).toBe(ids.length);
   expect(family.negatives.length).toBeGreaterThan(0);
   for (const negative of family.negatives) {
-    expect(negative.fails.length, `${family.id}: ${negative.name} names no check`).toBeGreaterThan(0);
-    expect(negative.fails.filter((checkId) => !ids.includes(checkId)), `${family.id}: ${negative.name}`).toEqual([]);
+    expect(negative.fails.length + (negative.passes ?? []).length, `${family.id}: ${negative.name} names no check`).toBeGreaterThan(0);
+    expect([...negative.fails, ...(negative.passes ?? [])].filter((checkId) => !ids.includes(checkId)), `${family.id}: ${negative.name}`).toEqual([]);
   }
   for (const defect of family.knownDefects ?? []) expect(ids).toContain(defect.checkId);
 });

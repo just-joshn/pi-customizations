@@ -1,8 +1,8 @@
 // Run-root files shared by the parent extension and the tmux-hosted worker host (contract "Run files").
 // The host runs under plain Node, so this module imports nothing outside node: builtins.
 import { execFileSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
-import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
+import { createHash, randomBytes } from 'node:crypto';
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, linkSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export type RunId = string & { readonly __brand: 'RunId' };
@@ -98,7 +98,8 @@ export interface RunRecord {
   schemaVersion: 1;
   runId: RunId;
   title: string;
-  playbook: string;
+  /** The skill or playbook that started the run; null for a run a skill made by naming a free run id. */
+  playbook: string | null;
   upstreamRevision: string;
   createdAt: string;
   parentSessionFile: string | null;
@@ -115,6 +116,28 @@ export function readRun(runRoot: string): RunRecord {
   const parent = raw['parentSessionFile'];
   if (parent !== null && typeof parent !== 'string') throw new Error(`${runRoot}/run.json: parentSessionFile must be a string or null`);
   return raw as unknown as RunRecord;
+}
+
+/**
+ * Creates `run.json` unless one exists, and returns the one that stands. The record is written to a private file and
+ * hard-linked into place, so the name never holds a partial record and of any number of concurrent creators exactly
+ * one wins; the rest read the winner's.
+ */
+export function ensureRun(project: string, record: Omit<RunRecord, 'schemaVersion' | 'createdAt'>): RunRecord {
+  const runRoot = runRootOf(project, record.runId);
+  ensureRunStateIgnored(project);
+  mkdirSync(join(runRoot, 'workers'), { recursive: true });
+  const path = join(runRoot, 'run.json');
+  const temporary = `${path}.${process.pid}.${randomBytes(4).toString('hex')}.tmp`;
+  writeFileSync(temporary, `${JSON.stringify({ schemaVersion: 1, createdAt: new Date().toISOString(), ...record }, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
+  try {
+    linkSync(temporary, path);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+  } finally {
+    rmSync(temporary, { force: true });
+  }
+  return readRun(runRoot);
 }
 
 export const WORKER_ROLES = ['poteto', 'explorer', 'investigator', 'candidate', 'judge', 'verifier', 'reviewer', 'owner', 'watcher', 'comment-sicko', 'general'] as const;

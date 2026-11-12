@@ -46,6 +46,7 @@ export function defineFamilyTests(list: Family[]): void {
         const outcome = run?.negatives.find((negative) => negative.name === name);
         expect(outcome, `negative ${name} did not run`).toBeDefined();
         expect(outcome?.failedChecks, `${name} must fail ${outcome?.expected.join(', ')}`).toEqual(expect.arrayContaining(outcome?.expected ?? []));
+        expect(outcome?.rejected, `${name} is a branch the skill allows; these checks rejected it`).toEqual([]);
       });
 
       test.skipIf(REAL_MODEL === '')(

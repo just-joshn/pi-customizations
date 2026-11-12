@@ -1,12 +1,16 @@
 // Families: how, why, teach, and the Investigation playbook (spec 12.1).
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { type Check, check, fail, pass, src, when } from '../lib/check.ts';
+import { type Check, check, fail, type Outcome, pass, type Src, src, when } from '../lib/check.ts';
 import {
   allWorkers,
   assignmentOf,
   briefCarries,
   citationsResolve,
+  collectOrder,
+  fileReferencesResolve,
+  expectedModels,
   finalReply,
   noInventedSources,
   noToolErrors,
@@ -23,15 +27,18 @@ import {
   replyLacks,
   replySections,
   settledAndCollected,
+  skillFile,
+  spawnOrder,
   spawnedAfterCollect,
   spawnedTogether,
   todoChecks,
   workersCheck,
 } from '../lib/checks.ts';
 import { PI, SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory } from '../lib/mutate.ts';
+import { appendToBrief, appendToolCall, cloneWorker, dirtyRepo, dropWakes, parentSession, patchAssignment, removeWorker, rewriteSession, rewriteFinalReply, setStep, stripEvidence, workerSessionFile, deleteReceipt, deleteStep, corruptArtifact, reorderHistory } from '../lib/mutate.ts';
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory, lineOf } from '../fixtures/repos.ts';
+import type { RunView } from '../lib/view.ts';
 import type { Family } from './types.ts';
 
 const model = (line: string) => String(SCRIPTED_ROLES[line]);
@@ -82,6 +89,100 @@ const withRepo = (worker: Worker, repo: string): Worker => {
   return worker;
 };
 
+// how has two paths (how/SKILL.md "1. Assess complexity"). A run is on the complex path when it spawned explorers and on
+// the simple path when it spawned none, so each check below holds the run to the contract of the path it took.
+type HowPath = 'simple' | 'complex';
+const howPath = (view: RunView): HowPath => (allWorkers(view).some((worker) => assignmentOf(worker).role === 'explorer') ? 'complex' : 'simple');
+const SIMPLE_SPAN = src('how/SKILL.md', 'no explorers. Spawn one explainer that explores and explains in one pass');
+const COMPLEX_SPAN = src('how/SKILL.md', 'Decompose the question into 2 to 4 angles');
+
+/** A check that runs `complex` on the complex path and `simple` on the simple path, citing the span for each. */
+function byPath(id: string, title: string, sources: Src[], simple: (view: RunView) => Outcome, complex: (view: RunView) => Outcome): Check {
+  return check(id, title, sources, (view) => {
+    const path = howPath(view);
+    const outcome = path === 'simple' ? simple(view) : complex(view);
+    return 'skip' in outcome ? outcome : { ...outcome, evidence: `${path} path: ${outcome.evidence}` };
+  });
+}
+
+/**
+ * The assistant message that presents the explainer's output (how/SKILL.md "4. Present"). A wake that lands after the
+ * parent has already collected starts another, shorter turn, so the last message is not always the one that presents.
+ */
+function presentedHow(view: RunView): string {
+  const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
+  const probe = (text: string) => text.replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (explainer === undefined || probe(explainer.finalText) === '') return '';
+  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.text.replace(/\s+/g, ' ').includes(probe(explainer.finalText)))?.text ?? '';
+}
+
+const notAnExplorerPath = (what: string) => (): Outcome => pass(`${what} applies only to the complex path, and no explorer ran`);
+
+function howChecks(): Check[] {
+  const explorers = workersCheck('how.explorers', '', [], { role: 'explorer', min: 2, max: 4, mode: 'readonly', rootPath: true, modelLine: 'how explorer' });
+  const explainerAfter = spawnedAfterCollect('how.explainer-after-explorers', '', [], ['general'], ['explorer']);
+  const together = spawnedTogether('how.explorers-in-one-message', [], ['explorer']);
+  const findings = briefCarries('how.explainer-brief-has-findings', '', [], ['general'], ['explorer']);
+  return [
+    promptRoutes('how'),
+    parentReads('how.reads-skill-and-templates', 'the parent opens how SKILL.md before its first spawn', src('how/SKILL.md', 'spawn one explainer with `references/explainer-prompt.md`'), ['how'], { beforeFirstSpawn: true }),
+    byPath(
+      'how.reads-templates',
+      'the parent opens the explainer template, and the explorer template when it spawns explorers',
+      [SIMPLE_SPAN, COMPLEX_SPAN],
+      (view) => when(openedAt(view.parent, 'generated/skills/how/references/explainer-prompt.md') !== -1, 'explainer-prompt.md was opened', 'explainer-prompt.md was not opened'),
+      (view) => {
+        const missing = ['explorer-prompt.md', 'explainer-prompt.md'].filter((file) => openedAt(view.parent, `generated/skills/how/references/${file}`) === -1);
+        return when(missing.length === 0, 'both templates were opened', `not opened: ${missing.join(', ')}`);
+      },
+    ),
+    byPath('how.explorers', 'complex: 2 to 4 explorers, role explorer, readonly on the repository root, on the "how explorer" line. Simple: no explorers', [SIMPLE_SPAN, COMPLEX_SPAN], () => pass('no explorers'), explorers.run),
+    workersCheck('how.explainer', 'exactly one explainer, role general, readonly on the repository root, on the "how explainer" model line', src('how/SKILL.md', '`role: "general"` for explainers'), { role: 'general', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
+    byPath('how.explorers-in-one-message', 'complex: the explorers were spawned in a single message', [COMPLEX_SPAN, src('how/SKILL.md', 'Spawn all explorers in a single message')], notAnExplorerPath('spawning explorers together'), together.run),
+    byPath(
+      'how.explainer-after-explorers',
+      'complex: the explainer is spawned only after every explorer has returned. Simple: it is the only worker',
+      [src('how/SKILL.md', 'Once all explorers have returned, spawn one explainer'), SIMPLE_SPAN],
+      (view) => when(allWorkers(view).length === 1, 'the explainer is the only worker', `${allWorkers(view).length} workers on the simple path`),
+      explainerAfter.run,
+    ),
+    byPath(
+      'how.explainer-brief-has-findings',
+      "complex: the explainer's brief carries every explorer's findings. Simple: its brief has no explorer-findings section",
+      [src('how/SKILL.md', 'every explorer\'s findings filled in'), src('how/SKILL.md', 'without the explorer-findings section')],
+      (view) => {
+        const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
+        return when(explainer !== undefined && !/explorer findings/i.test(explainer.brief ?? ''), 'the brief has no explorer-findings section', 'the explainer brief carries an explorer-findings section on the simple path');
+      },
+      findings.run,
+    ),
+    byPath(
+      'how.explorer-output-shape',
+      "complex: each explorer's reply has the template's Components Found, Flow, Files Read, Boundaries sections",
+      [COMPLEX_SPAN, src('how/references/explorer-prompt.md', '### Components Found')],
+      notAnExplorerPath('the explorer reply shape'),
+      (view) => {
+        const found = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'explorer');
+        const bad = found.filter((worker) => !['Components Found', 'Flow', 'Files Read', 'Boundaries'].every((section) => worker.finalText.includes(`### ${section}`)));
+        return when(found.length > 0 && bad.length === 0, `${found.length} explorer replies have all four sections`, `incomplete: ${bad.map((worker) => worker.id).join(', ') || 'no explorers'}`);
+      },
+    ),
+    readonlyEnforced('how.readonly-enforced', src('how/SKILL.md', 'Every spawn is a `pstack_worker` worker with `workspace: { mode: "readonly"'), ['explorer', 'general']),
+    repoUntouched('how.no-writes', 'the repository is untouched: how is read-only', src('poteto-mode/playbooks/investigation.md', 'Investigation requests are read-only')),
+    settledAndCollected('how.settled-and-collected', src('how/SKILL.md', '## 4. Present')),
+    check('how.output-sections', 'the explainer output is presented with only the five how sections', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
+      const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
+      const reply = presentedHow(view);
+      if (explainer === undefined || reply === '') return fail(`no assistant message presents the explainer output (${explainer === undefined ? 'no explainer' : 'none repeats its opening'})`);
+      const headings = [...reply.matchAll(/^#{1,4}\s*(.+)$/gm)].map((match) => (match[1] as string).trim());
+      const unknown = headings.filter((heading) => !HOW_SECTIONS.includes(heading));
+      return when(headings.length > 0 && unknown.length === 0, `sections ${headings.join(', ')}; the explainer output is presented`, `unknown headings: ${unknown.join(', ') || 'none'}`);
+    }),
+    fileReferencesResolve('how.references-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3, from: presentedHow }),
+    noToolErrors('how.no-tool-errors', src('how/SKILL.md', '## 4. Present')),
+  ];
+}
+
 const HOW_QUESTION = 'how does checkout compute the total, and where do coupons apply?';
 
 export const howFamily: Family = {
@@ -112,45 +213,56 @@ export const howFamily: Family = {
       });
     },
   },
-  checks: [
-    promptRoutes('how'),
-    parentReads('how.reads-skill-and-templates', 'the parent opens how SKILL.md and both prompt templates before its first spawn', [src('how/SKILL.md', 'Spawn all explorers in a single message, each with `references/explorer-prompt.md`'), src('how/SKILL.md', 'spawn one explainer with `references/explainer-prompt.md`')], ['how'], { beforeFirstSpawn: true }),
-    check('how.reads-templates', 'the parent opens references/explorer-prompt.md and explainer-prompt.md', src('how/SKILL.md', 'Spawn all explorers in a single message, each with `references/explorer-prompt.md`'), (view) => {
-      const missing = ['generated/skills/how/references/explorer-prompt.md', 'generated/skills/how/references/explainer-prompt.md'].filter((path) => openedAt(view.parent, path) === -1);
-      return when(missing.length === 0, 'both templates were opened', `not opened: ${missing.join(', ')}`);
-    }),
-    workersCheck('how.explorers', '2 to 4 explorers, role explorer, readonly on the repository root, on the "how explorer" model line', [src('how/SKILL.md', 'Decompose the question into 2 to 4 angles'), src('how/SKILL.md', 'Every spawn is a `pstack_worker` worker with `workspace: { mode: "readonly"')], { role: 'explorer', min: 2, max: 4, mode: 'readonly', rootPath: true, modelLine: 'how explorer' }),
-    workersCheck('how.explainer', 'exactly one explainer, role general, readonly on the repository root, on the "how explainer" model line', src('how/SKILL.md', '`role: "general"` for explainers'), { role: 'general', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
-    spawnedTogether('how.explorers-in-one-message', src('how/SKILL.md', 'Spawn all explorers in a single message'), ['explorer']),
-    spawnedAfterCollect('how.explainer-after-explorers', 'the explainer is spawned only after every explorer has returned', src('how/SKILL.md', 'Once all explorers have returned, spawn one explainer'), ['general'], ['explorer']),
-    briefCarries('how.explainer-brief-has-findings', "the explainer's brief carries every explorer's findings", src('how/SKILL.md', 'every explorer\'s findings filled in'), ['general'], ['explorer']),
-    check('how.explorer-output-shape', "each explorer's reply has the template's Components Found, Flow, Files Read, Boundaries sections", src('how/references/explorer-prompt.md', '### Components Found'), (view) => {
-      const explorers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'explorer');
-      const bad = explorers.filter((worker) => !['Components Found', 'Flow', 'Files Read', 'Boundaries'].every((section) => worker.finalText.includes(`### ${section}`)));
-      return when(explorers.length > 0 && bad.length === 0, `${explorers.length} explorer replies have all four sections`, `incomplete: ${bad.map((worker) => worker.id).join(', ') || 'no explorers'}`);
-    }),
-    readonlyEnforced('how.readonly-enforced', src('how/SKILL.md', 'Every spawn is a `pstack_worker` worker with `workspace: { mode: "readonly"'), ['explorer', 'general']),
-    repoUntouched('how.no-writes', 'the repository is untouched: how is read-only', src('poteto-mode/playbooks/investigation.md', 'Investigation requests are read-only')),
-    settledAndCollected('how.settled-and-collected', src('how/SKILL.md', 'Once all explorers have returned')),
-    check('how.output-sections', 'the reply uses only the five how sections and presents the explainer output', src('how/SKILL.md', 'Do not substantially rewrite it'), (view) => {
-      const reply = finalReply(view);
-      const headings = [...reply.matchAll(/^#{1,4}\s*(.+)$/gm)].map((match) => (match[1] as string).trim());
-      const unknown = headings.filter((heading) => !HOW_SECTIONS.includes(heading));
-      const explainer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general');
-      return when(headings.length > 0 && unknown.length === 0 && explainer !== undefined && reply.includes(explainer.finalText.slice(0, 60)), `sections ${headings.join(', ')}; reply presents the explainer output`, `unknown headings: ${unknown.join(', ') || 'none'}; explainer text present: ${String(explainer !== undefined && reply.includes(explainer.finalText.slice(0, 60)))}`);
-    }),
-    citationsResolve('how.citations-resolve', src('how/references/explainer-prompt.md', 'Reference specific files and functions'), { min: 3 }),
-    noToolErrors('how.no-tool-errors', src('how/SKILL.md', '## 4. Present')),
-  ],
+  checks: howChecks(),
   negatives: [
     { name: 'a readonly explorer wrote a file', mutate: (sandbox) => appendToolCall(workerSessionFile(sandbox, 'how-checkout', 'explorer-1'), 'write', { path: '/x/src/cart.js', content: 'x' }), fails: ['how.readonly-enforced'] },
     { name: 'the main checkout was edited during a read-only investigation', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['how.no-writes'] },
     { name: 'an explorer got a writable worktree', mutate: (sandbox) => patchAssignment(sandbox, 'how-checkout', 'explorer-1', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: 'abc1234' })), fails: ['how.explorers'] },
     { name: 'only one explorer ran', mutate: (sandbox) => removeWorker(sandbox, 'how-checkout', 'explorer-2'), fails: ['how.explorers'] },
     { name: 'an explorer ran on the wrong model line', mutate: (sandbox) => patchAssignment(sandbox, 'how-checkout', 'explorer-1', (assignment) => (assignment['model'] = 'sim/grok-sim')), fails: ['how.explorers'] },
-    { name: 'the reply cites a file that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /src\/cart\.js:/g, 'src/nope.js:'), fails: ['how.citations-resolve'] },
+    { name: 'the reply cites a file that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /src\/cart\.js:/g, 'src/nope.js:'), fails: ['how.references-resolve'] },
     { name: 'the parent never opened the how skill', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'generated/skills/how/SKILL.md', 'generated/skills/zzz/SKILL.md'), fails: ['how.reads-skill-and-templates'] },
     { name: 'no wake reached the parent', mutate: (sandbox) => dropWakes(sandbox), fails: ['how.settled-and-collected'] },
+  ],
+};
+
+const SIMPLE_QUESTION = 'how does formatMoney in src/money.js build its label?';
+const SIMPLE_EXPLAINER = `### Overview
+formatMoney() in src/money.js:${cart('export function formatMoney', 'src/money.js')} turns a number of dollars into a label for the checkout.
+### Key Concepts
+It only formats. The amount arrives already rounded from total() in src/cart.js:${cart('export function total')}.
+### How It Works
+checkout() in src/checkout.js:${cart('export function checkout', 'src/checkout.js')} calls total(), then passes the result to formatMoney().
+### Where Things Live
+Formatting is src/money.js. The caller is src/checkout.js.
+### Gotchas
+formatMoney() does not round, so a caller that skips total() can print a long fraction.`;
+
+/** how/SKILL.md "Simple ... no explorers. Spawn one explainer", with no start-run.mjs: spawn makes the run. */
+export const howSimpleFamily: Family = {
+  id: 'how-simple',
+  title: 'how, simple path: one explainer and no explorers, with no run set up beforehand (spec 12.1)',
+  spec: {
+    family: 'how-simple',
+    runId: 'how-money',
+    history: cartHistory,
+    prompt: () => `/how ${SIMPLE_QUESTION}`,
+    scenario: (ctx) => {
+      const parent = new Parent(ctx);
+      parent.readSkill('how').readReference('how', 'explainer-prompt.md');
+      parent.spawn('explainer', { role: 'general', model: model('how explainer'), workspace: parent.readonly() }, `Question: ${SIMPLE_QUESTION}\n\nExplore src/money.js and explain it in one pass. Write the explanation with Overview, Key Concepts, How It Works, Where Things Live, Gotchas.`);
+      parent.wait('explainer').collect('explainer').text(SIMPLE_EXPLAINER);
+      return scenario(parent, { explainer: withRepo(new Worker().read(join('{repo}', 'src/money.js')).text(SIMPLE_EXPLAINER), ctx.repo) });
+    },
+  },
+  checks: howChecks(),
+  negatives: [
+    { name: 'an explorer ran alongside the explainer: one explorer is not 2 to 4', mutate: (sandbox) => cloneWorker(sandbox, 'how-money', 'explainer', 'explorer-1', { role: 'explorer' }), fails: ['how.explorers'] },
+    { name: 'the simple path brief still carries an explorer-findings section', mutate: (sandbox) => appendToBrief(sandbox, 'how-money', 'explainer', '\n## Explorer Findings\n\nnone'), fails: ['how.explainer-brief-has-findings'] },
+    { name: 'a second worker ran after the explainer', mutate: (sandbox) => cloneWorker(sandbox, 'how-money', 'explainer', 'extra', {}), fails: ['how.explainer', 'how.explainer-after-explorers'] },
+    { name: 'the explainer got a writable worktree', mutate: (sandbox) => patchAssignment(sandbox, 'how-money', 'explainer', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: 'abc1234' })), fails: ['how.explainer'] },
+    { name: 'the parent never opened the explainer template', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'references/explainer-prompt.md', 'references/zzz.md'), fails: ['how.reads-templates'] },
+    { name: 'the explainer wrote a file', mutate: (sandbox) => appendToolCall(workerSessionFile(sandbox, 'how-money', 'explainer'), 'write', { path: '/x/src/money.js', content: 'x' }), fails: ['how.readonly-enforced'] },
   ],
 };
 
@@ -210,21 +322,40 @@ const whyWorkers = (parent: Parent) => ({
   synthesizer: { role: 'general', model: model('why synthesizer'), workspace: parent.readonly(), capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: false } },
 });
 
+// why answers inline only "in the rare provably-redundant case" (why/SKILL.md "Step 3"): a run that spawned no worker took
+// that branch and owes the explicit statement the skill asks for; every other run holds to the investigator contract.
+type WhyPath = 'inline' | 'investigated';
+const whyPath = (view: RunView): WhyPath => (allWorkers(view).length === 0 ? 'inline' : 'investigated');
+const INLINE_SPAN = src('why/SKILL.md', 'you may answer inline **only after** confirming all seven available category searches would be redundant');
+
+/** Runs `inner` on an investigated run; an inline run has no workers for it to read. */
+function whenInvestigated(inner: Check): Check {
+  return check(inner.id, inner.title, inner.src, (view) => (whyPath(view) === 'inline' ? pass('inline answer: no worker was spawned, so there is nothing to hold to this contract') : inner.run(view)));
+}
+
 const whyChecks = (prefix: string): Check[] => [
   parentRanBeforeSpawn(`${prefix}.code-anchor`, 'the parent builds the code anchor (git blame, git log --follow, git log) before any investigator spawns', src('why/SKILL.md', 'Run `git blame -L <start>,<end> <file>`'), [/git blame/, /git log --follow/, /git log --oneline/]),
-  check(`${prefix}.mcp-discovery`, 'the parent discovers MCP servers (pi mcp list) before spawning investigators', src('why/SKILL.md', 'Otherwise run `pi mcp list`'), (view) => {
+  check(`${prefix}.mcp-discovery`, 'the parent discovers MCP servers before spawning investigators: `pi mcp list`, or the mcp__ tools the session already lists', [src('why/SKILL.md', 'Otherwise run `pi mcp list`'), src('why/SKILL.md', 'Use the `mcp_servers` section of the system prompt')], (view) => {
     const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn')?.order ?? Number.POSITIVE_INFINITY;
     const listed = view.parent.toolCalls.find((call) => call.name === 'bash' && /\bmcp list\b/.test(String(call.args['command'])) && call.order < spawn);
-    return listed === undefined ? fail('no `pi mcp list` before the first spawn') : pass(`mcp list answered: ${listed.resultText.split('\n')[0]?.slice(0, 80)}`);
+    if (listed !== undefined) return pass(`mcp list answered: ${listed.resultText.split('\n')[0]?.slice(0, 80)}`);
+    const tool = view.parent.toolCalls.find((call) => call.name.startsWith('mcp__') && call.order < spawn);
+    return tool === undefined ? fail('no `pi mcp list` and no mcp__ tool call before the first spawn') : pass(`the session's own ${tool.name} tool was used before the first spawn`);
   }),
-  workersCheck(`${prefix}.investigators`, 'one investigator per evidence category that has an MCP (source control always), readonly on the root, MCP inherited, on the "why investigators" line', [src('why/SKILL.md', 'Spawn one investigator per category that has a matching MCP'), src('why/SKILL.md', '**Do not set `capabilities.mcp: "none"`.**')], { role: 'investigator', min: 1, max: 1, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' }),
-  workersCheck(`${prefix}.synthesizer`, 'one synthesizer, role general, readonly, MCP inherited, on the "why synthesizer" line', src('why/SKILL.md', 'Spawn one synthesizer'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why synthesizer', id: /synth/ }),
-  spawnedAfterCollect(`${prefix}.synthesizer-after-investigators`, 'the synthesizer is spawned after every investigator is collected', src('why/SKILL.md', '## Step 4. Synthesize'), ['general'], ['investigator']),
-  briefCarries(`${prefix}.synthesizer-brief-has-findings`, "the synthesizer's brief carries the investigator findings", src('why/SKILL.md', 'The investigator findings, including any null results'), ['general'], ['investigator']),
-  readonlyEnforced(`${prefix}.readonly-enforced`, src('why/SKILL.md', 'A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files'), ['investigator', 'general']),
+  whenInvestigated(workersCheck(`${prefix}.investigators`, 'one investigator per evidence category that has an MCP (source control always, so 1 to 7), readonly on the root, MCP inherited, on the "why investigators" line', [src('why/SKILL.md', 'Spawn one investigator per category that has a matching MCP'), src('why/SKILL.md', '**Do not set `capabilities.mcp: "none"`.**')], { role: 'investigator', min: 1, max: 7, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' })),
+  whenInvestigated(workersCheck(`${prefix}.synthesizer`, 'one synthesizer, role general, readonly, MCP inherited, on the "why synthesizer" line', src('why/SKILL.md', 'Spawn one synthesizer'), { role: 'general', min: 1, max: 1, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why synthesizer' })),
+  whenInvestigated(spawnedAfterCollect(`${prefix}.synthesizer-after-investigators`, 'the synthesizer is spawned after every investigator is collected', src('why/SKILL.md', '## Step 4. Synthesize'), ['general'], ['investigator'])),
+  whenInvestigated(briefCarries(`${prefix}.synthesizer-brief-has-findings`, "the synthesizer's brief carries the investigator findings", src('why/SKILL.md', 'The investigator findings, including any null results'), ['general'], ['investigator'])),
+  whenInvestigated(readonlyEnforced(`${prefix}.readonly-enforced`, src('why/SKILL.md', 'A readonly worker runs `git` and `gh` through `bash_readonly` and cannot write files'), ['investigator', 'general'])),
   repoUntouched(`${prefix}.no-writes`, 'the repository is untouched', src('why/SKILL.md', "Investigators still shouldn't write anything")),
-  settledAndCollected(`${prefix}.settled-and-collected`, src('why/SKILL.md', '## Step 5. Present')),
+  whenInvestigated(settledAndCollected(`${prefix}.settled-and-collected`, src('why/SKILL.md', '## Step 5. Present'))),
+  check(`${prefix}.inline-answer-is-justified`, 'an inline answer says explicitly that every category search would be redundant', INLINE_SPAN, (view) => {
+    if (whyPath(view) === 'investigated') return pass('investigators ran: no inline answer to justify');
+    const reply = finalReply(view);
+    return when(/redundant/i.test(reply) && /(single|one) commit|PR description/i.test(reply), 'the reply says the searches would be redundant and why', 'an inline answer without saying that all seven category searches would be redundant');
+  }),
   check(`${prefix}.sources-consulted-covers-seven-categories`, 'Sources Consulted names all seven evidence categories, each with a result or the reason it was skipped', src('why/SKILL.md', 'keep Sources Consulted as one line per investigator'), (view) => {
+    if (whyPath(view) === 'inline') return pass('inline answer: the justification above replaces the per-category lines');
     const reply = finalReply(view);
     const block = reply.split(/Sources Consulted/i)[1]?.split(/###? ?Confidence Summary/i)[0] ?? '';
     const lines = block.split('\n');
@@ -268,10 +399,43 @@ export const whyFamily: Family = {
     { name: 'no code anchor before the spawn', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'git blame', 'git status'), fails: ['why.code-anchor'] },
     { name: 'the investigator wrote a file', mutate: (sandbox) => appendToolCall(workerSessionFile(sandbox, 'why-coupons', 'git-investigator'), 'write', { path: '/x', content: 'x' }), fails: ['why.readonly-enforced'] },
     { name: 'the tree was edited', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['why.no-writes'] },
+    { name: 'an eighth investigator beyond the seven categories', mutate: (sandbox) => ['b', 'c', 'd', 'e', 'f', 'g', 'h'].forEach((id) => cloneWorker(sandbox, 'why-coupons', 'git-investigator', `inv-${id}`, {})), fails: ['why.investigators'] },
+    {
+      name: 'an inline answer after confirming every category search would be redundant',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'why-coupons', 'git-investigator');
+        removeWorker(sandbox, 'why-coupons', 'synth');
+        rewriteFinalReply(sandbox, '### The Question', 'The PR description of a single commit holds the whole answer, so all seven category searches would be redundant.\n### The Question');
+      },
+      fails: [],
+      passes: ['why.investigators', 'why.synthesizer', 'why.settled-and-collected', 'why.readonly-enforced', 'why.inline-answer-is-justified', 'why.no-writes', 'why.code-anchor', 'why.mcp-discovery'],
+    },
+    {
+      name: 'an inline answer that never says the searches were redundant',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'why-coupons', 'git-investigator');
+        removeWorker(sandbox, 'why-coupons', 'synth');
+      },
+      fails: ['why.inline-answer-is-justified'],
+    },
+    { name: 'investigators ran without any MCP discovery', mutate: (sandbox) => rewriteSession(parentSession(sandbox), /mcp list/g, 'mcp status'), fails: ['why.mcp-discovery'] },
   ],
 };
 
 // ---- teach
+
+/**
+ * teach runs how and why, "maybe one is enough for a small change" (teach/SKILL.md step 2). The why synthesizer is the
+ * general worker whose brief carries the synthesizer template's Investigator Findings section; every other
+ * explorer or general worker is how.
+ */
+function teachSides(view: RunView) {
+  const workers = allWorkers(view);
+  const investigators = workers.filter((worker) => assignmentOf(worker).role === 'investigator');
+  const synth = workers.filter((worker) => assignmentOf(worker).role === 'general' && /Investigator Findings/i.test(worker.brief ?? ''));
+  const how = workers.filter((worker) => assignmentOf(worker).role === 'explorer' || (assignmentOf(worker).role === 'general' && !synth.includes(worker)));
+  return { how, investigators, synth, whyRan: investigators.length > 0 || synth.length > 0 };
+}
 
 const TEACH_REPLY = `A cart total is the sum of each line's price times quantity, rounded to cents, with a coupon percent taken off the end. In this repo total() in src/cart.js:${cart('export function total')} does that, and checkout() in src/checkout.js:${cart('export function checkout', 'src/checkout.js')} formats it.
 
@@ -313,25 +477,71 @@ export const teachFamily: Family = {
   },
   checks: [
     promptRoutes('teach'),
-    parentReads('teach.reads-how-and-why', 'the parent opens teach, how, why, and unslop', src('teach/SKILL.md', 'Teach sits on top of `how` and `why`'), ['teach', 'how', 'why', 'unslop']),
-    workersCheck('teach.how-ran', 'how ran: an explainer worker, readonly on the root, on the "how explainer" line', src('teach/SKILL.md', 'then run `how` for how it works'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /how/ }),
-    workersCheck('teach.why-ran', 'why ran: an investigator, readonly, MCP inherited, and a synthesizer, on the why lines', src('teach/SKILL.md', 'and `why` for why'), { role: 'investigator', min: 1, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' }),
-    check('teach.how-and-why-in-parallel', 'how and why workers were spawned together, "run them in parallel"', src('teach/SKILL.md', 'Run them in parallel and combine the results'), (view) => {
-      const how = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/how-'));
-      const why = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/why-investigator'));
-      return when(how !== undefined && why !== undefined && how.order === why.order, `both spawned in message ${how?.order}`, `how spawn at ${how?.order}, why spawn at ${why?.order}`);
+    check('teach.reads-the-skills-it-ran', 'the parent opens teach and unslop, and how and why for whichever of them ran', [src('teach/SKILL.md', 'Teach sits on top of `how` and `why`'), src('teach/SKILL.md', 'Write every response through the **unslop** skill')], (view) => {
+      const sides = teachSides(view);
+      const names = ['teach', 'unslop', ...(sides.how.length > 0 ? ['how'] : []), ...(sides.whyRan ? ['why'] : [])];
+      const missing = names.filter((name) => openedAt(view.parent, skillFile(name)) === -1);
+      return when(missing.length === 0, `parent opened ${names.join(', ')}`, `parent never opened ${missing.map(skillFile).join(', ')}`);
     }),
-    check('teach.why-narrowed', "the why investigator's brief narrows the sweep and records skipped categories", src('teach/SKILL.md', 'Keep `why` narrow by default'), (view) => {
-      const investigator = allWorkers(view).find((worker) => assignmentOf(worker).role === 'investigator');
-      return when(investigator?.brief !== null && investigator !== undefined && /narrow/i.test(investigator.brief ?? '') && /skipped|no matching MCP/i.test(investigator.brief ?? ''), 'brief narrows and names the skipped categories', `brief: ${(investigator?.brief ?? '').slice(0, 160)}`);
+    check('teach.ran-how-or-why', 'at least one of how and why ran: "maybe one is enough" for a small change', src('teach/SKILL.md', 'maybe one is enough for a small change'), (view) => {
+      const sides = teachSides(view);
+      return when(sides.how.length > 0 || sides.whyRan, `how workers: ${sides.how.map((worker) => worker.id).join(', ') || 'none'}; why ran: ${sides.whyRan}`, 'neither how nor why ran');
     }),
-    readonlyEnforced('teach.readonly-enforced', src('teach/SKILL.md', 'The goal is that they understand it, not that you change anything'), ['general', 'investigator']),
+    check('teach.how-ran', 'when how ran: readonly workers on the root, explorers on the "how explorer" line and the explainer on the "how explainer" line', src('teach/SKILL.md', 'then run `how` for how it works'), (view) => {
+      const { how } = teachSides(view);
+      if (how.length === 0) return pass('how did not run');
+      const problems = how.flatMap((worker) => {
+        const assignment = assignmentOf(worker);
+        const line = assignment.role === 'explorer' ? 'how explorer' : 'how explainer';
+        const allowed = expectedModels(view, line);
+        return [
+          ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
+          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not the "${line}" line`]),
+        ];
+      });
+      return when(problems.length === 0, `${how.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', ')}`, problems.join('; '));
+    }),
+    check('teach.why-ran', 'when why ran: investigators (readonly, MCP inherited, "why investigators" line), then one synthesizer on the "why synthesizer" line', src('teach/SKILL.md', 'and `why` for why'), (view) => {
+      const sides = teachSides(view);
+      if (!sides.whyRan) return pass('why did not run');
+      const problems: string[] = [];
+      if (sides.investigators.length < 1 || sides.investigators.length > 7) problems.push(`${sides.investigators.length} investigators, want 1 to 7`);
+      if (sides.synth.length !== 1) problems.push(`${sides.synth.length} synthesizers, want 1`);
+      for (const worker of [...sides.investigators, ...sides.synth]) {
+        const assignment = assignmentOf(worker);
+        const allowed = expectedModels(view, assignment.role === 'investigator' ? 'why investigators' : 'why synthesizer');
+        if (assignment.workspace?.mode !== 'readonly' || assignment.workspace.path !== view.repo) problems.push(`${worker.id} is not readonly on the repository root`);
+        if (assignment.capabilities?.mcp === 'none') problems.push(`${worker.id} sets capabilities.mcp none`);
+        if (allowed.length > 0 && !allowed.includes(String(assignment.model))) problems.push(`${worker.id} model ${String(assignment.model)} is off its why line`);
+      }
+      const firstSynth = Math.min(...sides.synth.map((worker) => spawnOrder(view, worker.id)));
+      const lastCollect = Math.max(...sides.investigators.map((worker) => collectOrder(view, worker.id)));
+      if (sides.synth.length > 0 && sides.investigators.length > 0 && !(firstSynth > lastCollect && lastCollect !== -1)) problems.push(`the synthesizer spawned at ${firstSynth}, before the investigators were collected at ${lastCollect}`);
+      return when(problems.length === 0, `${sides.investigators.length} investigators and one synthesizer`, problems.join('; '));
+    }),
+    check('teach.how-and-why-in-parallel', 'when both ran, both were started before either was collected: "Run them in parallel and combine the results"', src('teach/SKILL.md', 'Run them in parallel and combine the results'), (view) => {
+      const sides = teachSides(view);
+      if (sides.how.length === 0 || sides.investigators.length === 0) return pass('only one of how and why ran, so there is nothing to overlap');
+      const firstHow = Math.min(...sides.how.map((worker) => spawnOrder(view, worker.id)));
+      const firstWhy = Math.min(...sides.investigators.map((worker) => spawnOrder(view, worker.id)));
+      const firstCollect = Math.min(...[...sides.how, ...sides.investigators].map((worker) => collectOrder(view, worker.id)).filter((order) => order !== -1));
+      return when(firstHow !== -1 && firstWhy !== -1 && Math.max(firstHow, firstWhy) < firstCollect, `how spawned at ${firstHow} and why at ${firstWhy}, before the first collect at ${firstCollect}`, `how spawned at ${firstHow}, why at ${firstWhy}, first collect at ${firstCollect}`);
+    }),
+    check('teach.why-scope-recorded', 'when why ran short of all seven categories, the synthesizer is told which were not searched, so the skipped categories stay on record', src('teach/SKILL.md', 'so `why` records the skipped categories per its own contract'), (view) => {
+      const sides = teachSides(view);
+      if (!sides.whyRan) return pass('why did not run');
+      if (sides.investigators.length >= 7) return pass('why searched all seven categories');
+      const brief = sides.synth[0]?.brief ?? '';
+      return when(/skipped|not searched|weren't searched|no matching mcp/i.test(brief), 'the synthesizer brief names the categories that were not searched', `the synthesizer brief does not record the unsearched categories: ${brief.slice(0, 160)}`);
+    }),
+    readonlyEnforced('teach.readonly-enforced', src('teach/SKILL.md', 'The goal is that they understand it, not that you change anything'), ['general', 'investigator', 'explorer']),
     repoUntouched('teach.no-writes', 'teach changes nothing in the repository', src('teach/SKILL.md', 'not that you change anything')),
     settledAndCollected('teach.settled-and-collected', src('teach/SKILL.md', 'Those are real skill invocations that do their own digging')),
     replyLacks('teach.no-framing-labels', 'the reply prints none of the labels the skill bans', src('teach/SKILL.md', 'Don\'t print framing labels'), [/the one idea to hold onto/i, /the thing to walk away with/i, /the key insight/i, /\bat its core\b/i, /\bTL;DR\b/i, /^\s*Pause\b/im, /the sentence to nail/i, /here is the part worth slowing down on/i]),
     replyLacks('teach.no-long-dashes', 'the reply contains no long dash', src('teach/SKILL.md', 'No em dashes'), [/—/, /–/]),
     check('teach.why-hedges-kept-verbatim', "the why synthesizer's confidence language reaches the reply intact", src('teach/SKILL.md', "Keep `why`'s confidence language intact"), (view) => {
-      const synthesizer = allWorkers(view).find((worker) => assignmentOf(worker).role === 'general' && /synth/.test(worker.id));
+      const synthesizer = teachSides(view).synth[0];
+      if (synthesizer === undefined) return pass('why did not run, so there is no hedge to keep');
       const hedge = synthesizer?.finalText.split('\n').find((line) => /not recorded in the sources searched/.test(line));
       const reply = finalReply(view).replace(/\s+/g, ' ');
       return hedge !== undefined && reply.includes(hedge.replace(/\s+/g, ' ').trim()) ? pass('the unknown stays an unknown in the reply') : fail(`reply lacks the synthesizer's hedge: ${String(hedge)}`);
@@ -342,7 +552,29 @@ export const teachFamily: Family = {
     { name: 'the reply opens with TL;DR', mutate: (sandbox) => rewriteFinalReply(sandbox, 'A cart total is', 'TL;DR A cart total is'), fails: ['teach.no-framing-labels'] },
     { name: 'the reply softens the why hedge', mutate: (sandbox) => rewriteFinalReply(sandbox, 'is not recorded in the sources searched. The history', 'is obviously a product call. The history'), fails: ['teach.why-hedges-kept-verbatim'] },
     { name: 'the reply uses a long dash', mutate: (sandbox) => rewriteFinalReply(sandbox, 'rounded to cents,', 'rounded to cents \u2014'), fails: ['teach.no-long-dashes'] },
-    { name: 'why was never run', mutate: (sandbox) => removeWorker(sandbox, 'teach-checkout', 'why-investigator'), fails: ['teach.why-ran'] },
+    { name: 'why ran without its investigator', mutate: (sandbox) => removeWorker(sandbox, 'teach-checkout', 'why-investigator'), fails: ['teach.why-ran'] },
+    {
+      name: 'a small change that needed only how',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'teach-checkout', 'why-investigator');
+        removeWorker(sandbox, 'teach-checkout', 'why-synth');
+      },
+      fails: [],
+      passes: ['teach.ran-how-or-why', 'teach.how-ran', 'teach.why-ran', 'teach.how-and-why-in-parallel', 'teach.why-scope-recorded', 'teach.reads-the-skills-it-ran'],
+    },
+    {
+      name: 'a question that needed only why',
+      mutate: (sandbox) => removeWorker(sandbox, 'teach-checkout', 'how-explainer'),
+      fails: [],
+      passes: ['teach.ran-how-or-why', 'teach.how-ran', 'teach.why-ran', 'teach.how-and-why-in-parallel', 'teach.why-scope-recorded'],
+    },
+    {
+      name: 'neither how nor why ran',
+      mutate: (sandbox) => ['how-explainer', 'why-investigator', 'why-synth'].forEach((id) => removeWorker(sandbox, 'teach-checkout', id)),
+      fails: ['teach.ran-how-or-why'],
+    },
+    { name: 'the why spawn is missing, so how and why did not overlap', mutate: (sandbox) => rewriteSession(parentSession(sandbox), '/why-investigator/assignment.json', '/zzz/assignment.json'), fails: ['teach.how-and-why-in-parallel'] },
+    { name: 'the why synthesizer was not told what went unsearched', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/teach-checkout/workers/why-synth/brief.md'), '## Investigator Findings\n\nGit history only.'), fails: ['teach.why-scope-recorded'] },
     { name: 'the repository was edited', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['teach.no-writes'] },
   ],
 };
@@ -400,7 +632,19 @@ export const investigationFamily: Family = {
       const todo = primaryRun(view, 'investigation')?.todoText?.split('## Task-specific work')[1] ?? '';
       return when(todo.includes('throughput checkpoint: n/a, read-only investigation'), 'TODO.md carries the checkpoint line', 'TODO.md lacks `throughput checkpoint: n/a, read-only investigation`');
     }),
-    workersCheck('investigation.routed-through-how', 'the question was routed through how: an explainer or explorers, readonly on the root', src('poteto-mode/playbooks/investigation.md', 'Route through the **how** skill'), { role: ['explainer', 'explorer', 'general'], min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
+    check('investigation.routed-through-how', 'the question was routed through how: an explainer, or explorers then an explainer, readonly on the root, each on its own how model line', src('poteto-mode/playbooks/investigation.md', 'Route through the **how** skill'), (view) => {
+      const workers = allWorkers(view).filter((worker) => ['explorer', 'general'].includes(String(assignmentOf(worker).role)));
+      if (workers.length === 0) return fail('no how worker');
+      const problems = workers.flatMap((worker) => {
+        const assignment = assignmentOf(worker);
+        const allowed = expectedModels(view, assignment.role === 'explorer' ? 'how explorer' : 'how explainer');
+        return [
+          ...(assignment.workspace?.mode === 'readonly' && assignment.workspace.path === view.repo ? [] : [`${worker.id} is not readonly on the repository root`]),
+          ...(allowed.length === 0 || allowed.includes(String(assignment.model)) ? [] : [`${worker.id} model ${String(assignment.model)} is not its how line`]),
+        ];
+      });
+      return when(problems.length === 0, workers.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}`).join(', '), problems.join('; '));
+    }),
     readonlyEnforced('investigation.readonly-enforced', src('poteto-mode/playbooks/investigation.md', 'Investigation requests are read-only'), ['general', 'explorer']),
     repoUntouched('investigation.no-code-change', 'no code change: the tree is clean, HEAD is at the base commit, parent writes stay under .pi/pstack', src('poteto-mode/playbooks/investigation.md', 'They produce a cited explanation or a recommendation, not a code change')),
     parentNeverOpened('investigation.no-architect', 'no architect skill, no PR playbook, and no babysit', src('poteto-mode/playbooks/investigation.md', 'No PR, no babysit, no `architect`'), ['architect', 'poteto-mode/playbooks/babysit']),
@@ -408,8 +652,9 @@ export const investigationFamily: Family = {
       const pr = view.parent.toolCalls.filter((call) => call.name === 'bash' && /\b(gh pr|origin pr|git push)\b/.test(String(call.args['command'])));
       return when(pr.length === 0, 'no gh pr, origin pr, or git push', pr.map((call) => String(call.args['command'])).join(' | '));
     }),
-    check('investigation.output-is-how-shaped', 'the reply has the how-shaped sections and cited file:line references', src('poteto-mode/playbooks/investigation.md', 'Produce the `how`-shaped output'), (view) => {
+    check('investigation.output-is-how-shaped', 'the reply has the how-shaped sections, or for a decision between alternatives a recommendation with a tradeoffs table', [src('poteto-mode/playbooks/investigation.md', 'Produce the `how`-shaped output'), src('poteto-mode/playbooks/investigation.md', 'or a recommendation with a tradeoffs table')], (view) => {
       const reply = finalReply(view);
+      if (/^\s*\|.*\|\s*$/m.test(reply) && /^\s*\|[\s:|-]*-[\s:|-]*\|\s*$/m.test(reply) && /recommend/i.test(reply) && /tradeoff/i.test(reply)) return pass('a recommendation with a tradeoffs table');
       const missing = HOW_SECTIONS.filter((section) => !new RegExp(`^#{1,4}\\s*${section}`, 'm').test(reply));
       return when(missing.length === 0, 'all five sections present', `missing: ${missing.join(', ')}`);
     }),
@@ -430,10 +675,17 @@ export const investigationFamily: Family = {
     { name: 'the main checkout was edited during a read-only investigation', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['investigation.no-code-change'] },
     { name: 'the parent opened the architect skill', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'read', { path: join(sandbox, '..', 'x', 'generated/skills/architect/SKILL.md') }), fails: ['investigation.no-architect'] },
     { name: 'the parent opened a PR', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'gh pr create --fill' }), fails: ['investigation.no-pr-commands'] },
+    {
+      name: 'a decision question answered with a recommendation and a tradeoffs table',
+      mutate: (sandbox) => rewriteFinalReply(sandbox, /^[\s\S]*$/, 'Recommendation: keep percent coupons.\n\n| option | tradeoff |\n|---|---|\n| percent | one rule for every price |\n| amount | needs a cap per cart |'),
+      fails: [],
+      passes: ['investigation.output-is-how-shaped'],
+    },
+    { name: 'a reply with neither the how sections nor a tradeoffs table', mutate: (sandbox) => rewriteFinalReply(sandbox, /^[\s\S]*$/, 'It works fine.'), fails: ['investigation.output-is-how-shaped'] },
     { name: 'a worker wrote the TODO.md', mutate: (sandbox) => appendToolCall(workerSessionFile(sandbox, 'investigate-checkout', 'explainer'), 'write', { path: `${sandbox}/repo/.pi/pstack/runs/investigate-checkout/TODO.md`, content: 'x' }), fails: ['todo.investigation.parent-sole-writer'] },
   ],
 };
 
-export const investigationFamilies: Family[] = [howFamily, whyFamily, teachFamily, investigationFamily];
+export const investigationFamilies: Family[] = [howFamily, howSimpleFamily, whyFamily, teachFamily, investigationFamily];
 
 void when;
