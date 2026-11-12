@@ -10,8 +10,35 @@ const helpers = [
   ['src/worker-host.ts', 'dist/worker-host.js'],
   ['src/automation/routine-cli.mjs', 'dist/routine-setup.js'],
   ['src/automation/serve-cli.ts', 'dist/automation-serve.js'],
+  ['generated/skills/statechart/scripts/statechart.ts', 'dist/statechart.js'],
+  ['generated/skills/statechart/scripts/worker.ts', 'dist/worker.js'],
 ];
 const check = process.argv.slice(2).includes('--check');
+// The two automation CLI bundles run as plain `node <pkg>/dist/...` from an installed package, where Pi does not
+// install its host packages as siblings, so they must not import them. Typebox is bundled directly (small, pure, and
+// used by the schemas those bundles keep); the pi packages are redirected to scripts/pi-standalone-shims.mjs, which
+// inlines the two small pi-ai functions they execute and stands in for the pi-coding-agent symbols they never call.
+const standalone = new Set(['src/automation/routine-cli.mjs', 'src/automation/serve-cli.ts']);
+const shimPath = fileURLToPath(new URL('./pi-standalone-shims.mjs', import.meta.url));
+// worker-host.ts detects its main entry with `process.argv[1] === fileURLToPath(import.meta.url)`. That holds for
+// dist/worker-host.js (its entry), but when worker-host.ts is inlined into another bundle the same check matches the
+// bundle's own URL, so running that bundle directly would also run the worker host. The standalone automation bundles
+// are never the worker host, so its main guard is stripped to a no-op (Bun then tree-shakes the host body).
+const workerHostMainGuard = 'if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {';
+const standaloneShims = {
+  name: 'pi-standalone-shims',
+  setup(build) {
+    for (const specifier of ['@earendil-works/pi-ai', '@earendil-works/pi-ai/compat', '@earendil-works/pi-coding-agent']) {
+      const escaped = specifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      build.onResolve({ filter: new RegExp(`^${escaped}$`) }, () => ({ path: shimPath }));
+    }
+    build.onLoad({ filter: /worker-host\.ts$/ }, (args) => {
+      const source = readFileSync(args.path, 'utf8');
+      if (!source.includes(workerHostMainGuard)) throw new Error(`worker-host.ts no longer carries its main guard; update ${import.meta.url}`);
+      return { contents: source.replace(workerHostMainGuard, 'if (false) {'), loader: 'ts' };
+    });
+  },
+};
 
 process.chdir(root);
 const receiptPath = join(root, 'dist/helpers.json');
@@ -23,7 +50,7 @@ for (const directory of ['src', 'generated']) {
     inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
   }
 }
-for (const file of ['package.json', 'scripts/build-helpers.mjs']) inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
+for (const file of ['package.json', 'scripts/build-helpers.mjs', 'scripts/pi-standalone-shims.mjs']) inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
 const inputHash = inputs.digest('hex');
 const receipt = { inputs: inputHash, outputs: {} };
 if (check) {
@@ -42,7 +69,15 @@ if (check) {
 }
 if (Bun.version !== '1.4.4') throw new Error('Helper builds require Bun 1.4.4 to reproduce the committed outputs.');
 for (const [entry, output] of helpers) {
-  const result = await Bun.build({ entrypoints: [entry], target: 'node', format: 'esm', external: Object.keys(manifest.peerDependencies), write: false });
+  const inlineHostPackages = standalone.has(entry);
+  const result = await Bun.build({
+    entrypoints: [entry],
+    target: 'node',
+    format: 'esm',
+    external: inlineHostPackages ? [] : Object.keys(manifest.peerDependencies),
+    plugins: inlineHostPackages ? [standaloneShims] : [],
+    write: false,
+  });
   if (!result.success) throw new AggregateError(result.logs, `Could not build ${entry}`);
   const generated = await result.outputs[0].text();
   const path = join(root, output);
