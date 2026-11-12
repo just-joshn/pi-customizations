@@ -4,17 +4,17 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "92e4f4a802890f8ff0788a10a08a1e7a951e79d3c6033586b33e79b05aa9052a",
+  "requirementsDigest": "c88779e8f7e09eeaba98182cc4af1e131f590d7ac3bc5334b7882c6f69fc549a",
   "run": {
-    "startedAt": "2026-11-12T08:55:17.727Z",
-    "generatedAt": "2026-11-12T08:56:31.184Z",
-    "commit": "dbd35a3f887082b5f403fc8a79c3b5d2e1f5273e",
+    "startedAt": "2026-11-12T09:51:38.408Z",
+    "generatedAt": "2026-11-12T09:53:49.374Z",
+    "commit": "57ad02e81291c679b4094aae1c3a8a83458bf569",
     "dirty": false,
     "resultsSource": "vitest run",
-    "totalTests": 852,
-    "passedTests": 839,
+    "totalTests": 1601,
+    "passedTests": 1534,
     "failedTests": 1,
-    "skippedTests": 12
+    "skippedTests": 66
   },
   "counts": {
     "structural": {
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 32,
+      "PASS": 61,
       "FAIL": 0,
-      "INCONCLUSIVE": 53,
+      "INCONCLUSIVE": 24,
       "N/A": 0
     }
   },
@@ -20718,11 +20718,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test starts the playbook and checks that the working tree is unchanged apart from the plan file.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/meta.test.ts run multi-phase-plan on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/meta.test.ts",
+          "name": "multi-phase-plan scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/meta.test.ts",
+          "name": "multi-phase-plan scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "MX-TODO-PARITY",
@@ -21048,7 +21059,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/concurrency.test.ts (four workers, three models, one message)",
       "tests": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21077,9 +21088,12 @@
         {
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
           "name": "a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level"
+        },
+        {
+          "file": "tests/workflow-parity/concurrency.test.ts",
+          "name": "worker-concurrency scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise.",
       "results": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21115,10 +21129,15 @@
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
           "name": "a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/concurrency.test.ts",
+          "name": "worker-concurrency scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise."
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "MX-DIRECT-INTERACTION",
@@ -21146,7 +21165,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/interaction.test.ts (tmux send-keys into a live worker pane, pstack_worker steer, RPC steer)",
       "tests": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21163,9 +21182,12 @@
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "pstack_worker boundary validation refuses control from a session that does not own the run"
+        },
+        {
+          "file": "tests/workflow-parity/interaction.test.ts",
+          "name": "worker-interaction scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test types into the attached tmux pane as an operator and checks the transcript.",
       "results": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21186,10 +21208,15 @@
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "pstack_worker boundary validation refuses control from a session that does not own the run",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/interaction.test.ts",
+          "name": "worker-interaction scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test types into the attached tmux pane as an operator and checks the transcript."
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "MX-WORKER-CRASH",
@@ -21516,7 +21543,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/integration/pi-load.test.ts runs RPC mode only",
+      "verification": "tests/workflow-parity/headless.test.ts runs a playbook start under pi -p, pi --mode json and a UI-reporting command on the real pi binary; tests/integration/pi-load.test.ts runs RPC mode",
       "tests": [
         {
           "file": "tests/integration/pi-load.test.ts",
@@ -21525,9 +21552,20 @@
         {
           "file": "tests/integration/extension.test.ts",
           "name": "entry a parent gets pstack_worker, pstack_evidence, and /pstack"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-print scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-json scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-command scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test runs print or JSON mode. The load test uses RPC mode only.",
       "results": [
         {
           "file": "tests/integration/pi-load.test.ts",
@@ -21538,10 +21576,25 @@
           "file": "tests/integration/extension.test.ts",
           "name": "entry a parent gets pstack_worker, pstack_evidence, and /pstack",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-print scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-json scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/headless.test.ts",
+          "name": "headless-command scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test runs print or JSON mode. The load test uses RPC mode only."
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "MX-MCP",
@@ -21569,7 +21622,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts and tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/workflow-parity/mcp.test.ts runs why with a stdio MCP server from Pi's native mcp.json and without one, on the real pi binary; tests/workflow-parity/investigation.test.ts run why on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -21582,9 +21635,21 @@
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "capability boundary a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits"
+        },
+        {
+          "file": "tests/workflow-parity/mcp.test.ts",
+          "name": "why-mcp scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/mcp.test.ts",
+          "name": "why-no-mcp scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "why scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test runs why with and without configured MCP services and checks citations or explicit missing coverage.",
+      "coverageGap": "A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage.",
       "results": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -21600,10 +21665,25 @@
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "capability boundary a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/mcp.test.ts",
+          "name": "why-mcp scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/mcp.test.ts",
+          "name": "why-no-mcp scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "why scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test runs why with and without configured MCP services and checks citations or explicit missing coverage."
+      "reason": "declared coverage gap: A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
     },
     {
       "id": "MX-CODEMODE",
@@ -21631,11 +21711,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No pstack test exercises Codemode.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/codemode.test.ts runs codemode scripts against a stdio MCP server in the parent and in a pstack worker on the real pi binary",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/codemode.test.ts",
+          "name": "codemode scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/codemode.test.ts",
+          "name": "codemode scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "MX-MODEL-ROUTING",
@@ -21774,11 +21865,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs an arena and checks that candidate outputs are disjoint.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "arena scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "arena-dropout scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "arena scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "arena-dropout scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "MX-SWARM-GAPS",
@@ -21804,7 +21915,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/evidence.test.ts",
+      "verification": "tests/worker-lifecycle/evidence.test.ts; tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm-second-miss, swarm on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
@@ -21829,9 +21940,16 @@
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
           "name": "pstack_evidence a pass whose command exited non-zero verifies as fail"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-second-miss scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "swarm scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test runs a swarm that drops a lane, respawns once and records the gap in the final report.",
       "results": [
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
@@ -21862,10 +21980,20 @@
           "file": "tests/worker-lifecycle/evidence.test.ts",
           "name": "pstack_evidence a pass whose command exited non-zero verifies as fail",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-second-miss scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "swarm scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test runs a swarm that drops a lane, respawns once and records the gap in the final report."
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "MX-SWARM-OUTCOMES",
@@ -21890,11 +22018,49 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks swarm report outcomes.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm, swarm-race-first-pass, swarm-race-rank-all, swarm-race-best-of on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "swarm scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-first-pass scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-rank-all scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-best-of scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "swarm scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-first-pass scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-rank-all scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "swarm-race-best-of scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "4 linked test(s) ran and passed"
     },
     {
       "id": "SCRIPT-WATCH-PR",
@@ -22297,7 +22463,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/packaging/installed-helpers.test.ts",
+      "verification": "tests/packaging/installed-helpers.test.ts; tests/workflow-parity/verification.test.ts run statechart on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/helpers/scripts.test.ts",
@@ -22314,6 +22480,10 @@
         {
           "file": "tests/packaging/installed-helpers.test.ts",
           "name": "the installed statechart checks a model with real TLC"
+        },
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "statechart scripted run: every check passes"
         }
       ],
       "results": [
@@ -22336,6 +22506,11 @@
           "file": "tests/packaging/installed-helpers.test.ts",
           "name": "the installed statechart checks a model with real TLC",
           "outcome": "skipped"
+        },
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "statechart scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
@@ -23894,7 +24069,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security",
+      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security; tests/workflow-parity/investigation.test.ts run how on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -23927,6 +24102,10 @@
         {
           "file": "tests/security/readonly-shell-security.test.ts",
           "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)"
+        },
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "how scripted run: every check passes"
         }
       ],
       "results": [
@@ -23969,10 +24148,15 @@
           "file": "tests/security/readonly-shell-security.test.ts",
           "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "how scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "8 linked test(s) ran and passed"
+      "reason": "9 linked test(s) ran and passed"
     },
     {
       "id": "SECURITY-READONLY-LINUX",
@@ -24127,11 +24311,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes teach.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/investigation.test.ts run teach on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "teach scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/investigation.test.ts",
+          "name": "teach scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARCHITECT-ARENA",
@@ -24156,11 +24351,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes architect.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "architect scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "architect scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARCHITECT-CHECKPOINT",
@@ -24185,11 +24391,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes architect.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "architect scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "architect scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARENA-FLOW",
@@ -24214,11 +24431,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs arena.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "arena scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "arena-dropout scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "arena scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/rules.test.ts",
+          "name": "arena-dropout scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-INTERROGATE",
@@ -24243,11 +24480,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs interrogate.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/gates.test.ts run interrogate, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "interrogate scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "feature-contested scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/design.test.ts",
+          "name": "interrogate scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "feature-contested scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-MODEL-INDEPENDENCE",
@@ -24348,11 +24605,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Feature playbook end to end.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build.test.ts and tests/workflow-parity/gates.test.ts run feature, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "feature scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "feature-contested scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "feature scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "feature-contested scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-BUGFIX",
@@ -24377,11 +24654,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Bug fix playbook end to end.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build.test.ts run bug-fix on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "bug-fix scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "bug-fix scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-TDD",
@@ -24406,11 +24694,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes tdd.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build.test.ts run tdd on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "tdd scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "tdd scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFACTOR",
@@ -24435,11 +24734,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Refactoring playbook.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build-measured.test.ts run refactoring on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "refactoring scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "refactoring scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-PERF",
@@ -24464,11 +24774,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Perf issue playbook.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build-measured.test.ts run perf-issue on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "perf-issue scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "perf-issue scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-HILLCLIMB",
@@ -24493,11 +24814,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Hillclimb playbook.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build-measured.test.ts run hillclimb on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "hillclimb scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build-measured.test.ts",
+          "name": "hillclimb scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-CREATE-VERIFICATION-SKILL",
@@ -24522,11 +24854,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes create-verification-skill.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/verification.test.ts run create-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "create-verification-skill scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "create-verification-skill scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-MAINTAIN-VERIFICATION-SKILL",
@@ -24551,11 +24894,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes maintain-verification-skill.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/maintain.test.ts run maintain-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/maintain.test.ts",
+          "name": "maintain-verification-skill scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/maintain.test.ts",
+          "name": "maintain-verification-skill scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-FORMAL-VERIFICATION",
@@ -24580,11 +24934,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes the formal verification skills.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/maintain.test.ts and tests/workflow-parity/verification.test.ts run create-formal-verification-skill, maintain-formal-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "create-formal-verification-skill scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/maintain.test.ts",
+          "name": "maintain-formal-verification-skill scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/verification.test.ts",
+          "name": "create-formal-verification-skill scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/maintain.test.ts",
+          "name": "maintain-formal-verification-skill scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-RECALL",
@@ -24609,11 +24983,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes recall.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/history.test.ts run recall on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "recall scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "recall scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFLECT-TRANSCRIPT",
@@ -24638,7 +25023,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/review-fixes.test.ts",
+      "verification": "tests/skill-parity/review-fixes.test.ts; tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
@@ -24647,9 +25032,12 @@
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
           "name": "C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message"
+        },
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "reflect scripted run: every check passes"
         }
       ],
-      "coverageGap": "No test runs reflect with three reviewers and a synthesizer.",
       "results": [
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
@@ -24660,10 +25048,15 @@
           "file": "tests/skill-parity/review-fixes.test.ts",
           "name": "C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "reflect scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test runs reflect with three reviewers and a synthesizer."
+      "status": "PASS",
+      "reason": "3 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFLECT-APPROVAL",
@@ -24688,11 +25081,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks the approval gate.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "reflect scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "reflect scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-AUTOMATE-ME",
@@ -24717,11 +25121,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes automate-me.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/skills.test.ts run automate-me on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/skills.test.ts",
+          "name": "automate-me scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/skills.test.ts",
+          "name": "automate-me scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-KETCHUP",
@@ -24746,11 +25161,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes ketchup.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/history.test.ts run ketchup on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "ketchup scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/history.test.ts",
+          "name": "ketchup scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-KETCHUP-VIDEO",
@@ -24777,11 +25203,31 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test renders a video.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/video.test.ts run ketchup-video, ketchup-video-render-fails on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/video.test.ts",
+          "name": "ketchup-video scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/video.test.ts",
+          "name": "ketchup-video-render-fails scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/video.test.ts",
+          "name": "ketchup-video scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/video.test.ts",
+          "name": "ketchup-video-render-fails scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-MAKE-BOT-UI",
@@ -24891,11 +25337,22 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks the compiled rule or the behavior.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/build.test.ts run feature on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "feature scripted run: every check passes"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/build.test.ts",
+          "name": "feature scripted run: every check passes",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-SETUP-PSTACK",
@@ -25018,7 +25475,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts",
+      "verification": "tests/skill-parity/semantics.test.ts; tests/workflow-parity/gates.test.ts run commit-review-gates on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         {
           "file": "tests/skill-parity/inventory.test.ts",
@@ -25027,6 +25484,10 @@
         {
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "commit-review-gates scripted run: every check passes"
         }
       ],
       "results": [
@@ -25039,10 +25500,15 @@
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/gates.test.ts",
+          "name": "commit-review-gates scripted run: every check passes",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "reason": "3 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-ONE-REPLY",
