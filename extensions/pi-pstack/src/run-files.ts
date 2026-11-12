@@ -117,6 +117,8 @@ export interface Capabilities {
   mcp: 'inherit' | 'none';
   env: 'inherit' | 'minimal';
   externalWrite: boolean;
+  /** Registers pstack_worker in the worker, for Orchestrate's sub-coordinators. Absent means false. */
+  spawn?: boolean;
 }
 const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'inherit', externalWrite: false };
 /** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
@@ -125,13 +127,14 @@ const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', ext
 function parseCapabilities(raw: unknown): Capabilities {
   if (
     !isRecord(raw) ||
-    Object.keys(raw).sort().join(',') !== 'env,externalWrite,mcp' ||
+    !['env,externalWrite,mcp', 'env,externalWrite,mcp,spawn'].includes(Object.keys(raw).sort().join(',')) ||
     !['inherit', 'none'].includes(raw['mcp'] as string) ||
     !['inherit', 'minimal'].includes(raw['env'] as string) ||
-    typeof raw['externalWrite'] !== 'boolean'
+    typeof raw['externalWrite'] !== 'boolean' ||
+    (raw['spawn'] !== undefined && typeof raw['spawn'] !== 'boolean')
   )
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
-  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'] };
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
+  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'], ...(typeof raw['spawn'] === 'boolean' ? { spawn: raw['spawn'] } : {}) };
 }
 
 interface AssignmentBase {
@@ -310,6 +313,42 @@ export interface ClaimIdentity {
   digest: string;
   instance: string;
   hostPid: number;
+}
+
+/**
+ * Environment values the parent hands one host: provider credentials and configured extra variables. The parent
+ * writes it 0600 and exclusively before starting the host; the host reads it once and unlinks it before Pi starts.
+ */
+export const launchEnvPath = (workerDir: string): string => join(workerDir, 'claim', 'launch-env.json');
+
+/**
+ * The tmux session the parent created for the host, as `new-session -P -F TMUX_IDENTITY_FORMAT` reported it. A
+ * session id and creation second repeat when the server exits with its last session and restarts within the second,
+ * so the server's pid and start time are part of the identity.
+ */
+export interface TmuxIdentity {
+  serverPid: string;
+  serverStarted: string;
+  sessionId: string;
+  created: string;
+}
+
+export const TMUX_IDENTITY_FORMAT = '#{pid} #{start_time} #{session_id} #{session_created}';
+export const tmuxIdentityPath = (workerDir: string): string => join(workerDir, 'claim', 'tmux.json');
+export const formatTmuxIdentity = (identity: TmuxIdentity): string => `${identity.serverPid} ${identity.serverStarted} ${identity.sessionId} ${identity.created}`;
+
+export function parseTmuxIdentity(text: string): TmuxIdentity | undefined {
+  const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
+  return match === null ? undefined : { serverPid: match[1] as string, serverStarted: match[2] as string, sessionId: match[3] as string, created: match[4] as string };
+}
+
+export function readTmuxIdentity(workerDir: string): TmuxIdentity | undefined {
+  const path = tmuxIdentityPath(workerDir);
+  if (!existsSync(path)) return undefined;
+  const raw = readJson(path);
+  const identity = isRecord(raw) && ['serverPid', 'serverStarted', 'sessionId', 'created'].every((key) => typeof raw[key] === 'string') ? parseTmuxIdentity(formatTmuxIdentity(raw as unknown as TmuxIdentity)) : undefined;
+  if (identity === undefined) throw new Error(`${path}: malformed tmux identity`);
+  return identity;
 }
 
 export function readClaim(workerDir: string): ClaimIdentity | undefined {

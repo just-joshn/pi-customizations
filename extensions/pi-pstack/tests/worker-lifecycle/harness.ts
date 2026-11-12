@@ -17,6 +17,7 @@ const run = promisify(execFile);
 
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
 export const FIXTURE = join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts');
+export const FAKE_PI = join(PACKAGE_ROOT, 'tests/worker-lifecycle/fake-pi.mjs');
 export const TMUX = `pstack-test-${randomBytes(4).toString('hex')}`;
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -91,6 +92,9 @@ export interface Project {
   runRoot: (runId: string) => string;
   dispose: () => void;
 }
+
+/** The environment every test worker gets: a private home and agent directory, offline. */
+export const workerTestEnv = (project: Project): Record<string, string> => ({ HOME: project.home, PI_CODING_AGENT_DIR: project.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' });
 
 export function makeProject(): Project {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-u04a-')));
@@ -175,6 +179,8 @@ export interface Parent {
   call: (tool: string, params: Record<string, unknown>) => Promise<{ text: string; details: Details }>;
   start: () => Promise<void>;
   stop: () => Promise<void>;
+  /** Makes `next` the parent's session, as /resume or /new does, and fires session_start. */
+  switchSession: (next: SessionManager) => Promise<void>;
   fire: (event: string, payload?: Record<string, unknown>) => Promise<void>;
 }
 
@@ -182,8 +188,13 @@ export interface Parent {
  * A parent Pi session as the extension sees it. `entries` is the session file: pass the same array to a second parent
  * to model a restart. With `persist: false`, sendMessage does not append (a follow-up still queued behind a turn).
  * With `sessionManager`, a real Pi SessionManager is the session and sendMessage appends to it as Pi does.
+ * With `beforeTmux`, every tmux call waits for it first.
  */
-export function makeParent(project: Project, entries: Entry[], options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager } = {}): Parent {
+export function makeParent(
+  project: Project,
+  entries: Entry[],
+  options: Partial<WorkerToolOptions> & { persist?: boolean; sessionFile?: string; failSends?: number; sessionManager?: SessionManager; beforeTmux?: () => Promise<void> } = {},
+): Parent {
   const tools = new Map<string, Tool>();
   const handlers = new Map<string, ((event: unknown, ctx: ExtensionContext) => unknown)[]>();
   const messages: Parent['messages'] = [];
@@ -197,10 +208,11 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
         throw new Error('sendMessage failed');
       }
       messages.push({ message, options: sendOptions });
-      if (options.sessionManager !== undefined) options.sessionManager.appendCustomMessageEntry(message.customType, message.content, true, message.details);
+      if (realSession !== undefined) realSession.appendCustomMessageEntry(message.customType, message.content, true, message.details);
       else if (options.persist !== false) entries.push({ type: 'custom_message', id: randomBytes(4).toString('hex'), customType: message.customType, content: message.content, details: message.details as Entry['details'] });
     },
     exec: async (command: string, args: string[], execOptions: { timeout?: number } = {}) => {
+      if (command === 'tmux') await options.beforeTmux?.();
       try {
         const { stdout, stderr } = await run(command, args, { timeout: execOptions.timeout ?? 0 });
         return { stdout, stderr, code: 0, killed: false, truncated: false };
@@ -212,13 +224,20 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
   };
   const sessionFile = options.sessionFile ?? options.sessionManager?.getSessionFile() ?? project.sessionFile;
   // Without a real session, every entry is on the active branch.
-  const sessionManager = options.sessionManager ?? { getSessionFile: () => sessionFile, getEntries: () => entries, getBranch: () => entries };
-  const ctx = { cwd: project.dir, model: undefined, sessionManager } as unknown as ExtensionContext;
+  const fakeSession = { getSessionFile: () => sessionFile, getEntries: () => entries, getBranch: () => entries };
+  let realSession = options.sessionManager;
+  const ctx = {
+    cwd: project.dir,
+    model: undefined,
+    get sessionManager() {
+      return realSession ?? fakeSession;
+    },
+  } as unknown as ExtensionContext;
   registerWorkerTools(pi as unknown as ExtensionAPI, {
     tmuxSocket: TMUX,
     piCommand: [PI],
     extraPiArgs: ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-mcp', '--no-approve', '--extension', FIXTURE],
-    extraEnv: { HOME: project.home, PI_CODING_AGENT_DIR: project.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' },
+    extraEnv: workerTestEnv(project),
     agentsDir: project.agentsDir,
     pollMs: 150,
     ...options,
@@ -238,6 +257,10 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     },
     start: () => fire('session_start'),
     stop: () => fire('session_shutdown'),
+    switchSession: (next) => {
+      realSession = next;
+      return fire('session_start', { reason: 'resume' });
+    },
     fire,
   };
 }

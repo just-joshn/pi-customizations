@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -6,6 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { controlSocketPath, loadAssignment, type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
 import {
   type Entry,
+  FAKE_PI,
   FIXTURE,
   killTmuxServer,
   liveTmuxSessions,
@@ -23,6 +25,7 @@ import {
   until,
   wakes,
   workerDir,
+  workerTestEnv,
   writeAssignment,
 } from './harness.ts';
 
@@ -155,13 +158,21 @@ describe('pstack_worker on real tmux and Pi', () => {
   test.for([
     ['a clone the operator made', (path: string) => execFileSync('git', ['clone', '--quiet', project.dir, path])],
     ['a worktree of this repo on another branch', (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'operator-branch', path, project.commit])],
+    ["this worker's own registered worktree and branch", (path: string) => execFileSync('git', ['-C', project.dir, 'worktree', 'add', '--quiet', '-b', 'pstack-run/run1/w12', path, project.commit])],
   ] as const)('spawn refuses to reuse %s at the worktree path', async ([, makeCheckout]) => {
     const path = join(workerDir(project, 'run1', 'w12'), 'worktree');
     const assignmentPath = writeAssignment(project, 'run1', 'w12', '@@script [{"tool":"write","args":{"path":"OWNED.txt","content":"x"}}]', { workspace: { mode: 'worktree', inputCommit: project.commit } });
     makeCheckout(path);
-    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/not this worker's worktree/);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/worktree already exists; a worker never reuses one/);
     await sleep(1_000);
     expect(existsSync(join(path, 'OWNED.txt'))).toBe(false);
+  });
+
+  test("spawn refuses when the worker's branch already exists, rather than check out its old commits", async () => {
+    execFileSync('git', ['-C', project.dir, 'branch', 'pstack-run/run1/w15', project.commit]);
+    const assignmentPath = writeAssignment(project, 'run1', 'w15', '@@say X', { workspace: { mode: 'worktree', inputCommit: project.commit } });
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath })).rejects.toThrow(/branch named 'pstack-run\/run1\/w15' already exists/);
+    expect(existsSync(join(workerDir(project, 'run1', 'w15'), 'worktree'))).toBe(false);
   });
 
   test('collect on a worker still running returns its live state, never a result', async () => {
@@ -308,6 +319,38 @@ describe('pstack_worker on real tmux and Pi', () => {
     }
   });
 
+  test('abort with a stale claim whose host pid now belongs to another process kills nothing', async () => {
+    const spawned = await spawn('w16', '@@say UP');
+    await until(
+      () => settleCount('w16'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('w16')).state;
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(spawned.details.tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    // The pid the claim names is reused by a foreign session's pane under the worker's own session name.
+    await tmux('new-session', '-d', '-s', spawned.details.tmuxSession, '--', 'sleep', '60');
+    const foreignPid = Number((await tmux('list-panes', '-t', `=${spawned.details.tmuxSession}`, '-F', '#{pane_pid}')).trim());
+    const identity = join(workerDir(project, 'run1', 'w16'), 'claim', 'identity.json');
+    const claimed = JSON.parse(readFileSync(identity, 'utf8'));
+    rmSync(identity);
+    writeFileSync(identity, JSON.stringify({ ...claimed, hostPid: foreignPid }));
+
+    const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'w16' });
+    expect(receipt.details.disposition).toBe('refused');
+    expect(await liveTmuxSessions()).toContain(spawned.details.tmuxSession);
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Pi usually exits on its own once the host's pipe closes.
+    }
+  });
+
   test('two workers whose ids join to the same text get distinct tmux sessions', async () => {
     makeRun(project, 'run1-a');
     const first = await spawn('a-b', '@@say ONE');
@@ -415,6 +458,45 @@ describe('capability boundary', () => {
     await owner.stop();
   });
 
+  const processesNaming = (text: string) =>
+    execFileSync('ps', ['-axww', '-o', 'args='], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n')
+      .filter((line) => line.includes(text));
+  const events = () => readFileSync(join(project.runRoot('run1'), 'events.jsonl'), 'utf8');
+
+  test('launch secrets reach the worker through claim/launch-env.json, never argv or events.jsonl', async () => {
+    const sentinel = `sentinel-${randomBytes(6).toString('hex')}`;
+    const owner = makeParent(project, [], { extraEnv: { ...workerTestEnv(project), U04A_LAUNCH_SECRET: sentinel } });
+    await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 's1', envScript('printenv U04A_LAUNCH_SECRET'), { workspace: { mode: 'worktree', inputCommit: project.commit } }) });
+    expect(processesNaming(sentinel)).toEqual([]);
+    expect(existsSync(join(workerDir(project, 'run1', 's1'), 'claim', 'launch-env.json'))).toBe(false);
+    expect(await collectText(owner, 's1')).toContain(sentinel);
+    expect(events()).not.toContain(sentinel);
+    await owner.stop();
+  });
+
+  test('a provider variable set in the parent after the tmux server started reaches a minimal worker', async () => {
+    await tmux('new-session', '-d', '-s', 'server-already-running', '--', 'sleep', '120');
+    const sentinel = `sk-${randomBytes(6).toString('hex')}`;
+    const previous = process.env['OPENAI_API_KEY'];
+    process.env['OPENAI_API_KEY'] = sentinel;
+    try {
+      const owner = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null }) });
+      await owner.call('pstack_worker', {
+        action: 'spawn',
+        runId: 'run1',
+        assignmentPath: writeAssignment(project, 'run1', 's2', '@@env OPENAI_API_KEY', { capabilities: { mcp: 'none', env: 'minimal', externalWrite: false } }),
+      });
+      expect(processesNaming(sentinel)).toEqual([]);
+      expect(await collectText(owner, 's2')).toBe(sentinel);
+      expect(events()).not.toContain(sentinel);
+      await owner.stop();
+    } finally {
+      if (previous === undefined) delete process.env['OPENAI_API_KEY'];
+      else process.env['OPENAI_API_KEY'] = previous;
+    }
+  });
+
   test('spawn refuses a worker that asks for external write authority', async () => {
     const path = writeAssignment(project, 'run1', 'c3', '@@say X', { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
     await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/externalWrite/);
@@ -427,6 +509,13 @@ describe('capability boundary', () => {
     expect(automated.assignment.capabilities).toEqual({ mcp: 'none', env: 'minimal', externalWrite: false });
     const engineering = loadAssignment(writeAssignment(project, 'run1', 'c4', 'x'));
     expect(engineering.assignment.capabilities).toEqual({ mcp: 'inherit', env: 'inherit', externalWrite: false });
+  });
+
+  test('capabilities.spawn is an optional boolean', () => {
+    const base = { mcp: 'inherit', env: 'inherit', externalWrite: false };
+    expect(loadAssignment(writeAssignment(project, 'run1', 'c6', 'x', { capabilities: { ...base, spawn: true } })).assignment.capabilities).toEqual({ ...base, spawn: true });
+    expect(loadAssignment(writeAssignment(project, 'run1', 'c7', 'x', { capabilities: base })).assignment.capabilities).toEqual(base);
+    expect(() => loadAssignment(writeAssignment(project, 'run1', 'c8', 'x', { capabilities: { ...base, spawn: 'yes' } }))).toThrow(/capabilities/);
   });
 
   test('rejects malformed capabilities', async () => {

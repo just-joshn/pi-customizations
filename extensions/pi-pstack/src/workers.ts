@@ -1,6 +1,6 @@
 // pstack_worker (spec 8.4, 9): spawn, inspect, steer, abort, and collect tmux-hosted Pi workers, plus the settle
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 
 import { StringEnum } from '@earendil-works/pi-ai';
@@ -14,11 +14,14 @@ import {
   type Assignment,
   appendEvent,
   type ClaimIdentity,
+  formatTmuxIdentity,
   type HostState,
   isTerminal,
   type LoadedAssignment,
+  launchEnvPath,
   loadAssignment,
   parseRunId,
+  parseTmuxIdentity,
   parseWorkerId,
   projectRoot,
   type RunId,
@@ -26,10 +29,13 @@ import {
   readClaim,
   readHostState,
   readRun,
+  readTmuxIdentity,
   runRootOf,
   runsDir,
   type Settle,
   type ThinkingLevel,
+  TMUX_IDENTITY_FORMAT,
+  tmuxIdentityPath,
   tmuxSessionName,
   type WakePhase,
   type WorkerId,
@@ -274,19 +280,25 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
+  // Bumped on every session_start and session_tree. A pass that began under an older version is discarded and rerun,
+  // so it never sends wakes chosen for another session or branch.
+  let branchVersion = 0;
   let current: { ctx: ExtensionContext; project: string } | undefined;
   let timer: NodeJS.Timeout | undefined;
   let polling: Promise<void> | undefined;
 
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
 
-  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<void> => {
+  /** One pass; false when the branch changed while it waited on tmux, so its view is stale and nothing was sent. */
+  const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<boolean> => {
+    const version = branchVersion;
     const sessionFile = ctx.sessionManager.getSessionFile();
-    if (sessionFile === undefined) return;
+    if (sessionFile === undefined) return true;
     const runs = ownedRuns(project, sessionFile);
-    if (runs.length === 0) return;
+    if (runs.length === 0) return true;
     // tmux first: a host writes its final state before exiting, so a session seen gone means state.json is final.
     const live = await liveSessions(pi, socket);
+    if (version !== branchVersion) return false;
     const delivered = deliveredTransitions(ctx);
     for (const { runId, runRoot } of runs) {
       for (const workerId of workerIds(runRoot)) {
@@ -306,11 +318,16 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         }
       }
     }
+    return true;
   };
 
   const poll = (): Promise<void> => {
     if (polling !== undefined || current === undefined) return polling ?? Promise.resolve();
-    polling = reconcile(current)
+    polling = (async () => {
+      while (current !== undefined && !(await reconcile(current))) {
+        // The branch changed mid-pass; run again against the current one.
+      }
+    })()
       .catch(() => undefined)
       .finally(() => {
         polling = undefined;
@@ -327,11 +344,13 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   pi.on('session_start', async (_event, ctx) => {
+    branchVersion += 1;
     sent.clear();
     watch(ctx);
     await poll();
   });
   pi.on('session_tree', async () => {
+    branchVersion += 1;
     sent.clear();
     await poll();
   });
@@ -367,7 +386,6 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const assignment: Assignment = loaded.assignment;
     if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
     if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
-    if (existsSync(join(loaded.workerDir, 'claim'))) throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
     const session = tmuxSessionName(project, runId, assignment.workerId);
     let model: ResolvedModel | null = null;
     let roleDoc: string | null = null;
@@ -386,23 +404,50 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
       tmuxSession: session,
       extraArgs: options.extraPiArgs ?? [],
-      env: options.extraEnv ?? {},
       credentialEnv: model === null ? [] : credentialEnv(model.provider),
     };
-    const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
-    if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
+    // Values come from this process now, not from the tmux server, whose environment dates from when it started.
+    const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => (process.env[name] === undefined ? [] : [[name, process.env[name]]]))), ...options.extraEnv };
+    const claimDir = join(loaded.workerDir, 'claim');
+    try {
+      mkdirSync(claimDir, { mode: 0o700 });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
+      throw error;
+    }
+    const secrets = launchEnvPath(loaded.workerDir);
+    let started: Awaited<ReturnType<ExtensionAPI['exec']>>;
+    try {
+      writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
+      started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+        timeout: 10_000,
+      });
+      if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
+    } catch (error) {
+      // No host started, so nothing holds the claim.
+      rmSync(claimDir, { recursive: true, force: true });
+      throw error;
+    }
+    const tmuxIdentity = parseTmuxIdentity(started.stdout);
+    if (tmuxIdentity === undefined) throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
+    writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
     appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
     watch(ctx);
 
     const target = hostTarget(loaded);
     const deadline = Date.now() + startupMs;
     let state: HostState | undefined;
-    while (Date.now() < deadline) {
-      state = await inspectHost(target).catch(() => undefined);
-      if (state !== undefined && state.phase !== 'starting') break;
-      const written = readHostState(loaded.workerDir);
-      if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      while (Date.now() < deadline) {
+        state = await inspectHost(target).catch(() => undefined);
+        if (state !== undefined && state.phase !== 'starting') break;
+        const written = readHostState(loaded.workerDir);
+        if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } finally {
+      // The host unlinks it before starting Pi; a host that never got that far must not leave the values on disk.
+      rmSync(secrets, { force: true });
     }
     if (state === undefined || state.phase === 'starting')
       throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
@@ -414,17 +459,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
 
   /**
    * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
-   * when the session's one pane is this assignment's claimed host; anything else is left running.
+   * when the claimed session id still names the session created then, on the same server; anything else is left running.
    */
-  const endHostSession = async (loaded: LoadedAssignment, session: string, reason: string) => {
-    const claim = readClaim(loaded.workerDir);
-    const panes = await pi.exec('tmux', ['-L', socket, 'list-panes', '-s', '-t', `=${session}`, '-F', '#{pane_pid}'], { timeout: 5_000 });
-    if (panes.code !== 0) return { disposition: 'unavailable', reason };
-    const pids = panes.stdout.split('\n').filter((line) => line !== '');
-    if (claim === undefined || pids.length !== 1 || Number(pids[0]) !== claim.hostPid)
-      return { disposition: 'refused', reason: `${reason}; tmux session ${session} runs pid ${pids.join(',')}, not this worker's claimed host ${claim?.hostPid ?? '(no claim)'}, so it was left running` };
-    const killed = await pi.exec('tmux', ['-L', socket, 'kill-session', '-t', `=${session}`], { timeout: 10_000 });
-    return { disposition: killed.code === 0 ? 'session-ended' : 'unavailable', reason };
+  const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
+    const owned = readTmuxIdentity(loaded.workerDir);
+    const sessions = async () => {
+      const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
+      return listed.code === 0 ? listed.stdout.split('\n') : [];
+    };
+    if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
+    const line = formatTmuxIdentity(owned);
+    if (!(await sessions()).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
+    // tmux checks the identity and kills in one server command, so the session cannot change in between.
+    const same = `#{&&:#{==:#{pid},${owned.serverPid}},#{&&:#{==:#{start_time},${owned.serverStarted}},#{==:#{session_created},${owned.created}}}}`;
+    await pi.exec('tmux', ['-L', socket, 'if-shell', '-F', '-t', owned.sessionId, same, `kill-session -t ${owned.sessionId}`], { timeout: 10_000 });
+    return (await sessions()).includes(line) ? { disposition: 'refused', reason: `${reason}; tmux session ${line} did not end` } : { disposition: 'session-ended', reason };
   };
 
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
@@ -451,7 +500,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           result,
         );
       }
-      const { runId, project, runRoot, run } = runOf(ctx, params.runId);
+      const { runId, runRoot, run } = runOf(ctx, params.runId);
       const loaded = workerOf(runRoot, params.workerId);
       const { workerId } = loaded.assignment;
       if (params.action === 'inspect') {
@@ -467,13 +516,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        const session = tmuxSessionName(project, runId, workerId);
         let receipt: unknown;
         try {
           receipt = await controlHost(hostTarget(loaded), 'shutdown');
         } catch (error) {
           if (!(error instanceof HostUnavailableError)) throw error;
-          receipt = await endHostSession(loaded, session, error.message);
+          receipt = await endHostSession(loaded, error.message);
         }
         appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
         return text(`Aborted worker ${workerId}.`, receipt);

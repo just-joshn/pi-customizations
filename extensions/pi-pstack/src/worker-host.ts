@@ -3,7 +3,7 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, existsSync, lstatSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
@@ -16,6 +16,7 @@ import {
   type HostState,
   isTerminal,
   type LoadedAssignment,
+  launchEnvPath,
   loadAssignment,
   MAX_SETTLES,
   readBrief,
@@ -44,8 +45,7 @@ export interface HostLaunch {
   tools: string[] | null;
   tmuxSession: string;
   extraArgs: string[];
-  env: Record<string, string>;
-  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. */
+  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. Their values travel in launch-env.json. */
   credentialEnv: string[];
 }
 
@@ -68,15 +68,12 @@ export interface ControlRequest {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
-/** Pi answered the command with a failure, so it did not take the command as work. */
-class PiRejected extends Error {}
-
 export function parseLaunch(text: string | undefined): HostLaunch {
   if (text === undefined) throw new Error('Missing launch argument');
   const raw: unknown = JSON.parse(text);
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute(piCommand[0] ?? '')) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
@@ -84,7 +81,6 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name)))) throw new Error('Launch tools must be tool names or null');
   if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
-  if (!isRecord(env) || Object.values(env).some((value) => typeof value !== 'string')) throw new Error('Launch env must map names to strings');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
   return {
     piCommand,
@@ -94,14 +90,30 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     tools: tools as string[] | null,
     tmuxSession,
     extraArgs,
-    env: env as Record<string, string>,
     credentialEnv,
   };
 }
 
+/** Reads the parent's launch-env.json once and unlinks it, so the values exist only in this process from here on. */
+function takeLaunchEnv(workerDir: string): Record<string, string> {
+  const path = launchEnvPath(workerDir);
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  let raw: unknown;
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || (stat.mode & 0o077) !== 0 || stat.uid !== process.getuid?.()) throw new Error(`${path} must be a private regular file owned by this user`);
+    raw = JSON.parse(readFileSync(fd, 'utf8'));
+  } finally {
+    closeSync(fd);
+    unlinkSync(path);
+  }
+  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== 'string')) throw new Error(`${path} must map variable names to strings`);
+  return raw as Record<string, string>;
+}
+
 /** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
-function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, inherited: NodeJS.ProcessEnv): Record<string, string> {
-  const all = { ...inherited, ...launch.env };
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string>, inherited: NodeJS.ProcessEnv): Record<string, string> {
+  const all = { ...inherited, ...launchEnv };
   if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
   const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
   return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
@@ -145,16 +157,18 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
   ];
 }
 
-/** Claims the assignment exclusively. A second host for the same assignment fails here and never starts Pi. */
+/**
+ * Claims the assignment exclusively inside the claim/ directory the parent created at spawn. A second host for the
+ * same assignment fails here and never starts Pi.
+ */
 function claim(loaded: LoadedAssignment, instance: string): void {
-  mkdirSync(join(loaded.workerDir, 'claim'), { mode: 0o700 });
   writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
 }
 
 /**
- * Creates `<workerDir>/worktree` on branch pstack-run/<runId>/<workerId> at the input commit. It runs under this
- * host's exclusive claim, and the path lies inside the claimed worker directory, so no other host can name it. A path
- * that already exists is reused only when it is this repository's registered worktree on that branch.
+ * Creates `<workerDir>/worktree` on a new branch pstack-run/<runId>/<workerId> at the input commit, under this host's
+ * exclusive claim. Anything already at the path, or a branch already by that name, is refused: a worker never reuses
+ * a checkout or a branch, so it always starts from exactly the input commit.
  */
 function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
   const { runId, workerId } = loaded.assignment;
@@ -163,28 +177,18 @@ function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
   const path = join(loaded.workerDir, 'worktree');
   const branch = `pstack-run/${runId}/${workerId}`;
   const git = (...args: string[]) => execFileSync('git', ['-C', project, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120_000 }).trim();
-  const existing = lstatSync(path, { throwIfNoEntry: false });
-  if (existing !== undefined) {
-    const registered = git('worktree', 'list', '--porcelain')
-      .split('\n\n')
-      .map((block) => Object.fromEntries(block.split('\n').map((line) => [line.split(' ')[0], line.slice(line.indexOf(' ') + 1)])))
-      .find((entry) => entry['worktree'] === path);
-    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.['branch'] !== `refs/heads/${branch}`) throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
-    return;
-  }
+  if (lstatSync(path, { throwIfNoEntry: false }) !== undefined) throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit: string;
   try {
     commit = git('rev-parse', '--verify', '--quiet', `${inputCommit}^{commit}`);
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
-  let branchExists = true;
   try {
-    git('rev-parse', '--verify', '--quiet', `refs/heads/${branch}`);
-  } catch {
-    branchExists = false;
+    git('worktree', 'add', '--quiet', '-b', branch, path, commit);
+  } catch (error) {
+    throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${(error as { stderr?: string }).stderr?.trim() || message(error)}`);
   }
-  git('worktree', 'add', '--quiet', ...(branchExists ? [path, branch] : ['-b', branch, path, commit]));
 }
 
 function prepareSocket(path: string): void {
@@ -204,6 +208,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
   claim(loaded, instance);
+  const launchEnv = takeLaunchEnv(workerDir);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join(workerDir, 'session');
 
@@ -213,10 +218,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let model: HostState['model'] = null;
   let sessionFile: string | null = null;
   let briefSent = false;
-  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. A settle covers the
-  // generations Pi acknowledged before it: Pi answers a prompt before that prompt's run can settle.
+  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. Both change only while
+  // handling a response record, in stdout order, so a settle sees exactly the acknowledgements that preceded it.
   let generation = 0;
   let acknowledged = 0;
+  // Prompt request id to the generation it carries, until Pi answers it, even after its deadline.
+  const unacknowledged = new Map<string, number>();
+  // get_state request id to the outcome of the agent_settled that sent it.
+  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null }>();
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -283,7 +292,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -332,10 +341,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       if (childExited || stdin === null || stdin.destroyed) return reject(new Error('Pi is unavailable; outcome unknown'));
       stdin.write(`${JSON.stringify(record)}\n`, (error) => (error ? reject(error) : resolveWrite()));
     });
-  const request = (type: string, fields: Record<string, unknown> = {}, deadline = RPC_DEADLINE_MS) =>
+  const nextRequestId = () => `${instance}-${++requestNumber}`;
+  const request = (type: string, fields: Record<string, unknown> = {}, deadline = RPC_DEADLINE_MS, id = nextRequestId()) =>
     new Promise<unknown>((resolveRequest, reject) => {
       if (waiting.size >= 32) return reject(new Error('Too many pending RPC commands'));
-      const id = `${instance}-${++requestNumber}`;
       const timer = setTimeout(() => {
         waiting.delete(id);
         reject(new Error(`Pi ${type} deadline expired; outcome unknown, do not retry`));
@@ -443,15 +452,39 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     } else if (type === 'agent_settled') {
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
-      // A shutdown records its own single settle; the run it aborts is part of it.
-      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null), acknowledged);
+      // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
+      const id = nextRequestId();
+      quiescenceChecks.set(id, { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) });
+      request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
+        quiescenceChecks.delete(id);
+        if (!childExited && phase !== 'stopping') void fail(error);
+      });
     } else if (type === 'response') {
-      const pending = typeof record['id'] === 'string' ? waiting.get(record['id']) : undefined;
-      if (pending !== undefined && typeof record['id'] === 'string') {
-        waiting.delete(record['id']);
+      const id = typeof record['id'] === 'string' ? record['id'] : undefined;
+      const success = record['success'] === true;
+      const data = record['data'];
+      const carried = id === undefined ? undefined : unacknowledged.get(id);
+      if (id !== undefined && carried !== undefined) {
+        unacknowledged.delete(id);
+        // A rejected or handled prompt joins no run, so no settle will cover it.
+        if (success && !(isRecord(data) && data['disposition'] === 'handled')) acknowledged = Math.max(acknowledged, carried);
+        else if (generation === carried) generation -= 1;
+        save();
+      }
+      const check = id === undefined ? undefined : quiescenceChecks.get(id);
+      if (id !== undefined && check !== undefined) {
+        quiescenceChecks.delete(id);
+        // Pi is quiescent: no run active and nothing queued, so every acknowledged prompt has run to this settle.
+        // Otherwise the settle covers nothing and the next one decides. A shutdown records its own single settle.
+        const quiescent = success && isRecord(data) && data['isStreaming'] === false && data['pendingMessageCount'] === 0;
+        if (quiescent && phase !== 'stopping' && !isTerminal(phase)) settle(check.phase, check.reason, acknowledged);
+      }
+      const pending = id === undefined ? undefined : waiting.get(id);
+      if (pending !== undefined && id !== undefined) {
+        waiting.delete(id);
         clearTimeout(pending.timer);
         if (record['success'] === true) pending.resolve(record['data']);
-        else pending.reject(new PiRejected(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
+        else pending.reject(new Error(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
       }
     } else if (type === 'extension_ui_request') {
       // Nobody answers a dialog inside a worker; cancelling keeps the run from blocking forever.
@@ -482,22 +515,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     if (settles.length >= MAX_SETTLES) throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
     generation += 1;
     save();
-    let result: unknown;
-    try {
-      result = await request('prompt', { message: text, streamingBehavior });
-    } catch (error) {
-      if (error instanceof PiRejected) {
-        generation -= 1;
-        save();
-      }
-      throw error;
-    }
-    const disposition = isRecord(result) ? result['disposition'] : undefined;
-    // A handled prompt started no run and joined none, so no settle will cover it.
-    if (disposition === 'handled') generation -= 1;
-    else acknowledged = generation;
-    save();
-    return { disposition };
+    const id = nextRequestId();
+    unacknowledged.set(id, generation);
+    const result = await request('prompt', { message: text, streamingBehavior }, RPC_DEADLINE_MS, id);
+    return { disposition: isRecord(result) ? result['disposition'] : undefined };
   };
 
   const dispatch = async (operation: HostOperation, text?: string): Promise<unknown> => {

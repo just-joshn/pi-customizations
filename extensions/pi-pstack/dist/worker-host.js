@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, existsSync as existsSync2, lstatSync as lstatSync2, mkdirSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute2, join as join2, resolve as resolve2 } from "node:path";
 import { createInterface } from "node:readline";
@@ -66,9 +66,9 @@ var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
 function parseCapabilities(raw) {
-  if (!isRecord(raw) || Object.keys(raw).sort().join(",") !== "env,externalWrite,mcp" || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"] };
+  if (!isRecord(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
+  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
 }
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
@@ -184,6 +184,7 @@ function loadAssignment(path) {
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var MAX_SETTLES = 1e4;
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
+var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
 
 // src/worker-host.ts
 var MAX_CONTROL_BYTES = 65536;
@@ -197,9 +198,6 @@ var HOST_OPERATIONS = ["inspect", "start", "prompt", "steer", "follow-up", "canc
 var TEXT_OPERATIONS = ["prompt", "steer", "follow-up"];
 var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var message = (error) => error instanceof Error ? error.message : String(error);
-
-class PiRejected extends Error {
-}
 function parseLaunch(text) {
   if (text === undefined)
     throw new Error("Missing launch argument");
@@ -207,7 +205,7 @@ function parseLaunch(text) {
   if (!isRecord2(raw))
     throw new Error("Launch must be an object");
   const strings = (value) => Array.isArray(value) && value.every((part) => typeof part === "string" && !part.includes("\x00"));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute2(piCommand[0] ?? ""))
     throw new Error("Launch piCommand must start with an absolute executable");
   if (model !== null && !(isRecord2(model) && typeof model["provider"] === "string" && typeof model["id"] === "string"))
@@ -222,8 +220,6 @@ function parseLaunch(text) {
     throw new Error("Launch tmuxSession is invalid");
   if (!strings(extraArgs))
     throw new Error("Launch extraArgs must be strings");
-  if (!isRecord2(env) || Object.values(env).some((value) => typeof value !== "string"))
-    throw new Error("Launch env must map names to strings");
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     throw new Error("Launch credentialEnv must be variable names");
   return {
@@ -234,12 +230,28 @@ function parseLaunch(text) {
     tools,
     tmuxSession,
     extraArgs,
-    env,
     credentialEnv
   };
 }
-function workerEnv(loaded, launch, inherited) {
-  const all = { ...inherited, ...launch.env };
+function takeLaunchEnv(workerDir) {
+  const path = launchEnvPath(workerDir);
+  const fd = openSync2(path, constants2.O_RDONLY | constants2.O_NOFOLLOW);
+  let raw;
+  try {
+    const stat = fstatSync2(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || (stat.mode & 63) !== 0 || stat.uid !== process.getuid?.())
+      throw new Error(`${path} must be a private regular file owned by this user`);
+    raw = JSON.parse(readFileSync2(fd, "utf8"));
+  } finally {
+    closeSync2(fd);
+    unlinkSync(path);
+  }
+  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== "string"))
+    throw new Error(`${path} must map variable names to strings`);
+  return raw;
+}
+function workerEnv(loaded, launch, launchEnv, inherited) {
+  const all = { ...inherited, ...launchEnv };
   if (loaded.assignment.capabilities.env === "inherit")
     return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined));
   const allowed = new Set([...MINIMAL_ENV, ...launch.credentialEnv]);
@@ -289,7 +301,6 @@ function piArgs(loaded, launch) {
   ];
 }
 function claim(loaded, instance) {
-  mkdirSync(join2(loaded.workerDir, "claim"), { mode: 448 });
   writeFileSync2(join2(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}
 `, { mode: 384, flag: "wx" });
 }
@@ -301,29 +312,19 @@ function prepareWorktree(loaded, inputCommit) {
   const path = join2(loaded.workerDir, "worktree");
   const branch = `pstack-run/${runId}/${workerId}`;
   const git = (...args) => execFileSync("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
-  const existing = lstatSync2(path, { throwIfNoEntry: false });
-  if (existing !== undefined) {
-    const registered = git("worktree", "list", "--porcelain").split(`
-
-`).map((block) => Object.fromEntries(block.split(`
-`).map((line) => [line.split(" ")[0], line.slice(line.indexOf(" ") + 1)]))).find((entry) => entry["worktree"] === path);
-    if (existing.isSymbolicLink() || !existing.isDirectory() || registered?.["branch"] !== `refs/heads/${branch}`)
-      throw new Error(`${path} exists but is not this worker's worktree (branch ${branch} of ${project}); refusing to reuse it`);
-    return;
-  }
+  if (lstatSync2(path, { throwIfNoEntry: false }) !== undefined)
+    throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit;
   try {
     commit = git("rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`);
   } catch {
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
   }
-  let branchExists = true;
   try {
-    git("rev-parse", "--verify", "--quiet", `refs/heads/${branch}`);
-  } catch {
-    branchExists = false;
+    git("worktree", "add", "--quiet", "-b", branch, path, commit);
+  } catch (error) {
+    throw new Error(`git worktree add ${path} on new branch ${branch} failed: ${error.stderr?.trim() || message(error)}`);
   }
-  git("worktree", "add", "--quiet", ...branchExists ? [path, branch] : ["-b", branch, path, commit]);
 }
 function prepareSocket(path) {
   const directory = dirname2(path);
@@ -342,6 +343,7 @@ async function runHost(assignmentFile, launchText) {
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
   claim(loaded, instance);
+  const launchEnv = takeLaunchEnv(workerDir);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join2(workerDir, "session");
   let phase = "starting";
@@ -352,6 +354,8 @@ async function runHost(assignmentFile, launchText) {
   let briefSent = false;
   let generation = 0;
   let acknowledged = 0;
+  const unacknowledged = new Map;
+  const quiescenceChecks = new Map;
   let settles = [];
   let childPid = null;
   let stderrTail = "";
@@ -416,7 +420,7 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -466,10 +470,10 @@ async function runHost(assignmentFile, launchText) {
     stdin.write(`${JSON.stringify(record)}
 `, (error) => error ? reject(error) : resolveWrite());
   });
-  const request = (type, fields = {}, deadline = RPC_DEADLINE_MS) => new Promise((resolveRequest, reject) => {
+  const nextRequestId = () => `${instance}-${++requestNumber}`;
+  const request = (type, fields = {}, deadline = RPC_DEADLINE_MS, id = nextRequestId()) => new Promise((resolveRequest, reject) => {
     if (waiting.size >= 32)
       return reject(new Error("Too many pending RPC commands"));
-    const id = `${instance}-${++requestNumber}`;
     const timer = setTimeout(() => {
       waiting.delete(id);
       reject(new Error(`Pi ${type} deadline expired; outcome unknown, do not retry`));
@@ -588,17 +592,41 @@ async function runHost(assignmentFile, launchText) {
       const aborted = record["aborted"] === true;
       if (phase === "running")
         phase = "idle";
-      if (phase !== "stopping")
-        settle(aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", aborted ? "Run aborted" : runFailure ?? null, acknowledged);
+      const id = nextRequestId();
+      quiescenceChecks.set(id, { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null });
+      request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
+        quiescenceChecks.delete(id);
+        if (!childExited && phase !== "stopping")
+          fail(error);
+      });
     } else if (type === "response") {
-      const pending = typeof record["id"] === "string" ? waiting.get(record["id"]) : undefined;
-      if (pending !== undefined && typeof record["id"] === "string") {
-        waiting.delete(record["id"]);
+      const id = typeof record["id"] === "string" ? record["id"] : undefined;
+      const success = record["success"] === true;
+      const data = record["data"];
+      const carried = id === undefined ? undefined : unacknowledged.get(id);
+      if (id !== undefined && carried !== undefined) {
+        unacknowledged.delete(id);
+        if (success && !(isRecord2(data) && data["disposition"] === "handled"))
+          acknowledged = Math.max(acknowledged, carried);
+        else if (generation === carried)
+          generation -= 1;
+        save();
+      }
+      const check = id === undefined ? undefined : quiescenceChecks.get(id);
+      if (id !== undefined && check !== undefined) {
+        quiescenceChecks.delete(id);
+        const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
+        if (quiescent && phase !== "stopping" && !isTerminal(phase))
+          settle(check.phase, check.reason, acknowledged);
+      }
+      const pending = id === undefined ? undefined : waiting.get(id);
+      if (pending !== undefined && id !== undefined) {
+        waiting.delete(id);
         clearTimeout(pending.timer);
         if (record["success"] === true)
           pending.resolve(record["data"]);
         else
-          pending.reject(new PiRejected(typeof record["error"] === "string" ? record["error"] : "Pi rejected command"));
+          pending.reject(new Error(typeof record["error"] === "string" ? record["error"] : "Pi rejected command"));
       }
     } else if (type === "extension_ui_request") {
       display("pi ui", { method: record["method"], title: record["title"] });
@@ -626,23 +654,10 @@ async function runHost(assignmentFile, launchText) {
       throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
     generation += 1;
     save();
-    let result;
-    try {
-      result = await request("prompt", { message: text, streamingBehavior });
-    } catch (error) {
-      if (error instanceof PiRejected) {
-        generation -= 1;
-        save();
-      }
-      throw error;
-    }
-    const disposition = isRecord2(result) ? result["disposition"] : undefined;
-    if (disposition === "handled")
-      generation -= 1;
-    else
-      acknowledged = generation;
-    save();
-    return { disposition };
+    const id = nextRequestId();
+    unacknowledged.set(id, generation);
+    const result = await request("prompt", { message: text, streamingBehavior }, RPC_DEADLINE_MS, id);
+    return { disposition: isRecord2(result) ? result["disposition"] : undefined };
   };
   const dispatch = async (operation, text) => {
     if (operation === "inspect")
