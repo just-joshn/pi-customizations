@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
-import { FAKE_PI, killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, sleep, stopProject, tmux, until, workerDir, writeAssignment } from './harness.ts';
+import { FAKE_PI, killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, readState, sleep, stopProject, tmux, until, workerDir, writeAssignment } from './harness.ts';
 
 let project: Project;
 let parent: Parent;
@@ -90,4 +90,22 @@ test("a cancel whose run settled before Pi was quiescent records the abort when 
       'the cancelled run settles',
     ),
   ).toMatchObject({ lastSettle: { phase: 'aborted', generation: 1 } });
+});
+
+test('a run settle and a recheck whose get_state answers arrive reversed record the settle once', async () => {
+  await spawn('w5', '@@reverse ONE');
+  await until(
+    () => readState(project, 'run1', 'w5').settles.length,
+    (count) => count >= 1,
+    10_000,
+    'the reversed run settles',
+  );
+  await parent.call('pstack_worker', { action: 'steer', runId: 'run1', workerId: 'w5', message: '@@say TWO' });
+  const settles = await until(
+    () => readState(project, 'run1', 'w5').settles as { generation: number }[],
+    (current) => current.at(-1)?.generation === 2,
+    10_000,
+    'the steer settles',
+  );
+  expect(settles.map((settle) => settle.generation)).toEqual([1, 2]);
 });

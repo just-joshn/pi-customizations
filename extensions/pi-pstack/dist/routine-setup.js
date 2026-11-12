@@ -516,6 +516,8 @@ async function runHost(assignmentFile, launchText) {
   let acknowledged = 0;
   const unacknowledged = new Map;
   const quiescenceChecks = new Map;
+  let runs = 0;
+  let recordedRuns = 0;
   let unrecorded;
   let settles = [];
   let childPid = null;
@@ -563,6 +565,7 @@ async function runHost(assignmentFile, launchText) {
 `);
   const settle = (settlePhase, why, covers = generation) => {
     unrecorded = undefined;
+    recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
@@ -657,7 +660,6 @@ async function runHost(assignmentFile, launchText) {
         fail(error);
     });
   };
-  const recheck = (fallback) => checkQuiescence({ ...unrecorded ?? fallback, always: false });
   const closeChild = async () => {
     if (childExited)
       return closed;
@@ -765,9 +767,10 @@ async function runHost(assignmentFile, launchText) {
       if (phase === "running")
         phase = "idle";
       unrecorded = { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null };
-      checkQuiescence({ ...unrecorded, always: true });
+      runs += 1;
+      checkQuiescence(unrecorded);
     } else if (type === "compaction_end" || type === "auto_retry_end") {
-      recheck({ phase: "idle", reason: null });
+      checkQuiescence({ phase: "idle", reason: null });
     } else if (type === "response") {
       const id = typeof record["id"] === "string" ? record["id"] : undefined;
       const success = record["success"] === true;
@@ -781,15 +784,16 @@ async function runHost(assignmentFile, launchText) {
           generation -= 1;
         save();
         if (success && isRecord2(data) && data["disposition"] === "handled")
-          recheck({ phase: "handled", reason: null });
+          checkQuiescence({ phase: "handled", reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
-        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
-        if (quiescent && phase !== "stopping" && !isTerminal(phase) && (check.always || outstanding))
-          settle(check.phase, check.reason, acknowledged);
+        const outstanding = runs > recordedRuns || acknowledged > (settles.at(-1)?.generation ?? 0);
+        const outcome = unrecorded ?? check;
+        if (quiescent && phase !== "stopping" && !isTerminal(phase) && outstanding)
+          settle(outcome.phase, outcome.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {
@@ -866,7 +870,7 @@ async function runHost(assignmentFile, launchText) {
           throw new Error("Cancellation did not reach quiescence");
         phase = "idle";
         save();
-        recheck({ phase: "aborted", reason: "Run cancelled" });
+        checkQuiescence({ phase: "aborted", reason: "Run cancelled" });
         return { disposition: "cancelled", removed, wasStreaming: before["isStreaming"] === true };
       }
       const before = phase;
