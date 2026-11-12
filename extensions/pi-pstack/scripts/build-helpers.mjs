@@ -48,7 +48,7 @@ const receiptPath = join(root, 'dist/helpers.json');
 const inputs = createHash('sha256');
 for (const directory of ['src', 'generated']) {
   for (const file of readdirSync(directory, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile() && !entry.parentPath.split('/').includes('node_modules'))
+    .filter((entry) => entry.isFile() && entry.name !== 'parity-manifest.json' && !entry.parentPath.split('/').includes('node_modules'))
     .map((entry) => join(entry.parentPath, entry.name)).sort()) {
     inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
   }

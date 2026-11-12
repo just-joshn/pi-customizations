@@ -161,7 +161,7 @@ const AG = (name: string) => `vendor/upstream-pstack/agents/${name}.md`;
 const SC = (path: string) => SK(`poteto-mode/scripts/${path}`);
 
 const PI_PSTACK_PUBLIC = 'https://github.com/just-joshn/pi-customizations/tree/main/extensions/pi-pstack';
-const UPSTREAM_PSTACK = 'https://github.com/cursor/plugins/blob/5866df557357d005b3c0c9d3da0d9e739b4bdde3/pstack';
+const UPSTREAM_PSTACK = 'https://github.com/cursor/plugins/blob/a5539b15a3d56e04992565aafee2b37051329ce3/pstack';
 const PI_SKILL_DOCS = "Pi's Agent Skills documentation (`docs/skills.md` in the installed `@earendil-works/pi-coding-agent` package)";
 const AUTHORING = 'the Authoring a skill playbook (`../poteto-mode/playbooks/authoring-a-skill.md`)';
 const SESSION_FOLDER = "this workspace's Pi session folder (the directory of `$PI_SESSION_FILE`, under `~/.pi/agent/sessions/`)";

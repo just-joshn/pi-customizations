@@ -4,7 +4,7 @@ import { join, relative, sep } from 'node:path';
 
 export const UPSTREAM = {
   repository: 'https://github.com/cursor/plugins',
-  revision: '5866df557357d005b3c0c9d3da0d9e739b4bdde3',
+  revision: 'a5539b15a3d56e04992565aafee2b37051329ce3',
 } as const;
 
 export type Origin = 'pstack' | 'team-kit';

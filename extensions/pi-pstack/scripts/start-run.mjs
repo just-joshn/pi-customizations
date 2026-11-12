@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
-const UPSTREAM_REVISION = '5866df557357d005b3c0c9d3da0d9e739b4bdde3';
+const UPSTREAM_REVISION = 'a5539b15a3d56e04992565aafee2b37051329ce3';
 const IDENTIFIER = /^[a-z0-9][a-z0-9-]{0,39}$/;
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 

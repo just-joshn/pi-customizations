@@ -107,7 +107,7 @@ describe('status and doctor', () => {
     expect(text).toMatch(/^role resolution: skipped, the session has no model/m);
     expect(text).toContain('MCP servers: linear, sentry');
     expect(text).toContain('generated skills: 62 (62 loaded from');
-    expect(text).toContain('upstream lock: 5866df557357d005b3c0c9d3da0d9e739b4bdde3');
+    expect(text).toContain('upstream lock: a5539b15a3d56e04992565aafee2b37051329ce3');
     expect(text).toContain(`hard links: supported at ${project}`);
     expect(text).toContain('slash names: 1 conflict(s), use /pstack:<name>\n  /how is extension command /how (x.ts); use /pstack:how');
     expect(existsSync(join(project, '.pi'))).toBe(false);

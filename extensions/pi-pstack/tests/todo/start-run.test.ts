@@ -44,7 +44,7 @@ test.for(names)('copies every complete source step from %s into TODO.md', (filen
   expect(todo.endsWith('## Task-specific work\n')).toBe(true);
   expect(JSON.parse(readFileSync(join(runDir, 'run.json'), 'utf8'))).toMatchObject({
     schemaVersion: 1, runId: 'test-run', playbook: name, title: 'Test run',
-    upstreamRevision: '5866df557357d005b3c0c9d3da0d9e739b4bdde3', inputCommit: null,
+    upstreamRevision: 'a5539b15a3d56e04992565aafee2b37051329ce3', inputCommit: null,
   });
 });
 

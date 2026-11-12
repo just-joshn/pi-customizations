@@ -5,7 +5,7 @@ import { type SpawnOptions, spawnAssignment } from '../workers.ts';
 import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
 import { createExclusive, json } from './store.ts';
 
-export const UPSTREAM_REVISION = '5866df557357d005b3c0c9d3da0d9e739b4bdde3';
+export const UPSTREAM_REVISION = 'a5539b15a3d56e04992565aafee2b37051329ce3';
 
 export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
