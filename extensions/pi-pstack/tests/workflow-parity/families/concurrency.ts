@@ -1,11 +1,11 @@
 // MX-WORKER-CONCURRENCY: several workers spawned at once, each on a different resolved model, in its own session, tmux session and worktree.
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, settledAndCollected, spawnedTogether } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, settledAndCollected, spawnedTogether, spawnOrder } from '../lib/checks.ts';
 import { overwrite, patchAssignment, setSessionCwd, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
 import { writes } from './shared.ts';
@@ -55,8 +55,9 @@ export const concurrencyFamily: Family = {
       const settled = statesOf(view).map(({ state }) => Date.parse(state.settles?.find((settle) => settle.phase === 'idle')?.at ?? ''));
       if ([...spawned, ...settled].some(Number.isNaN)) return fail(`missing spawn or idle times: spawned ${spawned.join()}, settled ${settled.join()}`);
       const overlap = Math.min(...settled) - Math.max(...spawned);
-      const marker = join(view.runs[0]?.dir ?? '', 'after-spawn');
-      const parentRan = existsSync(marker) ? statSync(marker).mtimeMs : Number.NaN;
+      const lastSpawn = Math.max(...ids.map((id) => spawnOrder(view, id)));
+      const next = view.parent.toolCalls.find((call) => call.name === 'bash' && call.order > lastSpawn && String(call.args['command']).includes('after-spawn'));
+      const parentRan = next?.at === undefined ? Number.NaN : Date.parse(next.at);
       return when(overlap > 1000 && parentRan < Math.min(...settled), `all four were live together for ${overlap} ms; the parent's next command ran ${Math.round(Math.min(...settled) - parentRan)} ms before the first settle`, `last spawn to first settle ${overlap} ms; parent marker at ${parentRan}, first settle ${Math.min(...settled)}`);
     }),
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session', SRC, (view) => {

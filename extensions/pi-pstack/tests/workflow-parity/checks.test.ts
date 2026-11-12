@@ -1,13 +1,13 @@
 // The shared checks accept what the skills and the tool descriptions allow, and still fail what they forbid.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterAll, describe, expect, test } from 'vitest';
 
 import { evaluate } from './lib/check.ts';
-import { carries, commitsNotFromWorkers, everyCommitGreen, shellCommands, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
+import { carries, commitsNotFromWorkers, delegateCommits, everyCommitGreen, parentSpawnCommits, ranBefore, redFirst, workflowCommits, shellCommands, fileReferencesResolve, finalReply, noToolErrors, openedAt, parentProductionWrites, settledAndCollected, withoutOwnIdentity, writableWorkerRecords } from './lib/checks.ts';
 import type { RunView, Session, WorkerView } from './lib/view.ts';
 
 const call = (order: number, args: Record<string, unknown>, resultText: string) => ({ order, name: 'pstack_worker', args, resultText, isError: false });
@@ -323,5 +323,77 @@ describe('every commit of a worker branch passes, except a failing test that com
     const redProd = commit({ 'src/add.js': 'exports.add = () => 0;', 'test/add.test.js': TEST }, 'feat: wrong');
     git('checkout', '-q', 'main');
     expect(verdictOf([redProd, green])).toBe('FAIL');
+  });
+});
+
+describe('a failing test the parent commits before it spawns the delegate', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wf-redfirst-'));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const git = (...args: string[]) => execFileSync('git', ['-C', dir, '-c', 'user.name=t', '-c', 'user.email=t@x', ...args], { encoding: 'utf8' }).trim();
+  const commit = (files: Record<string, string>, message: string) => {
+    for (const [path, content] of Object.entries(files)) {
+      mkdirSync(join(dir, path, '..'), { recursive: true });
+      writeFileSync(join(dir, path), content);
+    }
+    git('add', '-A');
+    git('commit', '-q', '-m', message);
+    return git('rev-parse', 'HEAD');
+  };
+  git('init', '-q', '-b', 'main');
+  const base = commit({ 'package.json': '{}', 'src/add.js': 'exports.add = (a, b) => a - b;' }, 'base');
+  const TEST = "const test = require('node:test'); const assert = require('node:assert'); test('adds', () => assert.equal(require('../src/add.js').add(1, 2), 3));";
+  const parentRed = commit({ 'test/add.test.js': TEST }, 'test: add');
+  const fix = commit({ 'src/add.js': 'exports.add = (a, b) => a + b;' }, 'fix: add');
+  git('branch', 'pstack-run/r/w', fix);
+  const view = (input: string, commits: string[]) => {
+    const delegate = { id: 'w', assignment: { kind: 'pi', role: 'poteto', workspace: { mode: 'worktree', inputCommit: input } } };
+    return { repo: dir, base, git: { branchCommits: { 'pstack-run/r/w': [...commits].reverse() } }, runs: [{ id: 'r', workers: [delegate] }], parent: { toolCalls: [] } } as unknown as RunView;
+  };
+
+  test('is the workflow\'s red test, and is not credited to the delegate', () => {
+    const run = view(parentRed, [parentRed, fix]);
+    expect(parentSpawnCommits(run)).toEqual([parentRed]);
+    expect(delegateCommits(run)).toEqual([fix]);
+    expect(workflowCommits(run)).toEqual([parentRed, fix]);
+    expect(redFirst(run).ok).toBe(true);
+  });
+  test('a delegate history check that wants two delegate commits fails: the parent\'s test is not one of them', () => {
+    const verdict = evaluate([everyCommitGreen('t.green', { file: 'poteto-mode/playbooks/feature.md', anchor: 'building, verifying, and committing' }, () => 'r', 'w', { min: 2, commits: delegateCommits })], view(parentRed, [parentRed, fix]))[0]?.verdict;
+    expect(verdict).toBe('FAIL');
+  });
+  test('the workflow check still fails when the parent\'s first commit already changes source, or the test never turns green', () => {
+    const touchesSource = commit({ 'src/other.js': 'x', 'test/b.test.js': 'y' }, 'test: with source');
+    expect(redFirst(view(touchesSource, [touchesSource, fix]), [touchesSource, fix]).ok).toBe(false);
+    expect(redFirst(view(parentRed, [parentRed]), [parentRed]).ok).toBe(false);
+    git('checkout', '-q', '-b', 'still-red', parentRed);
+    const stillRed = commit({ 'src/add.js': 'exports.add = () => 0;' }, 'feat: wrong');
+    expect(redFirst(view(parentRed, [parentRed, stillRed]), [parentRed, stillRed]).ok).toBe(false);
+    git('checkout', '-q', 'main');
+  });
+});
+
+describe('"ran before the spawn" rests on the parent session\'s tool-call order, never on file times', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'wf-ran-'));
+  afterAll(() => rmSync(dir, { recursive: true, force: true }));
+  const artifact = join(dir, 'repro-before.txt');
+  writeFileSync(artifact, 'total=-5\n');
+  utimesSync(artifact, new Date('2000-01-01'), new Date('2000-01-01'));
+  const receipt = { id: 'repro-before', runId: 'r', target: '1', kind: 'command', verdict: 'pass', commit: null, artifacts: [{ path: artifact, sha256: '0' }], command: ['node', 'repro.js'] };
+  const delegate = { id: 'fix', assignment: { kind: 'pi', role: 'poteto', workspace: { mode: 'worktree' } } };
+  const spawn = (order: number) => ({ order, name: 'pstack_worker', args: { action: 'spawn', assignmentPath: `/runs/r/workers/fix/assignment.json` }, resultText: '', isError: false });
+  const bash = (order: number, command: string) => ({ order, name: 'bash', args: { command }, resultText: '', isError: false });
+  const record = (order: number, path: string) => ({ order, name: 'pstack_evidence', args: { action: 'record', receiptPath: path }, resultText: '', isError: false });
+  const verdict = (toolCalls: unknown[]) => ranBefore({ repo: dir, runs: [{ dir, id: 'r', workers: [delegate] }], parent: { toolCalls } } as unknown as RunView, receipt as never, delegate as never);
+
+  test('a receipt recorded before the spawn ran before it', () => {
+    expect(verdict([record(1, '/runs/r/repro-before.receipt.json'), spawn(2)])).toBe(true);
+  });
+  test('a command that wrote the artifact before the spawn, recorded in a batch after it, ran before it', () => {
+    expect(verdict([bash(1, `node repro.js > ${artifact}`), spawn(2), record(3, '/runs/r/repro-before.receipt.json')])).toBe(true);
+    expect(verdict([bash(1, 'node repro.js'), spawn(2)])).toBe(true);
+  });
+  test('an old artifact file time proves nothing: with no earlier call and the receipt recorded after the spawn, it did not run before', () => {
+    expect(verdict([spawn(1), record(2, '/runs/r/repro-before.receipt.json')])).toBe(false);
+    expect(verdict([bash(1, 'ls'), spawn(2), bash(3, `node repro.js > ${artifact}`)])).toBe(false);
   });
 });

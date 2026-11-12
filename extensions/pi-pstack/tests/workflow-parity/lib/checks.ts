@@ -1,6 +1,6 @@
 // Reusable contract checks. Each one reads only run artifacts and enforces a rule an upstream playbook or skill states.
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 
@@ -706,13 +706,43 @@ export function delegateOf(view: RunView): WorkerView | undefined {
   return allWorkers(view).find((worker) => assignmentOf(worker).kind !== 'watch' && assignmentOf(worker).role === 'poteto' && assignmentOf(worker).workspace?.mode === 'worktree');
 }
 
-/** Commits on the delegate's branch beyond the base commit, oldest first: its own, and any the parent committed before it spawned. */
+/**
+ * The delegate's own commits, oldest first: its branch beyond the commit it was spawned at (the checkout beyond that commit when the
+ * branch was merged and deleted). A commit the parent made before the spawn is the parent's, not the delegate's; see `workflowCommits`.
+ */
 export function delegateCommits(view: RunView): string[] {
   const delegate = delegateOf(view);
   const run = delegate === undefined ? undefined : view.runs.find((entry) => entry.workers.includes(delegate));
   if (delegate === undefined || run === undefined) return [];
-  // A delegate whose branch was merged and deleted left its commits on the checkout.
-  return `pstack-run/${run.id}/${delegate.id}` in view.git.branchCommits ? branchCommits(view, run.id, delegate.id) : checkoutCommits(view);
+  if (typeof assignmentOf(delegate).workspace?.inputCommit !== 'string') return `pstack-run/${run.id}/${delegate.id}` in view.git.branchCommits ? branchCommits(view, run.id, delegate.id) : checkoutCommits(view);
+  return delegateOwnCommits(view);
+}
+
+/** Commits the parent made on the checkout before it spawned the delegate, oldest first: the delegate's input commit beyond the base. */
+export function parentSpawnCommits(view: RunView): string[] {
+  const input = assignmentOf(delegateOf(view) as WorkerView).workspace?.inputCommit;
+  if (delegateOf(view) === undefined || typeof input !== 'string') return [];
+  const listed = spawnSync('git', ['-C', view.repo, 'rev-list', '--reverse', `${view.base}..${input}`], { encoding: 'utf8' });
+  return listed.status === 0 ? listed.stdout.split('\n').filter(Boolean) : [];
+}
+
+/** Every commit of the workflow in order: what the parent committed before it spawned the delegate, then the delegate's own. */
+export const workflowCommits = (view: RunView): string[] => [...parentSpawnCommits(view), ...delegateCommits(view)];
+
+/**
+ * Workflow-level red-first: across the whole workflow, whoever wrote it, the first commit holds only tests and fails, and the last
+ * one changes source and passes. A failing test the parent committed before the spawn counts here and is not credited to the delegate.
+ */
+export function redFirst(view: RunView, commits: string[] = workflowCommits(view)): { ok: boolean; detail: string } {
+  if (commits.length < 2) return { ok: false, detail: `${commits.length} commits in the workflow, want the test and the fix apart` };
+  const first = commits[0] as string;
+  const last = commits.at(-1) as string;
+  const firstFiles = filesChanged(view, first);
+  const lastFiles = filesChanged(view, last);
+  const red = runAtCommit(view, first, 'node --test');
+  const green = runAtCommit(view, last, 'node --test');
+  const ok = firstFiles.every(isTestFile) && lastFiles.some((file) => !isTestFile(file)) && red.status !== 0 && green.status === 0;
+  return { ok, detail: ok ? `commit 1 (${firstFiles.join(',')}) fails, last (${lastFiles.join(',')}) passes` : `first touches ${firstFiles.join(',')} exit ${red.status}; last touches ${lastFiles.join(',')} exit ${green.status}` };
 }
 
 /** The receipts a TODO step owns: the ones it cites, and the ones whose target is the step ("3", "step-3"). */
@@ -762,23 +792,21 @@ export function delegateOwnCommits(view: RunView): string[] {
 }
 
 /**
- * Whether a receipt's evidence existed before the worker was spawned: it was recorded before the spawn call, or its first artifact
- * file was last written before the worker's `spawn` event. A model may run the command first and record its receipts in a batch
- * later; when the command ran is what the playbook orders, and the artifact's file time says so.
+ * Whether a receipt's evidence existed before the worker was spawned, proven by the parent session's tool-call order alone: the
+ * receipt was recorded before the spawn call, or an earlier tool call ran the command or wrote the artifact the receipt names (a
+ * model may run the command first and record its receipts in a batch later). File modification times are never consulted, because
+ * a later run, a copy, or a touch can set them to anything.
  */
-export function ranBefore(view: RunView, run: RunDir | undefined, receipt: Receipt | undefined, worker: WorkerView | undefined): boolean {
+export function ranBefore(view: RunView, receipt: Receipt | undefined, worker: WorkerView | undefined): boolean {
   if (receipt === undefined || worker === undefined) return false;
-  const recorded = recordOrder(view, receipt.id);
   const spawnAt = spawnOrder(view, worker.id);
-  if (recorded !== -1 && spawnAt !== -1 && recorded < spawnAt) return true;
-  const spawned = run?.events.find((event) => event['kind'] === 'spawn' && event['workerId'] === worker.id)?.['ts'];
+  if (spawnAt === -1) return false;
+  const recorded = recordOrder(view, receipt.id);
+  if (recorded !== -1 && recorded < spawnAt) return true;
   const artifact = receipt.artifacts[0]?.path;
-  if (typeof spawned !== 'string' || artifact === undefined || run === undefined) return false;
-  try {
-    return statSync(isAbsolute(artifact) ? artifact : resolve(run.dir, artifact)).mtimeMs < Date.parse(spawned);
-  } catch {
-    return false;
-  }
+  const command = (receipt.command ?? []).join(' ');
+  const names = [...(artifact === undefined ? [] : [basename(artifact)]), ...(command.length >= 8 ? [command] : [])];
+  return view.parent.toolCalls.some((call) => call.order < spawnAt && (call.name === 'bash' || call.name === 'write') && names.some((name) => JSON.stringify(call.args).includes(JSON.stringify(name).slice(1, -1))));
 }
 
 /** Order of the parent's first `pstack_evidence record` of this receipt (by its file name), or -1. */

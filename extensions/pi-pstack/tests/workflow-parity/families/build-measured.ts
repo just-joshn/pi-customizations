@@ -306,7 +306,7 @@ export const perfFamily: Family = {
       const delegate = delegateOf(view);
       const spawn = delegate === undefined ? -1 : spawnOrder(view, delegate.id);
       const recorded = before === undefined ? -1 : recordOrder(view, before.id);
-      const early = ranBefore(view, run, before, delegate);
+      const early = ranBefore(view, before, delegate);
       const text = artifactsText(run, before);
       // The parent may commit the frozen harness before it spawns the delegate: the baseline is then at that input commit, not the original base.
       const inputs = [view.base, String(delegate === undefined ? '' : assignmentOf(delegate).workspace?.inputCommit)];
@@ -368,6 +368,7 @@ export const perfFamily: Family = {
     { name: 'the post-fix run used another command', mutate: (sandbox) => patchReceipt(sandbox, 'perf-dedupe', 'perf-after', { command: ['sh', '-c', 'node other.js'] }), fails: ['perf-issue.same-command-after-on-the-delivered-commit'] },
     { name: 'the recorded baseline is not what the benchmark prints', mutate: (sandbox) => lieAboutBaseline(sandbox), fails: ['perf-issue.numbers-reproduce'] },
     { name: 'the reply claims a delta the numbers do not give', mutate: (sandbox) => rewriteFinalReply(sandbox, /-?\d+(\.\d+)?%/, '-50%'), fails: ['perf-issue.reply-explains-the-number'] },
+    { name: 'the reply states a drop that is not the baseline minus the post-fix number, with no percent', mutate: (sandbox) => rewriteFinalReply(sandbox, /delta [\d.]+% fewer/, '123 fewer'), fails: ['perf-issue.reply-explains-the-number'] },
     { name: 'the reply states the delta as a drop from the baseline to the post-fix number, with no percent', mutate: (sandbox) => rewriteFinalReply(sandbox, /delta [\d.]+% fewer/, `${quadraticComparisons() - 400} fewer`), fails: [], passes: ['perf-issue.reply-explains-the-number'] },
     { name: 'the mantras were handed over out of order', mutate: (sandbox) => rewriteBriefMantras(sandbox), fails: ['perf-issue.mantras-in-order'] },
     { name: 'the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target', mutate: (sandbox) => { writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/workers/fix/brief.md'), 'Fix src/dedupe.js.'); appendFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/TODO.md'), '\n- [x] Pick the mantra. Mantra 1 declined, nothing is unused. Mantra 2 meets the target, so mantras 3 through 7 stay unused.\n'); }, fails: [], passes: ['perf-issue.mantras-in-order'] },
@@ -512,7 +513,7 @@ export const hillclimbFamily: Family = {
       const { receipt: baseline, gates } = hillBaseline(view);
       const spawn = Math.min(...attemptsOf(view).map((worker) => spawnOrder(view, worker.id) === -1 ? Number.POSITIVE_INFINITY : spawnOrder(view, worker.id)));
       const first = attemptsOf(view).sort((a, b) => spawnOrder(view, a.id) - spawnOrder(view, b.id))[0];
-      const early = baseline !== undefined && gates.length > 0 && ranBefore(view, primaryRun(view, 'hillclimb'), baseline, first) && gates.some((gate) => ranBefore(view, primaryRun(view, 'hillclimb'), gate, first));
+      const early = baseline !== undefined && gates.length > 0 && ranBefore(view, baseline, first) && gates.some((gate) => ranBefore(view, gate, first));
       const recorded = Math.max(baseline === undefined ? -1 : recordOrder(view, baseline.id), ...gates.map((gate) => recordOrder(view, gate.id)));
       const inputs = [view.base, ...attemptsOf(view).map((worker) => String(assignmentOf(worker).workspace?.inputCommit))];
       return when(baseline !== undefined && gates.length > 0 && namesCommit(baseline.commit, inputs) && gates.some((gate) => namesCommit(gate.commit, inputs)) && early, 'baseline and a green gate at the base, run before the first attempt', `baseline ${baseline?.id ?? 'none'} commit ${String(baseline?.commit).slice(0, 8)}, green gates ${gates.map((gate) => gate.id).join(', ') || 'none'}, ran before the first attempt ${String(early)} (recorded ${recorded}, first spawn ${spawn})`);

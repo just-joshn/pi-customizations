@@ -17,6 +17,7 @@ import {
   finalReply,
   noToolErrors,
   openedAt,
+  parentProductionWrites,
   panelCheck,
   parentOpenedFiles,
   commitsNotFromWorkers,
@@ -390,6 +391,9 @@ const SHAPE_2 = 'A Percent branded type with parsePercent(input) returning Perce
 const ARCHITECT_PHASES = ['Architect Ground', 'Architect Sketch', 'Architect Agree', 'Architect Implement', 'Architect Scrap'];
 const RATIONALE_HEADINGS = ['Problem', "Usage (caller's view)", 'Shape', 'Synthesis decision', 'Tradeoffs accepted', 'Alternatives considered', 'Open questions and risks', 'Next implementation step'];
 
+/** The playbooks whose first rule is to delegate implementation: architect run inside one is bound by it. */
+const DELEGATING_PLAYBOOKS = ['feature', 'bug-fix', 'refactoring', 'perf-issue', 'hillclimb'];
+
 export const architectFamily: Family = {
   id: 'architect',
   title: 'architect: ground with how, two structurally distinct designs through arena, red-flag screen, rationale, implement (spec 12.2)',
@@ -474,6 +478,13 @@ export const architectFamily: Family = {
       const ownCommits = commitsNotFromWorkers(view);
       return when(gated && ownWrites.length >= 1 && ownCommits.length >= 1, `the parent wrote ${ownWrites.length} file(s) and committed ${ownCommits.length} on the checkout after the ${judge === undefined ? 'candidates' : 'judge'} was collected`, `implementer ${implement?.id}, worker commits ${workerCommits.length}, parent commits ${ownCommits.length}, parent writes after the gate ${ownWrites.length}, judge ${judge?.id ?? 'none and not reported as skipped'}`);
     }),
+    check('architect.calling-playbook-delegation', 'when architect runs inside a playbook that mandates delegation (feature, bug-fix, refactoring, perf-issue, hillclimb), that playbook\'s rule applies: the parent writes no production code and commits nothing itself; run alone, architect itself lets the parent implement', [src('poteto-mode/playbooks/feature.md', 'Delegate implementation. Stay in the lead.'), src('poteto-mode/playbooks/bug-fix.md', 'Delegate investigation and the fix to subagents')], (view) => {
+      const calling = DELEGATING_PLAYBOOKS.find((name) => openedAt(view.parent, `poteto-mode/playbooks/${name}.md`) !== -1);
+      if (calling === undefined) return pass('architect ran on its own: no calling playbook mandates delegation, and architect lets the parent implement');
+      const production = parentProductionWrites(view);
+      const own = commitsNotFromWorkers(view);
+      return when(production.length === 0 && own.length === 0, `inside ${calling}: the parent wrote no production code and made no commit of its own`, `inside ${calling}, which mandates delegation: the parent wrote ${production.join(', ') || 'nothing'} and committed ${own.length} itself`);
+    }),
     // The implementation's test receipt targets "implement" in a scripted run; a run that implemented on the checkout targets the commit it made (a SHA, with or without a note after it).
     check('architect.implementation-verified', 'a passing test receipt covers the implementation: it targets "implement" or a commit of the implementation', src('architect/SKILL.md', 'Replace `not implemented` bodies with code'), (view) => {
       const commits = [...view.git.commitsSinceBase, ...Object.values(view.git.branchCommits).flat()];
@@ -503,7 +514,24 @@ export const architectFamily: Family = {
         patchReceipt(sandbox, 'architect-coupon', 'implement-check', { target: `${head.slice(0, 7)} (implementation commit)` });
       },
       fails: [],
+      passes: ['architect.proceeds-to-implementation', 'architect.implementation-verified', 'architect.calling-playbook-delegation'],
+    },
+    {
+      name: 'architect ran inside the feature playbook and the parent implemented on the checkout itself',
+      mutate: (sandbox) => {
+        const head = commitOnCheckout(sandbox, 'implement clampPercent');
+        appendToolCall(parentSession(sandbox), 'read', { path: `${sandbox}/pkg/generated/skills/poteto-mode/playbooks/feature.md` });
+        appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/src/coupon.js`, content: COUPON_A });
+        patchReceipt(sandbox, 'architect-coupon', 'implement-check', { target: `${head.slice(0, 7)} (implementation commit)` });
+      },
+      fails: ['architect.calling-playbook-delegation'],
       passes: ['architect.proceeds-to-implementation', 'architect.implementation-verified'],
+    },
+    {
+      name: 'architect ran inside the feature playbook and a worker implemented',
+      mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'read', { path: `${sandbox}/pkg/generated/skills/poteto-mode/playbooks/feature.md` }),
+      fails: [],
+      passes: ['architect.calling-playbook-delegation'],
     },
     {
       name: 'the parent committed on the checkout but wrote no file after the judge, and its receipt names no commit',
