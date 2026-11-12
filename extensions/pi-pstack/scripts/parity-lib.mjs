@@ -344,9 +344,10 @@ export function checkRuns(manifest, currentDigest) {
     if (typeof run.platform !== 'string' || !run.platform) problems.push(`${label}: no platform recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && (typeof run.commit !== 'string' || !run.commit)) problems.push(`${label}: no commit recorded; the result is unattributed`);
     if (run.resultsSource === 'ci' && !run.runUrl) problems.push(`${label}: a CI result without its run URL is unattributed`);
-    if (run.sourceDigest && !currentDigest) problems.push(`${label}: the code it ran against cannot be hashed now, so the result cannot be tied to the tree`);
-    if (run.sourceDigest && currentDigest && run.sourceDigest !== currentDigest) problems.push(`${label}: stale, it ran against code that has since changed (commit ${run.commit?.slice(0, 12)}); rerun it`);
-    if (!run.sourceDigest && run.resultsSource === 'ci') problems.push(`${label}: no source digest recorded; the result is unattributed`);
+    const recorded = typeof run.sourceDigest === 'string' && /^[0-9a-f]{64}$/.test(run.sourceDigest);
+    if (!currentDigest) problems.push(`${label}: the code it ran against cannot be hashed now, so the result cannot be tied to the tree`);
+    if (recorded && currentDigest && run.sourceDigest !== currentDigest) problems.push(`${label}: stale, it ran against code that has since changed (commit ${run.commit?.slice(0, 12)}); rerun it`);
+    if (!recorded) problems.push(`${label}: no source digest recorded; the result is unattributed`);
   });
   return problems;
 }
