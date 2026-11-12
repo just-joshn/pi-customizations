@@ -18,6 +18,9 @@ const check = process.argv.slice(2).includes('--check');
 // install its host packages as siblings, so they must not import them. Typebox is bundled directly (small, pure, and
 // used by the schemas those bundles keep); the pi packages are redirected to scripts/pi-standalone-shims.mjs, which
 // inlines the two small pi-ai functions they execute and stands in for the pi-coding-agent symbols they never call.
+// The bundles do execute one more pi-ai export: src/workers.ts credentialEnv() calls getBuiltinProviders() when a
+// worker launches with no resolvable provider, and that import (pi-ai/providers/all) is not redirected, so the whole
+// pi-ai model catalog is inlined at the devDependency version. dist/helpers.json records that version.
 const standalone = new Set(['src/automation/routine-cli.mjs', 'src/automation/serve-cli.ts']);
 const shimPath = fileURLToPath(new URL('./pi-standalone-shims.mjs', import.meta.url));
 // worker-host.ts detects its main entry with `process.argv[1] === fileURLToPath(import.meta.url)`. That holds for
@@ -52,7 +55,12 @@ for (const directory of ['src', 'generated']) {
 }
 for (const file of ['package.json', 'scripts/build-helpers.mjs', 'scripts/pi-standalone-shims.mjs']) inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
 const inputHash = inputs.digest('hex');
-const receipt = { inputs: inputHash, outputs: {} };
+const piAiVersion = JSON.parse(readFileSync(join(root, 'node_modules/@earendil-works/pi-ai/package.json'), 'utf8')).version;
+const receipt = {
+  inputs: inputHash,
+  standaloneCatalog: { package: '@earendil-works/pi-ai', version: piAiVersion, bundles: helpers.map(([entry, output]) => (standalone.has(entry) ? output : undefined)).filter(Boolean) },
+  outputs: {},
+};
 if (check) {
   const built = existsSync(receiptPath) ? JSON.parse(readFileSync(receiptPath, 'utf8')) : undefined;
   for (const [, output] of helpers) {

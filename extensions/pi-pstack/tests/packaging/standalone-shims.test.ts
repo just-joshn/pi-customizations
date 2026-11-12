@@ -39,3 +39,14 @@ describe('standalone bundles reproduce pi-ai findEnvKeys', () => {
     expect(Object.fromEntries(shim)).toEqual(Object.fromEntries(host));
   });
 });
+
+test('the helper receipt records the pi-ai catalog the standalone bundles inline', () => {
+  const receipt = JSON.parse(readFileSync(join(root, 'dist/helpers.json'), 'utf8')) as { standaloneCatalog?: { package: string; version: string; bundles: string[] } };
+  const installed = JSON.parse(readFileSync(join(root, 'node_modules/@earendil-works/pi-ai/package.json'), 'utf8')) as { version: string };
+  expect(receipt.standaloneCatalog).toEqual({
+    package: '@earendil-works/pi-ai',
+    version: installed.version,
+    bundles: ['dist/routine-setup.js', 'dist/automation-serve.js'],
+  });
+  for (const bundle of receipt.standaloneCatalog?.bundles ?? []) expect(readFileSync(join(root, bundle), 'utf8')).toContain('function getBuiltinProviders()');
+});

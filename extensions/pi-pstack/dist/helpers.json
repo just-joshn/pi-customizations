@@ -1,5 +1,13 @@
 {
-  "inputs": "25423268b08f0aac04d4acf440d024b8e1698f07cb77d5096206849a8775e16e",
+  "inputs": "d492f22573d8e8588595603836010610afa2b2aa5d2917f97e5bef30d259a495",
+  "standaloneCatalog": {
+    "package": "@earendil-works/pi-ai",
+    "version": "1.5.0",
+    "bundles": [
+      "dist/routine-setup.js",
+      "dist/automation-serve.js"
+    ]
+  },
   "outputs": {
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
     "dist/worker-host.js": "80742b2101fb53c3b91eb71770979048b069097d5746fc02ce09d2f416f923c3",
