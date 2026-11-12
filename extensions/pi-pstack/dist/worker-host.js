@@ -478,14 +478,14 @@ function workspaceDir(loaded) {
 }
 function prepareOutput(workerDir) {
   const out = outDirOf(workerDir);
-  for (const name of ["session", "evidence"])
+  for (const name of ["session", "evidence", "receipts"])
     mkdirSync(join3(out, name), { recursive: true, mode: 448 });
   for (const name of ["session", "evidence", "report.md"])
     if (lstatSync2(join3(workerDir, name), { throwIfNoEntry: false }) === undefined)
       symlinkSync(join3("out", name), join3(workerDir, name));
 }
 function containerEnv(piEnv) {
-  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent` };
+  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent`, PSTACK_CONTAINER: "1" };
 }
 function piArgs(loaded, launch) {
   return [

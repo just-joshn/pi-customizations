@@ -12,7 +12,7 @@ import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 import { ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
-import { registerEvidenceTool } from './evidence.ts';
+import { ingestContainerReceipts, registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
@@ -837,16 +837,20 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
       const worker = collectOutputs(loaded, state.sessionFile);
+      // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
+      const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
       const result = {
         settled: true,
         available: inspected.available,
         phase: inspected.available ? state.phase : 'unavailable',
         lastSettle,
         ...worker,
+        ...(receipts === undefined ? {} : { receipts }),
         sessionFile: state.sessionFile,
       };
+      const rejected = receipts === undefined || receipts.rejected.length === 0 ? '' : `\n\nContainer receipts rejected: ${receipts.rejected.map(({ workerId: from, file, reason }) => `${from}/${file}: ${reason}`).join('; ')}`;
       return text(
-        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}`,
+        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },
