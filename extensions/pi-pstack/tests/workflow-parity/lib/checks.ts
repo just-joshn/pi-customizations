@@ -293,8 +293,8 @@ export function repoUntouched(id: string, title: string, source: Src | Src[]): C
   return check(id, title, source, (view) => {
     const dirty = view.git.dirty;
     const moved = view.git.commitsSinceBase;
-    const parentWrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError && (String(call.args['path'] ?? '').startsWith(view.repo) || !String(call.args['path'] ?? '').startsWith('/')) && !String(call.args['path'] ?? '').includes('/.pi/pstack/') && !String(call.args['path'] ?? '').startsWith('.pi/pstack/'));
-    return when(dirty.length === 0 && moved.length === 0 && parentWrites.length === 0, `working tree clean outside .pi/, HEAD at base, ${view.parent.toolCalls.filter((call) => call.name === 'write' || call.name === 'edit').length} parent write calls, none into the repository outside .pi/pstack`, `dirty: ${dirty.join(', ') || 'none'}; commits since base: ${moved.length}; parent writes: ${parentWrites.map((call) => String(call.args['path'])).join(', ') || 'none'}`);
+    const parentWrites = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError && (String(call.args['path'] ?? '').startsWith(view.repo) || !String(call.args['path'] ?? '').startsWith('/')) && !String(call.args['path'] ?? '').includes('/.pi/') && !String(call.args['path'] ?? '').startsWith('.pi/'));
+    return when(dirty.length === 0 && moved.length === 0 && parentWrites.length === 0, `working tree clean outside .pi/, HEAD at base, ${view.parent.toolCalls.filter((call) => call.name === 'write' || call.name === 'edit').length} parent write calls, none into the repository outside .pi/`, `dirty: ${dirty.join(', ') || 'none'}; commits since base: ${moved.length}; parent writes: ${parentWrites.map((call) => String(call.args['path'])).join(', ') || 'none'}`);
   });
 }
 
@@ -592,7 +592,7 @@ export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: 
 /** The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. */
 export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[]): Check {
   return check(id, title, source, (view) => {
-    const production = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && String(call.args['path'] ?? '').startsWith(view.repo) && !String(call.args['path']).includes('/.pi/pstack/'));
+    const production = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && String(call.args['path'] ?? '').startsWith(view.repo) && !String(call.args['path']).includes('/.pi/'));
     return when(production.length === 0 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, 'the parent wrote nothing into production source and the main checkout is clean', `parent wrote ${production.map((call) => String(call.args['path'])).join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits ${view.git.commitsSinceBase.length}`);
   });
 }

@@ -161,3 +161,25 @@ export function quadraticComparisons(): number {
   }
   return comparisons;
 }
+
+export const COUPON_JS = `export function clampPercent(percent) {
+  return Math.min(100, Math.max(0, Number.isNaN(percent) ? 0 : percent));
+}
+`;
+export const COUPON_TEST_JS = `import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { clampPercent } from '../src/coupon.js';
+
+test('keeps a valid percent', () => assert.equal(clampPercent(15), 15));
+`;
+export const FIXED_CART_JS = CART_JS.replace('export function applyCoupon(amount, percent) {\n  return roundCents(amount - (amount * percent) / 100);', 'export function applyCoupon(amount, percent) {\n  const bounded = Math.min(100, Math.max(0, percent));\n  return roundCents(amount - (amount * bounded) / 100);');
+
+/** The cart repository with the coupon fix as its newest commit: the claim "the fix works" has a baseline and a treatment. */
+export const fixedHistory: Commit[] = [...cartHistory, { message: 'fix: bound the coupon percent (#141)', files: { 'src/cart.js': FIXED_CART_JS } }];
+
+/** The cart repository with a correct clampPercent, a test, and a CLI a verification skill can drive. */
+export const couponHistory: Commit[] = [
+  ...cartHistory,
+  { message: 'feat: clampPercent keeps coupons in 0..100 (#142)', files: { 'src/coupon.js': COUPON_JS, 'test/coupon.test.js': COUPON_TEST_JS } },
+  { message: 'feat: cart CLI prints a total (#143)', files: { 'bin/cart.js': `import { total } from '../src/cart.js';\nconst [price = '0', qty = '1', percent = '0'] = process.argv.slice(2);\nconsole.log('total=' + total([{ price: Number(price), qty: Number(qty) }], Number(percent)));\n` } },
+];

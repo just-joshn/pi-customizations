@@ -53,6 +53,8 @@ export interface RunSpec {
   agentFiles?: Record<string, string>;
   /** Called after the repo exists and before Pi starts, for fixtures that live outside the repo. */
   prepare?: (ctx: Ctx) => void;
+  /** Removes anything the run left outside the sandbox. */
+  cleanup?: (ctx: Ctx) => void;
   timeoutMs?: number;
 }
 
@@ -320,7 +322,15 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
   writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base), null, 2));
   const view = loadView(ctx.sandbox);
-  return { sandbox: ctx.sandbox, view, meta, cleanup: () => removeSandbox(ctx.sandbox) };
+  return {
+    sandbox: ctx.sandbox,
+    view,
+    meta,
+    cleanup: () => {
+      spec.cleanup?.(ctx);
+      removeSandbox(ctx.sandbox);
+    },
+  };
 }
 
 /** Removes a sandbox, including worker worktrees git has registered under it. */
