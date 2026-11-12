@@ -16881,7 +16881,8 @@ function createRetirement(host) {
           continue;
         try {
           await host.beforeRetire?.(item.runId);
-        } catch {
+        } catch (error) {
+          appendLog(store, { ts: host.now().toISOString(), kind: "worker-retired", key: item.key, runId: item.runId, outcome: `refused: the last look at the worker's pull requests failed: ${error instanceof Error ? error.message : String(error)}`, ok: false });
           continue;
         }
         const outcome = await host.abort(config.projectRoot, item.runId).catch((error) => `refused: ${error instanceof Error ? error.message : String(error)}`);

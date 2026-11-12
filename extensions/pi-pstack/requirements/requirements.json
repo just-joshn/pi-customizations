@@ -1445,7 +1445,7 @@
     },
     "bn.benny-tmux.4": {
       "file": "tests/automation/benny-tmux.test.ts",
-      "name": "a real repro worker is held through the rejection window and then takes the fix phase as its next turn"
+      "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
     },
     "bn.benny-tmux.5": {
       "file": "tests/automation/benny-tmux.test.ts",
@@ -2347,10 +2347,6 @@
       "file": "tests/automation/fix-guard.test.ts",
       "name": "a worker that goes around the parent still leaves no ready pull request the last look before the worker is shut down converts a pull request opened since the previous one"
     },
-    "bn.benny-tmux.10": {
-      "file": "tests/automation/benny-tmux.test.ts",
-      "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
-    },
     "bn.benny-template.8": {
       "file": "tests/automation/benny-template.test.ts",
       "name": "the loader reads the default branch a draft pull request is based on"
@@ -2398,6 +2394,10 @@
     "bn.benny-tmux.11": {
       "file": "tests/automation/benny-tmux.test.ts",
       "name": "a real repro worker that commits in its worktree before the go-ahead is found from the run branch and stopped through its host, and is never sent the fix"
+    },
+    "bn.retire.10": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds"
     }
   },
   "structural": [
@@ -5180,7 +5180,7 @@
         ],
         "anchor": "Never merge or deploy"
       },
-      "observable": "A fix opens a draft pull request after before-and-after proof. The worker commits on its run branch and describes the pull request; the parent pushes the branch and opens the pull request itself, always with --draft, and only when the worker's proof record shows the patched build measured twice. A ready-for-review pull request on the run branch (one the worker opened itself) is converted to a draft by a throttled sweep, before the parent reports a fix and before the worker is shut down.",
+      "observable": "A fix opens a draft pull request after before-and-after proof. The worker commits on its run branch and describes the pull request; the parent pushes the branch and opens the pull request itself, always with --draft, and only when the worker's proof record shows the patched build measured twice. A ready-for-review pull request on the run branch (one the worker opened itself) is converted to a draft by a throttled sweep, before the parent reports a fix and before the worker is shut down. The residual is stated, not hidden: a repro worker holds the operator's own gh and git credentials (the contract's same-uid limit), so for a worker that bypasses the parent the guarantee is detection (the sweep, at most one minute later and again before shutdown), and a pull request from a branch other than the run branch is not attributable to the run.",
       "invariants": [
         "Never merge or deploy."
       ],
@@ -5208,10 +5208,10 @@
         "bn.fix-guard.12",
         "bn.fix-guard.13",
         "bn.fix-guard.14",
-        "bn.benny-tmux.10",
-        "bn.benny-template.8"
-      ],
-      "coverageGap": "A repro worker runs as the operator in a worktree and holds the operator's own gh and git credentials, which no tool boundary can take away (the contract's same-uid limit). Prevention therefore holds for the path the worker is told to use, where the parent alone opens the pull request and always as a draft. A worker that opens a ready pull request itself is caught by the sweep, at most one minute later and again before shutdown, not prevented, and a pull request from a branch other than the run branch is not attributable to the run. No test runs gh against GitHub."
+        "bn.benny-template.8",
+        "bn.benny-tmux.4",
+        "bn.retire.10"
+      ]
     },
     {
       "id": "BENNY-OUTBOX-RESTART",
@@ -5958,7 +5958,8 @@
         "bn.retire.7",
         "bn.retire.8",
         "bn.retire.9",
-        "bn.benny-tmux.7"
+        "bn.benny-tmux.7",
+        "bn.retire.10"
       ]
     },
     {

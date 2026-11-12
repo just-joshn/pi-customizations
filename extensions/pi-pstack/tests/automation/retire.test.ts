@@ -171,3 +171,28 @@ describe('repro', () => {
     expect(t.aborts).toEqual([]);
   });
 });
+
+describe('the last look before shutdown', () => {
+  test('a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds', async () => {
+    const project = bennyProject({ operationsChannel: OPS_CHANNEL });
+    projects.push(project);
+    const slack = fakeSlack();
+    slack.messages.push({ ts: '1762900001.999999', user: TRIAGE_USER, text: 'A bug.\n[benny:bug]' });
+    const gh = fakeGh();
+    const aborts: RunId[] = [];
+    let clock = Date.parse('2026-11-12T08:00:00Z');
+    const automation = wireBenny(project.config('reproduce'), wiringDeps(slack, gh, { spawnWorker: async () => undefined, now: () => new Date(clock), abort: async (_root, runId) => { aborts.push(runId); return 'stopped'; } }));
+    const run = await automation.handle(REPORT);
+    if (run.status !== 'dispatched') throw new Error('not dispatched');
+    settleWorker(project.dir, run.runId, { phase: 'idle', finalText: COULD_NOT });
+    await completeSettledRuns(automation);
+    clock += (OPS_FOLLOW_UP + 1) * 60_000;
+    gh.failures.push({ when: (args) => args[0] === 'pr', remaining: 2 });
+    await automation.retireWorkers();
+    await automation.retireWorkers();
+    expect(aborts).toEqual([]);
+    expect(readLog(automation.store).filter((entry) => entry.kind === 'worker-retired').map((entry) => entry.ok)).toEqual([false, false]);
+    await automation.retireWorkers();
+    expect(aborts).toEqual([run.runId]);
+  });
+});
