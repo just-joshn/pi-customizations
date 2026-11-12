@@ -31,7 +31,7 @@ To remove it, run `pi remove ./extensions/pi-pstack`. Model configuration lives 
 
 ## Configure models with /setup-pstack
 
-Run `/setup-pstack` once. It lists the models your Pi can use, asks for a reasoning budget, maps a model to each pstack role, and writes `~/.pi/agent/pstack/models.json`. When a worker starts, `pstack_worker` resolves its model from that file. A role set to `inherit-parent` or `auto` runs on the parent session's model (`tests/model-routing/models.test.ts`, `tests/integration/extension.test.ts`).
+Run `/setup-pstack` once. It lists the models your Pi can use, asks for a reasoning budget, maps a model to each pstack role, and writes `~/.pi/agent/pstack/models.json`. When a worker starts, `pstack_worker` resolves its model from that file. `models.json` is the only model file pi-pstack reads. A `pstack-models.md` written by an earlier pstack host is ignored. `/setup-pstack` takes its role lines as the starting choices and writes `models.json`, and `/pstack doctor` tells you when that file exists and `models.json` does not. A role set to `inherit-parent` or `auto` runs on the parent session's model (`tests/model-routing/models.test.ts`, `tests/integration/extension.test.ts`).
 
 ## Start work
 

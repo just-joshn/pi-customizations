@@ -15,7 +15,7 @@ Enumerate the models you can pass to a `pstack_worker` spawn in this session wit
 
 ### 2. Load current state
 
-The default role-to-model mapping is the rule shape shown in step 5 below. If `~/.pi/agent/pstack/models.json` already exists, read it and treat its `budget` and its `roles` values as the current choices. Otherwise start from those defaults. A line whose role is not in step 5, such as `how critics`, is from a retired role. Drop it.
+The default role-to-model mapping is the rule shape shown in step 5 below. If `~/.pi/agent/pstack/models.json` already exists, read it and treat its `budget` and its `roles` values as the current choices. pi-pstack reads only `models.json`. A `~/.pi/agent/pstack/pstack-models.md` that an earlier pstack host wrote is never read, so while `models.json` is missing, treat the role lines of that Markdown file as the current choices, and step 5 writes `models.json` from them. Otherwise start from those defaults. A line whose role is not in step 5, such as `how critics`, is from a retired role. Drop it.
 
 ### 3. Budget, map, and confirm
 
@@ -67,7 +67,7 @@ Write `~/.pi/agent/pstack/models.json` with `schemaVersion: 1`, `budget` set to 
 
 ### 6. Confirm
 
-Tell the user the file was written and that it applies to every later `pstack_worker` spawn. Re-running this skill updates it.
+Tell the user the file was written and that it applies to every later `pstack_worker` spawn. Say that `models.json` is the only model file pi-pstack reads, and that a `pstack-models.md` beside it has no effect. Re-running this skill updates it.
 
 ### 7. Offer a verification skill (optional)
 

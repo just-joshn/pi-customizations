@@ -305,7 +305,7 @@ The same-uid credential limitation above still applies. This is not OS credentia
 
 ## Models (spec 10.3)
 
-`~/.pi/agent/pstack/models.json` with the spec's schema: `schemaVersion: 1`, `budget`, `roles` keyed by the 17 role labels in `pstack-models.md`. A value is a model spec string or an array of them for the panel roles (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`). A model spec is `inherit-parent`, `auto`, or `<provider>/<id>[:<level>]`. `src/models.ts` exports `resolveRole(role, registry, parent)` returning resolved `{ provider, id, thinkingLevel }[]` plus `limitations: string[]` (e.g. "panel has 2 entries but 1 family").
+`~/.pi/agent/pstack/models.json` is the one model file pi-pstack reads (specification 10.3 and its mapping table, `.cursor/rules/pstack-models.mdc` to `models.json`). `pstack-models.md`, the Markdown rule an earlier pstack host wrote, is the origin of the role labels and the source of a one-time conversion (`adapters/model-config.ts`); nothing reads it at run time, `/setup-pstack` says so, and `/pstack doctor` points at it when `models.json` is missing. The file has the spec's schema: `schemaVersion: 1`, `budget`, `roles` keyed by the 17 role labels in `pstack-models.md`. A value is a model spec string or an array of them for the panel roles (`arena runners`, `arena cross-judge pool`, `architect runners`, `interrogate reviewers`). A model spec is `inherit-parent`, `auto`, or `<provider>/<id>[:<level>]`. `src/models.ts` exports `resolveRole(role, registry, parent)` returning resolved `{ provider, id, thinkingLevel }[]` plus `limitations: string[]` (e.g. "panel has 2 entries but 1 family").
 
 ## TODO.md (spec 11.1)
 

@@ -6480,7 +6480,7 @@
         18
       ],
       "original": "treat its `# budget` line and its role values as the current choices",
-      "replacement": "treat its `budget` and its `roles` values as the current choices",
+      "replacement": "treat its `budget` and its `roles` values as the current choices. pi-pstack reads only `models.json`. A `~/.pi/agent/pstack/pstack-models.md` that an earlier pstack host wrote is never read, so while `models.json` is missing, treat the role lines of that Markdown file as the current choices, and step 5 writes `models.json` from them",
       "output": "generated/skills/setup-pstack/SKILL.md"
     },
     {
@@ -6615,7 +6615,7 @@
         70
       ],
       "original": "Tell the user the rule was written and that it applies to new sessions.",
-      "replacement": "Tell the user the file was written and that it applies to every later `pstack_worker` spawn.",
+      "replacement": "Tell the user the file was written and that it applies to every later `pstack_worker` spawn. Say that `models.json` is the only model file pi-pstack reads, and that a `pstack-models.md` beside it has no effect.",
       "output": "generated/skills/setup-pstack/SKILL.md"
     },
     {
