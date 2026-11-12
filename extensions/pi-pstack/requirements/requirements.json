@@ -2982,6 +2982,58 @@
     "wf.babysit-flake-twice.twice.push": {
       "file": "tests/workflow-parity/pr-babysit.test.ts",
       "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger"
+    },
+    "real.drive.sandbox": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay babysit-drive-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind"
+    },
+    "real.drive.live": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay babysit-drive-real the live run passed every check and detected every negative case"
+    },
+    "real.drive.facts": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay babysit-drive-real the recorded GitHub facts satisfy every fact check"
+    },
+    "real.drive.negatives": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay babysit-drive-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+    },
+    "real.ship.sandbox": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay shipping-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind"
+    },
+    "real.ship.live": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay shipping-real the live run passed every check and detected every negative case"
+    },
+    "real.ship.facts": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay shipping-real the recorded GitHub facts satisfy every fact check"
+    },
+    "real.ship.negatives": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay shipping-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+    },
+    "real.open.sandbox": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay opening-a-pr-real the recorded run lives in the sandbox repository: PR and Actions run URLs, a settled forge, nothing left behind"
+    },
+    "real.open.live": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay opening-a-pr-real the live run passed every check and detected every negative case"
+    },
+    "real.open.facts": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay opening-a-pr-real the recorded GitHub facts satisfy every fact check"
+    },
+    "real.open.negatives": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay opening-a-pr-real each fact-breaking negative case is caught by the fact checks on the recorded facts"
+    },
+    "real.container.push": {
+      "file": "tests/workflow-parity/real-forge.test.ts",
+      "name": "real forge evidence replay a container worker with the forge capability pushed a branch to github.com: the commit the worker made is the one the GitHub API showed"
     }
   },
   "structural": [
@@ -4198,7 +4250,11 @@
         "wf.babysit-drive.drive.overlap",
         "wf.babysit-origin.origin.vocab",
         "wf.babysit-origin.origin.thread",
-        "wf.babysit-single-watcher.single.dup"
+        "wf.babysit-single-watcher.single.dup",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives"
       ]
     },
     {
@@ -4260,7 +4316,11 @@
         "wf.babysit-drive.drive.conflict",
         "wf.babysit-drive.drive.force",
         "wf.babysit-drive.drive.rebase",
-        "wf.babysit-drive.drive.retarget"
+        "wf.babysit-drive.drive.retarget",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives"
       ]
     },
     {
@@ -4294,7 +4354,11 @@
         "wf.babysit-flake-twice",
         "wf.babysit-flake-twice.twice.second",
         "wf.babysit-flake-twice.twice.nolog",
-        "wf.babysit-flake-twice.twice.push"
+        "wf.babysit-flake-twice.twice.push",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives"
       ]
     },
     {
@@ -4332,7 +4396,11 @@
         "wf.babysit-drive.drive.merge",
         "wf.babysit-drive.drive.auto",
         "wf.babysit-origin.origin.merge",
-        "wf.babysit-queued.queued.merge2"
+        "wf.babysit-queued.queued.merge2",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives"
       ]
     },
     {
@@ -4366,7 +4434,11 @@
         "wf.pr-review-triage.triage.real",
         "wf.pr-review-triage.triage.inject",
         "wf.pr-review-triage.triage.nolookup",
-        "wf.babysit-threads-only.threads.billing"
+        "wf.babysit-threads-only.threads.billing",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives"
       ]
     },
     {
@@ -4398,7 +4470,11 @@
         "wf.shipping",
         "wf.shipping.ship.tip",
         "wf.shipping.ship.middle",
-        "wf.shipping.ship.flip"
+        "wf.shipping.ship.flip",
+        "real.ship.sandbox",
+        "real.ship.live",
+        "real.ship.facts",
+        "real.ship.negatives"
       ]
     },
     {
@@ -4467,7 +4543,11 @@
         "wf.shipping.ship.receipt",
         "wf.shipping.ship.noverdict",
         "wf.shipping-no-engine.noengine.local",
-        "wf.shipping-no-forge-token.noforge.merge"
+        "wf.shipping-no-forge-token.noforge.merge",
+        "real.ship.sandbox",
+        "real.ship.live",
+        "real.ship.facts",
+        "real.ship.negatives"
       ]
     },
     {
@@ -4576,7 +4656,19 @@
         "wf.babysit-drive.drive.noresolve",
         "wf.opening-a-pr.open.twice",
         "wf.opening-a-pr.open.draft",
-        "wf.opening-a-pr.open.body"
+        "wf.opening-a-pr.open.body",
+        "real.drive.sandbox",
+        "real.drive.live",
+        "real.drive.facts",
+        "real.drive.negatives",
+        "real.ship.sandbox",
+        "real.ship.live",
+        "real.ship.facts",
+        "real.ship.negatives",
+        "real.open.sandbox",
+        "real.open.live",
+        "real.open.facts",
+        "real.open.negatives"
       ]
     },
     {
@@ -4748,7 +4840,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/container/ (container, receipts, forge, provider-auth, redact, untrusted-output, engine-record, container-auth) on a real engine, plus generated-text semantics tests. tests/container/model-smoke.test.ts is the opt-in real-model proof (PSTACK_E2E_REAL_MODELS=1).",
+      "verification": "tests/container/ (container, receipts, forge, provider-auth, redact, untrusted-output, engine-record, container-auth) on a real engine, plus generated-text semantics tests. tests/container/model-smoke.test.ts is the opt-in real-model proof (PSTACK_E2E_REAL_MODELS=1). Against github.com: tests/container/real-github.test.ts (opt-in, PSTACK_REAL_FORGE=1) has a container worker clone the private sandbox repository with the injected token, push a branch over https and read it back from the GitHub API, and tests/workflow-parity/real-forge.test.ts runs the shipping family with container verifiers posting real verdicts on real PRs; docs/real-forge-evidence.md records the PR and Actions run URLs, and the replay tests in real-forge.test.ts re-check the committed records offline.",
       "tests": [
         "sem.container-swarm",
         "sem.container-orch",
@@ -4821,9 +4913,14 @@
         "cont.defaults.1",
         "cont.defaults.2",
         "cont.defaults.3",
-        "cont.defaults.4"
+        "cont.defaults.4",
+        "real.ship.sandbox",
+        "real.ship.live",
+        "real.ship.facts",
+        "real.ship.negatives",
+        "real.container.push"
       ],
-      "coverageGap": "Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
+      "coverageGap": "Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
     },
     {
       "id": "WF-HOW-READONLY",
