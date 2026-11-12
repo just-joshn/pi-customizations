@@ -40,12 +40,14 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
     probes.tracker = () => github.reachable();
     policy = createTrackerPolicy({ tracker: config.tracker, reader: github, destination, canCompensate: true });
   }
+  const repo = config.tracker.repo;
   const automationConfig: AutomationConfig = config;
   return createAutomation(automationConfig, {
     destination,
     operations: destination,
     prerequisites: probes,
     ...(tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy }),
+    ...(config.tracker.type === 'github' && repo !== undefined ? { trackerUrl: (id: string) => `https://github.com/${repo}/issues/${id}` } : {}),
     ...(deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker }),
     ...(deps.inputCommit === undefined ? {} : { inputCommit: deps.inputCommit }),
     ...(deps.now === undefined ? {} : { now: deps.now }),

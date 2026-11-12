@@ -61,7 +61,7 @@ export interface BriefMessage {
   text?: string;
 }
 
-export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = [], statusFile?: string): string {
+export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = [], statusFile?: string, extra: { trackerUrl?: string } = {}): string {
   const kind = AUTOMATION_KINDS[config.kind];
   return [
     `# Benny ${config.kind} case for automation \`${config.name}\``,
@@ -75,6 +75,7 @@ export function buildBrief(config: DispatchConfig, event: AutomationEvent, threa
     `- root thread ts: \`${event.rootTs}\``,
     '',
     'These never change during this case. If the thread you are asked about does not match them, stop and say so.',
+    ...(config.kind === 'reproduce' ? ['', '## Triage verdict', '', `- tracker issue: ${extra.trackerUrl ?? 'none'} (read from the trusted triage verdict)`] : []),
     '',
     '## Boundaries',
     '',
@@ -145,7 +146,7 @@ export async function launchRun(projectRoot: string, run: RunFiles, deps: { spaw
   await deps.spawnWorker(run.runId, assignmentPath);
 }
 
-export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date; thread?: readonly BriefMessage[] }): Promise<void> {
+export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date; thread?: readonly BriefMessage[]; trackerUrl?: string }): Promise<void> {
   const assignment = buildAssignment(config, runId, deps.inputCommit);
-  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId)), assignment }, deps);
+  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId), deps.trackerUrl === undefined ? {} : { trackerUrl: deps.trackerUrl }), assignment }, deps);
 }

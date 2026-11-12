@@ -49,7 +49,7 @@ test('a real worker settles, its result completes the case, and the issue and th
   );
 
   expect(gh.issues.map((issue) => issue.title)).toEqual(['Export fails on Safari']);
-  expect(slack.posts).toEqual([{ thread_ts: ROOT_TS, text: verdict }]);
+  expect(slack.posts).toEqual([{ thread_ts: ROOT_TS, text: `${verdict} tracker=https://github.com/acme/app/issues/1` }]);
   expect(automation.pendingRuns()).toEqual([]);
   const restarted = wireBenny(loadBennyConfig(current.dir, 'triage'), wiringDeps(slack, gh));
   await restarted.reconcile();

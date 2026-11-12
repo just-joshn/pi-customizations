@@ -4,7 +4,7 @@
 import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
-import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, type OpsEditAction, type OpsStatus, opsText, sourceUrlOf, untrustedText, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
+import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, trackerUrlOf, withTrackerAttribute, type OpsEditAction, type OpsStatus, opsText, sourceUrlOf, untrustedText, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
 import { latestStatus } from '../src/automation/operations.ts';
 import { directLander, enqueue, flushOutbox, type OperationsDestination, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
@@ -19,6 +19,8 @@ export interface AutomationConfig extends DispatchConfig {
   sourceChannelId: string;
   triageIdentityUserId?: string;
   tracker?: TrackerConfig;
+  /** The marker line attribute that carries the tracker url (`verdict_markers.tracker_attribute`). */
+  trackerAttribute?: string;
   /** The kind's own minutes: triage_total_minutes or repro_minutes, and triage_follow_up_minutes or operations_follow_up_minutes. */
   budgets?: { totalMinutes: number; followUpMinutes: number };
 }
@@ -28,6 +30,8 @@ export interface AutomationDeps {
   spawnWorker?: SpawnWorker;
   /** A synchronous tracker the parent writes itself, or a lander that hands each write to a worker. */
   tracker?: TrackerDestination | TrackerLander;
+  /** The url of the issue with this id, for a tracker whose urls the parent can build. Another tracker's worker returns its own. */
+  trackerUrl?: (id: string) => string | undefined;
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
   trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent, reply: string) => Promise<TrackerEligibility>;
   destination: ThreadDestination;
@@ -98,6 +102,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   if (!isIdentifier(config.name)) throw new Error(`invalid automation name: ${config.name}`);
   const store = automationStore(config.projectRoot, config.name);
   const now = deps.now ?? (() => new Date());
+  const trackerAttribute = config.trackerAttribute ?? 'tracker';
   const stamp = () => now().toISOString();
   const inputCommit = deps.inputCommit ?? gitHead(config.projectRoot);
   const spawnWorker = deps.spawnWorker ?? spawnInTmux(config.projectRoot);
@@ -124,7 +129,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? '', AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? '')) return reject('missing, untrusted or ambiguous triage marker');
     }
     const runId = runIdFor(config.name, key);
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread });
+    const trackerUrl = config.kind === 'reproduce' ? trackerUrlOf(thread.find((message) => message.user === config.triageIdentityUserId && /\[benny:(bug|performance)\]/.test(message.text ?? ''))?.text ?? '', trackerAttribute) : undefined;
+    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }) });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };
@@ -193,6 +199,13 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
   };
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
+  /** The link to the issue the case's tracker action wrote or updated, once it landed. */
+  const issueUrlOf = (id: ActionId): string | undefined => {
+    const entry = entryOf(id);
+    if (entry?.state !== 'done' || entry.action.kind !== 'tracker' || entry.action.operation === 'close') return undefined;
+    const issue = entry.action.operation === 'create' ? entry.destinationTs : entry.action.targetId;
+    return entry.url ?? (issue === undefined ? undefined : deps.trackerUrl?.(issue));
+  };
 
   return {
     config,
@@ -261,7 +274,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
           if (root?.state === 'pending') return { status: 'retrying', key: event.key };
         }
         const replyId = actionIdFor(config.name, event.key, 'result');
-        const replyText = failure === undefined ? text : failureReply(config.kind, failure);
+        const replyText = failure !== undefined ? failureReply(config.kind, failure) : markers === null ? text : withTrackerAttribute(text, trackerAttribute, issueUrlOf(trackerId));
         // A repro run with nothing confirmed posts nothing in the source thread: the operations thread and the run log carry it.
         const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: replyText });
         await flush();

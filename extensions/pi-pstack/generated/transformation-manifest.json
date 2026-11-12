@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 230,
-    "spans": 295
+    "rules": 232,
+    "spans": 297
   },
   "skills": [
     "architect",
@@ -2140,6 +2140,24 @@
       }
     },
     {
+      "id": "triage-issue-reports.9-tracker-link",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
+      "id": "triage-issue-reports.9-marker-contract",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md": 1
+      }
+    },
+    {
       "id": "triage-issue-reports.9-verify-and-compensate",
       "primitives": [
         "cursor-automations"
@@ -2878,6 +2896,36 @@
       ],
       "original": "## 9. Post one verdict\n\nRun a fresh source-parent preflight. Then post exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`.\n\nNever call a source-channel posting action without a nonempty `thread_ts`.",
       "replacement": "## 9. Return one verdict\n\nYour final message is one JSON object: `{ \"text\": \"<the verdict>\", \"tracker\": <the optional request from section 6> }`.\n\nThe parent runs a fresh source-parent preflight. Then it posts exactly one reply with `channel=SOURCE_CHANNEL_ID` and `thread_ts=SOURCE_THREAD_TS`. It posts nothing when the parent message is missing.\n\nThe parent never calls a source-channel posting action without a nonempty `thread_ts`.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-tracker-link",
+      "offset": [
+        8928,
+        8987
+      ],
+      "lines": [
+        209,
+        209
+      ],
+      "original": "- Link the existing or new tracker issue when there is one.",
+      "replacement": "- Link an existing issue you found in the text. The parent adds the `tracker=<url>` attribute to your marker line itself, for the one issue it wrote or updated, so write the bare marker and no `tracker=` attribute.",
+      "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md",
+      "rule": "triage-issue-reports.9-marker-contract",
+      "offset": [
+        9120,
+        9136
+      ],
+      "lines": [
+        214,
+        214
+      ],
+      "original": "Marker contract:",
+      "replacement": "Marker contract. You write the bare marker. The parent appends `tracker=<url>` to your marker line when it wrote or updated an issue, and replaces any `tracker=` you wrote. The repro automation reads that attribute. The posted forms are:",
       "output": "generated/automations/benny/skills/triage-issue-reports/SKILL.md"
     },
     {

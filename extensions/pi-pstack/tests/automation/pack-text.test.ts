@@ -58,3 +58,9 @@ test('the shipped triage and repro instructions name the same result fields the 
   for (const status of Object.keys(OPS_STATUSES)) expect(brief).toContain(status);
   expect(brief).toContain('operations');
 });
+
+test('the triage instructions tell the worker the parent writes the tracker attribute, so it writes the bare marker', () => {
+  const triage = text('skills/triage-issue-reports/SKILL.md');
+  expect(triage).toContain('The parent adds the `tracker=<url>` attribute to your marker line itself');
+  expect(triage).toContain('You write the bare marker.');
+});

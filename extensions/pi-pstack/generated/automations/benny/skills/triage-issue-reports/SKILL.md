@@ -209,12 +209,12 @@ The parent never calls a source-channel posting action without a nonempty `threa
 Keep the reply short:
 
 - Lead with the outcome.
-- Link the existing or new tracker issue when there is one.
+- Link an existing issue you found in the text. The parent adds the `tracker=<url>` attribute to your marker line itself, for the one issue it wrote or updated, so write the bare marker and no `tracker=` attribute.
 - Mention a reroute or one missing fact when needed.
 - Include at most one allowed owner ping.
 - End with exactly one marker line.
 
-Marker contract:
+Marker contract. You write the bare marker. The parent appends `tracker=<url>` to your marker line when it wrote or updated an issue, and replaces any `tracker=` you wrote. The repro automation reads that attribute. The posted forms are:
 
 ```text
 [benny:bug]

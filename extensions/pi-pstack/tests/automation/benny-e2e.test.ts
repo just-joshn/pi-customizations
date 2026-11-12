@@ -47,7 +47,7 @@ describe('triage end to end', () => {
     expect(issue?.labels).toEqual(['bug', 'intake']);
     expect(issue?.body).toMatch(/<!-- pstack-action:act-[0-9a-f]{16} -->/);
     expect(issue?.body).toContain('Source: https://slack.com/archives/CSOURCE01/p1762900000000100');
-    expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: VERDICT }]);
+    expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: `${VERDICT} tracker=https://github.com/acme/app/issues/1` }]);
 
     expect(await completeSettledRuns(t.automation)).toBe(0);
     expect(t.slack.posts).toHaveLength(1);
@@ -86,7 +86,7 @@ describe('triage end to end', () => {
     await restarted.reconcile();
     expect(await completeSettledRuns(restarted)).toBe(1);
     expect(t.gh.issues).toHaveLength(1);
-    expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: VERDICT }]);
+    expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: `${VERDICT} tracker=https://github.com/acme/app/issues/1` }]);
   });
 
   test.for([{ phase: 'failed' as const, reason: 'model refused' }, { phase: 'aborted' as const }])('a $phase worker posts the failure reply and creates no issue', async (outcome) => {

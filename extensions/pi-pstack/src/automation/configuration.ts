@@ -41,6 +41,8 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   if (trackerType === 'github' && !REPO.test(text(section('tracker')['repo'], 'tracker.repo'))) throw new Error('invalid Benny tracker.repo; expected owner/name');
   if (section('slack')['allow_source_root_posts'] !== false || section('slack')['allow_worker_slack_writes'] !== false || section('repository')['draft_only'] !== true) throw new Error('unsafe Benny write configuration');
   for (const marker of ['bug', 'performance', 'other']) if (section('verdict_markers')[marker] !== `[benny:${marker}]`) throw new Error('unsupported Benny verdict marker');
+  const trackerAttribute = text(section('verdict_markers')['tracker_attribute'], 'verdict_markers.tracker_attribute');
+  if (!/^[a-z][a-z_]{0,31}$/.test(trackerAttribute)) throw new Error('invalid Benny verdict_markers.tracker_attribute');
   const labels = object(section('tracker')['labels'], 'tracker.labels');
   for (const label of ['bug', 'performance', 'intake', 'needs_repro']) text(labels[label], `tracker.labels.${label}`);
   for (const model of ['triage', 'reproduce', 'code', 'media_review']) text(section('models')[model], `models.${model}`);
@@ -72,5 +74,5 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   const emoji = Object.fromEntries(Object.entries(section('status_emoji')).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   const operations: OperationsConfig | undefined = typeof operationsChannel === 'string' && operationsChannel.trim() !== '' ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
 }

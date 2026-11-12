@@ -8,7 +8,7 @@ import { createHash } from 'node:crypto';
 import type { SpawnWorker } from './dispatch.ts';
 import { launchRun } from './dispatch.ts';
 import { abortRun, type AbortRun } from './abort.ts';
-import { type RunId, type TrackerAction, type TrackerConfig, untrustedText, WORKER_ID } from './model.ts';
+import { isTrackerUrl, type RunId, type TrackerAction, type TrackerConfig, untrustedText, WORKER_ID } from './model.ts';
 import type { TrackerLander } from './outbox.ts';
 import { type CollectedRun, collectRun } from './settle.ts';
 import { resolveSkill, type SkillLocations } from './skills.ts';
@@ -75,7 +75,7 @@ export function buildTrackerBrief(action: TrackerAction, skillPath: string, trac
 }
 
 /** The worker's final message must be exactly the structured result the brief asks for, for this action's operation. */
-export function parseAdapterResult(finalText: string, operation: TrackerAction['operation']): { id: string; reconciled: boolean } {
+export function parseAdapterResult(finalText: string, operation: TrackerAction['operation']): { id: string; reconciled: boolean; url?: string } {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   let parsed: unknown;
   try {
@@ -89,7 +89,8 @@ export function parseAdapterResult(finalText: string, operation: TrackerAction['
   if (outcome !== 'found' && outcome !== OUTCOMES[operation]) throw new Error(`the tracker worker returned outcome ${JSON.stringify(outcome)}, not found or ${OUTCOMES[operation]}`);
   const id = result['id'];
   if (typeof id !== 'string' || id.trim() === '' || id.length > 200) throw new Error('the tracker worker returned no issue id');
-  return { id: id.trim(), reconciled: outcome === 'found' };
+  const url = result['url'];
+  return { id: id.trim(), reconciled: outcome === 'found', ...(typeof url === 'string' && isTrackerUrl(url.trim()) ? { url: url.trim() } : {}) };
 }
 
 export interface AdapterTrackerOptions {

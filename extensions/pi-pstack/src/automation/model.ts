@@ -214,6 +214,32 @@ export function classificationOf(reply: string): Classification {
   return found === 'bug' || found === 'performance' ? found : 'other';
 }
 
+/** A link a verdict may carry: http or https, one token, no characters that end a Slack link or a marker line. */
+export const isTrackerUrl = (value: string) => /^https?:\/\/[^\s<>\]|]{1,500}$/.test(value);
+
+const MARKER_LINE = /^(\[benny:(?:bug|performance|other)\])(.*)$/;
+const attributeOf = (attribute: string) => new RegExp(`\\s+${attribute}=\\S+`, 'g');
+
+/** The tracker url in the marker line of a verdict (`[benny:bug] tracker=<url>`), when it is a link a verdict may carry. */
+export function trackerUrlOf(verdict: string, attribute: string): string | undefined {
+  const rest = MARKER_LINE.exec(verdict.trimEnd().split('\n').at(-1)?.trim() ?? '')?.[2] ?? '';
+  const url = new RegExp(`\\s${attribute}=(\\S+)`).exec(rest)?.[1];
+  return url !== undefined && isTrackerUrl(url) ? url : undefined;
+}
+
+/**
+ * The verdict with the parent's tracker url in its marker line, and only that url: one the worker wrote is replaced,
+ * and without a url the attribute is dropped, because only the parent knows which issue it wrote or updated. The
+ * result is the same however often it is applied.
+ */
+export function withTrackerAttribute(verdict: string, attribute: string, url: string | undefined): string {
+  const lines = verdict.trimEnd().split('\n');
+  const marker = MARKER_LINE.exec(lines.at(-1)?.trim() ?? '');
+  if (marker === null) return verdict;
+  const line = `${marker[1]}${(marker[2] ?? '').replace(attributeOf(attribute), '').trimEnd()}${url === undefined || !isTrackerUrl(url) ? '' : ` ${attribute}=${url}`}`;
+  return line === lines.at(-1) ? verdict : [...lines.slice(0, -1), line].join('\n');
+}
+
 const oneLine = (value: string) => value.replace(/\s+/g, ' ').trim().slice(0, 200);
 
 /** Triage replies need a marker, and `other` is the one the repro automation never trusts, so a failure cannot start a repro. */

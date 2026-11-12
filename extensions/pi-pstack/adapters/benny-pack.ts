@@ -539,6 +539,20 @@ export const BENNY_RULES: readonly Rule[] = [
     ]),
   ),
   rule(
+    'triage-issue-reports.9-tracker-link',
+    'cursor-automations',
+    BN('skills/triage-issue-reports/SKILL.md'),
+    '- Link the existing or new tracker issue when there is one.',
+    '- Link an existing issue you found in the text. The parent adds the `tracker=<url>` attribute to your marker line itself, for the one issue it wrote or updated, so write the bare marker and no `tracker=` attribute.',
+  ),
+  rule(
+    'triage-issue-reports.9-marker-contract',
+    'cursor-automations',
+    BN('skills/triage-issue-reports/SKILL.md'),
+    'Marker contract:',
+    'Marker contract. You write the bare marker. The parent appends `tracker=<url>` to your marker line when it wrote or updated an issue, and replaces any `tracker=` you wrote. The repro automation reads that attribute. The posted forms are:',
+  ),
+  rule(
     'triage-issue-reports.9-verify-and-compensate',
     'cursor-automations',
     BN('skills/triage-issue-reports/SKILL.md'),
