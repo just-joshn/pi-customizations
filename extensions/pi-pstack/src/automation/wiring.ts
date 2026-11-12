@@ -43,6 +43,7 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   const automationConfig: AutomationConfig = config;
   return createAutomation(automationConfig, {
     destination,
+    operations: destination,
     prerequisites: probes,
     ...(tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy }),
     ...(deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker }),

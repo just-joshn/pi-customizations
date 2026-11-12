@@ -1,5 +1,5 @@
 import type { ThreadReplyAction } from './model.ts';
-import type { ThreadDestination, ThreadMessage } from './outbox.ts';
+import type { ChannelMessage, OperationsDestination, ThreadDestination, ThreadMessage } from './outbox.ts';
 import { type AutomationStore, readCursor, writeCursor } from './store.ts';
 
 export interface SlackApi {
@@ -74,8 +74,27 @@ export async function pollSlackOnce(api: SlackApi, channel: string, store: Autom
 }
 
 /** Slack as an outbox destination: the action id rides in message metadata, which `conversations.replies` returns. */
-export function slackDestination(api: SlackApi): ThreadDestination {
+export function slackDestination(api: SlackApi): ThreadDestination & OperationsDestination {
+  const marked = (message: SlackMessage) => (message.metadata?.event_type === MARKER_EVENT ? message.metadata.event_payload?.['action_id'] : undefined);
+  const asMessage = (message: SlackMessage): ChannelMessage => ({ ts: message.ts, text: message.text ?? '' });
   return {
+    async findRoot(channel, marker) {
+      const page = await call<Page>(api, 'conversations.history', { channel, limit: 100, include_all_metadata: true });
+      const found = (page.messages ?? []).find((message) => marked(message) === marker);
+      return found === undefined ? undefined : asMessage(found);
+    },
+    async postRoot(action) {
+      const result = await call<{ ts: string }>(api, 'chat.postMessage', { channel: action.channel, text: action.text, metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.id } } });
+      return { ts: result.ts };
+    },
+    async readMessage(channel, ts) {
+      const page = await call<Page>(api, 'conversations.history', { channel, latest: ts, oldest: ts, inclusive: true, limit: 1 });
+      const found = (page.messages ?? []).find((message) => message.ts === ts);
+      return found === undefined ? undefined : asMessage(found);
+    },
+    async edit(action, ts) {
+      await call(api, 'chat.update', { channel: action.channel, ts, text: action.text, metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.rootId } } });
+    },
     async readThread(channel, threadTs) {
       const messages = await allPages(api, 'conversations.replies', { channel, ts: threadTs, include_all_metadata: true });
       return messages.map((message): ThreadMessage => {

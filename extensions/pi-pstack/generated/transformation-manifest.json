@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 222,
-    "spans": 287
+    "rules": 229,
+    "spans": 294
   },
   "skills": [
     "architect",
@@ -1843,10 +1843,72 @@
       }
     },
     {
-      "id": "reproduce-and-fix-issues.4-open-an-optional-operations-thread",
+      "id": "reproduce-and-fix-issues.4-root-status-message",
       "primitives": [
-        "cursor-automations",
-        "cursor-host"
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.4-status-reports",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.8-evidence-thread",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-status-first",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-source-reply",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.9-attachments",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.14-pull-request-reply",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.15-follow-ups",
+      "primitives": [
+        "cursor-automations"
       ],
       "files": {
         "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
@@ -2346,7 +2408,22 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
-      "rule": "reproduce-and-fix-issues.4-open-an-optional-operations-thread",
+      "rule": "reproduce-and-fix-issues.4-root-status-message",
+      "offset": [
+        5018,
+        5181
+      ],
+      "lines": [
+        107,
+        107
+      ],
+      "original": "If `slack.operations_channel_id` is configured, the coordinator may create one root status message there. This is the only allowed root post in the repro workflow.",
+      "replacement": "If `slack.operations_channel_id` is configured, the pi-pstack parent creates one root status message there when it starts your run. This is the only allowed root post in the repro workflow, and it is never in the source channel. You do not post it.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.4-status-reports",
       "offset": [
         5540,
         5749
@@ -2356,7 +2433,97 @@
         122
       ],
       "original": "Prefer configured Cursor Slack actions. Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.",
-      "replacement": "Under pi-pstack, a worker has no Slack tool and never holds a token. The trusted parent posts thread replies in the source thread only, and it has no operations-channel post or edit. Keep these statuses in the final message and the run output instead.",
+      "replacement": "You have no Slack tool and never hold a token. Report each status by appending one JSON line, `{ \"status\": \"<one of the statuses above>\", \"note\": \"<one short line>\" }`, to the `status.jsonl` file your brief names. The parent edits the one status message to match, and it ignores any other status text. Your final result carries the last status and the operations reply, as the brief describes.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.8-evidence-thread",
+      "offset": [
+        9119,
+        9220
+      ],
+      "lines": [
+        198,
+        198
+      ],
+      "original": "Post detailed evidence only in the operations thread when configured. Keep the source update concise.",
+      "replacement": "Put detailed evidence only in the `operations` field of your result. The parent posts it as a reply in the operations thread when one is configured. Keep the source update concise.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-status-first",
+      "offset": [
+        9254,
+        9289
+      ],
+      "lines": [
+        202,
+        202
+      ],
+      "original": "Update the operations status first.",
+      "replacement": "Update the operations status first. The parent applies the `status` of your final result to the operations message before it posts anything in the source thread.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-source-reply",
+      "offset": [
+        9423,
+        9516
+      ],
+      "lines": [
+        206,
+        206
+      ],
+      "original": "For a confirmed repro, run the source preflight and post at most one unprompted source reply:",
+      "replacement": "For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed repro, the parent runs the source preflight and posts at most one unprompted source reply from your `text`:",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.9-attachments",
+      "offset": [
+        9719,
+        9862
+      ],
+      "lines": [
+        214,
+        214
+      ],
+      "original": "Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.",
+      "replacement": "You cannot attach files. Link evidence in your `operations` reply instead.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.14-pull-request-reply",
+      "offset": [
+        13581,
+        13796
+      ],
+      "lines": [
+        299,
+        299
+      ],
+      "original": "On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.",
+      "replacement": "On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.15-follow-ups",
+      "offset": [
+        13829,
+        14111
+      ],
+      "lines": [
+        303,
+        308
+      ],
+      "original": "Watch the configured operations thread for one follow-up window.\n\n- Answer a direct question from evidence already gathered.\n- Apply one concrete correction and rerun the repro once when it invalidates the setup.\n- Stay out of human coordination and side chatter.\n- Stop when asked.",
+      "replacement": "The parent does not watch the operations thread after a repro run, so this package has no repro follow-up window and `budgets.operations_follow_up_minutes` is read and not acted on. Put the evidence a reader would ask about in your `operations` reply, and keep it from your own gathered evidence.",
       "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
     },
     {
@@ -2521,7 +2688,7 @@
         136
       ],
       "original": "The triage automation needs:\n\n- Read access to the configured source Slack channel and its threads\n- Thread-reply access in that channel\n- Attachment metadata and file download access when reports include media\n- Search, read, create, and update access through the configured issue-tracker adapter\n\nThe repro automation needs:\n\n- Read access to the source thread\n- Thread-reply access in the source channel\n- Optional post and edit access in the configured operations channel\n- Repository read and history access\n- A pull request action that can open a draft pull request\n- The configured control-adapter skill\n\nPrefer configured Cursor Slack actions for reads and posts. The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.\n",
-      "replacement": "The pi-pstack process that runs an automation is the only one that talks to Slack and the tracker. It performs every read of the source thread, every post, and every tracker write. Workers return findings and an optional tracker request, and have no tool for any of those writes.\n\nCheck, in this order:\n\n1. The Slack connector. `~/.pi/agent/pstack/credentials/slack.json` must hold `{ \"token\": \"xoxb-...\" }` with mode 0600. The bot needs `conversations.replies` read access and `chat.postMessage` in the source channel. Without the file, the automation does not start. Never put the token in YAML or in any committed file.\n2. The tracker. With `tracker.type: \"github\"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing. With any other tracker type, the skill named by `tracker.adapter_skill_name` must be one Pi can load for the project, by the locations section 3 lists, and the MCP servers it uses must be configured for the project (`pi mcp list`). The automation starts one worker per tracker write. That worker has Pi's MCP, loads the skill, searches for the action marker before any write, writes only when the marker is absent, and returns a JSON result. A missing or unresolvable skill logs the case `blocked` with the skill name, and nothing is written.\n3. The webhook secret. `benny-setup.mjs` creates `~/.pi/agent/pstack/credentials/<automation name>.json`. The event sender presents its `key` as `Authorization: Bearer <key>` on `POST /events`.\n4. For repro and fix, a draft pull request needs `gh` access to the repository. A worker cannot post or open one itself.\n",
+      "replacement": "The pi-pstack process that runs an automation is the only one that talks to Slack and the tracker. It performs every read of the source thread, every post, and every tracker write. Workers return findings and an optional tracker request, and have no tool for any of those writes.\n\nCheck, in this order:\n\n1. The Slack connector. `~/.pi/agent/pstack/credentials/slack.json` must hold `{ \"token\": \"xoxb-...\" }` with mode 0600. The bot needs `conversations.replies` read access and `chat.postMessage` in the source channel. When `slack.operations_channel_id` names a channel, which must not be the source channel, repro also needs `chat.postMessage`, `chat.update`, and `conversations.history` there for its one status message and its replies. An empty value disables the operations thread and the status stays in the run log. Without the file, the automation does not start. Never put the token in YAML or in any committed file.\n2. The tracker. With `tracker.type: \"github\"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing. With any other tracker type, the skill named by `tracker.adapter_skill_name` must be one Pi can load for the project, by the locations section 3 lists, and the MCP servers it uses must be configured for the project (`pi mcp list`). The automation starts one worker per tracker write. That worker has Pi's MCP, loads the skill, searches for the action marker before any write, writes only when the marker is absent, and returns a JSON result. A missing or unresolvable skill logs the case `blocked` with the skill name, and nothing is written.\n3. The webhook secret. `benny-setup.mjs` creates `~/.pi/agent/pstack/credentials/<automation name>.json`. The event sender presents its `key` as `Authorization: Bearer <key>` on `POST /events`.\n4. For repro and fix, a draft pull request needs `gh` access to the repository. A worker cannot post or open one itself.\n",
       "output": "generated/automations/benny/skills/setup-benny/SKILL.md"
     },
     {

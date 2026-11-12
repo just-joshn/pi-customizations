@@ -125,7 +125,48 @@ export interface TrackerAction extends Omit<TrackerIntent, 'operation'> {
   /** Set by the parent from the verdict marker and configuration, never taken from the worker. Create only. */
   labels?: string[];
 }
-export type OutboxAction = ThreadReplyAction | TrackerAction;
+/** The operations status message: the one root post the repro workflow may make, in the operations channel only. */
+export interface OpsRootAction {
+  id: ActionId;
+  kind: 'ops-root';
+  channel: string;
+  text: string;
+}
+/** Sets the text of the operations root message that action `rootId` posted. */
+export interface OpsEditAction {
+  id: ActionId;
+  kind: 'ops-edit';
+  channel: string;
+  rootId: ActionId;
+  text: string;
+}
+export type OutboxAction = ThreadReplyAction | TrackerAction | OpsRootAction | OpsEditAction;
+
+/** The status strings of the repro workflow (vendor reproduce SKILL.md section 4), each with its `status_emoji` key. */
+export const OPS_STATUSES = {
+  Reproducing: 'reproducing',
+  'Could not reproduce': 'could_not_reproduce',
+  Blocked: 'blocked',
+  Reproduced: 'reproduced',
+  'Verifying existing fix': 'reproducing',
+  'Attempting bounded fix': 'fixing',
+  'Draft pull request opened': 'pull_request_opened',
+  'Fix did not land': 'fix_failed',
+} as const;
+export type OpsStatus = keyof typeof OPS_STATUSES;
+export const isOpsStatus = (value: unknown): value is OpsStatus => typeof value === 'string' && Object.hasOwn(OPS_STATUSES, value);
+
+/** The operations channel and the configured plain Unicode status strings. An empty `operations_channel_id` means none. */
+export interface OperationsConfig {
+  channelId: string;
+  emoji: Record<string, string>;
+}
+
+/** Short status text: the emoji and the status, then one short note, then the source link. A worker's note cannot carry markers or links of its own. */
+export function opsText(operations: OperationsConfig, status: OpsStatus, sourceUrl: string, note?: string): string {
+  const cleaned = untrustedText(note ?? '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+  return [`${operations.emoji[OPS_STATUSES[status]] ?? ''} ${status}`.trim(), ...(cleaned === '' ? [] : [cleaned]), sourceUrl].join('\n');
+}
 /** The tracker section of the Benny configuration, as the parent adapter needs it. */
 export interface TrackerConfig {
   type: string;
@@ -173,6 +214,10 @@ export function failureReply(kind: BennyAutomationKind, failure: string): string
 export interface WorkerResult {
   text: string;
   tracker?: TrackerIntent;
+  /** Repro only: where the run ended, in the operations status strings. */
+  status?: OpsStatus;
+  /** Repro only: the concise reply for the operations thread. */
+  operations?: string;
 }
 export interface TrackerEligibility {
   classification: Classification;

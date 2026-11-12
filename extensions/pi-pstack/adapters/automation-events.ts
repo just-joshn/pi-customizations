@@ -4,8 +4,9 @@
 import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
-import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, sourceUrlOf, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
-import { directLander, enqueue, flushOutbox, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
+import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, type OpsEditAction, type OpsStatus, opsText, sourceUrlOf, untrustedText, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
+import { latestStatus } from '../src/automation/operations.ts';
+import { directLander, enqueue, flushOutbox, type OperationsDestination, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
@@ -30,6 +31,8 @@ export interface AutomationDeps {
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
   trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent, reply: string) => Promise<TrackerEligibility>;
   destination: ThreadDestination;
+  /** The operations channel, when `config.operations` names one. Without it the operations status stays in the run log. */
+  operations?: OperationsDestination;
   /** A required prerequisite with no probe counts as missing. */
   prerequisites: Partial<Record<Prerequisite, Probe>>;
   inputCommit?: () => string;
@@ -60,6 +63,8 @@ export interface Automation {
   flush(): Promise<void>;
   /** Moves each open follow-up window one step: closes an ended one, collects a settled round, starts a round for new human messages. */
   advanceFollowUps(): Promise<void>;
+  /** Brings the operations status message in line with what each pending repro run last reported, then retries every pending outbox action. */
+  syncOperations(): Promise<void>;
   /** When the run was dispatched, from the event log. */
   dispatchedAt(runId: RunId): Date | undefined;
   /** The clock this automation uses. */
@@ -125,6 +130,36 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   };
 
   /**
+   * Makes the operations root show `status`: it queues the root on first use and one edit per change after that. Every
+   * action id is derived from the case and a counter, so a repeat after a crash finds what it queued and adds nothing.
+   */
+  const showStatus = (event: AutomationEvent, status: OpsStatus, note?: string) => {
+    if (operations === undefined) return;
+    const text = opsText(operations, status, sourceUrlOf(event), note);
+    const rootId = actionIdFor(config.name, event.key, 'ops-root');
+    const root = entryOf(rootId);
+    if (root?.state === 'failed') return;
+    if (root === undefined) {
+      enqueue(store, { id: rootId, kind: 'ops-root', channel: operations.channelId, text });
+      return;
+    }
+    let shown = root.action.kind === 'ops-root' ? root.action.text : '';
+    let edits = 0;
+    for (let edit = entryOf(actionIdFor(config.name, event.key, 'ops-edit-1')); edit !== undefined; edit = entryOf(actionIdFor(config.name, event.key, `ops-edit-${edits + 1}`))) {
+      edits += 1;
+      shown = (edit.action as OpsEditAction).text;
+    }
+    if (shown !== text) enqueue(store, { id: actionIdFor(config.name, event.key, `ops-edit-${edits + 1}`), kind: 'ops-edit', channel: operations.channelId, rootId, text });
+  };
+
+  const eventOf = (runId: RunId): AutomationEvent | undefined => {
+    const log = readLog(store);
+    const dispatched = log.find((entry): entry is Extract<LogEntry, { kind: 'dispatched' }> => entry.kind === 'dispatched' && entry.runId === runId);
+    const state = dispatched === undefined ? undefined : caseState(log, dispatched.key);
+    return state?.phase === 'dispatched' ? state.entry.event : undefined;
+  };
+
+  /**
    * The reply could not land, so an issue this run created has no announcement and no one to find it. Closing it is the
    * tracker's compensation action, queued like any other and verified by the adapter. A closure that cannot be verified
    * is reported in the run log only, never in the thread.
@@ -149,8 +184,14 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   };
 
   const lander = deps.tracker === undefined ? undefined : 'land' in deps.tracker ? deps.tracker : directLander(deps.tracker);
-  const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, ...options });
+  const operations = config.kind === 'reproduce' && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
+  const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...(deps.operations === undefined ? {} : { operations: deps.operations }), ...options });
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush() });
+  const pendingRuns = (): RunId[] => {
+    const log = readLog(store);
+    const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
+    return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
+  };
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
 
   return {
@@ -204,27 +245,53 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
           if (landed?.state === 'pending') return { status: 'retrying', key: event.key };
           if (landed?.state === 'failed') failure = `the tracker write failed after ${landed.attempts} attempts: ${landed.reason}`;
         }
+        const status = typeof result === 'string' ? undefined : result.status;
+        const operationsReply = typeof result === 'string' ? undefined : result.operations;
+        if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }) });
+        if (operations !== undefined) {
+          // Upstream updates the operations status first. A root that cannot land holds the source reply only until its retry limit.
+          showStatus(event, status ?? latestStatus(config.projectRoot, runId)?.status ?? 'Reproducing');
+          await flush();
+          const rootId = actionIdFor(config.name, event.key, 'ops-root');
+          const root = entryOf(rootId);
+          if (root?.state === 'done' && operationsReply !== undefined && untrustedText(operationsReply).trim() !== '') {
+            enqueue(store, { id: actionIdFor(config.name, event.key, 'ops-reply'), kind: 'thread-reply', channel: operations.channelId, threadTs: root.destinationTs, text: untrustedText(operationsReply).trim() });
+            await flush();
+          }
+          if (root?.state === 'pending') return { status: 'retrying', key: event.key };
+        }
         const replyId = actionIdFor(config.name, event.key, 'result');
-        const queued = enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
+        const replyText = failure === undefined ? text : failureReply(config.kind, failure);
+        // A repro run with nothing confirmed posts nothing in the source thread: the operations thread and the run log carry it.
+        const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: replyText });
         await flush();
         const reply = entryOf(replyId);
         if (reply?.state === 'pending') return { status: 'retrying', key: event.key };
+        // (the reply entry is absent when nothing was queued)
         if (reply?.state === 'failed' && (await compensate(event, trackerId)) === 'retrying') return { status: 'retrying', key: event.key };
         if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
         return { status: reply?.state === 'failed' ? 'failed' : queued ? 'queued' : 'already-queued', key: event.key };
       }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
+    syncOperations: () =>
+      serial(async () => {
+        if (operations !== undefined) {
+          for (const runId of pendingRuns()) {
+            const event = eventOf(runId);
+            if (event === undefined) continue;
+            const reported = latestStatus(config.projectRoot, runId);
+            showStatus(event, reported?.status ?? 'Reproducing', reported?.note);
+          }
+        }
+        await flush();
+      }),
     dispatchedAt: (runId) => {
       const entry = readLog(store).find((candidate) => candidate.kind === 'dispatched' && candidate.runId === runId);
       return entry === undefined ? undefined : new Date(entry.ts);
     },
     now,
-    pendingRuns: () => {
-      const log = readLog(store);
-      const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
-      return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
-    },
+    pendingRuns,
   };
 }
 

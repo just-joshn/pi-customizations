@@ -104,7 +104,7 @@ If a person owns the work but has not produced an artifact, stop. Do not race th
 
 ## 4. Open an optional operations thread
 
-If `slack.operations_channel_id` is configured, the coordinator may create one root status message there. This is the only allowed root post in the repro workflow.
+If `slack.operations_channel_id` is configured, the pi-pstack parent creates one root status message there when it starts your run. This is the only allowed root post in the repro workflow, and it is never in the source channel. You do not post it.
 
 Store its coordinates as `OPERATIONS_CHANNEL_ID` and `OPERATIONS_THREAD_TS`. Never confuse them with the source coordinates.
 
@@ -119,7 +119,7 @@ Use the configured plain Unicode status strings. Keep status text short:
 - Draft pull request opened
 - Fix did not land
 
-Under pi-pstack, a worker has no Slack tool and never holds a token. The trusted parent posts thread replies in the source thread only, and it has no operations-channel post or edit. Keep these statuses in the final message and the run output instead.
+You have no Slack tool and never hold a token. Report each status by appending one JSON line, `{ "status": "<one of the statuses above>", "note": "<one short line>" }`, to the `status.jsonl` file your brief names. The parent edits the one status message to match, and it ignores any other status text. Your final result carries the last status and the operations reply, as the brief describes.
 
 If no operations channel is configured, keep detailed status in the automation run output. Do not substitute a source-channel root message.
 
@@ -195,15 +195,15 @@ Have a read-only media reviewer answer one question: does the evidence visibly s
 
 If the answer is no or uncertain, the repro is not confirmed. Capture better evidence or use `Could not reproduce`.
 
-Post detailed evidence only in the operations thread when configured. Keep the source update concise.
+Put detailed evidence only in the `operations` field of your result. The parent posts it as a reply in the operations thread when one is configured. Keep the source update concise.
 
 ## 9. Report the repro outcome
 
-Update the operations status first.
+Update the operations status first. The parent applies the `status` of your final result to the operations message before it posts anything in the source thread.
 
 For `Could not reproduce` or `Blocked`, post nothing in the source thread. The operations thread or run output carries the result.
 
-For a confirmed repro, run the source preflight and post at most one unprompted source reply:
+For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed repro, the parent runs the source preflight and posts at most one unprompted source reply from your `text`:
 
 - Say the issue reproduced.
 - Link the operations evidence thread when one exists.
@@ -211,7 +211,7 @@ For a confirmed repro, run the source preflight and post at most one unprompted 
 - Link the tracker issue when one exists.
 - Do not ping an owner by default.
 
-Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.
+You cannot attach files. Link evidence in your `operations` reply instead.
 
 Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.
 
@@ -296,15 +296,10 @@ Only after before-and-after proof:
 
 If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.
 
-On success, mark operations status `Draft pull request opened` and post one concise reply in the operations thread with the linked pull request. Do not create a second source-channel root or unprompted source reply.
+On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.
 
 ## 15. Follow-ups and cleanup
 
-Watch the configured operations thread for one follow-up window.
-
-- Answer a direct question from evidence already gathered.
-- Apply one concrete correction and rerun the repro once when it invalidates the setup.
-- Stay out of human coordination and side chatter.
-- Stop when asked.
+The parent does not watch the operations thread after a repro run, so this package has no repro follow-up window and `budgets.operations_follow_up_minutes` is read and not acted on. Put the evidence a reader would ask about in your `operations` reply, and keep it from your own gathered evidence.
 
 Always call the control adapter's cleanup capability. Keep artifacts only as long as the configured retention policy allows.

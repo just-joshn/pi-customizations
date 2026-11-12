@@ -14462,6 +14462,22 @@ function runIdFor(automation, key) {
 function actionIdFor(automation, key, purpose) {
   return `act-${shortHash(automation, key, purpose)}`;
 }
+var OPS_STATUSES = {
+  Reproducing: "reproducing",
+  "Could not reproduce": "could_not_reproduce",
+  Blocked: "blocked",
+  Reproduced: "reproduced",
+  "Verifying existing fix": "reproducing",
+  "Attempting bounded fix": "fixing",
+  "Draft pull request opened": "pull_request_opened",
+  "Fix did not land": "fix_failed"
+};
+var isOpsStatus = (value) => typeof value === "string" && Object.hasOwn(OPS_STATUSES, value);
+function opsText(operations, status, sourceUrl, note) {
+  const cleaned = untrustedText(note ?? "").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, 200);
+  return [`${operations.emoji[OPS_STATUSES[status]] ?? ""} ${status}`.trim(), ...cleaned === "" ? [] : [cleaned], sourceUrl].join(`
+`);
+}
 var untrustedText = (text) => text.replace(/<!--\s*pstack-action:[^>]*-->/g, "").split(`
 `).filter((line) => !/^[\s>*_-]*source\s*:/i.test(line)).join(`
 `);
@@ -14596,8 +14612,9 @@ async function missingPrerequisites(kind, probes) {
 }
 var runDir = (projectRoot, runId) => join5(projectRoot, ".pi", "pstack", "runs", runId);
 var workerDir = (projectRoot, runId) => join5(runDir(projectRoot, runId), "workers", WORKER_ID);
+var statusFile = (projectRoot, runId) => join5(workerDir(projectRoot, runId), "status.jsonl");
 var fenced = (value) => JSON.stringify(value, null, 2).replace(/</g, "\\u003c");
-function buildBrief(config, event, thread = []) {
+function buildBrief(config, event, thread = [], statusFile) {
   const kind = AUTOMATION_KINDS[config.kind];
   return [
     `# Benny ${config.kind} case for automation \`${config.name}\``,
@@ -14616,7 +14633,10 @@ function buildBrief(config, event, thread = []) {
     "",
     "- You have no tool that posts to Slack, a tracker, or a forge. Do not look for one. The parent adapter performs every external action.",
     "- The parent posts your result once, as a reply in the thread above. Never ask for a root message.",
-    "- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing.",
+    ...config.kind === "reproduce" ? [
+      `- Return a JSON object. \`status\` is where the run ended, one of ${Object.keys(OPS_STATUSES).map((status) => `\`${status}\``).join(", ")}. \`text\` is the one concise reply for the source thread, only for a confirmed repro, and an empty string otherwise: a \`Could not reproduce\` or \`Blocked\` outcome posts nothing in the source thread. \`operations\` is the concise evidence reply for the operations thread, for example the linked pull request.`,
+      config.operations === undefined ? "- No operations channel is configured. Your final message and the run output carry the detail." : `- Report each status change by appending one JSON line, \`{ "status": "<status>", "note": "<short note>" }\`, to \`${statusFile ?? "status.jsonl"}\`. The parent edits the one operations status message from it. You cannot post or edit anything yourself.`
+    ] : ["- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing."],
     ...kind.replyMarkers === null ? [] : [`- End your final message with exactly one marker line: ${kind.replyMarkers.map((marker) => `\`${marker}\``).join(", ")}.`],
     "- Your final message is the result. Keep it short and concrete.",
     "",
@@ -14659,7 +14679,25 @@ async function launchRun(projectRoot, run, deps) {
 }
 async function dispatchRun(config, event, runId, deps) {
   const assignment = buildAssignment(config, runId, deps.inputCommit);
-  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === "worktree" ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread), assignment }, deps);
+  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === "worktree" ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId)), assignment }, deps);
+}
+
+// src/automation/operations.ts
+import { existsSync as existsSync6, readFileSync as readFileSync4 } from "node:fs";
+function latestStatus(projectRoot, runId) {
+  const file = statusFile(projectRoot, runId);
+  if (!existsSync6(file))
+    return;
+  let latest;
+  for (const line of readFileSync4(file, "utf8").split(`
+`)) {
+    try {
+      const parsed = JSON.parse(line);
+      if (isOpsStatus(parsed.status))
+        latest = { status: parsed.status, ...typeof parsed.note === "string" && parsed.note.trim() !== "" ? { note: parsed.note } : {} };
+    } catch {}
+  }
+  return latest;
 }
 
 // src/automation/outbox.ts
@@ -14687,7 +14725,8 @@ var backoffMs = (attempts) => Math.min(60000, 5000 * 2 ** (attempts - 1));
 var messageOf = (error) => error instanceof Error ? error.message : String(error);
 async function flushOutbox(store, destination, tracker, options = {}) {
   const now = options.now ?? (() => new Date);
-  for (const entry of outboxEntries(store)) {
+  const entries = outboxEntries(store).sort((left, right) => Number(right.action.kind === "ops-root") - Number(left.action.kind === "ops-root"));
+  for (const entry of entries) {
     if (entry.state !== "pending")
       continue;
     if (options.ignoreBackoff !== true && entry.retryAt !== undefined && entry.retryAt > now().toISOString())
@@ -14699,6 +14738,34 @@ async function flushOutbox(store, destination, tracker, options = {}) {
           throw new Error("tracker destination unavailable");
         const landing = await tracker.land(action, { attempt: (entry.attempts ?? 0) + 1, ...entry.work === undefined ? {} : { work: entry.work } });
         writeAtomic(outboxFile(store, action.id), json(landing.status === "landed" ? { action, state: "done", destinationTs: landing.id, reconciled: landing.reconciled } : { action, state: "pending", ...entry.attempts === undefined ? {} : { attempts: entry.attempts }, work: landing.work }));
+        continue;
+      }
+      if (action.kind === "ops-root" || action.kind === "ops-edit") {
+        const operations = options.operations;
+        if (operations === undefined)
+          throw new Error("no operations channel is configured");
+        if (action.channel === options.sourceChannel)
+          throw new Error(`refused: ${action.kind} in the source channel ${action.channel}`);
+        if (action.kind === "ops-root") {
+          const landed = await operations.findRoot(action.channel, action.id);
+          const ts = landed?.ts ?? (await operations.postRoot(action)).ts;
+          writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs: ts, reconciled: landed !== undefined }));
+          appendLog(store, { ts: now().toISOString(), kind: "posted", actionId: action.id, destinationTs: ts, reconciled: landed !== undefined });
+          continue;
+        }
+        const root = outboxEntries(store).find((candidate) => candidate.action.id === action.rootId);
+        if (root?.state !== "done") {
+          if (root?.state === "failed")
+            throw new Error(`the operations root ${action.rootId} failed, so there is no message to edit`);
+          continue;
+        }
+        const current = await operations.readMessage(action.channel, root.destinationTs);
+        if (current === undefined)
+          throw new Error(`the operations root ${root.destinationTs} is not in ${action.channel}`);
+        if (current.text !== action.text)
+          await operations.edit(action, root.destinationTs);
+        writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs: root.destinationTs, reconciled: current.text === action.text }));
+        appendLog(store, { ts: now().toISOString(), kind: "posted", actionId: action.id, destinationTs: root.destinationTs, reconciled: current.text === action.text });
         continue;
       }
       const before = await destination.readThread(action.channel, action.threadTs);
@@ -14771,7 +14838,26 @@ async function pollSlackOnce(api, channel, store, handle, now) {
   return handled;
 }
 function slackDestination(api) {
+  const marked = (message) => message.metadata?.event_type === MARKER_EVENT ? message.metadata.event_payload?.["action_id"] : undefined;
+  const asMessage = (message) => ({ ts: message.ts, text: message.text ?? "" });
   return {
+    async findRoot(channel, marker) {
+      const page = await call2(api, "conversations.history", { channel, limit: 100, include_all_metadata: true });
+      const found = (page.messages ?? []).find((message) => marked(message) === marker);
+      return found === undefined ? undefined : asMessage(found);
+    },
+    async postRoot(action) {
+      const result = await call2(api, "chat.postMessage", { channel: action.channel, text: action.text, metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.id } } });
+      return { ts: result.ts };
+    },
+    async readMessage(channel, ts) {
+      const page = await call2(api, "conversations.history", { channel, latest: ts, oldest: ts, inclusive: true, limit: 1 });
+      const found = (page.messages ?? []).find((message) => message.ts === ts);
+      return found === undefined ? undefined : asMessage(found);
+    },
+    async edit(action, ts) {
+      await call2(api, "chat.update", { channel: action.channel, ts, text: action.text, metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.rootId } } });
+    },
     async readThread(channel, threadTs) {
       const messages = await allPages(api, "conversations.replies", { channel, ts: threadTs, include_all_metadata: true });
       return messages.map((message) => {
@@ -14809,13 +14895,13 @@ var abortRun = async (projectRoot, runId) => {
 };
 
 // src/automation/settle.ts
-import { existsSync as existsSync6, readFileSync as readFileSync4 } from "node:fs";
+import { existsSync as existsSync7, readFileSync as readFileSync5 } from "node:fs";
 import { join as join7 } from "node:path";
 function finalAssistantText(sessionFile) {
-  if (sessionFile === null || !existsSync6(sessionFile))
+  if (sessionFile === null || !existsSync7(sessionFile))
     return null;
   let text = null;
-  for (const line of readFileSync4(sessionFile, "utf8").split(`
+  for (const line of readFileSync5(sessionFile, "utf8").split(`
 `)) {
     if (line.trim() === "")
       continue;
@@ -14878,9 +14964,15 @@ function parseWorkerResult(finalText) {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
     const parsed = JSON.parse(body);
-    if (typeof parsed === "object" && parsed !== null && typeof parsed.text === "string") {
-      const tracker = intentOf(parsed.tracker);
-      return { text: parsed.text, ...tracker === undefined ? {} : { tracker } };
+    const fields = typeof parsed === "object" && parsed !== null ? parsed : {};
+    if (typeof fields.text === "string" || isOpsStatus(fields.status)) {
+      const tracker = intentOf(fields.tracker);
+      return {
+        text: typeof fields.text === "string" ? fields.text : "",
+        ...tracker === undefined ? {} : { tracker },
+        ...isOpsStatus(fields.status) ? { status: fields.status } : {},
+        ...typeof fields.operations === "string" ? { operations: fields.operations } : {}
+      };
     }
   } catch {}
   return finalText;
@@ -14901,9 +14993,11 @@ async function completeSettledRuns(automation, options = {}) {
     }
     if (!run.settled)
       continue;
-    const failure = failureReply(automation.config.kind, run.failure ?? "its reply was not a verdict this automation may post");
+    const reason = run.failure ?? "its reply was not a verdict this automation may post";
+    const failure = automation.config.kind === "reproduce" ? { text: "", status: "Blocked", operations: failureReply("reproduce", reason) } : failureReply(automation.config.kind, reason);
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
-    const attempts = typeof result === "string" ? [result] : [result, result.text];
+    const { tracker: _refused, ...withoutTracker } = typeof result === "string" ? {} : result;
+    const attempts = typeof result === "string" ? [result] : result.tracker === undefined ? [result] : [result, withoutTracker];
     for (const attempt of [...attempts, failure]) {
       const outcome = await automation.complete(runId, attempt);
       if (outcome.status === "retrying")
@@ -14921,7 +15015,7 @@ function startSettler(automation, options) {
   let timer;
   let running = Promise.resolve();
   const tick = async () => {
-    await completeSettledRuns(automation, options).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    await automation.syncOperations().then(() => completeSettledRuns(automation, options)).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped)
       return;
     timer = setTimeout(() => {
@@ -15118,7 +15212,7 @@ import { createHash as createHash4, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 
 // src/automation/credentials.ts
-import { readFileSync as readFileSync5, statSync as statSync2 } from "node:fs";
+import { readFileSync as readFileSync6, statSync as statSync2 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
 import { join as join8 } from "node:path";
 var credentialsDir = () => join8(homedir2(), ".pi", "agent", "pstack", "credentials");
@@ -15133,7 +15227,7 @@ function readCredential(file, field) {
   if ((mode & 63) !== 0)
     return { ok: false, reason: "not-0600" };
   try {
-    const value = JSON.parse(readFileSync5(file, "utf8"))?.[field];
+    const value = JSON.parse(readFileSync6(file, "utf8"))?.[field];
     return typeof value === "string" && value.length >= 16 ? { ok: true, value } : { ok: false, reason: "malformed" };
   } catch {
     return { ok: false, reason: "malformed" };
@@ -15284,6 +15378,33 @@ function createAutomation(config, deps) {
     appendLog(store, { ts: stamp(), kind: "dispatched", key, runId });
     return { status: "dispatched", key, runId };
   };
+  const showStatus = (event, status, note) => {
+    if (operations === undefined)
+      return;
+    const text = opsText(operations, status, sourceUrlOf(event), note);
+    const rootId = actionIdFor(config.name, event.key, "ops-root");
+    const root = entryOf(rootId);
+    if (root?.state === "failed")
+      return;
+    if (root === undefined) {
+      enqueue(store, { id: rootId, kind: "ops-root", channel: operations.channelId, text });
+      return;
+    }
+    let shown = root.action.kind === "ops-root" ? root.action.text : "";
+    let edits = 0;
+    for (let edit = entryOf(actionIdFor(config.name, event.key, "ops-edit-1"));edit !== undefined; edit = entryOf(actionIdFor(config.name, event.key, `ops-edit-${edits + 1}`))) {
+      edits += 1;
+      shown = edit.action.text;
+    }
+    if (shown !== text)
+      enqueue(store, { id: actionIdFor(config.name, event.key, `ops-edit-${edits + 1}`), kind: "ops-edit", channel: operations.channelId, rootId, text });
+  };
+  const eventOf = (runId) => {
+    const log = readLog(store);
+    const dispatched = log.find((entry) => entry.kind === "dispatched" && entry.runId === runId);
+    const state = dispatched === undefined ? undefined : caseState(log, dispatched.key);
+    return state?.phase === "dispatched" ? state.entry.event : undefined;
+  };
   const compensate = async (event, trackerId) => {
     const created = entryOf(trackerId);
     if (created?.state !== "done" || created.action.kind !== "tracker" || created.action.operation !== "create")
@@ -15304,8 +15425,14 @@ function createAutomation(config, deps) {
     return { status: "rejected", reason };
   };
   const lander = deps.tracker === undefined ? undefined : ("land" in deps.tracker) ? deps.tracker : directLander(deps.tracker);
-  const flush = (options = {}) => flushOutbox(store, deps.destination, lander, { now, ...options });
+  const operations = config.kind === "reproduce" && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
+  const flush = (options = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...deps.operations === undefined ? {} : { operations: deps.operations }, ...options });
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush() });
+  const pendingRuns = () => {
+    const log = readLog(store);
+    const completed = new Set(log.flatMap((entry) => entry.kind === "completed" ? [entry.runId] : []));
+    return log.flatMap((entry) => entry.kind === "dispatched" && !completed.has(entry.runId) ? [entry.runId] : []);
+  };
   const entryOf = (id) => outboxEntries(store).find((entry) => entry.action.id === id);
   return {
     config,
@@ -15363,8 +15490,25 @@ function createAutomation(config, deps) {
         if (landed?.state === "failed")
           failure = `the tracker write failed after ${landed.attempts} attempts: ${landed.reason}`;
       }
+      const status = typeof result === "string" ? undefined : result.status;
+      const operationsReply = typeof result === "string" ? undefined : result.operations;
+      if (config.kind === "reproduce")
+        appendLog(store, { ts: stamp(), kind: "repro-outcome", key: event.key, runId, ...status === undefined ? {} : { status }, ...operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) } });
+      if (operations !== undefined) {
+        showStatus(event, status ?? latestStatus(config.projectRoot, runId)?.status ?? "Reproducing");
+        await flush();
+        const rootId = actionIdFor(config.name, event.key, "ops-root");
+        const root = entryOf(rootId);
+        if (root?.state === "done" && operationsReply !== undefined && untrustedText(operationsReply).trim() !== "") {
+          enqueue(store, { id: actionIdFor(config.name, event.key, "ops-reply"), kind: "thread-reply", channel: operations.channelId, threadTs: root.destinationTs, text: untrustedText(operationsReply).trim() });
+          await flush();
+        }
+        if (root?.state === "pending")
+          return { status: "retrying", key: event.key };
+      }
       const replyId = actionIdFor(config.name, event.key, "result");
-      const queued = enqueue(store, { id: replyId, kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
+      const replyText = failure === undefined ? text : failureReply(config.kind, failure);
+      const queued = replyText.trim() === "" ? false : enqueue(store, { id: replyId, kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text: replyText });
       await flush();
       const reply = entryOf(replyId);
       if (reply?.state === "pending")
@@ -15377,16 +15521,24 @@ function createAutomation(config, deps) {
     }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
+    syncOperations: () => serial(async () => {
+      if (operations !== undefined) {
+        for (const runId of pendingRuns()) {
+          const event = eventOf(runId);
+          if (event === undefined)
+            continue;
+          const reported = latestStatus(config.projectRoot, runId);
+          showStatus(event, reported?.status ?? "Reproducing", reported?.note);
+        }
+      }
+      await flush();
+    }),
     dispatchedAt: (runId) => {
       const entry = readLog(store).find((candidate) => candidate.kind === "dispatched" && candidate.runId === runId);
       return entry === undefined ? undefined : new Date(entry.ts);
     },
     now,
-    pendingRuns: () => {
-      const log = readLog(store);
-      const completed = new Set(log.flatMap((entry) => entry.kind === "completed" ? [entry.runId] : []));
-      return log.flatMap((entry) => entry.kind === "dispatched" && !completed.has(entry.runId) ? [entry.runId] : []);
-    }
+    pendingRuns
   };
 }
 var httpStatus = { rejected: 422, blocked: 202, dispatched: 200, duplicate: 200 };
@@ -15439,7 +15591,7 @@ async function startEventSource(automation, source) {
 }
 
 // src/automation/configuration.ts
-import { readFileSync as readFileSync6 } from "node:fs";
+import { readFileSync as readFileSync7 } from "node:fs";
 import { join as join9, relative as relative3, resolve as resolve3 } from "node:path";
 
 // ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
@@ -15604,8 +15756,9 @@ function text(value, name) {
     throw new Error(`missing Benny ${name}`);
   return value;
 }
+var CHANNEL_ID = /^[A-Z0-9_]{2,32}$/;
 function loadBennyConfig(projectRoot, kind, path = join9(projectRoot, ".pi/benny/configuration.yaml")) {
-  const raw = object3($parse(readFileSync6(path, "utf8")), "configuration");
+  const raw = object3($parse(readFileSync7(path, "utf8")), "configuration");
   if (raw["schema_version"] !== 1)
     throw new Error("unsupported Benny schema_version");
   const sections = new Map(["automations", "slack", "repository", "tracker", "routing", "control", "verdict_markers", "status_emoji", "budgets", "models"].map((key) => [key, object3(raw[key], key)]));
@@ -15656,16 +15809,23 @@ function loadBennyConfig(projectRoot, kind, path = join9(projectRoot, ".pi/benny
   };
   const budgetOf = (name) => section("budgets")[name];
   const budgets = kind === "triage" ? { totalMinutes: budgetOf("triage_total_minutes"), followUpMinutes: budgetOf("triage_follow_up_minutes") } : { totalMinutes: budgetOf("repro_minutes"), followUpMinutes: budgetOf("operations_follow_up_minutes") };
+  const operationsChannel = section("slack")["operations_channel_id"];
+  if (operationsChannel !== undefined && typeof operationsChannel !== "string")
+    throw new Error("invalid Benny slack.operations_channel_id");
+  if (typeof operationsChannel === "string" && operationsChannel.trim() !== "" && (!CHANNEL_ID.test(operationsChannel.trim()) || operationsChannel.trim() === sourceChannelId))
+    throw new Error("invalid Benny operations channel: slack.operations_channel_id must name a channel other than the source channel");
+  const emoji = Object.fromEntries(Object.entries(section("status_emoji")).filter((entry) => typeof entry[1] === "string"));
+  const operations = typeof operationsChannel === "string" && operationsChannel.trim() !== "" ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };
-  return { name, kind, projectRoot: resolve3(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets };
+  return { name, kind, projectRoot: resolve3(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets, ...operations === undefined ? {} : { operations } };
 }
 
 // src/automation/control-adapter.ts
-import { existsSync as existsSync8, readFileSync as readFileSync7, realpathSync as realpathSync3, statSync as statSync4 } from "node:fs";
+import { existsSync as existsSync9, readFileSync as readFileSync8, realpathSync as realpathSync3, statSync as statSync4 } from "node:fs";
 import { relative as relative4, resolve as resolve5 } from "node:path";
 
 // src/automation/skills.ts
-import { existsSync as existsSync7, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
+import { existsSync as existsSync8, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
 import { homedir as homedir3 } from "node:os";
 import { dirname as dirname4, join as join10, resolve as resolve4 } from "node:path";
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -15675,7 +15835,7 @@ function agentsDirs(projectRoot) {
   const dirs = [];
   for (let dir = resolve4(projectRoot);; dir = dirname4(dir)) {
     dirs.push(join10(dir, ".agents", "skills"));
-    if (existsSync7(join10(dir, ".git")) || dirname4(dir) === dir)
+    if (existsSync8(join10(dir, ".git")) || dirname4(dir) === dir)
       return dirs;
   }
 }
@@ -15686,12 +15846,12 @@ function skillDirectories(locations) {
 }
 function find(dir, name, depth) {
   const direct = join10(dir, name, "SKILL.md");
-  if (existsSync7(direct) && statSync3(direct).isFile())
+  if (existsSync8(direct) && statSync3(direct).isFile())
     return direct;
-  if (depth === 0 || !existsSync7(dir))
+  if (depth === 0 || !existsSync8(dir))
     return;
   for (const entry of readdirSync3(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules" || existsSync7(join10(dir, entry.name, "SKILL.md")))
+    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules" || existsSync8(join10(dir, entry.name, "SKILL.md")))
       continue;
     const found = find(join10(dir, entry.name), name, depth - 1);
     if (found !== undefined)
@@ -15718,11 +15878,11 @@ function featureMapProblem(projectRoot, featureMapPath) {
   const file = resolve5(root, featureMapPath);
   if (relative4(root, file).startsWith(".."))
     return "the feature map is outside the project";
-  if (!existsSync8(file) || !statSync4(file).isFile())
+  if (!existsSync9(file) || !statSync4(file).isFile())
     return `the feature map ${featureMapPath} does not exist`;
   if (relative4(root, realpathSync3(file)).startsWith(".."))
     return "the feature map resolves outside the project";
-  const sections = readFileSync7(file, "utf8").split(/^### /m).slice(1);
+  const sections = readFileSync8(file, "utf8").split(/^### /m).slice(1);
   if (sections.length === 0)
     return "the feature map has no feature section";
   for (const section of sections) {
@@ -15907,6 +16067,7 @@ function wireBenny(config, deps) {
   const automationConfig = config;
   return createAutomation(automationConfig, {
     destination,
+    operations: destination,
     prerequisites: probes,
     ...tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy },
     ...deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker },

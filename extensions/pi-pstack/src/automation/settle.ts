@@ -9,7 +9,7 @@ import { hostTarget, inspectHost } from '../rpc-client.ts';
 import { type HostState, isTerminal, loadAssignment, readHostState } from '../run-files.ts';
 import { abortRun, type AbortRun } from './abort.ts';
 import { workerDir } from './dispatch.ts';
-import { failureReply, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
+import { failureReply, isOpsStatus, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
 import { appendLog } from './store.ts';
 
 export type CollectedRun = { settled: false } | { settled: true; failure: string | null; finalText: string | null };
@@ -83,9 +83,15 @@ export function parseWorkerResult(finalText: string): string | WorkerResult {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
     const parsed: unknown = JSON.parse(body);
-    if (typeof parsed === 'object' && parsed !== null && typeof (parsed as { text?: unknown }).text === 'string') {
-      const tracker = intentOf((parsed as { tracker?: unknown }).tracker);
-      return { text: (parsed as { text: string }).text, ...(tracker === undefined ? {} : { tracker }) };
+    const fields = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as { text?: unknown; tracker?: unknown; status?: unknown; operations?: unknown };
+    if (typeof fields.text === 'string' || isOpsStatus(fields.status)) {
+      const tracker = intentOf(fields.tracker);
+      return {
+        text: typeof fields.text === 'string' ? fields.text : '',
+        ...(tracker === undefined ? {} : { tracker }),
+        ...(isOpsStatus(fields.status) ? { status: fields.status } : {}),
+        ...(typeof fields.operations === 'string' ? { operations: fields.operations } : {}),
+      };
     }
   } catch {}
   return finalText;
@@ -117,9 +123,12 @@ export async function completeSettledRuns(automation: Automation, options: Settl
       run = { settled: true, failure: `the worker exceeded its ${minutes}-minute budget`, finalText: null };
     }
     if (!run.settled) continue;
-    const failure = failureReply(automation.config.kind, run.failure ?? 'its reply was not a verdict this automation may post');
+    const reason = run.failure ?? 'its reply was not a verdict this automation may post';
+    // A repro run that could not finish is `Blocked`: upstream posts nothing in the source thread for it, so the operations thread and the run log carry it.
+    const failure: string | WorkerResult = automation.config.kind === 'reproduce' ? { text: '', status: 'Blocked', operations: failureReply('reproduce', reason) } : failureReply(automation.config.kind, reason);
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
-    const attempts = typeof result === 'string' ? [result] : [result, result.text];
+    const { tracker: _refused, ...withoutTracker } = typeof result === 'string' ? ({} as WorkerResult) : result;
+    const attempts = typeof result === 'string' ? [result] : result.tracker === undefined ? [result] : [result, withoutTracker];
     for (const attempt of [...attempts, failure]) {
       const outcome = await automation.complete(runId, attempt);
       if (outcome.status === 'retrying') break;
@@ -137,7 +146,9 @@ export function startSettler(automation: Automation, options: SettleOptions & { 
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> = Promise.resolve();
   const tick = async (): Promise<void> => {
-    await completeSettledRuns(automation, options)
+    await automation
+      .syncOperations()
+      .then(() => completeSettledRuns(automation, options))
       .then(() => automation.advanceFollowUps())
       .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;

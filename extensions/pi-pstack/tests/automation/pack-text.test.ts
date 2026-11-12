@@ -1,8 +1,10 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { parsePstackArgs } from '../../src/commands.ts';
+import { buildBrief, statusFile } from '../../src/automation/dispatch.ts';
+import { type EventKey, OPS_STATUSES, type RunId } from '../../src/automation/model.ts';
 
 const PACK = resolve('generated/automations/benny');
 const files = readdirSync(PACK, { recursive: true })
@@ -34,4 +36,25 @@ test('every package script the pack tells an agent to run exists', () => {
   const scripts = files.flatMap(({ text }) => [...text.matchAll(/node (scripts\/[\w-]+\.mjs)/g)].map((match) => match[1] as string));
   expect(scripts).toContain('scripts/benny-setup.mjs');
   for (const script of scripts) expect(existsSync(resolve(script)), script).toBe(true);
+});
+
+const text = (file: string) => files.find((candidate) => candidate.file === file)?.text ?? '';
+
+test('the pack tells each worker only what the parent does: the status file it reads, the result fields it parses, no worker Slack write', () => {
+  const repro = text('skills/reproduce-and-fix-issues/SKILL.md');
+  expect(repro).toContain(basename(statusFile('/p', 'r' as RunId)));
+  expect(repro).toContain('`operations` field');
+  expect(repro).not.toMatch(/Prefer configured .* Slack actions|BENNY_SLACK_BOT_TOKEN/);
+  expect(repro).not.toContain('no operations-channel post or edit');
+  const triage = text('skills/triage-issue-reports/SKILL.md');
+  expect(triage).not.toMatch(/^Run a fresh source-parent preflight\. Then post exactly one reply/m);
+  expect(triage).not.toMatch(/^Watch the source thread for the configured follow-up window, then stop\.$/m);
+  expect(triage).toContain('the parent uses the adapter\'s compensation action');
+  expect(triage).toContain('"stop": true');
+});
+
+test('the shipped triage and repro instructions name the same result fields the parent parses', () => {
+  const brief = buildBrief({ name: 'b', kind: 'reproduce', projectRoot: '/p' }, { key: 'C1:1.000001' as EventKey, channel: 'C1', rootTs: '1.000001', messageTs: '1.000001', user: 'U', text: 't', files: [] });
+  for (const status of Object.keys(OPS_STATUSES)) expect(brief).toContain(status);
+  expect(brief).toContain('operations');
 });

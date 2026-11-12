@@ -24,19 +24,58 @@ interface SlackMessage {
   metadata?: unknown;
 }
 
+export const OPS_CHANNEL = 'COPS00001';
+
+interface OpsMessage extends SlackMessage {
+  thread_ts?: string;
+}
+
+/**
+ * Slack's HTTP API for the source channel and an operations channel. `dropAck` makes the next call of a method land and
+ * then answer with an error, which is what a crash between a write and its acknowledgement looks like to the parent.
+ */
 export function fakeSlack(options: { failPosts?: number } = {}) {
   const messages: SlackMessage[] = [{ ts: ROOT_TS, user: 'U123', text: REPORT.text }];
   const posts: { thread_ts: string; text: string }[] = [];
+  const ops: OpsMessage[] = [];
+  const calls: string[] = [];
+  const opsEdits: { ts: string; text: string }[] = [];
+  const dropAck = new Set<string>();
+  const state = { opsDown: false };
   let failPosts = options.failPosts ?? 0;
   const fetchFake: typeof fetch = async (input, init) => {
-    const method = new URL(String(input)).pathname.split('/').at(-1);
+    const method = new URL(String(input)).pathname.split('/').at(-1) as string;
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     const reply = (value: Record<string, unknown>) => new Response(JSON.stringify({ ok: true, ...value }));
-    if (method === 'conversations.replies') return reply({ messages: messages.filter((message) => message.ts === ROOT_TS || message.ts > ROOT_TS) });
+    const toOps = body['channel'] === OPS_CHANNEL;
+    calls.push(`${method}${toOps ? ':ops' : ''}`);
+    if (toOps && state.opsDown) return new Response(JSON.stringify({ ok: false, error: 'channel_not_found' }));
+    const landedButLost = () => dropAck.delete(method) && new Response(JSON.stringify({ ok: false, error: 'internal_error' }));
+    if (method === 'conversations.replies') {
+      if (toOps) return reply({ messages: ops.filter((message) => message.ts === body['ts'] || message.thread_ts === body['ts']) });
+      return reply({ messages: messages.filter((message) => message.ts === ROOT_TS || message.ts > ROOT_TS) });
+    }
+    if (method === 'conversations.history') {
+      const roots = ops.filter((message) => message.thread_ts === undefined && (body['latest'] === undefined || message.ts <= String(body['latest'])) && (body['oldest'] === undefined || message.ts >= String(body['oldest']))).reverse();
+      return reply({ messages: roots.slice(0, Number(body['limit'] ?? 100)) });
+    }
+    if (method === 'chat.update') {
+      const message = ops.find((candidate) => candidate.ts === body['ts']);
+      if (message === undefined) return new Response(JSON.stringify({ ok: false, error: 'message_not_found' }));
+      message.text = String(body['text']);
+      message.metadata = body['metadata'];
+      opsEdits.push({ ts: message.ts, text: message.text });
+      return landedButLost() || reply({ ts: message.ts });
+    }
     if (method === 'chat.postMessage') {
       if (failPosts > 0) {
         failPosts -= 1;
         return new Response(JSON.stringify({ ok: false, error: 'ratelimited' }));
+      }
+      if (toOps) {
+        const ts = `1762900100.${String(ops.length).padStart(6, '0')}`;
+        ops.push({ ts, user: TRIAGE_USER, text: String(body['text']), metadata: body['metadata'], ...(typeof body['thread_ts'] === 'string' ? { thread_ts: body['thread_ts'] } : {}) });
+        return landedButLost() || reply({ ts });
       }
       posts.push({ thread_ts: String(body['thread_ts']), text: String(body['text']) });
       const ts = `1762900001.${String(messages.length).padStart(6, '0')}`;
@@ -45,7 +84,7 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
     }
     return new Response(JSON.stringify({ ok: false, error: `unexpected ${method}` }));
   };
-  return { messages, posts, fetch: fetchFake };
+  return { messages, posts, ops, opsEdits, calls, dropAck, state, fetch: fetchFake };
 }
 
 interface Issue {
@@ -124,12 +163,13 @@ export interface BennyProject {
 }
 
 /** A project with a loadable Benny configuration, a valid feature map, and the GitHub tracker selected. */
-export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null } = {}): BennyProject {
+export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null; operationsChannel?: string } = {}): BennyProject {
   const dir = options.root ?? realpathSync(mkdtempSync(join(tmpdir(), 'benny-e2e-')));
   const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
     .replace('TRIAGE_IDENTITY_USER_ID', TRIAGE_USER)
     .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, (block) => (options.adapterSkill === undefined ? `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n` : block.replace('issue-tracker-adapter-placeholder', options.adapterSkill ?? 'issue-tracker-adapter-placeholder')))
+    .replace('operations_channel_id: ""', `operations_channel_id: "${options.operationsChannel ?? ''}"`)
     .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
     .replace(/^  skill_name: ".*"/m, `  skill_name: "${options.controlSkill ?? 'control-ui'}"`);
   const file = join(dir, '.pi/benny/configuration.yaml');

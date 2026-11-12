@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { type SpawnOptions, spawnAssignment } from '../workers.ts';
-import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
+import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, OPS_STATUSES, type OperationsConfig, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
 import { createExclusive, json } from './store.ts';
 
 export const UPSTREAM_REVISION = '5866df557357d005b3c0c9d3da0d9e739b4bdde3';
@@ -17,6 +17,8 @@ export interface DispatchConfig {
   configPath?: string;
   model?: string;
   thinkingLevel?: ThinkingLevel;
+  /** The operations channel of the repro workflow. Absent when `operations_channel_id` is empty: status stays in the run output. */
+  operations?: OperationsConfig;
 }
 
 export type SpawnWorker = (runId: RunId, assignmentPath: string) => Promise<void>;
@@ -47,6 +49,7 @@ export async function missingPrerequisites(kind: BennyAutomationKind, probes: Pa
 
 export const runDir = (projectRoot: string, runId: RunId) => join(projectRoot, '.pi', 'pstack', 'runs', runId);
 export const workerDir = (projectRoot: string, runId: RunId) => join(runDir(projectRoot, runId), 'workers', WORKER_ID);
+export const statusFile = (projectRoot: string, runId: RunId) => join(workerDir(projectRoot, runId), 'status.jsonl');
 
 /** JSON whose `<` is escaped, so untrusted text cannot close the fence around it; it still parses to the same value. */
 const fenced = (value: unknown) => JSON.stringify(value, null, 2).replace(/</g, '\\u003c');
@@ -58,7 +61,7 @@ export interface BriefMessage {
   text?: string;
 }
 
-export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = []): string {
+export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = [], statusFile?: string): string {
   const kind = AUTOMATION_KINDS[config.kind];
   return [
     `# Benny ${config.kind} case for automation \`${config.name}\``,
@@ -77,7 +80,14 @@ export function buildBrief(config: DispatchConfig, event: AutomationEvent, threa
     '',
     '- You have no tool that posts to Slack, a tracker, or a forge. Do not look for one. The parent adapter performs every external action.',
     '- The parent posts your result once, as a reply in the thread above. Never ask for a root message.',
-    '- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing.',
+    ...(config.kind === 'reproduce'
+      ? [
+          `- Return a JSON object. \`status\` is where the run ended, one of ${Object.keys(OPS_STATUSES).map((status) => `\`${status}\``).join(', ')}. \`text\` is the one concise reply for the source thread, only for a confirmed repro, and an empty string otherwise: a \`Could not reproduce\` or \`Blocked\` outcome posts nothing in the source thread. \`operations\` is the concise evidence reply for the operations thread, for example the linked pull request.`,
+          config.operations === undefined
+            ? '- No operations channel is configured. Your final message and the run output carry the detail.'
+            : `- Report each status change by appending one JSON line, \`{ "status": "<status>", "note": "<short note>" }\`, to \`${statusFile ?? 'status.jsonl'}\`. The parent edits the one operations status message from it. You cannot post or edit anything yourself.`,
+        ]
+      : ['- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing.']),
     ...(kind.replyMarkers === null ? [] : [`- End your final message with exactly one marker line: ${kind.replyMarkers.map((marker) => `\`${marker}\``).join(', ')}.`]),
     '- Your final message is the result. Keep it short and concrete.',
     '',
@@ -137,5 +147,5 @@ export async function launchRun(projectRoot: string, run: RunFiles, deps: { spaw
 
 export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date; thread?: readonly BriefMessage[] }): Promise<void> {
   const assignment = buildAssignment(config, runId, deps.inputCommit);
-  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread), assignment }, deps);
+  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId)), assignment }, deps);
 }

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
-import { isIdentifier, type BennyAutomationKind, type TrackerConfig } from './model.ts';
+import { isIdentifier, type BennyAutomationKind, type OperationsConfig, type TrackerConfig } from './model.ts';
 import { REPO } from './tracker-github.ts';
 
 function object(value: unknown, name: string): Record<string, unknown> {
@@ -19,6 +19,8 @@ export interface BennyConfig extends AutomationConfig {
   tracker: TrackerConfig;
   control: { skillName: string; featureMapPath: string };
 }
+
+const CHANNEL_ID = /^[A-Z0-9_]{2,32}$/;
 
 export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, path = join(projectRoot, '.pi/benny/configuration.yaml')): BennyConfig {
   const raw = object(parse(readFileSync(path, 'utf8')), 'configuration');
@@ -63,6 +65,12 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   };
   const budgetOf = (name: string) => section('budgets')[name] as number;
   const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes') };
+  // An empty operations_channel_id disables the operations thread. A channel is never the source channel: upstream forbids a root post there.
+  const operationsChannel = section('slack')['operations_channel_id'];
+  if (operationsChannel !== undefined && typeof operationsChannel !== 'string') throw new Error('invalid Benny slack.operations_channel_id');
+  if (typeof operationsChannel === 'string' && operationsChannel.trim() !== '' && (!CHANNEL_ID.test(operationsChannel.trim()) || operationsChannel.trim() === sourceChannelId)) throw new Error('invalid Benny operations channel: slack.operations_channel_id must name a channel other than the source channel');
+  const emoji = Object.fromEntries(Object.entries(section('status_emoji')).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+  const operations: OperationsConfig | undefined = typeof operationsChannel === 'string' && operationsChannel.trim() !== '' ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
 }
