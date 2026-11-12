@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
 
-import { runWorkflow } from './lib/driver.ts';
+import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 import type { RunSpec } from './lib/driver.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
@@ -36,4 +36,9 @@ test('a failed run leaves no sandbox behind', async () => {
   await expect(runWorkflow({ ...spec, prepare: (ctx) => void (sandbox = ctx.sandbox) }, 'scripted', { pi: FAKE_PI, rpcTimeoutMs: 1_500 })).rejects.toThrow();
   expect(sandbox).not.toBe('');
   expect(existsSync(sandbox)).toBe(false);
+});
+
+test('a fake-forge run inherits no live forge credential: tokens and the ssh agent are dropped, git cannot prompt or use the system credential helper', () => {
+  const env = withoutForgeCredentials({ PATH: '/bin', GH_TOKEN: 'live', GITHUB_TOKEN: 'live', GH_ENTERPRISE_TOKEN: 'live', GITHUB_ENTERPRISE_TOKEN: 'live', SSH_AUTH_SOCK: '/agent.sock', GIT_ASKPASS: '/askpass', SSH_ASKPASS: '/askpass' });
+  expect(env).toEqual({ PATH: '/bin', GIT_TERMINAL_PROMPT: '0', GIT_CONFIG_NOSYSTEM: '1' });
 });
