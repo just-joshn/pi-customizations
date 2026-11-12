@@ -52,7 +52,7 @@ workers/<workerId>/
   report.md         written by the worker
   evidence/         receipts written by the worker
   worktree/         git worktree for writable workers
-verification/receipts/<id>.json   one file per receipt, created with O_EXCL; no shared file, no lock. The verdict list is derived by reading the directory.
+verification/receipts/<id>.json   one file per receipt, created with O_EXCL; no shared file, no lock. The verdict list is derived by reading the directory. Recording needs a filesystem with hard links under the run root; `ENOTSUP`, `EPERM`, `EXDEV`, or `EMLINK` from the link fails recording with an error naming that requirement, and nothing is recorded.
 ```
 
 Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/pstack/plans/<slug>.md`.

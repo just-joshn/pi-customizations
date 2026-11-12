@@ -75,6 +75,9 @@ export function listReceipts(runRoot: string, runId: RunId): RecordedReceipt[] {
     .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt) || a.receipt.id.localeCompare(b.receipt.id));
 }
 
+/** linkSync's answers from a filesystem, or a directory, that cannot hold a second name for the temporary file. */
+const NO_HARD_LINK = ['ENOTSUP', 'EPERM', 'EXDEV', 'EMLINK'];
+
 /**
  * Stores the receipt as verification/receipts/<id>.json. Each recorder writes its own temporary file and hard-links it
  * to the receipt name, which fails if the name exists, so concurrent recorders share no file and need no lock, and a
@@ -96,7 +99,9 @@ export function recordReceipt(runRoot: string, runId: RunId, receiptPath: string
     linkSync(temporary, join(dir, `${receipt.id}.json`));
     return recorded;
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== undefined && NO_HARD_LINK.includes(code)) throw new Error(`Recording receipt ${receipt.id} needs a filesystem with hard links under ${dir} (link failed with ${code}); move the project to one that supports them`);
+    if (code !== 'EEXIST') throw error;
     const existing = readRecorded(runRoot, runId, `${receipt.id}.json`);
     if (!isDeepStrictEqual(existing.receipt, receipt)) throw new Error(`Receipt id ${receipt.id} is already recorded with different content`);
     return existing;
