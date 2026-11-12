@@ -315,6 +315,12 @@ export interface ClaimIdentity {
   hostPid: number;
 }
 
+/**
+ * Environment values the parent hands one host: provider credentials and configured extra variables. The parent
+ * writes it 0600 and exclusively before starting the host; the host reads it once and unlinks it before Pi starts.
+ */
+export const launchEnvPath = (workerDir: string): string => join(workerDir, 'claim', 'launch-env.json');
+
 export function readClaim(workerDir: string): ClaimIdentity | undefined {
   const path = join(workerDir, 'claim', 'identity.json');
   if (!existsSync(path)) return undefined;

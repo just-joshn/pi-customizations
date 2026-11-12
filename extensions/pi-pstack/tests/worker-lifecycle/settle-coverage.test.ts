@@ -2,9 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
-import { killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, sleep, stopProject, until, workerDir, writeAssignment } from './harness.ts';
-
-const FAKE_PI = join(import.meta.dirname, 'fake-pi.mjs');
+import { FAKE_PI, killTmuxServer, makeParent, makeProject, makeRun, type Parent, type Project, sleep, stopProject, until, workerDir, writeAssignment } from './harness.ts';
 
 let project: Project;
 let parent: Parent;

@@ -17,6 +17,7 @@ const run = promisify(execFile);
 
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
 export const FIXTURE = join(PACKAGE_ROOT, 'test/fixtures/scripted-model.ts');
+export const FAKE_PI = join(PACKAGE_ROOT, 'tests/worker-lifecycle/fake-pi.mjs');
 export const TMUX = `pstack-test-${randomBytes(4).toString('hex')}`;
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -91,6 +92,9 @@ export interface Project {
   runRoot: (runId: string) => string;
   dispose: () => void;
 }
+
+/** The environment every test worker gets: a private home and agent directory, offline. */
+export const workerTestEnv = (project: Project): Record<string, string> => ({ HOME: project.home, PI_CODING_AGENT_DIR: project.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' });
 
 export function makeProject(): Project {
   const dir = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-u04a-')));
@@ -218,7 +222,7 @@ export function makeParent(project: Project, entries: Entry[], options: Partial<
     tmuxSocket: TMUX,
     piCommand: [PI],
     extraPiArgs: ['--offline', '--no-extensions', '--no-skills', '--no-prompt-templates', '--no-themes', '--no-context-files', '--no-mcp', '--no-approve', '--extension', FIXTURE],
-    extraEnv: { HOME: project.home, PI_CODING_AGENT_DIR: project.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' },
+    extraEnv: workerTestEnv(project),
     agentsDir: project.agentsDir,
     pollMs: 150,
     ...options,

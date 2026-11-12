@@ -3,7 +3,7 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, existsSync, lstatSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
@@ -15,6 +15,7 @@ import {
   type HostPhase,
   type HostState,
   isTerminal,
+  launchEnvPath,
   type LoadedAssignment,
   loadAssignment,
   MAX_SETTLES,
@@ -44,8 +45,7 @@ export interface HostLaunch {
   tools: string[] | null;
   tmuxSession: string;
   extraArgs: string[];
-  env: Record<string, string>;
-  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. */
+  /** Names of the credential variables the resolved provider reads; a minimal environment keeps only these. Their values travel in launch-env.json. */
   credentialEnv: string[];
 }
 
@@ -73,7 +73,7 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   const raw: unknown = JSON.parse(text);
   if (!isRecord(raw)) throw new Error('Launch must be an object');
   const strings = (value: unknown): value is string[] => Array.isArray(value) && value.every((part) => typeof part === 'string' && !part.includes('\0'));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute(piCommand[0] ?? '')) throw new Error('Launch piCommand must start with an absolute executable');
   if (model !== null && !(isRecord(model) && typeof model['provider'] === 'string' && typeof model['id'] === 'string')) throw new Error('Launch model must be { provider, id } or null');
   if (thinkingLevel !== null && !(THINKING_LEVELS as readonly unknown[]).includes(thinkingLevel)) throw new Error('Launch thinkingLevel is invalid');
@@ -81,7 +81,6 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name)))) throw new Error('Launch tools must be tool names or null');
   if (typeof tmuxSession !== 'string' || !TMUX_SESSION.test(tmuxSession)) throw new Error('Launch tmuxSession is invalid');
   if (!strings(extraArgs)) throw new Error('Launch extraArgs must be strings');
-  if (!isRecord(env) || Object.values(env).some((value) => typeof value !== 'string')) throw new Error('Launch env must map names to strings');
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name))) throw new Error('Launch credentialEnv must be variable names');
   return {
     piCommand,
@@ -91,14 +90,30 @@ export function parseLaunch(text: string | undefined): HostLaunch {
     tools: tools as string[] | null,
     tmuxSession,
     extraArgs,
-    env: env as Record<string, string>,
     credentialEnv,
   };
 }
 
+/** Reads the parent's launch-env.json once and unlinks it, so the values exist only in this process from here on. */
+function takeLaunchEnv(workerDir: string): Record<string, string> {
+  const path = launchEnvPath(workerDir);
+  const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+  let raw: unknown;
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || (stat.mode & 0o077) !== 0 || stat.uid !== process.getuid?.()) throw new Error(`${path} must be a private regular file owned by this user`);
+    raw = JSON.parse(readFileSync(fd, 'utf8'));
+  } finally {
+    closeSync(fd);
+    unlinkSync(path);
+  }
+  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== 'string')) throw new Error(`${path} must map variable names to strings`);
+  return raw as Record<string, string>;
+}
+
 /** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
-function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, inherited: NodeJS.ProcessEnv): Record<string, string> {
-  const all = { ...inherited, ...launch.env };
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string>, inherited: NodeJS.ProcessEnv): Record<string, string> {
+  const all = { ...inherited, ...launchEnv };
   if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
   const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
   return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
@@ -142,9 +157,11 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
   ];
 }
 
-/** Claims the assignment exclusively. A second host for the same assignment fails here and never starts Pi. */
+/**
+ * Claims the assignment exclusively inside the claim/ directory the parent created at spawn. A second host for the
+ * same assignment fails here and never starts Pi.
+ */
 function claim(loaded: LoadedAssignment, instance: string): void {
-  mkdirSync(join(loaded.workerDir, 'claim'), { mode: 0o700 });
   writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
 }
 
@@ -191,6 +208,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
   claim(loaded, instance);
+  const launchEnv = takeLaunchEnv(workerDir);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join(workerDir, 'session');
 
@@ -274,7 +292,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),

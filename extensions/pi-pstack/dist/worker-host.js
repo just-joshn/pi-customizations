@@ -1,7 +1,7 @@
 // src/worker-host.ts
 import { execFileSync, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { chmodSync, existsSync as existsSync2, lstatSync as lstatSync2, mkdirSync, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync2, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
 import { dirname as dirname2, isAbsolute as isAbsolute2, join as join2, resolve as resolve2 } from "node:path";
 import { createInterface } from "node:readline";
@@ -184,6 +184,7 @@ function loadAssignment(path) {
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var MAX_SETTLES = 1e4;
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
+var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
 
 // src/worker-host.ts
 var MAX_CONTROL_BYTES = 65536;
@@ -204,7 +205,7 @@ function parseLaunch(text) {
   if (!isRecord2(raw))
     throw new Error("Launch must be an object");
   const strings = (value) => Array.isArray(value) && value.every((part) => typeof part === "string" && !part.includes("\x00"));
-  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, env, credentialEnv } = raw;
+  const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
   if (!strings(piCommand) || piCommand.length === 0 || !isAbsolute2(piCommand[0] ?? ""))
     throw new Error("Launch piCommand must start with an absolute executable");
   if (model !== null && !(isRecord2(model) && typeof model["provider"] === "string" && typeof model["id"] === "string"))
@@ -219,8 +220,6 @@ function parseLaunch(text) {
     throw new Error("Launch tmuxSession is invalid");
   if (!strings(extraArgs))
     throw new Error("Launch extraArgs must be strings");
-  if (!isRecord2(env) || Object.values(env).some((value) => typeof value !== "string"))
-    throw new Error("Launch env must map names to strings");
   if (!strings(credentialEnv) || credentialEnv.some((name) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)))
     throw new Error("Launch credentialEnv must be variable names");
   return {
@@ -231,12 +230,28 @@ function parseLaunch(text) {
     tools,
     tmuxSession,
     extraArgs,
-    env,
     credentialEnv
   };
 }
-function workerEnv(loaded, launch, inherited) {
-  const all = { ...inherited, ...launch.env };
+function takeLaunchEnv(workerDir) {
+  const path = launchEnvPath(workerDir);
+  const fd = openSync2(path, constants2.O_RDONLY | constants2.O_NOFOLLOW);
+  let raw;
+  try {
+    const stat = fstatSync2(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || (stat.mode & 63) !== 0 || stat.uid !== process.getuid?.())
+      throw new Error(`${path} must be a private regular file owned by this user`);
+    raw = JSON.parse(readFileSync2(fd, "utf8"));
+  } finally {
+    closeSync2(fd);
+    unlinkSync(path);
+  }
+  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== "string"))
+    throw new Error(`${path} must map variable names to strings`);
+  return raw;
+}
+function workerEnv(loaded, launch, launchEnv, inherited) {
+  const all = { ...inherited, ...launchEnv };
   if (loaded.assignment.capabilities.env === "inherit")
     return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined));
   const allowed = new Set([...MINIMAL_ENV, ...launch.credentialEnv]);
@@ -286,7 +301,6 @@ function piArgs(loaded, launch) {
   ];
 }
 function claim(loaded, instance) {
-  mkdirSync(join2(loaded.workerDir, "claim"), { mode: 448 });
   writeFileSync2(join2(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}
 `, { mode: 384, flag: "wx" });
 }
@@ -329,6 +343,7 @@ async function runHost(assignmentFile, launchText) {
   const { assignment, workerDir, runRoot } = loaded;
   const instance = randomUUID();
   claim(loaded, instance);
+  const launchEnv = takeLaunchEnv(workerDir);
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join2(workerDir, "session");
   let phase = "starting";
@@ -405,7 +420,7 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),

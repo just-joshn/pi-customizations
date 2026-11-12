@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -6,6 +7,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { controlSocketPath, loadAssignment, type RunId, tmuxSessionName, type WorkerId } from '../../src/run-files.ts';
 import {
   type Entry,
+  FAKE_PI,
   FIXTURE,
   killTmuxServer,
   liveTmuxSessions,
@@ -23,6 +25,7 @@ import {
   until,
   wakes,
   workerDir,
+  workerTestEnv,
   writeAssignment,
 } from './harness.ts';
 
@@ -421,6 +424,45 @@ describe('capability boundary', () => {
     expect(await collectText(owner, 'c2')).toContain('parent-secret-marker');
     expect(argvOf('c2')).not.toContain('--no-mcp');
     await owner.stop();
+  });
+
+  const processesNaming = (text: string) =>
+    execFileSync('ps', ['-axww', '-o', 'args='], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      .split('\n')
+      .filter((line) => line.includes(text));
+  const events = () => readFileSync(join(project.runRoot('run1'), 'events.jsonl'), 'utf8');
+
+  test('launch secrets reach the worker through claim/launch-env.json, never argv or events.jsonl', async () => {
+    const sentinel = `sentinel-${randomBytes(6).toString('hex')}`;
+    const owner = makeParent(project, [], { extraEnv: { ...workerTestEnv(project), U04A_LAUNCH_SECRET: sentinel } });
+    await owner.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: writeAssignment(project, 'run1', 's1', envScript('printenv U04A_LAUNCH_SECRET'), { workspace: { mode: 'worktree', inputCommit: project.commit } }) });
+    expect(processesNaming(sentinel)).toEqual([]);
+    expect(existsSync(join(workerDir(project, 'run1', 's1'), 'claim', 'launch-env.json'))).toBe(false);
+    expect(await collectText(owner, 's1')).toContain(sentinel);
+    expect(events()).not.toContain(sentinel);
+    await owner.stop();
+  });
+
+  test('a provider variable set in the parent after the tmux server started reaches a minimal worker', async () => {
+    await tmux('new-session', '-d', '-s', 'server-already-running', '--', 'sleep', '120');
+    const sentinel = `sk-${randomBytes(6).toString('hex')}`;
+    const previous = process.env['OPENAI_API_KEY'];
+    process.env['OPENAI_API_KEY'] = sentinel;
+    try {
+      const owner = makeParent(project, [], { piCommand: [process.execPath, FAKE_PI], resolveModel: () => ({ provider: 'openai', id: 'gpt-fake', thinkingLevel: null }) });
+      await owner.call('pstack_worker', {
+        action: 'spawn',
+        runId: 'run1',
+        assignmentPath: writeAssignment(project, 'run1', 's2', '@@env OPENAI_API_KEY', { capabilities: { mcp: 'none', env: 'minimal', externalWrite: false } }),
+      });
+      expect(processesNaming(sentinel)).toEqual([]);
+      expect(await collectText(owner, 's2')).toBe(sentinel);
+      expect(events()).not.toContain(sentinel);
+      await owner.stop();
+    } finally {
+      if (previous === undefined) delete process.env['OPENAI_API_KEY'];
+      else process.env['OPENAI_API_KEY'] = previous;
+    }
   });
 
   test('spawn refuses a worker that asks for external write authority', async () => {

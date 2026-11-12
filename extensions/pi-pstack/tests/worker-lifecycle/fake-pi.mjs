@@ -3,6 +3,7 @@
 //   @@say <text>     run: reply <text>, each record written separately
 //   @@chunk <text>   run: the prompt response, the run, and agent_settled in one stdout write
 //   @@hold <text>    start a run that replies <text> and stays open until the next prompt arrives
+//   @@env <name>     run: reply with the value of environment variable <name>, or (unset)
 // A prompt that arrives while a held run is open is acknowledged as queued, then the held run settles. The queued
 // prompt stays pending (`@@say`) or starts streaming at once (`@@stream`) until <session-dir>/release exists, then runs.
 import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -12,6 +13,8 @@ import { createInterface } from 'node:readline';
 const sessionDir = process.argv[process.argv.indexOf('--session-dir') + 1];
 mkdirSync(sessionDir, { recursive: true });
 const sessionFile = join(sessionDir, 'fake.jsonl');
+const modelArg = process.argv.includes('--model') ? process.argv[process.argv.indexOf('--model') + 1] : 'scripted/echo';
+const model = { provider: modelArg.slice(0, modelArg.indexOf('/')), id: modelArg.slice(modelArg.indexOf('/') + 1) };
 let streaming = false;
 let held = false;
 const pending = [];
@@ -30,7 +33,7 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
   const command = JSON.parse(input);
   const { id, type } = command;
   if (type === 'get_state') {
-    process.stdout.write(response(id, type, { model: { provider: 'scripted', id: 'echo' }, sessionFile, isStreaming: streaming, pendingMessageCount: pending.length }));
+    process.stdout.write(response(id, type, { model, sessionFile, isStreaming: streaming, pendingMessageCount: pending.length }));
   } else if (type === 'clear_queue') {
     process.stdout.write(response(id, type, { steering: pending.splice(0), followUp: [] }));
   } else if (type === 'abort') {
@@ -52,7 +55,7 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
     streaming = false;
     process.stdout.write(settled());
   } else if (type === 'prompt') {
-    const text = textOf(command.message);
+    const text = command.message.startsWith('@@env ') ? (process.env[textOf(command.message)] ?? '(unset)') : textOf(command.message);
     if (command.message.startsWith('@@chunk ')) {
       process.stdout.write(response(id, type, { disposition: 'started' }) + run(text) + settled());
     } else if (command.message.startsWith('@@hold ')) {

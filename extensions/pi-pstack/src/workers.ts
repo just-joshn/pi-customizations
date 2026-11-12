@@ -1,6 +1,6 @@
 // pstack_worker (spec 8.4, 9): spawn, inspect, steer, abort, and collect tmux-hosted Pi workers, plus the settle
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 
 import { StringEnum } from '@earendil-works/pi-ai';
@@ -16,6 +16,7 @@ import {
   type ClaimIdentity,
   type HostState,
   isTerminal,
+  launchEnvPath,
   type LoadedAssignment,
   loadAssignment,
   parseRunId,
@@ -367,7 +368,6 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const assignment: Assignment = loaded.assignment;
     if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
     if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
-    if (existsSync(join(loaded.workerDir, 'claim'))) throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
     const session = tmuxSessionName(project, runId, assignment.workerId);
     let model: ResolvedModel | null = null;
     let roleDoc: string | null = null;
@@ -386,23 +386,44 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
       tmuxSession: session,
       extraArgs: options.extraPiArgs ?? [],
-      env: options.extraEnv ?? {},
       credentialEnv: model === null ? [] : credentialEnv(model.provider),
     };
-    const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
-    if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
+    // Values come from this process now, not from the tmux server, whose environment dates from when it started.
+    const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => (process.env[name] === undefined ? [] : [[name, process.env[name]]]))), ...options.extraEnv };
+    const claimDir = join(loaded.workerDir, 'claim');
+    try {
+      mkdirSync(claimDir, { mode: 0o700 });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
+      throw error;
+    }
+    const secrets = launchEnvPath(loaded.workerDir);
+    try {
+      writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
+      const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
+      if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
+    } catch (error) {
+      // No host started, so nothing holds the claim.
+      rmSync(claimDir, { recursive: true, force: true });
+      throw error;
+    }
     appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
     watch(ctx);
 
     const target = hostTarget(loaded);
     const deadline = Date.now() + startupMs;
     let state: HostState | undefined;
-    while (Date.now() < deadline) {
-      state = await inspectHost(target).catch(() => undefined);
-      if (state !== undefined && state.phase !== 'starting') break;
-      const written = readHostState(loaded.workerDir);
-      if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      while (Date.now() < deadline) {
+        state = await inspectHost(target).catch(() => undefined);
+        if (state !== undefined && state.phase !== 'starting') break;
+        const written = readHostState(loaded.workerDir);
+        if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    } finally {
+      // The host unlinks it before starting Pi; a host that never got that far must not leave the values on disk.
+      rmSync(secrets, { force: true });
     }
     if (state === undefined || state.phase === 'starting')
       throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
