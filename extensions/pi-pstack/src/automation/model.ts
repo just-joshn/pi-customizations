@@ -119,14 +119,35 @@ export interface TrackerAction extends TrackerIntent {
   id: ActionId;
   kind: 'tracker';
   sourceUrl: string;
+  /** Set by the parent from the verdict marker and configuration, never taken from the worker. Create only. */
+  labels?: string[];
 }
 export type OutboxAction = ThreadReplyAction | TrackerAction;
+/** The tracker section of the Benny configuration, as the parent adapter needs it. */
+export interface TrackerConfig {
+  type: string;
+  /** `owner/name`, required by the GitHub adapter. */
+  repo?: string;
+  labels: { bug: string; performance: string; intake: string; needsRepro: string };
+}
+
+/** The Slack permalink the parent computes from the immutable source coordinates. */
+export const sourceUrlOf = (event: Pick<AutomationEvent, 'channel' | 'rootTs'>) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}`;
+
+export type Classification = 'bug' | 'performance' | 'other';
+
+/** The verdict category of a reply, read from its marker; a reply with none counts as `other`. */
+export function classificationOf(reply: string): Classification {
+  const found = /\[benny:(bug|performance|other)\]/.exec(reply)?.[1];
+  return found === 'bug' || found === 'performance' ? found : 'other';
+}
+
 export interface WorkerResult {
   text: string;
   tracker?: TrackerIntent;
 }
 export interface TrackerEligibility {
-  classification: 'bug' | 'performance' | 'other';
+  classification: Classification;
   clearlyBroken: boolean;
   live: boolean;
   duplicate: 'none' | 'confident' | 'possible' | 'weak' | 'already-linked';

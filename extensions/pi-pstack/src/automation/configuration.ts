@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
-import { isIdentifier, type BennyAutomationKind } from './model.ts';
+import { isIdentifier, type BennyAutomationKind, type TrackerConfig } from './model.ts';
+import { REPO } from './tracker-github.ts';
 
 function object(value: unknown, name: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`invalid Benny ${name}`);
@@ -13,7 +14,13 @@ function text(value: unknown, name: string): string {
   return value;
 }
 
-export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, path = join(projectRoot, '.pi/benny/configuration.yaml')): AutomationConfig {
+/** The configuration the automation serve process acts on, beyond the fields the adapter core reads. */
+export interface BennyConfig extends AutomationConfig {
+  tracker: TrackerConfig;
+  control: { skillName: string; featureMapPath: string };
+}
+
+export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, path = join(projectRoot, '.pi/benny/configuration.yaml')): BennyConfig {
   const raw = object(parse(readFileSync(path, 'utf8')), 'configuration');
   if (raw['schema_version'] !== 1) throw new Error('unsupported Benny schema_version');
   const sections = new Map(['automations', 'slack', 'repository', 'tracker', 'routing', 'control', 'verdict_markers', 'status_emoji', 'budgets', 'models'].map((key) => [key, object(raw[key], key)]));
@@ -23,9 +30,13 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   const sourceChannelId = text(section('slack')['source_channel_id'], 'source channel');
   if (!/^[A-Z0-9_]{2,32}$/.test(sourceChannelId)) throw new Error('invalid Benny source channel');
   const triageIdentityUserId = text(section('slack')['triage_identity_user_id'], 'triage identity');
-  for (const [group, fields] of Object.entries({ repository: ['url', 'default_branch'], tracker: ['type', 'adapter_skill_name', 'team', 'project', 'status'], control: ['skill_name', 'feature_map_path', 'environment'] })) {
+  const trackerType = text(section('tracker')['type'], 'tracker.type');
+  // GitHub Issues has no team, project, or status, and the adapter ships with the package.
+  const trackerFields = trackerType === 'github' ? ['repo'] : ['adapter_skill_name', 'team', 'project', 'status'];
+  for (const [group, fields] of Object.entries({ repository: ['url', 'default_branch'], tracker: trackerFields, control: ['skill_name', 'feature_map_path', 'environment'] })) {
     for (const field of fields) text(section(group)[field], `${group}.${field}`);
   }
+  if (trackerType === 'github' && !REPO.test(text(section('tracker')['repo'], 'tracker.repo'))) throw new Error('invalid Benny tracker.repo; expected owner/name');
   if (section('slack')['allow_source_root_posts'] !== false || section('slack')['allow_worker_slack_writes'] !== false || section('repository')['draft_only'] !== true) throw new Error('unsafe Benny write configuration');
   for (const marker of ['bug', 'performance', 'other']) if (section('verdict_markers')[marker] !== `[benny:${marker}]`) throw new Error('unsupported Benny verdict marker');
   const labels = object(section('tracker')['labels'], 'tracker.labels');
@@ -37,5 +48,11 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   }
   const configPath = relative(resolve(projectRoot), resolve(path));
   if (configPath.startsWith('..')) throw new Error('Benny configuration must be project-owned');
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`) };
+  const tracker: TrackerConfig = {
+    type: trackerType,
+    ...(trackerType === 'github' ? { repo: text(section('tracker')['repo'], 'tracker.repo') } : {}),
+    labels: { bug: text(labels['bug'], 'tracker.labels.bug'), performance: text(labels['performance'], 'tracker.labels.performance'), intake: text(labels['intake'], 'tracker.labels.intake'), needsRepro: text(labels['needs_repro'], 'tracker.labels.needs_repro') },
+  };
+  const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control };
 }

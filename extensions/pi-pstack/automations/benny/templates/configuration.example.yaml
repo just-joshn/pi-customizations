@@ -25,16 +25,13 @@ repository:
   draft_only: true
 
 tracker:
-  type: "linear"
-  adapter_skill_name: "issue-tracker-adapter-placeholder"
-  team: "team-placeholder"
-  project: "project-placeholder"
+  type: "github"
+  repo: "example-org/example-repo"
   labels:
-    bug: "bug-label-placeholder"
-    performance: "performance-label-placeholder"
-    intake: "intake-label-placeholder"
-    needs_repro: "needs-repro-label-placeholder"
-  status: "intake-status-placeholder"
+    bug: "bug"
+    performance: "performance"
+    intake: "intake"
+    needs_repro: "needs-repro"
   source_link_title: "Slack report"
   require_compensation_action: true
 
