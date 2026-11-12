@@ -67,7 +67,8 @@ Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/psta
   model: 'inherit-parent' | '<provider>/<id>',
   thinkingLevel: 'off'|'minimal'|'low'|'medium'|'high'|'xhigh'|'max' | null,
   workspace: { mode: 'worktree', inputCommit: string }   // writable: extension creates worktree/ at inputCommit
-           | { mode: 'readonly', path: string },          // absolute; tools limited to read,grep,find,ls
+           | { mode: 'readonly', path: string }           // absolute; tools: read,grep,find,ls,bash_readonly (+MCP per capabilities)
+           | { mode: 'container', inputCommit: string },  // writable clone inside the configured container (.pi/environment.json); refused with ContainerUnavailable until the container unit lands
   skills: string[],                  // skill names the brief requires the worker to read first
   watch?: { argv: string[], cwd: string }   // kind 'watch': argv runs in tmux; exit wakes the parent
 }
@@ -107,7 +108,7 @@ While a parent session is live, the extension watches its run's hosts. When a wo
 
 ## Worker process
 
-The host runs `pi --mode rpc` in the worker's workspace with `--model`, `--thinking`, `--session-dir <workerDir>/session`, `--append-system-prompt <generated/agents/<role>.md>`, env `PSTACK_WORKER=1`, `PSTACK_RUN_ID`, `PSTACK_WORKER_ID`, and the user's normal Pi resources (extensions, skills, MCP) so pstack skills and MCP are available. With `PSTACK_WORKER=1`, the pstack extension registers only `pstack_evidence`, and no `pstack_worker`. Readonly workers get `--tools read,grep,find,ls` plus MCP tools. The proof host in `parity/pi-native-tmux-2026-11-11/proof/host.mjs` is the reference implementation. It passed 11 lifecycle gates on real processes.
+The host runs `pi --mode rpc` in the worker's workspace with `--model`, `--thinking`, `--session-dir <workerDir>/session`, `--append-system-prompt <generated/agents/<role>.md>`, env `PSTACK_WORKER=1`, `PSTACK_RUN_ID`, `PSTACK_WORKER_ID`, and the user's normal Pi resources (extensions, skills, MCP) so pstack skills and MCP are available. With `PSTACK_WORKER=1`, the pstack extension registers only `pstack_evidence`, and no `pstack_worker`. Readonly workers get `--tools read,grep,find,ls,bash_readonly` plus MCP tools per capabilities. `bash_readonly` is the existing OS-sandboxed read-only shell (`src/readonly-shell.ts`, with the macOS sandbox and the Linux seccomp filter): it allows reads and network reads such as `git log` and `gh pr view`, and blocks writes and Unix sockets. The worker's pstack extension registers it when `PSTACK_READONLY=1`, which the host sets for readonly workspaces. This is the enforcement spec 12.1 requires for `how`, `why`, and reviewer workers. The proof host in `parity/pi-native-tmux-2026-11-11/proof/host.mjs` is the reference implementation. It passed 11 lifecycle gates on real processes.
 
 ## Capability boundary (spec 9.6, 14.2, 15)
 
@@ -146,7 +147,7 @@ The same-uid limit is stated, not hidden. A worker process running as the operat
 | TodoWrite / todolist | `TODO.md` in the run root, created by `start-run.mjs` |
 | Plan mode / CreatePlan | a Markdown plan file under `.pi/pstack/plans/`, checked by `check-plan.mjs`, executed only after explicit go |
 | AskQuestion | ask in the conversation (`ctx.ui.select` where the extension has a UI) |
-| `/loop`, AwaitShell, background shells | `pstack_worker` with `kind: 'watch'` |
+| `/loop`, AwaitShell, background shells | `pstack_worker` with `kind: 'watch'`. A watch fires once: its exit wakes the parent. A recurring loop spawns a fresh watch after every wake until its stop predicate holds, and re-arms after a parent restart from the run's `TODO.md` or plan |
 | `.cursor/rules/pstack-models.mdc` | `~/.pi/agent/pstack/models.json` |
 | Cursor transcripts | Pi session files under `~/.pi/agent/sessions/` |
 | Cursor Automations, webhooks | U08 event adapter |
