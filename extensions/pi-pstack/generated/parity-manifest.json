@@ -7,44 +7,45 @@
   "requirementsDigest": "21959b59512a060ede732fbeedbbdc8b4685eb963c0f86af18101b5104422f3a",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-12T10:28:35.969Z",
-    "generatedAt": "2026-11-12T10:32:37.685Z",
-    "commit": "3707faee793d650a3a5b86eb0c019363dd7f2f12",
-    "dirty": true,
-    "sourceDigest": "2f6d3609f16bdeb194a977c12382eb177bb9c5ad836342b693fd1afc239585c9",
+    "startedAt": "2026-11-12T10:33:10.457Z",
+    "generatedAt": "2026-11-12T10:36:05.795Z",
+    "commit": "dd44a5a762433975e319955b404cfe0f0be21785",
+    "dirty": false,
+    "sourceDigest": "8afa723579a6540f70bdf78499776c7c971de365d2fbc6743f79bc50b080e857",
     "resultsSource": "file",
     "totalTests": 1476,
-    "passedTests": 1428,
-    "failedTests": 3,
+    "passedTests": 1430,
+    "failedTests": 1,
     "skippedTests": 45
   },
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-12T10:28:35.969Z",
-      "generatedAt": "2026-11-12T10:32:37.685Z",
-      "commit": "3707faee793d650a3a5b86eb0c019363dd7f2f12",
-      "dirty": true,
-      "sourceDigest": "2f6d3609f16bdeb194a977c12382eb177bb9c5ad836342b693fd1afc239585c9",
+      "startedAt": "2026-11-12T10:33:10.457Z",
+      "generatedAt": "2026-11-12T10:36:05.795Z",
+      "commit": "dd44a5a762433975e319955b404cfe0f0be21785",
+      "dirty": false,
+      "sourceDigest": "8afa723579a6540f70bdf78499776c7c971de365d2fbc6743f79bc50b080e857",
       "resultsSource": "file",
       "totalTests": 1476,
-      "passedTests": 1428,
-      "failedTests": 3,
+      "passedTests": 1430,
+      "failedTests": 1,
       "skippedTests": 45
     },
     {
       "platform": "linux",
-      "startedAt": "2026-11-12T10:27:50.974Z",
-      "generatedAt": "2026-11-12T10:32:37.901Z",
-      "commit": "3707faee793d650a3a5b86eb0c019363dd7f2f12",
-      "dirty": true,
-      "sourceDigest": "2f6d3609f16bdeb194a977c12382eb177bb9c5ad836342b693fd1afc239585c9",
+      "startedAt": "2026-11-12T10:33:54.645Z",
+      "generatedAt": "2026-11-12T10:36:05.888Z",
+      "commit": "0a51659d2dfc31e8b9bedb87fa6bc0c9004aece0",
+      "dirty": false,
+      "sourceDigest": "8afa723579a6540f70bdf78499776c7c971de365d2fbc6743f79bc50b080e857",
       "resultsSource": "ci",
       "totalTests": 85,
       "passedTests": 80,
       "failedTests": 0,
       "skippedTests": 5,
-      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43200529083"
+      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43201402088",
+      "root": "/home/runner/work/pstack-parity-sandbox/pstack-parity-sandbox/extensions/pi-pstack"
     }
   ],
   "counts": {
@@ -55,9 +56,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 50,
+      "PASS": 51,
       "FAIL": 1,
-      "INCONCLUSIVE": 48,
+      "INCONCLUSIVE": 47,
       "N/A": 0
     }
   },
@@ -38233,11 +38234,11 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider authenticates with the access token it was handed, holding no refresh token and no other provider credential, and leaves the host auth.json alone",
-          "outcome": "failed",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed"
+              "outcome": "passed"
             },
             {
               "platform": "linux",
@@ -38263,11 +38264,11 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's",
-          "outcome": "passed",
+          "outcome": "failed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "passed"
+              "outcome": "failed"
             },
             {
               "platform": "linux",
@@ -38607,7 +38608,7 @@
         }
       ],
       "status": "FAIL",
-      "reason": "1 linked test(s) failed: a container worker on an OAuth provider authenticates with the access token it was handed, holding no refresh token and no other provider credential, and leaves the host auth.json alone"
+      "reason": "1 linked test(s) failed: a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's"
     },
     {
       "id": "WF-HOW-READONLY",
@@ -38742,7 +38743,7 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -38757,7 +38758,7 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -38772,7 +38773,7 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
@@ -38787,7 +38788,7 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         }
@@ -38835,7 +38836,7 @@
         {
           "file": "tests/security/linux-readonly-sandbox.test.ts",
           "name": "read-only commands and network reads run, while writes and Unix sockets are refused (G12)",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
@@ -38843,14 +38844,14 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         },
         {
           "file": "tests/security/linux-readonly-sandbox-missing.test.ts",
           "name": "without bubblewrap the readonly command fails closed and never runs",
-          "outcome": "missing",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
@@ -38858,13 +38859,13 @@
             },
             {
               "platform": "linux",
-              "outcome": "missing"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WORKER-CAPABILITY-BOUNDARY",

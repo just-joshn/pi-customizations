@@ -32,13 +32,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Tests | Run |
 | --- | --- | --- | --- | --- |
-| 1 | darwin | `3707faee793d` (dirty tree) | 1428 passed, 3 failed, 45 skipped | file at 2026-11-12T10:32:37.685Z |
-| 2 | linux | `3707faee793d` (dirty tree) | 80 passed, 0 failed, 5 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43200529083 |
+| 1 | darwin | `dd44a5a76243` | 1430 passed, 1 failed, 45 skipped | file at 2026-11-12T10:36:05.795Z |
+| 2 | linux | `0a51659d2dfc` | 80 passed, 0 failed, 5 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43201402088 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 149 | 0 | 1 | 40 |
-| behavioral | 50 | 1 | 48 | 0 |
+| behavioral | 51 | 1 | 47 | 0 |
 
 ### Behavioral requirements
 
@@ -83,9 +83,9 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `AUTOPILOT-STACK-NO-MERGE` Autopilot-stack hands verified PRs over without merging | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md:3-3 | no test is linked |
 | `AUTOPILOT-HOLD` The operator's stop reaches every owner at once | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:23-23 | no test is linked |
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 | declared coverage gap: No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run. |
-| `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | FAIL | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | 1 linked test(s) failed: a container worker on an OAuth provider authenticates with the access token it was handed, holding no refresh token and no other provider credential, and leaves the host auth.json alone |
+| `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | FAIL | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | 1 linked test(s) failed: a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | INCONCLUSIVE | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 | no test is linked |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 | no test is linked |
