@@ -356,12 +356,6 @@ const PRICES_B = "export const price = (item) => item.cents / 100;\nexport const
 export const evalFamily: Family = {
   id: 'eval',
   title: 'Eval playbook: sanitized candidates that see no meta, a blinded cross-family judge, the chain verified from session files (spec 12.2)',
-  knownDefects: [
-    {
-      checkId: 'eval.candidate-sees-no-meta-anywhere',
-      defect: 'generated/agents/general.md:7 says "you collect and judge their results yourself", and every candidate worker gets that file as its appended system prompt, which breaks eval.md\'s rule that the candidate sees no "judge" (generated/skills/poteto-mode/playbooks/eval.md, Non-negotiables for blinding)',
-    },
-  ],
   spec: {
     family: 'eval',
     runId: 'shop-work',
