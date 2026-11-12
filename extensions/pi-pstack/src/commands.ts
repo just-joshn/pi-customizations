@@ -1,7 +1,7 @@
 // /pstack (spec 8.3): the operator's one command. It turns the persistent style on and off, diagnoses the install,
 // lists and controls runs and workers, and starts the automation event sources as watch workers.
 import { createHash } from 'node:crypto';
-import { existsSync, linkSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, writeSync, linkSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -551,6 +551,19 @@ export interface CommandOptions {
 
 const SUBCOMMANDS = ['on', 'off', 'status', 'doctor', 'workers', 'pause', 'resume', 'audit', 'automation'];
 
+/**
+ * A subcommand's result where the run mode shows it. notify reaches the TUI and RPC clients. Print mode writes only the
+ * final assistant text through Pi's stdout guard, so the report goes straight to file descriptor 1. JSON mode reserves
+ * stdout for JSONL, so the report travels as a custom message in the event stream.
+ */
+export function report(pi: ExtensionAPI, ctx: ExtensionContext, text: string, level: 'info' | 'error'): void {
+  if (ctx.mode === 'print') {
+    if (level === 'error') console.error(text);
+    else writeSync(1, `${text}\n`);
+  } else if (ctx.mode === 'json') pi.sendMessage({ customType: 'pstack-report', content: text, display: true, details: { level } });
+  else ctx.ui.notify(text, level);
+}
+
 export function registerPstackCommand(pi: ExtensionAPI, options: CommandOptions): void {
   const spawnOptions = options.spawnOptions ?? {};
   const run = async (command: PstackCommand, ctx: ExtensionCommandContext): Promise<string> => {
@@ -606,9 +619,9 @@ export function registerPstackCommand(pi: ExtensionAPI, options: CommandOptions)
     },
     handler: async (args, ctx) => {
       try {
-        ctx.ui.notify(await run(parsePstackArgs(args), ctx), 'info');
+        report(pi, ctx, await run(parsePstackArgs(args), ctx), 'info');
       } catch (error) {
-        ctx.ui.notify((error as Error).message, 'error');
+        report(pi, ctx, (error as Error).message, 'error');
       }
     },
   });

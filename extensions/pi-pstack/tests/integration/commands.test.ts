@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { SessionManager } from '@earendil-works/pi-coding-agent';
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
-import { auditRun, hardLinkCheck, parsePstackArgs, parseTodo, registerPstackCommand } from '../../src/commands.ts';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { auditRun, hardLinkCheck, parsePstackArgs, parseTodo, registerPstackCommand, report } from '../../src/commands.ts';
 import { recordReceipt } from '../../src/evidence.ts';
 import { type RunId, readHostState } from '../../src/run-files.ts';
 import { registerStyle } from '../../src/style.ts';
@@ -213,5 +213,34 @@ describe('audit', () => {
       '[~] 6. Skipped. (skip: no UI)',
       '    skip: no UI',
     ]);
+  });
+});
+
+describe('report in each run mode', () => {
+  const ctxFor = (mode: string, notices: string[]) => ({ mode, ui: { notify: (text: string) => notices.push(text) } }) as never;
+
+  test('a TUI or RPC session notifies, as before', () => {
+    const notices: string[] = [];
+    const sent: unknown[] = [];
+    report({ sendMessage: (message: unknown) => sent.push(message) } as never, ctxFor('tui', notices), 'doctor ok', 'info');
+    expect([notices, sent]).toEqual([['doctor ok'], []]);
+  });
+
+  test('--mode json carries the report as a message in the event stream, not on stdout', () => {
+    const notices: string[] = [];
+    const sent: unknown[] = [];
+    report({ sendMessage: (message: unknown) => sent.push(message) } as never, ctxFor('json', notices), 'pstack doctor', 'info');
+    expect(notices).toEqual([]);
+    expect(sent).toEqual([{ customType: 'pstack-report', content: 'pstack doctor', display: true, details: { level: 'info' } }]);
+  });
+
+  test('pi -p writes the report to stdout and an error to stderr', () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const notices: string[] = [];
+    const out = execFileSync(process.execPath, ['--input-type=module', '-e', `import { report } from ${JSON.stringify(new URL('../../src/commands.ts', import.meta.url).href)}; report({}, { mode: 'print' }, 'pstack doctor report', 'info');`], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+    expect(out).toBe('pstack doctor report\n');
+    report({} as never, ctxFor('print', notices), 'bad usage', 'error');
+    expect([err.mock.calls, notices]).toEqual([[['bad usage']], []]);
+    err.mockRestore();
   });
 });
