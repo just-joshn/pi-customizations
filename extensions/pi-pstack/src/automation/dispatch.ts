@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type AutomationKind, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
+import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
 import { createExclusive, json } from './store.ts';
 
 export const UPSTREAM_REVISION = '5866df557357d005b3c0c9d3da0d9e739b4bdde3';
@@ -10,7 +10,7 @@ export type ThinkingLevel = 'off' | 'minimal' | 'low' | 'medium' | 'high' | 'xhi
 
 export interface DispatchConfig {
   name: string;
-  kind: AutomationKind;
+  kind: BennyAutomationKind;
   projectRoot: string;
   /** Repository-relative, secret-free Benny configuration the worker may read. */
   configPath?: string;
@@ -21,7 +21,7 @@ export interface DispatchConfig {
 export type SpawnWorker = (runId: RunId, assignmentPath: string) => Promise<void>;
 
 /** A prerequisite is missing when no probe is configured, and uncertain when its probe throws or says no. */
-export async function missingPrerequisites(kind: AutomationKind, probes: Partial<Record<Prerequisite, Probe>>): Promise<Prerequisite[]> {
+export async function missingPrerequisites(kind: BennyAutomationKind, probes: Partial<Record<Prerequisite, Probe>>): Promise<Prerequisite[]> {
   const missing: Prerequisite[] = [];
   for (const prerequisite of AUTOMATION_KINDS[kind].requires) {
     const probe = probes[prerequisite];

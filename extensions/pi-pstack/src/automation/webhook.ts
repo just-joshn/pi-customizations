@@ -16,7 +16,15 @@ export function secretMatches(presented: string | undefined, expected: string | 
   return timingSafeEqual(digest(presented), digest(expected));
 }
 
-const bearer = (request: IncomingMessage) => /^Bearer\s+(\S+)\s*$/i.exec(request.headers.authorization ?? '')?.[1];
+const bearer = (request: IncomingMessage) => typeof request.headers['x-automation-key'] === 'string' ? request.headers['x-automation-key'] : /^Bearer\s+(\S+)\s*$/i.exec(request.headers.authorization ?? '')?.[1];
+
+export interface WebhookEvent {
+  eventId?: string;
+  headers: Record<string, string>;
+  body_digest: string;
+  body: string;
+  timestamp_ms: number;
+}
 
 export interface WebhookReply {
   status: number;
@@ -32,7 +40,7 @@ export interface WebhookReceiver {
  * Accepts `POST /events` on 127.0.0.1 with `Authorization: Bearer <key>`, where key is the `key` field of the 0600
  * credential file, read per request so rotation needs no restart. Bodies must be JSON objects within `maxBodyBytes`.
  */
-export function startWebhookReceiver(options: { credentialFile: string; onEvent: (body: Record<string, unknown>) => Promise<WebhookReply>; port?: number; maxBodyBytes?: number }): Promise<WebhookReceiver> {
+export function startWebhookReceiver(options: { credentialFile: string; onEvent: (body: Record<string, unknown>, event: WebhookEvent) => Promise<WebhookReply>; port?: number; maxBodyBytes?: number }): Promise<WebhookReceiver> {
   const limit = options.maxBodyBytes ?? MAX_BODY_BYTES;
   const send = (response: ServerResponse, reply: WebhookReply) => {
     response.writeHead(reply.status, { 'content-type': 'application/json', connection: 'close' });
@@ -53,13 +61,24 @@ export function startWebhookReceiver(options: { credentialFile: string; onEvent:
     });
     request.on('end', async () => {
       if (over) return send(response, { status: 413, body: { error: `body over ${limit} bytes` } });
+      const raw = Buffer.concat(chunks);
+      const body = raw.toString('utf8');
       let parsed: unknown;
       try {
-        parsed = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+        parsed = JSON.parse(body);
       } catch {}
       if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return send(response, { status: 400, body: { error: 'body must be a JSON object' } });
       try {
-        send(response, await options.onEvent(parsed as Record<string, unknown>));
+        const headers: Record<string, string> = {};
+        for (const name of ['content-type', 'user-agent']) {
+          const value = request.headers[name];
+          if (typeof value === 'string') headers[name] = value;
+        }
+        const id = request.headers['x-automation-event-id'];
+        send(response, await options.onEvent(parsed as Record<string, unknown>, {
+          ...(typeof id === 'string' ? { eventId: id } : {}),
+          headers, body_digest: createHash('sha256').update(raw).digest('hex'), body, timestamp_ms: Date.now(),
+        }));
       } catch {
         send(response, { status: 503, body: { error: 'not durably accepted; retry later' } });
       }
