@@ -3947,6 +3947,9 @@
       "applicability": {
         "mandatory": true
       },
+      "platforms": [
+        "linux"
+      ],
       "verification": "tests/security/linux-readonly-*.test.ts (skipped off Linux)",
       "tests": [
         "sec.linux-sandbox",

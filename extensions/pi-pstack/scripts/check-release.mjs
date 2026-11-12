@@ -5,7 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { buildRecords, deriveStatus, loadInputs, requirementsDigest, sourceLabel } from './parity-lib.mjs';
+import { buildRecords, checkRuns, deriveStatus, loadInputs, mergeOutcomes, requirementsDigest, sourceDigest, sourceLabel } from './parity-lib.mjs';
 
 const { values } = parseArgs({ options: { root: { type: 'string' }, manifest: { type: 'string' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -25,9 +25,11 @@ else {
   const have = new Set(manifest.requirements.map((r) => r.id));
   for (const r of built.records) if (!have.has(r.id)) problems.push(`${r.id}: requirement missing from the manifest; rebuild it`);
   for (const r of manifest.requirements) {
+    for (const t of r.results ?? []) if (mergeOutcomes(r, t.byRun ?? []) !== t.outcome) problems.push(`${r.id}: ${t.file}::${t.name} is recorded as ${t.outcome} but its per-platform results merge to ${mergeOutcomes(r, t.byRun ?? [])}; the outcome was edited by hand`);
     const recomputed = deriveStatus(r, r.results ?? []);
     if (recomputed.status !== r.status) problems.push(`${r.id}: manifest says ${r.status} but its recorded test results derive ${recomputed.status}; the status was edited by hand`);
   }
+  problems.push(...checkRuns(manifest, sourceDigest(root)));
 }
 
 const open = (manifest?.requirements ?? []).filter((r) => r.applicability.mandatory && r.status !== 'PASS');
