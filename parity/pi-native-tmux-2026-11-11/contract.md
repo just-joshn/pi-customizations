@@ -74,6 +74,8 @@ Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/psta
 }
 ```
 
+Optional with defaults (applied by `parseAssignment` and written back before the claim, so the stored assignment is complete): `schemaVersion` 1, `kind` 'pi', `skills` [], `thinkingLevel` null, `capabilities` per role, readonly `workspace.path` and `watch.cwd` the project root. `generated/skills/poteto-mode/references/worker-assignment.md` holds one complete example per workspace mode and kind, and a test parses every example with the real parser.
+
 `role` selects a role instruction document from `generated/agents/<role>.md` (U03 produces `poteto.md` and `comment-sicko.md` from upstream agents; other roles use `general.md`).
 
 ## Tools (spec 8.4)
