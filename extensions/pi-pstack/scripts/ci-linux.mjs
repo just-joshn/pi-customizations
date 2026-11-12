@@ -16,7 +16,7 @@ const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url))
 const repo = values.repo ?? 'just-joshn/pstack-parity-sandbox';
 const out = resolve(root, values.out ?? 'parity-results/ci');
 const PACKAGE_DIR = 'extensions/pi-pstack';
-const EXCLUDE = /^(generated\/ci-results\/|node_modules\/)/;
+const EXCLUDE = /^(parity-results\/|node_modules\/)/;
 
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...options }).trim();
 const repoRoot = run('git', ['-C', root, 'rev-parse', '--show-toplevel']);
