@@ -13,5 +13,7 @@ status=0
 npx vitest run --reporter=dot >"$log" 2>&1 || status=$?
 tail -6 "$log"
 grep -E "FAIL|×" "$log" || true
+cp "$log" "${TMPDIR:-/tmp}/merge-gate-last.log"
 rm -f "$log"
+echo "full log: ${TMPDIR:-/tmp}/merge-gate-last.log"
 exit "$status"
