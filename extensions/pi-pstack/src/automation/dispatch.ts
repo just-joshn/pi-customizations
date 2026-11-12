@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { type SpawnOptions, spawnAssignment } from '../workers.ts';
 import { AUTOMATION_CAPABILITIES, AUTOMATION_KINDS, type AutomationEvent, type BennyAutomationKind, type Prerequisite, type Probe, type RunId, WORKER_ID } from './model.ts';
 import { createExclusive, json } from './store.ts';
 
@@ -19,6 +20,13 @@ export interface DispatchConfig {
 }
 
 export type SpawnWorker = (runId: RunId, assignmentPath: string) => Promise<void>;
+
+/** Starts an automation run's worker the way pstack_worker starts any worker, with Pi from PATH since no Pi session runs this process. */
+export const spawnInTmux =
+  (projectRoot: string, options: SpawnOptions = {}): SpawnWorker =>
+  async (runId, assignmentPath) => {
+    await spawnAssignment(projectRoot, runId, assignmentPath, { piCommand: ['pi'], ...options });
+  };
 
 /** A prerequisite is missing when no probe is configured, and uncertain when its probe throws or says no. */
 export async function missingPrerequisites(kind: BennyAutomationKind, probes: Partial<Record<Prerequisite, Probe>>): Promise<Prerequisite[]> {

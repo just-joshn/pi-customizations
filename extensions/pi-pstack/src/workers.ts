@@ -1,7 +1,9 @@
 // pstack_worker (spec 8.4, 9): spawn, inspect, steer, abort, and collect tmux-hosted Pi workers, plus the settle
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { execFile } from 'node:child_process';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
+import { promisify } from 'node:util';
 
 import { StringEnum } from '@earendil-works/pi-ai';
 import { findEnvKeys } from '@earendil-works/pi-ai/compat';
@@ -54,7 +56,13 @@ export interface ResolvedModel {
 }
 
 /** Turns an assignment's model spec into a concrete model. src/models.ts supplies the role-aware one. */
-export type ModelResolver = (request: { model: string; thinkingLevel: ThinkingLevel | null; role: WorkerRole }, ctx: ExtensionContext) => ResolvedModel | Promise<ResolvedModel>;
+export interface ModelRequest {
+  model: string;
+  thinkingLevel: ThinkingLevel | null;
+  role: WorkerRole;
+}
+
+export type ModelResolver = (request: ModelRequest, ctx: ExtensionContext) => ResolvedModel | Promise<ResolvedModel>;
 
 /** `<provider>/<id>` literally; `inherit-parent` takes the parent session's model and thinking level. */
 export const literalModelResolver: ModelResolver = ({ model, thinkingLevel }, ctx) => {
@@ -66,20 +74,9 @@ export const literalModelResolver: ModelResolver = ({ model, thinkingLevel }, ct
   return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
 };
 
-export interface WorkerToolOptions {
+export interface WorkerToolOptions extends Omit<SpawnOptions, 'resolveModel' | 'exec'> {
   resolveModel?: ModelResolver;
-  /** tmux server name for `tmux -L`; tests use a private one. */
-  tmuxSocket?: string;
-  /** How the host starts Pi; the first element must resolve to an absolute executable. Defaults to the running Pi. */
-  piCommand?: string[];
-  /** Appended to every worker's Pi argv, after the contract's arguments. */
-  extraPiArgs?: string[];
-  /** Added to every worker's environment. */
-  extraEnv?: Record<string, string>;
-  /** Folder with the role instruction documents (`<role>.md`, `general.md`). */
-  agentsDir?: string;
   pollMs?: number;
-  startupMs?: number;
 }
 
 export interface SpawnResult {
@@ -259,6 +256,128 @@ function listFiles(dir: string): string[] {
   return files.sort();
 }
 
+export type Exec = (command: string, args: string[], options: { timeout: number }) => Promise<{ stdout: string; stderr: string; code: number; killed: boolean }>;
+
+const execFileAsync = promisify(execFile);
+
+/** pi.exec's contract on plain Node, for callers without an ExtensionAPI. */
+export const nodeExec: Exec = async (command, args, options) => {
+  try {
+    const { stdout, stderr } = await execFileAsync(command, args, { timeout: options.timeout, encoding: 'utf8' });
+    return { stdout, stderr, code: 0, killed: false };
+  } catch (error) {
+    const failure = error as { stdout?: string; stderr?: string; code?: unknown; killed?: boolean };
+    return { stdout: failure.stdout ?? '', stderr: failure.stderr ?? String(error), code: typeof failure.code === 'number' ? failure.code : 1, killed: failure.killed === true };
+  }
+};
+
+export interface SpawnOptions {
+  /** The assignment's model; null runs Pi's configured default. Defaults to the literal `<provider>/<id>`, and Pi's default for `inherit-parent`, since a run without a parent session has no model to inherit. */
+  resolveModel?: (request: ModelRequest) => ResolvedModel | null | Promise<ResolvedModel | null>;
+  exec?: Exec;
+  /** tmux server name for `tmux -L`; tests use a private one. */
+  tmuxSocket?: string;
+  /** How the host starts Pi; the first element must resolve to an absolute executable. Defaults to the running Pi. */
+  piCommand?: string[];
+  /** Appended to every worker's Pi argv, after the contract's arguments. */
+  extraPiArgs?: string[];
+  /** Added to every worker's environment. */
+  extraEnv?: Record<string, string>;
+  /** Folder with the role instruction documents (`<role>.md`, `general.md`). */
+  agentsDir?: string;
+  startupMs?: number;
+}
+
+const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel | null => {
+  if (model === 'inherit-parent') return null;
+  const slash = model.indexOf('/');
+  return { provider: model.slice(0, slash), id: model.slice(slash + 1), thinkingLevel };
+};
+
+/**
+ * The one way a worker starts, for pstack_worker and for automation runs alike: claim the assignment, hand the host
+ * its launch environment, start it in tmux, wait for its handshake, and send the brief. The caller checks ownership.
+ */
+export async function spawnAssignment(project: string, runId: RunId, assignmentPath: string, options: SpawnOptions = {}): Promise<SpawnResult> {
+  const exec = options.exec ?? nodeExec;
+  const socket = options.tmuxSocket ?? 'pstack';
+  const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
+  const startupMs = options.startupMs ?? 30_000;
+  const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
+  const runRoot = runRootOf(realpathSync(project), runId);
+  const loaded = loadAssignment(assignmentPath);
+  const assignment: Assignment = loaded.assignment;
+  if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
+  if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  const session = tmuxSessionName(realpathSync(project), runId, assignment.workerId);
+  let model: ResolvedModel | null = null;
+  let roleDoc: string | null = null;
+  if (assignment.kind === 'pi') {
+    model = await (options.resolveModel ?? parentlessModel)({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role });
+    roleDoc = roleDocument(agentsDir, assignment.role);
+    readBrief(loaded.workerDir);
+    if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
+  } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
+  const command = options.piCommand ?? runningPiCommand();
+  const launch: HostLaunch = {
+    piCommand: [onPath(command[0] as string), ...command.slice(1)],
+    model: model === null ? null : { provider: model.provider, id: model.id },
+    thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
+    appendSystemPrompt: roleDoc,
+    tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
+    tmuxSession: session,
+    extraArgs: options.extraPiArgs ?? [],
+    credentialEnv: model === null ? [] : credentialEnv(model.provider),
+  };
+  // Values come from this process now, not from the tmux server, whose environment dates from when it started.
+  const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => (process.env[name] === undefined ? [] : [[name, process.env[name]]]))), ...options.extraEnv };
+  const claimDir = join(loaded.workerDir, 'claim');
+  try {
+    mkdirSync(claimDir, { mode: 0o700 });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
+    throw error;
+  }
+  const secrets = launchEnvPath(loaded.workerDir);
+  let started: Awaited<ReturnType<Exec>>;
+  try {
+    writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
+    started = await exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+      timeout: 10_000,
+    });
+    if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
+  } catch (error) {
+    // No host started, so nothing holds the claim.
+    rmSync(claimDir, { recursive: true, force: true });
+    throw error;
+  }
+  const tmuxIdentity = parseTmuxIdentity(started.stdout);
+  if (tmuxIdentity === undefined) throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
+  writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
+  appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
+
+  const target = hostTarget(loaded);
+  const deadline = Date.now() + startupMs;
+  let state: HostState | undefined;
+  try {
+    while (Date.now() < deadline) {
+      state = await inspectHost(target).catch(() => undefined);
+      if (state !== undefined && state.phase !== 'starting') break;
+      const written = readHostState(loaded.workerDir);
+      if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  } finally {
+    // The host unlinks it before starting Pi; a host that never got that far must not leave the values on disk.
+    rmSync(secrets, { force: true });
+  }
+  if (state === undefined || state.phase === 'starting') throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
+  // A watch command that already exited has produced its event; only a failure stops the spawn.
+  if (state.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
+  if (assignment.kind === 'pi') await controlHost(target, 'start');
+  return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+}
+
 const WorkerParams = Type.Object({
   action: StringEnum(['spawn', 'inspect', 'steer', 'abort', 'collect'] as const, {
     description: 'spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled.',
@@ -274,9 +393,7 @@ const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as
 export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions = {}): void {
   const resolveModel = options.resolveModel ?? literalModelResolver;
   const socket = options.tmuxSocket ?? 'pstack';
-  const agentsDir = options.agentsDir ?? join(PACKAGE_ROOT, 'generated', 'agents');
   const pollMs = options.pollMs ?? 1_000;
-  const startupMs = options.startupMs ?? 30_000;
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
@@ -286,8 +403,6 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   let current: { ctx: ExtensionContext; project: string } | undefined;
   let timer: NodeJS.Timeout | undefined;
   let polling: Promise<void> | undefined;
-
-  const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
 
   /** One pass; false when the branch changed while it waited on tmux, so its view is stale and nothing was sent. */
   const reconcile = async ({ ctx, project }: { ctx: ExtensionContext; project: string }): Promise<boolean> => {
@@ -380,81 +495,11 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
 
   const spawnWorker = async (ctx: ExtensionContext, rawRunId: string, assignmentPath: string | undefined): Promise<SpawnResult> => {
     if (assignmentPath === undefined) throw new Error('assignmentPath is required');
-    const { runId, project, runRoot, run } = runOf(ctx, rawRunId);
+    const { runId, project, run } = runOf(ctx, rawRunId);
     requireOwner(ctx, run, runId);
-    const loaded = loadAssignment(assignmentPath);
-    const assignment: Assignment = loaded.assignment;
-    if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
-    if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
-    const session = tmuxSessionName(project, runId, assignment.workerId);
-    let model: ResolvedModel | null = null;
-    let roleDoc: string | null = null;
-    if (assignment.kind === 'pi') {
-      model = await resolveModel({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role }, ctx);
-      roleDoc = roleDocument(agentsDir, assignment.role);
-      readBrief(loaded.workerDir);
-      if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
-    } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
-    const command = options.piCommand ?? runningPiCommand();
-    const launch: HostLaunch = {
-      piCommand: [onPath(command[0] as string), ...command.slice(1)],
-      model: model === null ? null : { provider: model.provider, id: model.id },
-      thinkingLevel: model?.thinkingLevel ?? null,
-      appendSystemPrompt: roleDoc,
-      tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
-      tmuxSession: session,
-      extraArgs: options.extraPiArgs ?? [],
-      credentialEnv: model === null ? [] : credentialEnv(model.provider),
-    };
-    // Values come from this process now, not from the tmux server, whose environment dates from when it started.
-    const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => (process.env[name] === undefined ? [] : [[name, process.env[name]]]))), ...options.extraEnv };
-    const claimDir = join(loaded.workerDir, 'claim');
-    try {
-      mkdirSync(claimDir, { mode: 0o700 });
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'EEXIST') throw new Error(`Worker ${assignment.workerId} is already claimed by a host; a second writer is forbidden. Spawn a fresh worker id instead.`);
-      throw error;
-    }
-    const secrets = launchEnvPath(loaded.workerDir);
-    let started: Awaited<ReturnType<ExtensionAPI['exec']>>;
-    try {
-      writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
-      started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
-        timeout: 10_000,
-      });
-      if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
-    } catch (error) {
-      // No host started, so nothing holds the claim.
-      rmSync(claimDir, { recursive: true, force: true });
-      throw error;
-    }
-    const tmuxIdentity = parseTmuxIdentity(started.stdout);
-    if (tmuxIdentity === undefined) throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
-    writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
-    appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
+    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec: (command, args, execOptions) => pi.exec(command, args, execOptions), resolveModel: (request) => resolveModel(request, ctx) });
     watch(ctx);
-
-    const target = hostTarget(loaded);
-    const deadline = Date.now() + startupMs;
-    let state: HostState | undefined;
-    try {
-      while (Date.now() < deadline) {
-        state = await inspectHost(target).catch(() => undefined);
-        if (state !== undefined && state.phase !== 'starting') break;
-        const written = readHostState(loaded.workerDir);
-        if (written?.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${written.reason}`);
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-    } finally {
-      // The host unlinks it before starting Pi; a host that never got that far must not leave the values on disk.
-      rmSync(secrets, { force: true });
-    }
-    if (state === undefined || state.phase === 'starting')
-      throw new Error(`Worker ${assignment.workerId} did not answer within ${startupMs} ms; it holds its claim, so inspect or abort it rather than respawning. Attach: ${attach(session)}`);
-    // A watch command that already exited has produced its event; only a failure stops the spawn.
-    if (state.phase === 'failed') throw new Error(`Worker ${assignment.workerId} failed to start: ${state.reason}`);
-    if (assignment.kind === 'pi') await controlHost(target, 'start');
-    return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
+    return result;
   };
 
   /**
