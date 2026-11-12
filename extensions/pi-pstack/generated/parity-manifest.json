@@ -6,9 +6,9 @@
   },
   "requirementsDigest": "017d0874001d1ed629d01b7529ac1016a8f38b9c985b1d15d348cad4bb791f0a",
   "run": {
-    "startedAt": "2026-11-12T08:06:27.092Z",
-    "generatedAt": "2026-11-12T08:07:11.794Z",
-    "commit": "0476d73d604be5d616554ac20dfe9a0a14a2445d",
+    "startedAt": "2026-11-12T08:07:42.051Z",
+    "generatedAt": "2026-11-12T08:08:27.185Z",
+    "commit": "bca9f67af47acd189ebe441f3554bfa7df205a85",
     "dirty": false,
     "resultsSource": "vitest run",
     "totalTests": 631,
