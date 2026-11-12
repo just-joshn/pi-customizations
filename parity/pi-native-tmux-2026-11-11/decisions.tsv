@@ -77,3 +77,7 @@ ts	phase	decision	why	evidence	result
 2026-11-12T07:47:01Z	source	Upstream cursor/plugins HEAD a5539b15 differs from pin 5866df55 only by pstack/.gitignore	pin must be current per mission 1.1	diff -rq vendor/upstream-pstack vs fresh clone	bump pin in U15
 2026-11-12T07:47:01Z	observe	parity-status.md readonly-shell row is stale; bash_readonly is registered for readonly workers	docs must match code	src/workers.ts:57,527	fix in U15
 2026-11-12T07:47:01Z	plan	Resume units: U13 container workers, U14 Benny completion, U15 parity manifest, U17 judge U12; then U16 workflow e2e, U18 mid-message skills, U19 gauntlet	spec 17 phases 06-09 open; container first because Shipping and Autopilot-full block on it	docs/parity-status.md Known gaps	open
+2026-11-12T07:51:03Z	operator	Reverted architecture.md line 3 to the spec's framing	operator chose revert; prior session changed it without asking	commit c5c3dbaa	done
+2026-11-12T07:51:03Z	operator	No Cursor-side differential runs; spec 16.3 rows stay INCONCLUSIVE with the reason	operator has no Cursor usage	AskQuestion answer	decided
+2026-11-12T07:51:03Z	operator	Workflow e2e: scripted model for every family plus one real run per family on deepseek-flash	operator choice	AskQuestion answer	decided
+2026-11-12T07:51:03Z	delegate	Launched U13 (sonnet-5-5 high), U14 and U15 (sonnet-5-5 medium), U17 judge (haiku-5-5 medium)	separate seams: workers/host/run-files, src/automation+benny pack, scripts+manifest+docs; judge is read-only	worktrees u10-container u08e-benny u15-manifest u12-judge at 0091593c	running
