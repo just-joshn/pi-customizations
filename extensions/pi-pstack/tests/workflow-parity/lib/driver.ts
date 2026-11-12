@@ -322,6 +322,39 @@ function workerPhases(repo: string, hold?: RegExp): string[] {
   });
 }
 
+const alive = (pid: number): boolean => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Killing the tmux server only hangs up the worker hosts, which then shut down on their own and rewrite their state, release their
+ * claim, and remove their container. The run's sandbox is final once they and their Pi children have exited, not when the kill returns
+ * (measured: all 8 of autopilot-stack's worker processes were still alive right after it, and a loaded runner takes longer).
+ */
+async function untilWorkersExit(repo: string): Promise<void> {
+  const runs = join(repo, '.pi', 'pstack', 'runs');
+  const pids = (existsSync(runs) ? readdirSync(runs) : []).flatMap((runId) => {
+    const workers = join(runs, runId, 'workers');
+    return (existsSync(workers) ? readdirSync(workers) : []).flatMap((id) => {
+      try {
+        const state = JSON.parse(readFileSync(join(workers, id, 'state.json'), 'utf8')) as Json;
+        return [state['hostPid'], state['childPid']].filter((pid): pid is number => typeof pid === 'number');
+      } catch {
+        return [];
+      }
+    });
+  });
+  const end = Date.now() + 30_000;
+  while (pids.some(alive) && Date.now() < end) await new Promise((resolve) => setTimeout(resolve, 50));
+  const left = pids.filter(alive);
+  if (left.length > 0) throw new Error(`worker processes ${left.join(', ')} outlived the tmux server for 30 s, so the sandbox is still changing`);
+}
+
 /** Everything a run writes while it works: worker phases, and the size of each worker's session and each run's event log. A model turn that is still going shows as a session that grows. */
 function runActivity(repo: string): string {
   const runs = join(repo, '.pi', 'pstack', 'runs');
@@ -564,6 +597,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
+  await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
   const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
