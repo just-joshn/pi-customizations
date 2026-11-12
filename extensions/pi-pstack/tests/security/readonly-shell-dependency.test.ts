@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { SandboxManager } from '@anthropic-ai/sandbox-runtime';
 import type { ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { createReadonlyBashTool, releaseReadonlySandbox } from '../src/readonly-shell.ts';
+import { createReadonlyBashTool, releaseReadonlySandbox } from '../../src/readonly-shell.ts';
 
 // Only macOS uses sandbox-runtime; Linux runs bubblewrap itself, and linux-readonly-sandbox-missing.test.ts covers its fail-closed path.
 test.skipIf(process.platform === 'linux')('missing Unix socket isolation prevents the readonly command from running', async () => {

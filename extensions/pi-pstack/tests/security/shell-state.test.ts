@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import type { ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { type BashOperations, createLocalBashOperations } from '@earendil-works/pi-coding-agent';
 import { test as base, describe, expect, onTestFinished, vi } from 'vitest';
-import { type BackgroundedCommand, createSessionShell, type MovedCommand, type SessionShell, sessionBashDefinition } from '../src/shell-state.ts';
+import { type BackgroundedCommand, createSessionShell, type MovedCommand, type SessionShell, sessionBashDefinition } from '../../src/shell-state.ts';
 
 interface Run {
   exitCode: number | null | string;

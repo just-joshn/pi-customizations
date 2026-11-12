@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, onTestFinished, test } from 'vitest';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const committed = join(root, 'dist/netbroker-s390x');
 const pinnedVersion = /ZIG_VERSION = '([^']+)'/.exec(readFileSync(join(root, 'scripts/build-netbroker.mjs'), 'utf8'))?.[1] ?? '';
 

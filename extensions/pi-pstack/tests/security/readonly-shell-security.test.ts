@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import type { ExtensionAPI, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { registerReadonlyShell } from '../src/readonly-shell.ts';
+import { registerReadonlyShell } from '../../src/readonly-shell.ts';
 
 // The real sandbox is the subject here (macOS/Linux only); these tests prove the enforcement the tool promises.
 const { supported, sharedWriteDir } = vi.hoisted(() => ({

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { brokeredSeccompFilter, seccompFilter } from '../src/seccomp-filter.ts';
+import { brokeredSeccompFilter, seccompFilter } from '../../src/seccomp-filter.ts';
 
 const ALLOW = 0x7fff_0000;
 const EPERM = 0x0005_0001;

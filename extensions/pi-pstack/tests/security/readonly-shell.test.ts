@@ -5,8 +5,8 @@ import { join } from 'node:path';
 
 import { createLocalBashOperations, type ExtensionAPI, type ExtensionToolContext, type ToolDefinition } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { createReadonlyBashTool, registerReadonlyShell, releaseReadonlySandbox } from '../src/readonly-shell.ts';
-import { createSessionShell, sessionBashDefinition } from '../src/shell-state.ts';
+import { createReadonlyBashTool, registerReadonlyShell, releaseReadonlySandbox } from '../../src/readonly-shell.ts';
+import { createSessionShell, sessionBashDefinition } from '../../src/shell-state.ts';
 
 function registeredBash(): ToolDefinition {
   const tools: ToolDefinition[] = [];
@@ -44,7 +44,7 @@ test('unsupported hosts fail closed without running a command', async () => {
   expect(existsSync(join(cwd, 'escaped.txt'))).toBe(false);
 });
 
-test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')("plan mode's read-only shell continues from bash's state and still denies writes", async () => {
+test.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('a read-only shell sharing a session shell continues from bash state and still denies writes', async () => {
   await releaseReadonlySandbox();
   onTestFinished(() => releaseReadonlySandbox());
   const cwd = realpathSync(mkdtempSync(join(tmpdir(), 'pi-pstack-ro-state-')));

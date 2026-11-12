@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import type { ExtensionToolContext } from '@earendil-works/pi-coding-agent';
 import { expect, onTestFinished, test, vi } from 'vitest';
-import { createReadonlyBashTool } from '../src/readonly-shell.ts';
+import { createReadonlyBashTool } from '../../src/readonly-shell.ts';
 
 // Its own file, because the sandbox check runs once per process and keeps its outcome.
 test.skipIf(process.platform !== 'linux')('without bubblewrap the readonly command fails closed and never runs', async () => {

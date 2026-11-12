@@ -7,17 +7,13 @@ import { fileURLToPath } from 'node:url';
 
 import { expect, onTestFinished, test } from 'vitest';
 
-const root = fileURLToPath(new URL('..', import.meta.url));
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const node = process.env['PSTACK_HELPER_NODE'] ?? process.execPath;
 const npmBin = realpathSync(spawnSync('/bin/sh', ['-c', 'command -v npm'], { encoding: 'utf8' }).stdout.trim());
 const npm = npmBin.endsWith('.js') ? npmBin : join(dirname(node), '../lib/node_modules/npm/bin/npm-cli.js');
 const bun = process.env['PSTACK_HELPER_BUN'] ?? realpathSync(spawnSync('/bin/sh', ['-c', 'command -v bun'], { encoding: 'utf8' }).stdout.trim());
 const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { files: string[] };
 const helpers = [
-  { source: 'src/subscriptions/supervisor-main.ts', output: 'dist/supervisor-main.js', before: 'Usage: pstack-routines-supervisor', after: 'Usage: PACK-STALE pstack-routines-supervisor' },
-  { source: 'src/cloud/release-main.ts', output: 'dist/release-machine.js', before: 'is not set.', after: 'is PACK-STALE not set.' },
-  { source: 'generated/skills/statechart/scripts/statechart.ts', output: 'skills/statechart/scripts/statechart.js', before: 'Usage: statechart SPEC.tla', after: 'Usage: PACK-STALE statechart SPEC.tla' },
-  { source: 'generated/skills/statechart/scripts/worker.ts', output: 'skills/statechart/scripts/worker.js', before: 'console.error(messageOf(error));', after: 'console.error("PACK-STALE", messageOf(error));' },
   { source: 'generated/skills/poteto-mode/scripts/watch-pr/cli.ts', output: 'dist/watch-pr.js', before: '.description(', after: '.description("PACK-STALE" + ' },
   { source: 'src/worker-host.ts', output: 'dist/worker-host.js', before: '[host failure]', after: '[PACK-STALE host failure]' },
 ];

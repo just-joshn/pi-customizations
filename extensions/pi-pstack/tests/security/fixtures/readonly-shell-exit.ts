@@ -1,5 +1,5 @@
 import type { ExtensionAPI, ExtensionToolContext, ToolDefinition } from '@earendil-works/pi-coding-agent';
-import { registerReadonlyShell } from '../../src/readonly-shell.ts';
+import { registerReadonlyShell } from '../../../src/readonly-shell.ts';
 
 const tools: ToolDefinition[] = [];
 const shutdown: (() => Promise<void>)[] = [];
