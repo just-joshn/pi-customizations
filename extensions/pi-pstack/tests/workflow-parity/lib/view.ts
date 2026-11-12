@@ -231,17 +231,23 @@ function gitRaw(repo: string, ...args: string[]): string {
 
 const git = (repo: string, ...args: string[]): string => gitRaw(repo, ...args).trim();
 
+/** What Pi 1.5.0 records for a turn the parent aborted while the next provider call was starting: stopReason "error", where 1.5.2 records "aborted". */
+const ABORT_ERROR = 'This operation was aborted';
+
 function loadWorker(dir: string, id: string): WorkerView {
   const sessionDir = join(dir, 'session');
   const files = existsSync(sessionDir) ? readdirSync(sessionDir).filter((file) => file.endsWith('.jsonl')) : [];
-  const session = files.length === 0 ? null : loadSession(join(sessionDir, files[0] as string));
+  const state = readJson(join(dir, 'state.json'));
+  const loaded = files.length === 0 ? null : loadSession(join(sessionDir, files[0] as string));
+  const settles = Array.isArray(state?.['settles']) ? (state['settles'] as Json[]) : [];
+  const session = loaded !== null && settles.some((settle) => settle['phase'] === 'aborted') ? { ...loaded, errors: loaded.errors.filter((error) => error !== ABORT_ERROR) } : loaded;
   const evidenceDir = join(dir, 'evidence');
   return {
     id,
     dir,
     assignment: readJson(join(dir, 'assignment.json')) ?? {},
     brief: existsSync(join(dir, 'brief.md')) ? readFileSync(join(dir, 'brief.md'), 'utf8') : null,
-    state: readJson(join(dir, 'state.json')),
+    state,
     report: existsSync(join(dir, 'report.md')) ? readFileSync(join(dir, 'report.md'), 'utf8') : null,
     session,
     worktree: existsSync(join(dir, 'worktree')) ? join(dir, 'worktree') : null,
