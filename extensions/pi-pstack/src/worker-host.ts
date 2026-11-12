@@ -3,13 +3,27 @@
 // state.json current. It never reasons about the work. Runs under plain Node: node: builtins and run-files.ts only.
 import { type ChildProcess, spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { chmodSync, existsSync, lstatSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { createServer, type Server, type Socket } from 'node:net';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { createInterface, type Interface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-import { appendEvent, controlSocketPath, type HostPhase, type HostState, isTerminal, type LoadedAssignment, loadAssignment, MAX_SETTLES, type SettlePhase, THINKING_LEVELS, type ThinkingLevel, writeJsonAtomic } from './run-files.ts';
+import {
+  appendEvent,
+  controlSocketPath,
+  type HostPhase,
+  type HostState,
+  isTerminal,
+  type LoadedAssignment,
+  loadAssignment,
+  MAX_SETTLES,
+  readBrief,
+  type SettlePhase,
+  THINKING_LEVELS,
+  type ThinkingLevel,
+  writeJsonAtomic,
+} from './run-files.ts';
 
 export const MAX_CONTROL_BYTES = 65_536;
 export const MAX_INSTRUCTION_BYTES = 32_768;
@@ -398,7 +412,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       event('control', { operation });
       if (operation === 'start') {
         if (briefSent) throw new Error('Brief already sent; request not replayed');
-        const brief = readFileSync(resolve(workerDir, assignment.brief ?? 'brief.md'));
+        const brief = readBrief(workerDir);
         if (brief.length === 0 || brief.length > MAX_BRIEF_BYTES) throw new Error(`Brief must contain 1 to ${MAX_BRIEF_BYTES} bytes`);
         const result = await request('prompt', { message: brief.toString('utf8') });
         briefSent = true;

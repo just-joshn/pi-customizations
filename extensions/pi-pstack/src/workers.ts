@@ -21,6 +21,7 @@ import {
   parseWorkerId,
   projectRoot,
   type RunId,
+  readBrief,
   readClaim,
   readHostState,
   readRun,
@@ -359,7 +360,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     if (assignment.kind === 'pi') {
       model = await resolveModel({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role }, ctx);
       roleDoc = roleDocument(agentsDir, assignment.role);
-      if (!existsSync(join(loaded.workerDir, assignment.brief))) throw new Error(`Brief ${assignment.brief} is missing in ${loaded.workerDir}`);
+      readBrief(loaded.workerDir);
       if (assignment.workspace.mode === 'worktree') await ensureWorktree(pi, project, loaded, assignment.workspace.inputCommit);
       else if (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
     } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);

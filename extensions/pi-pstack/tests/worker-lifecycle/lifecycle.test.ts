@@ -259,7 +259,20 @@ describe('pstack_worker boundary validation', () => {
 
   test('rejects a brief path outside the worker directory', async () => {
     const path = writeAssignment(project, 'run1', 'w1', '@@say X', { brief: '../../run.json' });
-    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief must be a relative path/);
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief must be 'brief.md'/);
+  });
+
+  test('rejects a brief.md that is a symlink, and never sends its target', async () => {
+    const path = writeAssignment(project, 'run1', 'w1', 'unused');
+    const secret = join(project.home, 'secret.md');
+    writeFileSync(secret, '@@say SECRET-OUTSIDE-THE-WORKER');
+    const { rmSync, symlinkSync } = await import('node:fs');
+    rmSync(join(workerDir(project, 'run1', 'w1'), 'brief.md'));
+    symlinkSync(secret, join(workerDir(project, 'run1', 'w1'), 'brief.md'));
+    await expect(parent.call('pstack_worker', { action: 'spawn', runId: 'run1', assignmentPath: path })).rejects.toThrow(/brief\.md must be a regular file/);
+    await sleep(1_000);
+    const session = join(workerDir(project, 'run1', 'w1'), 'session');
+    expect(existsSync(session) ? transcript(project, 'run1', 'w1') : []).not.toContain('assistant:SECRET-OUTSIDE-THE-WORKER');
   });
 
   test('rejects an assignment reached through a symlinked worker directory', async () => {

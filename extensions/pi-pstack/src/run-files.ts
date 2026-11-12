@@ -2,7 +2,7 @@
 // The host runs under plain Node, so this module imports nothing outside node: builtins.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { appendFileSync, existsSync, lstatSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
+import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
 export type RunId = string & { readonly __brand: 'RunId' };
@@ -119,6 +119,7 @@ interface AssignmentBase {
 }
 export type Assignment = (AssignmentBase & { kind: 'pi'; brief: string }) | (AssignmentBase & { kind: 'watch'; brief?: string; watch: { argv: string[]; cwd: string } });
 
+const BRIEF = 'brief.md';
 const MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 const COMMIT = /^[0-9a-f]{7,64}$/;
 
@@ -149,8 +150,7 @@ export function parseAssignment(raw: unknown): Assignment {
   const skills = raw['skills'];
   if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string' || skill.length === 0)) throw new Error('Assignment skills must be an array of skill names');
   const brief = raw['brief'];
-  if (brief !== undefined && (typeof brief !== 'string' || isAbsolute(brief) || brief.split(/[\\/]/).some((part) => part === '..' || part === '') || brief.includes('\0')))
-    throw new Error('Assignment brief must be a relative path inside the worker directory');
+  if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
   const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[] };
   if (kind === 'pi') {
     if (raw['watch'] !== undefined) throw new Error("Assignment watch is only for kind 'watch'");
@@ -164,6 +164,28 @@ export function parseAssignment(raw: unknown): Assignment {
   const cwd = watch['cwd'];
   if (typeof cwd !== 'string' || !isAbsolute(cwd)) throw new Error('Assignment watch.cwd must be absolute');
   return { ...base, kind, ...(typeof brief === 'string' ? { brief } : {}), watch: { argv: argv as string[], cwd } };
+}
+
+/**
+ * The worker's brief, `<workerDir>/brief.md`: a regular file, not a symlink or a second name for a file elsewhere.
+ * `workerDir` must be canonical, as loadAssignment guarantees.
+ */
+export function readBrief(workerDir: string): Buffer {
+  const path = join(workerDir, BRIEF);
+  let fd: number;
+  try {
+    fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ELOOP') throw new Error(`${path} must be a regular file, not a symlink`);
+    throw error;
+  }
+  try {
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync(path) !== path) throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
+    return readFileSync(fd);
+  } finally {
+    closeSync(fd);
+  }
 }
 
 export interface LoadedAssignment {
