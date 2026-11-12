@@ -221,3 +221,5 @@ export async function main(
   runtime.stdout(render(verdict));
   return verdict.exitCode;
 }
+
+if (import.meta.main) process.exitCode = await main(process.argv.slice(2));

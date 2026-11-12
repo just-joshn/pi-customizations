@@ -1,6 +1,7 @@
-#!/usr/bin/env bun
-import { ensureDependenciesInstalled } from "../bootstrap.ts";
-
-ensureDependenciesInstalled();
-const { main } = await import("./cli.ts");
-process.exitCode = await main(process.argv.slice(2));
+#!/usr/bin/env node
+if (process.versions.bun) {
+  const { main } = await import("./cli.ts");
+  process.exitCode = await main(process.argv.slice(2));
+} else {
+  await import("../../../../../dist/watch-pr.js");
+}

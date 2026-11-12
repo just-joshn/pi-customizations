@@ -44,6 +44,11 @@ test('publishes bundled tools without locally installed script dependencies', as
   expect(paths).toEqual(
     expect.arrayContaining([
       'src/index.ts',
+      'generated/skills/statechart/scripts/statechart.ts',
+      'generated/skills/poteto-mode/scripts/watch-pr/cli.ts',
+      'dist/helpers.json',
+      'dist/watch-pr.js',
+      'dist/worker-host.js',
       'src/inbox.ts',
       'bin/pstack-routines-supervisor',
       'skills/statechart/scripts/statechart',

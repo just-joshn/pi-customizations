@@ -1,11 +1,11 @@
-// skills/statechart/scripts/worker.ts
+// generated/skills/statechart/scripts/worker.ts
 import { Buffer as Buffer2 } from "node:buffer";
 import fs2 from "node:fs";
 import path2 from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspect as inspect2 } from "node:util";
 
-// skills/statechart/scripts/ir.ts
+// generated/skills/statechart/scripts/ir.ts
 var EC = {
   TLC_INVARIANT_VIOLATED_INITIAL: 2107,
   TLC_PROPERTY_VIOLATED_INITIAL: 2108,
@@ -315,7 +315,7 @@ var stateRules = (spec) => {
   return rules;
 };
 
-// skills/statechart/scripts/frontends/view.ts
+// generated/skills/statechart/scripts/frontends/view.ts
 var projected = new WeakMap;
 var json = (v) => {
   if (typeof v !== "object")
@@ -419,7 +419,7 @@ function checkView(view, inspect) {
   };
 }
 
-// skills/statechart/scripts/backends/mermaid.ts
+// generated/skills/statechart/scripts/backends/mermaid.ts
 var BLANK = /\p{White_Space}/u;
 var SAFE = /^[\p{L}\p{N} !'()+,\-./=?[\]"_|@{}:\\^%<>]$/u;
 var HAZARD = /:(?=:|$|\S*#)|\\(?=n)|%(?=%)|<(?=[\p{L}/!?])|_(?![\p{L}\p{N}])|(?<![\p{L}\p{N}])_/giu;
@@ -629,7 +629,7 @@ function mermaidLines(chart) {
   return lines;
 }
 
-// skills/statechart/scripts/backends/plain-text.ts
+// generated/skills/statechart/scripts/backends/plain-text.ts
 var PREFIX = {
   [LEVEL.ERROR]: "Error: ",
   [LEVEL.TLCBUG]: "TLC Bug: ",
@@ -699,7 +699,7 @@ function* plainText(parts) {
     yield chunk;
 }
 
-// skills/statechart/scripts/backends/report.ts
+// generated/skills/statechart/scripts/backends/report.ts
 var stepsOf = (story) => {
   const path = [];
   for (const { step, state } of story) {
@@ -819,7 +819,7 @@ function report({
 `);
 }
 
-// skills/statechart/scripts/passes/label.ts
+// generated/skills/statechart/scripts/passes/label.ts
 var isLabel = (l) => typeof l === "string" && l !== "" && !/\bundefined\b|\bNaN\b|\[object Object\]/.test(l);
 var shapeOf = (shape, vars) => {
   function fail() {
@@ -1039,7 +1039,7 @@ function tell(states, found, shapeAt, labelAt) {
 }
 var storiesOf = (graph, found, { index }, { shapes, drawnLabels, pathStepIndex }) => tell(graph.states, found, (id) => shapes[must(index, id)], (bug, k) => drawnLabels[must(pathStepIndex, bug.path[k].step)]);
 
-// skills/statechart/scripts/passes/lift.ts
+// generated/skills/statechart/scripts/passes/lift.ts
 function liftToParents(states, steps) {
   const depths = new Map;
   const leaves = new Map;
@@ -1127,7 +1127,7 @@ function lift(chart) {
   return { ...chart, regions };
 }
 
-// skills/statechart/scripts/passes/loop-check.ts
+// generated/skills/statechart/scripts/passes/loop-check.ts
 function loopCheck({ regions, loops }, { names, keys, drawnLabels, sorted }, { index, from, to }, found) {
   const R = names.length;
   const combo = (i) => {
@@ -1185,7 +1185,7 @@ function loopCheck({ regions, loops }, { names, keys, drawnLabels, sorted }, { i
   }
 }
 
-// skills/statechart/scripts/passes/reach.ts
+// generated/skills/statechart/scripts/passes/reach.ts
 function walk(graph) {
   const ids = [];
   const states = [];
@@ -1320,7 +1320,7 @@ function bugs(graph, { ids, from, via, reached } = walk(graph)) {
   return found;
 }
 
-// skills/statechart/scripts/passes/region-check.ts
+// generated/skills/statechart/scripts/passes/region-check.ts
 function regionsLie(regions, { names, keys, sorted, drawnLabels, together }, { from, to, starts }, order) {
   if (names.length < 2)
     return;
@@ -1414,7 +1414,7 @@ function regionsLie(regions, { names, keys, sorted, drawnLabels, together }, { f
   return;
 }
 
-// skills/statechart/scripts/passes/regions.ts
+// generated/skills/statechart/scripts/passes/regions.ts
 var anyRest = { kind: "and", otherKeys: [] };
 function drawRegions({ states: tla, index, from, to }, { names, shapes, drawnLabels, group, keys, kinds, sizes, sorted, pathSteps, notes }, order, found, view) {
   const n = shapes.length;
@@ -1705,7 +1705,7 @@ function drawRegions({ states: tla, index, from, to }, { names, shapes, drawnLab
   };
 }
 
-// skills/statechart/scripts/pipeline.ts
+// generated/skills/statechart/scripts/pipeline.ts
 function* inParts(lines) {
   let start = 0;
   let size = 0;
@@ -1760,7 +1760,7 @@ function compile(result, view) {
   return { report: text, files, exit: result.exit };
 }
 
-// skills/statechart/scripts/run.ts
+// generated/skills/statechart/scripts/run.ts
 import { Buffer } from "node:buffer";
 import { execFile, spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -1769,7 +1769,7 @@ import os from "node:os";
 import path from "node:path";
 import { inspect } from "node:util";
 
-// skills/statechart/scripts/backends/cfg.ts
+// generated/skills/statechart/scripts/backends/cfg.ts
 function configText(sections, extra) {
   const lines = [];
   for (const s of sections)
@@ -1804,7 +1804,7 @@ function chartRun({ module, variables, invariants }, tag) {
 `);
 }
 
-// skills/statechart/scripts/frontends/config.ts
+// generated/skills/statechart/scripts/frontends/config.ts
 var isListField = (field) => field === "invariants" || field === "properties" || field === "constraints" || field === "actionConstraints";
 var SECTIONS = new Map;
 for (const section of [
@@ -2056,7 +2056,7 @@ function readConfig({ file, text }) {
   return config;
 }
 
-// skills/statechart/scripts/frontends/value.ts
+// generated/skills/statechart/scripts/frontends/value.ts
 var BRACKET = new Int8Array(128);
 for (const c of "<{[(")
   BRACKET[c.charCodeAt(0)] = 1;
@@ -2240,7 +2240,7 @@ function parseValue(text) {
   return out;
 }
 
-// skills/statechart/scripts/frontends/dot.ts
+// generated/skills/statechart/scripts/frontends/dot.ts
 var unescapeDot = (s) => {
   let i = s.indexOf("\\");
   if (i === -1)
@@ -2313,7 +2313,7 @@ function parseDot(input) {
   return { states, steps: [...steps.values()] };
 }
 
-// skills/statechart/scripts/frontends/messages.ts
+// generated/skills/statechart/scripts/frontends/messages.ts
 var START = /@!@!@STARTMSG (\d+):(\d+) @!@!@$/;
 var END = /^@!@!@ENDMSG \d+ @!@!@$/;
 var isCutMarker = (lastLine) => lastLine.startsWith("@!@!@");
@@ -2367,7 +2367,7 @@ var messageState = (m) => {
 `));
 };
 
-// skills/statechart/scripts/frontends/marks.ts
+// generated/skills/statechart/scripts/frontends/marks.ts
 var markTexts = (chunk, top, inner) => {
   if (top.length !== 2)
     return;
@@ -2471,7 +2471,7 @@ function readCounterexample(messages) {
   return trace;
 }
 
-// skills/statechart/scripts/frontends/spec.ts
+// generated/skills/statechart/scripts/frontends/spec.ts
 function readChecks({ configFile, config }) {
   const refuse = (words) => new Error(`TLC refuses the config ${configFile}. ${words}`);
   if (config.spec && (config.init || config.next))
@@ -2564,7 +2564,7 @@ function initialOnlyProperties({ definitions }, { written, properties }) {
   return names;
 }
 
-// skills/statechart/scripts/frontends/trace.ts
+// generated/skills/statechart/scripts/frontends/trace.ts
 function readTrace(messages) {
   const seq = [];
   for (const m of messages) {
@@ -2587,7 +2587,7 @@ function readTrace(messages) {
   return { seq, loop: undefined };
 }
 
-// skills/statechart/scripts/frontends/verdict.ts
+// generated/skills/statechart/scripts/frontends/verdict.ts
 var NAMED = new Map([
   [EC.TLC_INVARIANT_VIOLATED_INITIAL, ["invariant", /^Invariant (.+) is violated by the initial/]],
   [EC.TLC_INVARIANT_VIOLATED_BEHAVIOR, ["invariant", /^Invariant (.+) is violated\.$/m]],
@@ -2625,7 +2625,7 @@ function readVerdict(messages) {
   return { broke, distinct, initial };
 }
 
-// skills/statechart/scripts/passes/annotate.ts
+// generated/skills/statechart/scripts/passes/annotate.ts
 var finder = (graph, names) => {
   let ids;
   const find = (values) => {
@@ -2728,7 +2728,7 @@ function lasso(graph, trace, names, find = finder(graph, names)) {
   };
 }
 
-// skills/statechart/scripts/passes/paths.ts
+// generated/skills/statechart/scripts/passes/paths.ts
 function pathGraph(names) {
   const graph = { states: new Map, steps: [] };
   const ids = new Map;
@@ -2778,7 +2778,7 @@ function pathGraph(names) {
   };
 }
 
-// skills/statechart/scripts/run.ts
+// generated/skills/statechart/scripts/run.ts
 function* fileLines(file) {
   const fd = fs.openSync(file, "r");
   try {
@@ -3184,7 +3184,7 @@ ${stopOf(r).message}`);
   }
 }
 
-// skills/statechart/scripts/worker.ts
+// generated/skills/statechart/scripts/worker.ts
 var [stage, specFile, configFile, viewFile] = process.argv.slice(2);
 try {
   const view = checkView(viewFile ? await import(pathToFileURL(path2.resolve(viewFile)).href) : {}, inspect2);

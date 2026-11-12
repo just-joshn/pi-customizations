@@ -69,9 +69,8 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Transcripts dir: the Pi session folder for the repository, ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slugified-repo-path>--.
-slug=$(printf '%s' "$main_wt" | sed 's#^/##; s#/#-#g')
-transcripts="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--"
+# Pi sessions are grouped by cwd, including each worktree cwd. Search all groups for references to the candidate.
+transcripts="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions"
 now=$(date +%s)
 
 echo "# base: $base"

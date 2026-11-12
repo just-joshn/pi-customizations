@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 163,
-    "spans": 227
+    "rules": 169,
+    "spans": 233
   },
   "skills": [
     "architect",
@@ -76,6 +76,60 @@
     "why"
   ],
   "rules": [
+    {
+      "id": "statechart.bundled-worker",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/statechart.ts": 1
+      }
+    },
+    {
+      "id": "statechart.preinstalled-renderers",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts": 1
+      }
+    },
+    {
+      "id": "statechart.no-renderer-child-process",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts": 1
+      }
+    },
+    {
+      "id": "statechart.no-renderer-cache-home",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts": 1
+      }
+    },
+    {
+      "id": "watch-pr.installed-launcher",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/watch-pr/watch-pr": 1
+      }
+    },
+    {
+      "id": "watch-pr.bundle-entry",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/watch-pr/cli.ts": 1
+      }
+    },
     {
       "id": "shared.task-tool-rejects",
       "primitives": [
@@ -4228,6 +4282,36 @@
       "output": "generated/skills/poteto-mode/scripts/check-plan.test.ts"
     },
     {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/watch-pr/cli.ts",
+      "rule": "watch-pr.bundle-entry",
+      "offset": [
+        6919,
+        6982
+      ],
+      "lines": [
+        221,
+        223
+      ],
+      "original": "  runtime.stdout(render(verdict));\n  return verdict.exitCode;\n}",
+      "replacement": "  runtime.stdout(render(verdict));\n  return verdict.exitCode;\n}\n\nif (import.meta.main) process.exitCode = await main(process.argv.slice(2));",
+      "output": "generated/skills/poteto-mode/scripts/watch-pr/cli.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/watch-pr/watch-pr",
+      "rule": "watch-pr.installed-launcher",
+      "offset": [
+        0,
+        210
+      ],
+      "lines": [
+        1,
+        6
+      ],
+      "original": "#!/usr/bin/env bun\nimport { ensureDependenciesInstalled } from \"../bootstrap.ts\";\n\nensureDependenciesInstalled();\nconst { main } = await import(\"./cli.ts\");\nprocess.exitCode = await main(process.argv.slice(2));",
+      "replacement": "#!/usr/bin/env node\nif (process.versions.bun) {\n  const { main } = await import(\"./cli.ts\");\n  process.exitCode = await main(process.argv.slice(2));\n} else {\n  await import(\"../../../../../dist/watch-pr.js\");\n}",
+      "output": "generated/skills/poteto-mode/scripts/watch-pr/watch-pr"
+    },
+    {
       "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh",
       "rule": "worktree-audit.transcripts",
       "offset": [
@@ -4239,7 +4323,7 @@
         74
       ],
       "original": "# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"$HOME/.cursor/projects/$slug/agent-transcripts\"",
-      "replacement": "# Transcripts dir: the Pi session folder for the repository, ${PI_CODING_AGENT_DIR:-~/.pi/agent}/sessions/--<slugified-repo-path>--.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions/--$slug--\"",
+      "replacement": "# Pi sessions are grouped by cwd, including each worktree cwd. Search all groups for references to the candidate.\ntranscripts=\"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}/sessions\"",
       "output": "generated/skills/poteto-mode/scripts/worktree-audit.sh"
     },
     {
@@ -4826,6 +4910,66 @@
       "original": "`~/.cursor/projects/*/`",
       "replacement": "`~/.pi/agent/sessions/*/`",
       "output": "generated/skills/show-me-your-work/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/statechart.ts",
+      "rule": "statechart.bundled-worker",
+      "offset": [
+        3976,
+        4020
+      ],
+      "lines": [
+        104,
+        104
+      ],
+      "original": "path.join(import.meta.dirname, \"worker.ts\"),",
+      "replacement": "path.join(import.meta.dirname, import.meta.url.endsWith(\".js\") ? \"worker.js\" : \"worker.ts\"),",
+      "output": "generated/skills/statechart/scripts/statechart.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts",
+      "rule": "statechart.no-renderer-child-process",
+      "offset": [
+        41,
+        92
+      ],
+      "lines": [
+        2,
+        2
+      ],
+      "original": "import { execFileSync } from \"node:child_process\";\n",
+      "replacement": "",
+      "output": "generated/skills/statechart/scripts/test/render.test.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts",
+      "rule": "statechart.no-renderer-cache-home",
+      "offset": [
+        163,
+        189
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "import os from \"node:os\";\n",
+      "replacement": "",
+      "output": "generated/skills/statechart/scripts/test/render.test.ts"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/statechart/scripts/test/render.test.ts",
+      "rule": "statechart.preinstalled-renderers",
+      "offset": [
+        907,
+        1339
+      ],
+      "lines": [
+        21,
+        33
+      ],
+      "original": "const cache = path.join(\n  process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), \".cache\"),\n  \"statechart\",\n);\nconst install = (name: string, ...packages: string[]) => {\n  const dir = path.join(cache, name);\n  execFileSync(\n    \"npm\",\n    [\"install\", \"--prefix\", dir, \"--no-audit\", \"--no-fund\", \"--save-exact\", ...packages],\n    { stdio: [\"ignore\", \"pipe\", \"pipe\"] },\n  );\n  return createRequire(path.join(dir, \"package.json\"));\n};\n",
+      "replacement": "const install = (_name: string, ..._packages: string[]) => createRequire(import.meta.url);\n",
+      "output": "generated/skills/statechart/scripts/test/render.test.ts"
     },
     {
       "file": "vendor/upstream-pstack/skills/swarm/SKILL.md",
