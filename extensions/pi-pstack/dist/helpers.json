@@ -1,9 +1,9 @@
 {
-  "inputs": "3aafbe2cbd7ddec7bae28271aae957cdb6a94cbf3b65e981411ef0102b1ff78d",
+  "inputs": "ef1ff23582fae4120d85ee0294ea0894bd672b435d9ac2653a556a6cb63a99df",
   "outputs": {
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
-    "dist/worker-host.js": "9f92ab51da5e890592853fcf727cb96c4b7aa601797ce7b9f1a229911740e9ce",
-    "dist/routine-setup.js": "e44c47350349d059b8bf3ce4d35bd6bdcecb1f059a3a8770d4155c3698cf0892",
-    "dist/automation-serve.js": "3d0c49cd26734708fc880913e592fbbcda19a4125cba4b448616938f03eebe89"
+    "dist/worker-host.js": "058635069bcbea71d5793a1e1dc042dca2167986ddec62bd08ef0f8bb9123d37",
+    "dist/routine-setup.js": "8b290628aa39a98b3d8aac97ca983ed646950ba2fab81b4e81e6367ce56051dd",
+    "dist/automation-serve.js": "b884b51f029a56b0d14603dcff2533a0209bbc8d8e525ec711393ea07fbdd40a"
   }
 }

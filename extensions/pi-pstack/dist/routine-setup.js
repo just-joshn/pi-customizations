@@ -8,7 +8,7 @@ import { fileURLToPath as fileURLToPath3 } from "node:url";
 import { parseArgs } from "node:util";
 
 // src/automation/routine.ts
-import { execFileSync as execFileSync2 } from "node:child_process";
+import { execFileSync as execFileSync3 } from "node:child_process";
 import { createHash as createHash4 } from "node:crypto";
 import { existsSync as existsSync6, readdirSync as readdirSync3 } from "node:fs";
 import { join as join8 } from "node:path";
@@ -33,6 +33,7 @@ import { Type } from "typebox";
 import { Value } from "typebox/value";
 
 // src/run-files.ts
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
@@ -222,6 +223,21 @@ function readHostState(workerDir) {
     throw new Error(`${path}: malformed host state`);
   return raw;
 }
+function processStartTime(pid) {
+  if (process.platform === "linux") {
+    try {
+      const stat = readFileSync(`/proc/${pid}/stat`, "utf8");
+      return stat.slice(stat.lastIndexOf(")") + 2).split(" ")[19];
+    } catch {
+      return;
+    }
+  }
+  try {
+    return execFileSync("/bin/ps", ["-o", "lstart=", "-p", String(pid)], { encoding: "utf8", env: { LC_ALL: "C", TZ: "UTC" }, stdio: ["ignore", "pipe", "ignore"], timeout: 5000 }).trim() || undefined;
+  } catch {
+    return;
+  }
+}
 var launchEnvPath = (workerDir) => join(workerDir, "claim", "launch-env.json");
 var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
 var tmuxIdentityPath = (workerDir) => join(workerDir, "claim", "tmux.json");
@@ -234,7 +250,7 @@ function readClaim(workerDir) {
   if (!existsSync(path))
     return;
   const raw = readJson(path);
-  if (!isRecord(raw) || typeof raw["instance"] !== "string")
+  if (!isRecord(raw) || typeof raw["instance"] !== "string" || typeof raw["hostStarted"] !== "string")
     throw new Error(`${path}: malformed claim`);
   return raw;
 }
@@ -316,7 +332,7 @@ import { randomUUID as randomUUID2 } from "node:crypto";
 import { connect } from "node:net";
 
 // src/worker-host.ts
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { chmodSync, closeSync as closeSync2, constants as constants2, existsSync as existsSync3, fstatSync as fstatSync2, lstatSync as lstatSync2, mkdirSync, openSync as openSync2, readFileSync as readFileSync2, unlinkSync, writeFileSync as writeFileSync2 } from "node:fs";
 import { createServer } from "node:net";
@@ -443,7 +459,11 @@ function piArgs(loaded, launch) {
   ];
 }
 function claim(loaded, instance) {
-  writeFileSync2(join3(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}
+  const hostStarted = processStartTime(process.pid);
+  if (hostStarted === undefined)
+    throw new Error(`Cannot read the start time of this host process ${process.pid}`);
+  const identity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
+  writeFileSync2(join3(loaded.workerDir, "claim", "identity.json"), `${JSON.stringify(identity)}
 `, { mode: 384, flag: "wx" });
 }
 function prepareWorktree(loaded, inputCommit) {
@@ -453,7 +473,7 @@ function prepareWorktree(loaded, inputCommit) {
     throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
   const path = join3(loaded.workerDir, "worktree");
   const branch = `pstack-run/${runId}/${workerId}`;
-  const git = (...args) => execFileSync("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
+  const git = (...args) => execFileSync2("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
   if (lstatSync2(path, { throwIfNoEntry: false }) !== undefined)
     throw new Error(`${path}: worktree already exists; a worker never reuses one. Spawn a fresh worker id.`);
   let commit;
@@ -1512,7 +1532,7 @@ ${JSON.stringify(payload, null, 2).replace(/</g, "\\u003c")}
 </webhook_event>
 `);
     const assignmentPath = join8(worker, "assignment.json");
-    createExclusive(assignmentPath, json({ schemaVersion: 1, runId, workerId: "general", kind: "pi", role: "general", brief: "brief.md", model: config.model ?? "inherit-parent", thinkingLevel: config.thinkingLevel ?? null, workspace: config.workspace === "readonly" ? { mode: "readonly", path: config.projectRoot } : { mode: "worktree", inputCommit: execFileSync2("git", ["rev-parse", "HEAD"], { cwd: config.projectRoot, encoding: "utf8" }).trim() }, skills: [], capabilities: config.capabilities ?? { mcp: "inherit", env: "minimal", externalWrite: false } }));
+    createExclusive(assignmentPath, json({ schemaVersion: 1, runId, workerId: "general", kind: "pi", role: "general", brief: "brief.md", model: config.model ?? "inherit-parent", thinkingLevel: config.thinkingLevel ?? null, workspace: config.workspace === "readonly" ? { mode: "readonly", path: config.projectRoot } : { mode: "worktree", inputCommit: execFileSync3("git", ["rev-parse", "HEAD"], { cwd: config.projectRoot, encoding: "utf8" }).trim() }, skills: [], capabilities: config.capabilities ?? { mcp: "inherit", env: "minimal", externalWrite: false } }));
     if (!existsSync6(join8(worker, "claim")))
       await spawnWorker(runId, assignmentPath);
     createExclusive(done, json({ runId }));

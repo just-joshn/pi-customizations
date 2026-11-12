@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import {
   appendEvent,
   type Capabilities,
+  type ClaimIdentity,
   controlSocketPath,
   type HostPhase,
   type HostState,
@@ -20,6 +21,7 @@ import {
   launchEnvPath,
   loadAssignment,
   MAX_SETTLES,
+  processStartTime,
   readBrief,
   runRootOf,
   type SettlePhase,
@@ -185,7 +187,10 @@ export function piArgs(loaded: LoadedAssignment, launch: HostLaunch): string[] {
  * same assignment fails here and never starts Pi.
  */
 function claim(loaded: LoadedAssignment, instance: string): void {
-  writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify({ digest: loaded.digest, instance, hostPid: process.pid })}\n`, { mode: 0o600, flag: 'wx' });
+  const hostStarted = processStartTime(process.pid);
+  if (hostStarted === undefined) throw new Error(`Cannot read the start time of this host process ${process.pid}`);
+  const identity: ClaimIdentity = { digest: loaded.digest, instance, hostPid: process.pid, hostStarted };
+  writeFileSync(join(loaded.workerDir, 'claim', 'identity.json'), `${JSON.stringify(identity)}\n`, { mode: 0o600, flag: 'wx' });
 }
 
 /**

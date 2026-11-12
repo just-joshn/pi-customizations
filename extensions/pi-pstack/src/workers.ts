@@ -29,6 +29,7 @@ import {
   parseRunId,
   parseTmuxIdentity,
   parseWorkerId,
+  processStartTime,
   projectRoot,
   type RunId,
   readBrief,
@@ -650,21 +651,14 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
 
   /**
    * Whether the host that claimed the worker can never run again: the session recorded in claim/tmux.json is gone from
-   * the server, and the claim's host pid is dead or now names another process. A host that may still be starting would
-   * read launch-env.json, so only then may the file go.
+   * the server, and no live process has the claim's host pid with the host's start time. A host that may still be
+   * starting would read launch-env.json, so only then may the file go.
    */
   const claimingHostGone = async (loaded: LoadedAssignment): Promise<boolean> => {
     const claim = readClaim(loaded.workerDir);
     const owned = readTmuxIdentity(loaded.workerDir);
     if (claim === undefined || owned === undefined || (await sessions()).includes(formatTmuxIdentity(owned))) return false;
-    try {
-      process.kill(claim.hostPid, 0);
-    } catch (error) {
-      // EPERM: the pid belongs to another user, so it is not this user's host.
-      return ['ESRCH', 'EPERM'].includes((error as NodeJS.ErrnoException).code ?? '');
-    }
-    const listed = await pi.exec('ps', ['-ww', '-o', 'command=', '-p', String(claim.hostPid)], { timeout: 5_000 });
-    return listed.code === 0 && !listed.stdout.includes(loaded.file);
+    return processStartTime(claim.hostPid) !== claim.hostStarted;
   };
 
   /**

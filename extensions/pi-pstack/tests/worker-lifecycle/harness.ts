@@ -103,8 +103,8 @@ export interface Project {
 /** The environment every test worker gets: a private home and agent directory, offline. */
 export const workerTestEnv = (project: Project): Record<string, string> => ({ HOME: project.home, PI_CODING_AGENT_DIR: project.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1' });
 
-export function makeProject(): Project {
-  const dir = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-u04a-')));
+export function makeProject(prefix = 'pstack-u04a-'): Project {
+  const dir = realpathSync(mkdtempSync(join(tmpdir(), prefix)));
   const project = join(dir, 'project');
   for (const sub of ['project', 'home', 'agent', 'agents', 'sessions']) mkdirSync(join(dir, sub));
   writeFileSync(join(dir, 'agents', 'general.md'), 'You are a pstack worker.\n');
