@@ -375,6 +375,21 @@ function spawnDepth(env: NodeJS.ProcessEnv): number {
  * its launch environment, start it in tmux, wait for its handshake, and send the brief. The caller checks ownership.
  */
 /** The tmux server pstack workers live on. Under vitest the real `pstack` server is forbidden, so no test can touch a user's workers. */
+/**
+ * Whether the pid that claimed a worker is not its host. Only positive evidence counts: a dead pid, or a live pid with
+ * a different start time. A start time that cannot be read leaves a live pid treated as the host, so its launch
+ * secrets stay rather than being removed from a host that may still be starting.
+ */
+export function claimedHostGone(pid: number, hostStarted: string, startTime: (pid: number) => string | undefined = processStartTime): boolean {
+  try {
+    process.kill(pid, 0);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ESRCH') return true;
+  }
+  const started = startTime(pid);
+  return started !== undefined && started !== hostStarted;
+}
+
 export function workerSocket(explicit?: string): string {
   const socket = explicit ?? process.env['PSTACK_TMUX_SOCKET'] ?? 'pstack';
   if (socket === 'pstack' && process.env['VITEST']) throw new Error('tests must not use the real pstack tmux server; set PSTACK_TMUX_SOCKET or pass tmuxSocket');
@@ -658,7 +673,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const claim = readClaim(loaded.workerDir);
     const owned = readTmuxIdentity(loaded.workerDir);
     if (claim === undefined || owned === undefined || (await sessions()).includes(formatTmuxIdentity(owned))) return false;
-    return processStartTime(claim.hostPid) !== claim.hostStarted;
+    return claimedHostGone(claim.hostPid, claim.hostStarted);
   };
 
   /**

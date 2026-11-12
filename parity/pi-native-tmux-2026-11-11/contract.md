@@ -228,3 +228,9 @@ A reply records nothing when a run started or settled after its request was sent
 Default-provider credentials: when the model is `inherit-parent` and no `defaultProvider` resolves, `env: minimal` keeps every known provider credential variable present in the parent (pi-ai `findEnvKeys` over all providers, plus the Bedrock and Vertex ambient variables), and still drops all non-credential variables.
 
 Host identity for secret cleanup: `identity.json` records the host pid and its process start time. A pid counts as the host only if it is alive with the same start time. The host and the parent read the start time with the same function, `processStartTime` in `src/run-files.ts`: on Linux, field 22 (`starttime`, clock ticks after boot) of `/proc/<pid>/stat`; elsewhere, `ps -o lstart= -p <pid>` with `TZ=UTC` and `LC_ALL=C`, so both read the same text whatever their own environment. `lstart` has one-second resolution, so on macOS a pid reused within the second the host started still counts as the host and the file stays. The host's command line plays no part, so an assignment path with spaces or non-ASCII characters needs no matching.
+
+Ambient Bedrock configuration: `AWS_REGION` and `AWS_DEFAULT_REGION` are kept under `env: minimal` with the Bedrock credential variables. They are not secrets, and pi-ai's credential check does not read them, but the Bedrock client needs a region to make any request. Dropping them would break a minimal Bedrock worker without hiding anything.
+
+A settle must cover a new generation (judge U04a7 B). A run that settles before its prompt's acknowledgement is recorded by that acknowledgement's check, with that run's outcome, so every wake is collectable.
+
+Host liveness for secret cleanup needs positive evidence (judge U04a7 D). A dead pid, or a live pid with a different start time, is gone. A live pid whose start time cannot be read is treated as the host, and its `launch-env.json` stays.

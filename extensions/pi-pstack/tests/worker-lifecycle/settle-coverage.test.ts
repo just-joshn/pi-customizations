@@ -150,6 +150,7 @@ test('a prompt acknowledged after its run settled and that settle was checked st
       'the late acknowledgement is covered',
     ),
   ).toMatchObject({ lastSettle: { generation: 1 }, finalText: 'ONE' });
+  expect(readState(project, 'run1', 'w7').settles.map((settle: { generation: number }) => settle.generation), 'every settle covers new work, so every wake is collectable').toEqual([1]);
 });
 
 test('a quiescent answer that arrives after its run started but before that run settled never records the run', async () => {
