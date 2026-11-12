@@ -6,15 +6,15 @@
   },
   "requirementsDigest": "92e4f4a802890f8ff0788a10a08a1e7a951e79d3c6033586b33e79b05aa9052a",
   "run": {
-    "startedAt": "2026-11-12T09:16:36.349Z",
-    "generatedAt": "2026-11-12T09:18:10.717Z",
-    "commit": "28d769ac53e7e161a10cd2cf01f08e6dbc8e3b10",
+    "startedAt": "2026-11-12T09:22:14.521Z",
+    "generatedAt": "2026-11-12T09:23:28.848Z",
+    "commit": "e1303f52a4db6cdd7fe87aac51bdeefdfb0f0e79",
     "dirty": false,
     "resultsSource": "vitest run",
     "totalTests": 1390,
-    "passedTests": 1344,
-    "failedTests": 1,
-    "skippedTests": 45
+    "passedTests": 1335,
+    "failedTests": 0,
+    "skippedTests": 55
   },
   "counts": {
     "structural": {
