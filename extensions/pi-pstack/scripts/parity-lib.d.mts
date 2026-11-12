@@ -12,7 +12,7 @@ export interface TestOutcome extends TestRef {
 }
 export interface ResultRun {
   report: VitestReport;
-  identity: { platform: string };
+  identity: { platform: string; root?: string };
 }
 export interface Applicability {
   mandatory: boolean;
@@ -55,5 +55,5 @@ export function renderStatusSection(manifest: unknown): string;
 export function spliceStatusSection(doc: string, section: string): string;
 export function mergeOutcomes(record: Pick<Requirement, 'platforms'>, byRun: RunOutcome[]): string;
 export function sourceDigest(root: string): string | null;
-export function sidecarIdentity(sidecar: unknown): { identity?: { platform: string; commit: string; sourceDigest: string; runUrl: string }; problem?: string };
+export function sidecarIdentity(sidecar: unknown): { identity?: { platform: string; commit: string; sourceDigest: string; runUrl: string; root: string }; problem?: string };
 export function checkRuns(manifest: { runs?: Record<string, unknown>[] }, currentDigest: string | null): string[];

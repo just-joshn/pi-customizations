@@ -192,6 +192,7 @@ export function checkSource(root, lock, source, owner) {
 const key = (file, name) => `${file}::${name}`;
 
 export function indexResults(report, root) {
+  // `root` is the directory the report's absolute paths are relative to: the checkout that ran the tests.
   const byTest = new Map();
   const failedFiles = new Set();
   for (const suite of report.testResults ?? []) {
@@ -238,7 +239,7 @@ const asRuns = (input) => (Array.isArray(input) ? input : [{ report: input, iden
 
 /** `input` is one vitest report or a list of { report, identity: { platform } }. */
 export function evaluate(records, input, root) {
-  const runs = asRuns(input).map((run) => ({ platform: run.identity.platform, index: indexResults(run.report, root) }));
+  const runs = asRuns(input).map((run) => ({ platform: run.identity.platform, index: indexResults(run.report, run.identity.root ?? root) }));
   return records.map((record) => {
     const results = record.tests.map((t) => {
       const byRun = runs.map((run) => ({ platform: run.platform, outcome: outcomeOf(run.index.byTest.get(key(t.file, t.name)), run.index.failedFiles.has(t.file)) }));
@@ -285,7 +286,7 @@ export function runIdentity(root, report, resultsSource, attributed = {}) {
   };
 }
 
-const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl'];
+const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl', 'root'];
 
 /** A result file recorded elsewhere (CI) must say what it is. Returns { identity } or { problem }. */
 export function sidecarIdentity(sidecar) {

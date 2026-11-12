@@ -63,8 +63,10 @@ describe('the build script and the release gate with a CI result', () => {
     execFileSync('git', ['add', '-A'], { cwd: mini.root });
     const local = mini.report({ 'suite passes': 'skipped' });
     const ci = join(mini.root, 'ci.json');
-    writeFileSync(ci, JSON.stringify(report('suite passes', 'passed')));
-    const identity = { platform: 'linux', commit: 'c'.repeat(40), sourceDigest: sourceDigest(mini.root), runUrl: 'https://github.com/o/r/actions/runs/1' };
+    const ciReport = report('suite passes', 'passed');
+    ciReport.testResults[0]!.name = '/home/runner/work/r/r/extensions/pi-pstack/tests/t.test.ts';
+    writeFileSync(ci, JSON.stringify(ciReport));
+    const identity = { platform: 'linux', commit: 'c'.repeat(40), sourceDigest: sourceDigest(mini.root), runUrl: 'https://github.com/o/r/actions/runs/1', root: '/home/runner/work/r/r/extensions/pi-pstack' };
     writeFileSync(join(mini.root, 'ci.identity.json'), JSON.stringify(identity));
     return { local, ci, identity };
   };
@@ -121,7 +123,9 @@ describe('the build script and the release gate with a CI result', () => {
 
   test('the gate rejects an outcome edited to hide a failure on one platform', () => {
     const { local, ci } = setup();
-    writeFileSync(join(mini.root, 'ci.json'), JSON.stringify(report('suite passes', 'failed')));
+    const failing = report('suite passes', 'failed');
+    failing.testResults[0]!.name = '/home/runner/work/r/r/extensions/pi-pstack/tests/t.test.ts';
+    writeFileSync(join(mini.root, 'ci.json'), JSON.stringify(failing));
     build(local, ci);
     const path = join(mini.root, 'generated/parity-manifest.json');
     const m = manifest();

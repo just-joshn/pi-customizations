@@ -56,7 +56,7 @@ for (const path of resultFiles) {
     console.error(`parity manifest: ${sidecarPath}: ${problem}; nothing written`);
     process.exit(1);
   }
-  loaded.push({ report, identity: runIdentity(root, report, 'ci', identity) });
+  loaded.push({ report, identity: runIdentity(root, report, 'ci', { ...identity, dirty: false }) });
 }
 
 const requirements = evaluate(records, loaded, root);
