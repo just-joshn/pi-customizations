@@ -6,15 +6,15 @@
   },
   "requirementsDigest": "7f8b33d43785de7a9ad8edc455863894d0add0bb3dbbd4d52ed7a9b80bcf7128",
   "run": {
-    "startedAt": "2026-11-12T10:14:45.898Z",
-    "generatedAt": "2026-11-12T10:18:57.959Z",
-    "commit": "449f0375c6df1d65f963f2daed7287cdbe9a5e94",
-    "dirty": true,
+    "startedAt": "2026-11-12T10:19:34.628Z",
+    "generatedAt": "2026-11-12T10:23:47.151Z",
+    "commit": "d46bcf3ea7b69192a6502f005f602c993bed539c",
+    "dirty": false,
     "resultsSource": "vitest run",
-    "totalTests": 935,
-    "passedTests": 912,
-    "failedTests": 11,
-    "skippedTests": 12
+    "totalTests": 1725,
+    "passedTests": 1641,
+    "failedTests": 0,
+    "skippedTests": 84
   },
   "counts": {
     "structural": {
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 48,
-      "FAIL": 34,
-      "INCONCLUSIVE": 17,
+      "PASS": 78,
+      "FAIL": 0,
+      "INCONCLUSIVE": 21,
       "N/A": 0
     }
   },
@@ -20729,11 +20729,11 @@
         {
           "file": "tests/workflow-parity/meta.test.ts",
           "name": "multi-phase-plan scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: multi-phase-plan scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "MX-TODO-PARITY",
@@ -21133,11 +21133,11 @@
         {
           "file": "tests/workflow-parity/concurrency.test.ts",
           "name": "worker-concurrency scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: worker-concurrency scripted run: every check passes"
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "MX-DIRECT-INTERACTION",
@@ -21212,11 +21212,11 @@
         {
           "file": "tests/workflow-parity/interaction.test.ts",
           "name": "worker-interaction scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: worker-interaction scripted run: every check passes"
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "MX-WORKER-CRASH",
@@ -21580,21 +21580,21 @@
         {
           "file": "tests/workflow-parity/headless.test.ts",
           "name": "headless-print scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "skipped"
         },
         {
           "file": "tests/workflow-parity/headless.test.ts",
           "name": "headless-json scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "skipped"
         },
         {
           "file": "tests/workflow-parity/headless.test.ts",
           "name": "headless-command scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "skipped"
         }
       ],
-      "status": "FAIL",
-      "reason": "3 linked test(s) failed: headless-print scripted run: every check passes; headless-json scripted run: every check passes; headless-command scripted run: every check passes"
+      "status": "INCONCLUSIVE",
+      "reason": "skipped: tests/workflow-parity/headless.test.ts::headless-print scripted run: every check passes; skipped: tests/workflow-parity/headless.test.ts::headless-json scripted run: every check passes; skipped: tests/workflow-parity/headless.test.ts::headless-command scripted run: every check passes"
     },
     {
       "id": "MX-MCP",
@@ -21669,21 +21669,21 @@
         {
           "file": "tests/workflow-parity/mcp.test.ts",
           "name": "why-mcp scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/mcp.test.ts",
           "name": "why-no-mcp scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/investigation.test.ts",
           "name": "why scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "3 linked test(s) failed: why-mcp scripted run: every check passes; why-no-mcp scripted run: every check passes; why scripted run: every check passes"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
     },
     {
       "id": "MX-CODEMODE",
@@ -21722,11 +21722,11 @@
         {
           "file": "tests/workflow-parity/codemode.test.ts",
           "name": "codemode scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: codemode scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "MX-MODEL-ROUTING",
@@ -21880,16 +21880,16 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "arena scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "arena-dropout scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: arena scripted run: every check passes; arena-dropout scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "MX-SWARM-GAPS",
@@ -21984,16 +21984,16 @@
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "swarm-second-miss scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "swarm scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: swarm-second-miss scripted run: every check passes; swarm scripted run: every check passes"
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "MX-SWARM-OUTCOMES",
@@ -22041,26 +22041,26 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "swarm scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "swarm-race-first-pass scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "swarm-race-rank-all scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "swarm-race-best-of scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "4 linked test(s) failed: swarm scripted run: every check passes; swarm-race-first-pass scripted run: every check passes; swarm-race-rank-all scripted run: every check passes; swarm-race-best-of scripted run: every check passes"
+      "status": "PASS",
+      "reason": "4 linked test(s) ran and passed"
     },
     {
       "id": "SCRIPT-WATCH-PR",
@@ -22510,11 +22510,11 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "statechart scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: statechart scripted run: every check passes"
+      "status": "INCONCLUSIVE",
+      "reason": "skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC"
     },
     {
       "id": "MX-PR-REVIEW",
@@ -23822,17 +23822,17 @@
         {
           "file": "tests/container/container.test.ts",
           "name": "the environment a container worker holds is minimal by default: the host environment stays out, the PSTACK_ variables stay in",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/container.test.ts",
           "name": "the environment a container worker holds is the whole host environment, less what describes the host, only when the assignment names inherit",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/container.test.ts",
           "name": "a container worker that records its own receipt creates the receipt with pstack_evidence in the container, and the parent verifies it and finds it in the run",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/container.test.ts",
@@ -23857,12 +23857,12 @@
         {
           "file": "tests/container/container.test.ts",
           "name": "a container worker that points its outputs at host files collect refuses a report, evidence directory, or session path that leaves its output directory",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/container.test.ts",
           "name": "a container worker that plants symlinks inside its evidence directory collect lists its real evidence and never walks a link to / or to a host file",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/container.test.ts",
@@ -23887,12 +23887,12 @@
         {
           "file": "tests/container/forge.test.ts",
           "name": "the default environment cannot push without a forge token: the server refuses the unauthenticated push",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/forge.test.ts",
           "name": "a container worker with the forge capability gets the token under GH_TOKEN, runs gh against it, and pushes over https; the token is nowhere an engine or the host shows it",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/forge.test.ts",
@@ -23922,12 +23922,12 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider a token near expiry is refreshed by the host before spawn, so the worker gets the new token and the host keeps the rotated refresh token",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/provider-auth.test.ts",
@@ -23937,7 +23937,7 @@
         {
           "file": "tests/container/provider-auth.test.ts",
           "name": "a container worker on an api_key provider authenticates with its stored key, and an assignment with no model runs the host's default model in the container",
-          "outcome": "failed"
+          "outcome": "passed"
         },
         {
           "file": "tests/container/provider-auth.test.ts",
@@ -24040,8 +24040,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "10 linked test(s) failed: the environment a container worker holds is minimal by default: the host environment stays out, the PSTACK_ variables stay in; the environment a container worker holds is the whole host environment, less what describes the host, only when the assignment names inherit; a container worker that records its own receipt creates the receipt with pstack_evidence in the container, and the parent verifies it and finds it in the run; a container worker that points its outputs at host files collect refuses a report, evidence directory, or session path that leaves its output directory; a container worker that plants symlinks inside its evidence directory collect lists its real evidence and never walks a link to / or to a host file; the default environment cannot push without a forge token: the server refuses the unauthenticated push; a container worker with the forge capability gets the token under GH_TOKEN, runs gh against it, and pushes over https; the token is nowhere an engine or the host shows it; a container worker on an OAuth provider a token near expiry is refreshed by the host before spawn, so the worker gets the new token and the host keeps the rotated refresh token; a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's; a container worker on an api_key provider authenticates with its stored key, and an assignment with no model runs the host's default model in the container"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
     },
     {
       "id": "WF-HOW-READONLY",
@@ -24152,11 +24152,11 @@
         {
           "file": "tests/workflow-parity/investigation.test.ts",
           "name": "how scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: how scripted run: every check passes"
+      "status": "PASS",
+      "reason": "9 linked test(s) ran and passed"
     },
     {
       "id": "SECURITY-READONLY-LINUX",
@@ -24322,11 +24322,11 @@
         {
           "file": "tests/workflow-parity/investigation.test.ts",
           "name": "teach scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: teach scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARCHITECT-ARENA",
@@ -24362,11 +24362,11 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "architect scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: architect scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARCHITECT-CHECKPOINT",
@@ -24402,11 +24402,11 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "architect scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: architect scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-ARENA-FLOW",
@@ -24446,16 +24446,16 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "arena scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/rules.test.ts",
           "name": "arena-dropout scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: arena scripted run: every check passes; arena-dropout scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-INTERROGATE",
@@ -24495,16 +24495,16 @@
         {
           "file": "tests/workflow-parity/design.test.ts",
           "name": "interrogate scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/gates.test.ts",
           "name": "feature-contested scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: interrogate scripted run: every check passes; feature-contested scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-MODEL-INDEPENDENCE",
@@ -24620,16 +24620,16 @@
         {
           "file": "tests/workflow-parity/build.test.ts",
           "name": "feature scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/gates.test.ts",
           "name": "feature-contested scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: feature scripted run: every check passes; feature-contested scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-BUGFIX",
@@ -24665,11 +24665,11 @@
         {
           "file": "tests/workflow-parity/build.test.ts",
           "name": "bug-fix scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: bug-fix scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-TDD",
@@ -24705,11 +24705,11 @@
         {
           "file": "tests/workflow-parity/build.test.ts",
           "name": "tdd scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: tdd scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFACTOR",
@@ -24745,11 +24745,11 @@
         {
           "file": "tests/workflow-parity/build-measured.test.ts",
           "name": "refactoring scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: refactoring scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-PERF",
@@ -24785,11 +24785,11 @@
         {
           "file": "tests/workflow-parity/build-measured.test.ts",
           "name": "perf-issue scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: perf-issue scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-HILLCLIMB",
@@ -24825,11 +24825,11 @@
         {
           "file": "tests/workflow-parity/build-measured.test.ts",
           "name": "hillclimb scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: hillclimb scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-CREATE-VERIFICATION-SKILL",
@@ -24865,11 +24865,11 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "create-verification-skill scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: create-verification-skill scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-MAINTAIN-VERIFICATION-SKILL",
@@ -24905,11 +24905,11 @@
         {
           "file": "tests/workflow-parity/maintain.test.ts",
           "name": "maintain-verification-skill scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: maintain-verification-skill scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-FORMAL-VERIFICATION",
@@ -24949,16 +24949,16 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "create-formal-verification-skill scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/maintain.test.ts",
           "name": "maintain-formal-verification-skill scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: create-formal-verification-skill scripted run: every check passes; maintain-formal-verification-skill scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-RECALL",
@@ -24994,11 +24994,11 @@
         {
           "file": "tests/workflow-parity/history.test.ts",
           "name": "recall scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: recall scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFLECT-TRANSCRIPT",
@@ -25052,11 +25052,11 @@
         {
           "file": "tests/workflow-parity/history.test.ts",
           "name": "reflect scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: reflect scripted run: every check passes"
+      "status": "PASS",
+      "reason": "3 linked test(s) ran and passed"
     },
     {
       "id": "WF-REFLECT-APPROVAL",
@@ -25092,11 +25092,11 @@
         {
           "file": "tests/workflow-parity/history.test.ts",
           "name": "reflect scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: reflect scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-AUTOMATE-ME",
@@ -25132,11 +25132,11 @@
         {
           "file": "tests/workflow-parity/skills.test.ts",
           "name": "automate-me scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: automate-me scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-KETCHUP",
@@ -25172,11 +25172,11 @@
         {
           "file": "tests/workflow-parity/history.test.ts",
           "name": "ketchup scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: ketchup scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-KETCHUP-VIDEO",
@@ -25218,16 +25218,16 @@
         {
           "file": "tests/workflow-parity/video.test.ts",
           "name": "ketchup-video scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         },
         {
           "file": "tests/workflow-parity/video.test.ts",
           "name": "ketchup-video-render-fails scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "2 linked test(s) failed: ketchup-video scripted run: every check passes; ketchup-video-render-fails scripted run: every check passes"
+      "status": "PASS",
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "WF-MAKE-BOT-UI",
@@ -25348,11 +25348,11 @@
         {
           "file": "tests/workflow-parity/build.test.ts",
           "name": "feature scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: feature scripted run: every check passes"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "WF-SETUP-PSTACK",
@@ -25504,11 +25504,11 @@
         {
           "file": "tests/workflow-parity/gates.test.ts",
           "name": "commit-review-gates scripted run: every check passes",
-          "outcome": "failed-to-run"
+          "outcome": "passed"
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: commit-review-gates scripted run: every check passes"
+      "status": "PASS",
+      "reason": "3 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-ONE-REPLY",
