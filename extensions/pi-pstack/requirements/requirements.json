@@ -3050,6 +3050,54 @@
     "wf.autopilot-lanes.lanes.onefam": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
       "name": "autopilot-lanes negative: every lane ran on one family"
+    },
+    "wf.orchestrate-sub": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub scripted run: every check passes"
+    },
+    "wf.orchestrate-sub.sub.root": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the root spawned a leaf itself"
+    },
+    "wf.orchestrate-sub.sub.cap": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a leaf held the spawn capability"
+    },
+    "wf.orchestrate-sub.sub.shallow": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the leaves were owned by the root session, one level too shallow"
+    },
+    "wf.orchestrate-sub.sub.fourth": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a fourth level was claimed"
+    },
+    "wf.orchestrate-sub.sub.deep": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a leaf ran one level deeper than the tree"
+    },
+    "wf.orchestrate-sub.sub.twoowners": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a second owner pushed the same branch"
+    },
+    "wf.orchestrate-sub.sub.family": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a verifier ran on its owner's model family"
+    },
+    "wf.orchestrate-sub.sub.noprobe": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the failed owner was never inspected or probed"
+    },
+    "wf.orchestrate-sub.sub.bare": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the replacement got a bare kickoff"
+    },
+    "wf.orchestrate-sub.sub.notfailed": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the host never recorded the owner as failed"
+    },
+    "wf.orchestrate-sub.sub.collect": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the root collected a leaf's raw report"
     }
   },
   "structural": [
@@ -4785,7 +4833,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts",
+      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts (orchestrate for one owner per PR, orchestrate-sub for a sub-coordinator that spawns its own owners and verifiers, with depth read from the nested run ownership)",
       "tests": [
         "nest.subcoordinator",
         "depth.two",
@@ -4802,9 +4850,20 @@
         "wf.orchestrate.orch.family",
         "wf.orchestrate.orch.abort",
         "wf.orchestrate.orch.bare",
-        "wf.orchestrate.orch.first"
-      ],
-      "coverageGap": "No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests."
+        "wf.orchestrate.orch.first",
+        "wf.orchestrate-sub",
+        "wf.orchestrate-sub.sub.root",
+        "wf.orchestrate-sub.sub.cap",
+        "wf.orchestrate-sub.sub.shallow",
+        "wf.orchestrate-sub.sub.fourth",
+        "wf.orchestrate-sub.sub.deep",
+        "wf.orchestrate-sub.sub.twoowners",
+        "wf.orchestrate-sub.sub.family",
+        "wf.orchestrate-sub.sub.noprobe",
+        "wf.orchestrate-sub.sub.bare",
+        "wf.orchestrate-sub.sub.notfailed",
+        "wf.orchestrate-sub.sub.collect"
+      ]
     },
     {
       "id": "CONTAINER-WORKERS",

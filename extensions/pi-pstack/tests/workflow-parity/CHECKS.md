@@ -2603,6 +2603,42 @@ Negative cases, each of which must FAIL the named checks:
 - the reply asked the user → `orchestrate.live-state-is-read-and-every-worker-is-accounted-for`
 - the parent polled with its own loop → `orchestrate.a-watch-loop-follows-the-pr`
 
+## orchestrate-sub
+
+orchestrate with a sub-coordinator: the root spawns one coordinator, the coordinator spawns the owners and verifiers into its own run, one owner per PR, independent verifier families, a failed owner replaced, depth read from real nested spawns (spec 13.4)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.orchestrate.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/orchestrate.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `orchestrate.sub.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/orchestrate.md:5` |
+| `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns` | the root spawned only the coordinator (the one worker with capabilities.spawn), the coordinator made every leaf spawn call from its own session into its own run, the leaves are owned by the coordinator's session and hold no spawn capability, a spawn of a fourth level was refused and left no claim, and the root got wakes for the coordinator only | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it` | each leaf's own environment agrees with the tree: PSTACK_DEPTH is 3 | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch` | each PR was opened by exactly one live owner that alone pushed its branch, the failed owner wrote nothing, and each PR's forge author is its owner | `generated/skills/poteto-mode/playbooks/orchestrate.md:9` |
+| `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict` | each PR has a verifier on a different model family than its owner whose verdict names the head, and each owner merged only after that verdict, pinned to the head, with the coordinator's steer naming it | `generated/skills/poteto-mode/playbooks/orchestrate.md:13` |
+| `orchestrate.sub.no-merge-without-the-operators-request-and-a-verdict-at-that-head` | every merge has the operator's explicit request, a PASS or PASS+NOTES verdict at exactly the merged head from a worker that did not write the PR, and was requested with --match-head-commit | `generated/skills/poteto-mode/playbooks/orchestrate.md:19` |
+| `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff` | the coordinator got the failed wake, inspected the owner, probed the branch for pushes, then spawned the replacement with the original kickoff plus the reason, and the host recorded the owner as failed | `generated/skills/poteto-mode/playbooks/orchestrate.md:22` |
+| `orchestrate.sub.the-root-read-one-rollup-and-the-live-state` | the root read the coordinator's one rollup and both PRs live, collected no leaf worker and no raw report, and its reply accounts for the coordinator and the replaced owner without asking | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/orchestrate.md:23` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the root spawned a leaf itself → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a leaf held the spawn capability → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- the leaves were owned by the root session, one level too shallow → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a fourth level was claimed → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a leaf ran one level deeper than the tree → `orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it`
+- a second owner pushed the same branch → `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch`
+- the failed owner had pushed a branch → `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch`
+- a verifier ran on its owner's model family → `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict`
+- an owner merged before the verdict was posted → `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict`, `orchestrate.sub.no-merge-without-the-operators-request-and-a-verdict-at-that-head`
+- the failed owner was never inspected or probed → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the replacement got a bare kickoff → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the host never recorded the owner as failed → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the root collected a leaf's raw report → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
+- the reply asked the user → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
+- the rollup never reached the root → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
+
 ## opening-a-pr
 
 opening a PR: resolved once, created ready through the forge with the playbook's body sections, a child stacked on its parent's branch, no babysit started (spec 13.1)
