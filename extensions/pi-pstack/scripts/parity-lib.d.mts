@@ -31,7 +31,7 @@ export interface Requirement {
   coverageGap?: string;
   source?: Source | null;
   tests: TestRef[];
-  platforms?: string[];
+  platforms?: string[] | undefined;
 }
 export interface Evaluated extends Requirement {
   results: TestOutcome[];
