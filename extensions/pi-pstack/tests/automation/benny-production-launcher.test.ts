@@ -5,7 +5,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import { afterAll, afterEach, expect, test, vi } from 'vitest';
-import { type Automation } from '../../adapters/automation-events.ts';
+import type { Automation } from '../../adapters/automation-events.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { outboxEntries } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
@@ -43,7 +43,19 @@ return out.join('\\n');`;
   writeFileSync(join(current.agentDir, 'mcp.json'), JSON.stringify({ mcpServers: { notes: { command: 'node', args: [SERVER], env: { MCP_FIXTURE_LOG: calls } } } }));
   writeFileSync(join(current.agentDir, 'pstack', 'readonly-mcp.json'), JSON.stringify({ tools: [READ] }));
   writeFileSync(join(current.agentDir, 'pstack', 'tracker-mcp.json'), JSON.stringify({ tools: [WRITE] }));
-  for (const [name, value] of Object.entries({ HOME: current.home, PI_CODING_AGENT_DIR: current.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: TMUX, PATH: `${dirname(PI)}:${process.env['PATH']}`, PSTACK_SCRIPTED_DIRECTIVES: JSON.stringify([{ when: '# Benny tracker action', directive: `@@script ${trackerScript}` }, { when: '# Benny triage case', directive: `@@say ${caseResult}` }]) })) vi.stubEnv(name, value);
+  for (const [name, value] of Object.entries({
+    HOME: current.home,
+    PI_CODING_AGENT_DIR: current.agentDir,
+    PI_OFFLINE: '1',
+    PI_SKIP_VERSION_CHECK: '1',
+    PSTACK_TMUX_SOCKET: TMUX,
+    PATH: `${dirname(PI)}:${process.env['PATH']}`,
+    PSTACK_SCRIPTED_DIRECTIVES: JSON.stringify([
+      { when: '# Benny tracker action', directive: `@@script ${trackerScript}` },
+      { when: '# Benny triage case', directive: `@@say ${caseResult}` },
+    ]),
+  }))
+    vi.stubEnv(name, value);
 
   const benny = bennyProject({ root: current.dir, adapterSkill: 'linear-adapter', model: 'scripted/echo' });
   const slack = fakeSlack();
@@ -56,7 +68,10 @@ return out.join('\\n');`;
 
   expect(outboxEntries(automation.store)).toContainEqual(expect.objectContaining({ state: 'done', destinationTs: 'LIN-42' }));
   expect(slack.posts).toEqual([{ thread_ts: ROOT_TS, text: verdict }]);
-  const reached = readFileSync(calls, 'utf8').trim().split('\n').map((line) => JSON.parse(line).tool);
+  const reached = readFileSync(calls, 'utf8')
+    .trim()
+    .split('\n')
+    .map((line) => JSON.parse(line).tool);
   expect(reached).toContain('write_note');
   expect(reached).not.toContain('delete_note');
 }, 180_000);

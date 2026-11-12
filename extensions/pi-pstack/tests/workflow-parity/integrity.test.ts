@@ -5,11 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
-
-import type { Inconclusive } from './lib/integrity.ts';
 import { absence, check, evaluate, pass } from './lib/check.ts';
-import { assess } from './lib/integrity.ts';
 import { type RunOutcome, type RunSpec, runWorkflow } from './lib/driver.ts';
+import type { Inconclusive } from './lib/integrity.ts';
+import { assess } from './lib/integrity.ts';
 import { report } from './lib/run.ts';
 import { loadRun } from './lib/view.ts';
 
@@ -36,7 +35,25 @@ const neverMerged = absence(check('t.never-merged', 'nothing was merged', [], ()
 test('a parent that hit a 429 is INCONCLUSIVE with the provider text, and is recorded in meta.json', async () => {
   const outcome = await run('parent-429.jsonl');
   expect(outcome.meta.inconclusive).toEqual({ kind: 'provider-error', message: '429 Usage limit reached' });
-  expect(report({ family: 'integrity-test', driver: 'real', results: [], negatives: [], sandbox: outcome.sandbox, tmuxSocket: '', timedOut: false, stopReason: undefined, piStderr: '', inconclusive: outcome.meta.inconclusive as Inconclusive, findings: [], runMs: 0, negativesMs: 0, cleanup: () => {}, known: [] })).toContain('== integrity-test (real driver): INCONCLUSIVE provider-error: 429 Usage limit reached ==');
+  expect(
+    report({
+      family: 'integrity-test',
+      driver: 'real',
+      results: [],
+      negatives: [],
+      sandbox: outcome.sandbox,
+      tmuxSocket: '',
+      timedOut: false,
+      stopReason: undefined,
+      piStderr: '',
+      inconclusive: outcome.meta.inconclusive as Inconclusive,
+      findings: [],
+      runMs: 0,
+      negativesMs: 0,
+      cleanup: () => {},
+      known: [],
+    }),
+  ).toContain('== integrity-test (real driver): INCONCLUSIVE provider-error: 429 Usage limit reached ==');
 });
 
 test('a real-driver parent with no tool call and no reply is INCONCLUSIVE no-activity; a scripted one is a scenario', async () => {

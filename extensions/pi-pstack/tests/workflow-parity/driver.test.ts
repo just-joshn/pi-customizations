@@ -4,9 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
-
-import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 import type { RunSpec } from './lib/driver.ts';
+import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
 const spec: RunSpec = { family: 'driver-test', runId: 'driver-test', history: [{ message: 'init', files: { 'README.md': 'x\n' } }], prompt: () => '/noop', scenario: () => ({ actors: {} }) };
