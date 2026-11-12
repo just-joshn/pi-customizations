@@ -402,6 +402,7 @@ var MAX_INSTRUCTION_BYTES = 32768;
 var MAX_RPC_RECORD = 8 * 1024 * 1024;
 var MAX_BRIEF_BYTES = 1024 * 1024;
 var RPC_DEADLINE_MS = 1e4;
+var PI_START_MS = 120000;
 var ABORT_DEADLINE_MS = 60000;
 var CONTAINER_START_MS = 30 * 60000;
 var STDERR_HOLD = 16384;
@@ -867,6 +868,7 @@ async function runHost(assignmentFile, launchText) {
     const type = record["type"];
     if (type === READY_RECORD) {
       markReady();
+      event("container-ready");
       display("container ready", container?.name ?? "");
     } else if (type === "agent_start") {
       runFailure = undefined;
@@ -936,10 +938,10 @@ async function runHost(assignmentFile, launchText) {
         writeRpc({ type: "extension_ui_response", id: record["id"], cancelled: true }).catch(fail);
     }
   };
-  const inspectPi = async () => {
+  const inspectPi = async (deadline = RPC_DEADLINE_MS) => {
     if (childExited || assignment.kind === "watch" || isTerminal(phase))
       return observation();
-    const fresh = await request("get_state");
+    const fresh = await request("get_state", {}, deadline);
     if (!isRecord3(fresh) || typeof fresh["sessionFile"] !== "string" || dirname2(fresh["sessionFile"]) !== sessionDir)
       throw new Error("Pi session is not in the assigned session directory");
     const freshModel = isRecord3(fresh["model"]) ? { provider: String(fresh["model"]["provider"]), id: String(fresh["model"]["id"]) } : null;
@@ -1089,7 +1091,7 @@ async function runHost(assignmentFile, launchText) {
       clearTimeout(deadline);
     }
     if (assignment.kind === "pi")
-      await inspectPi();
+      await inspectPi(PI_START_MS);
     if (!isTerminal(phase))
       phase = assignment.kind === "watch" ? "running" : "idle";
     save();
