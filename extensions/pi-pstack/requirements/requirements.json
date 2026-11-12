@@ -969,7 +969,7 @@
     },
     "sec.ro-fetch": {
       "file": "tests/security/readonly-fetch.test.ts",
-      "name": "a readonly command can read HTTP with N\u2026"
+      "name": "a readonly command can read HTTP with N…"
     },
     "sec.ro-deps": {
       "file": "tests/security/readonly-shell-dependency.test.ts",
@@ -1026,6 +1026,246 @@
     "cont.hostdies": {
       "file": "tests/container/container.test.ts",
       "name": "a container whose host dies without cleaning up ends with its stdin, so no container outlives the host"
+    },
+    "cont.container-auth.1": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an api_key provider gets only its own key, and a built-in provider needs no package"
+    },
+    "cont.container-auth.2": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an api_key provider a key that is a command or an environment reference is resolved by Pi, or refused when there is no Pi to ask"
+    },
+    "cont.container-auth.3": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an api_key provider a provider with nothing stored gets no auth.json, so env-keyed and keyless providers work as before"
+    },
+    "cont.container-auth.4": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an OAuth provider gets the access token and an empty refresh token: the container can never rotate the host refresh token"
+    },
+    "cont.container-auth.5": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an OAuth provider a token near expiry is refreshed by the host first, and the container gets the new one"
+    },
+    "cont.container-auth.6": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an OAuth provider a token that is near expiry, with nobody to refresh it, or that stays near expiry after the refresh, refuses the spawn and says why"
+    },
+    "cont.container-auth.7": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "an OAuth provider the minimum life is the default 10 minutes unless the caller lowers it"
+    },
+    "cont.container-auth.8": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "the packages that register a provider are found in the user settings by their source, and only the matching package is taken"
+    },
+    "cont.container-auth.9": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "the packages that register a provider are found in the project settings, and a local path source resolves against its settings file"
+    },
+    "cont.container-auth.10": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "the packages that register a provider dependencies a hoisted install keeps beside the package are mounted with it"
+    },
+    "cont.container-auth.11": {
+      "file": "tests/container/container-auth.test.ts",
+      "name": "the packages that register a provider a stored credential for a provider no package registers refuses the spawn, naming the override"
+    },
+    "cont.container.1": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker uses the image the environment file builds and runs its install command"
+    },
+    "cont.container.2": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker runs unprivileged: the host uid, no capabilities, and no engine socket"
+    },
+    "cont.container.3": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker files the container creates in its output mount belong to the host user"
+    },
+    "cont.container.4": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker that cannot start a malformed .pi/environment.json fails the spawn instead of being ignored"
+    },
+    "cont.container.5": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker that fails while it starts shows its error without the credentials it held: not in the spawn error, state.json, or events.jsonl"
+    },
+    "cont.container.6": {
+      "file": "tests/container/container.test.ts",
+      "name": "the environment a container worker holds is minimal by default: the host environment stays out, the PSTACK_ variables stay in"
+    },
+    "cont.container.7": {
+      "file": "tests/container/container.test.ts",
+      "name": "the environment a container worker holds is the whole host environment, less what describes the host, only when the assignment names inherit"
+    },
+    "cont.container.8": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker that records its own receipt creates the receipt with pstack_evidence in the container, and the parent verifies it and finds it in the run"
+    },
+    "cont.container.9": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker whose environment would hand it the checkout a local remote that is the checkout itself is refused before any claim, and the remote is untouched"
+    },
+    "cont.container.10": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker whose environment would hand it the checkout a local remote that lies inside the checkout is refused before any claim, and the remote is untouched"
+    },
+    "cont.container.11": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker whose environment would hand it the checkout a local remote that contains the checkout is refused before any claim, and the remote is untouched"
+    },
+    "cont.container.12": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker whose environment would hand it the checkout a build context outside the project is refused before any claim"
+    },
+    "cont.container.13": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker that points its outputs at host files collect refuses a report, evidence directory, or session path that leaves its output directory"
+    },
+    "cont.container.14": {
+      "file": "tests/container/container.test.ts",
+      "name": "a container worker that plants symlinks inside its evidence directory collect lists its real evidence and never walks a link to / or to a host file"
+    },
+    "cont.container.15": {
+      "file": "tests/container/container.test.ts",
+      "name": "the default environment runs the default image and loads the pstack extension in the worker, and an abort leaves nothing behind"
+    },
+    "cont.engine-record.1": {
+      "file": "tests/container/engine-record.test.ts",
+      "name": "removing a worker container at abort uses the engine recorded at spawn even when the environment now points elsewhere"
+    },
+    "cont.engine-record.2": {
+      "file": "tests/container/engine-record.test.ts",
+      "name": "removing a worker container at abort says so when no engine was recorded, instead of guessing one from the environment"
+    },
+    "cont.forge.1": {
+      "file": "tests/container/forge.test.ts",
+      "name": "the default environment ships gh, and holds no forge token when the assignment does not ask for one"
+    },
+    "cont.forge.2": {
+      "file": "tests/container/forge.test.ts",
+      "name": "the default environment cannot push without a forge token: the server refuses the unauthenticated push"
+    },
+    "cont.forge.3": {
+      "file": "tests/container/forge.test.ts",
+      "name": "a container worker with the forge capability gets the token under GH_TOKEN, runs gh against it, and pushes over https; the token is nowhere an engine or the host shows it"
+    },
+    "cont.forge.4": {
+      "file": "tests/container/forge.test.ts",
+      "name": "a forge worker that cannot be given forge access fails at spawn with ForgeUnavailable when neither a token nor gh is available"
+    },
+    "cont.forge.5": {
+      "file": "tests/container/forge.test.ts",
+      "name": "a forge worker that cannot be given forge access fails at spawn with ForgeUnavailable when gh has no login"
+    },
+    "cont.forge.6": {
+      "file": "tests/container/forge.test.ts",
+      "name": "a forge worker that cannot be given forge access fails at spawn with ForgeUnavailable when the project image has no gh"
+    },
+    "cont.forge.7": {
+      "file": "tests/container/forge.test.ts",
+      "name": "a forge worker that cannot be given forge access is refused for a worktree worker, which already runs as the operator"
+    },
+    "cont.provider-auth.1": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an OAuth provider authenticates with the access token it was handed, holding no refresh token and no other provider credential, and leaves the host auth.json alone"
+    },
+    "cont.provider-auth.2": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an OAuth provider a token near expiry is refreshed by the host before spawn, so the worker gets the new token and the host keeps the rotated refresh token"
+    },
+    "cont.provider-auth.3": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an OAuth provider a token that expires while the worker runs fails the worker's model call, and the container tried to refresh with an empty refresh token, never the host's"
+    },
+    "cont.provider-auth.4": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an OAuth provider a token near expiry with nobody to refresh it fails the spawn before any claim"
+    },
+    "cont.provider-auth.5": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an api_key provider authenticates with its stored key, and an assignment with no model runs the host's default model in the container"
+    },
+    "cont.provider-auth.6": {
+      "file": "tests/container/provider-auth.test.ts",
+      "name": "a container worker on an api_key provider a provider whose package is not installed fails the spawn before any claim"
+    },
+    "cont.receipts.1": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker is created by the worker in its own inbox, without the run root"
+    },
+    "cont.receipts.2": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker the worker cannot record outside its own directory, and the exclusive-link rule holds in the inbox"
+    },
+    "cont.receipts.3": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker joins the run when the host reads its receipts, as a file of the host's own, and verifies"
+    },
+    "cont.receipts.4": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker ingesting twice stores nothing new, and a later rewrite of the inbox file does not change the recorded receipt"
+    },
+    "cont.receipts.5": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker cannot replace a receipt the run already holds, and says which was rejected"
+    },
+    "cont.receipts.6": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker rejects an inbox entry that is a symlink, names a file outside the worker, or is not a receipt"
+    },
+    "cont.receipts.7": {
+      "file": "tests/container/receipts.test.ts",
+      "name": "a receipt recorded inside a container worker an artifact the worker swapped for a symlink fails verification instead of being read"
+    },
+    "cont.redact.1": {
+      "file": "tests/container/redact.test.ts",
+      "name": "redaction of what a worker shows or stores a URL loses its userinfo, and a text loses the userinfo of every URL in it"
+    },
+    "cont.redact.2": {
+      "file": "tests/container/redact.test.ts",
+      "name": "redaction of what a worker shows or stores secret values come from credential names, secret-looking names, and the strings inside a JSON credential file"
+    },
+    "cont.redact.3": {
+      "file": "tests/container/redact.test.ts",
+      "name": "a remote whose URL carries a token is cloned without its token, and a failed read of it shows and runs no token"
+    },
+    "cont.untrusted-output.1": {
+      "file": "tests/container/untrusted-output.test.ts",
+      "name": "listing a worker-controlled directory lists regular files, and does not traverse or list a symlink to / or to a host directory or file"
+    },
+    "cont.untrusted-output.2": {
+      "file": "tests/container/untrusted-output.test.ts",
+      "name": "listing a worker-controlled directory lists nothing when the directory itself was swapped for a symlink or is missing"
+    },
+    "cont.untrusted-output.3": {
+      "file": "tests/container/untrusted-output.test.ts",
+      "name": "reading a worker-controlled file reads a regular file below the root"
+    },
+    "cont.untrusted-output.4": {
+      "file": "tests/container/untrusted-output.test.ts",
+      "name": "reading a worker-controlled file refuses a symlink to a host file, a path through a symlinked directory, and a path that climbs out"
+    },
+    "cont.untrusted-output.5": {
+      "file": "tests/container/untrusted-output.test.ts",
+      "name": "reading a worker-controlled file a file that is absent is missing, not refused"
+    },
+    "cont.defaults.1": {
+      "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
+      "name": "a container worker defaults to a minimal environment, and keeps every other default of its run"
+    },
+    "cont.defaults.2": {
+      "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
+      "name": "a container worker gets the whole environment only when the assignment names inherit"
+    },
+    "cont.defaults.3": {
+      "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
+      "name": "a container worker takes the forge capability only on a container workspace, as a boolean"
+    },
+    "cont.defaults.4": {
+      "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
+      "name": "a container worker a worktree worker keeps the inherit default"
     }
   },
   "structural": [
@@ -2634,7 +2874,7 @@
       "invariants": [
         "No silent downgrade to a local worker."
       ],
-      "piMechanism": "workspace.mode 'container': the tmux host runs `docker run -i ... pi --mode rpc` (src/container.ts); fresh clone at inputCommit; credentials on stdin.",
+      "piMechanism": "workspace.mode 'container': the tmux host runs `docker run -i ... pi --mode rpc` (src/container.ts); fresh clone at inputCommit; the resolved provider's credential (an OAuth access token without its refresh token) and, with capabilities.forge, a forge token arrive on stdin; the default image ships gh; the verifier records its own receipts, which the host takes into the run.",
       "dependencies": [
         "Docker"
       ],
@@ -2644,7 +2884,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/container/container.test.ts on a real engine, plus generated-text semantics tests",
+      "verification": "tests/container/ (container, receipts, forge, provider-auth, redact, untrusted-output, engine-record, container-auth) on a real engine, plus generated-text semantics tests. tests/container/model-smoke.test.ts is the opt-in real-model proof (PSTACK_E2E_REAL_MODELS=1).",
       "tests": [
         "sem.container-swarm",
         "sem.container-orch",
@@ -2657,9 +2897,69 @@
         "cont.abort",
         "cont.unavailable",
         "cont.unpushed",
-        "cont.hostdies"
+        "cont.hostdies",
+        "cont.container-auth.1",
+        "cont.container-auth.2",
+        "cont.container-auth.3",
+        "cont.container-auth.4",
+        "cont.container-auth.5",
+        "cont.container-auth.6",
+        "cont.container-auth.7",
+        "cont.container-auth.8",
+        "cont.container-auth.9",
+        "cont.container-auth.10",
+        "cont.container-auth.11",
+        "cont.container.1",
+        "cont.container.2",
+        "cont.container.3",
+        "cont.container.4",
+        "cont.container.5",
+        "cont.container.6",
+        "cont.container.7",
+        "cont.container.8",
+        "cont.container.9",
+        "cont.container.10",
+        "cont.container.11",
+        "cont.container.12",
+        "cont.container.13",
+        "cont.container.14",
+        "cont.container.15",
+        "cont.engine-record.1",
+        "cont.engine-record.2",
+        "cont.forge.1",
+        "cont.forge.2",
+        "cont.forge.3",
+        "cont.forge.4",
+        "cont.forge.5",
+        "cont.forge.6",
+        "cont.forge.7",
+        "cont.provider-auth.1",
+        "cont.provider-auth.2",
+        "cont.provider-auth.3",
+        "cont.provider-auth.4",
+        "cont.provider-auth.5",
+        "cont.provider-auth.6",
+        "cont.receipts.1",
+        "cont.receipts.2",
+        "cont.receipts.3",
+        "cont.receipts.4",
+        "cont.receipts.5",
+        "cont.receipts.6",
+        "cont.receipts.7",
+        "cont.redact.1",
+        "cont.redact.2",
+        "cont.redact.3",
+        "cont.untrusted-output.1",
+        "cont.untrusted-output.2",
+        "cont.untrusted-output.3",
+        "cont.untrusted-output.4",
+        "cont.untrusted-output.5",
+        "cont.defaults.1",
+        "cont.defaults.2",
+        "cont.defaults.3",
+        "cont.defaults.4"
       ],
-      "coverageGap": "Container workers run, but upstream cloud verifiers and owners cannot yet complete their playbooks: pstack_evidence record fails inside the container (run root not mounted), Pi logins in auth.json do not reach the container, the default environment is the whole host env rather than a fresh machine's, and push to a real GitHub remote through GH_TOKEN is untested."
+      "coverageGap": "Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks."
     },
     {
       "id": "WF-HOW-READONLY",

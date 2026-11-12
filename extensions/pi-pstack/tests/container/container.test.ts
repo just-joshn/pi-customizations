@@ -1,6 +1,6 @@
 // Container workers on a real engine: real Pi (the scripted model) runs inside the container, started by the real tmux host.
 import { execFile, execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
@@ -102,7 +102,7 @@ describe('a container worker', () => {
     mkdirSync(join(project.dir, '.pi'), { recursive: true });
     writeFileSync(join(project.dir, '.pi', 'Dockerfile'), 'FROM node:24-bookworm\nRUN echo from-the-built-image > /etc/pstack-environment\n');
     writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ build: { dockerfile: 'Dockerfile' }, install: 'echo installed-by-environment > .pstack-installed' }));
-    parent = makeContainerParent({ PSTACK_TEST_CREDENTIAL: SECRET });
+    parent = makeContainerParent({ PSTACK_TEST_CREDENTIAL: SECRET, HOST_ONLY_SENTINEL: 'host-env-value' });
     await parent.start();
     const dir = workerDir(project, RUN_ID, 'a');
     // The worker prints facts about its own world. Its brief is one scripted bash call.
@@ -240,6 +240,112 @@ describe('a container worker that cannot start', () => {
   });
 });
 
+describe('a container worker that fails while it starts', () => {
+  test('shows its error without the credentials it held: not in the spawn error, state.json, or events.jsonl', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ install: 'echo "leaking $PSTACK_TEST_CREDENTIAL from the install" >&2; exit 7' }));
+
+    const failure = await spawn('leaky', '@@say NEVER').then(
+      () => undefined,
+      (error: unknown) => error as Error,
+    );
+
+    expect(failure?.message).toMatch(/leaking \*\*\* from the install/);
+    expect(failure?.message).not.toContain(SECRET);
+    const dir = workerDir(project, RUN_ID, 'leaky');
+    for (const file of ['state.json', join('..', '..', 'events.jsonl')]) expect(readFileSync(join(dir, file), 'utf8')).not.toContain(SECRET);
+    expect(readFileSync(join(dir, 'state.json'), 'utf8')).toContain('leaking ***');
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+  }, 180_000);
+});
+
+describe('the environment a container worker holds', () => {
+  const printed = (workerId: string) =>
+    transcript(project, RUN_ID, workerId)
+      .filter((line) => line.startsWith('assistant:RESULTS:'))
+      .join('\n');
+  const printEnv = `printf 'SENTINEL=%s CREDENTIAL=%s\\n' "$HOST_ONLY_SENTINEL" "$PSTACK_TEST_CREDENTIAL"`;
+
+  test('is minimal by default: the host environment stays out, the PSTACK_ variables stay in', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+    await spawn('minimal', `@@script ${JSON.stringify([{ tool: 'bash', args: { command: printEnv } }])}`);
+    await settled('minimal');
+
+    expect(printed('minimal')).toContain(`SENTINEL= CREDENTIAL=${SECRET}`);
+    await abort('minimal');
+  }, 180_000);
+
+  test('is the whole host environment, less what describes the host, only when the assignment names inherit', async () => {
+    await spawn('inherit', `@@script ${JSON.stringify([{ tool: 'bash', args: { command: printEnv } }])}`, { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: false } });
+    await settled('inherit');
+
+    expect(printed('inherit')).toContain(`SENTINEL=host-env-value CREDENTIAL=${SECRET}`);
+    await abort('inherit');
+  }, 180_000);
+});
+
+describe('a container worker that records its own receipt', () => {
+  test('creates the receipt with pstack_evidence in the container, and the parent verifies it and finds it in the run', async () => {
+    const dir = workerDir(project, RUN_ID, 'rec');
+    const content = 'receipt artifact\n';
+    const receipt = {
+      schemaVersion: 1,
+      id: 'rec-1',
+      runId: RUN_ID,
+      target: 'step-rec',
+      kind: 'test',
+      verdict: 'pass',
+      commit: project.commit,
+      environment: 'container',
+      artifacts: [{ path: `${dir}/evidence/check.log`, sha256: createHash('sha256').update(content).digest('hex') }],
+      createdAt: '2026-11-12T00:00:00.000Z',
+    };
+    const write = `printf '%s' '${content.trim()}' > ${dir}/evidence/check.log; echo >> ${dir}/evidence/check.log; echo ${Buffer.from(JSON.stringify(receipt)).toString('base64')} | base64 -d > ${dir}/evidence/rec-1.json`;
+    const script = [{ tool: 'bash', args: { command: write } }, { tool: 'pstack_evidence', args: { action: 'record', runId: RUN_ID, receiptPath: `${dir}/evidence/rec-1.json` } }, { tool: 'pstack_evidence', args: { action: 'verify', runId: RUN_ID, target: 'step-rec' } }];
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+    await spawn('rec', `@@script ${JSON.stringify(script)}`);
+    await settled('rec');
+
+    const inside = transcript(project, RUN_ID, 'rec').filter((line) => line.startsWith('assistant:RESULTS:')).join('\n');
+    expect(inside).toContain('Recorded receipt rec-1 for step-rec (pass)');
+    expect(inside).toContain('step-rec: pass');
+    const collected = await collect('rec');
+    const verdict = await parent.call('pstack_evidence', { action: 'verify', runId: RUN_ID, target: 'step-rec' });
+
+    expect(collected.details.receipts).toEqual({ recorded: ['rec-1'], rejected: [] });
+    expect(verdict.details).toEqual({ kind: 'pass', receipts: ['rec-1'] });
+    expect(existsSync(join(project.runRoot(RUN_ID), 'verification', 'receipts', 'rec-1.json'))).toBe(true);
+    await abort('rec');
+  }, 180_000);
+});
+
+describe('a container worker whose environment would hand it the checkout', () => {
+  test.each([
+    ['is the checkout itself', () => project.dir],
+    ['lies inside the checkout', () => join(project.dir, 'nested.git')],
+    ['contains the checkout', () => dirname(project.dir)],
+  ])('a local remote that %s is refused before any claim, and the remote is untouched', async (_name, remoteUrl) => {
+    const target = remoteUrl();
+    if (target.endsWith('nested.git')) git(dirname(project.dir), 'init', '--quiet', '--bare', '-b', 'main', target);
+    git(project.dir, 'remote', 'set-url', 'origin', target);
+    try {
+      await expect(spawn('hand-over', '@@say NEVER')).rejects.toThrow(/is, contains, or lies inside the project checkout/);
+    } finally {
+      git(project.dir, 'remote', 'set-url', 'origin', remote);
+    }
+
+    expect(existsSync(join(workerDir(project, RUN_ID, 'hand-over'), 'claim'))).toBe(false);
+    expect(await containersOf('hand-over')).toEqual([]);
+  });
+
+  test('a build context outside the project is refused before any claim', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ build: { dockerfile: 'Dockerfile', context: '../..' } }));
+
+    await expect(spawn('wide-context', '@@say NEVER')).rejects.toThrow(/build\.context .* is outside the project/);
+
+    expect(existsSync(join(workerDir(project, RUN_ID, 'wide-context'), 'claim'))).toBe(false);
+  });
+});
+
 describe('a container worker that points its outputs at host files', () => {
   test('collect refuses a report, evidence directory, or session path that leaves its output directory', async () => {
     const dir = workerDir(project, RUN_ID, 'd');
@@ -255,6 +361,22 @@ describe('a container worker that points its outputs at host files', () => {
     expect(result.details.evidence).toEqual([]);
     expect(result.text).not.toContain('fixture');
     await abort('d');
+  }, 180_000);
+});
+
+describe('a container worker that plants symlinks inside its evidence directory', () => {
+  test('collect lists its real evidence and never walks a link to / or to a host file', async () => {
+    const dir = workerDir(project, RUN_ID, 'f');
+    const command = [`echo real > ${dir}/evidence/real.txt`, `ln -s / ${dir}/evidence/x`, `ln -s ${project.dir}/README.md ${dir}/evidence/readme-link.txt`, `ln -s ${project.dir} ${dir}/evidence/checkout`].join(' && ');
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
+    await spawn('f', `@@script ${JSON.stringify([{ tool: 'bash', args: { command } }])}`);
+    await settled('f');
+
+    const result = await collect('f');
+
+    expect(result.details.evidence).toEqual(['real.txt']);
+    expect(result.text).not.toContain('fixture');
+    await abort('f');
   }, 180_000);
 });
 

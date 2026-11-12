@@ -80,6 +80,32 @@ test('a watch defaults its cwd, and a readonly workspace its path, to the projec
   expect(loadAssignment(path).assignment).toMatchObject({ kind: 'watch', workspace: { mode: 'readonly', path: project.dir }, watch: { argv: ['true'], cwd: project.dir } });
 });
 
+describe('a container worker', () => {
+  const container = (capabilities?: Record<string, unknown>) => ({ ...minimal('c'), workspace: { mode: 'container', inputCommit: 'abc1234' }, ...(capabilities === undefined ? {} : { capabilities }) });
+  const defaults = { capabilities: ENGINEERING_CAPABILITIES, projectRoot: '/p' };
+
+  test('defaults to a minimal environment, and keeps every other default of its run', () => {
+    expect(parseAssignment(container(), defaults).capabilities).toEqual({ mcp: 'inherit', env: 'minimal', externalWrite: false });
+  });
+
+  test('gets the whole environment only when the assignment names inherit', () => {
+    expect(parseAssignment(container({ mcp: 'inherit', env: 'inherit', externalWrite: false }), defaults).capabilities.env).toBe('inherit');
+  });
+
+  test('takes the forge capability only on a container workspace, as a boolean', () => {
+    const forge = { mcp: 'inherit', env: 'minimal', externalWrite: false, forge: true };
+    expect(parseAssignment(container(forge), defaults).capabilities).toEqual(forge);
+    expect(() => parseAssignment({ ...container(forge), workspace: { mode: 'worktree', inputCommit: 'abc1234' } }, defaults)).toThrow(/forge needs a container workspace/);
+    expect(() => parseAssignment({ ...container(forge), workspace: { mode: 'readonly' } }, defaults)).toThrow(/forge needs a container workspace/);
+    expect(() => parseAssignment(container({ ...forge, forge: 'yes' }), defaults)).toThrow(/capabilities must be/);
+    expect(() => parseAssignment(container({ ...forge, push: true }), defaults)).toThrow(/capabilities must be/);
+  });
+
+  test('a worktree worker keeps the inherit default', () => {
+    expect(parseAssignment({ ...container(), workspace: { mode: 'worktree', inputCommit: 'abc1234' } }, defaults).capabilities.env).toBe('inherit');
+  });
+});
+
 test('a worker of an automation run defaults to the automation capabilities', () => {
   makeRun(project, 'auto1', null);
   const dir = join(project.runRoot('auto1'), 'workers', 'w');
@@ -98,7 +124,8 @@ describe('the worker-assignment reference', () => {
   });
 
   test.for(examples.map((example) => [example['workerId'], example] as const))('%s parses unchanged, with the role default capabilities added', ([, example]) => {
-    expect(parseAssignment(example, defaults)).toStrictEqual({ ...example, capabilities: ENGINEERING_CAPABILITIES });
+    const containerDefault = { ...ENGINEERING_CAPABILITIES, env: 'minimal' };
+    expect(parseAssignment(example, defaults)).toStrictEqual({ ...example, capabilities: example.workspace['mode'] === 'container' ? containerDefault : ENGINEERING_CAPABILITIES });
   });
 
   test.for(examples.map((example) => [example['workerId'], example] as const))('%s with every defaulted field left out parses to the same assignment', ([, example]) => {

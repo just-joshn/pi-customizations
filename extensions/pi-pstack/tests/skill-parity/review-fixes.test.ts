@@ -29,7 +29,10 @@ describe('A: poteto-mode workers and watches', () => {
     expect(new Set(examples.map((e) => e.workspace.mode))).toEqual(new Set(['worktree', 'readonly', 'container']));
     expect(new Set(examples.map((e) => e.kind))).toEqual(new Set(['pi', 'watch']));
     const defaults = { capabilities: ENGINEERING_CAPABILITIES, projectRoot: '/Users/you/src/app' };
-    for (const example of examples) expect(parseAssignment(example, defaults)).toEqual({ ...example, capabilities: ENGINEERING_CAPABILITIES });
+    for (const example of examples) {
+      const role = example.workspace.mode === 'container' ? { ...ENGINEERING_CAPABILITIES, env: 'minimal' } : ENGINEERING_CAPABILITIES;
+      expect(parseAssignment(example, defaults)).toEqual({ ...example, capabilities: role });
+    }
   });
 
   test('A4: the Workers paragraph names every assignment field, says skills and thinkingLevel are optional with their defaults, and points at the reference', () => {

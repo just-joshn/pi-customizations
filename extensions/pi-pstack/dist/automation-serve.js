@@ -6944,22 +6944,21 @@ var require_public_api = __commonJS(function(exports) {
 });
 
 // src/automation/serve-cli.ts
-import { realpathSync as realpathSync5 } from "node:fs";
-import { resolve as resolve7 } from "node:path";
+import { realpathSync as realpathSync6 } from "node:fs";
+import { resolve as resolve8 } from "node:path";
 import { parseArgs } from "node:util";
 
 // adapters/automation-events.ts
 import { execFileSync } from "node:child_process";
 
 // src/automation/dispatch.ts
-import { existsSync as existsSync6 } from "node:fs";
-import { join as join6 } from "node:path";
+import { existsSync as existsSync7 } from "node:fs";
+import { join as join7 } from "node:path";
 
 // src/workers.ts
 import { execFile as execFile2 } from "node:child_process";
-import { existsSync as existsSync4, mkdirSync, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync3, rmSync, statSync, writeFileSync as writeFileSync2 } from "node:fs";
-import { homedir } from "node:os";
-import { basename as basename3, delimiter as delimiter2, isAbsolute as isAbsolute3, join as join4, relative as relative3 } from "node:path";
+import { existsSync as existsSync5, mkdirSync, readdirSync as readdirSync2, readFileSync as readFileSync4, realpathSync as realpathSync4, rmSync, statSync as statSync2, writeFileSync as writeFileSync3 } from "node:fs";
+import { basename as basename3, delimiter as delimiter3, isAbsolute as isAbsolute4, join as join5, relative as relative4 } from "node:path";
 import { promisify } from "node:util";
 
 // scripts/pi-standalone-shims.mjs
@@ -10841,16 +10840,217 @@ function Priority(types) {
   const result = Sort(types);
   return result;
 }
+// src/container-auth.ts
+import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
+import { homedir } from "node:os";
+import { delimiter, dirname, isAbsolute, join, relative, resolve } from "node:path";
+var MIN_OAUTH_LIFETIME_MS = 10 * 60000;
+
+class ProviderAuthUnavailableError extends Error {
+  constructor(reason) {
+    super(`ProviderAuthUnavailable: ${reason}`);
+    this.name = "ProviderAuthUnavailable";
+  }
+}
+var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+function agentDirOf(env) {
+  const home = env["HOME"] ?? homedir();
+  const configured = env["PI_CODING_AGENT_DIR"];
+  return configured ? configured.replace(/^~(?=$|\/)/, home) : join(home, ".pi", "agent");
+}
+function readStored(agentDir, provider) {
+  const path = join(agentDir, "auth.json");
+  if (!existsSync(path))
+    return;
+  let all;
+  try {
+    all = JSON.parse(readFileSync(path, "utf8"));
+  } catch (error) {
+    throw new ProviderAuthUnavailableError(`${path} is not valid JSON (${error instanceof Error ? error.message : String(error)})`);
+  }
+  const entry = isRecord(all) ? all[provider] : undefined;
+  if (entry === undefined)
+    return;
+  if (isRecord(entry) && entry["type"] === "api_key" && (entry["key"] === undefined || typeof entry["key"] === "string"))
+    return { type: "api_key", key: entry["key"] };
+  if (isRecord(entry) && entry["type"] === "oauth" && typeof entry["access"] === "string" && typeof entry["refresh"] === "string" && typeof entry["expires"] === "number")
+    return { type: "oauth", access: entry["access"], refresh: entry["refresh"], expires: entry["expires"] };
+  throw new ProviderAuthUnavailableError(`${path} holds a credential for ${provider} that is neither an api_key nor an oauth credential`);
+}
+var isLiteral = (key) => !key.startsWith("!") && !key.includes("$");
+function packageEntries(dir) {
+  const manifest = join(dir, "package.json");
+  if (!existsSync(manifest))
+    return [];
+  const pi = JSON.parse(readFileSync(manifest, "utf8")).pi;
+  const listed = Array.isArray(pi?.extensions) ? pi.extensions.filter((entry) => typeof entry === "string") : [];
+  return listed.flatMap((entry) => {
+    const path = resolve(dir, entry);
+    if (!existsSync(path))
+      return [];
+    if (statSync(path).isDirectory())
+      return ["index.ts", "index.js"].map((name) => join(path, name)).filter(existsSync).slice(0, 1);
+    return [path];
+  });
+}
+var SOURCE_FILE = /\.(?:ts|mts|js|mjs)$/;
+var SKIPPED_DIRECTORY = /^(?:node_modules|\..*|dist|tests?|__tests__)$/;
+function packageSource(dir) {
+  const parts = [];
+  let files = 0;
+  const walk = (current) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      if (files >= 400)
+        return;
+      const path = join(current, entry.name);
+      if (entry.isDirectory() && !SKIPPED_DIRECTORY.test(entry.name))
+        walk(path);
+      else if (entry.isFile() && SOURCE_FILE.test(entry.name) && statSync(path).size <= 1 << 20) {
+        files += 1;
+        parts.push(readFileSync(path, "utf8"));
+      }
+    }
+  };
+  walk(dir);
+  return parts.join(`
+`);
+}
+var registers = (dir, provider) => {
+  const source = packageSource(dir);
+  return /registerProvider\s*\(/.test(source) && [`'${provider}'`, `"${provider}"`, `\`${provider}\``].some((quoted) => source.includes(quoted));
+};
+function packageDirs(settingsDir, base) {
+  const settings = join(settingsDir, "settings.json");
+  if (!existsSync(settings))
+    return [];
+  let packages;
+  try {
+    packages = JSON.parse(readFileSync(settings, "utf8")).packages;
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(packages))
+    return [];
+  return packages.flatMap((spec) => {
+    const source = typeof spec === "string" ? spec : isRecord(spec) && typeof spec["source"] === "string" ? spec["source"] : undefined;
+    if (source === undefined)
+      return [];
+    const npm = /^npm:(@[^/@]+\/[^@/]+|[^@/]+)(?:@.+)?$/.exec(source)?.[1];
+    if (npm !== undefined)
+      return [join(base, "npm", "node_modules", npm)];
+    if (/^(?:\/|\.\.?\/|~\/)/.test(source))
+      return [resolve(settingsDir, source.replace(/^~(?=\/)/, homedir()))];
+    return [];
+  });
+}
+function dependencyDirs(dir, seen = new Set) {
+  const manifest = join(dir, "package.json");
+  if (!existsSync(manifest) || seen.size > 200)
+    return [];
+  const pkg = JSON.parse(readFileSync(manifest, "utf8"));
+  const found = [];
+  for (const name of Object.keys({ ...pkg.dependencies, ...pkg.optionalDependencies })) {
+    for (let at = dir;; at = dirname(at)) {
+      const candidate = join(at, "node_modules", name);
+      if (existsSync(candidate)) {
+        const real = realpathSync(candidate);
+        if (!seen.has(real) && relative(dir, real).startsWith("..")) {
+          seen.add(real);
+          found.push(real, ...dependencyDirs(real, seen));
+        }
+        break;
+      }
+      if (dirname(at) === at)
+        break;
+    }
+  }
+  return found;
+}
+function toPackageSet(dirs) {
+  const real = [...new Set(dirs.filter(existsSync).map((dir) => realpathSync(dir)))];
+  return { mounts: [...new Set(real.flatMap((dir) => [dir, ...dependencyDirs(dir)]))], extensions: real.flatMap(packageEntries) };
+}
+function findProviderPackages(provider, agentDir, projectRoot, explicit = []) {
+  if (explicit.length > 0)
+    return toPackageSet(explicit);
+  const candidates = [...packageDirs(agentDir, agentDir), ...packageDirs(join(projectRoot, ".pi"), join(projectRoot, ".pi"))].filter((dir) => existsSync(dir) && registers(dir, provider));
+  return toPackageSet(candidates);
+}
+async function prepareContainerAuth(request) {
+  const { provider, source, projectRoot } = request;
+  const now = request.now ?? Date.now;
+  const minimum = request.minOAuthValidityMs ?? MIN_OAUTH_LIFETIME_MS;
+  const agentDir = agentDirOf(source);
+  let stored = readStored(agentDir, provider);
+  let credential;
+  let expiresAt = null;
+  if (stored?.type === "oauth") {
+    if (stored.expires - now() < minimum && request.resolve !== undefined) {
+      await request.resolve(provider);
+      stored = readStored(agentDir, provider);
+    }
+    if (stored?.type !== "oauth")
+      throw new ProviderAuthUnavailableError(`the stored credential for ${provider} changed while it was refreshed`);
+    const left = stored.expires - now();
+    if (left < minimum)
+      throw new ProviderAuthUnavailableError(`the stored OAuth token for ${provider} ${left <= 0 ? "has expired" : `expires in ${Math.round(left / 60000)} min`}, and a container worker cannot refresh it (it never holds the refresh token). Pi refreshes a token in its last 5 minutes: use ${provider} in a Pi session, or /login, then spawn again.`);
+    credential = { type: "oauth", access: stored.access, refresh: "", expires: stored.expires };
+    expiresAt = stored.expires;
+  } else if (stored?.type === "api_key") {
+    let key = stored.key;
+    if (key !== undefined && !isLiteral(key)) {
+      if (request.resolve === undefined)
+        throw new ProviderAuthUnavailableError(`the stored key for ${provider} is a command or an environment reference, and only Pi can resolve it; spawn from a Pi session, or store the key itself with /login`);
+      const resolved = await request.resolve(provider);
+      if (typeof resolved !== "string" || resolved === "")
+        throw new ProviderAuthUnavailableError(`Pi could not resolve the stored key for ${provider}`);
+      key = resolved;
+    }
+    credential = { type: "api_key", ...key === undefined ? {} : { key } };
+  }
+  const explicit = request.packages ?? (source["PSTACK_CONTAINER_PROVIDER_PACKAGES"] ? source["PSTACK_CONTAINER_PROVIDER_PACKAGES"].split(delimiter).filter(Boolean) : []);
+  const packages = request.builtin.has(provider) && explicit.length === 0 ? { mounts: [], extensions: [] } : findProviderPackages(provider, agentDir, projectRoot, explicit);
+  if (credential !== undefined && !request.builtin.has(provider) && packages.extensions.length === 0)
+    throw new ProviderAuthUnavailableError(`${provider} has a stored credential but is not a provider Pi has built in, and no installed Pi package (npm: or local, from settings.json) registers it, so a container worker could not load it. Set PSTACK_CONTAINER_PROVIDER_PACKAGES to the package directory.`);
+  for (const path of [...packages.mounts, ...packages.extensions])
+    if (!isAbsolute(path))
+      throw new Error(`${path} is not absolute`);
+  return { authJson: credential === undefined ? null : JSON.stringify({ [provider]: credential }), kind: credential === undefined ? "none" : credential["type"], expiresAt, packages };
+}
+
 // src/container.ts
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, realpathSync } from "node:fs";
-import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { existsSync as existsSync2, readFileSync as readFileSync2, realpathSync as realpathSync2, writeFileSync } from "node:fs";
+import { delimiter as delimiter2, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+
+// src/redact.ts
+var stripUserinfo = (url) => url.replace(/^([A-Za-z][A-Za-z0-9+.-]*:\/\/)[^/@]*@/, "$1");
+var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
+
+// src/container.ts
 var DEFAULT_IMAGE = "node:24-bookworm";
-var ENVIRONMENT_FILE = join(".pi", "environment.json");
+var GH_VERSION = "2.103.3";
+var GH_SHA256 = { amd64: "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d", arm64: "ee32df2323c8847f5fac6cb6b4b69ca75828e9329a8f22f677021f7b3306ce63" };
+var DEFAULT_DOCKERFILE = `FROM ${DEFAULT_IMAGE}
+RUN set -eu; \\
+  arch="$(dpkg --print-architecture)"; \\
+  case "$arch" in \\
+    amd64) sum=${GH_SHA256.amd64} ;; \\
+    arm64) sum=${GH_SHA256.arm64} ;; \\
+    *) echo "no gh release for $arch" >&2; exit 1 ;; \\
+  esac; \\
+  curl -fsSL -o /tmp/gh.tgz "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_$arch.tar.gz"; \\
+  echo "$sum  /tmp/gh.tgz" | sha256sum -c -; \\
+  tar -xzf /tmp/gh.tgz -C /tmp; \\
+  install -m 0755 "/tmp/gh_${GH_VERSION}_linux_$arch/bin/gh" /usr/local/bin/gh; \\
+  rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_$arch"; \\
+  gh --version
+`;
+var DEFAULT_IMAGE_TAG = `pstack-default:${createHash("sha256").update(DEFAULT_DOCKERFILE).digest("hex").slice(0, 16)}`;
+var ENVIRONMENT_FILE = join2(".pi", "environment.json");
 var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
-var GIT_CREDENTIAL_ENV = ["GH_TOKEN", "GITHUB_TOKEN"];
 var CONTAINER_WORKSPACE = "/tmp/workspace";
 var CONTAINER_PI_ROOT = "/opt/pstack/pi/node_modules";
 var READY_RECORD = "pstack_container_ready";
@@ -10860,17 +11060,17 @@ class ContainerUnavailableError extends Error {
     this.name = "ContainerUnavailable";
   }
 }
-var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var MOUNT_PATH = /^\/[^\0\n,]*$/;
-function dockerCli(docker, args, env, timeoutMs) {
+function dockerCli(docker, args, env, timeoutMs, input) {
   return new Promise((resolveRun, reject) => {
     const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: "utf8", maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
       if (error === null)
         resolveRun(stdout);
       else
-        reject(new Error(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`));
+        reject(new Error(redactUserinfo(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`)));
     });
-    child.stdin?.end();
+    child.stdin?.end(input);
   });
 }
 function clientEnv(source) {
@@ -10878,9 +11078,9 @@ function clientEnv(source) {
   return Object.fromEntries(names.flatMap((name) => typeof source[name] === "string" ? [[name, source[name]]] : []));
 }
 function findOnPath(command, path) {
-  for (const dir of (path ?? "").split(delimiter)) {
-    const candidate = join(dir, command);
-    if (dir !== "" && existsSync(candidate))
+  for (const dir of (path ?? "").split(delimiter2)) {
+    const candidate = join2(dir, command);
+    if (dir !== "" && existsSync2(candidate))
       return candidate;
   }
   return;
@@ -10899,6 +11099,10 @@ async function connectEngine(source) {
     throw new ContainerUnavailableError(`no container engine answers \`docker version\` (${error instanceof Error ? error.message : String(error)}). Start Docker or OrbStack, or point DOCKER_HOST at an engine.`);
   }
 }
+var within = (parent, child) => {
+  const path = relative2(parent, child);
+  return path === "" || !path.startsWith("..") && !isAbsolute2(path);
+};
 var fail = (path, problem) => {
   throw new Error(`${path}: ${problem}`);
 };
@@ -10910,16 +11114,16 @@ function optionalString(path, value, field) {
   return value;
 }
 function readEnvironment(project) {
-  const path = join(project, ENVIRONMENT_FILE);
-  if (!existsSync(path))
-    return { source: undefined, image: { kind: "pull", reference: DEFAULT_IMAGE }, install: undefined };
+  const path = join2(project, ENVIRONMENT_FILE);
+  if (!existsSync2(path))
+    return { source: undefined, image: { kind: "default" }, install: undefined };
   let raw;
   try {
-    raw = JSON.parse(readFileSync(path, "utf8"));
+    raw = JSON.parse(readFileSync2(path, "utf8"));
   } catch (error) {
     return fail(path, `not valid JSON (${error instanceof Error ? error.message : String(error)})`);
   }
-  if (!isRecord(raw))
+  if (!isRecord2(raw))
     return fail(path, "must be a JSON object");
   const unknown = Object.keys(raw).filter((key) => !["image", "build", "install"].includes(key));
   if (unknown.length > 0)
@@ -10927,30 +11131,42 @@ function readEnvironment(project) {
   const reference = optionalString(path, raw["image"], "image");
   const install = optionalString(path, raw["install"], "install");
   if (raw["build"] === undefined)
-    return { source: path, image: { kind: "pull", reference: reference ?? DEFAULT_IMAGE }, install };
+    return { source: path, image: reference === undefined ? { kind: "default" } : { kind: "pull", reference }, install };
   if (reference !== undefined)
     fail(path, "set image or build, not both");
   const build = raw["build"];
-  if (!isRecord(build))
+  if (!isRecord2(build))
     return fail(path, "build must be an object with a dockerfile");
   const dockerfile = optionalString(path, build["dockerfile"], "build.dockerfile");
   if (dockerfile === undefined)
     return fail(path, "build.dockerfile is required");
-  const base = join(project, ".pi");
-  const file = resolve(base, dockerfile);
-  if (!existsSync(file))
+  const base = join2(project, ".pi");
+  const file = resolve2(base, dockerfile);
+  if (!existsSync2(file))
     fail(path, `build.dockerfile ${file} does not exist`);
-  const context = resolve(base, optionalString(path, build["context"], "build.context") ?? ".");
-  const digest = createHash("sha256").update(readFileSync(file)).update("\x00").update(relative(project, context)).digest("hex").slice(0, 16);
+  const context = resolve2(base, optionalString(path, build["context"], "build.context") ?? ".");
+  if (!existsSync2(context))
+    fail(path, `build.context ${context} does not exist`);
+  const root = realpathSync2(project);
+  if (!within(root, realpathSync2(file)))
+    fail(path, `build.dockerfile ${file} is outside the project ${root}`);
+  if (!within(root, realpathSync2(context)))
+    fail(path, `build.context ${context} is outside the project ${root}; the docker client would send that folder to the engine`);
+  const digest = createHash("sha256").update(readFileSync2(file)).update("\x00").update(relative2(project, context)).digest("hex").slice(0, 16);
   return { source: path, image: { kind: "build", dockerfile: file, context, tag: `pstack-env:${digest}` }, install };
 }
 async function ensureImage(engine, environment) {
   const { image } = environment;
   const inspect = (reference) => dockerCli(engine.docker, ["image", "inspect", "--format", "{{.Id}}", reference], engine.env, 30000);
+  const present = (reference) => inspect(reference).then(() => true, () => false);
   let reference;
-  if (image.kind === "pull") {
+  if (image.kind === "default") {
+    reference = DEFAULT_IMAGE_TAG;
+    if (!await present(reference))
+      await dockerCli(engine.docker, ["build", "--quiet", "-t", reference, "-"], engine.env, 30 * 60000, DEFAULT_DOCKERFILE);
+  } else if (image.kind === "pull") {
     reference = image.reference;
-    if (!await inspect(reference).then(() => true, () => false))
+    if (!await present(reference))
       await dockerCli(engine.docker, ["pull", "--quiet", reference], engine.env, 30 * 60000);
   } else {
     reference = image.tag;
@@ -10958,13 +11174,44 @@ async function ensureImage(engine, environment) {
   }
   return { reference, id: (await inspect(reference)).trim() };
 }
+
+class ForgeUnavailableError extends Error {
+  constructor(reason) {
+    super(`ForgeUnavailable: ${reason}`);
+    this.name = "ForgeUnavailable";
+  }
+}
+var GH_ENV = ["PATH", "HOME", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "GH_HOST", "GH_CONFIG_DIR", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"];
+async function resolveForgeToken(source) {
+  const explicit = source["PSTACK_CONTAINER_FORGE_TOKEN"];
+  if (explicit !== undefined && explicit !== "")
+    return explicit;
+  const env = Object.fromEntries(GH_ENV.flatMap((name) => typeof source[name] === "string" ? [[name, source[name]]] : []));
+  const gh = findOnPath("gh", env["PATH"]);
+  if (gh === undefined)
+    throw new ForgeUnavailableError("capabilities.forge needs a token, and there is no `gh` on PATH to read one from. Install gh and log in, or set PSTACK_CONTAINER_FORGE_TOKEN.");
+  const token = await new Promise((resolveRun, reject) => {
+    const child = execFile(gh, ["auth", "token"], { env, timeout: 15000, encoding: "utf8" }, (error, stdout, stderr) => error === null ? resolveRun(stdout.trim()) : reject(new Error(redactUserinfo(stderr.trim() || error.message))));
+    child.stdin?.end();
+  }).catch((error) => {
+    throw new ForgeUnavailableError(`capabilities.forge needs a token, and \`gh auth token\` gave none (${error instanceof Error ? error.message : String(error)}). Run \`gh auth login\`, or set PSTACK_CONTAINER_FORGE_TOKEN.`);
+  });
+  if (token === "")
+    throw new ForgeUnavailableError("capabilities.forge needs a token, and `gh auth token` printed none. Run `gh auth login`, or set PSTACK_CONTAINER_FORGE_TOKEN.");
+  return token;
+}
+async function assertImageHasGh(engine, image) {
+  await dockerCli(engine.docker, ["run", "--rm", "--entrypoint", "sh", image.id, "-c", "command -v gh"], engine.env, 120000).catch(() => {
+    throw new ForgeUnavailableError(`the image ${image.reference} has no \`gh\`, which this worker's forge capability needs. Add it to the image, or leave the image to the default, which ships gh ${GH_VERSION}.`);
+  });
+}
 function git(cwd, args, env) {
   return new Promise((resolveRun, reject) => {
     const child = execFile("git", ["-C", cwd, ...args], { env: { ...env, GIT_TERMINAL_PROMPT: "0" }, timeout: 60000, encoding: "utf8", maxBuffer: 16 << 20 }, (error, stdout, stderr) => {
       if (error === null)
         resolveRun(stdout.trim());
       else
-        reject(new Error(stderr.trim() || error.message));
+        reject(new Error(redactUserinfo(stderr.trim() || error.message)));
     });
     child.stdin?.end();
   });
@@ -10977,7 +11224,7 @@ function localPathOf(url, project) {
     return fileURLToPath(url);
   if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url) || /^[^/]*:/.test(url))
     return null;
-  return resolve(project, url);
+  return resolve2(project, url);
 }
 async function resolveRemote(project, env) {
   const names = (await tryGit(project, ["remote"], env) ?? "").split(`
@@ -10987,13 +11234,21 @@ async function resolveRemote(project, env) {
     throw new Error(names.length === 0 ? `A container worker clones the pushed remote, and ${project} has no git remote. Push the repository first.` : `A container worker clones the pushed remote, and ${project} has several remotes but none named origin.`);
   const url = await git(project, ["remote", "get-url", name], env);
   const localPath = localPathOf(url, project);
-  return { name, url: localPath ?? url, localPath };
+  return { name, url: localPath ?? stripUserinfo(url), localPath };
+}
+function assertRemoteOutsideCheckout(project, remote) {
+  if (remote.localPath === null)
+    return;
+  const target = existsSync2(remote.localPath) ? realpathSync2(remote.localPath) : remote.localPath;
+  const checkout = realpathSync2(project);
+  if (within(target, checkout) || within(checkout, target))
+    throw new Error(`The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`);
 }
 async function verifyPushed(project, remote, inputCommit, env) {
   const full = await tryGit(project, ["rev-parse", "--verify", "--quiet", `${inputCommit}^{commit}`], env);
   if (full === undefined)
     throw new Error(`inputCommit ${inputCommit} names no commit in ${project}`);
-  const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.url], env).catch((error) => {
+  const listed = await git(project, ["ls-remote", "--heads", "--tags", remote.name], env).catch((error) => {
     throw new Error(`Could not read the remote ${remote.name} (${remote.url}): ${error instanceof Error ? error.message : String(error)}`);
   });
   const tips = [...new Set(listed.split(`
@@ -11007,15 +11262,15 @@ async function verifyPushed(project, remote, inputCommit, env) {
   throw new Error(`inputCommit ${full} is not on the remote ${remote.name} (${remote.url}). A container worker clones the pushed remote, so push the commit first (git push ${remote.name} <branch>), or fetch if the remote moved ahead of this checkout.`);
 }
 function resolvePiInstall(entry) {
-  if (entry === undefined || !existsSync(entry))
+  if (entry === undefined || !existsSync2(entry))
     throw new Error("Cannot locate Pi's JS install to mount into the container: set PSTACK_CONTAINER_PI to its cli.js (node_modules/@earendil-works/pi-coding-agent/dist/bundle/cli.js)");
-  const real = realpathSync(entry);
+  const real = realpathSync2(entry);
   const marker = `${sep}node_modules${sep}@earendil-works${sep}pi-coding-agent${sep}`;
   const at = real.lastIndexOf(marker);
   if (at === -1)
     throw new Error(`${real} is not inside a node_modules/@earendil-works/pi-coding-agent install, so it cannot be mounted into the container`);
   const root = real.slice(0, at + `${sep}node_modules`.length);
-  return { root, script: join(CONTAINER_PI_ROOT, relative(root, real)) };
+  return { root, script: join2(CONTAINER_PI_ROOT, relative2(root, real)) };
 }
 var ENTRYPOINT = `fail() { echo "pstack: $*" >&2; exit 1; }
 for tool in node git base64; do command -v "$tool" >/dev/null 2>&1 || fail "the image has no $tool; a container worker's image needs node, git, and base64"; done
@@ -11026,45 +11281,52 @@ while IFS= read -r line; do
   export "$name=\${value%x}"
 done
 [ -n "\${PSTACK_CONTAINER_CLONE_URL:-}" ] || fail "the launch environment did not arrive on stdin"
+export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_NO_UPDATE_NOTIFIER=1
+[ -z "\${PSTACK_CONTAINER_FORGE:-}" ] || command -v gh >/dev/null 2>&1 || fail "the image has no gh, which this worker's forge capability needs"
 WS=${CONTAINER_WORKSPACE}
 {
   mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
+  if [ -n "\${PSTACK_CONTAINER_AUTH:-}" ]; then (umask 077 && printf %s "$PSTACK_CONTAINER_AUTH" > "$PI_CODING_AGENT_DIR/auth.json") || fail "cannot write the model credential"; fi
   git config --global --add safe.directory '*'
   [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
   [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
   if [ -n "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ]; then
-    git config --global credential.https://github.com.helper '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
+    git config --global "credential.https://\${PSTACK_CONTAINER_FORGE_HOST:-github.com}.helper" '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
   fi
   git clone --quiet --no-checkout "$PSTACK_CONTAINER_CLONE_URL" "$WS" || fail "could not clone the remote"
   git -C "$WS" rev-parse --verify --quiet "$PSTACK_CONTAINER_COMMIT^{commit}" >/dev/null || fail "commit $PSTACK_CONTAINER_COMMIT is not on the remote"
   git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
   if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
 } >&2
-unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST PSTACK_CONTAINER_AUTH
 printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
 `;
-var within = (parent, child) => {
-  const path = relative(parent, child);
-  return path === "" || !path.startsWith("..") && !isAbsolute(path);
-};
+var engineRecordPath = (workerDir) => join2(workerDir, "claim", "engine.json");
+function writeEngineRecord(workerDir, engine) {
+  writeFileSync(engineRecordPath(workerDir), JSON.stringify({ docker: engine.docker, env: engine.env }), { mode: 384, flag: "wx" });
+}
 async function prepareContainer(request) {
   const { project, runId, workerId, session, source, packageRoot } = request;
   const engine = await connectEngine(source);
   const remote = await resolveRemote(project, source);
+  assertRemoteOutsideCheckout(project, remote);
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
+  const forgeToken = request.forge ? await resolveForgeToken(source) : undefined;
   const image = await ensureImage(engine, environment);
+  if (forgeToken !== undefined && environment.image.kind !== "default")
+    await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
   const mounts = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];
-  for (const path of [packageRoot, ...request.roleDoc === null ? [] : [resolve(request.roleDoc, "..")], ...request.extraMounts])
+  for (const path of [packageRoot, ...request.roleDoc === null ? [] : [resolve2(request.roleDoc, "..")], ...request.extraMounts, ...request.auth.mounts])
     if (!mounts.some((mount) => mount.dst === path || mount.readonly && within(mount.dst, path)))
       mounts.push({ src: path, dst: path, readonly: true });
   if (remote.localPath !== null)
     mounts.push({ src: remote.localPath, dst: remote.localPath, readonly: false });
   for (const { src, dst } of mounts)
-    if (!existsSync(src) || !MOUNT_PATH.test(src) || !MOUNT_PATH.test(dst))
+    if (!existsSync2(src) || !MOUNT_PATH.test(src) || !MOUNT_PATH.test(dst))
       throw new Error(`Cannot mount ${src}: it must exist and be an absolute path without commas`);
   const [name, email] = await Promise.all([tryGit(project, ["config", "user.name"], source), tryGit(project, ["config", "user.email"], source)]);
   const uid = process.getuid?.();
@@ -11075,12 +11337,15 @@ async function prepareContainer(request) {
       PSTACK_CONTAINER_CLONE_URL: remote.url,
       PSTACK_CONTAINER_COMMIT: commit,
       PSTACK_CONTAINER_BRANCH: `pstack-run/${runId}/${workerId}`,
+      ...request.auth.authJson === null ? {} : { PSTACK_CONTAINER_AUTH: request.auth.authJson },
+      ...forgeToken === undefined ? {} : { GH_TOKEN: forgeToken, PSTACK_CONTAINER_FORGE: "1", PSTACK_CONTAINER_FORGE_HOST: source["GH_HOST"] || "github.com" },
       ...environment.install === undefined ? {} : { PSTACK_CONTAINER_INSTALL: environment.install },
       ...name === undefined || name === "" ? {} : { PSTACK_CONTAINER_GIT_NAME: name },
       ...email === undefined || email === "" ? {} : { PSTACK_CONTAINER_GIT_EMAIL: email }
     },
     piCommand: ["node", pi.script],
-    piArgs: ["--extension", join(packageRoot, "src", "extension.ts"), "--skill", join(packageRoot, "generated", "skills")],
+    piArgs: ["--extension", join2(packageRoot, "src", "extension.ts"), ...request.auth.extensions.flatMap((path) => ["--extension", path]), "--skill", join2(packageRoot, "generated", "skills")],
+    engine,
     engineVersion: engine.version,
     image,
     remote: remote.name
@@ -14061,8 +14326,8 @@ var Delete = _Object_({
 var Edit = Union([Insert2, Update2, Delete]);
 // src/run-files.ts
 import { createHash as createHash2 } from "node:crypto";
-import { appendFileSync, closeSync, constants, existsSync as existsSync2, fstatSync, lstatSync, openSync, readFileSync as readFileSync2, realpathSync as realpathSync2, renameSync, writeFileSync } from "node:fs";
-import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve3, sep as sep2 } from "node:path";
+import { appendFileSync, closeSync, constants, existsSync as existsSync3, fstatSync, lstatSync, openSync, readFileSync as readFileSync3, realpathSync as realpathSync3, renameSync, writeFileSync as writeFileSync2 } from "node:fs";
+import { basename, dirname as dirname2, isAbsolute as isAbsolute3, join as join3, relative as relative3, resolve as resolve4, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
 function parseId(value, what) {
   if (typeof value !== "string" || !ID.test(value))
@@ -14072,25 +14337,25 @@ function parseId(value, what) {
 var parseRunId = (value) => parseId(value, "runId");
 var parseWorkerId = (value) => parseId(value, "workerId");
 var tmuxSessionName = (project, runId, workerId) => `pstack_${runId}_${workerId}_${createHash2("sha256").update(`${project}\x00${runId}\x00${workerId}`).digest("hex").slice(0, 8)}`;
-var runsDir = (project) => join2(project, ".pi", "pstack", "runs");
-var runRootOf = (project, runId) => join2(runsDir(project), runId);
-var projectOfRunRoot = (runRoot) => resolve3(runRoot, "..", "..", "..", "..");
-var workerDirOf = (runRoot, workerId) => join2(runRoot, "workers", workerId);
+var runsDir = (project) => join3(project, ".pi", "pstack", "runs");
+var runRootOf = (project, runId) => join3(runsDir(project), runId);
+var projectOfRunRoot = (runRoot) => resolve4(runRoot, "..", "..", "..", "..");
+var workerDirOf = (runRoot, workerId) => join3(runRoot, "workers", workerId);
 function controlSocketPath(runRoot, workerId) {
-  const local = join2(workerDirOf(runRoot, workerId), "control.sock");
+  const local = join3(workerDirOf(runRoot, workerId), "control.sock");
   if (Buffer.byteLength(local) <= 100)
     return local;
   const uid = process.getuid?.() ?? 0;
-  return join2("/tmp", `pstack-${uid}`, `${createHash2("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
+  return join3("/tmp", `pstack-${uid}`, `${createHash2("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
 }
 function writeJsonAtomic(path, value, mode = 384) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
-  writeFileSync(temporary, `${JSON.stringify(value, null, 2)}
+  writeFileSync2(temporary, `${JSON.stringify(value, null, 2)}
 `, { mode });
   renameSync(temporary, path);
 }
 function readJson(path) {
-  return JSON.parse(readFileSync2(path, "utf8"));
+  return JSON.parse(readFileSync3(path, "utf8"));
 }
 var MAX_EVENT_DATA = 4096;
 function appendEvent(runRoot, event) {
@@ -14099,12 +14364,12 @@ function appendEvent(runRoot, event) {
     data = JSON.stringify(`${data.slice(0, MAX_EVENT_DATA)}…`);
   const line = `{"ts":${JSON.stringify(new Date().toISOString())},"runId":${JSON.stringify(event.runId)}${event.workerId === undefined ? "" : `,"workerId":${JSON.stringify(event.workerId)}`},"kind":${JSON.stringify(event.kind)},"data":${data}}
 `;
-  appendFileSync(join2(runRoot, "events.jsonl"), line, { mode: 384 });
+  appendFileSync(join3(runRoot, "events.jsonl"), line, { mode: 384 });
 }
-var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
+var isRecord3 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 function readRun(runRoot) {
-  const raw = readJson(join2(runRoot, "run.json"));
-  if (!isRecord2(raw) || raw["schemaVersion"] !== 1)
+  const raw = readJson(join3(runRoot, "run.json"));
+  if (!isRecord3(raw) || raw["schemaVersion"] !== 1)
     throw new Error(`${runRoot}/run.json: unsupported schema`);
   const runId = parseRunId(raw["runId"]);
   if (runId !== basename(runRoot))
@@ -14118,16 +14383,25 @@ var WORKER_ROLES = ["poteto", "explorer", "investigator", "candidate", "judge", 
 var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
+var defaultCapabilities = (role, workspace) => workspace.mode === "container" ? { ...role, env: "minimal" } : role;
 function parseCapabilities(raw) {
-  if (!isRecord2(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
+  const required = ["env", "externalWrite", "mcp"];
+  const optional = ["spawn", "forge"];
+  if (!isRecord3(raw) || !required.every((key) => (key in raw)) || Object.keys(raw).some((key) => !required.includes(key) && !optional.includes(key)) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || optional.some((key) => raw[key] !== undefined && typeof raw[key] !== "boolean"))
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean, forge?: boolean }");
+  return {
+    mcp: raw["mcp"],
+    env: raw["env"],
+    externalWrite: raw["externalWrite"],
+    ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {},
+    ...typeof raw["forge"] === "boolean" ? { forge: raw["forge"] } : {}
+  };
 }
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
 var COMMIT = /^[0-9a-f]{7,64}$/;
 function parseAssignment(raw, defaults) {
-  if (!isRecord2(raw))
+  if (!isRecord3(raw))
     throw new Error("Assignment must be a JSON object");
   const allowed = ["schemaVersion", "runId", "workerId", "kind", "role", "brief", "model", "thinkingLevel", "workspace", "skills", "watch", "capabilities"];
   const unknown = Object.keys(raw).filter((key) => !allowed.includes(key));
@@ -14150,12 +14424,12 @@ function parseAssignment(raw, defaults) {
   if (thinkingLevel !== null && !(typeof thinkingLevel === "string" && THINKING_LEVELS.includes(thinkingLevel)))
     throw new Error(`Assignment thinkingLevel must be null or one of ${THINKING_LEVELS.join(", ")}`);
   const workspace = raw["workspace"];
-  if (!isRecord2(workspace))
+  if (!isRecord3(workspace))
     throw new Error("Assignment workspace must be an object");
   let parsedWorkspace;
   if ((workspace["mode"] === "worktree" || workspace["mode"] === "container") && Object.keys(workspace).length === 2 && typeof workspace["inputCommit"] === "string" && COMMIT.test(workspace["inputCommit"]))
     parsedWorkspace = { mode: workspace["mode"], inputCommit: workspace["inputCommit"] };
-  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute2(workspace["path"])))
+  else if (workspace["mode"] === "readonly" && Object.keys(workspace).every((key) => key === "mode" || key === "path") && (workspace["path"] === undefined || typeof workspace["path"] === "string" && isAbsolute3(workspace["path"])))
     parsedWorkspace = { mode: "readonly", path: workspace["path"] ?? defaults.projectRoot };
   else
     throw new Error("Assignment workspace must be { mode: 'worktree' | 'container', inputCommit: <sha> } or { mode: 'readonly', path: <absolute> }");
@@ -14165,9 +14439,11 @@ function parseAssignment(raw, defaults) {
   const brief = raw["brief"];
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  const capabilities = raw["capabilities"] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw["capabilities"]);
   if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
     throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
+  if (capabilities.forge === true && parsedWorkspace.mode !== "container")
+    throw new Error("Assignment capabilities.forge needs a container workspace: a worktree or readonly worker already runs as the operator, with the operator's own gh login");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)
@@ -14177,18 +14453,18 @@ function parseAssignment(raw, defaults) {
     return { ...base, kind, brief };
   }
   const watch = raw["watch"];
-  if (!isRecord2(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
+  if (!isRecord3(watch) || Object.keys(watch).some((key) => key !== "argv" && key !== "cwd"))
     throw new Error("Assignment kind 'watch' needs watch: { argv, cwd }");
   const argv = watch["argv"];
   if (!Array.isArray(argv) || argv.length === 0 || argv.some((part) => typeof part !== "string" || part.includes("\x00")))
     throw new Error("Assignment watch.argv must be a non-empty string array");
   const cwd = watch["cwd"] ?? defaults.projectRoot;
-  if (typeof cwd !== "string" || !isAbsolute2(cwd))
+  if (typeof cwd !== "string" || !isAbsolute3(cwd))
     throw new Error("Assignment watch.cwd must be absolute");
   return { ...base, kind, ...typeof brief === "string" ? { brief } : {}, watch: { argv, cwd } };
 }
 function readBrief(workerDir) {
-  const path = join2(workerDir, BRIEF);
+  const path = join3(workerDir, BRIEF);
   let fd;
   try {
     fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
@@ -14199,9 +14475,9 @@ function readBrief(workerDir) {
   }
   try {
     const stat = fstatSync(fd);
-    if (!stat.isFile() || stat.nlink !== 1 || realpathSync2(path) !== path)
+    if (!stat.isFile() || stat.nlink !== 1 || realpathSync3(path) !== path)
       throw new Error(`${path} must be a regular file with a single link inside the worker directory`);
-    return readFileSync2(fd);
+    return readFileSync3(fd);
   } finally {
     closeSync(fd);
   }
@@ -14214,20 +14490,20 @@ function ownedEntry(path, directory) {
     throw new Error(`${path} is not owned by this user`);
 }
 function loadAssignment(path) {
-  if (!isAbsolute2(path))
+  if (!isAbsolute3(path))
     throw new Error("Assignment path must be absolute");
-  const file = resolve3(path);
+  const file = resolve4(path);
   if (basename(file) !== "assignment.json")
     throw new Error("Assignment file must be named assignment.json");
   ownedEntry(file, false);
-  if (realpathSync2(file) !== file)
+  if (realpathSync3(file) !== file)
     throw new Error("Assignment path must be canonical (no symlinks)");
-  const workerDir = dirname(file);
+  const workerDir = dirname2(file);
   ownedEntry(workerDir, true);
-  const runRoot = dirname(dirname(workerDir));
-  if (basename(dirname(workerDir)) !== "workers" || basename(dirname(runRoot)) !== "runs")
+  const runRoot = dirname2(dirname2(workerDir));
+  if (basename(dirname2(workerDir)) !== "workers" || basename(dirname2(runRoot)) !== "runs")
     throw new Error("Assignment must be at <runRoot>/workers/<workerId>/assignment.json");
-  const bytes = readFileSync2(file);
+  const bytes = readFileSync3(file);
   const automated = readRun(runRoot).parentSessionFile === null;
   const assignment = parseAssignment(JSON.parse(bytes.toString("utf8")), { capabilities: automated ? AUTOMATION_CAPABILITIES : ENGINEERING_CAPABILITIES, projectRoot: projectOfRunRoot(runRoot) });
   if (assignment.workerId !== basename(workerDir))
@@ -14239,27 +14515,27 @@ function loadAssignment(path) {
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
 function readHostState(workerDir) {
-  const path = join2(workerDir, "state.json");
-  if (!existsSync2(path))
+  const path = join3(workerDir, "state.json");
+  if (!existsSync3(path))
     return;
   const raw = readJson(path);
-  if (!isRecord2(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
+  if (!isRecord3(raw) || raw["schemaVersion"] !== 1 || typeof raw["instance"] !== "string" || !Array.isArray(raw["settles"]))
     throw new Error(`${path}: malformed host state`);
   return raw;
 }
-var launchEnvPath = (workerDir) => join2(workerDir, "claim", "launch-env.json");
+var launchEnvPath = (workerDir) => join3(workerDir, "claim", "launch-env.json");
 var TMUX_IDENTITY_FORMAT = "#{pid} #{start_time} #{session_id} #{session_created}";
-var tmuxIdentityPath = (workerDir) => join2(workerDir, "claim", "tmux.json");
+var tmuxIdentityPath = (workerDir) => join3(workerDir, "claim", "tmux.json");
 function parseTmuxIdentity(text) {
   const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
   return match === null ? undefined : { serverPid: match[1], serverStarted: match[2], sessionId: match[3], created: match[4] };
 }
 function readClaim(workerDir) {
-  const path = join2(workerDir, "claim", "identity.json");
-  if (!existsSync2(path))
+  const path = join3(workerDir, "claim", "identity.json");
+  if (!existsSync3(path))
     return;
   const raw = readJson(path);
-  if (!isRecord2(raw) || typeof raw["instance"] !== "string" || typeof raw["hostStarted"] !== "string")
+  if (!isRecord3(raw) || typeof raw["instance"] !== "string" || typeof raw["hostStarted"] !== "string")
     throw new Error(`${path}: malformed claim`);
   return raw;
 }
@@ -14289,16 +14565,16 @@ var EvidenceParams = _Object_({
 });
 
 // src/paths.ts
-import { dirname as dirname2, join as join3 } from "node:path";
+import { dirname as dirname3, join as join4 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
-var PACKAGE_ROOT = join3(dirname2(fileURLToPath2(import.meta.url)), "..");
+var PACKAGE_ROOT = join4(dirname3(fileURLToPath2(import.meta.url)), "..");
 
 // src/pi-command.ts
-import { existsSync as existsSync3 } from "node:fs";
+import { existsSync as existsSync4 } from "node:fs";
 import { basename as basename2 } from "node:path";
 function piCommand() {
   const script = process.argv[1];
-  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync3(script))
+  if (script !== undefined && !script.startsWith("/$bunfs/") && existsSync4(script))
     return [process.execPath, script];
   return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
 }
@@ -14411,11 +14687,11 @@ async function controlHost(target, operation, text) {
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 function onPath(command) {
-  if (isAbsolute3(command))
+  if (isAbsolute4(command))
     return command;
-  for (const dir of (process.env["PATH"] ?? "").split(delimiter2)) {
-    const candidate = join4(dir, command);
-    if (dir !== "" && existsSync4(candidate))
+  for (const dir of (process.env["PATH"] ?? "").split(delimiter3)) {
+    const candidate = join5(dir, command);
+    if (dir !== "" && existsSync5(candidate))
       return candidate;
   }
   throw new Error(`${command} is not on PATH`);
@@ -14424,13 +14700,13 @@ function nodeExecutable() {
   return /^node(\.exe)?$/i.test(basename3(process.execPath)) ? process.execPath : onPath("node");
 }
 function hostEntry() {
-  const built = join4(PACKAGE_ROOT, "dist", "worker-host.js");
-  return existsSync4(built) ? built : join4(PACKAGE_ROOT, "src", "worker-host.ts");
+  const built = join5(PACKAGE_ROOT, "dist", "worker-host.js");
+  return existsSync5(built) ? built : join5(PACKAGE_ROOT, "src", "worker-host.ts");
 }
 function roleDocument(agentsDir, role) {
-  const own = join4(agentsDir, `${role}.md`);
-  const path = (role === "poteto" || role === "comment-sicko") && existsSync4(own) ? own : join4(agentsDir, "general.md");
-  if (!existsSync4(path))
+  const own = join5(agentsDir, `${role}.md`);
+  const path = (role === "poteto" || role === "comment-sicko") && existsSync5(own) ? own : join5(agentsDir, "general.md");
+  if (!existsSync5(path))
     throw new Error(`Role instructions are missing: ${path}`);
   return path;
 }
@@ -14454,17 +14730,15 @@ function credentialEnv(provider) {
     return [...new Set(getBuiltinProviders().flatMap(credentialEnv))];
   return [...findEnvKeys(provider) ?? [], ...AMBIENT_CREDENTIALS[provider] ?? []];
 }
-function defaultProvider(env) {
-  const home = env["HOME"] ?? homedir();
-  const configured = env["PI_CODING_AGENT_DIR"];
-  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join4(home, ".pi", "agent");
+function defaultSettings(env) {
   try {
-    const provider = JSON.parse(readFileSync3(join4(agentDir, "settings.json"), "utf8")).defaultProvider;
-    return typeof provider === "string" ? provider : undefined;
+    const settings = JSON.parse(readFileSync4(join5(agentDirOf(env), "settings.json"), "utf8"));
+    return { provider: typeof settings.defaultProvider === "string" ? settings.defaultProvider : undefined, model: typeof settings.defaultModel === "string" ? settings.defaultModel : undefined };
   } catch {
-    return;
+    return { provider: undefined, model: undefined };
   }
 }
+var defaultProvider = (env) => defaultSettings(env).provider;
 var execFileAsync = promisify(execFile2);
 var nodeExec = async (command, args, options) => {
   try {
@@ -14490,7 +14764,7 @@ async function checkStart(exec, socket, session, workerDir, waitMs) {
       const row = rows.find(([, panePid]) => panePid === String(claim.hostPid));
       return { outcome: "started", identity: row === undefined ? undefined : parseTmuxIdentity(row.slice(2).join(" ")) };
     }
-    const sessionPresent = rows.length > 0 || listed.code !== 0 && !noServer || existsSync4(join4(workerDir, "claim", "identity.json"));
+    const sessionPresent = rows.length > 0 || listed.code !== 0 && !noServer || existsSync5(join5(workerDir, "claim", "identity.json"));
     if (Date.now() >= deadline)
       return sessionPresent ? { outcome: "unknown" } : { outcome: "not-started" };
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -14520,14 +14794,14 @@ function workerSocket(explicit) {
 async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const exec = options.exec ?? nodeExec;
   const socket = workerSocket(options.tmuxSocket);
-  const agentsDir = options.agentsDir ?? join4(PACKAGE_ROOT, "generated", "agents");
+  const agentsDir = options.agentsDir ?? join5(PACKAGE_ROOT, "generated", "agents");
   const attach = (session) => `tmux -L ${socket} attach -t ${session}`;
-  const root = realpathSync3(project);
+  const root = realpathSync4(project);
   const runRoot = runRootOf(root, runId);
   let loaded = loadAssignment(assignmentPath);
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
-    throw new Error(`Assignment must be ${join4(runRoot, "workers", "<workerId>", "assignment.json")}`);
+    throw new Error(`Assignment must be ${join5(runRoot, "workers", "<workerId>", "assignment.json")}`);
   if (assignment.capabilities.externalWrite)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
   const depth = spawnDepth(process.env) + 1;
@@ -14543,15 +14817,27 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     model = await (options.resolveModel ?? parentlessModel)({ model: assignment.model, thinkingLevel: assignment.thinkingLevel, role: assignment.role });
     roleDoc = roleDocument(agentsDir, assignment.role);
     readBrief(loaded.workerDir);
-    if (assignment.workspace.mode === "readonly" && (!existsSync4(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory()))
+    if (assignment.workspace.mode === "readonly" && (!existsSync5(assignment.workspace.path) || !statSync2(assignment.workspace.path).isDirectory()))
       throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
-  } else if (!existsSync4(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory())
+  } else if (!existsSync5(assignment.watch.cwd) || !statSync2(assignment.watch.cwd).isDirectory())
     throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? piCommand();
   const source = { ...process.env, ...options.extraEnv };
-  const provider = model?.provider ?? (assignment.kind === "pi" ? defaultProvider(source) : undefined);
+  const inContainer = assignment.kind === "pi" && assignment.workspace.mode === "container";
+  const hostDefault = inContainer && model === null ? defaultSettings(source) : undefined;
+  const launchModel = model !== null ? { provider: model.provider, id: model.id } : hostDefault?.provider !== undefined && hostDefault.model !== undefined ? { provider: hostDefault.provider, id: hostDefault.model } : null;
+  const provider = launchModel?.provider ?? (assignment.kind === "pi" ? defaultProvider(source) : undefined);
   let container = null;
-  if (assignment.kind === "pi" && assignment.workspace.mode === "container")
+  if (assignment.kind === "pi" && assignment.workspace.mode === "container") {
+    const auth = provider === undefined ? undefined : await prepareContainerAuth({
+      provider,
+      source,
+      projectRoot: root,
+      builtin: new Set(getBuiltinProviders()),
+      ...options.providerAuth === undefined ? {} : { resolve: options.providerAuth },
+      ...options.containerProviderPackages === undefined ? {} : { packages: options.containerProviderPackages },
+      minOAuthValidityMs: options.minOAuthValidityMs ?? MIN_OAUTH_LIFETIME_MS
+    });
     container = await prepareContainer({
       project: root,
       runId,
@@ -14562,18 +14848,21 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       packageRoot: PACKAGE_ROOT,
       piEntry: options.containerPi ?? source["PSTACK_CONTAINER_PI"] ?? process.argv[1],
       roleDoc,
-      extraMounts: options.containerMounts ?? []
+      extraMounts: options.containerMounts ?? [],
+      forge: assignment.capabilities.forge === true,
+      auth: { authJson: auth?.authJson ?? null, mounts: auth?.packages.mounts ?? [], extensions: auth?.packages.extensions ?? [] }
     });
+  }
   const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
-    model: model === null ? null : { provider: model.provider, id: model.id },
+    model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
-    credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...container === null ? [] : GIT_CREDENTIAL_ENV] : [],
+    credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],
     container: container?.plan ?? null
   };
   const launchEnv = {
@@ -14583,8 +14872,8 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     PSTACK_SPAWN: spawns ? "1" : null,
     ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
   };
-  const claimDir = join4(loaded.workerDir, "claim");
-  if (!existsSync4(claimDir) && readFileSync3(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
+  const claimDir = join5(loaded.workerDir, "claim");
+  if (!existsSync5(claimDir) && readFileSync4(loaded.file, "utf8") !== `${JSON.stringify(assignment, null, 2)}
 `) {
     writeJsonAtomic(loaded.file, assignment);
     loaded = loadAssignment(loaded.file);
@@ -14605,7 +14894,9 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   let state;
   try {
     try {
-      writeFileSync2(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
+      if (container !== null)
+        writeEngineRecord(loaded.workerDir, container.engine);
+      writeFileSync3(secrets, JSON.stringify(launchEnv), { mode: 384, flag: "wx" });
     } catch (error) {
       throw release(error);
     }
@@ -14625,7 +14916,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       tmuxIdentity = check.identity;
     }
     if (tmuxIdentity !== undefined)
-      writeFileSync2(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
+      writeFileSync3(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 384, flag: "wx" });
     appendEvent(runRoot, {
       runId,
       workerId: assignment.workerId,
@@ -14769,23 +15060,23 @@ function eligibleTrackerAction(intent, policy) {
 }
 
 // src/automation/store.ts
-import { appendFileSync as appendFileSync2, existsSync as existsSync5, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync2, readFileSync as readFileSync4, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync3 } from "node:fs";
-import { dirname as dirname3, join as join5 } from "node:path";
+import { appendFileSync as appendFileSync2, existsSync as existsSync6, linkSync, mkdirSync as mkdirSync2, readdirSync as readdirSync3, readFileSync as readFileSync5, renameSync as renameSync2, unlinkSync, writeFileSync as writeFileSync4 } from "node:fs";
+import { dirname as dirname4, join as join6 } from "node:path";
 function automationStore(projectRoot, name) {
-  const dir = join5(projectRoot, ".pi", "pstack", "automation", name);
-  return { dir, log: join5(dir, "events.jsonl"), cursor: join5(dir, "cursor.json"), outbox: join5(dir, "outbox"), lock: join5(dir, "source.lock") };
+  const dir = join6(projectRoot, ".pi", "pstack", "automation", name);
+  return { dir, log: join6(dir, "events.jsonl"), cursor: join6(dir, "cursor.json"), outbox: join6(dir, "outbox"), lock: join6(dir, "source.lock") };
 }
 var temporary = (path) => `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
 function writeAtomic(path, text) {
-  mkdirSync2(dirname3(path), { recursive: true, mode: 448 });
+  mkdirSync2(dirname4(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
-  writeFileSync3(tmp, text, { mode: 384 });
+  writeFileSync4(tmp, text, { mode: 384 });
   renameSync2(tmp, path);
 }
 function createExclusive(path, text) {
-  mkdirSync2(dirname3(path), { recursive: true, mode: 448 });
+  mkdirSync2(dirname4(path), { recursive: true, mode: 448 });
   const tmp = temporary(path);
-  writeFileSync3(tmp, text, { mode: 384 });
+  writeFileSync4(tmp, text, { mode: 384 });
   try {
     linkSync(tmp, path);
     return true;
@@ -14800,9 +15091,9 @@ function createExclusive(path, text) {
 var json = (value) => `${JSON.stringify(value, null, 2)}
 `;
 function readJson2(path) {
-  if (!existsSync5(path))
+  if (!existsSync6(path))
     return;
-  return JSON.parse(readFileSync4(path, "utf8"));
+  return JSON.parse(readFileSync5(path, "utf8"));
 }
 function appendLog(store, entry) {
   mkdirSync2(store.dir, { recursive: true, mode: 448 });
@@ -14810,10 +15101,10 @@ function appendLog(store, entry) {
 `, { mode: 384 });
 }
 function readLog(store) {
-  if (!existsSync5(store.log))
+  if (!existsSync6(store.log))
     return [];
   const entries = [];
-  for (const line of readFileSync4(store.log, "utf8").split(`
+  for (const line of readFileSync5(store.log, "utf8").split(`
 `)) {
     if (line === "")
       continue;
@@ -14829,11 +15120,11 @@ function readCursor(store) {
 function writeCursor(store, ts) {
   writeAtomic(store.cursor, json({ ts }));
 }
-var outboxFile = (store, id) => join5(store.outbox, `${id}.json`);
+var outboxFile = (store, id) => join6(store.outbox, `${id}.json`);
 function outboxEntries(store) {
-  if (!existsSync5(store.outbox))
+  if (!existsSync6(store.outbox))
     return [];
-  return readdirSync2(store.outbox).filter((file) => file.endsWith(".json")).sort().map((file) => readJson2(join5(store.outbox, file))).filter((entry) => entry !== undefined);
+  return readdirSync3(store.outbox).filter((file) => file.endsWith(".json")).sort().map((file) => readJson2(join6(store.outbox, file))).filter((entry) => entry !== undefined);
 }
 var alive = (pid) => {
   try {
@@ -14878,9 +15169,9 @@ async function missingPrerequisites(kind, probes) {
   }
   return { missing, problems };
 }
-var runDir = (projectRoot, runId) => join6(projectRoot, ".pi", "pstack", "runs", runId);
-var workerDir = (projectRoot, runId) => join6(runDir(projectRoot, runId), "workers", WORKER_ID);
-var statusFile = (projectRoot, runId) => join6(workerDir(projectRoot, runId), "status.jsonl");
+var runDir = (projectRoot, runId) => join7(projectRoot, ".pi", "pstack", "runs", runId);
+var workerDir = (projectRoot, runId) => join7(runDir(projectRoot, runId), "workers", WORKER_ID);
+var statusFile = (projectRoot, runId) => join7(workerDir(projectRoot, runId), "status.jsonl");
 var fenced = (value) => JSON.stringify(value, null, 2).replace(/</g, "\\u003c");
 function buildBrief(config, event, thread = [], statusFile) {
   const kind = AUTOMATION_KINDS[config.kind];
@@ -14937,11 +15228,11 @@ function buildAssignment(config, runId, inputCommit) {
 }
 async function launchRun(projectRoot, run, deps) {
   const worker = workerDir(projectRoot, run.runId);
-  createExclusive(join6(runDir(projectRoot, run.runId), "run.json"), json({ schemaVersion: 1, runId: run.runId, title: run.title, playbook: run.playbook, upstreamRevision: UPSTREAM_REVISION, createdAt: deps.now().toISOString(), parentSessionFile: null, inputCommit: run.inputCommit }));
-  createExclusive(join6(worker, "brief.md"), run.brief);
-  const assignmentPath = join6(worker, "assignment.json");
+  createExclusive(join7(runDir(projectRoot, run.runId), "run.json"), json({ schemaVersion: 1, runId: run.runId, title: run.title, playbook: run.playbook, upstreamRevision: UPSTREAM_REVISION, createdAt: deps.now().toISOString(), parentSessionFile: null, inputCommit: run.inputCommit }));
+  createExclusive(join7(worker, "brief.md"), run.brief);
+  const assignmentPath = join7(worker, "assignment.json");
   createExclusive(assignmentPath, json(run.assignment));
-  if (existsSync6(join6(worker, "claim")))
+  if (existsSync7(join7(worker, "claim")))
     return;
   await deps.spawnWorker(run.runId, assignmentPath);
 }
@@ -14951,13 +15242,13 @@ async function dispatchRun(config, event, runId, deps) {
 }
 
 // src/automation/operations.ts
-import { existsSync as existsSync7, readFileSync as readFileSync5 } from "node:fs";
+import { existsSync as existsSync8, readFileSync as readFileSync6 } from "node:fs";
 function latestStatus(projectRoot, runId) {
   const file = statusFile(projectRoot, runId);
-  if (!existsSync7(file))
+  if (!existsSync8(file))
     return;
   let latest;
-  for (const line of readFileSync5(file, "utf8").split(`
+  for (const line of readFileSync6(file, "utf8").split(`
 `)) {
     try {
       const parsed = JSON.parse(line);
@@ -15149,9 +15440,9 @@ function slackDestination(api) {
 import { createHash as createHash4 } from "node:crypto";
 
 // src/automation/abort.ts
-import { join as join7 } from "node:path";
+import { join as join8 } from "node:path";
 var abortRun = async (projectRoot, runId) => {
-  const loaded = loadAssignment(join7(workerDir(projectRoot, runId), "assignment.json"));
+  const loaded = loadAssignment(join8(workerDir(projectRoot, runId), "assignment.json"));
   try {
     await controlHost(hostTarget(loaded), "shutdown");
     return "aborted";
@@ -15163,13 +15454,13 @@ var abortRun = async (projectRoot, runId) => {
 };
 
 // src/automation/settle.ts
-import { existsSync as existsSync8, readFileSync as readFileSync6 } from "node:fs";
-import { join as join8 } from "node:path";
+import { existsSync as existsSync9, readFileSync as readFileSync7 } from "node:fs";
+import { join as join9 } from "node:path";
 function finalAssistantText(sessionFile) {
-  if (sessionFile === null || !existsSync8(sessionFile))
+  if (sessionFile === null || !existsSync9(sessionFile))
     return null;
   let text = null;
-  for (const line of readFileSync6(sessionFile, "utf8").split(`
+  for (const line of readFileSync7(sessionFile, "utf8").split(`
 `)) {
     if (line.trim() === "")
       continue;
@@ -15193,7 +15484,7 @@ var alive2 = (pid) => {
 };
 var oneLine2 = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
 async function collectRun(projectRoot, runId, inspect = inspectHost) {
-  const loaded = loadAssignment(join8(workerDir(projectRoot, runId), "assignment.json"));
+  const loaded = loadAssignment(join9(workerDir(projectRoot, runId), "assignment.json"));
   let live;
   try {
     live = await inspect(hostTarget(loaded));
@@ -15480,22 +15771,22 @@ import { createHash as createHash5, timingSafeEqual } from "node:crypto";
 import { createServer } from "node:http";
 
 // src/automation/credentials.ts
-import { readFileSync as readFileSync7, statSync as statSync2 } from "node:fs";
+import { readFileSync as readFileSync8, statSync as statSync3 } from "node:fs";
 import { homedir as homedir2 } from "node:os";
-import { join as join9 } from "node:path";
-var credentialsDir = () => join9(homedir2(), ".pi", "agent", "pstack", "credentials");
-var defaultCredentialFile = (connector) => join9(credentialsDir(), `${connector}.json`);
+import { join as join10 } from "node:path";
+var credentialsDir = () => join10(homedir2(), ".pi", "agent", "pstack", "credentials");
+var defaultCredentialFile = (connector) => join10(credentialsDir(), `${connector}.json`);
 function readCredential(file, field) {
   let mode;
   try {
-    mode = statSync2(file).mode;
+    mode = statSync3(file).mode;
   } catch {
     return { ok: false, reason: "missing" };
   }
   if ((mode & 63) !== 0)
     return { ok: false, reason: "not-0600" };
   try {
-    const value = JSON.parse(readFileSync7(file, "utf8"))?.[field];
+    const value = JSON.parse(readFileSync8(file, "utf8"))?.[field];
     return typeof value === "string" && value.length >= 16 ? { ok: true, value } : { ok: false, reason: "malformed" };
   } catch {
     return { ok: false, reason: "malformed" };
@@ -15859,8 +16150,8 @@ async function startEventSource(automation, source) {
 }
 
 // src/automation/configuration.ts
-import { readFileSync as readFileSync8 } from "node:fs";
-import { join as join10, relative as relative4, resolve as resolve4 } from "node:path";
+import { readFileSync as readFileSync9 } from "node:fs";
+import { join as join11, relative as relative5, resolve as resolve5 } from "node:path";
 
 // ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
 var composer = require_composer();
@@ -16025,8 +16316,8 @@ function text(value, name) {
   return value;
 }
 var CHANNEL_ID = /^[A-Z0-9_]{2,32}$/;
-function loadBennyConfig(projectRoot, kind, path = join10(projectRoot, ".pi/benny/configuration.yaml")) {
-  const raw = object3($parse(readFileSync8(path, "utf8")), "configuration");
+function loadBennyConfig(projectRoot, kind, path = join11(projectRoot, ".pi/benny/configuration.yaml")) {
+  const raw = object3($parse(readFileSync9(path, "utf8")), "configuration");
   if (raw["schema_version"] !== 1)
     throw new Error("unsupported Benny schema_version");
   const sections = new Map(["automations", "slack", "repository", "tracker", "routing", "control", "verdict_markers", "status_emoji", "budgets", "models"].map((key) => [key, object3(raw[key], key)]));
@@ -16061,7 +16352,7 @@ function loadBennyConfig(projectRoot, kind, path = join10(projectRoot, ".pi/benn
     if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
       throw new Error(`invalid Benny budget ${budget}`);
   }
-  const configPath = relative4(resolve4(projectRoot), resolve4(path));
+  const configPath = relative5(resolve5(projectRoot), resolve5(path));
   if (configPath.startsWith(".."))
     throw new Error("Benny configuration must be project-owned");
   const tracker = {
@@ -16085,43 +16376,43 @@ function loadBennyConfig(projectRoot, kind, path = join10(projectRoot, ".pi/benn
   const emoji = Object.fromEntries(Object.entries(section("status_emoji")).filter((entry) => typeof entry[1] === "string"));
   const operations = typeof operationsChannel === "string" && operationsChannel.trim() !== "" ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };
-  return { name, kind, projectRoot: resolve4(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets, ...operations === undefined ? {} : { operations } };
+  return { name, kind, projectRoot: resolve5(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control, budgets, ...operations === undefined ? {} : { operations } };
 }
 
 // src/automation/control-adapter.ts
-import { existsSync as existsSync10, readFileSync as readFileSync9, realpathSync as realpathSync4, statSync as statSync4 } from "node:fs";
-import { relative as relative5, resolve as resolve6 } from "node:path";
+import { existsSync as existsSync11, readFileSync as readFileSync10, realpathSync as realpathSync5, statSync as statSync5 } from "node:fs";
+import { relative as relative6, resolve as resolve7 } from "node:path";
 
 // src/automation/skills.ts
-import { existsSync as existsSync9, readdirSync as readdirSync3, statSync as statSync3 } from "node:fs";
+import { existsSync as existsSync10, readdirSync as readdirSync4, statSync as statSync4 } from "node:fs";
 import { homedir as homedir3 } from "node:os";
-import { dirname as dirname4, join as join11, resolve as resolve5 } from "node:path";
+import { dirname as dirname5, join as join12, resolve as resolve6 } from "node:path";
 var SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 var MAX_DEPTH2 = 3;
 var isSkillName = (value) => value.length <= 64 && SKILL_NAME.test(value);
 function agentsDirs(projectRoot) {
   const dirs = [];
-  for (let dir = resolve5(projectRoot);; dir = dirname4(dir)) {
-    dirs.push(join11(dir, ".agents", "skills"));
-    if (existsSync9(join11(dir, ".git")) || dirname4(dir) === dir)
+  for (let dir = resolve6(projectRoot);; dir = dirname5(dir)) {
+    dirs.push(join12(dir, ".agents", "skills"));
+    if (existsSync10(join12(dir, ".git")) || dirname5(dir) === dir)
       return dirs;
   }
 }
 function skillDirectories(locations) {
   const home = locations.home ?? homedir3();
-  const agentDir = process.env["PI_CODING_AGENT_DIR"] ?? join11(home, ".pi", "agent");
-  return [join11(resolve5(locations.projectRoot), ".pi", "skills"), ...agentsDirs(locations.projectRoot), join11(agentDir, "skills"), join11(home, ".agents", "skills"), join11(locations.packageRoot ?? PACKAGE_ROOT, "generated", "skills")];
+  const agentDir = process.env["PI_CODING_AGENT_DIR"] ?? join12(home, ".pi", "agent");
+  return [join12(resolve6(locations.projectRoot), ".pi", "skills"), ...agentsDirs(locations.projectRoot), join12(agentDir, "skills"), join12(home, ".agents", "skills"), join12(locations.packageRoot ?? PACKAGE_ROOT, "generated", "skills")];
 }
 function find(dir, name, depth) {
-  const direct = join11(dir, name, "SKILL.md");
-  if (existsSync9(direct) && statSync3(direct).isFile())
+  const direct = join12(dir, name, "SKILL.md");
+  if (existsSync10(direct) && statSync4(direct).isFile())
     return direct;
-  if (depth === 0 || !existsSync9(dir))
+  if (depth === 0 || !existsSync10(dir))
     return;
-  for (const entry of readdirSync3(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules" || existsSync9(join11(dir, entry.name, "SKILL.md")))
+  for (const entry of readdirSync4(dir, { withFileTypes: true })) {
+    if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules" || existsSync10(join12(dir, entry.name, "SKILL.md")))
       continue;
-    const found = find(join11(dir, entry.name), name, depth - 1);
+    const found = find(join12(dir, entry.name), name, depth - 1);
     if (found !== undefined)
       return found;
   }
@@ -16142,15 +16433,15 @@ function resolveSkill(name, locations) {
 // src/automation/control-adapter.ts
 var REQUIRED_SECTIONS = ["How a user gets there", "How the control adapter drives it"];
 function featureMapProblem(projectRoot, featureMapPath) {
-  const root = realpathSync4(resolve6(projectRoot));
-  const file = resolve6(root, featureMapPath);
-  if (relative5(root, file).startsWith(".."))
+  const root = realpathSync5(resolve7(projectRoot));
+  const file = resolve7(root, featureMapPath);
+  if (relative6(root, file).startsWith(".."))
     return "the feature map is outside the project";
-  if (!existsSync10(file) || !statSync4(file).isFile())
+  if (!existsSync11(file) || !statSync5(file).isFile())
     return `the feature map ${featureMapPath} does not exist`;
-  if (relative5(root, realpathSync4(file)).startsWith(".."))
+  if (relative6(root, realpathSync5(file)).startsWith(".."))
     return "the feature map resolves outside the project";
-  const sections = readFileSync9(file, "utf8").split(/^### /m).slice(1);
+  const sections = readFileSync10(file, "utf8").split(/^### /m).slice(1);
   if (sections.length === 0)
     return "the feature map has no feature section";
   for (const section of sections) {
@@ -16352,8 +16643,8 @@ var settlePollMs = Number(values["settle-poll-ms"]);
 if (values.project === undefined || kind !== "triage" && kind !== "reproduce" || !Number.isInteger(port) || port < 0 || port > 65535 || !Number.isInteger(settlePollMs) || settlePollMs < 100) {
   throw new Error("usage: automation-serve.mjs --project <root> --kind triage|reproduce [--port <port>] [--settle-poll-ms <ms>]");
 }
-var project = realpathSync5(resolve7(values.project));
-var configFile = resolve7(project, ".pi/benny/configuration.yaml");
+var project = realpathSync6(resolve8(values.project));
+var configFile = resolve8(project, ".pi/benny/configuration.yaml");
 var config = loadBennyConfig(project, kind, configFile);
 var slackFile = defaultCredentialFile("slack");
 var slack = readCredential(slackFile, "token");

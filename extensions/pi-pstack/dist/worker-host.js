@@ -9,8 +9,61 @@ import { fileURLToPath } from "node:url";
 
 // src/container.ts
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { delimiter, isAbsolute, join, relative, resolve, sep } from "node:path";
+
+// src/redact.ts
+var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
+var SECRET_NAME = /TOKEN|SECRET|PASSW|CREDENTIAL|API_?KEY|PRIVATE|(^|_)AUTH($|_)/i;
+var MIN_SECRET_LENGTH = 6;
+function collectStrings(value, into) {
+  if (typeof value === "string") {
+    if (value.length >= MIN_SECRET_LENGTH)
+      into.add(value);
+  } else if (Array.isArray(value))
+    for (const part of value)
+      collectStrings(part, into);
+  else if (typeof value === "object" && value !== null)
+    for (const part of Object.values(value))
+      collectStrings(part, into);
+}
+function secretValues(env, credentialNames) {
+  const names = new Set(credentialNames);
+  const found = new Set;
+  for (const [name, value] of Object.entries(env)) {
+    if (!names.has(name) && !SECRET_NAME.test(name))
+      continue;
+    if (value.length >= MIN_SECRET_LENGTH)
+      found.add(value);
+    try {
+      collectStrings(JSON.parse(value), found);
+    } catch {}
+  }
+  return [...found].sort((a, b) => b.length - a.length);
+}
+var scrubber = (secrets) => (text) => secrets.reduce((clean, secret) => clean.split(secret).join("***"), redactUserinfo(text));
+
+// src/container.ts
 var CONTAINER_LABEL = "pstack.worker";
+var DEFAULT_IMAGE = "node:24-bookworm";
+var GH_VERSION = "2.103.3";
+var GH_SHA256 = { amd64: "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d", arm64: "ee32df2323c8847f5fac6cb6b4b69ca75828e9329a8f22f677021f7b3306ce63" };
+var DEFAULT_DOCKERFILE = `FROM ${DEFAULT_IMAGE}
+RUN set -eu; \\
+  arch="$(dpkg --print-architecture)"; \\
+  case "$arch" in \\
+    amd64) sum=${GH_SHA256.amd64} ;; \\
+    arm64) sum=${GH_SHA256.arm64} ;; \\
+    *) echo "no gh release for $arch" >&2; exit 1 ;; \\
+  esac; \\
+  curl -fsSL -o /tmp/gh.tgz "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_$arch.tar.gz"; \\
+  echo "$sum  /tmp/gh.tgz" | sha256sum -c -; \\
+  tar -xzf /tmp/gh.tgz -C /tmp; \\
+  install -m 0755 "/tmp/gh_${GH_VERSION}_linux_$arch/bin/gh" /usr/local/bin/gh; \\
+  rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_$arch"; \\
+  gh --version
+`;
+var DEFAULT_IMAGE_TAG = `pstack-default:${createHash("sha256").update(DEFAULT_DOCKERFILE).digest("hex").slice(0, 16)}`;
 var ENVIRONMENT_FILE = join(".pi", "environment.json");
 var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
 var CONTAINER_HOME = "/tmp/pstack-home";
@@ -37,15 +90,15 @@ function parseContainerPlan(raw) {
     throw new Error("Launch container.mounts must be { src, dst, readonly } with absolute paths");
   return { docker, name, runId, image, user, mounts };
 }
-function dockerCli(docker, args, env, timeoutMs) {
+function dockerCli(docker, args, env, timeoutMs, input) {
   return new Promise((resolveRun, reject) => {
     const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: "utf8", maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
       if (error === null)
         resolveRun(stdout);
       else
-        reject(new Error(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`));
+        reject(new Error(redactUserinfo(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`)));
     });
-    child.stdin?.end();
+    child.stdin?.end(input);
   });
 }
 function clientEnv(source) {
@@ -61,21 +114,24 @@ while IFS= read -r line; do
   export "$name=\${value%x}"
 done
 [ -n "\${PSTACK_CONTAINER_CLONE_URL:-}" ] || fail "the launch environment did not arrive on stdin"
+export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_NO_UPDATE_NOTIFIER=1
+[ -z "\${PSTACK_CONTAINER_FORGE:-}" ] || command -v gh >/dev/null 2>&1 || fail "the image has no gh, which this worker's forge capability needs"
 WS=${CONTAINER_WORKSPACE}
 {
   mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
+  if [ -n "\${PSTACK_CONTAINER_AUTH:-}" ]; then (umask 077 && printf %s "$PSTACK_CONTAINER_AUTH" > "$PI_CODING_AGENT_DIR/auth.json") || fail "cannot write the model credential"; fi
   git config --global --add safe.directory '*'
   [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
   [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
   if [ -n "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ]; then
-    git config --global credential.https://github.com.helper '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
+    git config --global "credential.https://\${PSTACK_CONTAINER_FORGE_HOST:-github.com}.helper" '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
   fi
   git clone --quiet --no-checkout "$PSTACK_CONTAINER_CLONE_URL" "$WS" || fail "could not clone the remote"
   git -C "$WS" rev-parse --verify --quiet "$PSTACK_CONTAINER_COMMIT^{commit}" >/dev/null || fail "commit $PSTACK_CONTAINER_COMMIT is not on the remote"
   git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
   if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
 } >&2
-unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST PSTACK_CONTAINER_AUTH
 printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
@@ -133,7 +189,7 @@ async function removeWorkerContainers(docker, env, name) {
 
 // src/run-files.ts
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash as createHash2 } from "node:crypto";
 import { appendFileSync, closeSync, constants, existsSync, fstatSync, lstatSync, openSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
 import { basename, dirname, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep as sep2 } from "node:path";
 var ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
@@ -154,7 +210,7 @@ function controlSocketPath(runRoot, workerId) {
   if (Buffer.byteLength(local) <= 100)
     return local;
   const uid = process.getuid?.() ?? 0;
-  return join2("/tmp", `pstack-${uid}`, `${createHash("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
+  return join2("/tmp", `pstack-${uid}`, `${createHash2("sha256").update(runRoot).digest("hex").slice(0, 16)}-${workerId}.sock`);
 }
 function writeJsonAtomic(path, value, mode = 384) {
   const temporary = `${path}.${process.pid}.${Date.now()}.tmp`;
@@ -191,10 +247,19 @@ var WORKER_ROLES = ["poteto", "explorer", "investigator", "candidate", "judge", 
 var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"];
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
+var defaultCapabilities = (role, workspace) => workspace.mode === "container" ? { ...role, env: "minimal" } : role;
 function parseCapabilities(raw) {
-  if (!isRecord2(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
+  const required = ["env", "externalWrite", "mcp"];
+  const optional = ["spawn", "forge"];
+  if (!isRecord2(raw) || !required.every((key) => (key in raw)) || Object.keys(raw).some((key) => !required.includes(key) && !optional.includes(key)) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || optional.some((key) => raw[key] !== undefined && typeof raw[key] !== "boolean"))
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean, forge?: boolean }");
+  return {
+    mcp: raw["mcp"],
+    env: raw["env"],
+    externalWrite: raw["externalWrite"],
+    ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {},
+    ...typeof raw["forge"] === "boolean" ? { forge: raw["forge"] } : {}
+  };
 }
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
@@ -238,9 +303,11 @@ function parseAssignment(raw, defaults) {
   const brief = raw["brief"];
   if (brief !== undefined && brief !== BRIEF)
     throw new Error(`Assignment brief must be '${BRIEF}'`);
-  const capabilities = raw["capabilities"] === undefined ? defaults.capabilities : parseCapabilities(raw["capabilities"]);
+  const capabilities = raw["capabilities"] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw["capabilities"]);
   if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
     throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
+  if (capabilities.forge === true && parsedWorkspace.mode !== "container")
+    throw new Error("Assignment capabilities.forge needs a container workspace: a worktree or readonly worker already runs as the operator, with the operator's own gh login");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)
@@ -307,7 +374,7 @@ function loadAssignment(path) {
     throw new Error(`Assignment workerId ${assignment.workerId} does not name its directory`);
   if (assignment.runId !== basename(runRoot))
     throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
-  return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
+  return { assignment, file, runRoot, workerDir, digest: createHash2("sha256").update(bytes).digest("hex") };
 }
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
 var MAX_SETTLES = 1e4;
@@ -337,6 +404,8 @@ var MAX_BRIEF_BYTES = 1024 * 1024;
 var RPC_DEADLINE_MS = 1e4;
 var ABORT_DEADLINE_MS = 60000;
 var CONTAINER_START_MS = 30 * 60000;
+var STDERR_HOLD = 16384;
+var STDERR_OVERLAP = 512;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
 var HOST_OPERATIONS = ["inspect", "start", "prompt", "steer", "follow-up", "cancel", "shutdown"];
 var TEXT_OPERATIONS = ["prompt", "steer", "follow-up"];
@@ -442,14 +511,14 @@ function workspaceDir(loaded) {
 }
 function prepareOutput(workerDir) {
   const out = outDirOf(workerDir);
-  for (const name of ["session", "evidence"])
+  for (const name of ["session", "evidence", "receipts"])
     mkdirSync(join3(out, name), { recursive: true, mode: 448 });
   for (const name of ["session", "evidence", "report.md"])
     if (lstatSync2(join3(workerDir, name), { throwIfNoEntry: false }) === undefined)
       symlinkSync(join3("out", name), join3(workerDir, name));
 }
 function containerEnv(piEnv) {
-  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent` };
+  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent`, PSTACK_CONTAINER: "1" };
 }
 function piArgs(loaded, launch) {
   return [
@@ -513,6 +582,7 @@ async function runHost(assignmentFile, launchText) {
   const instance = randomUUID();
   claim(loaded, instance);
   const launchEnv = takeLaunchEnv(workerDir);
+  const scrub = scrubber(secretValues(workerEnv(loaded, launch, launchEnv), launch.credentialEnv));
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join3(workerDir, "session");
   let phase = "starting";
@@ -531,6 +601,12 @@ async function runHost(assignmentFile, launchText) {
   let settles = [];
   let childPid = null;
   let stderrTail = "";
+  let stderrPending = "";
+  const showStderr = (text) => {
+    const clean = scrub(text);
+    stderrTail = `${stderrTail}${clean}`.slice(-8192);
+    display("pi diagnostic", clean.slice(-8192).trimEnd());
+  };
   let requestNumber = 0;
   let runFailure;
   let childExited = false;
@@ -570,8 +646,8 @@ async function runHost(assignmentFile, launchText) {
     }
   };
   const save = () => writeJsonAtomic(join3(workerDir, "state.json"), observation());
-  const display = (kind, value) => process.stdout.write(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
-`);
+  const display = (kind, value) => process.stdout.write(scrub(`[${kind}] ${typeof value === "string" ? value : JSON.stringify(value)}
+`));
   const settle = (settlePhase, why, covers = generation) => {
     recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
@@ -639,6 +715,9 @@ async function runHost(assignmentFile, launchText) {
   const closed = new Promise((resolveClosed) => {
     child.once("close", async (code, signal) => {
       childExited = true;
+      if (stderrPending !== "")
+        showStderr(stderrPending);
+      stderrPending = "";
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event("child_exit", exit);
@@ -750,9 +829,16 @@ async function runHost(assignmentFile, launchText) {
     if (container !== null)
       child.stdin?.write(containerPreamble(containerEnv(piEnv)));
     child.stderr?.on("data", (chunk) => {
-      const text = chunk.toString("utf8");
-      stderrTail = `${stderrTail}${text}`.slice(-8192);
-      display("pi diagnostic", text.slice(-8192).trimEnd());
+      stderrPending += chunk.toString("utf8");
+      const cut = stderrPending.lastIndexOf(`
+`);
+      if (cut !== -1) {
+        showStderr(stderrPending.slice(0, cut + 1));
+        stderrPending = stderrPending.slice(cut + 1);
+      } else if (stderrPending.length > STDERR_HOLD) {
+        showStderr(stderrPending.slice(0, -STDERR_OVERLAP));
+        stderrPending = stderrPending.slice(-STDERR_OVERLAP);
+      }
     });
     let rpcBuffer = Buffer.alloc(0);
     const decoder = new TextDecoder("utf-8", { fatal: true });

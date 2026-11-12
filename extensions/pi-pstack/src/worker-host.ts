@@ -42,6 +42,7 @@ import {
   TMUX_SESSION,
   writeJsonAtomic,
 } from './run-files.ts';
+import { scrubber, secretValues } from './redact.ts';
 
 export const MAX_CONTROL_BYTES = 65_536;
 export const MAX_INSTRUCTION_BYTES = 32_768;
@@ -51,6 +52,9 @@ const RPC_DEADLINE_MS = 10_000;
 const ABORT_DEADLINE_MS = 60_000;
 /** A container worker's clone and install happen before Pi starts, so the first RPC waits this long for the ready record. */
 const CONTAINER_START_MS = 30 * 60_000;
+/** Stderr without a newline is held back until it is this long, then shown but for its last bytes, which a secret could straddle. */
+const STDERR_HOLD = 16_384;
+const STDERR_OVERLAP = 512;
 
 /** What the parent decided at spawn time and the immutable assignment cannot say (the resolved model, how to run Pi). */
 export interface HostLaunch {
@@ -192,13 +196,13 @@ function workspaceDir(loaded: LoadedAssignment): string {
  */
 function prepareOutput(workerDir: string): void {
   const out = outDirOf(workerDir);
-  for (const name of ['session', 'evidence']) mkdirSync(join(out, name), { recursive: true, mode: 0o700 });
+  for (const name of ['session', 'evidence', 'receipts']) mkdirSync(join(out, name), { recursive: true, mode: 0o700 });
   for (const name of ['session', 'evidence', 'report.md']) if (lstatSync(join(workerDir, name), { throwIfNoEntry: false }) === undefined) symlinkSync(join('out', name), join(workerDir, name));
 }
 
 /** The environment inside the container: the worker's own, less what describes the host, with its own home. */
 function containerEnv(piEnv: Record<string, string>): Record<string, string> {
-  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent` };
+  return { ...Object.fromEntries(Object.entries(piEnv).filter(([name]) => !hostOnlyEnv(name))), HOME: CONTAINER_HOME, PI_CODING_AGENT_DIR: `${CONTAINER_HOME}/agent`, PSTACK_CONTAINER: '1' };
 }
 
 /** Pi's argv after the launch command, for a kind 'pi' worker. */
@@ -272,6 +276,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const instance = randomUUID();
   claim(loaded, instance);
   const launchEnv = takeLaunchEnv(workerDir);
+  // Everything this host shows or stores about the worker passes through this: its credentials, and any URL's userinfo.
+  const scrub = scrubber(secretValues(workerEnv(loaded, launch, launchEnv), launch.credentialEnv));
   const socketPath = controlSocketPath(runRoot, assignment.workerId);
   const sessionDir = join(workerDir, 'session');
 
@@ -297,6 +303,12 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
+  let stderrPending = '';
+  const showStderr = (text: string) => {
+    const clean = scrub(text);
+    stderrTail = `${stderrTail}${clean}`.slice(-8192);
+    display('pi diagnostic', clean.slice(-8192).trimEnd());
+  };
   let requestNumber = 0;
   let runFailure: string | undefined;
   let childExited = false;
@@ -337,7 +349,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   };
   const save = () => writeJsonAtomic(join(workerDir, 'state.json'), observation());
-  const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
+  const display = (kind: string, value: unknown) => process.stdout.write(scrub(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`));
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
     recordedRuns = runs;
@@ -405,6 +417,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const closed = new Promise<void>((resolveClosed) => {
     child.once('close', async (code, signal) => {
       childExited = true;
+      if (stderrPending !== '') showStderr(stderrPending);
+      stderrPending = '';
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event('child_exit', exit);
@@ -509,10 +523,17 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     });
     // The first thing a container reads, ahead of every RPC record: its environment.
     if (container !== null) child.stdin?.write(containerPreamble(containerEnv(piEnv)));
+    // A secret can straddle two chunks, so only whole lines are scrubbed and shown; the rest waits for its newline.
     child.stderr?.on('data', (chunk: Buffer) => {
-      const text = chunk.toString('utf8');
-      stderrTail = `${stderrTail}${text}`.slice(-8192);
-      display('pi diagnostic', text.slice(-8192).trimEnd());
+      stderrPending += chunk.toString('utf8');
+      const cut = stderrPending.lastIndexOf('\n');
+      if (cut !== -1) {
+        showStderr(stderrPending.slice(0, cut + 1));
+        stderrPending = stderrPending.slice(cut + 1);
+      } else if (stderrPending.length > STDERR_HOLD) {
+        showStderr(stderrPending.slice(0, -STDERR_OVERLAP));
+        stderrPending = stderrPending.slice(-STDERR_OVERLAP);
+      }
     });
     let rpcBuffer = Buffer.alloc(0);
     const decoder = new TextDecoder('utf-8', { fatal: true });

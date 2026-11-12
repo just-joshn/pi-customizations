@@ -2,7 +2,6 @@
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -11,8 +10,9 @@ import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { connectEngine, ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeWorkerContainers } from './container.ts';
-import { registerEvidenceTool } from './evidence.ts';
+import { agentDirOf, type ContainerAuth, MIN_OAUTH_LIFETIME_MS, prepareContainerAuth } from './container-auth.ts';
+import { ENGINE_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
+import { ingestContainerReceipts, registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
 import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
@@ -23,7 +23,6 @@ import {
   type ClaimIdentity,
   formatTmuxIdentity,
   type HostState,
-  isInside,
   isTerminal,
   type LoadedAssignment,
   launchEnvPath,
@@ -53,6 +52,7 @@ import {
   workerDirOf,
   writeJsonAtomic,
 } from './run-files.ts';
+import { listFilesBelow, readFileBelow } from './untrusted-output.ts';
 import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
@@ -241,26 +241,25 @@ function credentialEnv(provider: string | undefined): string[] {
 }
 
 /**
- * The provider Pi starts on when it gets no --model: `defaultProvider` in settings.json under the agent directory the
- * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Undefined when the file names none and Pi picks on its own.
+ * What Pi starts on when it gets no --model: `defaultProvider` and `defaultModel` in settings.json under the agent directory the
+ * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Either is undefined when the file names none.
  */
-function defaultProvider(env: Record<string, string | undefined>): string | undefined {
-  const home = env['HOME'] ?? homedir();
-  const configured = env['PI_CODING_AGENT_DIR'];
-  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join(home, '.pi', 'agent');
+function defaultSettings(env: Record<string, string | undefined>): { provider: string | undefined; model: string | undefined } {
   try {
-    const provider = (JSON.parse(readFileSync(join(agentDir, 'settings.json'), 'utf8')) as { defaultProvider?: unknown }).defaultProvider;
-    return typeof provider === 'string' ? provider : undefined;
+    const settings = JSON.parse(readFileSync(join(agentDirOf(env), 'settings.json'), 'utf8')) as { defaultProvider?: unknown; defaultModel?: unknown };
+    return { provider: typeof settings.defaultProvider === 'string' ? settings.defaultProvider : undefined, model: typeof settings.defaultModel === 'string' ? settings.defaultModel : undefined };
   } catch {
     // Pi starts without this file's settings too.
-    return undefined;
+    return { provider: undefined, model: undefined };
   }
 }
 
-function finalAssistantText(sessionFile: string | null): string | null {
-  if (sessionFile === null || !existsSync(sessionFile)) return null;
+const defaultProvider = (env: Record<string, string | undefined>): string | undefined => defaultSettings(env).provider;
+
+function finalAssistantText(transcript: string | null): string | null {
+  if (transcript === null) return null;
   let text: string | null = null;
-  for (const line of readFileSync(sessionFile, 'utf8').split('\n')) {
+  for (const line of transcript.split('\n')) {
     if (line.trim() === '') continue;
     const entry = JSON.parse(line) as { type?: string; message?: { role?: string; content?: unknown } };
     if (entry.type !== 'message' || entry.message?.role !== 'assistant') continue;
@@ -269,6 +268,33 @@ function finalAssistantText(sessionFile: string | null): string | null {
     if (parts.length > 0) text = parts.join('');
   }
   return text;
+}
+
+const readTranscript = (sessionFile: string | null): string | null => (sessionFile === null || !existsSync(sessionFile) ? null : readFileSync(sessionFile, 'utf8'));
+
+/**
+ * What collect reads from a worker's directory. A container worker writes through `<workerDir>/out`, which it controls, so
+ * its report, session file, and evidence are read from there without following a symlink (see untrusted-output.ts).
+ */
+function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
+  const { workerDir, assignment } = loaded;
+  if (assignment.workspace.mode !== 'container') {
+    const report = join(workerDir, 'report.md');
+    return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText: finalAssistantText(readTranscript(sessionFile)), evidence: listFiles(join(workerDir, 'evidence')) };
+  }
+  const out = outDirOf(workerDir);
+  const read = (rel: string): string | null | { refused: string } => {
+    const file = readFileBelow(out, rel);
+    return file.kind === 'ok' ? file.bytes.toString('utf8') : file.kind === 'missing' ? null : { refused: file.reason };
+  };
+  const report = read('report.md');
+  const sessionRel = sessionFile === null ? null : relative(workerDir, sessionFile);
+  const transcript = sessionRel === null || sessionRel.startsWith('..') || sessionRel.split('/')[0] !== 'session' ? null : read(sessionRel);
+  return {
+    report: report === null || typeof report === 'string' ? report : '(refused: report.md leaves the worker output directory)',
+    finalText: finalAssistantText(typeof transcript === 'string' ? transcript : null),
+    evidence: listFilesBelow(out, 'evidence'),
+  };
 }
 
 function listFiles(dir: string): string[] {
@@ -318,6 +344,16 @@ export interface SpawnOptions {
   containerPi?: string;
   /** Read-only host paths a container worker can also read, mounted at the same path. */
   containerMounts?: string[];
+  /**
+   * Has Pi resolve a provider's credential now: it refreshes an OAuth token near expiry and resolves a key that is a command or an
+   * environment reference. A container worker never holds a refresh token, so the host does this before it hands over the token.
+   * `pstack_worker` supplies the session's model registry; callers without one can pass only a literal key or a token with life left.
+   */
+  providerAuth?: (provider: string) => Promise<unknown>;
+  /** Package directories that register the worker's model provider, in place of finding them in settings.json (or PSTACK_CONTAINER_PROVIDER_PACKAGES). */
+  containerProviderPackages?: string[];
+  /** The least life an OAuth access token may have left for a container worker. Defaults to 10 minutes. */
+  minOAuthValidityMs?: number;
   /** How long the host may take to answer. A container worker's clone and install count, so it defaults to 5 minutes there and 30 seconds otherwise. */
   startupMs?: number;
   /** How long a lost tmux answer is reconciled before a worker with no host and no session counts as never started. */
@@ -430,10 +466,26 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const command = options.piCommand ?? runningPiCommand();
   // This process's environment now, not the tmux server's, which dates from when the server started.
   const source = { ...process.env, ...options.extraEnv };
-  const provider = model?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
+  const inContainer = assignment.kind === 'pi' && assignment.workspace.mode === 'container';
+  // A container sees no settings.json, so the model Pi would have defaulted to on the host is named to it.
+  const hostDefault = inContainer && model === null ? defaultSettings(source) : undefined;
+  const launchModel = model !== null ? { provider: model.provider, id: model.id } : hostDefault?.provider !== undefined && hostDefault.model !== undefined ? { provider: hostDefault.provider, id: hostDefault.model } : null;
+  const provider = launchModel?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
   // Everything a container needs is settled before the claim, so a refusal leaves no claim behind.
   let container: PreparedContainer | null = null;
-  if (assignment.kind === 'pi' && assignment.workspace.mode === 'container')
+  if (assignment.kind === 'pi' && assignment.workspace.mode === 'container') {
+    const auth: ContainerAuth | undefined =
+      provider === undefined
+        ? undefined
+        : await prepareContainerAuth({
+            provider,
+            source,
+            projectRoot: root,
+            builtin: new Set(getBuiltinProviders()),
+            ...(options.providerAuth === undefined ? {} : { resolve: options.providerAuth }),
+            ...(options.containerProviderPackages === undefined ? {} : { packages: options.containerProviderPackages }),
+            minOAuthValidityMs: options.minOAuthValidityMs ?? MIN_OAUTH_LIFETIME_MS,
+          });
     container = await prepareContainer({
       project: root,
       runId,
@@ -445,17 +497,21 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       piEntry: options.containerPi ?? source['PSTACK_CONTAINER_PI'] ?? process.argv[1],
       roleDoc,
       extraMounts: options.containerMounts ?? [],
+      forge: assignment.capabilities.forge === true,
+      auth: { authJson: auth?.authJson ?? null, mounts: auth?.packages.mounts ?? [], extensions: auth?.packages.extensions ?? [] },
     });
+  }
   const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
-    model: model === null ? null : { provider: model.provider, id: model.id },
+    model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: [...(container?.piArgs ?? []), ...(options.extraPiArgs ?? [])],
-    credentialEnv: assignment.kind === 'pi' ? [...credentialEnv(provider), ...(container === null ? [] : GIT_CREDENTIAL_ENV)] : [],
+    // A container worker's forge token travels under GH_TOKEN, so a minimal environment must let that name through.
+    credentialEnv: assignment.kind === 'pi' ? [...credentialEnv(provider), ...(assignment.capabilities.forge === true ? ['GH_TOKEN'] : [])] : [],
     container: container?.plan ?? null,
   };
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
@@ -490,6 +546,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // launch-env.json leaves the disk on every path out of here; claim/ goes only where non-start is established.
   try {
     try {
+      if (container !== null) writeEngineRecord(loaded.workerDir, container.engine);
       writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
     } catch (error) {
       throw release(error as Error);
@@ -669,7 +726,9 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     if (assignmentPath === undefined) throw new Error('assignmentPath is required');
     const { runId, project, run } = runOf(ctx, rawRunId);
     requireOwner(ctx, run, runId);
-    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec, resolveModel: (request) => resolveModel(request, ctx) });
+    const registry = (ctx as { modelRegistry?: { getApiKeyForProvider(provider: string): Promise<unknown> } }).modelRegistry;
+    const providerAuth = options.providerAuth ?? (registry === undefined ? undefined : (provider: string) => registry.getApiKeyForProvider(provider));
+    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec, ...(providerAuth === undefined ? {} : { providerAuth }), resolveModel: (request) => resolveModel(request, ctx) });
     watch(ctx);
     return result;
   };
@@ -739,9 +798,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const removeContainers = async (project: string, loaded: LoadedAssignment) => {
     if (loaded.assignment.workspace.mode !== 'container') return;
     const { runId, workerId } = loaded.assignment;
+    // A worker with no claim never started a container, so there is nothing to remove.
+    if (!existsSync(join(loaded.workerDir, 'claim'))) return;
     try {
-      const engine = await connectEngine({ ...process.env, ...options.extraEnv });
-      const ids = await removeWorkerContainers(engine.docker, engine.env, tmuxSessionName(project, runId, workerId));
+      const ids = await removeRecordedContainers(loaded.workerDir, tmuxSessionName(project, runId, workerId));
       if (ids.length > 0) appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removed', data: { ids } });
     } catch (error) {
       appendEvent(loaded.runRoot, { runId, workerId, kind: 'container_removal_failed', data: { error: error instanceof Error ? error.message : String(error) } });
@@ -807,22 +867,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         const live = inspected.available ? inspected.state : { phase: 'unavailable', reason: inspected.reason, lastState: inspected.lastState };
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
-      // A container worker writes through a directory it controls, so what the parent reads must not leave it by a symlink.
-      const trusted = (path: string) => loaded.assignment.workspace.mode !== 'container' || isInside(outDirOf(loaded.workerDir), path);
-      const report = join(loaded.workerDir, 'report.md');
-      const evidence = join(loaded.workerDir, 'evidence');
+      const worker = collectOutputs(loaded, state.sessionFile);
+      // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
+      const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
       const result = {
         settled: true,
         available: inspected.available,
         phase: inspected.available ? state.phase : 'unavailable',
         lastSettle,
-        report: !existsSync(report) ? null : trusted(report) ? readFileSync(report, 'utf8') : '(refused: report.md leaves the worker output directory)',
-        finalText: finalAssistantText(state.sessionFile !== null && trusted(state.sessionFile) ? state.sessionFile : null),
-        evidence: trusted(evidence) ? listFiles(evidence).filter((file) => trusted(join(evidence, file))) : [],
+        ...worker,
+        ...(receipts === undefined ? {} : { receipts }),
         sessionFile: state.sessionFile,
       };
+      const rejected = receipts === undefined || receipts.rejected.length === 0 ? '' : `\n\nContainer receipts rejected: ${receipts.rejected.map(({ workerId: from, file, reason }) => `${from}/${file}: ${reason}`).join('; ')}`;
       return text(
-        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}`,
+        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },
