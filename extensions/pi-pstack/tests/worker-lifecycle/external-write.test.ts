@@ -16,7 +16,14 @@ afterAll(killTmuxServer);
 
 const caps = { mcp: 'inherit', env: 'minimal', externalWrite: true };
 const trusted = (workerId: string, fields: Record<string, unknown>) =>
-  spawnAssignment(project.dir, 'run1' as never, writeAssignment(project, 'run1', workerId, 'unused', fields), { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(project), agentsDir: project.agentsDir, allowExternalWrite: true });
+  spawnAssignment(project.dir, 'run1' as never, writeAssignment(project, 'run1', workerId, 'unused', fields), {
+    tmuxSocket: TMUX,
+    piCommand: [PI],
+    extraPiArgs: TEST_PI_ARGS,
+    extraEnv: workerTestEnv(project),
+    agentsDir: project.agentsDir,
+    allowExternalWrite: true,
+  });
 
 const REFUSED = /externalWrite.*readonly/s;
 

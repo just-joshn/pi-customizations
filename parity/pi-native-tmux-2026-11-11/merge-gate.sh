@@ -8,6 +8,8 @@ if [ -z "${DOCKER_HOST:-}" ] && command -v docker >/dev/null 2>&1; then
   [ -n "$endpoint" ] && export DOCKER_HOST="$endpoint"
 fi
 npx tsc --noEmit -p tsconfig.json
+# Legacy Biome findings are recorded in lint-baseline.json; any finding outside it fails here.
+node scripts/lint-baseline.mjs --check
 # Tests run dist/worker-host.js and other bundles; a stale bundle would test old code.
 bun scripts/build-helpers.mjs --check >/dev/null
 log=$(mktemp)
