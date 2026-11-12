@@ -43,7 +43,7 @@ sh parity/pi-native-tmux-2026-11-11/merge-gate.sh  # tsc and the full Vitest sui
 | Forge resolution and watch-pr (13.1) | Proven | `tests/forge/forge.test.ts`, `tests/helpers/watch-pr-differential.test.ts` |
 | Upstream helpers: `check-plan`, `log.sh`, `worktree-audit.sh`, watch-pr (12.6) | Proven | `tests/helpers/generated-helpers.test.ts`, `tests/helpers/scripts.test.ts` |
 | Statechart compiler | Proven | `bun run test:statechart`, `tests/packaging/installed-helpers.test.ts` |
-| Benny: redelivery, outbox crash recovery, fail-closed prerequisites (14) | Partial: no tracker or control adapter | `tests/automation/automation.test.ts`, `tests/automation/parity.test.ts` |
+| Benny: redelivery, outbox crash recovery, fail-closed prerequisites (14) | Proven for GitHub Issues; other trackers need an adapter | `tests/automation/automation.test.ts`, `tests/automation/parity.test.ts` |
 | Webhook routines (14.4) | Proven | `tests/automation/routine.test.ts`, `tests/automation/automation-command.test.ts` |
 | Readonly shell sandbox (15.1) | Code proven. Not wired to readonly workers. | `tests/security/` |
 | Container workers (9.6, 15.1) | Missing | none |
@@ -56,8 +56,7 @@ sh parity/pi-native-tmux-2026-11-11/merge-gate.sh  # tsc and the full Vitest sui
 - **Container workers.** `parseAssignment` in `src/run-files.ts` accepts only `worktree` and `readonly` workspaces. The compiled Shipping and Autopilot-full playbooks ask for `workspace: { mode: "container" }` and expect `ContainerUnavailable`. Today the parser rejects the assignment with a different message.
 - **Same-uid credentials.** A worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access.
 - **Readonly shell.** `bash_readonly` is not registered for readonly workers yet. They get `read`, `grep`, `find`, and `ls` (`READONLY_TOOLS` in `src/workers.ts`).
-- **Benny pack text.** `automations/benny/` still tells the agent to create automations with `/automate`, `/automations`, and `environment: "cloud"`, which this package no longer has. `scripts/benny-setup.mjs` copies that pack into a project.
-- **Benny cases.** No tracker or control adapter ships, so a case that needs one is logged `blocked`.
+- **Benny trackers.** Only GitHub Issues ships (`tracker.type: github`). Any other tracker type has no adapter, so its cases are logged `blocked`. The pack's operations-channel status posts have no adapter either: the parent posts source-thread replies only.
 - **Mid-message skill names.** A `/name` later in a message no longer attaches its skill. Only a `/name` at the start expands.
 - **Bugbot.** No replacement.
 
