@@ -24,9 +24,6 @@
     "pi-package",
     "pstack"
   ],
-  "bin": {
-    "pstack-routines-supervisor": "./bin/pstack-routines-supervisor"
-  },
   "engines": {
     "node": ">=22.21.0"
   },
@@ -48,19 +45,15 @@
   "files": [
     "src",
     "generated",
+    "!generated/**/node_modules",
     "vendor",
     "adapters",
     "scripts",
-    "skills",
-    "rules",
-    "agents",
     "automations",
-    "bin",
     "dist",
     "docs",
     "assets",
     "licenses",
-    "packaging",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -74,8 +67,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:statechart": "node --disable-warning=ExperimentalWarning --test skills/statechart/scripts/test/*.test.ts",
-    "live:e2e": "node scripts/live-e2e.mjs"
+    "test:statechart": "node --disable-warning=ExperimentalWarning --test generated/skills/statechart/scripts/test/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sandbox-runtime": "0.0.79",

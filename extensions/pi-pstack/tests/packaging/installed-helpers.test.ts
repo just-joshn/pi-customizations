@@ -164,7 +164,7 @@ test('source installs contain the same ready-to-run helpers without consumer bui
   expect(manifest.pi.extensions).toEqual(['./src/extension.ts']);
   mkdirSync(source);
   cpSync(join(root, 'package.json'), join(source, 'package.json'));
-  for (const entry of manifest.files) cpSync(join(root, entry), join(source, entry), { recursive: true, filter: (path) => basename(path) !== 'node_modules' });
+  for (const entry of manifest.files.filter((path) => !path.startsWith('!'))) cpSync(join(root, entry), join(source, entry), { recursive: true, filter: (path) => basename(path) !== 'node_modules' });
   expect(existsSync(join(source, 'node_modules'))).toBe(false);
   chart(source);
 });

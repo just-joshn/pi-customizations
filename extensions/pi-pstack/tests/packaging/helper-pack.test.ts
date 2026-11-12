@@ -24,7 +24,7 @@ function pack(name: string, mutation?: { path: string; before?: string; after: s
   const source = join(home, 'package');
   mkdirSync(source);
   cpSync(join(root, 'package.json'), join(source, 'package.json'));
-  for (const entry of manifest.files) cpSync(join(root, entry), join(source, entry), { recursive: true });
+  for (const entry of manifest.files.filter((path) => !path.startsWith('!'))) cpSync(join(root, entry), join(source, entry), { recursive: true });
   let mutated: string | undefined;
   if (mutation !== undefined) {
     const file = join(source, mutation.path);
