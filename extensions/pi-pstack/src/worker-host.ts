@@ -237,8 +237,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let acknowledged = 0;
   // Prompt request id to the generation it carries, until Pi answers it, even after its deadline.
   const unacknowledged = new Map<string, number>();
-  // get_state request id to the outcome of the agent_settled that sent it.
-  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null }>();
+  // get_state request id to the outcome its quiescence check records. A run's own settle records even when no new
+  // generation is outstanding; any other check records only to cover acknowledged work no settle covers yet.
+  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null; always: boolean }>();
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -369,6 +370,15 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         reject(error);
       });
     });
+  /** Asks Pi whether it is quiescent; the response branch records the settle when it is. */
+  const checkQuiescence = (outcome: { phase: SettlePhase; reason: string | null; always: boolean }) => {
+    const id = nextRequestId();
+    quiescenceChecks.set(id, outcome);
+    request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
+      quiescenceChecks.delete(id);
+      if (!childExited && phase !== 'stopping') void fail(error);
+    });
+  };
   const closeChild = async () => {
     if (childExited) return closed;
     if (assignment.kind === 'watch') signalChild('SIGTERM');
@@ -466,12 +476,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
-      const id = nextRequestId();
-      quiescenceChecks.set(id, { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) });
-      request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
-        quiescenceChecks.delete(id);
-        if (!childExited && phase !== 'stopping') void fail(error);
-      });
+      checkQuiescence({ phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null), always: true });
     } else if (type === 'response') {
       const id = typeof record['id'] === 'string' ? record['id'] : undefined;
       const success = record['success'] === true;
@@ -479,10 +484,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const carried = id === undefined ? undefined : unacknowledged.get(id);
       if (id !== undefined && carried !== undefined) {
         unacknowledged.delete(id);
-        // A rejected or handled prompt joins no run, so no settle will cover it.
-        if (success && !(isRecord(data) && data['disposition'] === 'handled')) acknowledged = Math.max(acknowledged, carried);
+        if (success) acknowledged = Math.max(acknowledged, carried);
+        // A rejected prompt is no work. A handled one ran as a command and joins no run, so its settle comes from here.
         else if (generation === carried) generation -= 1;
         save();
+        if (success && isRecord(data) && data['disposition'] === 'handled') checkQuiescence({ phase: 'handled', reason: null, always: false });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
@@ -490,7 +496,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         // Pi is quiescent: no run active and nothing queued, so every acknowledged prompt has run to this settle.
         // Otherwise the settle covers nothing and the next one decides. A shutdown records its own single settle.
         const quiescent = success && isRecord(data) && data['isStreaming'] === false && data['pendingMessageCount'] === 0;
-        if (quiescent && phase !== 'stopping' && !isTerminal(phase)) settle(check.phase, check.reason, acknowledged);
+        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
+        if (quiescent && phase !== 'stopping' && !isTerminal(phase) && (check.always || outstanding)) settle(check.phase, check.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {

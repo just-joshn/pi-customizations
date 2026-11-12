@@ -614,6 +614,15 @@ async function runHost(assignmentFile, launchText) {
       reject(error);
     });
   });
+  const checkQuiescence = (outcome) => {
+    const id = nextRequestId();
+    quiescenceChecks.set(id, outcome);
+    request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
+      quiescenceChecks.delete(id);
+      if (!childExited && phase !== "stopping")
+        fail(error);
+    });
+  };
   const closeChild = async () => {
     if (childExited)
       return closed;
@@ -720,13 +729,7 @@ async function runHost(assignmentFile, launchText) {
       const aborted = record["aborted"] === true;
       if (phase === "running")
         phase = "idle";
-      const id = nextRequestId();
-      quiescenceChecks.set(id, { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null });
-      request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
-        quiescenceChecks.delete(id);
-        if (!childExited && phase !== "stopping")
-          fail(error);
-      });
+      checkQuiescence({ phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null, always: true });
     } else if (type === "response") {
       const id = typeof record["id"] === "string" ? record["id"] : undefined;
       const success = record["success"] === true;
@@ -734,17 +737,20 @@ async function runHost(assignmentFile, launchText) {
       const carried = id === undefined ? undefined : unacknowledged.get(id);
       if (id !== undefined && carried !== undefined) {
         unacknowledged.delete(id);
-        if (success && !(isRecord2(data) && data["disposition"] === "handled"))
+        if (success)
           acknowledged = Math.max(acknowledged, carried);
         else if (generation === carried)
           generation -= 1;
         save();
+        if (success && isRecord2(data) && data["disposition"] === "handled")
+          checkQuiescence({ phase: "handled", reason: null, always: false });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
-        if (quiescent && phase !== "stopping" && !isTerminal(phase))
+        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
+        if (quiescent && phase !== "stopping" && !isTerminal(phase) && (check.always || outstanding))
           settle(check.phase, check.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);

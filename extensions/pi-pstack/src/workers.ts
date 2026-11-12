@@ -114,6 +114,7 @@ export function workerTransitions(runId: RunId, workerId: WorkerId, state: HostS
 
 const PHASE_TEXT: Record<WakePhase, string> = {
   idle: 'finished its work and is idle',
+  handled: 'handled its prompt as a command and is idle',
   failed: 'failed',
   aborted: 'was aborted',
   exited: 'watch command exited',
