@@ -55,13 +55,6 @@ const readFile = (path: string): string => {
     return '';
   }
 };
-const artifactOf = (view: { runs: { receipts: { id: string; artifacts: { path: string }[] }[] }[] }, id: string): string => {
-  for (const run of view.runs) {
-    const receipt = run.receipts.find((entry) => entry.id === id);
-    if (receipt?.artifacts[0] !== undefined) return readFile(receipt.artifacts[0].path);
-  }
-  return '';
-};
 const comparisons = (text: string): number => Number(/comparisons=(\d+)/.exec(text)?.[1] ?? Number.NaN);
 /** The receipts of steps 1 and 3 that carry the benchmark's comparisons: the baseline and the post-fix run, whatever ids the run gave them. */
 function perfReceipts(view: RunView) {

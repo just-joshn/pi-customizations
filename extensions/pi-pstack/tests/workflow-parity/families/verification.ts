@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
 import { couponHistory, fixedHistory } from '../fixtures/repos.ts';
@@ -85,7 +85,7 @@ export const verifyThisFamily: Family = {
     }),
     check('verify-this.raw-artifacts-compared', 'raw output exists for both sides, the two differ, and the diff holds their difference', src('verify-this/SKILL.md', 'Compare raw artifacts'), (view) => {
       const dir = verifyDir(view);
-      const [a, b, diff] = ['baseline', 'treatment', 'diff'].map((name) => textUnder(join(dir, name)).trim());
+      const [a = '', b = '', diff = ''] = ['baseline', 'treatment', 'diff'].map((name) => textUnder(join(dir, name)).trim());
       return when(a !== '' && b !== '' && a !== b && diff !== '', `baseline ${a.split('\n')[0]?.slice(0, 40)}, treatment ${b.split('\n')[0]?.slice(0, 40)}, diff ${diff.split('\n').length} lines`, `baseline ${JSON.stringify(a.slice(0, 60))}, treatment ${JSON.stringify(b.slice(0, 60))}, diff ${JSON.stringify(diff.slice(0, 60))}`);
     }),
     check('verify-this.one-verdict-and-it-is-the-true-one', 'exactly one verdict is returned, the reply and verdict.md agree, and it equals what the checker derives by running the command on both commits itself', src('verify-this/SKILL.md', 'Return exactly one verdict'), (view) => {

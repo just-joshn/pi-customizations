@@ -399,14 +399,6 @@ function readCart(repo: string): string {
   return readFileSync(join(repo, 'src/cart.js'), 'utf8');
 }
 
-function safe(path: string): string {
-  try {
-    return readFileSync(path, 'utf8');
-  } catch {
-    return '';
-  }
-}
-
 // ---- tdd
 
 const TDD_REPLY = `Failing before: test/coupon-over-100.test.js failed with "a coupon over 100 percent never pays the customer", total was -5.
