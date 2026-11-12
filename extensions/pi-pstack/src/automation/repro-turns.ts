@@ -13,7 +13,10 @@ import type { AutomationConfig } from '../../adapters/automation-events.ts';
 import type { AbortRun } from './abort.ts';
 import { type AutomationEvent, type EventKey, isOpsStatus, type OpsStatus, type RunId } from './model.ts';
 import type { ThreadDestination } from './outbox.ts';
-import type { CollectedRun } from './settle.ts';
+import { NOT_CONFIRMED, unverifiedNote } from './accept.ts';
+import { fixFailed } from './pull-request.ts';
+import type { Verdict } from './proof.ts';
+import { type CollectedRun, evidenceOf } from './settle.ts';
 import { type AutomationStore, appendLog, type LogEntry, outboxEntries, readLog } from './store.ts';
 import { fenced, humanMessagesAfter, latestTs } from './thread-watch.ts';
 import { actionIdFor } from './model.ts';
@@ -28,18 +31,23 @@ export interface TurnResult {
   operations?: string;
   /** A rerun only: the concise source-thread reply for a repro it now confirms, which is posted only when the case has none. */
   text?: string;
+  evidence?: string[];
+  /** A fix turn only: what the worker wants the pull request to say. The parent opens it, always as a draft. */
+  pullRequest?: { title: string; body: string };
 }
 
 export function parseTurnResult(finalText: string): TurnResult {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
-    const parsed = JSON.parse(body) as { decision?: unknown; corrected?: unknown; status?: unknown; operations?: unknown; text?: unknown };
+    const parsed = JSON.parse(body) as { decision?: unknown; corrected?: unknown; status?: unknown; operations?: unknown; text?: unknown; evidence?: unknown; pullRequest?: { title?: unknown; body?: unknown } | null };
     return {
       ...(parsed.decision === 'continue' || parsed.decision === 'stop' ? { decision: parsed.decision } : {}),
       corrected: parsed.corrected === true,
       ...(isOpsStatus(parsed.status) ? { status: parsed.status } : {}),
       ...(typeof parsed.operations === 'string' && parsed.operations.trim() !== '' ? { operations: parsed.operations } : {}),
       ...(typeof parsed.text === 'string' && parsed.text.trim() !== '' ? { text: parsed.text } : {}),
+      ...(evidenceOf(parsed.evidence) === undefined ? {} : { evidence: evidenceOf(parsed.evidence) as string[] }),
+      ...(typeof parsed.pullRequest?.title === 'string' && typeof parsed.pullRequest.body === 'string' ? { pullRequest: { title: parsed.pullRequest.title, body: parsed.pullRequest.body } } : {}),
     };
   } catch {
     return { corrected: false };
@@ -89,7 +97,9 @@ export const fixPrompt = (minutes: number): string =>
     '',
     `The rejection window closed without a valid rejection. Start the fix phase now: sections 11 through 14 of the operational file. Keep to the fix budget of ${minutes} minutes, and stop at once if the change grows past it.`,
     '',
-    'Report as before. Your final message is one JSON object and nothing else: `{ "status": "<where the run ended, one of the operations statuses>", "operations": "<one concise reply for the operations thread, for example the linked pull request>" }`.',
+    'You are on your run branch in your worktree. Commit your fix there. Do not push it and do not open a pull request: the parent pushes the branch and opens the draft pull request after it reads your result. Before you report, add the patched build measured twice to the proof record your brief describes, as `"fix": { "patched": [<two runs>] }`. The parent opens no pull request without it.',
+    '',
+    'Report as before. Your final message is one JSON object and nothing else: `{ "status": "<Fix did not land when you could not finish, otherwise Attempting bounded fix>", "pullRequest": { "title": "<the pull request title>", "body": "<the pull request body: repro steps, root cause, test result, before and after evidence, blast-radius checks>" }, "operations": "<one concise note for the operations thread>" }`. The parent records `Draft pull request opened` and posts the link once the pull request exists as a draft.',
     '',
   ].join('\n');
 
@@ -109,6 +119,8 @@ interface Lifecycle {
   completedAt: string;
   /** The status of the worker's first report. Only `Reproduced` leaves a window to hold. */
   status: string | undefined;
+  /** The worker verified an existing fix, so there is no fix of this case's own to hold a window for. */
+  existingFix: boolean;
   windowSeenTs: string | undefined;
   turns: Turn[];
   closed: { ts: string; reason: string } | undefined;
@@ -119,12 +131,15 @@ function lifecycles(log: LogEntry[]): Lifecycle[] {
   const found = new Map<EventKey, Lifecycle>();
   for (const entry of log) {
     if (entry.kind === 'received') events.set(entry.key, entry.event);
-    if (entry.kind === 'completed' && events.has(entry.key) && !found.has(entry.key)) found.set(entry.key, { key: entry.key, runId: entry.runId, event: events.get(entry.key) as AutomationEvent, completedAt: entry.ts, status: undefined, windowSeenTs: undefined, turns: [], closed: undefined });
+    if (entry.kind === 'completed' && events.has(entry.key) && !found.has(entry.key)) found.set(entry.key, { key: entry.key, runId: entry.runId, event: events.get(entry.key) as AutomationEvent, completedAt: entry.ts, status: undefined, existingFix: false, windowSeenTs: undefined, turns: [], closed: undefined });
   }
   for (const entry of log) {
     const lifecycle = 'key' in entry ? found.get(entry.key) : undefined;
     if (lifecycle === undefined) continue;
-    if (entry.kind === 'repro-outcome' && lifecycle.status === undefined) lifecycle.status = entry.status;
+    if (entry.kind === 'repro-outcome' && lifecycle.status === undefined) {
+      lifecycle.status = entry.status;
+      lifecycle.existingFix = entry.existingFix === true;
+    }
     if (entry.kind === 'repro-window') lifecycle.windowSeenTs = entry.seenTs;
     if (entry.kind === 'repro-turn') lifecycle.turns.push({ turn: entry.turn, purpose: entry.purpose, generation: entry.generation, prompt: entry.prompt, at: entry.ts, ...(entry.seenTs === undefined ? {} : { seenTs: entry.seenTs }) });
     if (entry.kind === 'repro-turn-completed') {
@@ -143,6 +158,10 @@ export interface ReproTurnsHost {
   now: () => Date;
   collect: (runId: RunId) => Promise<CollectedRun>;
   abort: AbortRun;
+  /** Whether the worker's record shows two reproductions made since `since`. */
+  prove: (runId: RunId, since: Date) => Verdict;
+  /** Turns a fix turn's result into the pull request the parent opens, as a draft, or into why none was. Throws when a later pass may succeed. */
+  land: (fix: { key: EventKey; runId: RunId; since: Date }, reported: TurnResult) => Promise<TurnResult>;
   /** Sends the worker its next message, which a host takes as its next prompt while the worker is idle. */
   steer: (runId: RunId, text: string) => Promise<void>;
   /** Shows a turn's status on the operations message and its reply in the operations thread. False while either is still to land. */
@@ -159,7 +178,7 @@ export function createReproTurns(host: ReproTurnsHost): { advance(): Promise<voi
   const fixMinutes = config.budgets?.fixMinutes ?? 90;
 
   /** A case holds a window only when the worker reported a plain confirmed repro and the window is configured. */
-  const gated = (lifecycle: Lifecycle) => windowMinutes !== undefined && lifecycle.status === 'Reproduced';
+  const gated = (lifecycle: Lifecycle) => windowMinutes !== undefined && lifecycle.status === 'Reproduced' && !lifecycle.existingFix;
 
   const close = (lifecycle: Lifecycle, reason: string) => appendLog(store, { ts: stamp(), kind: 'repro-closed', key: lifecycle.key, runId: lifecycle.runId, reason });
   const complete = (lifecycle: Lifecycle, turn: Turn, extra: { failure?: string; decision?: string; corrected?: boolean } = {}) => appendLog(store, { ts: stamp(), kind: 'repro-turn-completed', key: lifecycle.key, runId: lifecycle.runId, turn: turn.turn, ...extra });
@@ -173,6 +192,22 @@ export function createReproTurns(host: ReproTurnsHost): { advance(): Promise<voi
     appendLog(store, { ts: stamp(), kind: 'repro-turn', key: lifecycle.key, runId: lifecycle.runId, turn, purpose, generation: run.generation ?? 0, prompt, ...(seenTs === undefined ? {} : { seenTs }) });
     await host.steer(lifecycle.runId, prompt);
     return undefined;
+  };
+
+  const LANDING_ATTEMPTS = 5;
+  const LANDING_RETRY_MS = 60_000;
+  /** The fix turn's pull request, or undefined while a failed attempt is waiting out its retry. After the attempt limit the fix did not land. */
+  const land = async (lifecycle: Lifecycle, turn: Turn, reported: TurnResult): Promise<TurnResult | undefined> => {
+    const failures = readLog(store).filter((entry): entry is Extract<LogEntry, { kind: 'fix-landing-failed' }> => entry.kind === 'fix-landing-failed' && entry.key === lifecycle.key && entry.turn === turn.turn);
+    const last = failures.at(-1);
+    if (last !== undefined && host.now().getTime() - Date.parse(last.ts) < LANDING_RETRY_MS) return undefined;
+    try {
+      return await host.land({ key: lifecycle.key, runId: lifecycle.runId, since: new Date(turn.at) }, reported);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      appendLog(store, { ts: stamp(), kind: 'fix-landing-failed', key: lifecycle.key, runId: lifecycle.runId, turn: turn.turn, reason: reason.slice(0, 500) });
+      return failures.length + 1 >= LANDING_ATTEMPTS ? fixFailed(reason.slice(0, 200)) : undefined;
+    }
   };
 
   /** One pass over the turn in flight: deliver it if it never arrived, apply its result once it settled, abort it past its budget. */
@@ -197,7 +232,17 @@ export function createReproTurns(host: ReproTurnsHost): { advance(): Promise<voi
         close(lifecycle, `the ${turn.purpose} turn failed: ${reason}`);
         return;
       }
-      const result = parseTurnResult(run.finalText);
+      const parsed = parseTurnResult(run.finalText);
+      // A correction or a rerun that still says `Reproduced` owes the same proof as the first report, made since the turn began.
+      const owesProof = parsed.status === 'Reproduced' && (turn.purpose === 'rerun' || (turn.purpose === 'review' && parsed.corrected));
+      const verdict = owesProof ? host.prove(lifecycle.runId, new Date(turn.at)) : ({ ok: true } as const);
+      const { text: _unproven, evidence: _files, ...doubted } = parsed;
+      let result: TurnResult = verdict.ok ? parsed : { ...doubted, status: NOT_CONFIRMED, operations: unverifiedNote('Reproduced', NOT_CONFIRMED, verdict.reason) };
+      if (turn.purpose === 'fix') {
+        const landed = await land(lifecycle, turn, result);
+        if (landed === undefined) return;
+        result = landed;
+      }
       const { text: _source, ...withoutText } = result;
       if (!(await host.report(lifecycle.event, lifecycle.runId, turn.purpose === 'rerun' ? result : withoutText, `turn-${turn.turn}`))) return;
       if (turn.purpose === 'rerun') {

@@ -21,6 +21,8 @@ const fenced = (value: unknown) => JSON.stringify(value, null, 2).replace(/</g, 
 export const trackerRunId = (automation: string, action: TrackerAction, attempt: number): RunId => `trk-${createHash('sha256').update([automation, action.id, String(attempt)].join('\0')).digest('hex').slice(0, 16)}` as RunId;
 
 const OUTCOMES: Record<TrackerAction['operation'], string> = { create: 'created', update: 'updated', comment: 'commented', close: 'closed' };
+/** Outcomes that write nothing. A close is the parent's compensation of an issue linked to the source by construction, so only it has no `already-linked`. */
+const wroteNothing = (operation: TrackerAction['operation']) => (operation === 'close' ? ['found'] : ['found', 'already-linked']);
 
 export function buildTrackerBrief(action: TrackerAction, skillPath: string, tracker: TrackerConfig): string {
   const target = action.operation === 'create' ? 'Create the issue.' : action.operation === 'close' ? `Close the issue ${action.targetId ?? ''} without replacing any of its fields.` : `${action.operation === 'update' ? 'Update' : 'Comment on'} the issue ${action.targetId ?? ''} without replacing unrelated fields.`;
@@ -52,8 +54,13 @@ export function buildTrackerBrief(action: TrackerAction, skillPath: string, trac
     '## Order of work',
     '',
     `1. Search first. Search the tracker for the exact marker text in issue descriptions and comments, closed issues included, over the last 90 days. If it is found, write nothing. Return outcome \`found\` with that issue's id.`,
-    `2. Only if the search finds nothing, do the action. ${target} Write the marker as its own last line of the same description or comment, in the same write, exactly as given above. Before the marker, write the line \`Source: ${action.sourceUrl}\`.`,
-    '3. Write at most once. If a write fails or its outcome is unknown, search by the marker again before anything else. Return failure when you still cannot tell.',
+    ...(action.operation === 'close'
+      ? [`2. Only if the search finds nothing, do the action. ${target} Write the marker as its own last line of the same description or comment, in the same write, exactly as given above. Before the marker, write the line \`Source: ${action.sourceUrl}\`.`]
+      : [
+          `2. Search by the source permalink. Search issue descriptions, comments, and links, closed issues included, for the line \`Source: ${action.sourceUrl}\` or this exact url as a link. If any issue carries it, this report is already linked to a tracker issue: write nothing, create nothing, and add no recurrence note. Return outcome \`already-linked\` with that issue's id.`,
+          `3. Only if both searches find nothing, do the action. ${target} Write the marker as its own last line of the same description or comment, in the same write, exactly as given above. Before the marker, write the line \`Source: ${action.sourceUrl}\`.`,
+        ]),
+    `${action.operation === 'close' ? '3' : '4'}. Write at most once. If a write fails or its outcome is unknown, search by the marker again before anything else. Return failure when you still cannot tell.`,
     ...(action.operation === 'close' ? ['4. Confirm the issue is closed, canceled, or deleted before you answer.'] : []),
     '',
     '## Boundaries',
@@ -69,13 +76,13 @@ export function buildTrackerBrief(action: TrackerAction, skillPath: string, trac
     '',
     '## Result',
     '',
-    `Your final message is one JSON object and nothing else: \`{ "outcome": "found" | "${OUTCOMES[action.operation]}", "id": "<the tracker's issue id or key>", "url": "<optional issue url>" }\`. On failure answer \`{ "outcome": "failed", "reason": "<what failed>" }\`.`,
+    `Your final message is one JSON object and nothing else: \`{ "outcome": ${[...wroteNothing(action.operation), OUTCOMES[action.operation]].map((outcome) => `"${outcome}"`).join(' | ')}, "id": "<the tracker's issue id or key>", "url": "<optional issue url>" }\`. On failure answer \`{ "outcome": "failed", "reason": "<what failed>" }\`.`,
     '',
   ].join('\n');
 }
 
 /** The worker's final message must be exactly the structured result the brief asks for, for this action's operation. */
-export function parseAdapterResult(finalText: string, operation: TrackerAction['operation']): { id: string; reconciled: boolean; url?: string } {
+export function parseAdapterResult(finalText: string, operation: TrackerAction['operation']): { id: string; reconciled: boolean; alreadyLinked?: true; url?: string } {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   let parsed: unknown;
   try {
@@ -86,11 +93,11 @@ export function parseAdapterResult(finalText: string, operation: TrackerAction['
   const result = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as Record<string, unknown>;
   const outcome = result['outcome'];
   if (outcome === 'failed') throw new Error(`the tracker worker reported a failure: ${typeof result['reason'] === 'string' ? result['reason'] : 'no reason given'}`);
-  if (outcome !== 'found' && outcome !== OUTCOMES[operation]) throw new Error(`the tracker worker returned outcome ${JSON.stringify(outcome)}, not found or ${OUTCOMES[operation]}`);
+  if (typeof outcome !== 'string' || (!wroteNothing(operation).includes(outcome) && outcome !== OUTCOMES[operation])) throw new Error(`the tracker worker returned outcome ${JSON.stringify(outcome)}, not ${wroteNothing(operation).join(', ')} or ${OUTCOMES[operation]}`);
   const id = result['id'];
   if (typeof id !== 'string' || id.trim() === '' || id.length > 200) throw new Error('the tracker worker returned no issue id');
   const url = result['url'];
-  return { id: id.trim(), reconciled: outcome === 'found', ...(typeof url === 'string' && isTrackerUrl(url.trim()) ? { url: url.trim() } : {}) };
+  return { id: id.trim(), reconciled: outcome !== OUTCOMES[operation], ...(outcome === 'already-linked' ? { alreadyLinked: true as const } : {}), ...(typeof url === 'string' && isTrackerUrl(url.trim()) ? { url: url.trim() } : {}) };
 }
 
 export interface AdapterTrackerOptions {

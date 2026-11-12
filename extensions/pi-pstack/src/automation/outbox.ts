@@ -52,7 +52,7 @@ export interface TrackerWork {
   startedAt: string;
 }
 
-export type TrackerLanding = { status: 'landed'; id: string; reconciled: boolean; url?: string } | { status: 'working'; work: TrackerWork };
+export type TrackerLanding = { status: 'landed'; id: string; reconciled: boolean; /** The report's permalink was already linked to this issue, so nothing was written. */ alreadyLinked?: true; url?: string } | { status: 'working'; work: TrackerWork };
 
 /**
  * One step toward landing a tracker action. It either finishes (marker search before any write, so a second step after a
@@ -117,7 +117,7 @@ export async function flushOutbox(store: AutomationStore, destination: ThreadDes
       if (action.kind === 'tracker') {
         if (!tracker) throw new Error('tracker destination unavailable');
         const landing = await tracker.land(action, { attempt: (entry.attempts ?? 0) + 1, ...(entry.work === undefined ? {} : { work: entry.work }) });
-        writeAtomic(outboxFile(store, action.id), json(landing.status === 'landed' ? { action, state: 'done', destinationTs: landing.id, reconciled: landing.reconciled, ...(landing.url === undefined ? {} : { url: landing.url }) } : { action, state: 'pending', ...(entry.attempts === undefined ? {} : { attempts: entry.attempts }), work: landing.work }));
+        writeAtomic(outboxFile(store, action.id), json(landing.status === 'landed' ? { action, state: 'done', destinationTs: landing.id, reconciled: landing.reconciled, ...(landing.alreadyLinked === true ? { alreadyLinked: true } : {}), ...(landing.url === undefined ? {} : { url: landing.url }) } : { action, state: 'pending', ...(entry.attempts === undefined ? {} : { attempts: entry.attempts }), work: landing.work }));
         continue;
       }
       if (action.kind === 'ops-root' || action.kind === 'ops-edit') {
@@ -149,7 +149,10 @@ export async function flushOutbox(store: AutomationStore, destination: ThreadDes
       if (landed === undefined && !before.some((message) => message.ts === action.threadTs)) throw new Error(`the thread parent ${action.threadTs} is not in ${action.channel}; nothing was posted`);
       let destinationTs = landed?.ts;
       if (destinationTs === undefined) {
-        destinationTs = (await destination.post(action)).ts;
+        // The last attempt drops the files: evidence is optional, the one source reply is not.
+        const { attachments: _files, textWithoutAttachments, ...plain } = action;
+        const lastAttempt = (entry.attempts ?? 0) + 1 >= OUTBOX_RETRY_LIMIT;
+        destinationTs = (await destination.post(lastAttempt && _files !== undefined ? { ...plain, text: textWithoutAttachments ?? action.text } : action)).ts;
         // Read back: the reply must be a reply in that thread, not only a success the destination reported.
         const seen = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
         if (seen === undefined || seen.ts === action.threadTs) throw new Error(`the reply was posted but is not visible under the thread ${action.threadTs}`);

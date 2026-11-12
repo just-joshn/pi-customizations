@@ -65,19 +65,27 @@ function intentOf(value: unknown): TrackerIntent | undefined {
   };
 }
 
+/** The evidence paths a result names: strings only, and no more than the parent could ever attach, so a result cannot make the parent walk an unbounded list. */
+export const evidenceOf = (value: unknown): string[] | undefined => {
+  const paths = Array.isArray(value) ? value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '' && entry.length <= 500).slice(0, 10) : [];
+  return paths.length === 0 ? undefined : paths;
+};
+
 /** The brief asks for a JSON object with `text` and an optional `tracker` intent. Anything else is the reply text itself. */
 export function parseWorkerResult(finalText: string): string | WorkerResult {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
     const parsed: unknown = JSON.parse(body);
-    const fields = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as { text?: unknown; tracker?: unknown; status?: unknown; operations?: unknown };
+    const fields = (typeof parsed === 'object' && parsed !== null ? parsed : {}) as { text?: unknown; tracker?: unknown; status?: unknown; operations?: unknown; evidence?: unknown };
     if (typeof fields.text === 'string' || isOpsStatus(fields.status)) {
       const tracker = intentOf(fields.tracker);
+      const evidence = evidenceOf(fields.evidence);
       return {
         text: typeof fields.text === 'string' ? fields.text : '',
         ...(tracker === undefined ? {} : { tracker }),
         ...(isOpsStatus(fields.status) ? { status: fields.status } : {}),
         ...(typeof fields.operations === 'string' ? { operations: fields.operations } : {}),
+        ...(evidence === undefined ? {} : { evidence }),
       };
     }
   } catch {}
@@ -139,6 +147,7 @@ export function startSettler(automation: Automation, options: SettleOptions & { 
       .then(() => automation.advanceRepro())
       .then(() => completeSettledRuns(automation, options))
       .then(() => automation.advanceFollowUps())
+      .then(() => automation.retireWorkers())
       .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;
     timer = setTimeout(() => {

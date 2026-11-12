@@ -14,6 +14,13 @@ import { type Download, fetchAttachments } from '../src/automation/attachments.t
 import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
+import { createRetirement } from '../src/automation/retire.ts';
+import { createFixGuard } from '../src/automation/fix-guard.ts';
+import { type Forge } from '../src/automation/forge.ts';
+import { fixFailed, landFix } from '../src/automation/pull-request.ts';
+import { stageEvidence } from '../src/automation/evidence-files.ts';
+import { acceptOutcome } from '../src/automation/accept.ts';
+import { verifyPatched, verifyReproduction } from '../src/automation/proof.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
 import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -40,6 +47,8 @@ export interface AutomationDeps {
   collect?: (runId: RunId) => Promise<CollectedRun>;
   abort?: AbortRun;
   steer?: SteerRun;
+  /** The repository a repro fix is proposed in, as the parent reaches it (git and `gh`). Without one a fix cannot land and no early fix can be detected. */
+  forge?: Forge;
   /** Fetches a report attachment with the parent's Slack credential. Absent: no attachment is downloaded. */
   downloadAttachment?: Download;
   /** The url of the issue with this id, for a tracker whose urls the parent can build. Another tracker's worker returns its own. */
@@ -85,6 +94,8 @@ export interface Automation {
   retryWaiting(): Promise<void>;
   /** Repro only: holds the rejection window after the first report, and sends the worker its review and fix turns. */
   advanceRepro(): Promise<void>;
+  /** Shuts down the idle worker of each case whose lifecycle is over, once. */
+  retireWorkers(): Promise<void>;
   /** Brings the operations status message in line with what each pending repro run last reported, then retries every pending outbox action. */
   syncOperations(): Promise<void>;
   /** When the run was dispatched, from the event log. */
@@ -247,12 +258,12 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const operations = config.kind === 'reproduce' && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
   const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...(deps.operations === undefined ? {} : { operations: deps.operations }), ...options });
   /** A turn's status on the operations message and its reply in the operations thread. False while one of them is still to land. */
-  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string; text?: string }, replyKey: string): Promise<boolean> => {
+  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string; text?: string; evidence?: string[] }, replyKey: string): Promise<boolean> => {
     // A rerun that confirms a repro may post the one source reply upstream allows, when the first report left none.
     const source = result.status === 'Reproduced' && result.text !== undefined ? result.text.trim() : '';
     if (source !== '') {
       const id = actionIdFor(config.name, event.key, 'result');
-      enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: source });
+      enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, _runId, id, source, result.evidence) });
       await flush();
       if (entryOf(id)?.state === 'pending') return false;
     }
@@ -268,7 +279,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     await flush();
     return entryOf(id)?.state !== 'pending';
   };
-  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), land: async (fix, reported) => (deps.forge === undefined ? fixFailed('no repository is configured to open a pull request in') : landFix({ config, forge: deps.forge, provePatched: (runId, since) => verifyPatched({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }) }, { ...fix, projectRoot: config.projectRoot }, reported)), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const reproduce = {
     anchor: (key: EventKey) => reproTurns.followUpAnchor(key),
     outcome: (key: EventKey) => {
@@ -278,12 +289,28 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     rerun: (key: EventKey, correction: string) => reproTurns.startRerun(key, correction),
   };
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush(), ...(deps.collect === undefined ? {} : { collect: deps.collect }), ...(deps.abort === undefined ? {} : { abort: deps.abort }), reproduce });
+  const fixGuard = deps.forge === undefined ? undefined : createFixGuard({ config, store, now, forge: deps.forge, abort: deps.abort ?? abortRun, report: reportTurn });
+  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, ...(fixGuard === undefined ? {} : { beforeRetire: (runId: RunId) => fixGuard.sweep(runId) }), anchor: (key, completedTs) => (config.kind === 'reproduce' ? reproTurns.followUpAnchor(key) : completedTs), inFlight: () => reproTurns.inFlightRuns() });
   const pendingRuns = (): RunId[] => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
     return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
   };
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
+  /**
+   * The source reply with the evidence the worker asked to attach, so far as upstream allows it (vendor reproduce SKILL.md:214).
+   * Files the parent may not attach are named in the log, and the reply then links the operations thread, where the
+   * evidence is. A reply never waits on its files.
+   */
+  const withEvidence = (event: AutomationEvent, runId: RunId, replyId: ActionId, text: string, requested: readonly string[] | undefined): { text: string; attachments?: { path: string; name: string; mimetype: string }[]; textWithoutAttachments?: string } => {
+    if (config.kind !== 'reproduce' || requested === undefined || requested.length === 0 || text.trim() === '' || entryOf(replyId) !== undefined) return { text };
+    const staged = stageEvidence({ requested, artifactDirectory: config.artifactDirectory, retentionHours: config.artifactRetentionHours, runId, now: now(), into: join(store.dir, 'evidence', replyId) });
+    appendLog(store, { ts: stamp(), kind: 'evidence-staged', key: event.key, runId, attached: staged.files.length, skipped: staged.skipped });
+    const root = entryOf(actionIdFor(config.name, event.key, 'ops-root'));
+    const linked = root?.state === 'done' && operations !== undefined ? `${text}\nEvidence: https://slack.com/archives/${operations.channelId}/p${root.destinationTs.replace('.', '')}` : text;
+    if (staged.files.length === 0) return { text: linked };
+    return { text: staged.skipped.length > 0 ? linked : text, attachments: staged.files, textWithoutAttachments: linked };
+  };
   /** The link to the issue the case's tracker action wrote or updated, once it landed. */
   const issueUrlOf = (id: ActionId): string | undefined => {
     const entry = entryOf(id);
@@ -311,15 +338,18 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         for (const key of keys) await advance(key);
         await flush({ ignoreBackoff: true });
       }),
-    complete: (runId, result) =>
+    complete: (runId, submitted) =>
       serial(async (): Promise<CompleteOutcome> => {
-        const text = typeof result === 'string' ? result : result.text;
-        const intent = typeof result === 'string' ? undefined : result.tracker;
         const log = readLog(store);
         const dispatched = log.find((entry): entry is Extract<LogEntry, { kind: 'dispatched' }> => entry.kind === 'dispatched' && entry.runId === runId);
         if (dispatched === undefined) return { status: 'refused', reason: `no dispatched case for run ${runId}` };
         const state = caseState(log, dispatched.key);
         if (state.phase !== 'dispatched') throw new Error(`event log has a dispatch for ${dispatched.key} without its receipt`);
+        // A repro outcome counts only with the proof the worker's own record gives (see proof.ts); the rest of this step reads what the parent accepted.
+        const proven = config.kind === 'reproduce' && typeof submitted !== 'string' ? acceptOutcome(submitted, { artifactDirectory: config.artifactDirectory, runId, since: new Date(dispatched.ts), now: now() }) : { result: submitted };
+        const result = proven.result;
+        const text = typeof result === 'string' ? result : result.text;
+        const intent = typeof result === 'string' ? undefined : result.tracker;
         const markers = AUTOMATION_KINDS[config.kind].replyMarkers;
         const problem = markers === null ? undefined : markerProblem(text, markers);
         if (problem !== undefined) {
@@ -345,7 +375,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         }
         const status = typeof result === 'string' ? undefined : result.status;
         const operationsReply = typeof result === 'string' ? undefined : result.operations;
-        if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }) });
+        if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }), ...('existingFix' in proven && proven.existingFix === true ? { existingFix: true } : {}), ...('unverified' in proven && proven.unverified !== undefined ? { unverified: proven.unverified } : {}) });
         if (operations !== undefined) {
           // Upstream updates the operations status first. A root that cannot land holds the source reply only until its retry limit.
           showStatus(event, status ?? latestStatus(config.projectRoot, runId)?.status ?? 'Reproducing');
@@ -361,7 +391,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         const replyId = actionIdFor(config.name, event.key, 'result');
         const replyText = failure !== undefined ? failureReply(config.kind, failure) : markers === null ? text : withTrackerAttribute(text, trackerAttribute, issueUrlOf(trackerId));
         // A repro run with nothing confirmed posts nothing in the source thread: the operations thread and the run log carry it.
-        const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: replyText });
+        const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, runId, replyId, replyText, typeof result === 'string' ? undefined : result.evidence) });
         await flush();
         const reply = entryOf(replyId);
         if (reply?.state === 'pending') return { status: 'retrying', key: event.key };
@@ -378,7 +408,12 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
-    advanceRepro: () => serial(() => reproTurns.advance()),
+    advanceRepro: () =>
+      serial(async () => {
+        await fixGuard?.advance();
+        await reproTurns.advance();
+      }),
+    retireWorkers: () => serial(() => retirement.advance()),
     syncOperations: () =>
       serial(async () => {
         if (operations !== undefined) {

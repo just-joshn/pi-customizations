@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import type { Download } from './attachments.ts';
 import type { ThreadReplyAction } from './model.ts';
 import type { ChannelMessage, OperationsDestination, ThreadDestination, ThreadMessage } from './outbox.ts';
@@ -7,6 +9,8 @@ export interface SlackApi {
   fetch: typeof fetch;
   token: string;
   baseUrl?: string;
+  /** How a reply with files waits for the message Slack makes of an upload to show in the thread. Defaults to 15 reads, one second apart. */
+  upload?: { polls?: number; sleep?: (ms: number) => Promise<void>; pollMs?: number };
 }
 
 interface SlackMessage {
@@ -21,12 +25,29 @@ interface SlackMessage {
 }
 
 const MARKER_EVENT = 'pstack_action';
+/** A reply that carries files has no message metadata to hold its action id, so the id rides in its first file's title. */
+const FILE_MARKER = /pstack-action:(act-[0-9a-f]{16})/;
+/** Errors that say the credential or workspace will never let this upload through, so the reply goes without its files. Anything else is retried. */
+const UPLOAD_REFUSED = /missing_scope|not_allowed_token_type|access_denied|file_uploads_disabled|restricted_action|no_permission|ekm_access_denied|file_upload_not_allowed/;
 
 async function call<T>(api: SlackApi, method: string, body: Record<string, unknown>): Promise<T> {
   const response = await api.fetch(new URL(method, api.baseUrl ?? 'https://slack.com/api/'), {
     method: 'POST',
     headers: { authorization: `Bearer ${api.token}`, 'content-type': 'application/json; charset=utf-8' },
     body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error(`Slack ${method} failed: HTTP ${response.status}`);
+  const result = (await response.json()) as { ok?: boolean; error?: string } & T;
+  if (result.ok !== true) throw new Error(`Slack ${method} failed: ${result.error ?? 'unknown_error'}`);
+  return result;
+}
+
+/** Slack's `files.getUploadURLExternal` takes form fields, not JSON. */
+async function callForm<T>(api: SlackApi, method: string, fields: Record<string, string>): Promise<T> {
+  const response = await api.fetch(new URL(method, api.baseUrl ?? 'https://slack.com/api/'), {
+    method: 'POST',
+    headers: { authorization: `Bearer ${api.token}`, 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(fields).toString(),
   });
   if (!response.ok) throw new Error(`Slack ${method} failed: HTTP ${response.status}`);
   const result = (await response.json()) as { ok?: boolean; error?: string } & T;
@@ -78,7 +99,7 @@ export async function pollSlackOnce(api: SlackApi, channel: string, store: Autom
 export function slackDestination(api: SlackApi): ThreadDestination & OperationsDestination {
   const marked = (message: SlackMessage) => (message.metadata?.event_type === MARKER_EVENT ? message.metadata.event_payload?.['action_id'] : undefined);
   const asMessage = (message: SlackMessage): ChannelMessage => ({ ts: message.ts, text: message.text ?? '' });
-  return {
+  const destination: ThreadDestination & OperationsDestination = {
     async findRoot(channel, marker) {
       const page = await call<Page>(api, 'conversations.history', { channel, limit: 100, include_all_metadata: true });
       const found = (page.messages ?? []).find((message) => marked(message) === marker);
@@ -100,19 +121,56 @@ export function slackDestination(api: SlackApi): ThreadDestination & OperationsD
       const messages = await allPages(api, 'conversations.replies', { channel, ts: threadTs, include_all_metadata: true });
       return messages.map((message): ThreadMessage => {
         const id = message.metadata?.event_type === MARKER_EVENT ? message.metadata.event_payload?.['action_id'] : undefined;
-        return { ts: message.ts, user: message.user ?? message.bot_id ?? '', text: message.text ?? '', ...(typeof id === 'string' ? { marker: id } : {}) };
+        const fileId = (message.files ?? []).flatMap((file) => FILE_MARKER.exec(String((file as { title?: unknown }).title ?? ''))?.[1] ?? []).at(0);
+        const marker = typeof id === 'string' ? id : fileId;
+        return { ts: message.ts, user: message.user ?? message.bot_id ?? '', text: message.text ?? '', ...(marker === undefined ? {} : { marker }) };
       });
     },
     async post(action: ThreadReplyAction) {
-      const result = await call<{ ts: string }>(api, 'chat.postMessage', {
-        channel: action.channel,
-        thread_ts: action.threadTs,
-        text: action.text,
-        metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.id } },
-      });
-      return { ts: result.ts };
+      const text = (withFiles: boolean) => (withFiles ? action.text : (action.textWithoutAttachments ?? action.text));
+      const plain = async (): Promise<{ ts: string }> => {
+        const result = await call<{ ts: string }>(api, 'chat.postMessage', { channel: action.channel, thread_ts: action.threadTs, text: text(false), metadata: { event_type: MARKER_EVENT, event_payload: { action_id: action.id } } });
+        return { ts: result.ts };
+      };
+      if (action.attachments === undefined || action.attachments.length === 0) return plain();
+      try {
+        return await postWithFiles(api, action, () => destination.readThread(action.channel, action.threadTs));
+      } catch (error) {
+        if (!UPLOAD_REFUSED.test(error instanceof Error ? error.message : String(error))) throw error;
+        return plain();
+      }
     },
   };
+  return destination;
+}
+
+/**
+ * One reply carrying its evidence files: each file goes to the upload url Slack hands out, and `files.completeUploadExternal`
+ * shares them all in the thread with the reply text as the message's comment, so the reply stays one message. That call
+ * answers with file ids, not a message, so the reply's `ts` is found by the action id in its first file's title, the same
+ * marker the outbox looks for before it posts. The credential goes to `slack.com/api` only: the upload url is Slack's
+ * signed `files.slack.com` address and gets the bytes alone.
+ */
+async function postWithFiles(api: SlackApi, action: ThreadReplyAction, readThread: () => Promise<ThreadMessage[]>): Promise<{ ts: string }> {
+  const files: { id: string; title: string }[] = [];
+  for (const [index, file] of (action.attachments ?? []).entries()) {
+    const bytes = readFileSync(file.path);
+    const start = await callForm<{ upload_url?: string; file_id?: string }>(api, 'files.getUploadURLExternal', { filename: file.name, length: String(bytes.byteLength) });
+    if (typeof start.upload_url !== 'string' || typeof start.file_id !== 'string') throw new Error('Slack files.getUploadURLExternal failed: no upload url');
+    const target = new URL(start.upload_url);
+    if (target.protocol !== 'https:' || target.hostname !== FILE_HOST) throw new Error(`Slack files.getUploadURLExternal failed: the upload url is not on ${FILE_HOST}`);
+    const sent = await api.fetch(target, { method: 'POST', headers: { 'content-type': file.mimetype }, body: bytes });
+    if (!sent.ok) throw new Error(`Slack file upload failed: HTTP ${sent.status}`);
+    files.push({ id: start.file_id, title: index === 0 ? `${file.name} (pstack-action:${action.id})` : file.name });
+  }
+  await call(api, 'files.completeUploadExternal', { files, channel_id: action.channel, thread_ts: action.threadTs, initial_comment: action.text });
+  const { polls = 15, sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)), pollMs = 1000 } = api.upload ?? {};
+  for (let attempt = 0; attempt < polls; attempt += 1) {
+    const landed = (await readThread()).find((message) => message.marker === action.id);
+    if (landed !== undefined) return { ts: landed.ts };
+    await sleep(pollMs);
+  }
+  throw new Error(`the evidence reply was shared but is not visible under the thread ${action.threadTs} yet; the next attempt looks for it before it posts again`);
 }
 
 const FILE_HOST = 'files.slack.com';

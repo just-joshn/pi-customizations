@@ -4,17 +4,17 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "dd9a142c7cf277ce6e2cdabf5ccd677f40598923b7c3faa7d2bdf98f29151ca9",
+  "requirementsDigest": "3996269522957b48ff890d4b0e3ca9243be8500d430ef7e671b2725351496737",
   "run": {
-    "startedAt": "2026-11-12T10:40:35.752Z",
-    "generatedAt": "2026-11-12T11:11:30.652Z",
-    "commit": "8c20386cd014737a78603d435e010d55895f7c8b",
+    "startedAt": "2026-11-12T11:15:52.578Z",
+    "generatedAt": "2026-11-12T11:18:09.648Z",
+    "commit": "ac5a95d094fef691b99f97d5903f9dbf781437e5",
     "dirty": true,
-    "resultsSource": "file",
-    "totalTests": 1679,
-    "passedTests": 1613,
+    "resultsSource": "vitest run",
+    "totalTests": 1562,
+    "passedTests": 1517,
     "failedTests": 0,
-    "skippedTests": 66
+    "skippedTests": 45
   },
   "counts": {
     "structural": {
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 80,
+      "PASS": 53,
       "FAIL": 0,
-      "INCONCLUSIVE": 19,
+      "INCONCLUSIVE": 48,
       "N/A": 0
     }
   },
@@ -20718,22 +20718,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/meta.test.ts run multi-phase-plan on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/meta.test.ts",
-          "name": "multi-phase-plan scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/meta.test.ts",
-          "name": "multi-phase-plan scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test starts the playbook and checks that the working tree is unchanged apart from the plan file.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "MX-TODO-PARITY",
@@ -21059,7 +21048,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/concurrency.test.ts (four workers, three models, one message)",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
       "tests": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21088,12 +21077,9 @@
         {
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
           "name": "a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level"
-        },
-        {
-          "file": "tests/workflow-parity/concurrency.test.ts",
-          "name": "worker-concurrency scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise.",
       "results": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21129,15 +21115,10 @@
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
           "name": "a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/concurrency.test.ts",
-          "name": "worker-concurrency scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "8 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise."
     },
     {
       "id": "MX-DIRECT-INTERACTION",
@@ -21165,7 +21146,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/interaction.test.ts (tmux send-keys into a live worker pane, pstack_worker steer, RPC steer)",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
       "tests": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21182,12 +21163,9 @@
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "pstack_worker boundary validation refuses control from a session that does not own the run"
-        },
-        {
-          "file": "tests/workflow-parity/interaction.test.ts",
-          "name": "worker-interaction scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test types into the attached tmux pane as an operator and checks the transcript.",
       "results": [
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
@@ -21208,15 +21186,10 @@
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "pstack_worker boundary validation refuses control from a session that does not own the run",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/interaction.test.ts",
-          "name": "worker-interaction scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test types into the attached tmux pane as an operator and checks the transcript."
     },
     {
       "id": "MX-WORKER-CRASH",
@@ -21543,7 +21516,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/headless.test.ts runs a playbook start under pi -p, pi --mode json and a UI-reporting command on the real pi binary; tests/integration/pi-load.test.ts runs RPC mode",
+      "verification": "tests/integration/pi-load.test.ts runs RPC mode only",
       "tests": [
         {
           "file": "tests/integration/pi-load.test.ts",
@@ -21552,20 +21525,9 @@
         {
           "file": "tests/integration/extension.test.ts",
           "name": "entry a parent gets pstack_worker, pstack_evidence, and /pstack"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-print scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-json scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-command scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test runs print or JSON mode. The load test uses RPC mode only.",
       "results": [
         {
           "file": "tests/integration/pi-load.test.ts",
@@ -21576,25 +21538,10 @@
           "file": "tests/integration/extension.test.ts",
           "name": "entry a parent gets pstack_worker, pstack_evidence, and /pstack",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-print scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-json scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/headless.test.ts",
-          "name": "headless-command scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test runs print or JSON mode. The load test uses RPC mode only."
     },
     {
       "id": "MX-MCP",
@@ -21622,7 +21569,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/mcp.test.ts runs why with a stdio MCP server from Pi's native mcp.json and without one, on the real pi binary; tests/workflow-parity/investigation.test.ts run why on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/skill-parity/semantics.test.ts and tests/worker-lifecycle/lifecycle.test.ts",
       "tests": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -21635,20 +21582,9 @@
         {
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "capability boundary a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits"
-        },
-        {
-          "file": "tests/workflow-parity/mcp.test.ts",
-          "name": "why-mcp scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/mcp.test.ts",
-          "name": "why-no-mcp scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "why scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test runs why with and without configured MCP services and checks citations or explicit missing coverage.",
       "results": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -21664,25 +21600,10 @@
           "file": "tests/worker-lifecycle/lifecycle.test.ts",
           "name": "capability boundary a worker of an automation run defaults to no MCP and the minimal environment; a parent-owned run inherits",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/mcp.test.ts",
-          "name": "why-mcp scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/mcp.test.ts",
-          "name": "why-no-mcp scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "why scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "6 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test runs why with and without configured MCP services and checks citations or explicit missing coverage."
     },
     {
       "id": "MX-CODEMODE",
@@ -21710,22 +21631,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/codemode.test.ts runs codemode scripts against a stdio MCP server in the parent and in a pstack worker on the real pi binary",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/codemode.test.ts",
-          "name": "codemode scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/codemode.test.ts",
-          "name": "codemode scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No pstack test exercises Codemode.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "MX-MODEL-ROUTING",
@@ -21864,31 +21774,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "arena scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "arena-dropout scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "arena scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "arena-dropout scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test runs an arena and checks that candidate outputs are disjoint.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "MX-SWARM-GAPS",
@@ -21914,7 +21804,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/evidence.test.ts; tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm-second-miss, swarm on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/worker-lifecycle/evidence.test.ts",
       "tests": [
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
@@ -21939,16 +21829,9 @@
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
           "name": "pstack_evidence a pass whose command exited non-zero verifies as fail"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-second-miss scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "swarm scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test runs a swarm that drops a lane, respawns once and records the gap in the final report.",
       "results": [
         {
           "file": "tests/worker-lifecycle/evidence.test.ts",
@@ -21979,20 +21862,10 @@
           "file": "tests/worker-lifecycle/evidence.test.ts",
           "name": "pstack_evidence a pass whose command exited non-zero verifies as fail",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-second-miss scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "swarm scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "8 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test runs a swarm that drops a lane, respawns once and records the gap in the final report."
     },
     {
       "id": "MX-SWARM-OUTCOMES",
@@ -22017,49 +21890,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm, swarm-race-first-pass, swarm-race-rank-all, swarm-race-best-of on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "swarm scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-first-pass scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-rank-all scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-best-of scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "swarm scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-first-pass scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-rank-all scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "swarm-race-best-of scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "4 linked test(s) ran and passed"
+      "verification": "No test checks swarm report outcomes.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "SCRIPT-WATCH-PR",
@@ -22462,7 +22297,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/packaging/installed-helpers.test.ts; tests/workflow-parity/verification.test.ts run statechart on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/packaging/installed-helpers.test.ts",
       "tests": [
         {
           "file": "tests/helpers/scripts.test.ts",
@@ -22479,10 +22314,6 @@
         {
           "file": "tests/packaging/installed-helpers.test.ts",
           "name": "the installed statechart checks a model with real TLC"
-        },
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "statechart scripted run: every check passes"
         }
       ],
       "results": [
@@ -22505,11 +22336,6 @@
           "file": "tests/packaging/installed-helpers.test.ts",
           "name": "the installed statechart checks a model with real TLC",
           "outcome": "skipped"
-        },
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "statechart scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
@@ -24068,7 +23894,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security; tests/workflow-parity/investigation.test.ts run how on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security",
       "tests": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -24101,10 +23927,6 @@
         {
           "file": "tests/security/readonly-shell-security.test.ts",
           "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)"
-        },
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "how scripted run: every check passes"
         }
       ],
       "results": [
@@ -24147,15 +23969,10 @@
           "file": "tests/security/readonly-shell-security.test.ts",
           "name": "an inherited BASH_ENV startup file never runs outside the sandbox (TASK-019)",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "how scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "9 linked test(s) ran and passed"
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "SECURITY-READONLY-LINUX",
@@ -24310,22 +24127,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/investigation.test.ts run teach on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "teach scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/investigation.test.ts",
-          "name": "teach scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes teach.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-ARCHITECT-ARENA",
@@ -24350,22 +24156,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "architect scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "architect scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes architect.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-ARCHITECT-CHECKPOINT",
@@ -24390,22 +24185,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "architect scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "architect scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes architect.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-ARENA-FLOW",
@@ -24430,31 +24214,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "arena scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "arena-dropout scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "arena scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/rules.test.ts",
-          "name": "arena-dropout scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test runs arena.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-INTERROGATE",
@@ -24479,31 +24243,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/gates.test.ts run interrogate, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "interrogate scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "feature-contested scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/design.test.ts",
-          "name": "interrogate scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "feature-contested scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test runs interrogate.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-MODEL-INDEPENDENCE",
@@ -24604,31 +24348,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build.test.ts and tests/workflow-parity/gates.test.ts run feature, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "feature scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "feature-contested scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "feature scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "feature-contested scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test runs the Feature playbook end to end.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-BUGFIX",
@@ -24653,22 +24377,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build.test.ts run bug-fix on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "bug-fix scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "bug-fix scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test runs the Bug fix playbook end to end.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-TDD",
@@ -24693,22 +24406,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build.test.ts run tdd on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "tdd scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "tdd scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes tdd.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-REFACTOR",
@@ -24733,22 +24435,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build-measured.test.ts run refactoring on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "refactoring scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "refactoring scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test runs the Refactoring playbook.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-PERF",
@@ -24773,22 +24464,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build-measured.test.ts run perf-issue on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "perf-issue scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "perf-issue scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test runs the Perf issue playbook.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-HILLCLIMB",
@@ -24813,22 +24493,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build-measured.test.ts run hillclimb on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "hillclimb scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build-measured.test.ts",
-          "name": "hillclimb scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test runs the Hillclimb playbook.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-CREATE-VERIFICATION-SKILL",
@@ -24853,22 +24522,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/verification.test.ts run create-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "create-verification-skill scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "create-verification-skill scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes create-verification-skill.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-MAINTAIN-VERIFICATION-SKILL",
@@ -24893,22 +24551,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/maintain.test.ts run maintain-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/maintain.test.ts",
-          "name": "maintain-verification-skill scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/maintain.test.ts",
-          "name": "maintain-verification-skill scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes maintain-verification-skill.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-FORMAL-VERIFICATION",
@@ -24933,31 +24580,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/maintain.test.ts and tests/workflow-parity/verification.test.ts run create-formal-verification-skill, maintain-formal-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "create-formal-verification-skill scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/maintain.test.ts",
-          "name": "maintain-formal-verification-skill scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/verification.test.ts",
-          "name": "create-formal-verification-skill scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/maintain.test.ts",
-          "name": "maintain-formal-verification-skill scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test invokes the formal verification skills.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-RECALL",
@@ -24982,22 +24609,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/history.test.ts run recall on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "recall scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "recall scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes recall.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-REFLECT-TRANSCRIPT",
@@ -25022,7 +24638,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/review-fixes.test.ts; tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/skill-parity/review-fixes.test.ts",
       "tests": [
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
@@ -25031,12 +24647,9 @@
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
           "name": "C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message"
-        },
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "reflect scripted run: every check passes"
         }
       ],
+      "coverageGap": "No test runs reflect with three reviewers and a synthesizer.",
       "results": [
         {
           "file": "tests/skill-parity/review-fixes.test.ts",
@@ -25047,15 +24660,10 @@
           "file": "tests/skill-parity/review-fixes.test.ts",
           "name": "C: setup-pstack, reflect, poteto-help C4: a real Pi session file opens with a system message and carries the prompt in the first user message",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "reflect scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "3 linked test(s) ran and passed"
+      "status": "INCONCLUSIVE",
+      "reason": "declared coverage gap: No test runs reflect with three reviewers and a synthesizer."
     },
     {
       "id": "WF-REFLECT-APPROVAL",
@@ -25080,22 +24688,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "reflect scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "reflect scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test checks the approval gate.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-AUTOMATE-ME",
@@ -25120,22 +24717,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/skills.test.ts run automate-me on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/skills.test.ts",
-          "name": "automate-me scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/skills.test.ts",
-          "name": "automate-me scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes automate-me.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-KETCHUP",
@@ -25160,22 +24746,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/history.test.ts run ketchup on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "ketchup scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/history.test.ts",
-          "name": "ketchup scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test invokes ketchup.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-KETCHUP-VIDEO",
@@ -25202,31 +24777,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/video.test.ts run ketchup-video, ketchup-video-render-fails on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/video.test.ts",
-          "name": "ketchup-video scripted run: every check passes"
-        },
-        {
-          "file": "tests/workflow-parity/video.test.ts",
-          "name": "ketchup-video-render-fails scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/video.test.ts",
-          "name": "ketchup-video scripted run: every check passes",
-          "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/video.test.ts",
-          "name": "ketchup-video-render-fails scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "verification": "No test renders a video.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-MAKE-BOT-UI",
@@ -25336,22 +24891,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/build.test.ts run feature on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
-      "tests": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "feature scripted run: every check passes"
-        }
-      ],
-      "results": [
-        {
-          "file": "tests/workflow-parity/build.test.ts",
-          "name": "feature scripted run: every check passes",
-          "outcome": "passed"
-        }
-      ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "verification": "No test checks the compiled rule or the behavior.",
+      "tests": [],
+      "results": [],
+      "status": "INCONCLUSIVE",
+      "reason": "no test is linked"
     },
     {
       "id": "WF-SETUP-PSTACK",
@@ -25474,7 +25018,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts; tests/workflow-parity/gates.test.ts run commit-review-gates on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "verification": "tests/skill-parity/semantics.test.ts",
       "tests": [
         {
           "file": "tests/skill-parity/inventory.test.ts",
@@ -25483,10 +25027,6 @@
         {
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "commit-review-gates scripted run: every check passes"
         }
       ],
       "results": [
@@ -25499,15 +25039,10 @@
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "no-comments scope transfer (defect 4) moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work",
           "outcome": "passed"
-        },
-        {
-          "file": "tests/workflow-parity/gates.test.ts",
-          "name": "commit-review-gates scripted run: every check passes",
-          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "3 linked test(s) ran and passed"
+      "reason": "2 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-ONE-REPLY",
@@ -25569,6 +25104,10 @@
         {
           "file": "tests/automation/outbox.test.ts",
           "name": "a reply is never posted when the thread parent cannot be read: the failure is logged and the run closes without a post"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a screenshot, a recording and a note are uploaded with the parent credential as one reply in the source thread"
         }
       ],
       "results": [
@@ -25616,10 +25155,15 @@
           "file": "tests/automation/outbox.test.ts",
           "name": "a reply is never posted when the thread parent cannot be read: the failure is logged and the run closes without a post",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a screenshot, a recording and a note are uploaded with the parent credential as one reply in the source thread",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "9 linked test(s) ran and passed"
+      "reason": "10 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-MARKER",
@@ -25788,6 +25332,10 @@
         {
           "file": "tests/automation/pack-text.test.ts",
           "name": "the pack tells each worker only what the parent does: the status file it reads, the result fields it parses, no worker Slack write"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the Slack credential goes to the Slack API and never to the upload host, and the worker never holds it"
         }
       ],
       "results": [
@@ -25835,10 +25383,15 @@
           "file": "tests/automation/pack-text.test.ts",
           "name": "the pack tells each worker only what the parent does: the status file it reads, the result fields it parses, no worker Slack write",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the Slack credential goes to the Slack API and never to the upload host, and the worker never holds it",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "9 linked test(s) ran and passed"
+      "reason": "10 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-DUPLICATE-TICKET",
@@ -26158,11 +25711,11 @@
         ],
         "sha256": "bff91e4e6505bbc01722f873ba404134f9f7cb9cfdaa0ffa3f4a59a39bd5628a"
       },
-      "observable": "A trusted bug verdict dispatches the reproduce worker once, in a writable worktree at the input commit.",
+      "observable": "A trusted bug verdict dispatches the reproduce worker once, in a writable worktree at the input commit. The parent accepts Reproduced only from the worker's proof record: two reproductions, each with a timestamp inside the case and its own capture in the run's artifact folder; with no usable record it records Could not reproduce, posts nothing in the source thread and sends no fix. A correction or rerun that still says Reproduced owes new observations made since its turn began.",
       "invariants": [
         "No confirmed repro means no authored fix."
       ],
-      "piMechanism": "Reproduce worker with a control adapter.",
+      "piMechanism": "Reproduce worker with a control adapter; the parent's check is src/automation/proof.ts and accept.ts.",
       "dependencies": [],
       "prerequisites": [
         "control adapter",
@@ -26171,7 +25724,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation: the dispatch, the phase gate and the fix gate. No test reproduces a symptom through a real UI.",
+      "verification": "tests/automation: the dispatch, the phase gate and the fix gate, and tests/automation/proof.test.ts for the proof record. No test reproduces a symptom through a real UI.",
       "tests": [
         {
           "file": "tests/automation/parity.test.ts",
@@ -26188,9 +25741,109 @@
         {
           "file": "tests/automation/repro-window.test.ts",
           "name": "the rejection window a case whose first report is not a plain confirmed repro holds no window"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof two timestamped reproductions, each with its own capture, are accepted: the source reply posts, the window is held, and the fix goes ahead when it closes"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof with no record the worker's Reproduced is recorded as Could not reproduce: nothing in the source thread, the reason in the operations thread, and no fix"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a restart after the downgrade finds the same outcome and posts nothing more"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the text and evidence of an unproven repro are never posted or uploaded"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof one reproduction only is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the same capture twice is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof two observations with one timestamp is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp before the case started is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp in the future is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp that is not a time is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof an observation with no state is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture that is missing is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture that is not a screenshot, a recording or a note is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture reached through a link out of the folder is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture written before the case started is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a record that is not JSON is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a record with no reproductions is not accepted"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Could not reproduce claims nothing the parent could refute, so it needs no record"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Blocked claims nothing the parent could refute, so it needs no record"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Reproducing claims nothing the parent could refute, so it needs no record"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the brief tells the worker where the record goes and what the parent will check"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a corrected repro with fresh proof keeps the window, and the fix goes ahead when it closes"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a corrected repro with only the old observations is recorded as Could not reproduce and no fix follows"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a rerun that confirms the repro without new proof posts no source reply"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix"
         }
       ],
-      "coverageGap": "No test drives a real application UI twice. The parent gates every fix on a worker report of Reproduced and the brief requires the double repro through the control skill, but whether a worker model actually observes the discriminating symptom twice is the worker's work through the project's control skill, which no test runs.",
+      "coverageGap": "The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs.",
       "results": [
         {
           "file": "tests/automation/parity.test.ts",
@@ -26211,10 +25864,135 @@
           "file": "tests/automation/repro-window.test.ts",
           "name": "the rejection window a case whose first report is not a plain confirmed repro holds no window",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof two timestamped reproductions, each with its own capture, are accepted: the source reply posts, the window is held, and the fix goes ahead when it closes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof with no record the worker's Reproduced is recorded as Could not reproduce: nothing in the source thread, the reason in the operations thread, and no fix",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a restart after the downgrade finds the same outcome and posts nothing more",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the text and evidence of an unproven repro are never posted or uploaded",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof one reproduction only is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the same capture twice is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof two observations with one timestamp is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp before the case started is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp in the future is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a timestamp that is not a time is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof an observation with no state is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture that is missing is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture that is not a screenshot, a recording or a note is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture reached through a link out of the folder is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a capture written before the case started is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a record that is not JSON is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof a record with no reproductions is not accepted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Could not reproduce claims nothing the parent could refute, so it needs no record",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Blocked claims nothing the parent could refute, so it needs no record",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof Reproducing claims nothing the parent could refute, so it needs no record",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a repro is accepted only with its proof the brief tells the worker where the record goes and what the parent will check",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a corrected repro with fresh proof keeps the window, and the fix goes ahead when it closes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a corrected repro with only the old observations is recorded as Could not reproduce and no fix follows",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "a later turn that still says Reproduced owes new proof a rerun that confirms the repro without new proof posts no source reply",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test drives a real application UI twice. The parent gates every fix on a worker report of Reproduced and the brief requires the double repro through the control skill, but whether a worker model actually observes the discriminating symptom twice is the worker's work through the project's control skill, which no test runs."
+      "reason": "declared coverage gap: The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs."
     },
     {
       "id": "BENNY-EXISTING-FIX",
@@ -26229,7 +26007,7 @@
         ],
         "sha256": "2b2e33cecd0be5a5bc96bc96ad4dd3b21adb96814c6d0aa52b3310f33982c631"
       },
-      "observable": "When an open PR or merged commit may fix the report, the automation verifies it.",
+      "observable": "When an open PR or merged commit may fix the report, the automation verifies it. The parent accepts Verifying existing fix only with a record naming a github.com pull request or commit link, a baseline measured twice and the patched build measured twice after it, and records Blocked without one; an existing fix, confirmed or insufficient, starts no fix of the case's own.",
       "invariants": [
         "No competing change."
       ],
@@ -26239,23 +26017,104 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts checks the brief. No test covers a worker verifying an existing fix.",
+      "verification": "tests/automation/proof.test.ts and repro-window.test.ts check the record and the brief. No test covers a worker running against a real open pull request or merged commit.",
       "tests": [
         {
           "file": "tests/automation/repro-window.test.ts",
           "name": "the first turn the brief ends the worker's first turn at the report and says what the parent sends next"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with a complete record is accepted: the one source reply posts, no window is held and no fix of the worker's own starts"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with an insufficient fix is reported as Reproduced and still starts no fix of the worker's own"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Blocked, with nothing in the source thread"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Blocked, with nothing in the source thread"
         }
       ],
-      "coverageGap": "Existing-fix verification is the repro worker's judgment under references/verify-existing-fix.md. The parent only tells the worker, in its brief, that section 10 belongs to the first turn and needs no fix turn. No test runs a worker against an open pull request or a merged commit.",
+      "coverageGap": "The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs.",
       "results": [
         {
           "file": "tests/automation/repro-window.test.ts",
           "name": "the first turn the brief ends the worker's first turn at the report and says what the parent sends next",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with a complete record is accepted: the one source reply posts, no window is held and no fix of the worker's own starts",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with an insufficient fix is reported as Reproduced and still starts no fix of the worker's own",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/proof.test.ts",
+          "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Blocked, with nothing in the source thread",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: Existing-fix verification is the repro worker's judgment under references/verify-existing-fix.md. The parent only tells the worker, in its brief, that section 10 belongs to the first turn and needs no fix turn. No test runs a worker against an open pull request or a merged commit."
+      "reason": "declared coverage gap: The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs."
     },
     {
       "id": "BENNY-DRAFT-ONLY",
@@ -26270,17 +26129,17 @@
         ],
         "sha256": "2a0da82155e1b2f392e79f7b31267a0cbe86f7fd5dea1238e15b6d7b1f3d614f"
       },
-      "observable": "A fix opens a draft pull request after before-and-after proof.",
+      "observable": "A fix opens a draft pull request after before-and-after proof. The worker commits on its run branch and describes the pull request; the parent pushes the branch and opens the pull request itself, always with --draft, and only when the worker's proof record shows the patched build measured twice. A ready-for-review pull request on the run branch (one the worker opened itself) is converted to a draft by a throttled sweep, before the parent reports a fix and before the worker is shut down. The residual is stated, not hidden: a repro worker holds the operator's own gh and git credentials (the contract's same-uid limit), so for a worker that bypasses the parent the guarantee is detection (the sweep, at most one minute later and again before shutdown), and a pull request from a branch other than the run branch is not attributable to the run.",
       "invariants": [
         "Never merge or deploy."
       ],
-      "piMechanism": "Reproduce worker.",
+      "piMechanism": "src/automation/forge.ts and pull-request.ts (the parent pushes and opens the draft), fix-guard.ts (the draft sweep), retire.ts (the last sweep before shutdown).",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts: the parent reports the Draft pull request opened and Fix did not land statuses. No test covers draft pull request creation.",
+      "verification": "tests/automation/fix-guard.test.ts with real git and a stateful fake gh, and benny-tmux.test.ts with a real worker committing in its worktree.",
       "tests": [
         {
           "file": "tests/automation/repro-window.test.ts",
@@ -26289,9 +26148,76 @@
         {
           "file": "tests/automation/repro-window.test.ts",
           "name": "restarts, failures and deadlines a fix turn the worker failed is reported as a fix that did not land"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft the worker's fix becomes a draft pull request the parent pushed and opened: pushed branch, --draft, the worker's title and body, the link on the operations thread"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft the fix prompt tells the worker to commit and describe the pull request, not to push or open one"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that claims it opened a pull request is not believed: with no commit there is nothing to open and the fix did not land"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a fix with no proof of the patched build does not land: nothing is pushed or opened"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a fix whose worker described no pull request does not land"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that reports Fix did not land is passed through, and nothing is pushed even if it committed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a repository that is not on github.com cannot receive a pull request, and the fix did not land"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worktree whose origin is another repository is never pushed to: after the attempt limit the fix did not land"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a crash after the pull request was opened and before the turn was recorded adopts it: one pull request, one push"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that already opened a ready-for-review pull request itself has it adopted and converted to a draft, and the operations thread says so"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft every pull request that exists after a run is a draft"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request a ready pull request the worker opens during its fix turn is made a draft on the next look, once, with one notice"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request the forge is read at most once a minute for a run, however often the settler looks"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request the last look before the worker is shut down converts a pull request opened since the previous one"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "the loader reads the default branch a draft pull request is based on"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds"
         }
       ],
-      "coverageGap": "A draft pull request is opened by the repro worker through the operator's own gh login in its worktree. The parent does not open or merge one and does not enforce draft-only, and no test runs a worker through pull request creation.",
       "results": [
         {
           "file": "tests/automation/repro-window.test.ts",
@@ -26302,10 +26228,95 @@
           "file": "tests/automation/repro-window.test.ts",
           "name": "restarts, failures and deadlines a fix turn the worker failed is reported as a fix that did not land",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft the worker's fix becomes a draft pull request the parent pushed and opened: pushed branch, --draft, the worker's title and body, the link on the operations thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft the fix prompt tells the worker to commit and describe the pull request, not to push or open one",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that claims it opened a pull request is not believed: with no commit there is nothing to open and the fix did not land",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a fix with no proof of the patched build does not land: nothing is pushed or opened",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a fix whose worker described no pull request does not land",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that reports Fix did not land is passed through, and nothing is pushed even if it committed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a repository that is not on github.com cannot receive a pull request, and the fix did not land",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worktree whose origin is another repository is never pushed to: after the attempt limit the fix did not land",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a crash after the pull request was opened and before the turn was recorded adopts it: one pull request, one push",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft a worker that already opened a ready-for-review pull request itself has it adopted and converted to a draft, and the operations thread says so",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "the parent opens the pull request, and only as a draft every pull request that exists after a run is a draft",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request a ready pull request the worker opens during its fix turn is made a draft on the next look, once, with one notice",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request the forge is read at most once a minute for a run, however often the settler looks",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a worker that goes around the parent still leaves no ready pull request the last look before the worker is shut down converts a pull request opened since the previous one",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "the loader reads the default branch a draft pull request is based on",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: A draft pull request is opened by the repro worker through the operator's own gh login in its worktree. The parent does not open or merge one and does not enforce draft-only, and no test runs a worker through pull request creation."
+      "status": "PASS",
+      "reason": "19 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-OUTBOX-RESTART",
@@ -27307,6 +27318,210 @@
       "reason": "12 linked test(s) ran and passed"
     },
     {
+      "id": "BENNY-EVIDENCE-IN-THREAD",
+      "kind": "behavioral",
+      "title": "Allowed evidence is attached to the one source reply by the parent, or linked",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "lines": [
+          214,
+          214
+        ],
+        "sha256": "f0d7a29ee9c6714083ceff8a05918e697fe83e0bcaed85d7c34332b076597b2e"
+      },
+      "observable": "The parent uploads the screenshot, recording and note a confirmed repro names, with its own Slack credential, as part of the one source reply, only from the run folder of control.artifact_directory, only types and counts the skill names, and only within artifact_retention_hours; the upload is marker-reconciled so a crash or a lagging Slack never posts it twice; a file it may not attach is skipped with its reason and the reply links the operations thread; a refused upload degrades the reply to text, never to no reply.",
+      "invariants": [
+        "The worker never holds the Slack credential.",
+        "One source reply, never a second message for evidence.",
+        "Evidence is optional, the reply is not."
+      ],
+      "piMechanism": "src/automation/evidence-files.ts stages the files; the outbox reply action carries them; slackDestination uploads through files.getUploadURLExternal and files.completeUploadExternal.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/evidence.test.ts, benny-template.test.ts and benny-tmux.test.ts",
+      "tests": [
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a screenshot, a recording and a note are uploaded with the parent credential as one reply in the source thread"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the Slack credential goes to the Slack API and never to the upload host, and the worker never holds it"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the brief names the run's own artifact directory and the evidence field, and says what the parent does with it"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a crash after the upload landed but before it was acknowledged finds the reply by its marker and uploads nothing again"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a message Slack has not shown yet is waited for, not uploaded a second time"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a restart after everything landed uploads nothing"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached with nothing attachable the reply is text only and links the operations thread, and nothing is uploaded"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached with no operations channel the files that cannot be attached leave the reply as the worker wrote it"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached a result with no evidence field posts exactly the worker's reply, as before"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the reply never fails for want of its files a workspace that refuses uploads gets the reply without them, with the operations link, in one message"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the reply never fails for want of its files an upload that keeps failing for another reason is retried, and the last attempt posts the reply without the files"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "a rerun that confirms the repro attaches its evidence to the one source reply it may post"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "staging the parent uploads the bytes it checked: a file the worker changes afterwards does not change the copy"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "staging with no artifact directory or retention in the configuration nothing is attached"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "the loader reads the artifact directory and retention that bound what may be attached as evidence"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "a relative artifact directory is refused"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "a missing artifact directory is refused"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker names its evidence, and the parent uploads it with the one source reply and the worker holds no Slack credential"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a screenshot, a recording and a note are uploaded with the parent credential as one reply in the source thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the Slack credential goes to the Slack API and never to the upload host, and the worker never holds it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply the brief names the run's own artifact directory and the evidence field, and says what the parent does with it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a crash after the upload landed but before it was acknowledged finds the reply by its marker and uploads nothing again",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a message Slack has not shown yet is waited for, not uploaded a second time",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the allowed evidence goes up with the one source reply a restart after everything landed uploads nothing",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached with nothing attachable the reply is text only and links the operations thread, and nothing is uploaded",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached with no operations channel the files that cannot be attached leave the reply as the worker wrote it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "what upstream does not allow is not attached a result with no evidence field posts exactly the worker's reply, as before",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the reply never fails for want of its files a workspace that refuses uploads gets the reply without them, with the operations link, in one message",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "the reply never fails for want of its files an upload that keeps failing for another reason is retried, and the last attempt posts the reply without the files",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "a rerun that confirms the repro attaches its evidence to the one source reply it may post",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "staging the parent uploads the bytes it checked: a file the worker changes afterwards does not change the copy",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/evidence.test.ts",
+          "name": "staging with no artifact directory or retention in the configuration nothing is attached",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "the loader reads the artifact directory and retention that bound what may be attached as evidence",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "a relative artifact directory is refused",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-template.test.ts",
+          "name": "a missing artifact directory is refused",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker names its evidence, and the parent uploads it with the one source reply and the worker holds no Slack credential",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "19 linked test(s) ran and passed"
+    },
+    {
       "id": "BENNY-REJECTION-WINDOW",
       "kind": "behavioral",
       "title": "No fix starts until the rejection window closes without a valid rejection",
@@ -27319,22 +27534,22 @@
         ],
         "sha256": "ecb089ff2f0fa793179fec74254530592326ac69e33b4fa8548d7088c2862e7e"
       },
-      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection.",
+      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection. A worker that commits, pushes or opens a pull request before the go-ahead is found from the run branch, the worktree's reflog, the remote and the forge, and is stopped: the repro report stands, no pull request is left (an open one is made a draft and closed with a comment), its branch is left in place, the operations thread says what was found, and no fix turn follows.",
       "invariants": [
         "Do not start the fix phase until the window closes without a valid rejection.",
         "Correct the repro once."
       ],
-      "piMechanism": "src/automation/repro-turns.ts: the worker takes turns, each a further generation of one host.",
+      "piMechanism": "src/automation/repro-turns.ts: the worker takes turns, each a further generation of one host; src/automation/fix-guard.ts: the early-fix check, run before every turn pass.",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts and benny-tmux.test.ts",
+      "verification": "tests/automation/repro-window.test.ts, fix-guard.test.ts (real git, stateful fake gh) and benny-tmux.test.ts",
       "tests": [
         {
           "file": "tests/automation/benny-tmux.test.ts",
-          "name": "a real repro worker is held through the rejection window and then takes the fix phase as its next turn"
+          "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request"
         },
         {
           "file": "tests/automation/benny-tmux.test.ts",
@@ -27399,12 +27614,56 @@
         {
           "file": "tests/automation/repro-window.test.ts",
           "name": "restarts, failures and deadlines the operations message follows the status the worker writes during a fix turn"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a commit on the run branch inside the rejection window stops the worker, keeps the repro report, and sends no fix"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a commit made on another branch of the worktree is found in the worktree's own reflog"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a run branch pushed with no local commit is found on the remote at the next forge read"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a restart after the stop repeats nothing"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped an operations thread that cannot take the notice yet holds the record, and the stop completes on a later pass with one notice"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped uncommitted edits and evidence files are not a fix started"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped commits after the go-ahead are the fix, not an early one"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a worker that commits before it has even reported is stopped, and the case then completes as a failure"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a competing commit while verifying an existing fix is stopped too"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker that commits in its worktree before the go-ahead is found from the run branch and stopped through its host, and is never sent the fix"
         }
       ],
       "results": [
         {
           "file": "tests/automation/benny-tmux.test.ts",
-          "name": "a real repro worker is held through the rejection window and then takes the fix phase as its next turn",
+          "name": "a real repro worker is held through the rejection window, commits its fix in its own worktree as its next turn, and the parent pushes the branch and opens the draft pull request",
           "outcome": "passed"
         },
         {
@@ -27486,10 +27745,65 @@
           "file": "tests/automation/repro-window.test.ts",
           "name": "restarts, failures and deadlines the operations message follows the status the worker writes during a fix turn",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a commit on the run branch inside the rejection window stops the worker, keeps the repro report, and sends no fix",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a commit made on another branch of the worktree is found in the worktree's own reflog",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a run branch pushed with no local commit is found on the remote at the next forge read",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a restart after the stop repeats nothing",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped an operations thread that cannot take the notice yet holds the record, and the stop completes on a later pass with one notice",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped uncommitted edits and evidence files are not a fix started",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped commits after the go-ahead are the fix, not an early one",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a worker that commits before it has even reported is stopped, and the case then completes as a failure",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/fix-guard.test.ts",
+          "name": "a fix started before the go-ahead is stopped a competing commit while verifying an existing fix is stopped too",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real repro worker that commits in its worktree before the go-ahead is found from the run branch and stopped through its host, and is never sent the fix",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "17 linked test(s) ran and passed"
+      "reason": "28 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-OPS-FOLLOW-UP",
@@ -28031,6 +28345,10 @@
         {
           "file": "tests/automation/tracker-github.test.ts",
           "name": "compensate fails when the issue is still open afterwards"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue"
         }
       ],
       "results": [
@@ -28153,10 +28471,15 @@
           "file": "tests/automation/tracker-github.test.ts",
           "name": "compensate fails when the issue is still open afterwards",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "24 linked test(s) ran and passed"
+      "reason": "25 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-DEDUPE",
@@ -28171,11 +28494,11 @@
         ],
         "sha256": "cb49053b9366fe790a773b4e97fb3992a4112203ba7980c92f7e84cc8e7adb19"
       },
-      "observable": "Any Source line naming the report's permalink in an issue or comment counts as already linked, except text that came from a worker body, which is stripped of Source lines and markers.",
+      "observable": "Any Source line naming the report's permalink in an issue or comment counts as already linked, except text that came from a worker body, which is stripped of Source lines and markers. For a tracker reached through an adapter skill the worker also searches by the permalink after the marker and before any write, and returns already-linked, which the parent honors by writing nothing and linking the verdict to that issue.",
       "invariants": [
         "Prefer no ticket over a duplicate ticket."
       ],
-      "piMechanism": "githubTracker.findBySource with linksSource, and untrustedText on every worker body.",
+      "piMechanism": "githubTracker.findBySource with linksSource, and untrustedText on every worker body; for adapter trackers the brief's permalink search and the already-linked outcome parseAdapterResult accepts for create, update and comment.",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
@@ -28202,6 +28525,30 @@
         {
           "file": "tests/automation/tracker-github.test.ts",
           "name": "a Source line in a person's comment counts, and one a worker body tried to plant in a comment does not"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the create brief has the worker search by the source permalink after the marker and before any write"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the update brief has the worker search by the source permalink after the marker and before any write"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the comment brief has the worker search by the source permalink after the marker and before any write"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the compensation close brief does not search by the permalink, because the issue it closes is linked to it by construction"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "already-linked is not an outcome of a compensation close: the close is not recorded as landed"
         }
       ],
       "results": [
@@ -28229,10 +28576,40 @@
           "file": "tests/automation/tracker-github.test.ts",
           "name": "a Source line in a person's comment counts, and one a worker body tried to plant in a comment does not",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the create brief has the worker search by the source permalink after the marker and before any write",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the update brief has the worker search by the source permalink after the marker and before any write",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the comment brief has the worker search by the source permalink after the marker and before any write",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "the compensation close brief does not search by the permalink, because the issue it closes is linked to it by construction",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "a permalink the tracker already links makes the action a no-op the parent honors: no second write, no second worker, and the verdict carries the linked issue",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/tracker-adapter.test.ts",
+          "name": "already-linked is not an outcome of a compensation close: the close is not recorded as landed",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "reason": "11 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-CONTROL-ADAPTER",
@@ -28574,6 +28951,133 @@
       ],
       "status": "PASS",
       "reason": "7 linked test(s) ran and passed"
+    },
+    {
+      "id": "BENNY-WORKER-RETIREMENT",
+      "kind": "behavioral",
+      "title": "An idle case worker is shut down when its lifecycle is over",
+      "specSection": "14.2",
+      "source": {
+        "specOnly": true,
+        "reason": "A Cursor automation agent ends with its run. A Pi worker host stays up idle after its last turn, so the parent shuts it down; upstream ends both follow-up windows with 'then stop' (triage SKILL.md:230, reproduce SKILL.md:301)."
+      },
+      "observable": "After the follow-up window ends, and while no repro turn or follow-up round is running, the parent shuts the case worker down through the host's shutdown, once, derived from the event log, so a restart does not repeat it; a refused shutdown is retried up to a limit.",
+      "invariants": [
+        "A worker is never shut down while a turn or round is in flight.",
+        "A restart never shuts a worker down twice."
+      ],
+      "piMechanism": "src/automation/retire.ts, run by the settler after the follow-up pass.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/retire.test.ts and benny-tmux.test.ts",
+      "tests": [
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage the idle worker is shut down once the follow-up window ends, and not before"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a repeated pass and a restart shut it down once"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a follow-up worker still answering keeps the case worker until the window closes"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a shutdown the host refuses is tried again on the next pass, up to the attempt limit, and a success ends it"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a host that keeps refusing is left after the attempt limit instead of being retried forever"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro the idle worker is shut down once the operations follow-up window ends"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro a rerun turn still in flight keeps the worker past the window, and it is shut down after the turn settles"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro without an operations channel there is no window, so the worker is shut down as soon as its lifecycle is over"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro a case still inside its rejection window keeps its worker"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage the idle worker is shut down once the follow-up window ends, and not before",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a repeated pass and a restart shut it down once",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a follow-up worker still answering keeps the case worker until the window closes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a shutdown the host refuses is tried again on the next pass, up to the attempt limit, and a success ends it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "triage a host that keeps refusing is left after the attempt limit instead of being retried forever",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro the idle worker is shut down once the operations follow-up window ends",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro a rerun turn still in flight keeps the worker past the window, and it is shut down after the turn settles",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro without an operations channel there is no window, so the worker is shut down as soon as its lifecycle is over",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "repro a case still inside its rejection window keeps its worker",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/benny-tmux.test.ts",
+          "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/automation/retire.test.ts",
+          "name": "the last look before shutdown a look at the pull requests that fails holds the shutdown, counts as an attempt, and the worker is shut down once it succeeds",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "11 linked test(s) ran and passed"
     },
     {
       "id": "BENNY-COMPENSATION",

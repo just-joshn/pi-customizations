@@ -175,7 +175,7 @@ Before calling it reproduced:
 3. Reach the point where they diverge.
 4. Observe the broken state.
 5. Reset enough state to make the second attempt independent.
-6. Repeat the same path and observe the same broken state again.
+6. Repeat the same path and observe the same broken state again. Record each of the two observations in the proof record your brief describes (`repro.json` in the run's artifact folder): its time, its own capture, and the broken state you saw. The parent accepts `Reproduced` only from that record, and records `Could not reproduce` when it is missing or cannot be checked.
 7. Cross-check a real state value when possible.
 
 An expected dialog, loading state, or setup step is not the bug. Capture the final state that distinguishes correct from broken behavior.
@@ -189,7 +189,7 @@ For a successful repro:
 - Record the full path through the symptom.
 - Capture a screenshot of the broken final state.
 - Save a short note with the exact steps and observed state.
-- Keep artifacts in the configured temporary artifact directory.
+- Keep artifacts in the run's own folder of the configured temporary artifact directory, which your brief names.
 
 Have a read-only media reviewer answer one question: does the evidence visibly show the discriminating broken state?
 
@@ -211,7 +211,7 @@ For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed 
 - Link the tracker issue when one exists.
 - Do not ping an owner by default.
 
-You cannot attach files. Link evidence in your `operations` reply instead.
+You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run's artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.
 
 Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.
 
@@ -226,7 +226,7 @@ When a fix artifact exists, follow `references/verify-existing-fix.md`.
 
 Verification must show the symptom on the baseline and its absence on the patched build. Both paths use the real UI twice.
 
-Do not edit the existing fix, add a competing patch, or open a replacement pull request.
+Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record, and records `Blocked` without it. After an existing fix the parent starts no fix of this case's own.
 
 ## 11. Qualify a bounded fix
 
@@ -293,15 +293,15 @@ Only after before-and-after proof:
 - Review the final diff for unrelated changes and secrets.
 - Run the repository's required checks.
 - Create small ordered commits when the repository workflow allows it.
-- Open a draft pull request. Never merge or deploy from this workflow.
+- Commit your fix on your run branch in your worktree and describe the pull request in the `pullRequest` field of your result, with a title and a body. Do not push and do not open a pull request, as a draft or otherwise: the parent pushes your branch and opens the draft pull request itself, and it never opens one that is ready for review. The parent opens none until your proof record shows the patched build measured twice (`"fix": { "patched": [...] }`). Never merge or deploy from this workflow.
 - Link the configured tracker issue using the tracker's supported pull request syntax.
 - Use the configured public URL form, normally `https://github.com/{owner}/{repo}/pull/{number}`.
 - Include the repro steps, root cause, test result, before and after evidence, and blast-radius checks.
 - Run the pull request text and all Slack updates through pstack's `unslop` skill.
 
-If pull request creation fails, do not claim success. Keep the commit or branch state in the run output and mark operations status `Fix did not land`.
+If you cannot produce the commits and the pull request text, do not claim success: report the status `Fix did not land`. If the parent cannot open the pull request, it records `Fix did not land` itself and the commit and branch state stay in your worktree.
 
-On success, write operations status `Draft pull request opened`, and put one concise reply with the linked pull request in your `operations` field. The parent posts it in the operations thread. Do not ask for a second source-channel root or unprompted source reply.
+The parent records `Draft pull request opened` and posts the linked pull request as one concise reply in the operations thread once the pull request exists as a draft. Do not ask for a second source-channel root or unprompted source reply.
 
 ## 15. Follow-ups and cleanup
 

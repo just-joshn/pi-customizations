@@ -18,11 +18,18 @@ export type LogEntry =
   | { ts: string; kind: 'follow-up-completed'; key: EventKey; runId: RunId; round: number }
   | { ts: string; kind: 'follow-up-closed'; key: EventKey; reason: string }
   | { ts: string; kind: 'follow-up-rerun-refused'; key: EventKey; reason: string }
-  | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string }
+  | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string; /** The worker verified an existing fix, so no fix of this case's own may follow. */ existingFix?: boolean; /** Why the parent did not accept the worker's reported outcome, when it did not. */ unverified?: string }
   | { ts: string; kind: 'repro-window'; key: EventKey; runId: RunId; seenTs: string }
   | { ts: string; kind: 'repro-turn'; key: EventKey; runId: RunId; turn: number; purpose: 'review' | 'fix' | 'rerun'; generation: number; prompt: string; seenTs?: string }
   | { ts: string; kind: 'repro-turn-completed'; key: EventKey; runId: RunId; turn: number; failure?: string; decision?: string; corrected?: boolean }
   | { ts: string; kind: 'repro-closed'; key: EventKey; runId: RunId; reason: string }
+  | { ts: string; kind: 'worker-retired'; key: EventKey; runId: RunId; outcome: string; ok: boolean }
+  | { ts: string; kind: 'evidence-staged'; key: EventKey; runId: RunId; attached: number; skipped: { requested: string; reason: string }[] }
+  /** A repro worker committed, pushed or opened a pull request before the go-ahead. It was stopped, and no fix followed. */
+  | { ts: string; kind: 'unprompted-fix'; key: EventKey; runId: RunId; ahead: number; committed: number; pushed: boolean | 'unknown'; pullRequests: string[] }
+  /** A pull request on a run branch was not a draft. The parent made it one. */
+  | { ts: string; kind: 'draft-guard'; key: EventKey; runId: RunId; pullRequest: string }
+  | { ts: string; kind: 'fix-landing-failed'; key: EventKey; runId: RunId; turn: number; reason: string }
   | { ts: string; kind: 'deadline'; runId: RunId; minutes: number; abort: string }
   | { ts: string; kind: 'compensated'; key: EventKey; issue: string; verified: boolean; reason?: string }
   | { ts: string; kind: 'outbox-failed'; actionId: ActionId; attempts: number; error: string; final: boolean }
@@ -30,7 +37,7 @@ export type LogEntry =
 
 export type OutboxEntry =
   | { action: OutboxAction; state: 'pending'; attempts?: number; retryAt?: string; work?: TrackerWork }
-  | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean; /** The tracker's own link to the issue, when it gave one. */ url?: string }
+  | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean; /** The report's permalink was already linked to the issue, so nothing was written. */ alreadyLinked?: true; /** The tracker's own link to the issue, when it gave one. */ url?: string }
   | { action: OutboxAction; state: 'failed'; attempts: number; reason: string };
 
 /** `<project>/.pi/pstack/automation/<name>/`: one directory per automation, written by one source at a time. */
