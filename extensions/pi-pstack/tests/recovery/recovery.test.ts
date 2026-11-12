@@ -273,8 +273,10 @@ describe('wake delivery on a real session tree', () => {
     const { session: owner } = realSession();
     const spawner = parentFor({ sessionManager: owner });
     await spawner.start();
-    await spawnIn(spawner, 'w3', '@@say DONE');
+    // The run outlasts the spawner, so no poll of the spawner's can deliver the wake first.
+    await spawnIn(spawner, 'w3', '@@sleep 1500 DONE');
     await spawner.stop();
+    expect(spawner.messages).toHaveLength(0);
     await until(
       () => readState(project, 'run2', 'w3').settles.length,
       (count) => count === 1,
