@@ -8032,6 +8032,9 @@ var WorkerParams = _Object_({
 // src/automation/attachments.ts
 var ATTACHMENT_LIMITS = { files: 20, fileBytes: 50 * 1024 ** 2, totalBytes: 200 * 1024 ** 2 };
 
+// src/automation/evidence-files.ts
+var EVIDENCE_LIMITS = { files: 3, fileBytes: ATTACHMENT_LIMITS.fileBytes, totalBytes: ATTACHMENT_LIMITS.totalBytes };
+
 // src/automation/model.ts
 import { createHash as createHash3 } from "node:crypto";
 var IDENTIFIER = /^[a-z0-9][a-z0-9-]{0,39}$/;

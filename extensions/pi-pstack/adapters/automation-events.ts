@@ -15,6 +15,7 @@ import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
 import { createRetirement } from '../src/automation/retire.ts';
+import { stageEvidence } from '../src/automation/evidence-files.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
 import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -250,12 +251,12 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const operations = config.kind === 'reproduce' && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
   const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...(deps.operations === undefined ? {} : { operations: deps.operations }), ...options });
   /** A turn's status on the operations message and its reply in the operations thread. False while one of them is still to land. */
-  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string; text?: string }, replyKey: string): Promise<boolean> => {
+  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string; text?: string; evidence?: string[] }, replyKey: string): Promise<boolean> => {
     // A rerun that confirms a repro may post the one source reply upstream allows, when the first report left none.
     const source = result.status === 'Reproduced' && result.text !== undefined ? result.text.trim() : '';
     if (source !== '') {
       const id = actionIdFor(config.name, event.key, 'result');
-      enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: source });
+      enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, _runId, id, source, result.evidence) });
       await flush();
       if (entryOf(id)?.state === 'pending') return false;
     }
@@ -288,6 +289,20 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
   };
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
+  /**
+   * The source reply with the evidence the worker asked to attach, so far as upstream allows it (vendor reproduce SKILL.md:214).
+   * Files the parent may not attach are named in the log, and the reply then links the operations thread, where the
+   * evidence is. A reply never waits on its files.
+   */
+  const withEvidence = (event: AutomationEvent, runId: RunId, replyId: ActionId, text: string, requested: readonly string[] | undefined): { text: string; attachments?: { path: string; name: string; mimetype: string }[]; textWithoutAttachments?: string } => {
+    if (config.kind !== 'reproduce' || requested === undefined || requested.length === 0 || text.trim() === '' || entryOf(replyId) !== undefined) return { text };
+    const staged = stageEvidence({ requested, artifactDirectory: config.artifactDirectory, retentionHours: config.artifactRetentionHours, runId, now: now(), into: join(store.dir, 'evidence', replyId) });
+    appendLog(store, { ts: stamp(), kind: 'evidence-staged', key: event.key, runId, attached: staged.files.length, skipped: staged.skipped });
+    const root = entryOf(actionIdFor(config.name, event.key, 'ops-root'));
+    const linked = root?.state === 'done' && operations !== undefined ? `${text}\nEvidence: https://slack.com/archives/${operations.channelId}/p${root.destinationTs.replace('.', '')}` : text;
+    if (staged.files.length === 0) return { text: linked };
+    return { text: staged.skipped.length > 0 ? linked : text, attachments: staged.files, textWithoutAttachments: linked };
+  };
   /** The link to the issue the case's tracker action wrote or updated, once it landed. */
   const issueUrlOf = (id: ActionId): string | undefined => {
     const entry = entryOf(id);
@@ -365,7 +380,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         const replyId = actionIdFor(config.name, event.key, 'result');
         const replyText = failure !== undefined ? failureReply(config.kind, failure) : markers === null ? text : withTrackerAttribute(text, trackerAttribute, issueUrlOf(trackerId));
         // A repro run with nothing confirmed posts nothing in the source thread: the operations thread and the run log carry it.
-        const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: replyText });
+        const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, runId, replyId, replyText, typeof result === 'string' ? undefined : result.evidence) });
         await flush();
         const reply = entryOf(replyId);
         if (reply?.state === 'pending') return { status: 'retrying', key: event.key };

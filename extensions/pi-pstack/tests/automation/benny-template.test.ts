@@ -48,3 +48,16 @@ test('the GitHub tracker type loads without team, project, status, or an adapter
   const github = shippedText.replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, '  type: "github"\n  repo: "acme/app"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n');
   expect(load(github).tracker).toMatchObject({ type: 'github', repo: 'acme/app' });
 });
+
+test('the loader reads the artifact directory and retention that bound what may be attached as evidence', () => {
+  expect(load(shippedText)).toMatchObject({ artifactDirectory: '/tmp/benny-artifacts', artifactRetentionHours: 24 });
+});
+
+test.for([
+  ['a relative artifact directory', 'artifact_directory: "/tmp/benny-artifacts"', 'artifact_directory: "benny-artifacts"', /artifact_directory/],
+  ['a missing artifact directory', '  artifact_directory: "/tmp/benny-artifacts"\n', '', /artifact_directory/],
+  ['a zero retention', 'artifact_retention_hours: 24', 'artifact_retention_hours: 0', /artifact_retention_hours/],
+  ['a missing retention', '  artifact_retention_hours: 24\n', '', /artifact_retention_hours/],
+] as const)('%s is refused', ([, from, to, message]) => {
+  expect(() => load(shippedText.replace(from, to))).toThrow(message);
+});

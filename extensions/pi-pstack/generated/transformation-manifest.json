@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 235,
-    "spans": 300
+    "rules": 236,
+    "spans": 301
   },
   "skills": [
     "architect",
@@ -1933,6 +1933,15 @@
       }
     },
     {
+      "id": "reproduce-and-fix-issues.8-artifact-directory",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
       "id": "reproduce-and-fix-issues.14-pull-request-reply",
       "primitives": [
         "cursor-automations"
@@ -2522,6 +2531,21 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.8-artifact-directory",
+      "offset": [
+        8818,
+        8882
+      ],
+      "lines": [
+        192,
+        192
+      ],
+      "original": "- Keep artifacts in the configured temporary artifact directory.",
+      "replacement": "- Keep artifacts in the run's own folder of the configured temporary artifact directory, which your brief names.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
       "rule": "reproduce-and-fix-issues.8-evidence-thread",
       "offset": [
         9119,
@@ -2577,7 +2601,7 @@
         214
       ],
       "original": "Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.",
-      "replacement": "You cannot attach files. Link evidence in your `operations` reply instead.",
+      "replacement": "You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run's artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.",
       "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
     },
     {

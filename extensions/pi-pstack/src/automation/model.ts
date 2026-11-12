@@ -112,6 +112,10 @@ export interface ThreadReplyAction {
   /** Always the root ts: a reply never becomes a root message. */
   threadTs: string;
   text: string;
+  /** Evidence files the parent staged for this reply. They go up with the one reply, so it stays one message. */
+  attachments?: { path: string; name: string; mimetype: string }[];
+  /** What the reply says when its files cannot be attached, for example `text` and a link to the operations thread. The reply never fails for want of its files. */
+  textWithoutAttachments?: string;
 }
 
 export interface TrackerIntent {
@@ -254,6 +258,8 @@ export function failureReply(kind: BennyAutomationKind, failure: string): string
 
 export interface WorkerResult {
   text: string;
+  /** Repro only: evidence files in the run's artifact directory the worker asks to have attached to the source reply. The parent decides which may be. */
+  evidence?: string[];
   tracker?: TrackerIntent;
   /** Repro only: where the run ended, in the operations status strings. */
   status?: OpsStatus;

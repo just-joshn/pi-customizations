@@ -13,7 +13,7 @@ import type { AutomationConfig } from '../../adapters/automation-events.ts';
 import type { AbortRun } from './abort.ts';
 import { type AutomationEvent, type EventKey, isOpsStatus, type OpsStatus, type RunId } from './model.ts';
 import type { ThreadDestination } from './outbox.ts';
-import type { CollectedRun } from './settle.ts';
+import { type CollectedRun, evidenceOf } from './settle.ts';
 import { type AutomationStore, appendLog, type LogEntry, outboxEntries, readLog } from './store.ts';
 import { fenced, humanMessagesAfter, latestTs } from './thread-watch.ts';
 import { actionIdFor } from './model.ts';
@@ -28,18 +28,20 @@ export interface TurnResult {
   operations?: string;
   /** A rerun only: the concise source-thread reply for a repro it now confirms, which is posted only when the case has none. */
   text?: string;
+  evidence?: string[];
 }
 
 export function parseTurnResult(finalText: string): TurnResult {
   const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
   try {
-    const parsed = JSON.parse(body) as { decision?: unknown; corrected?: unknown; status?: unknown; operations?: unknown; text?: unknown };
+    const parsed = JSON.parse(body) as { decision?: unknown; corrected?: unknown; status?: unknown; operations?: unknown; text?: unknown; evidence?: unknown };
     return {
       ...(parsed.decision === 'continue' || parsed.decision === 'stop' ? { decision: parsed.decision } : {}),
       corrected: parsed.corrected === true,
       ...(isOpsStatus(parsed.status) ? { status: parsed.status } : {}),
       ...(typeof parsed.operations === 'string' && parsed.operations.trim() !== '' ? { operations: parsed.operations } : {}),
       ...(typeof parsed.text === 'string' && parsed.text.trim() !== '' ? { text: parsed.text } : {}),
+      ...(evidenceOf(parsed.evidence) === undefined ? {} : { evidence: evidenceOf(parsed.evidence) as string[] }),
     };
   } catch {
     return { corrected: false };

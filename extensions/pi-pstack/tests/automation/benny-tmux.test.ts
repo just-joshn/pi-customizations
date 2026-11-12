@@ -1,6 +1,6 @@
 // A real tmux worker running real Pi with the scripted model: the serve process's completion path end to end, with a
 // fake Slack and a fake gh at the two external edges.
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterAll, afterEach, expect, test } from 'vitest';
@@ -8,14 +8,14 @@ import { type Automation } from '../../adapters/automation-events.ts';
 import { abortInTmux } from '../../src/automation/abort.ts';
 import { spawnInTmux, workerDir } from '../../src/automation/dispatch.ts';
 import { steerRun } from '../../src/automation/steer.ts';
-import type { RunId } from '../../src/automation/model.ts';
+import { type EventKey, type RunId, runIdFor } from '../../src/automation/model.ts';
 import { outboxEntries, readLog } from '../../src/automation/store.ts';
 import { loadBennyConfig } from '../../src/automation/configuration.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
 import { readHostState } from '../../src/run-files.ts';
 import { killTmuxServer, makeProject, type Project, PI, stopProject, TEST_PI_ARGS, TMUX, until, workerTestEnv } from '../worker-lifecycle/harness.ts';
-import { bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
 
 let project: Project | undefined;
 afterEach(async () => {
@@ -130,7 +130,7 @@ test('a real worker still running when triage_total_minutes passes is aborted th
  * parent's own turn prompts carry none, so `reply` maps each prompt the parent sends to the directive that stands for the
  * model's answer. The message still goes through the real host, which takes it as the idle worker's next prompt.
  */
-async function reproCase(reply: (prompt: string) => string, report: string, followUp?: string) {
+async function reproCase(reply: (prompt: string) => string, report: string, followUp?: string, beforeDispatch?: (artifacts: string) => void) {
   project = makeProject('pstack-benny-repro-');
   const current = project;
   const benny = bennyProject({ root: current.dir, operationsChannel: OPS_CHANNEL });
@@ -155,6 +155,7 @@ async function reproCase(reply: (prompt: string) => string, report: string, foll
       abort: abortInTmux({ tmuxSocket: TMUX }),
     }),
   );
+  beforeDispatch?.(join(current.dir, 'artifacts', runIdFor('benny-reproduce', `${CHANNEL}:${ROOT_TS}` as EventKey)));
   const run = await automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
   await until(async () => (await completeSettledRuns(automation)) > 0 || automation.pendingRuns().length === 0, Boolean, 60_000, 'the first report to settle and the case to complete');
@@ -250,4 +251,19 @@ test('a real triage worker idles after its verdict and is shut down through its 
   await restarted.reconcile();
   await restarted.retireWorkers();
   expect(readLog(automation.store).filter((entry) => entry.kind === 'worker-retired')).toEqual([expect.objectContaining({ runId: run.runId, ok: true })]);
+}, 120_000);
+
+test('a real repro worker names its evidence, and the parent uploads it with the one source reply and the worker holds no Slack credential', async () => {
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 1, 2, 3]);
+  const withEvidence = JSON.stringify({ text: 'Reproduced twice.', status: 'Reproduced', operations: 'Evidence attached.', evidence: ['broken.png'] });
+  const r = await reproCase(() => '@@say {}', withEvidence, undefined, (artifacts) => {
+    mkdirSync(artifacts, { recursive: true });
+    writeFileSync(join(artifacts, 'broken.png'), png);
+  });
+  expect(r.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: 'Reproduced twice.' }]);
+  expect(r.slack.uploads).toHaveLength(1);
+  expect(r.slack.uploads[0]?.files[0]?.bytes.equals(png)).toBe(true);
+  expect(r.slack.uploadState.credentialsSeenByUploadHost).toEqual([null]);
+  const workerFiles = readdirSync(r.dir).filter((name) => name === 'brief.md' || name === 'assignment.json');
+  for (const name of workerFiles) expect(readFileSync(join(r.dir, name), 'utf8')).not.toContain('xoxb-test');
 }, 120_000);

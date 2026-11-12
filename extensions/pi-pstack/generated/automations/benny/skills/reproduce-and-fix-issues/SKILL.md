@@ -189,7 +189,7 @@ For a successful repro:
 - Record the full path through the symptom.
 - Capture a screenshot of the broken final state.
 - Save a short note with the exact steps and observed state.
-- Keep artifacts in the configured temporary artifact directory.
+- Keep artifacts in the run's own folder of the configured temporary artifact directory, which your brief names.
 
 Have a read-only media reviewer answer one question: does the evidence visibly show the discriminating broken state?
 
@@ -211,7 +211,7 @@ For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed 
 - Link the tracker issue when one exists.
 - Do not ping an owner by default.
 
-You cannot attach files. Link evidence in your `operations` reply instead.
+You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run's artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.
 
 Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.
 

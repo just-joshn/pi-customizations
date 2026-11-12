@@ -2078,6 +2078,82 @@
     "bn.benny-tmux.7": {
       "file": "tests/automation/benny-tmux.test.ts",
       "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart"
+    },
+    "bn.evidence.1": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply a screenshot, a recording and a note are uploaded with the parent credential as one reply in the source thread"
+    },
+    "bn.evidence.2": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply the Slack credential goes to the Slack API and never to the upload host, and the worker never holds it"
+    },
+    "bn.evidence.3": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply the brief names the run's own artifact directory and the evidence field, and says what the parent does with it"
+    },
+    "bn.evidence.4": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply a crash after the upload landed but before it was acknowledged finds the reply by its marker and uploads nothing again"
+    },
+    "bn.evidence.5": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply a message Slack has not shown yet is waited for, not uploaded a second time"
+    },
+    "bn.evidence.6": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the allowed evidence goes up with the one source reply a restart after everything landed uploads nothing"
+    },
+    "bn.evidence.7": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread"
+    },
+    "bn.evidence.8": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "what upstream does not allow is not attached with nothing attachable the reply is text only and links the operations thread, and nothing is uploaded"
+    },
+    "bn.evidence.9": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "what upstream does not allow is not attached with no operations channel the files that cannot be attached leave the reply as the worker wrote it"
+    },
+    "bn.evidence.10": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "what upstream does not allow is not attached a result with no evidence field posts exactly the worker's reply, as before"
+    },
+    "bn.evidence.11": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the reply never fails for want of its files a workspace that refuses uploads gets the reply without them, with the operations link, in one message"
+    },
+    "bn.evidence.12": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "the reply never fails for want of its files an upload that keeps failing for another reason is retried, and the last attempt posts the reply without the files"
+    },
+    "bn.evidence.13": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "a rerun that confirms the repro attaches its evidence to the one source reply it may post"
+    },
+    "bn.evidence.14": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "staging the parent uploads the bytes it checked: a file the worker changes afterwards does not change the copy"
+    },
+    "bn.evidence.15": {
+      "file": "tests/automation/evidence.test.ts",
+      "name": "staging with no artifact directory or retention in the configuration nothing is attached"
+    },
+    "bn.benny-template.5": {
+      "file": "tests/automation/benny-template.test.ts",
+      "name": "the loader reads the artifact directory and retention that bound what may be attached as evidence"
+    },
+    "bn.benny-template.6": {
+      "file": "tests/automation/benny-template.test.ts",
+      "name": "a relative artifact directory is refused"
+    },
+    "bn.benny-template.7": {
+      "file": "tests/automation/benny-template.test.ts",
+      "name": "a missing artifact directory is refused"
+    },
+    "bn.benny-tmux.8": {
+      "file": "tests/automation/benny-tmux.test.ts",
+      "name": "a real repro worker names its evidence, and the parent uploads it with the one source reply and the worker holds no Slack credential"
     }
   },
   "structural": [
@@ -4576,7 +4652,8 @@
         "bn.benny-e2e.14",
         "bn.benny-tmux.1",
         "bn.outbox.3",
-        "bn.outbox.5"
+        "bn.outbox.5",
+        "bn.evidence.1"
       ]
     },
     {
@@ -4668,7 +4745,8 @@
         "bn.brief.2",
         "dmc.creds",
         "bn.default-model-credential.1",
-        "bn.pack-text.4"
+        "bn.pack-text.4",
+        "bn.evidence.2"
       ]
     },
     {
@@ -5164,6 +5242,53 @@
         "bn.attachments.10",
         "bn.attachments.11",
         "bn.pack-text.7"
+      ]
+    },
+    {
+      "title": "Allowed evidence is attached to the one source reply by the parent, or linked",
+      "specSection": "14.2",
+      "source": {
+        "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+        "lines": [
+          214,
+          214
+        ],
+        "anchor": "Attach evidence only when the configured Slack action keeps it inside the same source thread"
+      },
+      "observable": "The parent uploads the screenshot, recording and note a confirmed repro names, with its own Slack credential, as part of the one source reply, only from the run folder of control.artifact_directory, only types and counts the skill names, and only within artifact_retention_hours; the upload is marker-reconciled so a crash or a lagging Slack never posts it twice; a file it may not attach is skipped with its reason and the reply links the operations thread; a refused upload degrades the reply to text, never to no reply.",
+      "invariants": [
+        "The worker never holds the Slack credential.",
+        "One source reply, never a second message for evidence.",
+        "Evidence is optional, the reply is not."
+      ],
+      "piMechanism": "src/automation/evidence-files.ts stages the files; the outbox reply action carries them; slackDestination uploads through files.getUploadURLExternal and files.completeUploadExternal.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/evidence.test.ts, benny-template.test.ts and benny-tmux.test.ts",
+      "id": "BENNY-EVIDENCE-IN-THREAD",
+      "tests": [
+        "bn.evidence.1",
+        "bn.evidence.2",
+        "bn.evidence.3",
+        "bn.evidence.4",
+        "bn.evidence.5",
+        "bn.evidence.6",
+        "bn.evidence.7",
+        "bn.evidence.8",
+        "bn.evidence.9",
+        "bn.evidence.10",
+        "bn.evidence.11",
+        "bn.evidence.12",
+        "bn.evidence.13",
+        "bn.evidence.14",
+        "bn.evidence.15",
+        "bn.benny-template.5",
+        "bn.benny-template.6",
+        "bn.benny-template.7",
+        "bn.benny-tmux.8"
       ]
     },
     {

@@ -199,7 +199,14 @@ export const BENNY_RULES: readonly Rule[] = [
     'cursor-automations',
     BN('skills/reproduce-and-fix-issues/SKILL.md'),
     "Attach evidence only when the configured Slack action keeps it inside the same source thread and the organization's retention policy allows it.",
-    'You cannot attach files. Link evidence in your `operations` reply instead.',
+    'You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run\'s artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.',
+  ),
+  rule(
+    'reproduce-and-fix-issues.8-artifact-directory',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    '- Keep artifacts in the configured temporary artifact directory.',
+    '- Keep artifacts in the run\'s own folder of the configured temporary artifact directory, which your brief names.',
   ),
   rule(
     'reproduce-and-fix-issues.14-pull-request-reply',

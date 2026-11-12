@@ -22,6 +22,7 @@ interface SlackMessage {
   user?: string;
   text: string;
   metadata?: unknown;
+  files?: { id: string; name: string; title: string }[];
 }
 
 export const OPS_CHANNEL = 'COPS00001';
@@ -35,6 +36,11 @@ interface OpsMessage extends SlackMessage {
  * then answer with an error, which is what a crash between a write and its acknowledgement looks like to the parent.
  */
 export function fakeSlack(options: { failPosts?: number } = {}) {
+  /** Evidence uploads. `denyUploads` makes `files.completeUploadExternal` answer with that error. `hideReads` makes a shared upload invisible to the next N thread reads, which is Slack's lag. */
+  const uploads: { thread_ts: string; text: string; files: { name: string; title: string; bytes: Buffer }[] }[] = [];
+  const uploadCalls: string[] = [];
+  const pendingUploads = new Map<string, { name: string; bytes?: Buffer }>();
+  const uploadState: { deny: string | undefined; hideReads: number; credentialsSeenByUploadHost: (string | null)[] } = { deny: undefined, hideReads: 0, credentialsSeenByUploadHost: [] };
   /** Files by their private download url, and every request made for one with the Authorization header it carried. */
   const files = new Map<string, { bytes: Uint8Array | string; contentType: string; status?: number }>();
   const downloads: { url: string; authorization: string | null; redirect?: string }[] = [];
@@ -47,6 +53,15 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
   const state = { opsDown: false };
   let failPosts = options.failPosts ?? 0;
   const fetchFake: typeof fetch = async (input, init) => {
+    if (init?.method === 'POST' && new URL(String(input)).hostname === 'files.slack.com' && new URL(String(input)).pathname.startsWith('/upload/')) {
+      const id = new URL(String(input)).pathname.split('/').at(-1) as string;
+      uploadState.credentialsSeenByUploadHost.push(new Headers(init.headers).get('authorization'));
+      const pending = pendingUploads.get(id);
+      if (pending === undefined) return new Response('unknown upload', { status: 404 });
+      pending.bytes = Buffer.from(init.body as Uint8Array);
+      uploadCalls.push(`upload:${pending.name}`);
+      return new Response('OK', { status: 200 });
+    }
     if (init?.method !== 'POST') {
       const url = String(input);
       downloads.push({ url, authorization: new Headers(init?.headers).get('authorization'), ...(init?.redirect === undefined ? {} : { redirect: init.redirect }) });
@@ -55,7 +70,25 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
       return new Response(file.bytes as ConstructorParameters<typeof Response>[0], { status: file.status ?? 200, headers: { 'content-type': file.contentType } });
     }
     const method = new URL(String(input)).pathname.split('/').at(-1) as string;
+    if (method === 'files.getUploadURLExternal') {
+      if (new Headers(init?.headers).get('content-type') !== 'application/x-www-form-urlencoded') return new Response(JSON.stringify({ ok: false, error: 'invalid_arguments' }));
+      const form = new URLSearchParams(String(init?.body));
+      const id = `F${String(pendingUploads.size + 1).padStart(8, '0')}`;
+      pendingUploads.set(id, { name: form.get('filename') ?? '' });
+      uploadCalls.push(`getUploadURLExternal:${form.get('filename')}:${form.get('length')}`);
+      return new Response(JSON.stringify({ ok: true, upload_url: `https://files.slack.com/upload/v1/${id}`, file_id: id }));
+    }
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+    if (method === 'files.completeUploadExternal') {
+      uploadCalls.push('completeUploadExternal');
+      if (uploadState.deny !== undefined) return new Response(JSON.stringify({ ok: false, error: uploadState.deny }));
+      const shared = (body['files'] as { id: string; title: string }[]).map((file) => ({ id: file.id, name: pendingUploads.get(file.id)?.name ?? '', title: file.title, bytes: pendingUploads.get(file.id)?.bytes ?? Buffer.alloc(0) }));
+      const ts = `1762900001.${String(messages.length).padStart(6, '0')}`;
+      messages.push({ ts, user: TRIAGE_USER, text: String(body['initial_comment']), files: shared.map(({ id, name, title }) => ({ id, name, title })) });
+      posts.push({ thread_ts: String(body['thread_ts']), text: String(body['initial_comment']) });
+      uploads.push({ thread_ts: String(body['thread_ts']), text: String(body['initial_comment']), files: shared.map(({ name, title, bytes }) => ({ name, title, bytes })) });
+      return (dropAck.delete(method) && new Response(JSON.stringify({ ok: false, error: 'internal_error' }))) || new Response(JSON.stringify({ ok: true, files: shared.map(({ id }) => ({ id })) }));
+    }
     const reply = (value: Record<string, unknown>) => new Response(JSON.stringify({ ok: true, ...value }));
     const toOps = body['channel'] === OPS_CHANNEL;
     calls.push(`${method}${toOps ? ':ops' : ''}`);
@@ -63,7 +96,12 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
     const landedButLost = () => dropAck.delete(method) && new Response(JSON.stringify({ ok: false, error: 'internal_error' }));
     if (method === 'conversations.replies') {
       if (toOps) return reply({ messages: ops.filter((message) => message.ts === body['ts'] || message.thread_ts === body['ts']) });
-      return reply({ messages: messages.filter((message) => message.ts === ROOT_TS || message.ts > ROOT_TS) });
+      const visible = messages.filter((message) => message.ts === ROOT_TS || message.ts > ROOT_TS);
+      if (uploadState.hideReads > 0 && visible.some((message) => message.files !== undefined)) {
+        uploadState.hideReads -= 1;
+        return reply({ messages: visible.filter((message) => message.files === undefined) });
+      }
+      return reply({ messages: visible });
     }
     if (method === 'conversations.history') {
       const roots = ops.filter((message) => message.thread_ts === undefined && (body['latest'] === undefined || message.ts <= String(body['latest'])) && (body['oldest'] === undefined || message.ts >= String(body['oldest']))).reverse();
@@ -94,7 +132,7 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
     }
     return new Response(JSON.stringify({ ok: false, error: `unexpected ${method}` }));
   };
-  return { messages, posts, ops, opsEdits, calls, dropAck, state, files, downloads, fetch: fetchFake };
+  return { messages, posts, ops, opsEdits, calls, dropAck, state, files, downloads, uploads, uploadCalls, uploadState, fetch: fetchFake };
 }
 
 interface Issue {
@@ -198,6 +236,7 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
     .replace('TRIAGE_IDENTITY_USER_ID', TRIAGE_USER)
     .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, (block) => (options.adapterSkill === undefined ? `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n` : block.replace('issue-tracker-adapter-placeholder', options.adapterSkill ?? 'issue-tracker-adapter-placeholder')))
+    .replace('artifact_directory: "/tmp/benny-artifacts"', `artifact_directory: "${join(dir, 'artifacts')}"`)
     .replace('operations_channel_id: ""', `operations_channel_id: "${options.operationsChannel ?? ''}"`)
     .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
     .replace(/^  skill_name: ".*"/m, `  skill_name: "${options.controlSkill ?? 'control-ui'}"`);

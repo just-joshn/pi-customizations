@@ -149,7 +149,10 @@ export async function flushOutbox(store: AutomationStore, destination: ThreadDes
       if (landed === undefined && !before.some((message) => message.ts === action.threadTs)) throw new Error(`the thread parent ${action.threadTs} is not in ${action.channel}; nothing was posted`);
       let destinationTs = landed?.ts;
       if (destinationTs === undefined) {
-        destinationTs = (await destination.post(action)).ts;
+        // The last attempt drops the files: evidence is optional, the one source reply is not.
+        const { attachments: _files, textWithoutAttachments, ...plain } = action;
+        const lastAttempt = (entry.attempts ?? 0) + 1 >= OUTBOX_RETRY_LIMIT;
+        destinationTs = (await destination.post(lastAttempt && _files !== undefined ? { ...plain, text: textWithoutAttachments ?? action.text } : action)).ts;
         // Read back: the reply must be a reply in that thread, not only a success the destination reported.
         const seen = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
         if (seen === undefined || seen.ts === action.threadTs) throw new Error(`the reply was posted but is not visible under the thread ${action.threadTs}`);
