@@ -2354,6 +2354,50 @@
     "bn.benny-template.8": {
       "file": "tests/automation/benny-template.test.ts",
       "name": "the loader reads the default branch a draft pull request is based on"
+    },
+    "bn.fix-guard.15": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a commit on the run branch inside the rejection window stops the worker, keeps the repro report, and sends no fix"
+    },
+    "bn.fix-guard.16": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a commit made on another branch of the worktree is found in the worktree's own reflog"
+    },
+    "bn.fix-guard.17": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a run branch pushed with no local commit is found on the remote at the next forge read"
+    },
+    "bn.fix-guard.18": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place"
+    },
+    "bn.fix-guard.19": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a restart after the stop repeats nothing"
+    },
+    "bn.fix-guard.20": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped an operations thread that cannot take the notice yet holds the record, and the stop completes on a later pass with one notice"
+    },
+    "bn.fix-guard.21": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped uncommitted edits and evidence files are not a fix started"
+    },
+    "bn.fix-guard.22": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped commits after the go-ahead are the fix, not an early one"
+    },
+    "bn.fix-guard.23": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a worker that commits before it has even reported is stopped, and the case then completes as a failure"
+    },
+    "bn.fix-guard.24": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a competing commit while verifying an existing fix is stopped too"
+    },
+    "bn.benny-tmux.11": {
+      "file": "tests/automation/benny-tmux.test.ts",
+      "name": "a real repro worker that commits in its worktree before the go-ahead is found from the run branch and stopped through its host, and is never sent the fix"
     }
   },
   "structural": [
@@ -5553,18 +5597,18 @@
         ],
         "anchor": "Wait for the configured rejection window."
       },
-      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection.",
+      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection. A worker that commits, pushes or opens a pull request before the go-ahead is found from the run branch, the worktree's reflog, the remote and the forge, and is stopped: the repro report stands, no pull request is left (an open one is made a draft and closed with a comment), its branch is left in place, the operations thread says what was found, and no fix turn follows.",
       "invariants": [
         "Do not start the fix phase until the window closes without a valid rejection.",
         "Correct the repro once."
       ],
-      "piMechanism": "src/automation/repro-turns.ts: the worker takes turns, each a further generation of one host.",
+      "piMechanism": "src/automation/repro-turns.ts: the worker takes turns, each a further generation of one host; src/automation/fix-guard.ts: the early-fix check, run before every turn pass.",
       "dependencies": [],
       "prerequisites": [],
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts and benny-tmux.test.ts",
+      "verification": "tests/automation/repro-window.test.ts, fix-guard.test.ts (real git, stateful fake gh) and benny-tmux.test.ts",
       "tests": [
         "bn.benny-tmux.4",
         "bn.benny-tmux.5",
@@ -5582,7 +5626,18 @@
         "bn.repro-window.11",
         "bn.repro-window.12",
         "bn.repro-window.13",
-        "bn.repro-window.14"
+        "bn.repro-window.14",
+        "bn.fix-guard.15",
+        "bn.fix-guard.16",
+        "bn.fix-guard.17",
+        "bn.fix-guard.18",
+        "bn.fix-guard.19",
+        "bn.fix-guard.20",
+        "bn.fix-guard.21",
+        "bn.fix-guard.22",
+        "bn.fix-guard.23",
+        "bn.fix-guard.24",
+        "bn.benny-tmux.11"
       ]
     },
     {

@@ -289,3 +289,18 @@ test('a real repro worker that reports Reproduced with no proof record is record
   expect(r.prompts).toEqual([]);
   expect(readLog(r.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-outcome', status: 'Could not reproduce', unverified: expect.stringContaining('no proof record') }));
 }, 120_000);
+
+test('a real repro worker that commits in its worktree before the go-ahead is found from the run branch and stopped through its host, and is never sent the fix', async () => {
+  const early = `@@script ${JSON.stringify([{ tool: 'bash', args: { command: COMMIT } }, { text: REPORTED }])}`;
+  const r = await reproCase(() => '@@say {}', early);
+  expect(opsStatus(r.slack)).toBe('✅ Reproduced');
+  await until(async () => (await r.automation.advanceRepro(), readLog(r.automation.store).some((entry) => entry.kind === 'unprompted-fix')), Boolean, 60_000, 'the guard to find the early commit');
+  await until(() => readHostState(r.dir)?.phase, (phase) => phase === 'stopped' || phase === 'exited', 30_000, 'the host to stop');
+
+  expect(r.slack.ops.filter((message) => message.thread_ts !== undefined).map((message) => message.text).join('\n')).toContain('started the fix before the go-ahead (1 commit on its run branch)');
+  r.later(30);
+  await r.automation.advanceRepro();
+  expect(r.prompts).toEqual([]);
+  expect(r.gh.calls.filter((call) => call[1] === 'create')).toEqual([]);
+  expect(r.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: 'Reproduced twice.' }]);
+}, 150_000);

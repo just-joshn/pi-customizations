@@ -1,4 +1,5 @@
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import type { Automation } from '../../adapters/automation-events.ts';
@@ -236,5 +237,140 @@ describe('a worker that goes around the parent still leaves no ready pull reques
     await t.automation.retireWorkers();
     expect(t.gh.pulls[0]?.draft).toBe(true);
     expect(t.aborts).toContain(runId);
+  });
+});
+
+describe('a fix started before the go-ahead is stopped', () => {
+  const expectStopped = async (t: Repro, runId: RunId) => {
+    expect(t.aborts).toEqual([runId]);
+    expect(readLog(t.automation.store).filter((entry) => entry.kind === 'unprompted-fix')).toHaveLength(1);
+    expect(opsReplies(t).filter((reply) => reply.includes('started the fix before the go-ahead'))).toHaveLength(1);
+    t.later(WINDOW_MINUTES * 3);
+    await t.automation.advanceRepro();
+    expect(t.steers).toEqual([]);
+    expect(created(t)).toHaveLength(0);
+    expect(sourceReplies(t)).toEqual(['Reproduced twice on Safari 17.1.']);
+    expect(status(t)).toBe('✅ Reproduced');
+  };
+
+  test('a commit on the run branch inside the rejection window stops the worker, keeps the repro report, and sends no fix', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.commitIn(runId, 'fix.txt', 'too early');
+    t.later(2);
+    await t.automation.advanceRepro();
+    expect(opsReplies(t).join('\n')).toContain('1 commit on its run branch');
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-closed', reason: expect.stringContaining('started the fix before the go-ahead') }));
+    await expectStopped(t, runId);
+  });
+
+  test('a commit made on another branch of the worktree is found in the worktree\'s own reflog', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.git(t.git.worktree(runId), 'switch', '--quiet', '-c', 'my-fix');
+    t.git.commitIn(runId, 'fix.txt', 'elsewhere');
+    await t.automation.advanceRepro();
+    expect(opsReplies(t).join('\n')).toContain('1 commit in its worktree');
+    await expectStopped(t, runId);
+  });
+
+  test('a run branch pushed with no local commit is found on the remote at the next forge read', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.git(t.project.dir, 'push', 'origin', `${t.git.commit}:refs/heads/pstack-run/${runId}/owner`);
+    await t.automation.advanceRepro();
+    expect(t.aborts).toEqual([runId]);
+    expect(opsReplies(t).join('\n')).toContain('a pushed run branch');
+    expect(opsReplies(t).join('\n')).toContain('Its branch was left in place');
+    expect(t.git.remoteBranches()).toEqual([`pstack-run/${runId}/owner`]);
+  });
+
+  test('a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.commitIn(runId, 'fix.txt', 'too early');
+    t.git.git(t.git.worktree(runId), 'push', 'origin', `refs/heads/pstack-run/${runId}/owner:refs/heads/pstack-run/${runId}/owner`);
+    t.gh.pulls.push({ number: 1, head: `pstack-run/${runId}/owner`, base: 'main', title: 'early', body: '', draft: false, state: 'OPEN', comments: [] });
+    await t.automation.advanceRepro();
+    expect(t.gh.pulls[0]).toMatchObject({ draft: true, state: 'CLOSED' });
+    expect(t.gh.pulls[0]?.comments[0]).toContain('before the rejection window closed');
+    expect(t.git.remoteBranches()).toEqual([`pstack-run/${runId}/owner`]);
+    expect(opsReplies(t).join('\n')).toContain('The pull request was closed.');
+  });
+
+  test('a restart after the stop repeats nothing', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.commitIn(runId, 'fix.txt', 'too early');
+    await t.automation.advanceRepro();
+    const restarted = t.build();
+    await restarted.reconcile();
+    await restarted.advanceRepro();
+    await restarted.advanceRepro();
+    await expectStopped(t, runId);
+  });
+
+  test('an operations thread that cannot take the notice yet holds the record, and the stop completes on a later pass with one notice', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    t.git.commitIn(runId, 'fix.txt', 'too early');
+    t.slack.state.opsDown = true;
+    await t.automation.advanceRepro();
+    expect(readLog(t.automation.store).filter((entry) => entry.kind === 'unprompted-fix')).toEqual([]);
+    t.slack.state.opsDown = false;
+    t.later(1);
+    await t.automation.advanceRepro();
+    await t.automation.advanceRepro();
+    expect(opsReplies(t).filter((reply) => reply.includes('started the fix before the go-ahead'))).toHaveLength(1);
+    expect(readLog(t.automation.store).filter((entry) => entry.kind === 'unprompted-fix')).toHaveLength(1);
+  });
+
+  test('uncommitted edits and evidence files are not a fix started', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    writeFileSync(join(t.git.worktree(runId), 'scratch.txt'), 'trying things');
+    writeFileSync(join(t.git.worktree(runId), 'README.md'), 'edited, not committed');
+    t.later(3);
+    await t.automation.advanceRepro();
+    expect(t.aborts).toEqual([]);
+    expect(readLog(t.automation.store).some((entry) => entry.kind === 'unprompted-fix')).toBe(false);
+  });
+
+  test('commits after the go-ahead are the fix, not an early one', async () => {
+    const t = repro();
+    const runId = await goAhead(t, await reported(t));
+    t.git.commitIn(runId, 'fix.txt', 'the fix');
+    t.later(2);
+    await t.automation.advanceRepro();
+    expect(t.aborts).toEqual([]);
+    expect(readLog(t.automation.store).some((entry) => entry.kind === 'unprompted-fix')).toBe(false);
+  });
+
+  test('a worker that commits before it has even reported is stopped, and the case then completes as a failure', async () => {
+    const t = repro();
+    const run = await t.automation.handle(REPORT);
+    if (run.status !== 'dispatched') throw new Error('not dispatched');
+    t.git.startWorker(run.runId);
+    t.git.commitIn(run.runId, 'fix.txt', 'before any report');
+    await t.automation.advanceRepro();
+    expect(t.aborts).toEqual([run.runId]);
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'unprompted-fix', runId: run.runId }));
+  });
+
+  test('a competing commit while verifying an existing fix is stopped too', async () => {
+    const t = repro();
+    const run = await t.automation.handle(REPORT);
+    if (run.status !== 'dispatched') throw new Error('not dispatched');
+    t.git.startWorker(run.runId);
+    writeProof(t.project.dir, run.runId, t.now(), { section: 'baseline', tag: 'base' });
+    writeProof(t.project.dir, run.runId, new Date(t.now().getTime() + 5000), { section: 'patched', tag: 'patched' });
+    const file = join(t.project.dir, 'artifacts', run.runId, 'repro.json');
+    const body = JSON.parse(readFileSync(file, 'utf8'));
+    writeFileSync(file, JSON.stringify({ ...body, existingFix: { ...body.existingFix, url: 'https://github.com/acme/app/pull/9', outcome: 'confirmed' } }));
+    settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText: JSON.stringify({ text: 'Verified.', status: 'Verifying existing fix', operations: 'ok' }) });
+    await completeSettledRuns(t.automation);
+    t.git.commitIn(run.runId, 'competing.txt', 'a competing patch');
+    await t.automation.advanceRepro();
+    expect(t.aborts).toEqual([run.runId]);
   });
 });
