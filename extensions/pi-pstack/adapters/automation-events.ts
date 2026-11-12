@@ -246,9 +246,16 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const lander = deps.tracker === undefined ? undefined : 'land' in deps.tracker ? deps.tracker : directLander(deps.tracker);
   const operations = config.kind === 'reproduce' && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
   const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...(deps.operations === undefined ? {} : { operations: deps.operations }), ...options });
-  const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush() });
   /** A turn's status on the operations message and its reply in the operations thread. False while one of them is still to land. */
-  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string }, replyKey: string): Promise<boolean> => {
+  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string; text?: string }, replyKey: string): Promise<boolean> => {
+    // A rerun that confirms a repro may post the one source reply upstream allows, when the first report left none.
+    const source = result.status === 'Reproduced' && result.text !== undefined ? result.text.trim() : '';
+    if (source !== '') {
+      const id = actionIdFor(config.name, event.key, 'result');
+      enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: source });
+      await flush();
+      if (entryOf(id)?.state === 'pending') return false;
+    }
     if (operations === undefined) return true;
     if (result.status !== undefined) showStatus(event, result.status);
     await flush();
@@ -262,6 +269,15 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return entryOf(id)?.state !== 'pending';
   };
   const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproduce = {
+    anchor: (key: EventKey) => reproTurns.followUpAnchor(key),
+    outcome: (key: EventKey) => {
+      const outcome = readLog(store).find((entry): entry is Extract<LogEntry, { kind: 'repro-outcome' }> => entry.kind === 'repro-outcome' && entry.key === key);
+      return { ...(outcome?.status === undefined ? {} : { status: outcome.status }), ...(outcome?.note === undefined ? {} : { note: outcome.note }) };
+    },
+    rerun: (key: EventKey, correction: string) => reproTurns.startRerun(key, correction),
+  };
+  const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush(), ...(deps.collect === undefined ? {} : { collect: deps.collect }), ...(deps.abort === undefined ? {} : { abort: deps.abort }), reproduce });
   const pendingRuns = (): RunId[] => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));

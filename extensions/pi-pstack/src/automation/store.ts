@@ -17,6 +17,7 @@ export type LogEntry =
   | { ts: string; kind: 'follow-up-dispatched'; key: EventKey; runId: RunId; round: number; seenTs: string }
   | { ts: string; kind: 'follow-up-completed'; key: EventKey; runId: RunId; round: number }
   | { ts: string; kind: 'follow-up-closed'; key: EventKey; reason: string }
+  | { ts: string; kind: 'follow-up-rerun-refused'; key: EventKey; reason: string }
   | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string }
   | { ts: string; kind: 'repro-window'; key: EventKey; runId: RunId; seenTs: string }
   | { ts: string; kind: 'repro-turn'; key: EventKey; runId: RunId; turn: number; purpose: 'review' | 'fix' | 'rerun'; generation: number; prompt: string; seenTs?: string }

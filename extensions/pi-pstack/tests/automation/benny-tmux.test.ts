@@ -130,7 +130,7 @@ test('a real worker still running when triage_total_minutes passes is aborted th
  * parent's own turn prompts carry none, so `reply` maps each prompt the parent sends to the directive that stands for the
  * model's answer. The message still goes through the real host, which takes it as the idle worker's next prompt.
  */
-async function reproCase(reply: (prompt: string) => string, report: string) {
+async function reproCase(reply: (prompt: string) => string, report: string, followUp?: string) {
   project = makeProject('pstack-benny-repro-');
   const current = project;
   const benny = bennyProject({ root: current.dir, operationsChannel: OPS_CHANNEL });
@@ -145,7 +145,7 @@ async function reproCase(reply: (prompt: string) => string, report: string) {
       inputCommit: () => current.commit,
       now: () => new Date(clock),
       spawnWorker: async (runId, assignmentPath) => {
-        writeFileSync(join(assignmentPath, '..', 'brief.md'), `@@say ${report}`);
+        writeFileSync(join(assignmentPath, '..', 'brief.md'), `@@say ${runId.startsWith('fu-') && followUp !== undefined ? followUp : report}`);
         await spawn(runId, assignmentPath);
       },
       steer: async (root, runId, text) => {
@@ -197,3 +197,21 @@ test('a real repro worker told a person claimed the fix decides to stop, is abor
   expect(r.prompts).toHaveLength(1);
   expect(opsStatus(r.slack)).toBe('✅ Reproduced');
 }, 150_000);
+
+test('a real follow-up worker answers a question in the operations thread and asks for the one rerun, which the real repro worker takes as its next turn', async () => {
+  const follow = JSON.stringify({ text: 'Rerunning with the admin account.', rerun: { correction: 'Log in as admin and try again.' } });
+  const rerun = JSON.stringify({ status: 'Reproduced', text: 'Reproduced with the admin account.', operations: 'With admin the export fails.' });
+  const r = await reproCase(() => `@@say ${rerun}`, JSON.stringify({ text: '', status: 'Could not reproduce', operations: 'Tried twice.' }), follow);
+  const rootTs = r.slack.ops.find((message) => message.thread_ts === undefined)?.ts ?? '';
+  r.slack.ops.push({ ts: '1762900200.000000', user: 'U2', text: 'Wrong account, retry as admin.', thread_ts: rootTs });
+
+  await until(async () => (await r.automation.advanceFollowUps(), r.prompts.length), (count) => count === 1, 60_000, 'the follow-up worker to settle and the rerun to be sent');
+  expect(r.prompts[0]).toContain('rerun the repro once');
+  expect(r.prompts[0]).toContain('Log in as admin and try again.');
+  await until(async () => (await r.automation.advanceRepro(), opsStatus(r.slack)), (status) => status === '✅ Reproduced', 60_000, 'the rerun turn to settle and its status to show');
+
+  const replies = r.slack.ops.filter((message) => message.thread_ts !== undefined && message.user === TRIAGE_USER).map((message) => message.text);
+  expect(replies).toEqual(['Tried twice.', 'Rerunning with the admin account.', 'With admin the export fails.']);
+  expect(r.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: 'Reproduced with the admin account.' }]);
+  expect(r.prompts).toHaveLength(1);
+}, 180_000);

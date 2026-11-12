@@ -84,3 +84,11 @@ test('the repro instructions hand the rejection window to the parent and keep th
   expect(repro).toContain('Do not start the fix phase until the parent sends the go-ahead message');
   expect(repro).not.toContain('Wait for the configured rejection window.');
 });
+
+test('the repro instructions describe the operations follow-up window the parent runs, and the one rerun', () => {
+  const repro = text('skills/reproduce-and-fix-issues/SKILL.md');
+  expect(repro).toContain('`budgets.operations_follow_up_minutes`');
+  expect(repro).toContain('"rerun": { "correction"');
+  expect(repro).toContain('The parent allows one rerun per case.');
+  expect(repro).not.toContain('read and not acted on');
+});
