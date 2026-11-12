@@ -2,7 +2,7 @@
 // Two drivers share this code and the checkers. The scripted driver loads fixtures/scenario-model.ts, a model that
 // replays a scenario. The real driver (PSTACK_E2E_REAL_MODEL=<provider>/<id>) lets that model decide.
 import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -13,6 +13,11 @@ export const PKG = resolve(import.meta.dirname, '../../..');
 export const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
 export const SCENARIO_MODEL = join(PKG, 'tests/workflow-parity/fixtures/scenario-model.ts');
 export const REAL_MODEL = process.env['PSTACK_E2E_REAL_MODEL'] ?? '';
+/**
+ * Sandboxes live under a folder named for this checkout, never under a shared `pstack-wf-*` name: several checkouts
+ * run this suite on one machine, and a cleanup that sweeps another checkout's sandboxes must not reach these.
+ */
+export const SANDBOX_ROOT = join(tmpdir(), `pstack-parity-${createHash('sha256').update(PKG).digest('hex').slice(0, 8)}`);
 export const REAL_MODEL_B = process.env['PSTACK_E2E_REAL_MODEL_B'] ?? '';
 
 export interface Commit {
@@ -98,7 +103,8 @@ export function realTmux(socket: string): string[] {
 }
 
 function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; socket: string } {
-  const sandbox = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-wf-')));
+  mkdirSync(SANDBOX_ROOT, { recursive: true });
+  const sandbox = realpathSync(mkdtempSync(join(SANDBOX_ROOT, 'wf-')));
   const repo = join(sandbox, 'repo');
   const home = join(sandbox, 'home');
   const agentDir = join(home, '.pi', 'agent');
@@ -164,9 +170,14 @@ class Rpc {
   private buffer = '';
   private next = 0;
   private waiters = new Map<string, (event: RpcEvent) => void>();
+  private failers = new Set<(error: Error) => void>();
+  /** How pi ended, once it has; a request after that fails at once with this cause. */
+  exit: string | null = null;
   readonly child: ChildProcess;
   constructor(child: ChildProcess) {
     this.child = child;
+    child.once('error', (error) => this.ended(`failed to start (${error.message})`));
+    child.once('close', (code, signal) => this.ended(`exited (code ${code}, signal ${signal})`));
     child.stderr?.on('data', (chunk: Buffer) => {
       this.stderr += chunk.toString('utf8');
     });
@@ -182,14 +193,32 @@ class Rpc {
       }
     });
   }
+  private ended(how: string): void {
+    this.exit ??= how;
+    for (const fail of [...this.failers]) fail(this.failure(`pi ${how} before it answered`));
+  }
+  failure(what: string): Error {
+    return new Error(`${what}; pi stderr tail:\n${this.stderr.slice(-2000) || '(empty)'}`);
+  }
   request(command: Json, timeoutMs = 30_000): Promise<RpcEvent> {
     this.next += 1;
     const id = `r${this.next}`;
+    const type = String(command['type']);
     return new Promise((done, fail) => {
-      const timer = setTimeout(() => fail(new Error(`RPC ${String(command['type'])} timed out; stderr:\n${this.stderr.slice(-2000)}`)), timeoutMs);
-      this.waiters.set(id, (event) => {
+      if (this.exit !== null) return fail(this.failure(`pi ${this.exit} before ${type} was sent`));
+      const settle = () => {
         clearTimeout(timer);
         this.waiters.delete(id);
+        this.failers.delete(failed);
+      };
+      const failed = (error: Error) => {
+        settle();
+        fail(new Error(`${type}: ${error.message}`, { cause: error }));
+      };
+      const timer = setTimeout(() => failed(this.failure(`no answer within ${timeoutMs} ms`)), timeoutMs);
+      this.failers.add(failed);
+      this.waiters.set(id, (event) => {
+        settle();
         done(event);
       });
       this.child.stdin?.write(`${JSON.stringify({ ...command, id })}\n`);
@@ -198,6 +227,15 @@ class Rpc {
 }
 
 const WORKING = new Set(['starting', 'running', 'cancelling', 'stopping']);
+
+/** A worker's assignment is written by the model, so it may be read half-written: that is not a watch. */
+function isWatch(assignment: string): boolean {
+  try {
+    return (JSON.parse(readFileSync(assignment, 'utf8')) as Json)['kind'] === 'watch';
+  } catch {
+    return false;
+  }
+}
 
 function workerPhases(repo: string): string[] {
   const runs = join(repo, '.pi', 'pstack', 'runs');
@@ -208,7 +246,7 @@ function workerPhases(repo: string): string[] {
     return readdirSync(workers).flatMap((id) => {
       const assignment = join(workers, id, 'assignment.json');
       // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
-      if (existsSync(assignment) && (JSON.parse(readFileSync(assignment, 'utf8')) as Json)['kind'] === 'watch') return [];
+      if (isWatch(assignment)) return [];
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
       if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
@@ -224,6 +262,13 @@ function workerPhases(repo: string): string[] {
 function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: Claim[]): () => void {
   let seq = 0;
   const timer = setInterval(() => {
+    try {
+      observe();
+    } catch {
+      // A file the run is replacing or removing at this instant; the next tick sees its settled state.
+    }
+  }, 10);
+  const observe = () => {
     const runs = join(repo, '.pi', 'pstack', 'runs');
     if (!existsSync(runs)) return;
     for (const id of readdirSync(runs)) {
@@ -237,7 +282,7 @@ function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: 
       if (!existsSync(workers)) continue;
       for (const workerId of readdirSync(workers)) if (existsSync(join(workers, workerId, 'claim')) && !claims.some((claim) => claim.runId === id && claim.workerId === workerId)) claims.push({ runId: id, workerId, seq: seq++ });
     }
-  }, 10);
+  };
   return () => clearInterval(timer);
 }
 
@@ -259,9 +304,27 @@ export interface RunOutcome {
   cleanup: () => void;
 }
 
-export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): Promise<RunOutcome> {
+export interface DriverOptions {
+  /** The pi binary; the suite's own pi unless a test drives a stand-in. */
+  pi?: string;
+  /** How long one RPC request may go unanswered. */
+  rpcTimeoutMs?: number;
+}
+
+/** Runs the workflow; a run that fails leaves no sandbox behind, because its error already carries pi's stderr. */
+export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions = {}): Promise<RunOutcome> {
   if (driver === 'real' && REAL_MODEL === '') throw new Error('PSTACK_E2E_REAL_MODEL is not set');
-  const { ctx, socket } = buildSandbox(spec, driver);
+  const built = buildSandbox(spec, driver);
+  try {
+    return await execute(spec, driver, options, built);
+  } catch (error) {
+    spec.cleanup?.(built.ctx);
+    removeSandbox(built.ctx.sandbox);
+    throw error;
+  }
+}
+
+async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions, { ctx, socket }: { ctx: Ctx; socket: string }): Promise<RunOutcome> {
   const scenarioPath = join(ctx.sandbox, 'scenario.json');
   if (driver === 'scripted') writeFileSync(scenarioPath, JSON.stringify(spec.scenario(ctx), null, 2));
   const prompt = spec.prompt(ctx);
@@ -270,7 +333,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
-  const child = spawn(PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn(options.pi ?? PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
   const rpc = new Rpc(child);
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
@@ -280,7 +343,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   let timedOut = false;
   let parentSessionFile: string | null = null;
   try {
-    const state = await rpc.request({ type: 'get_state' });
+    const state = await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs);
     parentSessionFile = ((state['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? null;
     const untilQuiet = async (): Promise<boolean> => {
       let quietSince = Date.now();
@@ -296,13 +359,13 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
         }
         if (Date.now() > deadline) return false;
         if (Date.now() - quietSince < 2_500) continue;
-        const parent = ((await rpc.request({ type: 'get_state' }))['data'] ?? {}) as Json;
+        const parent = ((await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs))['data'] ?? {}) as Json;
         const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
         if (idle && !workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) return true;
       }
     };
     for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {
-      const accepted = await rpc.request({ type: 'prompt', message });
+      const accepted = await rpc.request({ type: 'prompt', message }, options.rpcTimeoutMs);
       if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
       if (!(await untilQuiet())) {
         timedOut = true;
@@ -327,6 +390,8 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
+  requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
+  if (!timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
   const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
@@ -342,6 +407,11 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
       removeSandbox(ctx.sandbox);
     },
   };
+}
+
+/** A sandbox another process deleted is reported as that, not as the ENOENT of whichever file is read next. */
+export function requireSandbox(sandbox: string, when: string, stderr = ''): void {
+  if (!existsSync(join(sandbox, 'repo')) || !existsSync(join(sandbox, 'sessions'))) throw new Error(`sandbox ${sandbox} is gone or gutted ${when}: something outside this run removed it${stderr === '' ? '' : `; pi stderr tail:\n${stderr.slice(-2000)}`}`);
 }
 
 /** Removes a sandbox, including worker worktrees git has registered under it. */

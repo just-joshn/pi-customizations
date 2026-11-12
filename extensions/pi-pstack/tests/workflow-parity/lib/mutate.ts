@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { appendFileSync, cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { loadView } from './driver.ts';
+import { loadView, requireSandbox } from './driver.ts';
 import { loadGit, type RunView } from './view.ts';
 
 export interface Negative {
@@ -33,6 +33,7 @@ function relocate(dir: string, from: string, to: string): void {
 
 export function withCopy<T>(sandbox: string, mutate: Negative['mutate'], use: (view: RunView) => T): T {
   const copy = `${sandbox}-mutant-${Math.random().toString(36).slice(2, 8)}`;
+  requireSandbox(sandbox, 'before a negative case copied it');
   cpSync(sandbox, copy, { recursive: true, verbatimSymlinks: true });
   relocate(copy, sandbox, copy);
   try {
