@@ -44,6 +44,7 @@ import {
   type WorkerId,
   type WorkerRole,
   workerDirOf,
+  writeJsonAtomic,
 } from './run-files.ts';
 import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
@@ -353,7 +354,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   const attach = (session: string) => `tmux -L ${socket} attach -t ${session}`;
   const root = realpathSync(project);
   const runRoot = runRootOf(root, runId);
-  const loaded = loadAssignment(assignmentPath);
+  let loaded = loadAssignment(assignmentPath);
   const assignment: Assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId) throw new Error(`Assignment must be ${join(runRoot, 'workers', '<workerId>', 'assignment.json')}`);
   if (assignment.capabilities.externalWrite) throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
@@ -380,6 +381,12 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // This process's environment now, not the tmux server's, which dates from when the server started.
   const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
   const claimDir = join(loaded.workerDir, 'claim');
+  // The claim protects an immutable, complete file: omitted defaults are written in while no one holds the claim.
+  // Every spawner writes the same bytes, so a racing spawner that claims first loses nothing.
+  if (!existsSync(claimDir) && readFileSync(loaded.file, 'utf8') !== `${JSON.stringify(assignment, null, 2)}\n`) {
+    writeJsonAtomic(loaded.file, assignment);
+    loaded = loadAssignment(loaded.file);
+  }
   try {
     mkdirSync(claimDir, { mode: 0o700 });
   } catch (error) {
