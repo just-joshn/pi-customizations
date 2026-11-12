@@ -1,6 +1,6 @@
 ---
 name: verify-pi-customizations
-description: "Verify user-facing Pi CLI and RPC behavior for pi-customizations extensions: pstack command surface, poteto mode on/off entries, and OAuth subscription models. Use before shipping or after changes to runtime behavior."
+description: "Verify user-facing Pi CLI and RPC behavior for pi-customizations extensions: the pstack command surface, the pstack style on/off entries, and OAuth subscription models. Use before shipping or after changes to runtime behavior."
 ---
 
 # Verify pi-customizations
@@ -43,10 +43,10 @@ Exits `0` on success. If doctor fails, resolve environment issues before driving
 Drive features end-to-end using the project harness:
 
 ```bash
-# Verify the pstack extension command surface (/mode, /loop, /plan, /routines, pstack skills)
+# Verify the pstack extension command surface (/pstack, pstack skills and prompts)
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive pstack-commands
 
-# Verify custom mode on/off notifications, footer status, and branch state entries
+# Verify pstack style on/off notifications, footer status, and branch state entries
 ./.pi/skills/verify-pi-customizations/bin/control-pi drive poteto-mode
 
 # Verify OAuth subscription model providers and the logged-out /antigravity and /usage reports
@@ -63,10 +63,10 @@ To choose a custom evidence directory for a supported feature drive:
 Every drive captures user-observable evidence written directly to `artifacts/verify-pi-customizations/<feature>/`:
 
 - **pstack-commands:**
-  - `commands.json`: the registered command list, including the extension commands `mode`, `loop`, `plan`, `routines`, `automations`, `project`, `in-cloud`, and `secret` and the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`.
-  - `mode-status.json`: the `/mode` notification observed when no mode is on (`No mode is on.`, `notifyType: "info"`).
+  - `commands.json`: the registered command list, including the extension command `pstack`, the pstack skill commands `skill:poteto-mode`, `skill:setup-pstack`, and `skill:poteto-help`, and their prompt templates.
+  - `pstack-status.json`: the `/pstack status` notification observed when the style is off (`pstack style: off (poteto-mode from <path>).`, `notifyType: "info"`).
 - **poteto-mode:**
-  - `mode.json`: the on notification (`"Mode on: poteto-mode. /mode off exits."`), the appended branch entry (`customType: "pstack/mode"`, `data.skill: "poteto-mode"`), the off notification (`"Mode off."`), the closing entry with `data: null`, and the `pstack-mode` `setStatus` updates.
+  - `style.json`: the on notification, the appended branch entry (`customType: "pstack/style"`, `data: { on: true }`), the off notification (`"pstack style off."`), the closing entry with `data: { on: false }`, and the `pstack-style` `setStatus` updates.
 - **oauth-providers:**
   - `claude-models.txt`: table of registered `claude-subscription` models.
   - `antigravity-models.txt`: table of registered `google-antigravity` models.
@@ -79,7 +79,7 @@ Proof standards:
 - All commands execute through real CLI/RPC calls, not unit test stubs.
 - Evidence records action, responses, notifications, and branch state mutations.
 - Proof artifacts survive cleanup.
-- Coverage is limited to the mapped drives: the command surface and the no-mode report, the mode on/off notifications, appended entries, and footer status, fixture-backed provider model listing, and the logged-out `/antigravity` and `/usage` reports. These drives do not prove restart persistence, Task subagents, `/loop` timing, workflow execution, OAuth login, or inference.
+- Coverage is limited to the mapped drives: the command surface and the `/pstack status` report, the style on/off notifications, appended entries, and footer status, fixture-backed provider model listing, and the logged-out `/antigravity` and `/usage` reports. These drives do not prove restart persistence, tmux workers, workflow execution, OAuth login, or inference.
 - Run doctor before each fresh drive and again after a failure. Check saved artifacts at their named paths after cleanup.
 
 ## Cleanup

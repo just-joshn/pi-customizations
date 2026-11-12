@@ -19,7 +19,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 ## Proof and skip reporting
 
 - Proof for CLI commands includes exit code, stdout, and stderr.
-- Proof for RPC prompts includes UI notifications (`notify`) and appended branch entries (`pstack/mode`).
+- Proof for RPC prompts includes UI notifications (`notify`) and appended branch entries (`pstack/style`).
 - Proof for model providers includes table listing of available models.
 - Record the feature ID and entry point used with every artifact.
 - Do not report a skipped entry point as verified through a different path.
@@ -35,6 +35,6 @@ Each feature file starts with an H1 title and one paragraph describing the user-
 
 ## Features
 
-- [Pstack command surface](./pstack-commands.md) covers the `/mode`, `/loop`, `/plan`, `/routines`, `/automations`, `/project`, `/in-cloud`, and `/secret` commands, the pstack skill commands, and the bare `/mode` report.
-- [Poteto mode](./poteto-mode.md) covers `/mode` on/off changes, UI notifications, the footer status, and branch state entries.
+- [Pstack command surface](./pstack-commands.md) covers the `/pstack` command, the pstack skill commands and prompts, and the `/pstack status` report.
+- [Poteto mode](./poteto-mode.md) covers `/pstack on` and `/pstack off`, UI notifications, the footer status, and branch state entries.
 - [OAuth providers](./oauth-providers.md) covers subscription model provider registration for Claude, Antigravity, Grok Build, and Cursor, and the `/antigravity` and `/usage` commands.

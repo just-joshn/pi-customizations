@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.15.36-pi.40] - 2026-11-11
+
+This release rebuilds the package on Pi's own mechanisms. `docs/architecture.md` explains the design, and `docs/parity-status.md` lists what is proven.
+
+- Compile pstack's skills, playbooks, and the team-kit skills they call from the pinned upstream (`cursor/plugins` at `5866df55`) into `generated/skills` and `generated/prompts`. Every change from the upstream text is a recorded rule. The hand-edited `skills/` tree is gone.
+- Replace the extension with `src/extension.ts`. It adds `/pstack` (`on`, `off`, `status`, `doctor`, `workers`, `pause`, `resume`, `audit`, `automation`) and two model tools, `pstack_worker` and `pstack_evidence`.
+- Run workers as `pi --mode rpc` processes in tmux sessions on the `-L pstack` server. `pstack_worker` returns the attach command, and the parent gets one wake per settle, also after a restart.
+- Keep runs as files under `<project>/.pi/pstack/runs/<runId>/`. `TODO.md` replaces `TodoWrite`, and a plan file under `.pi/pstack/plans/` replaces plan mode.
+- Read per-role models from `~/.pi/agent/pstack/models.json`, which `/setup-pstack` writes.
+- Remove `Task`, `agent_status`, `stop_agent`, `TodoWrite`, `/plan`, `CreatePlan`, `SwitchMode`, `AskQuestion`, `/mode`, `/loop`, `bash_background`, `AwaitShell`, subscriptions, the routines supervisor and its `pstack-routines-supervisor` bin, the Slack tools, cloud agents and `/in-cloud`, Projects, `request_secret`, `GenerateImage`, and `visualize`.
+- A `/name` later in a message no longer attaches its skill. Start the message with the `/name`.
+- Drop the `re2js` dependency.
+- Known gaps: container workers are not implemented, workers share the operator's uid, `bash_readonly` is not wired to readonly workers yet, and the statechart skill cannot run on Node from an npm install.
+
 ## [0.15.36-pi.39] - 2026-11-10
 
 - Edit an automation's prompt without replacing its subscription ID, expiry, owner, or pending events. If re-arming fails, report that the prompt was saved.
