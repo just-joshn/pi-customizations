@@ -7,7 +7,7 @@ import type { RunId } from '../../src/automation/model.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, settleWorker, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, settleWorker, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -44,13 +44,14 @@ function repro(options: { operationsChannel?: string | null } = {}) {
         },
       }),
     );
-  return { project, slack, spawns, steers, aborts, build, automation: build(), later: (minutes: number) => void (clock += minutes * 60_000), ops: (text: string, user = 'U2') => void slack.ops.push({ ts: `1762900200.${String(slack.ops.length).padStart(6, '0')}`, user, text, thread_ts: slack.ops.find((message) => message.thread_ts === undefined)?.ts ?? '' }) };
+  return { project, slack, spawns, steers, aborts, build, automation: build(), later: (minutes: number) => void (clock += minutes * 60_000), now: () => new Date(clock), ops: (text: string, user = 'U2') => void slack.ops.push({ ts: `1762900200.${String(slack.ops.length).padStart(6, '0')}`, user, text, thread_ts: slack.ops.find((message) => message.thread_ts === undefined)?.ts ?? '' }) };
 }
 type Repro = ReturnType<typeof repro>;
 
 async function reported(t: Repro, finalText: string): Promise<RunId> {
   const run = await t.automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+  writeProof(t.project.dir, run.runId, t.now());
   settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText });
   expect(await completeSettledRuns(t.automation)).toBe(1);
   t.spawns.length = 0;

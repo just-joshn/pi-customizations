@@ -18,7 +18,7 @@ export type LogEntry =
   | { ts: string; kind: 'follow-up-completed'; key: EventKey; runId: RunId; round: number }
   | { ts: string; kind: 'follow-up-closed'; key: EventKey; reason: string }
   | { ts: string; kind: 'follow-up-rerun-refused'; key: EventKey; reason: string }
-  | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string }
+  | { ts: string; kind: 'repro-outcome'; key: EventKey; runId: RunId; status?: string; note?: string; /** The worker verified an existing fix, so no fix of this case's own may follow. */ existingFix?: boolean; /** Why the parent did not accept the worker's reported outcome, when it did not. */ unverified?: string }
   | { ts: string; kind: 'repro-window'; key: EventKey; runId: RunId; seenTs: string }
   | { ts: string; kind: 'repro-turn'; key: EventKey; runId: RunId; turn: number; purpose: 'review' | 'fix' | 'rerun'; generation: number; prompt: string; seenTs?: string }
   | { ts: string; kind: 'repro-turn-completed'; key: EventKey; runId: RunId; turn: number; failure?: string; decision?: string; corrected?: boolean }

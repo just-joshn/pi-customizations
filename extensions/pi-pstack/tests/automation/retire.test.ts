@@ -7,7 +7,7 @@ import { RETIRE_ATTEMPT_LIMIT } from '../../src/automation/retire.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, settleWorker, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, settleWorker, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -45,13 +45,14 @@ function setup(kind: 'triage' | 'reproduce', options: { operationsChannel?: stri
         },
       }),
     );
-  return { project, slack, spawns, aborts, steers, build, automation: build(), later: (minutes: number) => void (clock += minutes * 60_000) };
+  return { project, slack, spawns, aborts, steers, build, automation: build(), later: (minutes: number) => void (clock += minutes * 60_000), now: () => new Date(clock) };
 }
 type Setup = ReturnType<typeof setup>;
 
-async function finished(t: Setup, finalText: string): Promise<RunId> {
+async function finished(t: Setup, finalText: string, kind: 'triage' | 'reproduce' = 'reproduce'): Promise<RunId> {
   const run = await t.automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+  if (kind === 'reproduce') writeProof(t.project.dir, run.runId, t.now());
   settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText });
   expect(await completeSettledRuns(t.automation)).toBe(1);
   t.spawns.length = 0;
@@ -62,7 +63,7 @@ const retiredEntries = (t: Setup) => readLog(t.automation.store).filter((entry) 
 describe('triage', () => {
   test('the idle worker is shut down once the follow-up window ends, and not before', async () => {
     const t = setup('triage');
-    const runId = await finished(t, JSON.stringify({ text: VERDICT }));
+    const runId = await finished(t, JSON.stringify({ text: VERDICT }), 'triage');
     await t.automation.retireWorkers();
     t.later(TRIAGE_FOLLOW_UP - 1);
     await t.automation.retireWorkers();
@@ -76,7 +77,7 @@ describe('triage', () => {
 
   test('a repeated pass and a restart shut it down once', async () => {
     const t = setup('triage');
-    const runId = await finished(t, JSON.stringify({ text: VERDICT }));
+    const runId = await finished(t, JSON.stringify({ text: VERDICT }), 'triage');
     t.later(TRIAGE_FOLLOW_UP + 1);
     await t.automation.retireWorkers();
     await t.automation.retireWorkers();
@@ -89,7 +90,7 @@ describe('triage', () => {
 
   test('a follow-up worker still answering keeps the case worker until the window closes', async () => {
     const t = setup('triage');
-    const runId = await finished(t, JSON.stringify({ text: VERDICT }));
+    const runId = await finished(t, JSON.stringify({ text: VERDICT }), 'triage');
     t.slack.messages.push({ ts: '1762900050.000000', user: 'U2', text: 'Does this happen on Chrome too?' });
     await t.automation.advanceFollowUps();
     expect(t.spawns).toHaveLength(1);
@@ -105,7 +106,7 @@ describe('triage', () => {
 
   test('a shutdown the host refuses is tried again on the next pass, up to the attempt limit, and a success ends it', async () => {
     const t = setup('triage', { abortOutcomes: ['refused: no host claimed the worker', 'refused: no host claimed the worker'] });
-    const runId = await finished(t, JSON.stringify({ text: VERDICT }));
+    const runId = await finished(t, JSON.stringify({ text: VERDICT }), 'triage');
     t.later(TRIAGE_FOLLOW_UP + 1);
     for (let pass = 0; pass < 5; pass += 1) await t.automation.retireWorkers();
     expect(t.aborts).toEqual([runId, runId, runId]);
@@ -114,7 +115,7 @@ describe('triage', () => {
 
   test('a host that keeps refusing is left after the attempt limit instead of being retried forever', async () => {
     const t = setup('triage', { abortOutcomes: Array.from({ length: 20 }, () => 'refused: no host claimed the worker') });
-    await finished(t, JSON.stringify({ text: VERDICT }));
+    await finished(t, JSON.stringify({ text: VERDICT }), 'triage');
     t.later(TRIAGE_FOLLOW_UP + 1);
     for (let pass = 0; pass < RETIRE_ATTEMPT_LIMIT + 3; pass += 1) await t.automation.retireWorkers();
     expect(t.aborts).toHaveLength(RETIRE_ATTEMPT_LIMIT);

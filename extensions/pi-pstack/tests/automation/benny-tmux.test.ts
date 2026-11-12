@@ -15,7 +15,7 @@ import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
 import { readHostState } from '../../src/run-files.ts';
 import { killTmuxServer, makeProject, type Project, PI, stopProject, TEST_PI_ARGS, TMUX, until, workerTestEnv } from '../worker-lifecycle/harness.ts';
-import { bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 let project: Project | undefined;
 afterEach(async () => {
@@ -130,7 +130,7 @@ test('a real worker still running when triage_total_minutes passes is aborted th
  * parent's own turn prompts carry none, so `reply` maps each prompt the parent sends to the directive that stands for the
  * model's answer. The message still goes through the real host, which takes it as the idle worker's next prompt.
  */
-async function reproCase(reply: (prompt: string) => string, report: string, followUp?: string, beforeDispatch?: (artifacts: string) => void) {
+async function reproCase(reply: (prompt: string) => string, report: string, followUp?: string, beforeDispatch?: (artifacts: string) => void, options: { proof?: boolean } = {}) {
   project = makeProject('pstack-benny-repro-');
   const current = project;
   const benny = bennyProject({ root: current.dir, operationsChannel: OPS_CHANNEL });
@@ -150,12 +150,15 @@ async function reproCase(reply: (prompt: string) => string, report: string, foll
       },
       steer: async (root, runId, text) => {
         prompts.push(text);
+        writeProof(current.dir, runId, new Date(clock), { tag: `turn-${prompts.length}` });
         await steerRun(root, runId, reply(text));
       },
       abort: abortInTmux({ tmuxSocket: TMUX }),
     }),
   );
-  beforeDispatch?.(join(current.dir, 'artifacts', runIdFor('benny-reproduce', `${CHANNEL}:${ROOT_TS}` as EventKey)));
+  const caseRun = runIdFor('benny-reproduce', `${CHANNEL}:${ROOT_TS}` as EventKey);
+  beforeDispatch?.(join(current.dir, 'artifacts', caseRun));
+  if (options.proof !== false) writeProof(current.dir, caseRun, new Date(clock));
   const run = await automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
   await until(async () => (await completeSettledRuns(automation)) > 0 || automation.pendingRuns().length === 0, Boolean, 60_000, 'the first report to settle and the case to complete');
@@ -266,4 +269,15 @@ test('a real repro worker names its evidence, and the parent uploads it with the
   expect(r.slack.uploadState.credentialsSeenByUploadHost).toEqual([null]);
   const workerFiles = readdirSync(r.dir).filter((name) => name === 'brief.md' || name === 'assignment.json');
   for (const name of workerFiles) expect(readFileSync(join(r.dir, name), 'utf8')).not.toContain('xoxb-test');
+}, 120_000);
+
+test('a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix', async () => {
+  const r = await reproCase(() => '@@say {}', REPORTED, undefined, undefined, { proof: false });
+  expect(r.slack.posts).toEqual([]);
+  expect(opsStatus(r.slack)).toBe('⚪ Could not reproduce');
+  expect(r.slack.ops.filter((message) => message.thread_ts !== undefined).map((message) => message.text).join('\n')).toContain('there is no proof record (repro.json)');
+  r.later(11);
+  await r.automation.advanceRepro();
+  expect(r.prompts).toEqual([]);
+  expect(readLog(r.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-outcome', status: 'Could not reproduce', unverified: expect.stringContaining('no proof record') }));
 }, 120_000);

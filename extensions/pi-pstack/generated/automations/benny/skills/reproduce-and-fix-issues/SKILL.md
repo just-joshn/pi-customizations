@@ -175,7 +175,7 @@ Before calling it reproduced:
 3. Reach the point where they diverge.
 4. Observe the broken state.
 5. Reset enough state to make the second attempt independent.
-6. Repeat the same path and observe the same broken state again.
+6. Repeat the same path and observe the same broken state again. Record each of the two observations in the proof record your brief describes (`repro.json` in the run's artifact folder): its time, its own capture, and the broken state you saw. The parent accepts `Reproduced` only from that record, and records `Could not reproduce` when it is missing or cannot be checked.
 7. Cross-check a real state value when possible.
 
 An expected dialog, loading state, or setup step is not the bug. Capture the final state that distinguishes correct from broken behavior.
@@ -226,7 +226,7 @@ When a fix artifact exists, follow `references/verify-existing-fix.md`.
 
 Verification must show the symptom on the baseline and its absence on the patched build. Both paths use the real UI twice.
 
-Do not edit the existing fix, add a competing patch, or open a replacement pull request.
+Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record, and records `Blocked` without it. After an existing fix the parent starts no fix of this case's own.
 
 ## 11. Qualify a bounded fix
 

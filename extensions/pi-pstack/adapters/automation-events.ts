@@ -16,6 +16,8 @@ import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
 import { createRetirement } from '../src/automation/retire.ts';
 import { stageEvidence } from '../src/automation/evidence-files.ts';
+import { acceptOutcome } from '../src/automation/accept.ts';
+import { verifyReproduction } from '../src/automation/proof.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
 import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -272,7 +274,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     await flush();
     return entryOf(id)?.state !== 'pending';
   };
-  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const reproduce = {
     anchor: (key: EventKey) => reproTurns.followUpAnchor(key),
     outcome: (key: EventKey) => {
@@ -330,15 +332,18 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         for (const key of keys) await advance(key);
         await flush({ ignoreBackoff: true });
       }),
-    complete: (runId, result) =>
+    complete: (runId, submitted) =>
       serial(async (): Promise<CompleteOutcome> => {
-        const text = typeof result === 'string' ? result : result.text;
-        const intent = typeof result === 'string' ? undefined : result.tracker;
         const log = readLog(store);
         const dispatched = log.find((entry): entry is Extract<LogEntry, { kind: 'dispatched' }> => entry.kind === 'dispatched' && entry.runId === runId);
         if (dispatched === undefined) return { status: 'refused', reason: `no dispatched case for run ${runId}` };
         const state = caseState(log, dispatched.key);
         if (state.phase !== 'dispatched') throw new Error(`event log has a dispatch for ${dispatched.key} without its receipt`);
+        // A repro outcome counts only with the proof the worker's own record gives (see proof.ts); the rest of this step reads what the parent accepted.
+        const proven = config.kind === 'reproduce' && typeof submitted !== 'string' ? acceptOutcome(submitted, { artifactDirectory: config.artifactDirectory, runId, since: new Date(dispatched.ts), now: now() }) : { result: submitted };
+        const result = proven.result;
+        const text = typeof result === 'string' ? result : result.text;
+        const intent = typeof result === 'string' ? undefined : result.tracker;
         const markers = AUTOMATION_KINDS[config.kind].replyMarkers;
         const problem = markers === null ? undefined : markerProblem(text, markers);
         if (problem !== undefined) {
@@ -364,7 +369,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         }
         const status = typeof result === 'string' ? undefined : result.status;
         const operationsReply = typeof result === 'string' ? undefined : result.operations;
-        if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }) });
+        if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }), ...('existingFix' in proven && proven.existingFix === true ? { existingFix: true } : {}), ...('unverified' in proven && proven.unverified !== undefined ? { unverified: proven.unverified } : {}) });
         if (operations !== undefined) {
           // Upstream updates the operations status first. A root that cannot land holds the source reply only until its retry limit.
           showStatus(event, status ?? latestStatus(config.projectRoot, runId)?.status ?? 'Reproducing');

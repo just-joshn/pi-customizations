@@ -13,6 +13,8 @@ import type { AutomationConfig } from '../../adapters/automation-events.ts';
 import type { AbortRun } from './abort.ts';
 import { type AutomationEvent, type EventKey, isOpsStatus, type OpsStatus, type RunId } from './model.ts';
 import type { ThreadDestination } from './outbox.ts';
+import { NOT_CONFIRMED, unverifiedNote } from './accept.ts';
+import type { Verdict } from './proof.ts';
 import { type CollectedRun, evidenceOf } from './settle.ts';
 import { type AutomationStore, appendLog, type LogEntry, outboxEntries, readLog } from './store.ts';
 import { fenced, humanMessagesAfter, latestTs } from './thread-watch.ts';
@@ -111,6 +113,8 @@ interface Lifecycle {
   completedAt: string;
   /** The status of the worker's first report. Only `Reproduced` leaves a window to hold. */
   status: string | undefined;
+  /** The worker verified an existing fix, so there is no fix of this case's own to hold a window for. */
+  existingFix: boolean;
   windowSeenTs: string | undefined;
   turns: Turn[];
   closed: { ts: string; reason: string } | undefined;
@@ -121,12 +125,15 @@ function lifecycles(log: LogEntry[]): Lifecycle[] {
   const found = new Map<EventKey, Lifecycle>();
   for (const entry of log) {
     if (entry.kind === 'received') events.set(entry.key, entry.event);
-    if (entry.kind === 'completed' && events.has(entry.key) && !found.has(entry.key)) found.set(entry.key, { key: entry.key, runId: entry.runId, event: events.get(entry.key) as AutomationEvent, completedAt: entry.ts, status: undefined, windowSeenTs: undefined, turns: [], closed: undefined });
+    if (entry.kind === 'completed' && events.has(entry.key) && !found.has(entry.key)) found.set(entry.key, { key: entry.key, runId: entry.runId, event: events.get(entry.key) as AutomationEvent, completedAt: entry.ts, status: undefined, existingFix: false, windowSeenTs: undefined, turns: [], closed: undefined });
   }
   for (const entry of log) {
     const lifecycle = 'key' in entry ? found.get(entry.key) : undefined;
     if (lifecycle === undefined) continue;
-    if (entry.kind === 'repro-outcome' && lifecycle.status === undefined) lifecycle.status = entry.status;
+    if (entry.kind === 'repro-outcome' && lifecycle.status === undefined) {
+      lifecycle.status = entry.status;
+      lifecycle.existingFix = entry.existingFix === true;
+    }
     if (entry.kind === 'repro-window') lifecycle.windowSeenTs = entry.seenTs;
     if (entry.kind === 'repro-turn') lifecycle.turns.push({ turn: entry.turn, purpose: entry.purpose, generation: entry.generation, prompt: entry.prompt, at: entry.ts, ...(entry.seenTs === undefined ? {} : { seenTs: entry.seenTs }) });
     if (entry.kind === 'repro-turn-completed') {
@@ -145,6 +152,8 @@ export interface ReproTurnsHost {
   now: () => Date;
   collect: (runId: RunId) => Promise<CollectedRun>;
   abort: AbortRun;
+  /** Whether the worker's record shows two reproductions made since `since`. */
+  prove: (runId: RunId, since: Date) => Verdict;
   /** Sends the worker its next message, which a host takes as its next prompt while the worker is idle. */
   steer: (runId: RunId, text: string) => Promise<void>;
   /** Shows a turn's status on the operations message and its reply in the operations thread. False while either is still to land. */
@@ -161,7 +170,7 @@ export function createReproTurns(host: ReproTurnsHost): { advance(): Promise<voi
   const fixMinutes = config.budgets?.fixMinutes ?? 90;
 
   /** A case holds a window only when the worker reported a plain confirmed repro and the window is configured. */
-  const gated = (lifecycle: Lifecycle) => windowMinutes !== undefined && lifecycle.status === 'Reproduced';
+  const gated = (lifecycle: Lifecycle) => windowMinutes !== undefined && lifecycle.status === 'Reproduced' && !lifecycle.existingFix;
 
   const close = (lifecycle: Lifecycle, reason: string) => appendLog(store, { ts: stamp(), kind: 'repro-closed', key: lifecycle.key, runId: lifecycle.runId, reason });
   const complete = (lifecycle: Lifecycle, turn: Turn, extra: { failure?: string; decision?: string; corrected?: boolean } = {}) => appendLog(store, { ts: stamp(), kind: 'repro-turn-completed', key: lifecycle.key, runId: lifecycle.runId, turn: turn.turn, ...extra });
@@ -199,7 +208,12 @@ export function createReproTurns(host: ReproTurnsHost): { advance(): Promise<voi
         close(lifecycle, `the ${turn.purpose} turn failed: ${reason}`);
         return;
       }
-      const result = parseTurnResult(run.finalText);
+      const parsed = parseTurnResult(run.finalText);
+      // A correction or a rerun that still says `Reproduced` owes the same proof as the first report, made since the turn began.
+      const owesProof = parsed.status === 'Reproduced' && (turn.purpose === 'rerun' || (turn.purpose === 'review' && parsed.corrected));
+      const verdict = owesProof ? host.prove(lifecycle.runId, new Date(turn.at)) : ({ ok: true } as const);
+      const { text: _unproven, evidence: _files, ...doubted } = parsed;
+      const result: TurnResult = verdict.ok ? parsed : { ...doubted, status: NOT_CONFIRMED, operations: unverifiedNote('Reproduced', NOT_CONFIRMED, verdict.reason) };
       const { text: _source, ...withoutText } = result;
       if (!(await host.report(lifecycle.event, lifecycle.runId, turn.purpose === 'rerun' ? result : withoutText, `turn-${turn.turn}`))) return;
       if (turn.purpose === 'rerun') {

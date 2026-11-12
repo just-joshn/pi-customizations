@@ -16,7 +16,7 @@ import { ATTACHMENT_LIMITS } from './attachments.ts';
 
 export const EVIDENCE_LIMITS = { files: 3, fileBytes: ATTACHMENT_LIMITS.fileBytes, totalBytes: ATTACHMENT_LIMITS.totalBytes } as const;
 
-const TYPES: Record<string, string> = {
+export const TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -46,8 +46,29 @@ const megabytes = (bytes: number) => `${bytes / 1024 ** 2} MiB`;
 /** The directory a run's artifacts belong in: its own folder of the configured artifact directory, so two cases never share a file. */
 export const artifactDirOf = (artifactDirectory: string, runId: string) => join(artifactDirectory, runId);
 
+/**
+ * The real path of `path` when it names a file inside `base` (the run's artifact folder, links and `..` followed), or why it
+ * does not. A relative path is read from `base`. Both sides are resolved before the comparison, so a link in the folder
+ * that points out of it is outside.
+ */
+export function insideRunFolder(base: string, path: string): { real: string } | { problem: string } {
+  let root: string;
+  try {
+    root = realpathSync(base);
+  } catch {
+    return { problem: `the run's artifact directory ${base} does not exist` };
+  }
+  let real: string;
+  try {
+    real = realpathSync(isAbsolute(path) ? path : resolve(root, path));
+  } catch {
+    return { problem: 'does not exist' };
+  }
+  return real.startsWith(`${root}${sep}`) ? { real } : { problem: `is not inside the run's artifact directory ${base}` };
+}
+
 /** Reads exactly the file the descriptor names, refusing anything that is not a regular file of at most `maxBytes`. */
-function readRegular(path: string, maxBytes: number): Buffer {
+export function readRegular(path: string, maxBytes: number): Buffer {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   try {
     const info = fstatSync(fd);
@@ -91,13 +112,6 @@ export function stageEvidence(options: StageOptions): StagedEvidence {
     return staged;
   }
   const base = artifactDirOf(artifactDirectory, runId);
-  let root: string;
-  try {
-    root = realpathSync(base);
-  } catch {
-    for (const path of requested) skip(path, `the run's artifact directory ${base} does not exist`);
-    return staged;
-  }
   let total = 0;
   const seen = new Set<string>();
   for (const path of requested) {
@@ -110,17 +124,12 @@ export function stageEvidence(options: StageOptions): StagedEvidence {
       skip(path, 'is not a screenshot, a recording or a note (png, jpg, gif, webp, mp4, mov, webm, txt, md)');
       continue;
     }
-    let real: string;
-    try {
-      real = realpathSync(isAbsolute(path) ? path : resolve(root, path));
-    } catch {
-      skip(path, 'does not exist');
+    const found = insideRunFolder(base, path);
+    if ('problem' in found) {
+      skip(path, found.problem);
       continue;
     }
-    if (!real.startsWith(`${root}${sep}`)) {
-      skip(path, `is not inside the run's artifact directory ${base}`);
-      continue;
-    }
+    const { real } = found;
     if (seen.has(real)) continue;
     seen.add(real);
     const info = lstatSync(real);

@@ -2154,6 +2154,142 @@
     "bn.benny-tmux.8": {
       "file": "tests/automation/benny-tmux.test.ts",
       "name": "a real repro worker names its evidence, and the parent uploads it with the one source reply and the worker holds no Slack credential"
+    },
+    "bn.proof.1": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof two timestamped reproductions, each with its own capture, are accepted: the source reply posts, the window is held, and the fix goes ahead when it closes"
+    },
+    "bn.proof.2": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof with no record the worker's Reproduced is recorded as Could not reproduce: nothing in the source thread, the reason in the operations thread, and no fix"
+    },
+    "bn.proof.3": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a restart after the downgrade finds the same outcome and posts nothing more"
+    },
+    "bn.proof.4": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof the text and evidence of an unproven repro are never posted or uploaded"
+    },
+    "bn.proof.5": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof one reproduction only is not accepted"
+    },
+    "bn.proof.6": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof the same capture twice is not accepted"
+    },
+    "bn.proof.7": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof two observations with one timestamp is not accepted"
+    },
+    "bn.proof.8": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a timestamp before the case started is not accepted"
+    },
+    "bn.proof.9": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a timestamp in the future is not accepted"
+    },
+    "bn.proof.10": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a timestamp that is not a time is not accepted"
+    },
+    "bn.proof.11": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof an observation with no state is not accepted"
+    },
+    "bn.proof.12": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a capture that is missing is not accepted"
+    },
+    "bn.proof.13": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a capture that is not a screenshot, a recording or a note is not accepted"
+    },
+    "bn.proof.14": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a capture reached through a link out of the folder is not accepted"
+    },
+    "bn.proof.15": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a capture written before the case started is not accepted"
+    },
+    "bn.proof.16": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a record that is not JSON is not accepted"
+    },
+    "bn.proof.17": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof a record with no reproductions is not accepted"
+    },
+    "bn.proof.18": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof Could not reproduce claims nothing the parent could refute, so it needs no record"
+    },
+    "bn.proof.19": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof Blocked claims nothing the parent could refute, so it needs no record"
+    },
+    "bn.proof.20": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof Reproducing claims nothing the parent could refute, so it needs no record"
+    },
+    "bn.proof.21": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a repro is accepted only with its proof the brief tells the worker where the record goes and what the parent will check"
+    },
+    "bn.proof.22": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a later turn that still says Reproduced owes new proof a corrected repro with fresh proof keeps the window, and the fix goes ahead when it closes"
+    },
+    "bn.proof.23": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a later turn that still says Reproduced owes new proof a corrected repro with only the old observations is recorded as Could not reproduce and no fix follows"
+    },
+    "bn.proof.24": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "a later turn that still says Reproduced owes new proof a rerun that confirms the repro without new proof posts no source reply"
+    },
+    "bn.proof.25": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with a complete record is accepted: the one source reply posts, no window is held and no fix of the worker's own starts"
+    },
+    "bn.proof.26": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with an insufficient fix is reported as Reproduced and still starts no fix of the worker's own"
+    },
+    "bn.proof.27": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.28": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.29": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.30": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.31": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.32": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.proof.33": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Blocked, with nothing in the source thread"
+    },
+    "bn.benny-tmux.9": {
+      "file": "tests/automation/benny-tmux.test.ts",
+      "name": "a real repro worker that reports Reproduced with no proof record is recorded as Could not reproduce, posts nothing in the source thread, and is never sent the fix"
     }
   },
   "structural": [
@@ -4840,11 +4976,11 @@
         ],
         "anchor": "must appear twice through real UI"
       },
-      "observable": "A trusted bug verdict dispatches the reproduce worker once, in a writable worktree at the input commit.",
+      "observable": "A trusted bug verdict dispatches the reproduce worker once, in a writable worktree at the input commit. The parent accepts Reproduced only from the worker's proof record: two reproductions, each with a timestamp inside the case and its own capture in the run's artifact folder; with no usable record it records Could not reproduce, posts nothing in the source thread and sends no fix. A correction or rerun that still says Reproduced owes new observations made since its turn began.",
       "invariants": [
         "No confirmed repro means no authored fix."
       ],
-      "piMechanism": "Reproduce worker with a control adapter.",
+      "piMechanism": "Reproduce worker with a control adapter; the parent's check is src/automation/proof.ts and accept.ts.",
       "dependencies": [],
       "prerequisites": [
         "control adapter",
@@ -4853,14 +4989,39 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation: the dispatch, the phase gate and the fix gate. No test reproduces a symptom through a real UI.",
+      "verification": "tests/automation: the dispatch, the phase gate and the fix gate, and tests/automation/proof.test.ts for the proof record. No test reproduces a symptom through a real UI.",
       "tests": [
         "par.trusted",
         "auto.worktree",
         "bn.repro-window.6",
-        "bn.repro-window.10"
+        "bn.repro-window.10",
+        "bn.proof.1",
+        "bn.proof.2",
+        "bn.proof.3",
+        "bn.proof.4",
+        "bn.proof.5",
+        "bn.proof.6",
+        "bn.proof.7",
+        "bn.proof.8",
+        "bn.proof.9",
+        "bn.proof.10",
+        "bn.proof.11",
+        "bn.proof.12",
+        "bn.proof.13",
+        "bn.proof.14",
+        "bn.proof.15",
+        "bn.proof.16",
+        "bn.proof.17",
+        "bn.proof.18",
+        "bn.proof.19",
+        "bn.proof.20",
+        "bn.proof.21",
+        "bn.proof.22",
+        "bn.proof.23",
+        "bn.proof.24",
+        "bn.benny-tmux.9"
       ],
-      "coverageGap": "No test drives a real application UI twice. The parent gates every fix on a worker report of Reproduced and the brief requires the double repro through the control skill, but whether a worker model actually observes the discriminating symptom twice is the worker's work through the project's control skill, which no test runs."
+      "coverageGap": "The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs."
     },
     {
       "id": "BENNY-EXISTING-FIX",
@@ -4874,7 +5035,7 @@
         ],
         "anchor": "verification instead of a competing change"
       },
-      "observable": "When an open PR or merged commit may fix the report, the automation verifies it.",
+      "observable": "When an open PR or merged commit may fix the report, the automation verifies it. The parent accepts Verifying existing fix only with a record naming a github.com pull request or commit link, a baseline measured twice and the patched build measured twice after it, and records Blocked without one; an existing fix, confirmed or insufficient, starts no fix of the case's own.",
       "invariants": [
         "No competing change."
       ],
@@ -4884,11 +5045,20 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/automation/repro-window.test.ts checks the brief. No test covers a worker verifying an existing fix.",
+      "verification": "tests/automation/proof.test.ts and repro-window.test.ts check the record and the brief. No test covers a worker running against a real open pull request or merged commit.",
       "tests": [
-        "bn.repro-window.1"
+        "bn.repro-window.1",
+        "bn.proof.25",
+        "bn.proof.26",
+        "bn.proof.27",
+        "bn.proof.28",
+        "bn.proof.29",
+        "bn.proof.30",
+        "bn.proof.31",
+        "bn.proof.32",
+        "bn.proof.33"
       ],
-      "coverageGap": "Existing-fix verification is the repro worker's judgment under references/verify-existing-fix.md. The parent only tells the worker, in its brief, that section 10 belongs to the first turn and needs no fix turn. No test runs a worker against an open pull request or a merged commit."
+      "coverageGap": "The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs."
     },
     {
       "id": "BENNY-DRAFT-ONLY",

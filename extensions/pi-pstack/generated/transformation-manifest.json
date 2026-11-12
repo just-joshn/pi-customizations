@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 236,
-    "spans": 301
+    "rules": 238,
+    "spans": 303
   },
   "skills": [
     "architect",
@@ -1933,6 +1933,24 @@
       }
     },
     {
+      "id": "reproduce-and-fix-issues.7-proof-record",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
+      "id": "reproduce-and-fix-issues.10-existing-fix-record",
+      "primitives": [
+        "cursor-automations"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md": 1
+      }
+    },
+    {
       "id": "reproduce-and-fix-issues.8-artifact-directory",
       "primitives": [
         "cursor-automations"
@@ -2531,6 +2549,21 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.7-proof-record",
+      "offset": [
+        8122,
+        8186
+      ],
+      "lines": [
+        178,
+        178
+      ],
+      "original": "6. Repeat the same path and observe the same broken state again.",
+      "replacement": "6. Repeat the same path and observe the same broken state again. Record each of the two observations in the proof record your brief describes (`repro.json` in the run's artifact folder): its time, its own capture, and the broken state you saw. The parent accepts `Reproduced` only from that record, and records `Could not reproduce` when it is missing or cannot be checked.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
       "rule": "reproduce-and-fix-issues.8-artifact-directory",
       "offset": [
         8818,
@@ -2617,6 +2650,21 @@
       ],
       "original": "Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.",
       "replacement": "Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.\n\n- If a person shows that the setup or interpretation was wrong, correct the repro once and report where it ends.\n- If a person claims the fix, gives a concrete implementation plan, or asks you to stop, decide `stop`. The parent then stops you and no fix is attempted.\n\nDo not start the fix phase until the parent sends the go-ahead message, which it sends only when the window closes without a valid rejection.",
+      "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md",
+      "rule": "reproduce-and-fix-issues.10-existing-fix-record",
+      "offset": [
+        10299,
+        10387
+      ],
+      "lines": [
+        224,
+        224
+      ],
+      "original": "Do not edit the existing fix, add a competing patch, or open a replacement pull request.",
+      "replacement": "Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record, and records `Blocked` without it. After an existing fix the parent starts no fix of this case's own.",
       "output": "generated/automations/benny/skills/reproduce-and-fix-issues/SKILL.md"
     },
     {

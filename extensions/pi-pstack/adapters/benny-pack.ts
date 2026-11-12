@@ -202,6 +202,20 @@ export const BENNY_RULES: readonly Rule[] = [
     'You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run\'s artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.',
   ),
   rule(
+    'reproduce-and-fix-issues.7-proof-record',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    '6. Repeat the same path and observe the same broken state again.',
+    '6. Repeat the same path and observe the same broken state again. Record each of the two observations in the proof record your brief describes (`repro.json` in the run\'s artifact folder): its time, its own capture, and the broken state you saw. The parent accepts `Reproduced` only from that record, and records `Could not reproduce` when it is missing or cannot be checked.',
+  ),
+  rule(
+    'reproduce-and-fix-issues.10-existing-fix-record',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    'Do not edit the existing fix, add a competing patch, or open a replacement pull request.',
+    'Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record, and records `Blocked` without it. After an existing fix the parent starts no fix of this case\'s own.',
+  ),
+  rule(
     'reproduce-and-fix-issues.8-artifact-directory',
     'cursor-automations',
     BN('skills/reproduce-and-fix-issues/SKILL.md'),

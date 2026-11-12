@@ -10,7 +10,7 @@ import { enqueue, OUTBOX_RETRY_LIMIT } from '../../src/automation/outbox.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { outboxEntries, readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { type BennyProject, bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, settleWorker, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { type BennyProject, bennyProject, CHANNEL, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, settleWorker, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -28,12 +28,13 @@ function repro(options: { operationsChannel?: string | null } = {}) {
   const spawns: RunId[] = [];
   let clock = Date.parse('2026-11-12T08:00:00Z');
   const build = (): Automation => wireBenny(project.config('reproduce'), wiringDeps(slack, fakeGh(), { spawnWorker: async (runId) => void spawns.push(runId), now: () => new Date(clock) }));
-  return { project, slack, spawns, build, automation: build(), later: (ms: number) => void (clock += ms) };
+  return { project, slack, spawns, build, automation: build(), later: (ms: number) => void (clock += ms), now: () => new Date(clock) };
 }
 
 async function dispatched(t: ReturnType<typeof repro>): Promise<RunId> {
   const run = await t.automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+  writeProof(t.project.dir, run.runId, t.now());
   return run.runId;
 }
 

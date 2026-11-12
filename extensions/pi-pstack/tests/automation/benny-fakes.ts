@@ -1,6 +1,6 @@
 // Fakes for the two external edges of the Benny serve process: Slack's HTTP API and the `gh` CLI. Both keep state, so a
 // test can assert what the destination holds after a crash and a restart, not only which calls were made.
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
@@ -252,3 +252,29 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
 }
 
 export const wiringDeps = (slack: ReturnType<typeof fakeSlack>, gh: ReturnType<typeof fakeGh>, extra: Partial<WiringDeps> = {}): WiringDeps => ({ fetch: slack.fetch, slackToken: 'xoxb-test', exec: gh.exec, inputCommit: () => 'a'.repeat(40), home: join(tmpdir(), 'benny-no-such-home'), ...extra });
+
+/**
+ * The proof record a repro worker leaves (src/automation/proof.ts): `runs` observations, each with its own capture written
+ * at `at` and a timestamp one second apart. A second call adds to the record, so a later turn's observations are newer.
+ */
+export function writeProof(dir: string, runId: RunId, at: Date, options: { section?: 'reproductions' | 'baseline' | 'patched' | 'fix.patched'; tag?: string; runs?: number; extra?: Record<string, unknown> } = {}): string {
+  const folder = join(dir, 'artifacts', runId);
+  mkdirSync(folder, { recursive: true });
+  const file = join(folder, 'repro.json');
+  const record = existsSync(file) ? (JSON.parse(readFileSync(file, 'utf8')) as Record<string, any>) : {};
+  const tag = options.tag ?? 'repro';
+  const runs = Array.from({ length: options.runs ?? 2 }, (_, index) => {
+    const name = `${tag}-${index + 1}.png`;
+    const path = join(folder, name);
+    writeFileSync(path, Buffer.from([0x89, 0x50, 0x4e, 0x47, index, tag.length, ...Buffer.from(`${tag}${runId}${at.toISOString()}${index}`)]));
+    utimesSync(path, at, at);
+    return { at: new Date(at.getTime() + index * 1000).toISOString(), artifact: name, state: 'the Export button does nothing' };
+  });
+  const section = options.section ?? 'reproductions';
+  if (section === 'reproductions') record['reproductions'] = [...(record['reproductions'] ?? []), ...runs];
+  else if (section === 'fix.patched') record['fix'] = { ...(record['fix'] ?? {}), patched: [...(record['fix']?.patched ?? []), ...runs] };
+  else record['existingFix'] = { ...(record['existingFix'] ?? {}), [section]: runs };
+  Object.assign(record, options.extra ?? {});
+  writeFileSync(file, JSON.stringify(record));
+  return folder;
+}

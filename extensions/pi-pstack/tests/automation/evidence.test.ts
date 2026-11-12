@@ -9,7 +9,7 @@ import { OUTBOX_RETRY_LIMIT } from '../../src/automation/outbox.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { outboxEntries, readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, settleWorker, TRIAGE_USER, wiringDeps } from './benny-fakes.ts';
+import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, OPS_CHANNEL, REPORT, ROOT_TS, settleWorker, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -43,6 +43,7 @@ function artifact(t: Repro, runId: RunId, name: string, bytes: Buffer | string) 
 async function dispatch(t: Repro): Promise<RunId> {
   const run = await t.automation.handle(REPORT);
   if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+  writeProof(t.project.dir, run.runId, t.now());
   return run.runId;
 }
 const result = (evidence: unknown) => JSON.stringify({ text: 'Reproduced twice on Safari 17.1.', status: 'Reproduced', operations: 'Evidence: the Export button does nothing.', evidence });
@@ -227,6 +228,8 @@ describe('a rerun that confirms the repro', () => {
     await t.automation.advanceFollowUps();
     settleWorker(t.project.dir, t.spawns[1]?.runId as RunId, { phase: 'idle', finalText: JSON.stringify({ text: 'Rerunning.', rerun: { correction: 'Use admin.' } }) });
     await t.automation.advanceFollowUps();
+    t.later(1);
+    writeProof(t.project.dir, runId, t.now(), { tag: 'rerun' });
     artifact(t, runId, 'admin.png', PNG);
     settleWorker(t.project.dir, runId, { phase: 'idle', finalText: result(['admin.png']) });
     await t.automation.advanceRepro();
