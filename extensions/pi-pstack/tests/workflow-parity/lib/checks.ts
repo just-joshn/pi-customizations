@@ -1,6 +1,6 @@
 // Reusable contract checks. Each one reads only run artifacts and enforces a rule an upstream playbook or skill states.
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 
@@ -710,7 +710,9 @@ export function delegateOf(view: RunView): WorkerView | undefined {
 export function delegateCommits(view: RunView): string[] {
   const delegate = delegateOf(view);
   const run = delegate === undefined ? undefined : view.runs.find((entry) => entry.workers.includes(delegate));
-  return delegate === undefined || run === undefined ? [] : branchCommits(view, run.id, delegate.id);
+  if (delegate === undefined || run === undefined) return [];
+  // A delegate whose branch was merged and deleted left its commits on the checkout.
+  return `pstack-run/${run.id}/${delegate.id}` in view.git.branchCommits ? branchCommits(view, run.id, delegate.id) : checkoutCommits(view);
 }
 
 /** The receipts a TODO step owns: the ones it cites, and the ones whose target is the step ("3", "step-3"). */
@@ -754,13 +756,45 @@ export function delegateOwnCommits(view: RunView): string[] {
   const run = delegate === undefined ? undefined : view.runs.find((entry) => entry.workers.includes(delegate));
   const input = delegate === undefined ? undefined : assignmentOf(delegate).workspace?.inputCommit;
   if (delegate === undefined || run === undefined || typeof input !== 'string') return [];
-  const listed = spawnSync('git', ['-C', view.repo, 'rev-list', '--reverse', `${input}..pstack-run/${run.id}/${delegate.id}`], { encoding: 'utf8' });
+  const branch = `pstack-run/${run.id}/${delegate.id}`;
+  const listed = spawnSync('git', ['-C', view.repo, 'rev-list', '--reverse', `${input}..${branch in view.git.branchCommits ? branch : 'HEAD'}`], { encoding: 'utf8' });
   return listed.status === 0 ? listed.stdout.split('\n').filter(Boolean) : [];
+}
+
+/**
+ * Whether a receipt's evidence existed before the worker was spawned: it was recorded before the spawn call, or its first artifact
+ * file was last written before the worker's `spawn` event. A model may run the command first and record its receipts in a batch
+ * later; when the command ran is what the playbook orders, and the artifact's file time says so.
+ */
+export function ranBefore(view: RunView, run: RunDir | undefined, receipt: Receipt | undefined, worker: WorkerView | undefined): boolean {
+  if (receipt === undefined || worker === undefined) return false;
+  const recorded = recordOrder(view, receipt.id);
+  const spawnAt = spawnOrder(view, worker.id);
+  if (recorded !== -1 && spawnAt !== -1 && recorded < spawnAt) return true;
+  const spawned = run?.events.find((event) => event['kind'] === 'spawn' && event['workerId'] === worker.id)?.['ts'];
+  const artifact = receipt.artifacts[0]?.path;
+  if (typeof spawned !== 'string' || artifact === undefined || run === undefined) return false;
+  try {
+    return statSync(isAbsolute(artifact) ? artifact : resolve(run.dir, artifact)).mtimeMs < Date.parse(spawned);
+  } catch {
+    return false;
+  }
 }
 
 /** Order of the parent's first `pstack_evidence record` of this receipt (by its file name), or -1. */
 export function recordOrder(view: RunView, receiptId: string): number {
-  const named = (path: string) => basename(path).replace(/\.json$/, '').replace(/\.receipt$/, '') === receiptId;
+  const idIn = (path: string): string | undefined => {
+    for (const candidate of [path, join(view.repo, path), ...view.runs.map((run) => join(run.dir, path))]) {
+      try {
+        const raw = JSON.parse(readFileSync(candidate, 'utf8')) as { id?: string; receipt?: { id?: string } };
+        return raw.receipt?.id ?? raw.id;
+      } catch {
+        /* the next base */
+      }
+    }
+    return undefined;
+  };
+  const named = (path: string) => basename(path).replace(/\.json$/, '').replace(/\.receipt$/, '') === receiptId || idIn(path) === receiptId;
   return view.parent.toolCalls.find((call) => call.name === 'pstack_evidence' && call.args['action'] === 'record' && !call.isError && named(String(call.args['receiptPath'] ?? '')))?.order ?? -1;
 }
 
@@ -797,9 +831,9 @@ export const isTestFile = (file: string): boolean => file.startsWith('test/') ||
  * the failing test first, the canonical shape of sequence-verifiable-units ("the failing test first, then the fix on top"), so it is
  * excused when a later commit makes the tests pass.
  */
-export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string | ((view: RunView) => string), options: { min: number; command?: string }): Check {
+export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string | ((view: RunView) => string), options: { min: number; command?: string; commits?: (view: RunView) => string[] }): Check {
   return check(id, `the worker's branch holds at least ${options.min} commits and every one passes \`${options.command ?? 'node --test'}\` on its own, except a test-only commit that fails and is followed by a passing one`, source, (view) => {
-    const commits = branchCommits(view, runId(view), typeof workerId === 'function' ? workerId(view) : workerId);
+    const commits = options.commits?.(view) ?? branchCommits(view, runId(view), typeof workerId === 'function' ? workerId(view) : workerId);
     const results = commits.map((sha) => ({ sha, ...runAtCommit(view, sha, options.command ?? 'node --test') }));
     const lastGreen = results.findLastIndex((result) => result.status === 0);
     const red = results.filter((result, index) => result.status !== 0 && !(index < lastGreen && filesChanged(view, result.sha).every(isTestFile)));
@@ -814,7 +848,8 @@ export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: 
 export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[], allow?: RegExp): Check {
   return check(id, title, source, (view) => {
     const production = parentProductionWrites(view, allow);
-    const own = commitsNotFromWorkers(view);
+    // A commit of only the files the playbook has the parent write (the frozen benchmark, the pin) is the parent's evidence, not production code.
+    const own = commitsNotFromWorkers(view).filter((sha) => allow === undefined || filesChanged(view, sha).length === 0 || !filesChanged(view, sha).every((file) => allow.test(file)));
     return when(production.length === 0 && view.git.dirty.length === 0 && own.length === 0, 'the parent wrote nothing into production source, the main checkout is clean, and every commit on it is a worker\'s', `parent wrote ${production.join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits the parent made itself ${own.length}`);
   });
 }

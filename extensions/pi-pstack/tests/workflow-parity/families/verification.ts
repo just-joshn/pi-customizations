@@ -167,8 +167,28 @@ function statechartOutput(): { chart: string; report: string } {
 function scratchOf(view: RunView): string {
   const named = /Scratch folder: (\/\S+)/.exec(finalReply(view))?.[1];
   if (named !== undefined) return named;
-  const found = readdirSync(view.sandbox, { recursive: true, encoding: 'utf8' }).find((name) => name.endsWith('.tla') && !name.startsWith('repo/') && !name.includes('node_modules') && !name.split('/').slice(0, -1).includes('out'));
-  return found === undefined ? '' : join(view.sandbox, dirname(found));
+  // The sandbox also holds the run's home directory and sessions: walk only the folders a run could have made its scratch in.
+  const walk = (dir: string, depth: number): string | undefined => {
+    let entries: string[] = [];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return undefined;
+    }
+    if (entries.some((name) => name.endsWith('.tla'))) return dir;
+    if (depth === 0) return undefined;
+    for (const name of entries.filter((entry) => !['home', 'repo', 'sessions', 'out', 'node_modules', '.git'].includes(entry))) {
+      try {
+        if (!statSync(join(dir, name)).isDirectory()) continue;
+      } catch {
+        continue;
+      }
+      const hit = walk(join(dir, name), depth - 1);
+      if (hit !== undefined) return hit;
+    }
+    return undefined;
+  };
+  return walk(view.sandbox, 3) ?? '';
 }
 /** The spec, config and view the run wrote, by extension: the skill names none of them (`SPEC.tla`, `--config FILE`, `--view FILE`). */
 function statechartFiles(view: RunView) {
@@ -240,7 +260,9 @@ export const statechartFamily: Family = {
       const chart = read(join(scratch, 'out', 'chart.mmd'));
       const arrows = (chart.match(/-->/g) ?? []).length;
       const variables = (/^VARIABLES?\s+([^\n]+)/m.exec(specText)?.[1] ?? '').split(/[,\s]+/).filter(Boolean);
-      const labelled = variables.filter((name) => new RegExp(`\\b${name}\\b`).test(chart.replace(/\b[A-Z]\w*\b/g, '')));
+      // A variable name in a label is a label that opens with it or assigns it (`phase idle`, `captured = TRUE`); a reader's word that happens to match ("the payment is captured") is not.
+      const labels = chart.split('\n').map((line) => line.replace(/^\s*\w+:\s*/, '').replace(/^.*-->\s*\w+:\s*/, '').trim());
+      const labelled = variables.filter((name) => labels.some((label) => label.startsWith(`${name} `) || label === name || new RegExp(`\\b${name}\\s*=`).test(label)));
       const marked = /class s\d+ (mayBreak|breaks)/.test(chart);
       return when(/stateDiagram-v2/.test(chart) && (violated.length === 0 || marked) && arrows <= 20 && labelled.length === 0, `${arrows} arrows, ${violated.length === 0 ? 'no rule broke' : 'a broken state is marked'}, no variable names in labels`, `chart: ${chart.slice(0, 160)}; marked ${marked}; variables in labels ${labelled.join(', ') || 'none'}`);
     }),

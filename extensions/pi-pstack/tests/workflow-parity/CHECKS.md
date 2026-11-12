@@ -473,6 +473,7 @@ Negative cases, each of which must FAIL the named checks:
 - the repro never failed at the base: it exited 0 and printed a healthy total → `bug-fix.reproduced-first-on-the-surface`
 - the repro exited 0 but printed the wrong total, as a repro script that reports instead of failing does → 
 - the receipts target the steps as "1" and "4", and the repro was run with different wording → 
+- the repro ran after the fix worker was already running → `bug-fix.reproduced-first-on-the-surface`
 - the after receipt names a commit nobody delivered → `bug-fix.same-repro-fails-before-passes-after`
 - the parent wrote the failing repro test itself → 
 - the investigator confirmed nothing → `bug-fix.hypotheses-eliminated-with-runtime-evidence`
@@ -596,11 +597,14 @@ Negative cases, each of which must FAIL the named checks:
 - the post-fix run used another command → `perf-issue.same-command-after-on-the-delivered-commit`
 - the recorded baseline is not what the benchmark prints → `perf-issue.numbers-reproduce`
 - the reply claims a delta the numbers do not give → `perf-issue.reply-explains-the-number`
+- the reply states the delta as a drop from the baseline to the post-fix number, with no percent → 
 - the mantras were handed over out of order → `perf-issue.mantras-in-order`
 - the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target → 
 - the run notes cite the mantras downward: Mantra 3 first, then Mantra 1 → `perf-issue.mantras-in-order`
 - the reply writes the baseline with a thousands separator → 
 - the reply names an artifact that does not exist → `perf-issue.reply-explains-the-number`
+- the parent committed its benchmark harness on the checkout before spawning the delegate → 
+- the parent committed an empty commit on the checkout → `perf-issue.parent-stays-in-the-lead`
 - the parent wrote its timing harness under bench/ → 
 - the benchmark was edited → `perf-issue.harness-untouched`
 - the parent edited production code → `perf-issue.parent-stays-in-the-lead`

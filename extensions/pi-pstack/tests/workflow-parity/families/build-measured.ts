@@ -20,6 +20,7 @@ import {
   namesCommit,
   collectOrder,
   openedAt,
+  ranBefore,
   recordOrder,
   spawnOrder,
   stepReceipts,
@@ -185,7 +186,7 @@ export const refactoringFamily: Family = {
       const later = commits.slice(1).flatMap((sha) => filesChanged(view, sha)).filter((file) => files.includes(file));
       return when(files.length >= 1 && files.every(isTestFile) && green.status === 0 && later.length === 0, `commit 1 adds only ${files.join(', ')} and passes on the unchanged source; no later commit edits it`, `files ${files.join(', ')}, exit ${green.status}, later edits ${later.length}`);
     }),
-    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 2 }),
+    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 2, commits: delegateCommits }),
     check('refactoring.behavior-is-unchanged', 'step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself', src('poteto-mode/playbooks/refactoring.md', 'Prove behavior is unchanged on the real artifact'), (view) => {
       const head = delegateCommits(view).at(-1);
       if (head === undefined) return fail('no refactor commit');
@@ -312,10 +313,11 @@ export const perfFamily: Family = {
       const delegate = delegateOf(view);
       const spawn = delegate === undefined ? -1 : spawnOrder(view, delegate.id);
       const recorded = before === undefined ? -1 : recordOrder(view, before.id);
+      const early = ranBefore(view, run, before, delegate);
       const text = artifactsText(run, before);
       // The parent may commit the frozen harness before it spawns the delegate: the baseline is then at that input commit, not the original base.
       const inputs = [view.base, String(delegate === undefined ? '' : assignmentOf(delegate).workspace?.inputCommit)];
-      return when(before !== undefined && namesCommit(before.commit, inputs) && recorded !== -1 && spawn !== -1 && recorded < spawn && /errors=0 work=\d+ comparisons=\d+/.test(text), `${before?.id} ${text.trim().slice(0, 60)} at ${before?.commit?.slice(0, 8)}, recorded at ${recorded} before the fix spawn at ${spawn}`, `step 1 baseline receipt ${before?.id ?? 'none'}: commit ${String(before?.commit).slice(0, 8)} vs ${inputs.map((input) => input.slice(0, 8)).join('/')}, recorded ${recorded}, spawn ${spawn}, output ${text.trim().slice(0, 80)}`);
+      return when(before !== undefined && namesCommit(before.commit, inputs) && early && /errors=0 work=\d+ comparisons=\d+/.test(text), `${before?.id} ${text.trim().slice(0, 60)} at ${before?.commit?.slice(0, 8)}, ran before the fix spawn (recorded at ${recorded}, spawn at ${spawn})`, `step 1 baseline receipt ${before?.id ?? 'none'}: commit ${String(before?.commit).slice(0, 8)} vs ${inputs.map((input) => input.slice(0, 8)).join('/')}, ran before the spawn ${String(early)} (recorded ${recorded}, spawn ${spawn}), output ${text.trim().slice(0, 80)}`);
     }),
     check('perf-issue.same-command-after-on-the-delivered-commit', 'step 3: the post-fix number is the same benchmark on a delivered commit, with no errors, and lower', src('poteto-mode/playbooks/perf-issue.md', 'Capture a post-fix trace'), (view) => {
       const { run, before, after } = perfReceipts(view);
@@ -341,7 +343,9 @@ export const perfFamily: Family = {
       const claimed = [...plain.matchAll(/(-?\d+(?:\.\d+)?)\s*%/g)].map((match) => Number(match[1]));
       const candidates = [...reply.matchAll(/`?((?:\/|\.{0,2}\/)?[\w.\/-]+\.(?:txt|json|md|tsv))`?/g)].map((match) => match[1] as string);
       const path = candidates.find((candidate) => [candidate, join(view.repo, candidate), join(run?.dir ?? view.repo, candidate)].some((full) => existsSync(full)));
-      return when(plain.includes(String(b)) && plain.includes(String(a)) && claimed.some((value) => Math.abs(Math.abs(value) - Math.abs(delta(b, a))) < 0.5) && path !== undefined, `reply states ${b}, ${a}, a delta near ${delta(b, a)}% and the artifact ${path}`, `reply ${reply.slice(0, 160)}; computed ${delta(b, a)}%; percentages ${claimed.join(', ') || 'none'}; artifact ${path ?? 'none'}`);
+      // The skill asks for "delta" without a unit: a percent that matches, or the drop as a difference ("from 40000 to 0", "39600 fewer").
+      const deltaStated = claimed.some((value) => Math.abs(Math.abs(value) - Math.abs(delta(b, a))) < 0.5) || (plain.includes(String(b - a)) && /\b(fewer|less|drop(ped)?|down|reduc\w+|saved|cut|from)\b/i.test(plain));
+      return when(plain.includes(String(b)) && plain.includes(String(a)) && deltaStated && path !== undefined, `reply states ${b}, ${a}, a matching delta and the artifact ${path}`, `reply ${reply.slice(0, 160)}; computed ${delta(b, a)}%; percentages ${claimed.join(', ') || 'none'}; artifact ${path ?? 'none'}`);
     }),
     check('perf-issue.mantras-in-order', 'the mantras were tried in the playbook order: the delegate brief lists all seven in order, or the run\'s own notes (TODO.md, the brief, the reply) walk "Mantra 1", "Mantra 2", ... upward from the cheapest', src('poteto-mode/playbooks/perf-issue.md', "Try the performance mantras in order, cheapest first"), (view) => {
       const brief = allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto')?.brief ?? '';
@@ -360,7 +364,7 @@ export const perfFamily: Family = {
       const touched = commits.flatMap((sha) => filesChanged(view, sha)).filter((file) => file.startsWith('bench/'));
       return when(commits.length > 0 && touched.length === 0, 'no commit touches bench/', `touched ${touched.join(', ')}`);
     }),
-    everyCommitGreen('perf-issue.commits-green', src('poteto-mode/playbooks/perf-issue.md', 'verifying each attempt before trying the next'), (view) => primaryRun(view, 'perf-issue')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 1 }),
+    everyCommitGreen('perf-issue.commits-green', src('poteto-mode/playbooks/perf-issue.md', 'verifying each attempt before trying the next'), (view) => primaryRun(view, 'perf-issue')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 1, commits: delegateCommits }),
     parentWritesOnlyScratch('perf-issue.parent-stays-in-the-lead', 'the parent wrote no production code (the benchmark and test files it writes under bench/ and test/ are step 1)', src('poteto-mode/playbooks/perf-issue.md', '**You own the measurement story.'), /^(bench|test)\//),
     writableWorkerRecords('perf-issue.worker-records', src('poteto-mode/playbooks/perf-issue.md', 'Review the diff'), ['poteto']),
     settledAndCollected('perf-issue.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
@@ -371,11 +375,14 @@ export const perfFamily: Family = {
     { name: 'the post-fix run used another command', mutate: (sandbox) => patchReceipt(sandbox, 'perf-dedupe', 'perf-after', { command: ['sh', '-c', 'node other.js'] }), fails: ['perf-issue.same-command-after-on-the-delivered-commit'] },
     { name: 'the recorded baseline is not what the benchmark prints', mutate: (sandbox) => lieAboutBaseline(sandbox), fails: ['perf-issue.numbers-reproduce'] },
     { name: 'the reply claims a delta the numbers do not give', mutate: (sandbox) => rewriteFinalReply(sandbox, /-?\d+(\.\d+)?%/, '-50%'), fails: ['perf-issue.reply-explains-the-number'] },
+    { name: 'the reply states the delta as a drop from the baseline to the post-fix number, with no percent', mutate: (sandbox) => rewriteFinalReply(sandbox, /delta [\d.]+% fewer/, `${quadraticComparisons() - 400} fewer`), fails: [], passes: ['perf-issue.reply-explains-the-number'] },
     { name: 'the mantras were handed over out of order', mutate: (sandbox) => rewriteBriefMantras(sandbox), fails: ['perf-issue.mantras-in-order'] },
     { name: 'the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target', mutate: (sandbox) => { writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/workers/fix/brief.md'), 'Fix src/dedupe.js.'); appendFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/TODO.md'), '\n- [x] Pick the mantra. Mantra 1 declined, nothing is unused. Mantra 2 meets the target, so mantras 3 through 7 stay unused.\n'); }, fails: [], passes: ['perf-issue.mantras-in-order'] },
     { name: 'the run notes cite the mantras downward: Mantra 3 first, then Mantra 1', mutate: (sandbox) => { writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/workers/fix/brief.md'), 'Fix src/dedupe.js.'); appendFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/TODO.md'), '\n- [x] Pick the mantra. Mantra 3 first, then mantra 1.\n'); }, fails: ['perf-issue.mantras-in-order'] },
     { name: 'the reply writes the baseline with a thousands separator', mutate: (sandbox) => rewriteFinalReply(sandbox, String(quadraticComparisons()), quadraticComparisons().toLocaleString('en-US')), fails: [], passes: ['perf-issue.reply-explains-the-number'] },
     { name: 'the reply names an artifact that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /Artifact: \S+/, 'Artifact: nowhere/none.txt'), fails: ['perf-issue.reply-explains-the-number'] },
+    { name: 'the parent committed its benchmark harness on the checkout before spawning the delegate', mutate: (sandbox) => { execFileSync('sh', ['-c', 'mkdir -p bench && echo harness > bench/time.js && git add bench/time.js && git -c user.name=m -c user.email=m@x commit -q -m "bench: timing harness"'], { cwd: join(sandbox, 'repo') }); refreshGit(sandbox); }, fails: [], passes: ['perf-issue.parent-stays-in-the-lead'] },
+    { name: 'the parent committed an empty commit on the checkout', mutate: (sandbox) => { execFileSync('git', ['-c', 'user.name=m', '-c', 'user.email=m@x', 'commit', '-q', '--allow-empty', '-m', 'edits'], { cwd: join(sandbox, 'repo') }); refreshGit(sandbox); }, fails: ['perf-issue.parent-stays-in-the-lead'] },
     { name: 'the parent wrote its timing harness under bench/', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/bench/time.js`, content: 'x' }), fails: [], passes: ['perf-issue.parent-stays-in-the-lead'] },
     { name: 'the benchmark was edited', mutate: (sandbox) => onBranch(sandbox, 'pstack-run/perf-dedupe/fix', (dir) => writeFileSync(join(dir, 'bench/bench.js'), `${BENCH_JS}// tuned\n`)), fails: ['perf-issue.harness-untouched'] },
     { name: 'the parent edited production code', mutate: (sandbox) => dirtyRepo(sandbox, 'src/dedupe.js'), fails: ['perf-issue.parent-stays-in-the-lead'] },
@@ -511,9 +518,11 @@ export const hillclimbFamily: Family = {
     check('hillclimb.baseline-and-green-gate-before-any-change', 'step 2: the baseline metric and a green run of the regression gate are recorded at the base commit before the first attempt is spawned', src('poteto-mode/playbooks/hillclimb.md', 'Record the baseline metric and a green run of the regression gate'), (view) => {
       const { receipt: baseline, gates } = hillBaseline(view);
       const spawn = Math.min(...attemptsOf(view).map((worker) => spawnOrder(view, worker.id) === -1 ? Number.POSITIVE_INFINITY : spawnOrder(view, worker.id)));
+      const first = attemptsOf(view).sort((a, b) => spawnOrder(view, a.id) - spawnOrder(view, b.id))[0];
+      const early = baseline !== undefined && gates.length > 0 && ranBefore(view, primaryRun(view, 'hillclimb'), baseline, first) && gates.some((gate) => ranBefore(view, primaryRun(view, 'hillclimb'), gate, first));
       const recorded = Math.max(baseline === undefined ? -1 : recordOrder(view, baseline.id), ...gates.map((gate) => recordOrder(view, gate.id)));
       const inputs = [view.base, ...attemptsOf(view).map((worker) => String(assignmentOf(worker).workspace?.inputCommit))];
-      return when(baseline !== undefined && gates.length > 0 && namesCommit(baseline.commit, inputs) && gates.some((gate) => namesCommit(gate.commit, inputs)) && recorded !== -1 && recorded < spawn, 'baseline and a green gate at the base, recorded before the first attempt', `baseline ${baseline?.id ?? 'none'} commit ${String(baseline?.commit).slice(0, 8)}, green gates ${gates.map((gate) => gate.id).join(', ') || 'none'}, recorded ${recorded} vs first spawn ${spawn}`);
+      return when(baseline !== undefined && gates.length > 0 && namesCommit(baseline.commit, inputs) && gates.some((gate) => namesCommit(gate.commit, inputs)) && early, 'baseline and a green gate at the base, run before the first attempt', `baseline ${baseline?.id ?? 'none'} commit ${String(baseline?.commit).slice(0, 8)}, green gates ${gates.map((gate) => gate.id).join(', ') || 'none'}, ran before the first attempt ${String(early)} (recorded ${recorded}, first spawn ${spawn})`);
     }),
     check('hillclimb.decision-log-shape', 'step 3: decision.tsv has the nine columns, one row per attempt, verdicts kept or reverted, and stays out of git', src('poteto-mode/playbooks/hillclimb.md', 'A `decision.tsv`, one row per attempt'), (view) => {
       const run = primaryRun(view, 'hillclimb');
@@ -634,7 +643,9 @@ const RECOMMENDS = /\*{0,2}Recommendation\*{0,2}\s*[:.]|\bI recommend\b|\brecomm
  */
 function scratchOf(view: RunView): string {
   const reply = finalReply(view);
-  const named = /Scratch (?:path|dir(?:ectory)?)\s*:?\s*`?(\S+?)`?(?:\.\s|\s|$)/i.exec(reply)?.[1] ?? [...reply.matchAll(/`([^`\n]*scratch[^`\n]*)`/gi)].map((match) => match[1] as string).find((candidate) => candidate !== undefined);
+  // "Scratch path: <dir>", else the first code span that names a scratch location (`scratch/probe.mjs`).
+  const labelled = /Scratch (?:path|dir(?:ectory)?|folder)\s*:\s*`?([^`\s]+)`?/i.exec(reply)?.[1]?.replace(/[.,;]+$/, '');
+  const named = labelled ?? [...reply.matchAll(/`([^`\n]*scratch[^`\n]*\/[^`\n]*)`/gi)].map((match) => match[1] as string)[0];
   if (named === undefined) return '';
   const run = primaryRun(view, 'prototype');
   const found = [named, join(run?.dir ?? view.repo, named), join(view.repo, named), join(view.sandbox, named)].find((candidate) => existsSync(candidate));

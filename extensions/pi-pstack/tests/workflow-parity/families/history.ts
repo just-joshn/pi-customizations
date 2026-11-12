@@ -386,8 +386,9 @@ export const reflectFamily: Family = {
     }),
     check('reflect.edits-a-project-copy-never-the-installed-package', 'after approval the edit lands in a copy under .pi/skills/<skill>/ that differs from the installed skill, and the installed pstack package is unchanged', src('reflect/SKILL.md', 'Never edit a skill inside an installed Pi package'), (view) => {
       // Any skill the run chose to improve: the edit's path names the copy, whatever the skill is called.
-      const edit = callsInTurn(view, 1).find((call) => (call.name === 'edit' || call.name === 'write') && /\/\.pi\/skills\/[\w-]+\//.test(String(call.args['path'])));
-      const skill = /\/\.pi\/skills\/([\w-]+)\//.exec(String(edit?.args['path']))?.[1] ?? '';
+      const copyPath = /(?:^|\/)\.pi\/skills\/([\w-]+)\//;
+      const edit = callsInTurn(view, 1).find((call) => (call.name === 'edit' || call.name === 'write') && copyPath.test(String(call.args['path'])));
+      const skill = copyPath.exec(String(edit?.args['path']))?.[1] ?? '';
       const copy = read(join(view.repo, '.pi/skills', skill, 'SKILL.md'));
       const installed = read(join(view.pkg, 'generated/skills', skill, 'SKILL.md'));
       const packageDirty = spawnSync('git', ['-C', view.pkg, 'status', '--porcelain', '--', 'generated/skills'], { encoding: 'utf8' }).stdout.trim();

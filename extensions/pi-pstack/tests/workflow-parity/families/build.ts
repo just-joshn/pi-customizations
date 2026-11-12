@@ -17,6 +17,7 @@ import {
   everyCommitGreen,
   isTestFile,
   namesCommit,
+  ranBefore,
   recordOrder,
   spawnOrder,
   stepReceipts,
@@ -174,7 +175,7 @@ export const featureFamily: Family = {
       return when(missing.length === 0 && assignmentOf(worker as never).workspace?.inputCommit === view.base, 'the brief names paths, the data shape, success criteria, and the base commit is the input', `brief lacks ${missing.join(', ')}`);
     }),
     parentWritesOnlyScratch('feature.parent-stays-in-the-lead', 'the parent wrote no production code and the main checkout is clean: it plans, reviews, verifies', src('poteto-mode/playbooks/feature.md', 'Delegate implementation. Stay in the lead.')),
-    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', featureWriter, { min: 2 }),
+    everyCommitGreen('feature.small-ordered-verified-commits', src('poteto-mode/playbooks/feature.md', 'building, verifying, and committing each small unit before the next'), (view) => primaryRun(view, 'feature')?.id ?? '', featureWriter, { min: 2, commits: delegateCommits }),
     check('feature.surface-receipt-is-the-delivered-commit', 'the surface receipt (the one step 5 cites) records the commit the worker delivered', src('poteto-mode/playbooks/feature.md', 'Verify on the matching surface'), (view) => {
       const run = primaryRun(view, 'feature');
       const head = branchCommits(view, run?.id ?? '', featureWriter(view)).at(-1);
@@ -306,10 +307,11 @@ export const bugFixFamily: Family = {
       const delegate = delegateOf(view);
       const fixSpawn = delegate === undefined ? -1 : spawnOrder(view, delegate.id);
       const recorded = before === undefined ? -1 : recordOrder(view, before.id);
+      const early = ranBefore(view, run, before, delegate);
       const output = artifactText(run, before);
       // A repro that exits 0 may still print the wrong result: the receipt shows the defect either way.
       const showsDefect = before !== undefined && ((before.exitCode !== undefined && before.exitCode !== 0) || (before.exitCode === undefined && before['expectedFail'] === true) || /-\d|fail|wrong|negative|expected|but got|defect|bug|violat/i.test(output));
-      return when(before !== undefined && showsDefect && recorded !== -1 && fixSpawn !== -1 && recorded < fixSpawn, `${before?.id} recorded at ${recorded} before the fix spawn at ${fixSpawn}, exit ${String(before?.exitCode)}, output ${output.trim().slice(0, 80)}`, `step 1 receipt ${before?.id ?? 'none'} (exit ${String(before?.exitCode)}, shows the defect ${String(showsDefect)}) recorded at ${recorded}, fix spawn at ${fixSpawn}`);
+      return when(before !== undefined && showsDefect && early, `${before?.id} ran before the fix spawn (recorded at ${recorded}, spawn at ${fixSpawn}), exit ${String(before?.exitCode)}, output ${output.trim().slice(0, 80)}`, `step 1 receipt ${before?.id ?? 'none'} (exit ${String(before?.exitCode)}, shows the defect ${String(showsDefect)}) ran before the fix spawn: ${String(early)} (recorded at ${recorded}, spawn at ${fixSpawn})`);
     }),
     check('bug-fix.hypotheses-eliminated-with-runtime-evidence', 'step 2: an investigator ruled hypotheses out and confirmed the survivor, each with a command it ran', src('poteto-mode/playbooks/bug-fix.md', 'Binary-search the cause'), (view) => {
       const hunter = allWorkers(view).find((worker) => assignmentOf(worker).role === 'investigator');
@@ -347,7 +349,9 @@ export const bugFixFamily: Family = {
       // The playbook has the same repro run before and after; the repository's repro is re-run here at both commits, so each receipt's own wording does not matter.
       const rerunBefore = runAtCommit(view, view.base, REPRO);
       const rerunAfter = runAtCommit(view, head, REPRO);
-      const beforeAtBase = before.commit === null || before.commit === view.base || view.base.startsWith(before.commit);
+      const delegateInput = String(assignmentOf(delegateOf(view) as never).workspace?.inputCommit);
+      // The repro ran on unfixed code: the base, or the commit the delegate was spawned at (the parent may have committed the failing test first).
+      const beforeAtBase = before.commit === null || namesCommit(before.commit, [view.base, delegateInput]);
       return when(beforeAtBase && namesCommit(after.commit, delivered) && (after.exitCode === undefined || after.exitCode === 0) && rerunBefore.status !== 0 && rerunAfter.status === 0, `${before.id} at the base, ${after.id} at ${after.commit?.slice(0, 8)}; base exit ${rerunBefore.status} (${rerunBefore.output.trim()}), delivered exit ${rerunAfter.status} (${rerunAfter.output.trim()})`, `${before.id}.commit ${String(before.commit).slice(0, 8)}, ${after.id}.commit ${String(after.commit).slice(0, 8)} (exit ${String(after.exitCode)}) vs delivered ${head.slice(0, 8)}; reruns ${rerunBefore.status}/${rerunAfter.status}`);
     }),
     check('bug-fix.reply-pastes-failing-then-passing-output', 'the reply pastes the failing then the passing repro output verbatim', src('poteto-mode/playbooks/bug-fix.md', '**Reply:** what was broken, root cause, fix'), (view) => {
@@ -367,6 +371,11 @@ export const bugFixFamily: Family = {
     { name: 'the repro never failed at the base: it exited 0 and printed a healthy total', mutate: (sandbox) => { patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { exitCode: 0 }); writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/bugfix-coupon/verification/artifacts/bug-repro-before.txt'), 'total=10\n'); }, fails: ['bug-fix.reproduced-first-on-the-surface'] },
     { name: 'the repro exited 0 but printed the wrong total, as a repro script that reports instead of failing does', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { exitCode: 0 }), fails: [], passes: ['bug-fix.reproduced-first-on-the-surface'] },
     { name: 'the receipts target the steps as "1" and "4", and the repro was run with different wording', mutate: (sandbox) => { patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-before', { target: '1', command: ['node', 'repro.js'] }); patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-after', { target: '4', command: ['node', 'repro.js'] }); }, fails: [], passes: ['bug-fix.reproduced-first-on-the-surface', 'bug-fix.same-repro-fails-before-passes-after'] },
+    { name: 'the repro ran after the fix worker was already running', mutate: (sandbox) => {
+        rewriteSession(parentSession(sandbox), 'bug-repro-before.receipt.json', 'later-batch.json');
+        const events = join(sandbox, 'repo/.pi/pstack/runs/bugfix-coupon/events.jsonl');
+        writeFileSync(events, readFileSync(events, 'utf8').split('\n').map((line) => (line.includes('"workerId":"fix"') && line.includes('"kind":"spawn"') ? line.replace(/"ts":"[^"]+"/, '"ts":"2000-01-01T00:00:00.000Z"') : line)).join('\n'));
+      }, fails: ['bug-fix.reproduced-first-on-the-surface'] },
     { name: 'the after receipt names a commit nobody delivered', mutate: (sandbox) => patchReceipt(sandbox, 'bugfix-coupon', 'bug-repro-after', { commit: 'deadbeefdeadbeef' }), fails: ['bug-fix.same-repro-fails-before-passes-after'] },
     { name: 'the parent wrote the failing repro test itself', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/test/coupon-over-100.test.js`, content: FIX_TEST }), fails: [], passes: ['bug-fix.parent-stays-in-the-lead'] },
     { name: 'the investigator confirmed nothing', mutate: (sandbox) => rewriteHunter(sandbox), fails: ['bug-fix.hypotheses-eliminated-with-runtime-evidence'] },
