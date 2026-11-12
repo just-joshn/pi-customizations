@@ -25,6 +25,7 @@ export interface FamilyRun {
   timedOut: boolean;
   piStderr: string;
   cleanup: () => void;
+  known: string[];
 }
 
 export async function runFamily(family: Family, driver: 'scripted' | 'real'): Promise<FamilyRun> {
@@ -32,7 +33,7 @@ export async function runFamily(family: Family, driver: 'scripted' | 'real'): Pr
   const outcome = await runWorkflow(family.spec, driver);
   const results = evaluate(family.checks, outcome.view);
   const negatives = driver === 'scripted' ? family.negatives.map((negative) => runNegative(family, negative, outcome.sandbox)) : [];
-  return { family: family.id, driver, results, negatives, sandbox: outcome.sandbox, tmuxSocket: outcome.meta.tmuxSocket, timedOut: outcome.meta.timedOut, piStderr: outcome.meta.piStderr, cleanup: outcome.cleanup };
+  return { family: family.id, driver, results, negatives, sandbox: outcome.sandbox, tmuxSocket: outcome.meta.tmuxSocket, timedOut: outcome.meta.timedOut, piStderr: outcome.meta.piStderr, cleanup: outcome.cleanup, known: (family.knownDefects ?? []).map((entry) => entry.checkId) };
 }
 
 function runNegative(family: Family, negative: Family['negatives'][number], sandbox: string): NegativeResult {
@@ -41,7 +42,7 @@ function runNegative(family: Family, negative: Family['negatives'][number], sand
 }
 
 export function report(run: FamilyRun): string {
-  const lines = [table(run.family, run.driver, run.results)];
+  const lines = [table(run.family, run.driver, run.results, run.known)];
   if (run.negatives.length > 0) {
     lines.push(`-- negative cases for ${run.family}`);
     for (const negative of run.negatives) lines.push(`${negative.detected ? 'DETECTED' : 'MISSED  '} ${negative.name} -> must fail ${negative.expected.join(', ')}; failed ${negative.failedChecks.join(', ') || 'nothing'}`);

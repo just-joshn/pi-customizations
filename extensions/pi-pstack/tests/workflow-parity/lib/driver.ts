@@ -325,6 +325,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
       });
     }
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
+    rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
   const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));

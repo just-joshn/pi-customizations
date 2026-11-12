@@ -76,10 +76,13 @@ export function evaluate(checks: Check[], view: RunView): CheckResult[] {
   });
 }
 
-export function table(family: string, driver: string, results: CheckResult[]): string {
-  const rows = results.map((result) => `${result.verdict.padEnd(4)} ${result.id}\n       ${result.title}\n       source: ${result.source}\n       evidence: ${result.evidence.replace(/\n/g, ' ').slice(0, 300)}`);
-  const count = (verdict: string) => results.filter((result) => result.verdict === verdict).length;
-  return `== ${family} (${driver} driver): ${count('PASS')} PASS, ${count('FAIL')} FAIL, ${count('SKIP')} SKIP ==\n${rows.join('\n')}`;
+/** The checker table. A check listed as a known product defect prints DEFECT instead of FAIL, and only real FAILs are counted as failures. */
+export function table(family: string, driver: string, results: CheckResult[], known: string[] = []): string {
+  const shown = results.map((result) => ({ ...result, shown: result.verdict === 'FAIL' && known.includes(result.id) ? 'DEFECT' : result.verdict }));
+  const rows = shown.map((result) => `${result.shown.padEnd(6)} ${result.id}\n       ${result.title}\n       source: ${result.source}\n       evidence: ${result.evidence.replace(/\n/g, ' ').slice(0, 300)}`);
+  const count = (verdict: string) => shown.filter((result) => result.shown === verdict).length;
+  const summary = ['PASS', 'FAIL', 'DEFECT', 'SKIP'].map((verdict) => [verdict, count(verdict)] as const).filter(([verdict, n]) => n > 0 || verdict === 'PASS').map(([verdict, n]) => `${n} ${verdict}`).join(', ');
+  return `== ${family} (${driver} driver): ${summary} ==\n${rows.join('\n')}`;
 }
 
 export const failed = (results: CheckResult[]): string[] => results.filter((result) => result.verdict === 'FAIL').map((result) => result.id);
