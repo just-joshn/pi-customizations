@@ -117,11 +117,12 @@ The host runs `pi --mode rpc` in the worker's workspace with `--model`, `--think
 capabilities: {
   mcp: 'inherit' | 'none',          // 'none' launches pi with --no-mcp
   env: 'inherit' | 'minimal',       // 'minimal': only PATH, HOME, LANG, TERM, TMPDIR, PI_CODING_AGENT_DIR, PSTACK_* and the provider credential variables the resolved model needs
-  externalWrite: false | true       // true only for the parent or a trusted adapter; workers default false
+  externalWrite: false | true,      // true only for the parent or a trusted adapter; workers default false
+  spawn?: boolean                   // default false. true registers pstack_worker in that worker, for Orchestrate's sub-coordinators
 }
 ```
 
-Default: `{ mcp: 'inherit', env: 'inherit', externalWrite: false }` for engineering roles, and `{ mcp: 'none', env: 'minimal', externalWrite: false }` for automation-dispatched workers. A worker with `PSTACK_WORKER=1` gets no tool that posts to Slack, a tracker, or a forge. Only `pstack_evidence` is registered. The host enforces `mcp` and `env` at spawn. Automation credentials live in `~/.pi/agent/pstack/credentials/<connector>.json` (0600), which is never named in a brief or assignment.
+Default: `{ mcp: 'inherit', env: 'inherit', externalWrite: false }` for engineering roles, and `{ mcp: 'none', env: 'minimal', externalWrite: false }` for automation-dispatched workers. A worker with `capabilities.spawn: true` also gets `pstack_worker`. Its runs live under its own workspace's `.pi/pstack/runs/`, and their `run.json` names the worker's own session file as owner, so it receives its children's wakes. Depth is capped at three levels, matching upstream Orchestrate (root, sub-coordinator, worker): the host sets `PSTACK_DEPTH`, and a spawn at depth 2 refuses `spawn: true`. A worker with `PSTACK_WORKER=1` gets no tool that posts to Slack, a tracker, or a forge. Only `pstack_evidence` is registered. The host enforces `mcp` and `env` at spawn. Automation credentials live in `~/.pi/agent/pstack/credentials/<connector>.json` (0600), which is never named in a brief or assignment.
 
 The same-uid limit is stated, not hidden. A worker process running as the operator's uid can still read 0600 files that uid owns. The tool and env boundary stops a worker from posting through Pi, but it is not an OS boundary. The full guarantee of spec 15.1 requires `environment: 'container'` (the container unit). Until then, automation setup reports this limit, and the parity manifest marks the credential-isolation requirement `partial`.
 
