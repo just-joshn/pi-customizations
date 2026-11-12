@@ -7759,6 +7759,8 @@ async function controlHost(target, operation, text) {
 
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
+var MCP_ACCESS_TOOLS = ["codemode", "tool_search"];
+var readonlyTools = (mcp) => [...READONLY_TOOLS, ...mcp === "none" ? [] : MCP_ACCESS_TOOLS];
 function onPath(command) {
   if (isAbsolute4(command))
     return command;
@@ -7933,7 +7935,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
+    tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
     credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],
