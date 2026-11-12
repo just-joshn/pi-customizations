@@ -384,6 +384,8 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
         if (Date.now() > deadline) timedOut = true;
       }
       writeFileSync(join(ctx.sandbox, 'one-shot.json'), JSON.stringify({ mode, exitCode, stdout: rpc.raw.join(''), stderr: rpc.stderr }, null, 2));
+      const oneShotSessions = readdirSync(ctx.sessionsDir).filter((name) => name.endsWith('.jsonl'));
+      if (oneShotSessions.length === 1) parentSessionFile = join(ctx.sessionsDir, oneShotSessions[0]!);
     } else {
     const state = await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs);
     parentSessionFile = ((state['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? null;
