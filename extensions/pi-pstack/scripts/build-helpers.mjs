@@ -55,10 +55,9 @@ for (const directory of ['src', 'generated']) {
 }
 for (const file of ['package.json', 'scripts/build-helpers.mjs', 'scripts/pi-standalone-shims.mjs']) inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
 const inputHash = inputs.digest('hex');
-const piAiVersion = JSON.parse(readFileSync(join(root, 'node_modules/@earendil-works/pi-ai/package.json'), 'utf8')).version;
 const receipt = {
   inputs: inputHash,
-  standaloneCatalog: { package: '@earendil-works/pi-ai', version: piAiVersion, bundles: helpers.map(([entry, output]) => (standalone.has(entry) ? output : undefined)).filter(Boolean) },
+  standaloneCatalog: { package: '@earendil-works/pi-ai', version: undefined, bundles: helpers.map(([entry, output]) => (standalone.has(entry) ? output : undefined)).filter(Boolean) },
   outputs: {},
 };
 if (check) {
@@ -76,6 +75,7 @@ if (check) {
   process.exit(process.exitCode ?? 0);
 }
 if (Bun.version !== '1.4.4') throw new Error('Helper builds require Bun 1.4.4 to reproduce the committed outputs.');
+receipt.standaloneCatalog.version = JSON.parse(readFileSync(join(root, 'node_modules/@earendil-works/pi-ai/package.json'), 'utf8')).version;
 for (const [entry, output] of helpers) {
   const inlineHostPackages = standalone.has(entry);
   const result = await Bun.build({
