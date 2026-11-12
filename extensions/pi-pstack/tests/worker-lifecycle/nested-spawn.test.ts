@@ -15,6 +15,7 @@ const PI_ARGS = [...TEST_PI_ARGS, '--extension', WORKER_SIDE];
 test.for([
   [{ PSTACK_WORKER: '1' }, ['pstack_evidence']],
   [{ PSTACK_WORKER: '1', PSTACK_SPAWN: '1' }, ['pstack_evidence', 'pstack_worker']],
+  [{ PSTACK_WORKER: '1', PSTACK_READONLY: '1' }, ['bash_readonly', 'pstack_evidence']],
 ] as const)('a worker with env %j registers %j', ([env, tools]) => {
   const registered: string[] = [];
   const pi = { registerTool: (tool: { name: string }) => registered.push(tool.name), on: () => undefined } as unknown as ExtensionAPI;
@@ -37,12 +38,13 @@ afterEach(async () => {
   await stopProject(project);
 });
 
-// Pi creates a session file on the worker's first message, so a poll can arrive before it exists.
+// The complete entries of a session file Pi may still be writing. Pi creates the file only once the session holds a
+// conversation, and appends one newline-terminated entry at a time, so the text after the last newline is unfinished.
 const sessionEntries = (file: string) =>
   existsSync(file)
     ? readFileSync(file, 'utf8')
-        .trim()
         .split('\n')
+        .slice(0, -1)
         .map((line) => JSON.parse(line))
     : [];
 

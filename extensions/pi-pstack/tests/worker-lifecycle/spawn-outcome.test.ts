@@ -4,7 +4,8 @@ import { join } from 'node:path';
 
 import { afterAll, afterEach, beforeEach, expect, test } from 'vitest';
 import { type RunId, TMUX_IDENTITY_FORMAT } from '../../src/run-files.ts';
-import { type Exec, nodeExec, type SpawnOptions, spawnAssignment } from '../../src/workers.ts';
+import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
+import { type Exec, nodeExec, registerWorkerTools, type SpawnOptions, spawnAssignment } from '../../src/workers.ts';
 import { FAKE_PI, killTmuxServer, makeProject, makeRun, type Project, stopProject, TMUX, tmux, until, workerDir, workerTestEnv, writeAssignment } from './harness.ts';
 
 let project: Project;
@@ -75,4 +76,13 @@ test('a reported success without a parsable identity, and no host, releases the 
   const garbled: Exec = async (command, args, execOptions) => (isNewSession(args) ? { stdout: 'garbled\n', stderr: '', code: 0, killed: false } : nodeExec(command, args, execOptions));
   await expect(spawn('w5', garbled)).rejects.toThrow(/did not start/);
   expect(existsSync(claim('w5'))).toBe(false);
+});
+
+test("pstack_worker's description says spawn waits up to the start-check window when the launch outcome is unknown", () => {
+  const tools: { name: string; description: string }[] = [];
+  const pi = { registerTool: (tool: { name: string; description: string }) => tools.push(tool), on: () => undefined };
+  registerWorkerTools(pi as unknown as ExtensionAPI, { tmuxSocket: TMUX, startCheckMs: 1_500 });
+  const description = tools.find((tool) => tool.name === 'pstack_worker')?.description;
+  expect(description).not.toMatch(/returns at once/);
+  expect(description).toMatch(/up to 1\.5 s/);
 });

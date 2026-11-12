@@ -7,6 +7,8 @@
 //   @@settle-busy <text>  run: reply <text>, emit agent_settled while still streaming, then compaction_end once quiescent
 //   @@hold-late <text>    like @@hold, but abort emits agent_settled while still streaming and answers once quiescent
 //   @@env-json <names...>  run: reply with a JSON object of each named variable's value, null when unset
+//   @@reverse <text>      run: reply <text>, emit agent_settled and compaction_end together, then answer the two
+//                         get_state requests that follow in reverse order
 // A prompt that arrives while a held run is open is acknowledged as queued, then the held run settles. The queued
 // prompt stays pending (`@@say`) or starts streaming at once (`@@stream`) until <session-dir>/release exists, then runs.
 import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -21,6 +23,8 @@ const model = { provider: modelArg.slice(0, modelArg.indexOf('/')), id: modelArg
 let streaming = false;
 let held = false;
 let late = false;
+let reverse = false;
+let deferred;
 const pending = [];
 
 const line = (record) => `${JSON.stringify(record)}\n`;
@@ -36,8 +40,15 @@ const textOf = (message) => message.replace(/^@@[\w-]+ /, '');
 createInterface({ input: process.stdin }).on('line', async (input) => {
   const command = JSON.parse(input);
   const { id, type } = command;
-  if (type === 'get_state') {
-    process.stdout.write(response(id, type, { model, sessionFile, isStreaming: streaming, pendingMessageCount: pending.length }));
+  const state = (stateId) => response(stateId, 'get_state', { model, sessionFile, isStreaming: streaming, pendingMessageCount: pending.length });
+  if (type === 'get_state' && reverse && deferred === undefined) {
+    deferred = id;
+  } else if (type === 'get_state' && reverse) {
+    reverse = false;
+    process.stdout.write(state(id) + state(deferred));
+    deferred = undefined;
+  } else if (type === 'get_state') {
+    process.stdout.write(state(id));
   } else if (type === 'clear_queue') {
     process.stdout.write(response(id, type, { steering: pending.splice(0), followUp: [] }));
   } else if (type === 'abort' && late) {
@@ -85,6 +96,9 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
       await sleep(300);
       streaming = false;
       process.stdout.write(line({ type: 'compaction_end', reason: 'threshold', aborted: false, willRetry: false }));
+    } else if (command.message.startsWith('@@reverse ')) {
+      reverse = true;
+      process.stdout.write(response(id, type, { disposition: 'started' }) + run(text) + settled() + line({ type: 'compaction_end', reason: 'threshold', aborted: false, willRetry: false }));
     } else if (command.message.startsWith('@@hold-late ')) {
       streaming = true;
       held = true;

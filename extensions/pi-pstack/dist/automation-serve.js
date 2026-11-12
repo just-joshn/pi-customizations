@@ -7004,11 +7004,12 @@ import { join as join6 } from "node:path";
 // src/workers.ts
 import { execFile } from "node:child_process";
 import { existsSync as existsSync4, mkdirSync as mkdirSync2, readdirSync, readFileSync as readFileSync3, realpathSync as realpathSync2, rmSync, statSync, writeFileSync as writeFileSync3 } from "node:fs";
+import { homedir } from "node:os";
 import { basename as basename3, delimiter, isAbsolute as isAbsolute3, join as join4, relative as relative2 } from "node:path";
 import { promisify } from "node:util";
 import { StringEnum as StringEnum2 } from "@earendil-works/pi-ai";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
-import { Type as Type2 } from "typebox";
+import { Type as Type3 } from "typebox";
 
 // src/evidence.ts
 import { StringEnum } from "@earendil-works/pi-ai";
@@ -7314,6 +7315,39 @@ function piCommand() {
   return /^(node|bun)(\.exe)?$/.test(basename2(process.execPath).toLowerCase()) ? ["pi"] : [process.execPath];
 }
 
+// src/readonly-shell.ts
+import { createBashTool, createLocalBashOperations as createLocalBashOperations2 } from "@earendil-works/pi-coding-agent";
+
+// src/seccomp-filter.ts
+var AF_UNIX = 1;
+var SOCK_STREAM = 1;
+var SOCK_TYPE_MASK = 15;
+var SYS_SOCKET = 1;
+var SYS_SOCKETPAIR = 8;
+var SOCKETCALL = 102;
+var BROKER_POLICY = `socketcall=${SOCKETCALL},socket=${SYS_SOCKET},socketpair=${SYS_SOCKETPAIR},unix=${AF_UNIX},stream=${SOCK_STREAM},typemask=${SOCK_TYPE_MASK}`;
+
+// src/linux-readonly-sandbox.ts
+var FILTER_FD = 3;
+var CLOSE_INHERITED_DESCRIPTORS = `for f in /proc/self/fd/*; do n=\${f##*/}; if [ "$n" -gt ${FILTER_FD} ]; then eval "exec $n>&-"; fi; done; `;
+
+// src/shell-state.ts
+import { createBashToolDefinition, createLocalBashOperations, getShellConfig } from "@earendil-works/pi-coding-agent";
+import { Type as Type2 } from "typebox";
+var NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+var skipForeignName = `[[ $__pstack_n =~ ${NAME.source} ]] || continue`;
+var FUNCTION_BASELINE = [
+  "while IFS= read -r __pstack_n; do",
+  '  case $__pstack_n in __pstack_*|"") continue ;; esac',
+  `  ${skipForeignName}`,
+  '  builtin printf -v "__pstack_0_fn_$__pstack_n" %s "$(builtin declare -f -- "$__pstack_n")"',
+  "done < <(builtin compgen -A function)"
+].join(`
+`);
+
+// src/readonly-shell.ts
+var STRIP_ENV = ["BASH_ENV", "ENV", ...Object.keys(process.env).filter((key) => key.startsWith("BASH_FUNC_"))];
+
 // src/rpc-client.ts
 import { randomUUID as randomUUID2 } from "node:crypto";
 import { connect } from "node:net";
@@ -7501,6 +7535,8 @@ async function runHost(assignmentFile, launchText) {
   let acknowledged = 0;
   const unacknowledged = new Map;
   const quiescenceChecks = new Map;
+  let runs = 0;
+  let recordedRuns = 0;
   let unrecorded;
   let settles = [];
   let childPid = null;
@@ -7548,6 +7584,7 @@ async function runHost(assignmentFile, launchText) {
 `);
   const settle = (settlePhase, why, covers = generation) => {
     unrecorded = undefined;
+    recordedRuns = runs;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
@@ -7567,7 +7604,8 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const readonly = assignment.kind === "pi" && assignment.workspace.mode === "readonly";
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot, ...readonly ? { PSTACK_READONLY: "1" } : {} };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -7642,7 +7680,6 @@ async function runHost(assignmentFile, launchText) {
         fail(error);
     });
   };
-  const recheck = (fallback) => checkQuiescence({ ...unrecorded ?? fallback, always: false });
   const closeChild = async () => {
     if (childExited)
       return closed;
@@ -7750,9 +7787,10 @@ async function runHost(assignmentFile, launchText) {
       if (phase === "running")
         phase = "idle";
       unrecorded = { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null };
-      checkQuiescence({ ...unrecorded, always: true });
+      runs += 1;
+      checkQuiescence(unrecorded);
     } else if (type === "compaction_end" || type === "auto_retry_end") {
-      recheck({ phase: "idle", reason: null });
+      checkQuiescence({ phase: "idle", reason: null });
     } else if (type === "response") {
       const id = typeof record["id"] === "string" ? record["id"] : undefined;
       const success = record["success"] === true;
@@ -7766,15 +7804,16 @@ async function runHost(assignmentFile, launchText) {
           generation -= 1;
         save();
         if (success && isRecord2(data) && data["disposition"] === "handled")
-          recheck({ phase: "handled", reason: null });
+          checkQuiescence({ phase: "handled", reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
-        const outstanding = acknowledged > (settles.at(-1)?.generation ?? 0);
-        if (quiescent && phase !== "stopping" && !isTerminal(phase) && (check.always || outstanding))
-          settle(check.phase, check.reason, acknowledged);
+        const outstanding = runs > recordedRuns || acknowledged > (settles.at(-1)?.generation ?? 0);
+        const outcome = unrecorded ?? check;
+        if (quiescent && phase !== "stopping" && !isTerminal(phase) && outstanding)
+          settle(outcome.phase, outcome.reason, acknowledged);
       }
       const pending = id === undefined ? undefined : waiting.get(id);
       if (pending !== undefined && id !== undefined) {
@@ -7851,7 +7890,7 @@ async function runHost(assignmentFile, launchText) {
           throw new Error("Cancellation did not reach quiescence");
         phase = "idle";
         save();
-        recheck({ phase: "aborted", reason: "Run cancelled" });
+        checkQuiescence({ phase: "aborted", reason: "Run cancelled" });
         return { disposition: "cancelled", removed, wasStreaming: before["isStreaming"] === true };
       }
       const before = phase;
@@ -8059,7 +8098,7 @@ async function controlHost(target, operation, text) {
 }
 
 // src/workers.ts
-var READONLY_TOOLS = ["read", "grep", "find", "ls"];
+var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 function onPath(command) {
   if (isAbsolute3(command))
     return command;
@@ -8101,6 +8140,17 @@ var AMBIENT_CREDENTIALS = {
 };
 function credentialEnv(provider) {
   return [...findEnvKeys(provider) ?? [], ...AMBIENT_CREDENTIALS[provider] ?? []];
+}
+function defaultProvider(env) {
+  const home = env["HOME"] ?? homedir();
+  const configured = env["PI_CODING_AGENT_DIR"];
+  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join4(home, ".pi", "agent");
+  try {
+    const provider = JSON.parse(readFileSync3(join4(agentDir, "settings.json"), "utf8")).defaultProvider;
+    return typeof provider === "string" ? provider : undefined;
+  } catch {
+    return;
+  }
 }
 var execFileAsync = promisify(execFile);
 var nodeExec = async (command, args, options) => {
@@ -8186,6 +8236,8 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   } else if (!existsSync4(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory())
     throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? piCommand();
+  const source = { ...process.env, ...options.extraEnv };
+  const provider = model?.provider ?? (assignment.kind === "pi" ? defaultProvider(source) : undefined);
   const launch = {
     piCommand: [onPath(command[0]), ...command.slice(1)],
     model: model === null ? null : { provider: model.provider, id: model.id },
@@ -8194,10 +8246,10 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: model === null ? [] : credentialEnv(model.provider)
+    credentialEnv: provider === undefined ? [] : credentialEnv(provider)
   };
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? "1" : null,
     ...spawns ? { PSTACK_TMUX_SOCKET: socket } : {}
@@ -8269,14 +8321,14 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     await controlHost(target, "start");
   return { workerId: assignment.workerId, tmuxSession: session, attach: attach(session), sessionFile: state.sessionFile, model: launch.model };
 }
-var WorkerParams = Type2.Object({
+var WorkerParams = Type3.Object({
   action: StringEnum2(["spawn", "inspect", "steer", "abort", "collect"], {
     description: "spawn starts a worker from its assignment file; inspect reads live state; steer sends a message; abort stops the worker; collect reads its result once settled."
   }),
-  runId: Type2.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
-  workerId: Type2.Optional(Type2.String({ description: "inspect, steer, abort, collect: the worker id." })),
-  assignmentPath: Type2.Optional(Type2.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
-  message: Type2.Optional(Type2.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
+  runId: Type3.String({ description: "The run id (the folder under .pi/pstack/runs)." }),
+  workerId: Type3.Optional(Type3.String({ description: "inspect, steer, abort, collect: the worker id." })),
+  assignmentPath: Type3.Optional(Type3.String({ description: "spawn: absolute path of <runRoot>/workers/<workerId>/assignment.json." })),
+  message: Type3.Optional(Type3.String({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
 });
 
 // src/automation/model.ts
@@ -8633,9 +8685,9 @@ import { createServer as createServer2 } from "node:http";
 
 // src/automation/credentials.ts
 import { readFileSync as readFileSync5, statSync as statSync2 } from "node:fs";
-import { homedir } from "node:os";
+import { homedir as homedir2 } from "node:os";
 import { join as join7 } from "node:path";
-var credentialsDir = () => join7(homedir(), ".pi", "agent", "pstack", "credentials");
+var credentialsDir = () => join7(homedir2(), ".pi", "agent", "pstack", "credentials");
 var defaultCredentialFile = (connector) => join7(credentialsDir(), `${connector}.json`);
 function readCredential(file, field) {
   let mode;

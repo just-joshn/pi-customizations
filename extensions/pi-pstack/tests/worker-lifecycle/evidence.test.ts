@@ -1,11 +1,11 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
-import { makeParent, makeProject, makeRun, type Parent, type Project } from './harness.ts';
+import { makeParent, makeProject, makeRun, type Parent, type Project, until } from './harness.ts';
 
 let project: Project;
 let parent: Parent;
@@ -150,20 +150,35 @@ describe('receipt files from concurrent processes', () => {
   });
 
   test('a recorder killed mid-write leaves no partial receipt, and the id can be recorded afterwards', async () => {
-    const path = receipt('big', { reason: 'x'.repeat(64 * 1024 * 1024) });
-    const doomed = recorder(path);
+    const path = receipt('killed');
+    // The child's temporary-file write stops halfway and reports it, so the kill always lands mid-write.
+    const doomed = node(
+      `import fs, { writeSync } from 'node:fs';
+      import { syncBuiltinESMExports } from 'node:module';
+      const write = fs.writeFileSync;
+      fs.writeFileSync = (file, data, options) => {
+        if (!String(file).endsWith('.tmp')) return write(file, data, options);
+        write(file, data.slice(0, data.length >> 1), options);
+        writeSync(1, 'PARTIAL\\n');
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0);
+      };
+      syncBuiltinESMExports();
+      const { recordReceipt } = await import(${JSON.stringify(evidenceModule)});
+      recordReceipt(process.argv[1], 'run1', process.argv[2]);`,
+      runRoot,
+      path,
+    );
     children.push(doomed.child);
-    const deadline = Date.now() + 30_000;
-    while (Date.now() < deadline && (!existsSync(receiptsDir()) || readdirSync(receiptsDir()).length === 0)) {
-      // Spin, so the kill lands while the first file in receipts/ is still being written.
-    }
+    await until(doomed.output, (output) => output.includes('PARTIAL'), 30_000, 'the recorder to write half its temporary file');
     doomed.child.kill('SIGKILL');
     await doomed.exited;
-    expect(readdirSync(receiptsDir()).length).toBeGreaterThan(0);
-    expect(readdirSync(receiptsDir())).not.toContain('big.json');
+    const [temporary, ...others] = readdirSync(receiptsDir());
+    expect(others).toEqual([]);
+    expect(temporary).toMatch(/^\.killed\..*\.tmp$/);
+    expect(() => JSON.parse(readFileSync(join(receiptsDir(), temporary as string), 'utf8'))).toThrow();
     expect((await evidence({ action: 'list' })).details.receipts).toEqual([]);
 
     await evidence({ action: 'record', receiptPath: path });
-    expect((await evidence({ action: 'list' })).details.receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id)).toEqual(['big']);
-  }, 60_000);
+    expect((await evidence({ action: 'list' })).details.receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id)).toEqual(['killed']);
+  });
 });

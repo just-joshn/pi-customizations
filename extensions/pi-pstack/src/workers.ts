@@ -2,6 +2,7 @@
 // watcher that wakes the parent session exactly once per worker transition (contract "Wakeups").
 import { execFile } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { basename, delimiter, isAbsolute, join, relative } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -12,6 +13,7 @@ import { Type } from 'typebox';
 import { registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
+import { createReadonlyBashTool, releaseReadonlySandbox } from './readonly-shell.ts';
 import { controlHost, HostUnavailableError, hostTarget, inspectHost } from './rpc-client.ts';
 import {
   type Assignment,
@@ -50,7 +52,7 @@ import {
 import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
-export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls'] as const;
+export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'pstack_evidence'] as const;
 
 export interface ResolvedModel {
   provider: string;
@@ -232,6 +234,23 @@ function credentialEnv(provider: string): string[] {
   return [...(findEnvKeys(provider) ?? []), ...(AMBIENT_CREDENTIALS[provider] ?? [])];
 }
 
+/**
+ * The provider Pi starts on when it gets no --model: `defaultProvider` in settings.json under the agent directory the
+ * worker will see (PI_CODING_AGENT_DIR, else ~/.pi/agent). Undefined when the file names none and Pi picks on its own.
+ */
+function defaultProvider(env: Record<string, string | undefined>): string | undefined {
+  const home = env['HOME'] ?? homedir();
+  const configured = env['PI_CODING_AGENT_DIR'];
+  const agentDir = configured ? configured.replace(/^~(?=$|\/)/, home) : join(home, '.pi', 'agent');
+  try {
+    const provider = (JSON.parse(readFileSync(join(agentDir, 'settings.json'), 'utf8')) as { defaultProvider?: unknown }).defaultProvider;
+    return typeof provider === 'string' ? provider : undefined;
+  } catch {
+    // Pi starts without this file's settings too.
+    return undefined;
+  }
+}
+
 function finalAssistantText(sessionFile: string | null): string | null {
   if (sessionFile === null || !existsSync(sessionFile)) return null;
   let text: string | null = null;
@@ -384,6 +403,9 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     if (assignment.workspace.mode === 'readonly' && (!existsSync(assignment.workspace.path) || !statSync(assignment.workspace.path).isDirectory())) throw new Error(`Readonly workspace ${assignment.workspace.path} is not a directory`);
   } else if (!existsSync(assignment.watch.cwd) || !statSync(assignment.watch.cwd).isDirectory()) throw new Error(`Watch cwd ${assignment.watch.cwd} is not a directory`);
   const command = options.piCommand ?? runningPiCommand();
+  // This process's environment now, not the tmux server's, which dates from when the server started.
+  const source = { ...process.env, ...options.extraEnv };
+  const provider = model?.provider ?? (assignment.kind === 'pi' ? defaultProvider(source) : undefined);
   const launch: HostLaunch = {
     piCommand: [onPath(command[0] as string), ...command.slice(1)],
     model: model === null ? null : { provider: model.provider, id: model.id },
@@ -392,12 +414,11 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: options.extraPiArgs ?? [],
-    credentialEnv: model === null ? [] : credentialEnv(model.provider),
+    credentialEnv: provider === undefined ? [] : credentialEnv(provider),
   };
-  // This process's environment now, not the tmux server's, which dates from when the server started.
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv }),
+    ...launchEnvironment(assignment.capabilities.env, launch.credentialEnv, source),
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? '1' : null,
     ...(spawns ? { PSTACK_TMUX_SOCKET: socket } : {}),
@@ -477,11 +498,16 @@ const WorkerParams = Type.Object({
 const text = (value: string, details: unknown) => ({ content: [{ type: 'text' as const, text: value }], details });
 
 /**
- * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, and pstack_worker only for a
- * sub-coordinator, the worker its parent spawned with capabilities.spawn (PSTACK_SPAWN=1).
+ * The pstack tools inside a worker (PSTACK_WORKER=1): pstack_evidence always, bash_readonly in a readonly workspace
+ * (PSTACK_READONLY=1), and pstack_worker only for a sub-coordinator, the worker its parent spawned with
+ * capabilities.spawn (PSTACK_SPAWN=1).
  */
 export function registerWorkerSideTools(pi: ExtensionAPI, env: NodeJS.ProcessEnv, options: WorkerToolOptions = {}): void {
   registerEvidenceTool(pi);
+  if (env['PSTACK_READONLY'] === '1') {
+    pi.registerTool(createReadonlyBashTool('bash_readonly'));
+    pi.on('session_shutdown', releaseReadonlySandbox);
+  }
   if (env['PSTACK_SPAWN'] === '1') registerWorkerTools(pi, options);
 }
 
@@ -599,16 +625,17 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     return result;
   };
 
+  const sessions = async () => {
+    const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
+    return listed.code === 0 ? listed.stdout.split('\n') : [];
+  };
+
   /**
    * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
    * when the claimed session id still names the session created then, on the same server; anything else is left running.
    */
   const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
     const owned = readTmuxIdentity(loaded.workerDir);
-    const sessions = async () => {
-      const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
-      return listed.code === 0 ? listed.stdout.split('\n') : [];
-    };
     if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
     const line = formatTmuxIdentity(owned);
     if (!(await sessions()).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
@@ -619,6 +646,25 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   };
 
   /**
+   * Whether the host that claimed the worker can never run again: the session recorded in claim/tmux.json is gone from
+   * the server, and the claim's host pid is dead or now names another process. A host that may still be starting would
+   * read launch-env.json, so only then may the file go.
+   */
+  const claimingHostGone = async (loaded: LoadedAssignment): Promise<boolean> => {
+    const claim = readClaim(loaded.workerDir);
+    const owned = readTmuxIdentity(loaded.workerDir);
+    if (claim === undefined || owned === undefined || (await sessions()).includes(formatTmuxIdentity(owned))) return false;
+    try {
+      process.kill(claim.hostPid, 0);
+    } catch (error) {
+      // EPERM: the pid belongs to another user, so it is not this user's host.
+      return ['ESRCH', 'EPERM'].includes((error as NodeJS.ErrnoException).code ?? '');
+    }
+    const listed = await pi.exec('ps', ['-ww', '-o', 'command=', '-p', String(claim.hostPid)], { timeout: 5_000 });
+    return listed.code === 0 && !listed.stdout.includes(loaded.file);
+  };
+
+  /**
    * A claim with no identity.json may belong to a spawn whose parent died before tmux started a host. When no host and
    * no session by the worker's name appear within the wait, the worker is abandoned: its launch secrets are removed and
    * its claim stays, so it is never spawned again. A fresh worker id is the retry.
@@ -626,7 +672,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const abortUnreachable = async (project: string, loaded: LoadedAssignment, reason: string) => {
     const { runId, workerId } = loaded.assignment;
     const claimDir = join(loaded.workerDir, 'claim');
-    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) return endHostSession(loaded, reason);
+    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) {
+      const ended = await endHostSession(loaded, reason);
+      if (!existsSync(launchEnvPath(loaded.workerDir)) || !(await claimingHostGone(loaded))) return ended;
+      rmSync(launchEnvPath(loaded.workerDir), { force: true });
+      return { ...ended, reason: `${ended.reason}; the host that claimed the worker is gone, so its unread launch-env.json was removed` };
+    }
     const check = await checkStart(exec, socket, tmuxSessionName(project, runId, workerId), loaded.workerDir, startCheckMs);
     if (check.outcome === 'started') {
       try {
@@ -654,7 +705,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     name: 'pstack_worker',
     label: 'pstack worker',
     description:
-      'Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. spawn returns at once with the tmux attach command; the parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.',
+      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
     promptSnippet: 'Spawn, inspect, steer, abort, or collect tmux-hosted pstack worker processes',
     promptGuidelines: ['Use pstack_worker collect only after a pstack-worker wake message or an inspect that shows the worker settled; before that it returns live state, not a result.'],
     parameters: WorkerParams,
