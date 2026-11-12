@@ -149,12 +149,14 @@ A receipt is one JSON file for one check you ran. A writable worker saves it und
 - `artifacts`: an array of { path, sha256 }, [] when there is no file; path is relative to the run root or absolute inside it; sha256 is 64 lowercase hex characters of the file.
 - `defects`: optional; an array of strings.
 - `reason`: optional; text.
-- `expectedFail`: optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero.
+- `expectedFail`: optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero. verify then reads the recorded output and confirms the tests named in expectedFailTests failed for expectedFailReason, and that the run did not fail from a crash, a syntax error, a missing file, or zero tests run.
+- `expectedFailTests`: required with expectedFail; the failing test names or assertion text the output must show failing, as they appear in it.
+- `expectedFailReason`: required with expectedFail; text from the failure message that states why they fail, which the output must contain.
 - `createdAt`: an ISO timestamp string.
 
 `pstack_evidence` `verify` takes a `target` and re-checks every receipt recorded for it. A missing receipt is `inconclusive`. A `pass` with no artifacts is `inconclusive`, because it is an assertion and not evidence. A `pass` whose `exitCode` is not 0 fails, unless `expectedFail` is `true`. A `fail` receipt makes the target fail. `verify` also fails a receipt whose artifact is missing or does not match its `sha256`, and, when the target is a commit, one whose `commit` differs.
 
-To prove a check fails before the fix, run it and record a receipt with `expectedFail: true`, `verdict: "pass"`, the non-zero `exitCode`, and the failing output as the artifact, under its own target such as `<step>-before`. Record the passing run after the fix under the step's target. A receipt without `expectedFail` that says `pass` with a non-zero `exitCode` is rejected as contradicting itself.
+To prove a check fails before the fix, run it and record a receipt with `expectedFail: true`, `verdict: "pass"`, the non-zero `exitCode`, and the failing output as the artifact, under its own target such as `<step>-before`. Name the failing tests (or assertion) in `expectedFailTests` and the failure message text in `expectedFailReason`. `verify` reads the recorded output and is `inconclusive` without those fields, and `fail` when a named test is not shown failing, the reason is absent, or the output shows a crash, a syntax error, a missing file, or zero tests run. Record the passing run after the fix under the step's target. A receipt without `expectedFail` that says `pass` with a non-zero `exitCode` is rejected as contradicting itself.
 
 ```json receipt
 {
@@ -169,6 +171,8 @@ To prove a check fails before the fix, run it and record a receipt with `expecte
   "environment": "worker worktree, node 22",
   "command": ["npx", "vitest", "run", "redirect.test.ts"],
   "exitCode": 1,
+  "expectedFailTests": ["redirects to the page the user asked for"],
+  "expectedFailReason": "expected '/login' to equal '/orders'",
   "artifacts": [{ "path": "workers/fix/evidence/repro-before.txt", "sha256": "<64 hex characters of that file>" }],
   "createdAt": "2026-11-12T10:00:00Z"
 }

@@ -26,6 +26,8 @@ export const ReceiptSchema = Type.Object(
     command: Type.Optional(Type.Array(Type.String())),
     exitCode: Type.Optional(Type.Integer()),
     expectedFail: Type.Optional(Type.Boolean()),
+    expectedFailTests: Type.Optional(Type.Array(Type.String({ minLength: 1 }))),
+    expectedFailReason: Type.Optional(Type.String({ minLength: 1 })),
     artifacts: Type.Array(Type.Object({ path: Type.String({ minLength: 1 }), sha256: Type.String({ pattern: '^[0-9a-f]{64}$' }) }, { additionalProperties: false })),
     defects: Type.Optional(Type.Array(Type.String())),
     reason: Type.Optional(Type.String()),
@@ -222,6 +224,33 @@ function sha256(path: string): string {
   }
 }
 
+const OTHER_CAUSES: readonly [RegExp, string][] = [
+  [/\b(SyntaxError|ReferenceError|ParseError|IndentationError)\b/, 'a syntax or reference error'],
+  [/Cannot find module|ModuleNotFoundError|ERR_MODULE_NOT_FOUND|ENOENT|No such file or directory|command not found|not found: /i, 'a missing file, module, or command'],
+  [/No test files found|No tests found|no tests (were )?(found|run)|collected 0 items|Ran 0 tests|^\s*Tests\s+0\b|\b0 tests? (run|found|executed)/im, 'zero tests ran'],
+  [/Segmentation fault|core dumped|Unhandled (rejection|exception)|FATAL ERROR|panic:|JavaScript heap out of memory/i, 'a crash'],
+];
+const FAILURE_MARK = /\b(FAIL|FAILED|failed|not ok|AssertionError|AssertionFailed|Assertion failed)\b|[×✗✖❌]/;
+const PASS_MARK = /^\s*(✓|√|✔|PASS\b|ok\b)|\bpassed\b/;
+
+/** Why a recorded run does not prove its named tests failed for the stated reason; empty when it does. `crashed` marks a failure of some other cause. */
+export function expectedFailProblems(output: string, tests: readonly string[], reason: string): { problems: string[]; otherCause: boolean } {
+  const problems: string[] = [];
+  const causes = OTHER_CAUSES.filter(([pattern]) => pattern.test(output)).map(([, label]) => label);
+  if (causes.length > 0) problems.push(`the recorded output shows ${causes.join(' and ')}, not a test failing`);
+  const lines = output.split('\n');
+  for (const name of tests) {
+    const failed = lines.some((line, index) => line.includes(name) && !PASS_MARK.test(line) && lines.slice(index, index + 6).some((near) => FAILURE_MARK.test(near)));
+    if (!failed) problems.push(`the recorded output does not show "${name}" failing`);
+  }
+  if (!output.includes(reason)) problems.push(`the recorded output does not contain the stated reason "${reason}"`);
+  return { problems, otherCause: causes.length > 0 };
+}
+
+function readArtifactsText(base: string, receipt: Receipt): string {
+  return receipt.artifacts.map((artifact) => readFileSync(artifactPath(base, artifact.path), 'utf8')).join('\n');
+}
+
 /** Re-checks every recorded receipt for `target`: a TODO step id, a worker id, or a commit. */
 export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, target: string): EvidenceVerdict {
   const { base, root } = scopeOf(runRoot);
@@ -255,6 +284,13 @@ export function verifyTarget(runRoot: string | EvidenceScope, runId: RunId, targ
       const expectedFail = receipt.expectedFail === true;
       if (expectedFail && receipt.exitCode === undefined) unverifiable.push(`${receipt.id}: an expected-fail pass needs the failing command's exitCode`);
       else if (expectedFail && receipt.exitCode === 0) defects.push(`${receipt.id}: expected the command to fail, but it exited 0`);
+      else if (expectedFail && (receipt.expectedFailTests ?? []).length === 0) unverifiable.push(`${receipt.id}: an expected-fail pass must name the failing test(s) or assertion in expectedFailTests`);
+      else if (expectedFail && receipt.expectedFailReason === undefined) unverifiable.push(`${receipt.id}: an expected-fail pass must state why the named tests fail in expectedFailReason`);
+      else if (expectedFail && receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: an expected-fail pass needs the failing command's output as an artifact, to confirm the named tests failed`);
+      else if (expectedFail && !defects.some((defect) => defect.startsWith(`${receipt.id}: artifact`))) {
+        const { problems } = expectedFailProblems(readArtifactsText(base, receipt), receipt.expectedFailTests ?? [], receipt.expectedFailReason ?? '');
+        for (const problem of problems) defects.push(`${receipt.id}: expected failure not confirmed: ${problem}`);
+      }
       else if (!expectedFail && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself; for an intended failing-before proof set expectedFail: true`);
       else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);
     }

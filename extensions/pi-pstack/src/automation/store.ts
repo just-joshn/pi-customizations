@@ -24,10 +24,14 @@ export type LogEntry =
   | { ts: string; kind: 'repro-turn-completed'; key: EventKey; runId: RunId; turn: number; failure?: string; decision?: string; corrected?: boolean }
   | { ts: string; kind: 'repro-closed'; key: EventKey; runId: RunId; reason: string }
   | { ts: string; kind: 'worker-retired'; key: EventKey; runId: RunId; outcome: string; ok: boolean }
-  | { ts: string; kind: 'evidence-staged'; key: EventKey; runId: RunId; attached: number; skipped: { requested: string; reason: string }[] }
+  | { ts: string; kind: 'evidence-staged'; key: EventKey; runId: RunId; /** Files that went with the source reply. */ attached: number; skipped: { requested: string; reason: string }[]; /** Files kept in the store beyond the first Slack message, for the operations thread. */ further?: { name: string; path: string }[] }
+  /** Report attachments the worker was not given, each with the reason. */
+  | { ts: string; kind: 'attachments-omitted'; key: EventKey; runId: RunId; omitted: { name: string; reason: string }[] }
   /** A repro worker committed, pushed or opened a pull request before the go-ahead. It was stopped, and no fix followed. */
-  | { ts: string; kind: 'unprompted-fix'; key: EventKey; runId: RunId; ahead: number; committed: number; pushed: boolean | 'unknown'; pullRequests: string[] }
+  | { ts: string; kind: 'unprompted-fix'; key: EventKey; runId: RunId; ahead: number; committed: number; pushed: boolean | 'unknown'; /** Pull requests the automation opened and closed. */ pullRequests: string[]; /** Pull requests it did not open, reported and left open. */ leftOpen?: string[] }
   /** A pull request on a run branch was not a draft. The parent made it one. */
+  /** The parent opened this pull request itself: the only record that makes a pull request this automation's own. */
+  | { ts: string; kind: 'pull-request-opened'; key: EventKey; runId: RunId; actionId: string; number: number; url: string }
   | { ts: string; kind: 'draft-guard'; key: EventKey; runId: RunId; pullRequest: string }
   | { ts: string; kind: 'fix-landing-failed'; key: EventKey; runId: RunId; turn: number; reason: string }
   | { ts: string; kind: 'deadline'; runId: RunId; minutes: number; abort: string }

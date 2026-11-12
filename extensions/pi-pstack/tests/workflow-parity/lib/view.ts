@@ -13,6 +13,8 @@ export interface ToolCall {
   args: Json;
   resultText: string;
   isError: boolean;
+  /** When the session recorded the call (ISO), if it did. */
+  at?: string;
 }
 
 export interface Message {
@@ -77,7 +79,7 @@ export function loadSession(file: string): Session {
       if (typeof message['provider'] === 'string' && typeof message['model'] === 'string') models.add(`${message['provider']}/${message['model']}`);
       for (const part of message['content'] as Json[]) {
         if (part['type'] !== 'toolCall') continue;
-        const call: ToolCall = { order: order - 1, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false };
+        const call: ToolCall = { order: order - 1, name: String(part['name']), args: (part['arguments'] ?? {}) as Json, resultText: '', isError: false, ...(typeof entry['timestamp'] === 'string' ? { at: entry['timestamp'] } : {}) };
         calls.set(String(part['id']), call);
         toolCalls.push(call);
       }

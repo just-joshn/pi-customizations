@@ -84,26 +84,67 @@ describe('pstack_evidence', () => {
     expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', receipts: ['r1'] });
   });
 
-  test('an intended failing-before proof records as expectedFail and verifies as pass only when the command failed', async () => {
-    await evidence({ action: 'record', receiptPath: receipt('red', { target: 'step-3-before', expectedFail: true, exitCode: 1 }) });
-    expect((await evidence({ action: 'verify', target: 'step-3-before' })).details).toEqual({ kind: 'pass', receipts: ['red'] });
-    await evidence({ action: 'record', receiptPath: receipt('green-claimed-red', { target: 'step-4-before', expectedFail: true, exitCode: 0 }) });
-    expect((await evidence({ action: 'verify', target: 'step-4-before' })).details).toMatchObject({ kind: 'fail', defects: ['green-claimed-red: expected the command to fail, but it exited 0'] });
-    const bare = receipt('red-no-exit', { target: 'step-5-before', expectedFail: true });
-    writeFileSync(bare, JSON.stringify({ ...JSON.parse(readFileSync(bare, 'utf8')), exitCode: undefined }));
-    await evidence({ action: 'record', receiptPath: bare });
-    expect((await evidence({ action: 'verify', target: 'step-5-before' })).details).toMatchObject({ kind: 'inconclusive' });
+  const RED_LOG = ' FAIL  redirect.test.ts > redirects to the page the user asked for\nAssertionError: expected \'/login\' to equal \'/orders\'\n Tests  1 failed | 3 passed (4)\n';
+  const redReceipt = (id: string, log: string, fields: Record<string, unknown> = {}): string => {
+    const path = receipt(id, { target: `${id}-before`, expectedFail: true, exitCode: 1, expectedFailTests: ['redirects to the page the user asked for'], expectedFailReason: "expected '/login' to equal '/orders'", ...fields });
+    const file = join(runRoot, 'workers', 'w1', 'evidence', `${id}.log`);
+    writeFileSync(file, log);
+    writeFileSync(path, JSON.stringify({ ...JSON.parse(readFileSync(path, 'utf8')), artifacts: [{ path: `workers/w1/evidence/${id}.log`, sha256: sha(log) }], ...fields }));
+    return path;
+  };
+  const verifyRed = async (id: string, log: string, fields: Record<string, unknown> = {}) => {
+    await evidence({ action: 'record', receiptPath: redReceipt(id, log, fields) });
+    return (await evidence({ action: 'verify', target: `${id}-before` })).details;
+  };
+
+  describe('expectedFail receipts', () => {
+    test('pass when the named test failed for the stated reason', async () => {
+      expect(await verifyRed('red', RED_LOG)).toEqual({ kind: 'pass', receipts: ['red'] });
+    });
+
+    test('fail when the command exited 0', async () => {
+      expect(await verifyRed('green', RED_LOG, { exitCode: 0 })).toMatchObject({ kind: 'fail', defects: ['green: expected the command to fail, but it exited 0'] });
+    });
+
+    test('inconclusive without an exit code, without named tests, without a reason, or without output', async () => {
+      const bare = redReceipt('noexit', RED_LOG);
+      writeFileSync(bare, JSON.stringify({ ...JSON.parse(readFileSync(bare, 'utf8')), exitCode: undefined }));
+      await evidence({ action: 'record', receiptPath: bare });
+      expect((await evidence({ action: 'verify', target: 'noexit-before' })).details).toMatchObject({ kind: 'inconclusive' });
+      expect(await verifyRed('notests', RED_LOG, { expectedFailTests: [] })).toMatchObject({ kind: 'inconclusive', reason: expect.stringContaining('must name the failing test') });
+      expect(await verifyRed('noreason', RED_LOG, { expectedFailReason: undefined })).toMatchObject({ kind: 'inconclusive', reason: expect.stringContaining('expectedFailReason') });
+      expect(await verifyRed('noart', RED_LOG, { artifacts: [] })).toMatchObject({ kind: 'inconclusive', reason: expect.stringContaining('output as an artifact') });
+    });
+
+    test('fail when the named test is not shown failing, or shown passing', async () => {
+      expect(await verifyRed('other', ' FAIL  other.test.ts > something else\nAssertionError: expected \'/login\' to equal \'/orders\'\n')).toMatchObject({ kind: 'fail', defects: [expect.stringContaining('does not show "redirects to the page the user asked for" failing')] });
+      expect(await verifyRed('passing', ' ✓ redirects to the page the user asked for\n FAIL elsewhere\nexpected \'/login\' to equal \'/orders\'\n')).toMatchObject({ kind: 'fail', defects: [expect.stringContaining('does not show')] });
+    });
+
+    test('fail when the stated reason is absent from the output', async () => {
+      expect(await verifyRed('why', ' FAIL  redirects to the page the user asked for\nAssertionError: boom\n')).toMatchObject({ kind: 'fail', defects: [expect.stringContaining('stated reason')] });
+    });
+
+    test.each([
+      ['a crash before any test ran', 'node:internal\nSyntaxError: Unexpected token }\n', 'syntax'],
+      ['a missing file', "Error: Cannot find module './redirect.js'\n FAIL redirects to the page the user asked for\nexpected '/login' to equal '/orders'\n", 'missing'],
+      ['zero tests run', 'No test files found, exiting with code 1\n', 'zero tests'],
+      ['a crash', 'Segmentation fault (core dumped)\n', 'crash'],
+    ])('fail on %s', async (_name, log, word) => {
+      const id = `cause-${word.replace(' ', '')}`;
+      expect(await verifyRed(id, log)).toMatchObject({ kind: 'fail', defects: expect.arrayContaining([expect.stringContaining(word === 'zero tests' ? 'zero tests ran' : 'not a test failing')]) });
+    });
+
+    test('fail when the artifact changed after recording', async () => {
+      await evidence({ action: 'record', receiptPath: redReceipt('red', RED_LOG) });
+      writeFileSync(join(runRoot, 'workers', 'w1', 'evidence', 'red.log'), 'tampered\n');
+      expect((await evidence({ action: 'verify', target: 'red-before' })).details.kind).toBe('fail');
+    });
   });
 
   test('a non-zero pass without expectedFail still fails, and says how to record an intended failure', async () => {
     await evidence({ action: 'record', receiptPath: receipt('r1', { exitCode: 2 }) });
     expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', defects: [expect.stringContaining('set expectedFail: true')] });
-  });
-
-  test('an expected-fail receipt with a pass-claiming artifact still fails when the artifact changed', async () => {
-    await evidence({ action: 'record', receiptPath: receipt('red', { target: 'step-3-before', expectedFail: true, exitCode: 1 }) });
-    writeFileSync(join(runRoot, 'workers', 'w1', 'evidence', 'test.log'), 'tampered\n');
-    expect((await evidence({ action: 'verify', target: 'step-3-before' })).details.kind).toBe('fail');
   });
 
   test('a pass with no artifacts is inconclusive', async () => {
@@ -135,7 +176,7 @@ describe('pstack_evidence', () => {
     const kind = receipt('r1', { kind: 'unit-test', verdict: 'passed' });
     await expect(evidence({ action: 'record', receiptPath: kind })).rejects.toThrow(/kind: [^;]*\(must be one of test, command, screenshot, trace, review, measurement, other\); verdict: [^;]*\(must be one of pass, fail, inconclusive\)$/);
     const extra = receipt('r2', { receipt: {}, receiptPath: 'x' });
-    await expect(evidence({ action: 'record', receiptPath: extra })).rejects.toThrow(/receipt: unknown field \(allowed fields: schemaVersion, id, runId, target, kind, verdict, commit, environment, command, exitCode, artifacts, defects, reason, expectedFail, createdAt\)/);
+    await expect(evidence({ action: 'record', receiptPath: extra })).rejects.toThrow(/receipt: unknown field \(allowed fields: schemaVersion, id, runId, target, kind, verdict, commit, environment, command, exitCode, artifacts, defects, reason, expectedFail, expectedFailTests, expectedFailReason, createdAt\)/);
     const missing = receipt('r3');
     writeFileSync(missing, JSON.stringify({ schemaVersion: 1, id: 'r3', runId: 'run1', target: 't', kind: 'test', verdict: 'pass', commit: null, environment: 'x', artifacts: [] }));
     await expect(evidence({ action: 'record', receiptPath: missing })).rejects.toThrow(/createdAt: missing \(must be an ISO timestamp string\)/);

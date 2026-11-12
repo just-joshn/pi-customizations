@@ -265,6 +265,7 @@ architect: ground with how, two structurally distinct designs through arena, red
 | `architect.judge-after-candidates` | the judge is spawned after every candidate completes | `generated/skills/arena/SKILL.md:28`, `generated/skills/arena/SKILL.md:28` |
 | `architect.rationale-shipped` | the rationale ships alongside, shaped per rationale-template.md, with the usage section before the shape | `generated/skills/architect/SKILL.md:79` |
 | `architect.proceeds-to-implementation` | with no checkpoint requested, implementation follows the synthesis directly: after the judge (or, with the judge skipped, the candidates) was collected, a writable worker commits, or the parent writes and commits on the checkout itself (Phase D names no worker) | `generated/skills/architect/SKILL.md:43` |
+| `architect.calling-playbook-delegation` | when architect runs inside a playbook that mandates delegation (feature, bug-fix, refactoring, perf-issue, hillclimb), that playbook's rule applies: the parent writes no production code and commits nothing itself; run alone, architect itself lets the parent implement | `generated/skills/poteto-mode/playbooks/feature.md:3`, `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
 | `architect.implementation-verified` | a passing test receipt covers the implementation: it targets "implement" or a commit of the implementation | `generated/skills/architect/SKILL.md:53` |
 | `architect.settled-and-collected` | every worker settled, and the parent collected it after a pstack-worker wake or an inspect that showed it settled | `generated/skills/arena/SKILL.md:28` |
 | `architect.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/architect/SKILL.md:77` |
@@ -277,6 +278,8 @@ Negative cases, each of which must FAIL the named checks:
 - the rationale kept the template note for the synthesis decision → `architect.rationale-shipped`
 - the implementation committed nothing → `architect.proceeds-to-implementation`
 - the parent implemented on the checkout itself after the judge and verified its own commit → 
+- architect ran inside the feature playbook and the parent implemented on the checkout itself → `architect.calling-playbook-delegation`
+- architect ran inside the feature playbook and a worker implemented → 
 - the parent committed on the checkout but wrote no file after the judge, and its receipt names no commit → `architect.proceeds-to-implementation`, `architect.implementation-verified`
 - the implementation receipt is gone → `architect.implementation-verified`
 - no other-family judge could run, so the judge was skipped and the final message says so → 
@@ -452,7 +455,7 @@ Bug fix playbook: reproduce first, eliminate hypotheses with runtime evidence, f
 | `bug-fix.hypotheses-eliminated-with-runtime-evidence` | step 2: an investigator ruled hypotheses out and confirmed the survivor, each with a command it ran | `generated/skills/poteto-mode/playbooks/bug-fix.md:8` |
 | `bug-fix.investigator-readonly` | the investigator is readonly on the repository root | `generated/skills/poteto-mode/playbooks/bug-fix.md:3` |
 | `bug-fix.fix-delegated` | step 3: the fix is delegated to a poteto worker in its own worktree on the "bug-fix" model line | `generated/skills/poteto-mode/playbooks/bug-fix.md:9` |
-| `bug-fix.failing-repro-lands-before-the-fix` | step 5: the first commit adds only the regression test and fails there; the last commit changes the source and passes | `generated/skills/poteto-mode/playbooks/bug-fix.md:11` |
+| `bug-fix.failing-repro-lands-before-the-fix` | step 5: across the workflow (a failing test the parent committed before the spawn counts, and is not the delegate's), the first commit adds only the regression test and fails there; the last commit changes the source and passes | `generated/skills/poteto-mode/playbooks/bug-fix.md:11` |
 | `bug-fix.smallest-change` | only the evidence-justified change ships: the fix commit touches src/cart.js and nothing else | `generated/skills/poteto-mode/playbooks/bug-fix.md:5` |
 | `bug-fix.same-repro-fails-before-passes-after` | step 4: the original repro fails at the base and passes at the delivered commit, confirmed by re-running it, and the step 4 receipt names a delivered commit | `generated/skills/poteto-mode/playbooks/bug-fix.md:10` |
 | `bug-fix.reply-pastes-failing-then-passing-output` | the reply pastes the failing then the passing repro output verbatim | `generated/skills/poteto-mode/playbooks/bug-fix.md:15` |
@@ -473,7 +476,8 @@ Negative cases, each of which must FAIL the named checks:
 - the repro never failed at the base: it exited 0 and printed a healthy total → `bug-fix.reproduced-first-on-the-surface`
 - the repro exited 0 but printed the wrong total, as a repro script that reports instead of failing does → 
 - the receipts target the steps as "1" and "4", and the repro was run with different wording → 
-- the repro ran after the fix worker was already running → `bug-fix.reproduced-first-on-the-surface`
+- the repro receipt was recorded in a batch after the spawn, and nothing before the spawn ran the command or wrote its output → `bug-fix.reproduced-first-on-the-surface`
+- the repro receipt was recorded in a batch after the spawn, but the parent ran the command and wrote its output before the spawn → 
 - the after receipt names a commit nobody delivered → `bug-fix.same-repro-fails-before-passes-after`
 - the parent wrote the failing repro test itself → 
 - the investigator confirmed nothing → `bug-fix.hypotheses-eliminated-with-runtime-evidence`
@@ -597,6 +601,7 @@ Negative cases, each of which must FAIL the named checks:
 - the post-fix run used another command → `perf-issue.same-command-after-on-the-delivered-commit`
 - the recorded baseline is not what the benchmark prints → `perf-issue.numbers-reproduce`
 - the reply claims a delta the numbers do not give → `perf-issue.reply-explains-the-number`
+- the reply states a drop that is not the baseline minus the post-fix number, with no percent → `perf-issue.reply-explains-the-number`
 - the reply states the delta as a drop from the baseline to the post-fix number, with no percent → 
 - the mantras were handed over out of order → `perf-issue.mantras-in-order`
 - the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target → 

@@ -157,6 +157,10 @@ export const OPS_STATUSES = {
   Blocked: 'blocked',
   Reproduced: 'reproduced',
   'Verifying existing fix': 'reproducing',
+  /** An existing fix was checked and the symptom is still there on the patched build (verify-existing-fix.md "Insufficient fix": reproduced but not fixed). The status line says so. */
+  'Reproduced but not fixed': 'reproduced_not_fixed',
+  /** The check of an existing fix did not finish: a half could not be measured, or the proof record does not show it. Upstream names the outcome (verify-existing-fix.md "Inconclusive") and gives it no status string. */
+  'Verification incomplete': 'verification_incomplete',
   'Attempting bounded fix': 'fixing',
   'Draft pull request opened': 'pull_request_opened',
   'Fix did not land': 'fix_failed',

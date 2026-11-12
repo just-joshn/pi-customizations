@@ -3,10 +3,11 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import type { Automation } from '../../adapters/automation-events.ts';
+import { markerOf } from '../../src/automation/forge.ts';
 import { fixPrompt } from '../../src/automation/repro-turns.ts';
-import type { RunId } from '../../src/automation/model.ts';
+import { actionIdFor, type EventKey, type RunId } from '../../src/automation/model.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
-import { readLog } from '../../src/automation/store.ts';
+import { appendLog, readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
 import { beginTurn, type BennyProject, bennyProject, fakeGh, fakeSlack, gitProject, OPS_CHANNEL, REPORT, settleWorker, TRIAGE_USER, wiringDeps, writeProof } from './benny-fakes.ts';
 
@@ -81,6 +82,7 @@ describe('the parent opens the pull request, and only as a draft', () => {
     expect(t.gh.pulls[0]?.body).toContain(PR.body);
     expect(t.gh.pulls[0]?.body).toMatch(/<!-- pstack-action:act-[0-9a-f]{16} -->$/);
     expect(status(t)).toBe('🔗 Draft pull request opened');
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'pull-request-opened', runId, number: 1, url: 'https://github.com/example-org/example-repo/pull/1' }));
     expect(opsReplies(t)).toContain('Draft pull request: https://github.com/example-org/example-repo/pull/1');
     expect(sourceReplies(t)).toEqual(['Reproduced twice on Safari 17.1.']);
     expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'repro-closed', reason: 'the fix phase finished' }));
@@ -176,6 +178,7 @@ describe('the parent opens the pull request, and only as a draft', () => {
     await restarted.reconcile();
     await restarted.advanceRepro();
     expect(created(t)).toHaveLength(1);
+    expect(readLog(t.automation.store).filter((entry) => entry.kind === 'pull-request-opened')).toEqual([expect.objectContaining({ runId, number: 1 })]);
   });
 
   test('a worker that already opened a ready-for-review pull request itself has it adopted and converted to a draft, and the operations thread says so', async () => {
@@ -186,6 +189,7 @@ describe('the parent opens the pull request, and only as a draft', () => {
     await fixed(t, runId, JSON.stringify({ status: 'Draft pull request opened', operations: 'opened' }), { commit: false });
     expect(created(t)).toHaveLength(0);
     expect(t.gh.pulls[0]?.draft).toBe(true);
+    expect(readLog(t.automation.store).some((entry) => entry.kind === 'pull-request-opened')).toBe(false);
     expect(opsReplies(t).join('\n')).toContain('already opened it as ready for review, so the parent converted it to a draft');
     expect(status(t)).toBe('🔗 Draft pull request opened');
   });
@@ -285,17 +289,90 @@ describe('a fix started before the go-ahead is stopped', () => {
     expect(t.git.remoteBranches()).toEqual([`pstack-run/${runId}/owner`]);
   });
 
-  test('a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place', async () => {
-    const t = repro();
-    const runId = await reported(t);
+  /** The marker and record the parent leaves when it opens a pull request: the only things that make one the automation's own. */
+  const ownershipOf = (t: Repro, runId: RunId) => {
+    const key = (readLog(t.automation.store).find((entry) => entry.kind === 'dispatched' && entry.runId === runId) as { key: EventKey }).key;
+    const actionId = actionIdFor(t.project.config('reproduce').name, key, 'pull-request');
+    return { key, marker: markerOf(actionId), record: () => appendLog(t.automation.store, { ts: t.now().toISOString(), kind: 'pull-request-opened', key, runId, actionId, number: 1, url: 'https://github.com/example-org/example-repo/pull/1' }) };
+  };
+  const earlyBranch = (t: Repro, runId: RunId) => {
     t.git.commitIn(runId, 'fix.txt', 'too early');
     t.git.git(t.git.worktree(runId), 'push', 'origin', `refs/heads/pstack-run/${runId}/owner:refs/heads/pstack-run/${runId}/owner`);
-    t.gh.pulls.push({ number: 1, head: `pstack-run/${runId}/owner`, base: 'main', title: 'early', body: '', draft: false, state: 'OPEN', comments: [] });
+  };
+  const pull = (runId: RunId, body: string, draft = false) => ({ number: 1, head: `pstack-run/${runId}/owner`, base: 'main', title: 'early', body, draft, state: 'OPEN' as const, comments: [] as string[] });
+
+  test('a pull request the worker opened itself is reported and left open: the branch name alone does not make it the automation\'s', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    earlyBranch(t, runId);
+    t.gh.pulls.push(pull(runId, 'opened by the worker'));
     await t.automation.advanceRepro();
-    expect(t.gh.pulls[0]).toMatchObject({ draft: true, state: 'CLOSED' });
+    expect(t.gh.pulls[0]).toMatchObject({ state: 'OPEN', comments: [] });
+    expect(opsReplies(t).join('\n')).toContain('https://github.com/example-org/example-repo/pull/1 was not opened by this automation, so it was left open.');
+    expect(opsReplies(t).join('\n')).not.toContain('The pull request was closed.');
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'unprompted-fix', pullRequests: [], leftOpen: ['https://github.com/example-org/example-repo/pull/1'] }));
+    expect(t.git.remoteBranches()).toEqual([`pstack-run/${runId}/owner`]);
+  });
+
+  test('an early draft pull request the parent opened, by its own record and marker, is closed with an explanatory comment and its branch is left in place', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    earlyBranch(t, runId);
+    const owned = ownershipOf(t, runId);
+    owned.record();
+    t.gh.pulls.push(pull(runId, `The fix.\n\n${owned.marker}`, true));
+    await t.automation.advanceRepro();
+    expect(t.gh.pulls[0]).toMatchObject({ state: 'CLOSED' });
+    expect(t.gh.pulls[0]?.comments).toHaveLength(1);
+    expect(t.gh.pulls[0]?.comments[0]).toContain('which the automation opened');
     expect(t.gh.pulls[0]?.comments[0]).toContain('before the rejection window closed');
     expect(t.git.remoteBranches()).toEqual([`pstack-run/${runId}/owner`]);
+    expect(t.gh.calls.some((call) => call[0] === 'api' && call.includes('DELETE'))).toBe(false);
     expect(opsReplies(t).join('\n')).toContain('The pull request was closed.');
+    expect(opsReplies(t).join('\n')).toContain('Its branch was left in place.');
+  });
+
+  test('the marker in a body without the parent\'s record, or the record without the marker in the body, is not ownership', async () => {
+    const forged = repro();
+    const forgedRun = await reported(forged);
+    earlyBranch(forged, forgedRun);
+    forged.gh.pulls.push(pull(forgedRun, `Looks official.\n\n${ownershipOf(forged, forgedRun).marker}`));
+    await forged.automation.advanceRepro();
+    expect(forged.gh.pulls[0]).toMatchObject({ state: 'OPEN', comments: [] });
+
+    const rewritten = repro();
+    const rewrittenRun = await reported(rewritten);
+    earlyBranch(rewritten, rewrittenRun);
+    ownershipOf(rewritten, rewrittenRun).record();
+    rewritten.gh.pulls.push(pull(rewrittenRun, 'the worker rewrote the body'));
+    await rewritten.automation.advanceRepro();
+    expect(rewritten.gh.pulls[0]).toMatchObject({ state: 'OPEN', comments: [] });
+  });
+
+  test('a record for another pull request number does not make this one the automation\'s', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    earlyBranch(t, runId);
+    const owned = ownershipOf(t, runId);
+    owned.record();
+    t.gh.pulls.push({ ...pull(runId, `x\n\n${owned.marker}`), number: 2 });
+    await t.automation.advanceRepro();
+    expect(t.gh.pulls[0]).toMatchObject({ state: 'OPEN', comments: [] });
+  });
+
+  test('the stop repeated after a restart closes nothing twice and comments once', async () => {
+    const t = repro();
+    const runId = await reported(t);
+    earlyBranch(t, runId);
+    const owned = ownershipOf(t, runId);
+    owned.record();
+    t.gh.pulls.push(pull(runId, `x\n\n${owned.marker}`, true));
+    await t.automation.advanceRepro();
+    const restarted = t.build();
+    await restarted.reconcile();
+    await restarted.advanceRepro();
+    expect(t.gh.pulls[0]?.comments).toHaveLength(1);
+    expect(t.gh.calls.filter((call) => call[0] === 'pr' && call[1] === 'close')).toHaveLength(1);
   });
 
   test('a restart after the stop repeats nothing', async () => {

@@ -5,9 +5,12 @@
 //    valid rejection', 228-234 'If any condition fails, keep the repro report and stop without a pull request'). Until the
 //    parent has sent the fix turn, a commit on the worker's branch (or anywhere its worktree committed), a pushed run
 //    branch, or a pull request on it is a fix started early. The outcome is upstream's: the repro report stays, the worker
-//    is stopped, and no pull request is left. A pull request found is closed (reopenable, with a comment) and, being the
-//    one thing that could be ready for review, made a draft first. The pushed branch is left alone: deleting it is not
-//    reversible, and a person can read it.
+//    is stopped, and no pull request is left that this automation opened. A pull request is this automation's only when
+//    the parent wrote it down when it opened it (a `pull-request-opened` record for that number) and the body still carries
+//    the parent's marker for the case: the branch name alone proves nothing, because the worker can open a pull request on
+//    its own branch. An owned one is made a draft and closed (reopenable) with a comment that says why. One the automation
+//    did not open is named in the operations thread and left open for its author. The pushed branch is never deleted:
+//    deleting it is not reversible, and a person can read it.
 //
 //  - Drafts only (SKILL.md:291, `repository.draft_only`). Whatever else the worker did, every open pull request on its run
 //    branch is a draft before the parent moves on, and stays one until the worker is shut down.
@@ -16,8 +19,8 @@
 // current state, so a restart repeats nothing it already did.
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
 import type { AbortRun } from './abort.ts';
-import type { Forge } from './forge.ts';
-import type { AutomationEvent, EventKey, OpsStatus, RunId } from './model.ts';
+import { type Forge, markerOf, type PullRequest } from './forge.ts';
+import { actionIdFor, type AutomationEvent, type EventKey, type OpsStatus, type RunId } from './model.ts';
 import { type AutomationStore, appendLog, type LogEntry, readLog } from './store.ts';
 
 const FORGE_READ_MS = 60_000;
@@ -76,27 +79,35 @@ export function createFixGuard(host: FixGuardHost): { advance(): Promise<void>; 
     }
   };
 
+  /** The parent opened `pr` itself: it wrote that down, and the body still carries its marker for the case. */
+  const ownedByAutomation = (run: Run, pr: PullRequest): boolean => readLog(store).some((entry) => entry.kind === 'pull-request-opened' && entry.runId === run.runId && entry.number === pr.number && pr.body.includes(markerOf(actionIdFor(config.name, run.key, 'pull-request'))));
+
   /** The worker started the fix early: stop it, leave no pull request, and say so. */
   const stop = async (run: Run, seen: { ahead: number; committed: number }): Promise<void> => {
     await host.abort(config.projectRoot, run.runId);
     let pushed: boolean | 'unknown' = 'unknown';
     const urls: string[] = [];
+    const foreign: string[] = [];
     if (forge.target !== undefined) {
       pushed = await forge.pushed(config.projectRoot, run.runId);
       for (const pr of await forge.pullRequests(run.runId)) {
         if (pr.state !== 'OPEN') continue;
+        if (!ownedByAutomation(run, pr)) {
+          foreign.push(pr.url);
+          continue;
+        }
         const { pr: draft } = await forge.ensureDraft(pr);
-        await forge.close(draft, 'Closed by the Benny parent: the repro worker started its fix before the rejection window closed, so no pull request is wanted for this case.');
+        await forge.close(draft, 'Closed by the Benny parent: the repro worker started its fix before the rejection window closed, so this pull request, which the automation opened, is no longer wanted for this case. The branch was left in place.');
         urls.push(pr.url);
       }
     }
     const commits = (count: number, where: string) => `${count} commit${count === 1 ? '' : 's'} ${where}`;
-    const found = [seen.ahead > 0 ? commits(seen.ahead, 'on its run branch') : seen.committed > 0 ? commits(seen.committed, 'in its worktree') : '', pushed === true ? 'a pushed run branch' : '', urls.length > 0 ? `a pull request (${urls.join(', ')})` : ''].filter((part) => part !== '');
+    const found = [seen.ahead > 0 ? commits(seen.ahead, 'on its run branch') : seen.committed > 0 ? commits(seen.committed, 'in its worktree') : '', pushed === true ? 'a pushed run branch' : '', urls.length + foreign.length > 0 ? `a pull request (${[...urls, ...foreign].join(', ')})` : ''].filter((part) => part !== '');
     if (run.event !== undefined) {
-      const reported = await host.report(run.event, run.runId, { operations: `The repro worker started the fix before the go-ahead (${found.join(', ')}). It was stopped and no fix was attempted: the repro report stands.${urls.length > 0 ? ' The pull request was closed.' : ''}${pushed === true ? ' Its branch was left in place.' : ''}` }, 'unprompted-fix');
+      const reported = await host.report(run.event, run.runId, { operations: `The repro worker started the fix before the go-ahead (${found.join(', ')}). It was stopped and no fix was attempted: the repro report stands.${urls.length > 0 ? ' The pull request was closed.' : ''}${foreign.length > 0 ? ` ${foreign.join(', ')} was not opened by this automation, so it was left open.` : ''}${pushed === true || urls.length > 0 ? ' Its branch was left in place.' : ''}` }, 'unprompted-fix');
       if (!reported) return;
     }
-    appendLog(store, { ts: stamp(), kind: 'unprompted-fix', key: run.key, runId: run.runId, ahead: seen.ahead, committed: seen.committed, pushed, pullRequests: urls });
+    appendLog(store, { ts: stamp(), kind: 'unprompted-fix', key: run.key, runId: run.runId, ahead: seen.ahead, committed: seen.committed, pushed, pullRequests: urls, ...(foreign.length === 0 ? {} : { leftOpen: foreign }) });
     if (run.completed && !readLog(store).some((entry) => entry.kind === 'repro-closed' && entry.key === run.key)) appendLog(store, { ts: stamp(), kind: 'repro-closed', key: run.key, runId: run.runId, reason: 'the worker started the fix before the go-ahead, so it was stopped and no fix was attempted' });
   };
 

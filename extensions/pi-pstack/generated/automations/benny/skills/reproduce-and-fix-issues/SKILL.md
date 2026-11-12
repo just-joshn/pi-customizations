@@ -211,7 +211,7 @@ For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed 
 - Link the tracker issue when one exists.
 - Do not ping an owner by default.
 
-You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run's artifact directory and uploads the ones it may inside the same source thread. When it may not attach one, the source reply links the operations thread instead, where your `operations` reply carries the evidence.
+You cannot attach files and hold no Slack credential. List the evidence files you want attached to the one source reply (the screenshot, the recording, the note) in an `evidence` array of your result. The parent checks each against the retention policy and the run's artifact directory and uploads the ones it may inside the same source thread. Slack takes three files in one message, which limits a message and never what you collect: list every file the repro needs. The parent attaches the first three to the source reply and posts the rest in further messages in the operations thread. When it may not attach one, the file is named in the operations thread and the run log, and the source reply links the operations thread instead, where your `operations` reply carries the evidence.
 
 Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.
 
@@ -226,7 +226,7 @@ When a fix artifact exists, follow `references/verify-existing-fix.md`.
 
 Verification must show the symptom on the baseline and its absence on the patched build. Both paths use the real UI twice.
 
-Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record, and records `Blocked` without it. After an existing fix the parent starts no fix of this case's own.
+Do not edit the existing fix, add a competing patch, or open a replacement pull request. Write the verification into the proof record as `existingFix`: the `github.com` link of the pull request or commit, the outcome (`confirmed`, `insufficient`, or `inconclusive`), and the two baseline runs and two patched runs, each with its own timestamped capture. The parent accepts `Verifying existing fix` only with that record. When the verification did not finish, because a half could not be measured or the record does not show it, the parent records `Verification incomplete`, which is neither `Could not reproduce` (a completed reproduction attempt whose evidence cannot be confirmed) nor `Blocked` (the environment prevents the attempt). When the record shows the symptom on both the baseline and the patched build, the claimed fix was verified and does not fix it: the parent shows `Reproduced but not fixed`. After an existing fix the parent starts no fix of this case's own.
 
 ## 11. Qualify a bounded fix
 
