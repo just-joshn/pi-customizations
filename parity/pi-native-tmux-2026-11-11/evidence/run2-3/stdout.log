@@ -1,0 +1,11 @@
+VERIFIED: real Pi, model and session
+VERIFIED: host is not a child of the controller
+VERIFIED: native tool write and transcript
+VERIFIED: controller loss and reconnect
+VERIFIED: steering delivery and response
+VERIFIED: terminal screen and operator input
+VERIFIED: clear queue and abort active run
+VERIFIED: unexpected Pi exit is failure, not success
+VERIFIED: host loss is unavailable and forbids a second writer
+VERIFIED: control validation and endpoint permissions
+VERIFIED: orderly shutdown and scoped cleanup

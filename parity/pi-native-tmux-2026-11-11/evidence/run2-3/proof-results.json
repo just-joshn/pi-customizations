@@ -1,0 +1,142 @@
+{
+  "pi": "/Users/josh-desktop/.pi/agent/bin/pi",
+  "fixture": "/Users/josh-desktop/src/personal/pi-customizations/extensions/pi-pstack/test/fixtures/scripted-model.ts",
+  "results": [
+    {
+      "gate": "real Pi, model and session",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "piPid": 41886,
+        "hostPid": 41885,
+        "sessionFile": "/private/tmp/pp-uisvnD/sessions/2026-11-12T00-45-10-418Z_01a1cd37-3792-7636-8f1d-809684908bd2.jsonl",
+        "ps": "41885 pi"
+      }
+    },
+    {
+      "gate": "host is not a child of the controller",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "hostParent": "tmux -L pstack-proof new-session -d -s pstack-proof-main -c /private/tmp/pp-uisvnD /Users/josh-desktop/.local/share/mise/installs/node/24.22.1/bin/node /private/tmp/pi-native-pstack-20261111/implementation/extensions/pi-pstack/scripts/worker-proof/host.mjs /private/tmp/pp-uisvnD/assignment.json"
+      }
+    },
+    {
+      "gate": "native tool write and transcript",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "file": "written-by-worker",
+        "tail": [
+          "toolResult:Successfully wrote to out.txt",
+          "assistant:RESULTS:\n[write] Successfully wrote to out.txt"
+        ]
+      }
+    },
+    {
+      "gate": "controller loss and reconnect",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "instance": "c5816e19-f819-4cdd-9f40-ab2186911294",
+        "controllerExited": true
+      }
+    },
+    {
+      "gate": "steering delivery and response",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "receipt": {
+          "phase": "accepted",
+          "disposition": "queued",
+          "instance": "c5816e19-f819-4cdd-9f40-ab2186911294"
+        },
+        "tail": [
+          "user:@@sleep 2000 FIRST",
+          "assistant:FIRST",
+          "user:@@say STEERED",
+          "assistant:STEERED"
+        ]
+      }
+    },
+    {
+      "gate": "terminal screen and operator input",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "pane": "pane.txt"
+      }
+    },
+    {
+      "gate": "clear queue and abort active run",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "receipt": {
+          "phase": "accepted",
+          "disposition": "cancelled",
+          "removed": {
+            "steering": [],
+            "followUp": [
+              "@@say QUEUED-NEVER"
+            ]
+          },
+          "observation": {
+            "phase": "aborted",
+            "workerId": "main",
+            "digest": "24e6c1dbea7722985d731e4a3ee2b10f6d0edcaae0fdd61b2b1b2cdcdeab42b6",
+            "instance": "c5816e19-f819-4cdd-9f40-ab2186911294",
+            "hostPid": 41885,
+            "piPid": 41886,
+            "tmuxSession": "pstack-proof-main",
+            "model": {
+              "provider": "scripted",
+              "id": "echo"
+            },
+            "sessionFile": "/private/tmp/pp-uisvnD/sessions/2026-11-12T00-45-10-418Z_01a1cd37-3792-7636-8f1d-809684908bd2.jsonl",
+            "sequence": 167,
+            "reason": "Request was aborted",
+            "stderrTail": ""
+          }
+        }
+      }
+    },
+    {
+      "gate": "unexpected Pi exit is failure, not success",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "live": "unavailable",
+        "persisted": "failed",
+        "reason": "Unexpected Pi exit"
+      }
+    },
+    {
+      "gate": "host loss is unavailable and forbids a second writer",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "inspect": "unavailable",
+        "restartRefused": true,
+        "piOrphanedAfterHostKill": false
+      }
+    },
+    {
+      "gate": "control validation and endpoint permissions",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "socketMode": "600",
+        "unknownOperationRejected": true
+      }
+    },
+    {
+      "gate": "orderly shutdown and scoped cleanup",
+      "verdict": "VERIFIED",
+      "receipts": {
+        "receipt": {
+          "phase": "accepted",
+          "disposition": "shutting-down",
+          "exit": {
+            "code": 0,
+            "signal": null
+          }
+        },
+        "remainingSessions": [
+          "pstack-proof-crash"
+        ]
+      }
+    }
+  ]
+}

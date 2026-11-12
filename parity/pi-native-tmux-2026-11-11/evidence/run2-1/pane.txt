@@ -1,0 +1,50 @@
+[host ready] {"phase":"idle","workerId":"main","digest":"dcda8eec5ec8d4c6b63d213
+ecfdc46a53bfe1397164277f42bbab40ef7b9c73b","instance":"ef455940-97f7-4460-9fa3-f
+c84c7e4f6fb","hostPid":41292,"piPid":41293,"tmuxSession":"pstack-proof-main","mo
+del":{"provider":"scripted","id":"echo"},"sessionFile":"/private/tmp/pp-NVt6UQ/s
+essions/2026-11-12T00-44-39-615Z_01a1cd36-bf3e-72f0-a8c5-e5dc66b706b1.jsonl","se
+quence":4,"stderrTail":""}
+[host help] "prompt <text> | steer <text> | follow-up <text> | cancel | status |
+ shutdown"
+[pi response] {"role":"assistant","content":[{"type":"toolCall","id":"tool:17944
+44279708:il1hxevf8cc","name":"write","arguments":{"path":"out.txt","content":"wr
+itten-by-worker"}}],"api":"faux:1794444279629:76fqm4ovj9","provider":"scripted",
+"model":"echo","usage":{"input":0,"output":14,"cacheRead":0,"cacheWrite":973,"to
+talTokens":987,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total"
+:0}},"stopReason":"toolUse","timestamp":1794444279708,"durationMs":1,"thinkingLe
+vel":"medium"}
+[pi tool] "write"
+[pi response] {"role":"assistant","content":[{"type":"text","text":"RESULTS:\n[w
+rite] Successfully wrote to out.txt"}],"api":"faux:1794444279629:76fqm4ovj9","pr
+ovider":"scripted","model":"echo","usage":{"input":0,"output":12,"cacheRead":973
+,"cacheWrite":28,"totalTokens":1013,"cost":{"input":0,"output":0,"cacheRead":0,"
+cacheWrite":0,"total":0}},"stopReason":"stop","timestamp":1794444279711,"duratio
+nMs":0,"thinkingLevel":"medium"}
+[host settled] {"phase":"idle","aborted":false}
+[pi response] {"role":"assistant","content":[{"type":"text","text":"SURVIVED"}],
+"api":"faux:1794444279629:76fqm4ovj9","provider":"scripted","model":"echo","usag
+e":{"input":0,"output":2,"cacheRead":1001,"cacheWrite":22,"totalTokens":1025,"co
+st":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":
+"stop","timestamp":1794444282354,"durationMs":2501,"thinkingLevel":"medium"}
+[host settled] {"phase":"idle","aborted":false}
+[pi response] {"role":"assistant","content":[{"type":"text","text":"FIRST"}],"ap
+i":"faux:1794444279629:76fqm4ovj9","provider":"scripted","model":"echo","usage":
+{"input":0,"output":2,"cacheRead":1023,"cacheWrite":11,"totalTokens":1036,"cost"
+:{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"st
+op","timestamp":1794444284371,"durationMs":2000,"thinkingLevel":"medium"}
+[pi response] {"role":"assistant","content":[{"type":"text","text":"STEERED"}],"
+api":"faux:1794444279629:76fqm4ovj9","provider":"scripted","model":"echo","usage
+":{"input":0,"output":2,"cacheRead":1034,"cacheWrite":9,"totalTokens":1045,"cost
+":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"s
+top","timestamp":1794444284374,"durationMs":0,"thinkingLevel":"medium"}
+[host settled] {"phase":"idle","aborted":false}
+prompt @@say OPERATOR
+[operator receipt] {"phase":"accepted","disposition":"started","instance":"ef455
+940-97f7-4460-9fa3-fc84c7e4f6fb"}
+[pi response] {"role":"assistant","content":[{"type":"text","text":"OPERATOR"}],
+"api":"faux:1794444279629:76fqm4ovj9","provider":"scripted","model":"echo","usag
+e":{"input":0,"output":2,"cacheRead":1043,"cacheWrite":10,"totalTokens":1055,"co
+st":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":
+"stop","timestamp":1794444284481,"durationMs":0,"thinkingLevel":"medium"}
+[host settled] {"phase":"idle","aborted":false}
+
