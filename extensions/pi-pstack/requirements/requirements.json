@@ -1278,6 +1278,18 @@
     "hl.command": {
       "file": "tests/workflow-parity/headless.test.ts",
       "name": "headless-command scripted run: every check passes"
+    },
+    "mcp.with": {
+      "file": "tests/workflow-parity/mcp.test.ts",
+      "name": "why-mcp scripted run: every check passes"
+    },
+    "mcp.without": {
+      "file": "tests/workflow-parity/mcp.test.ts",
+      "name": "why-no-mcp scripted run: every check passes"
+    },
+    "mcp.defect": {
+      "file": "tests/workflow-parity/mcp.test.ts",
+      "name": "why-mcp known product defect: why-mcp.readonly-investigator-reaches-mcp"
     }
   },
   "structural": [
@@ -2039,13 +2051,15 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts and tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/workflow-parity/mcp.test.ts runs why with a stdio MCP server from Pi's native mcp.json and without one, on the real pi binary",
       "tests": [
         "sem.why-ro",
         "life.mcp-none",
-        "life.automation-default"
+        "life.automation-default",
+        "mcp.with",
+        "mcp.without"
       ],
-      "coverageGap": "No test runs why with and without configured MCP services and checks citations or explicit missing coverage."
+      "coverageGap": "A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
     },
     {
       "id": "MX-CODEMODE",

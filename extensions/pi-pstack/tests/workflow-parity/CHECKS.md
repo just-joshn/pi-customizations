@@ -1314,3 +1314,49 @@ Negative cases, each of which must FAIL the named checks:
 
 - the command hung until the driver killed it → `headless-command.exits-without-hanging`
 
+## why-mcp
+
+why with a configured MCP server: discovery, a real call, citations from its output, readonly kept (MX-MCP)
+
+Known product defect, asserted with test.fails: `why-mcp.readonly-investigator-reaches-mcp`. src/workers.ts:59 and :510 launch a readonly worker with --tools read,grep,find,ls,bash_readonly,pstack_evidence. Pi keeps an MCP tool reachable only through codemode, tool_search or an mcp__ entry in that list (cli.md "MCP tools"), so a readonly investigator has none of them and every MCP call fails with "Tool not found" although capabilities.mcp is inherit and --no-mcp is absent.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `why-mcp.parent-discovers-mcp` | the parent runs pi mcp list before spawning, and it names the server only when one is configured | `generated/skills/why/SKILL.md:35` |
+| `why-mcp.investigators-readonly-with-mcp` | the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none) | `generated/skills/why/SKILL.md:13`, `generated/skills/why/SKILL.md:13` |
+| `why-mcp.worker-launch-keeps-mcp` | no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.worker-discovers-and-calls` | a worker with default tools discovered the namespace, called the tool through codemode, and the server logged the call | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.readonly-holds-beside-mcp` | the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.citations-come-from-tool-output` | every decision id and URL in the reply appears in the MCP tool output | `generated/skills/why/references/investigator-prompt.md:43` |
+| `why-mcp.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/why/SKILL.md:86` |
+| `why-mcp.no-writes` | the repository is untouched | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.readonly-investigator-reaches-mcp` | the readonly investigator, which keeps MCP access, called the MCP tool and got the decision record | `generated/skills/why/SKILL.md:13` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- an investigator was spawned with MCP off → `why-mcp.investigators-readonly-with-mcp`
+- a host was launched with --no-mcp → `why-mcp.worker-launch-keeps-mcp`
+- the reply cites what no tool returned → `why-mcp.citations-come-from-tool-output`
+
+## why-no-mcp
+
+why with no MCP server: nothing is called and the reply reports the missing coverage (MX-MCP)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `why-no-mcp.parent-discovers-mcp` | the parent runs pi mcp list before spawning, and it names the server only when one is configured | `generated/skills/why/SKILL.md:35` |
+| `why-no-mcp.investigators-readonly-with-mcp` | the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none) | `generated/skills/why/SKILL.md:13`, `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.worker-launch-keeps-mcp` | no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.worker-discovers-and-calls` | a worker looking for the server could not even start a codemode script or found no namespace, so nothing was called | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.readonly-holds-beside-mcp` | the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.citations-come-from-tool-output` | the reply cites no decision id or URL, and its Sources Consulted line says the documents were not searched | `generated/skills/why/references/investigator-prompt.md:43` |
+| `why-no-mcp.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/why/SKILL.md:86` |
+| `why-no-mcp.no-writes` | the repository is untouched | `generated/skills/why/SKILL.md:13` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- an investigator was spawned with MCP off → `why-no-mcp.investigators-readonly-with-mcp`
+- a host was launched with --no-mcp → `why-no-mcp.worker-launch-keeps-mcp`
+- the reply cites what no tool returned → `why-no-mcp.citations-come-from-tool-output`
+- the reply drops the missing-coverage line → `why-no-mcp.citations-come-from-tool-output`
+
