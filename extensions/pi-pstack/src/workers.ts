@@ -115,6 +115,8 @@ export interface Transition {
   workerId: WorkerId;
   phase: WakePhase;
   reason: string | null;
+  /** A watch worker's output tail, carried by its `exited` wake. */
+  output?: string;
 }
 
 /**
@@ -125,7 +127,7 @@ export function workerTransitions(runId: RunId, workerId: WorkerId, state: HostS
   const instance = state?.instance ?? claim?.instance;
   if (instance === undefined) return [];
   const settles: Settle[] = state?.settles ?? [];
-  const transitions: Transition[] = settles.map((settle) => ({ transitionId: `${workerId}:${instance}:${settle.sequence}`, runId, workerId, phase: settle.phase, reason: settle.reason }));
+  const transitions: Transition[] = settles.map((settle) => ({ transitionId: `${workerId}:${instance}:${settle.sequence}`, runId, workerId, phase: settle.phase, reason: settle.reason, ...(settle.phase === 'exited' && state?.output ? { output: state.output } : {}) }));
   if (sessionAlive === false && (state === undefined || !isTerminal(state.phase))) {
     const next = (settles.at(-1)?.sequence ?? 0) + 1;
     transitions.push({ transitionId: `${workerId}:${instance}:${next}`, runId, workerId, phase: 'unavailable', reason: 'The worker host is gone and recorded no final state' });
@@ -142,8 +144,10 @@ const PHASE_TEXT: Record<WakePhase, string> = {
   unavailable: 'is unavailable',
 };
 
+const WAKE_OUTPUT_TAIL = 1024;
+
 export function wakeText(transition: Transition): string {
-  return `pstack worker ${transition.workerId} in run ${transition.runId} ${PHASE_TEXT[transition.phase]}${transition.reason === null ? '' : `: ${transition.reason}`}. Collect it with pstack_worker {"action":"collect","runId":"${transition.runId}","workerId":"${transition.workerId}"}.`;
+  return `pstack worker ${transition.workerId} in run ${transition.runId} ${PHASE_TEXT[transition.phase]}${transition.reason === null ? '' : `: ${transition.reason}`}.${transition.output === undefined ? '' : ` Last output:\n${transition.output.slice(-WAKE_OUTPUT_TAIL)}\n`} Collect it with pstack_worker {"action":"collect","runId":"${transition.runId}","workerId":"${transition.workerId}"}.`;
 }
 
 /** Which `pstack_*` tmux sessions have a live pane. undefined when tmux itself could not answer. */
@@ -922,7 +926,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       const { workerId } = loaded.assignment;
       if (params.action === 'inspect') {
         const result = await inspectWorker(loaded);
-        return text(result.available ? `Worker ${workerId}: ${result.state.phase}` : `Worker ${workerId}: unavailable (${result.reason})`, result);
+        return text(result.available ? `Worker ${workerId}: ${result.state.phase}${result.state.output ? `\nOutput tail:\n${result.state.output}` : ''}` : `Worker ${workerId}: unavailable (${result.reason})`, result);
       }
       if (params.action === 'steer') {
         requireOwner(ctx, run, runId);

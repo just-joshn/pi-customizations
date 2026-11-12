@@ -355,8 +355,12 @@ export interface HostState {
   /** Every settle, oldest first: each one is a wake the parent may not have seen yet. */
   settles: Settle[];
   exit: { code: number | null; signal: string | null } | null;
+  /** A watch worker's recent output, redacted like the pane's: the tail, at most WATCH_OUTPUT_TAIL characters. */
+  output?: string;
   updatedAt: string;
 }
+
+export const WATCH_OUTPUT_TAIL = 8192;
 
 /** A host with this many settles refuses new work rather than drop a settle the parent may not have seen. */
 export const MAX_SETTLES = 10_000;

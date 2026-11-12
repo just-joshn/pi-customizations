@@ -1977,8 +1977,6 @@ Negative cases, each of which must FAIL the named checks:
 
 babysit a queued stack: a blocker-free frontier is a non-terminal WAITING with reason merge-queue, reported merge-ready, watcher stopped, nothing merged (spec 13.2)
 
-Known product defect, asserted with test.fails: `babysit.queued.watcher-verdict-is-readable-through-pstack-worker`. pstack_worker inspect returns only the host state (HostState, src/run-files.ts:303-325, has no output field) and a watcher's wake carries only its exit (src/workers.ts:132-134), so the non-terminal WAITING merge-queue verdict that babysit.md:16 tells the parent to stop on is visible only in the tmux pane. The family reads it with tmux capture-pane.
-
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
@@ -2015,6 +2013,7 @@ Negative cases, each of which must FAIL the named checks:
 - the frontier was merging into the queue → `babysit.queued.never-merges-or-arms-auto-merge`
 - a check is failing, so the frontier is not merge-ready → `babysit.queued.frontier-is-WAITING-merge-queue-never-READY`
 - the watcher was left running → `babysit.queued.watcher-stopped-after-the-report`
+- inspect returned the host state without the watcher output → `babysit.queued.watcher-verdict-is-readable-through-pstack-worker`
 - the live output was never read → `babysit.queued.frontier-is-WAITING-merge-queue-never-READY`
 - the reply claims READY → `babysit.queued.reply-is-merge-ready-and-points-to-shipping`
 
