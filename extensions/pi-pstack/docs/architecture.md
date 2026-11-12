@@ -51,9 +51,9 @@ Files survive a restart where in-memory tool state does not. When the parent res
 | Subscriptions, the routines supervisor, Slack tools | `/pstack automation` event sources that run as watch workers |
 | Cloud agents, `/in-cloud` | Not yet. Container workers are pending. |
 | `GenerateImage`, `visualize`, `request_secret`, Projects | Removed |
-| A `/name` anywhere in a message attaches its skill | A `/name` prompt at the start of a message |
+| A `/name` anywhere in a message attaches its skill | A `/name` prompt at the start of a message, and the `input` handler rewrites a message that names a skill later to Pi's `/skill:<name>` form |
 
-The removals are deliberate. Each old feature was a second implementation of something Pi or the file system already does, and each carried its own state, recovery code, and tests. The cost is real for a few users. A `/loop` with a timer and mid-message skill references have no direct replacement.
+The removals are deliberate. Each old feature was a second implementation of something Pi or the file system already does, and each carried its own state, recovery code, and tests. The cost is real for a few users. A `/loop` with a timer has no direct replacement.
 
 ## Limits that stay
 

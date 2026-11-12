@@ -1,11 +1,12 @@
 // Spec 16.2 "Native package": the real Pi binary loads this package's extension, skills, and prompts, and exposes
 // exactly the native surface: the skills and their /name prompts, /pstack, and the two pstack tools.
-import { type ChildProcess, execFileSync, spawn } from 'node:child_process';
+import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
+import { skillBlock } from '../../src/skill-block.ts';
 import { generatedSkillNames } from '../../src/skill-routing.ts';
 
 const PI = process.env['PSTACK_E2E_PI'] || '/Users/josh-desktop/.pi/agent/bin/pi';
@@ -35,7 +36,7 @@ afterEach(async () => {
   for (const dir of sandboxes.splice(0)) rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }, 30_000);
 
-function startPi(options: { env?: Record<string, string>; extensions?: string[]; install?: boolean } = {}): Rpc {
+function sandbox(options: { env?: Record<string, string> }): { root: string; work: string; env: Record<string, string> } {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-load-')));
   sandboxes.push(root);
   const agentDir = join(root, 'agent');
@@ -46,6 +47,20 @@ function startPi(options: { env?: Record<string, string>; extensions?: string[];
   execFileSync('git', ['init', '-q'], { cwd: work });
   const env: Record<string, string> = { ...(process.env as Record<string, string>), HOME: root, PI_CODING_AGENT_DIR: agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', ...options.env };
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PSTACK_WORKER', 'PSTACK_SPAWN', 'PSTACK_DEPTH', 'PSTACK_READONLY'].filter((key) => options.env?.[key] === undefined)) delete env[name];
+  return { root, work, env };
+}
+
+/** `pi -p <message>` with the package loaded and the scripted model: stdout is the assistant's final text. */
+function printPi(message: string): string {
+  const { work, env } = sandbox({});
+  const args = ['-p', '--offline', '--no-extensions', '--extension', join(PKG, 'src/extension.ts'), '--extension', SCRIPTED_MODEL, '--skill', join(PKG, 'generated/skills'), '--prompt-template', join(PKG, 'generated/prompts'), '--model', 'scripted/echo', message];
+  const result = spawnSync(PI, args, { cwd: work, env, encoding: 'utf8', timeout: 45_000 });
+  if (result.status !== 0) throw new Error(`pi -p exited ${result.status}: ${result.stderr}`);
+  return result.stdout;
+}
+
+function startPi(options: { env?: Record<string, string>; extensions?: string[]; install?: boolean } = {}): Rpc {
+  const { root, work, env } = sandbox(options);
   let args: string[];
   if (options.install === true) {
     // `pi install ./pi-pstack` (spec 18) from a copy with no node_modules: a local install gets no dependency install.
@@ -190,6 +205,25 @@ describe('parent session', () => {
     await pi.close();
   });
 
+  test('a skill named mid-message attaches as Pi expands /skill:<name>, once, in RPC mode', async () => {
+    const pi = startPi();
+    const block = (name: string) => skillBlock(name, join(PKG, 'generated/skills', name, 'SKILL.md')) ?? '';
+    const message = 'run /how on this, then /why and /how again';
+    const attached = await ask(pi, message);
+    expect(attached).toBe(`ECHO: ${block('how')}\n\n${block('why')}\n\n${message}`);
+    expect(await ask(pi, `/skill:how ${block('why')}\n\n${message}`)).toBe(attached);
+    const count = (reply: string, name: string) => reply.split(`<skill name="${name}" location=`).length - 1;
+    expect([count(attached, 'how'), count(attached, 'why')]).toEqual([1, 1]);
+
+    const led = await ask(pi, '/how look at /why');
+    expect(led).toBe(`ECHO: ${block('how')}\n\n${block('why')}\n\nlook at /why`);
+    for (const untouched of ['read /usr/bin/env and /how/x', 'type `/how` or\n```\n/why\n```', '/model then /how']) {
+      expect(await ask(pi, untouched)).toBe(`ECHO: ${untouched}`);
+    }
+    expect(await ask(pi, '/how only')).toContain('Use the pstack `how` skill for this request.');
+    await pi.close();
+  });
+
   test('a name another extension owns is reported by doctor and reachable as /pstack:<name>', async () => {
     const root = realpathSync(mkdtempSync(join(tmpdir(), 'pstack-conflict-')));
     sandboxes.push(root);
@@ -205,6 +239,14 @@ describe('parent session', () => {
     await pi.close();
   });
 });
+
+test('a skill named mid-message attaches the same way in print mode, and a leading prompt template still expands', () => {
+  const block = (name: string) => skillBlock(name, join(PKG, 'generated/skills', name, 'SKILL.md')) ?? '';
+  expect(printPi('run /how on this').trim()).toBe(`ECHO: ${block('how')}\n\nrun /how on this`);
+  expect(printPi('please /deslop it and /why').trim()).toBe(`ECHO: ${block('deslop')}\n\n${block('why')}\n\nplease /deslop it and /why`);
+  expect(printPi('/how plain').trim()).toContain('Request: plain');
+  expect(printPi('see /usr/bin/env and `/how`').trim()).toBe('ECHO: see /usr/bin/env and `/how`');
+}, 120_000);
 
 test('pi install of a copy without node_modules loads the manifest: generated skills, prompts, /pstack, and the pstack tools', async () => {
   const pi = startPi({ install: true });

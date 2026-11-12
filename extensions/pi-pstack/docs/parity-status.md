@@ -139,7 +139,6 @@ Computed from a Vitest run of commit `bcdad6ebfb12` (dirty tree) at 2026-11-12T0
 - **Container workers.** `workspace: { mode: "container", inputCommit }` runs Pi in a container (`src/container.ts`, contract "Container workers"). Open: default capabilities still pass the whole environment in, a compiled Pi has no JS install to mount, `pstack_evidence record` fails inside the container (the run root is not mounted), and a Pi login stored in `auth.json` does not enter the container (only environment credentials do).
 - **Same-uid credentials.** A worktree or readonly worker runs as the operator's user and can read any file that user can read. The capability boundary removes tools and environment variables, not file access. A container worker has no host file access.
 - **Benny trackers.** Only GitHub Issues ships (`tracker.type: github`). Any other tracker type has no adapter, so its cases are logged `blocked`. The pack's operations-channel status posts have no adapter either: the parent posts source-thread replies only.
-- **Mid-message skill names.** A `/name` later in a message no longer attaches its skill. Only a `/name` at the start expands.
 - **Bugbot.** No replacement.
 
 

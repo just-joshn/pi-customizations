@@ -1,10 +1,12 @@
 // Slash parity (spec 8.2). generated/prompts gives every skill its original `/name`. A name another command owns gets
-// `/pstack:<name>`, which the input event rewrites to Pi's own `/skill:<name>`.
+// `/pstack:<name>`, which the input event rewrites to Pi's own `/skill:<name>`. A `/name` later in a message attaches
+// its skill as Cursor does (`skillReferences`, `referenceInput`).
 import { existsSync, readdirSync, realpathSync } from 'node:fs';
 import { join } from 'node:path';
 
 import type { ExtensionAPI, InputEvent, InputEventResult, SlashCommandInfo } from '@earendil-works/pi-coding-agent';
 import { PACKAGE_ROOT } from './paths.ts';
+import { skillBlock } from './skill-block.ts';
 
 export const GENERATED_SKILLS = join(PACKAGE_ROOT, 'generated', 'skills');
 export const GENERATED_PROMPTS = join(PACKAGE_ROOT, 'generated', 'prompts');
@@ -81,13 +83,73 @@ export function aliasInput(event: Pick<InputEvent, 'text' | 'images'>, aliased: 
   return { action: 'transform', text: `/skill:${name}${match?.[2] ?? ''}`, ...(event.images === undefined ? {} : { images: event.images }) };
 }
 
-const loadedSkillNames = (commands: readonly SlashCommandInfo[]) => new Set(commands.filter((command) => command.source === 'skill').map((command) => command.name.replace(/^skill:/, '')));
+const loadedSkills = (commands: readonly SlashCommandInfo[]) => new Map(commands.filter((command) => command.source === 'skill').map((command) => [command.name.replace(/^skill:/, ''), command.sourceInfo.path]));
+
+// Cursor CLI `findSkillReferences`: a `/name` at the start or after whitespace. A name that continues into `/`, `.ext`,
+// or more word characters is a path or another word.
+const REFERENCE = /(?:^|\s)\/([a-zA-Z0-9_-]+)(?![\w/-]|\.\w)/g;
+const CODE = /```[\s\S]*?(?:```|$)|`[^`\n]*`/g;
+
+/** The pstack skills a message names, each once, in order of first reference. Code spans and fences name nothing. */
+export function skillReferences(text: string, names: ReadonlySet<string>): string[] {
+  const prose = text.replace(CODE, (span) => '\0'.repeat(span.length));
+  const found: string[] = [];
+  for (const [, name = ''] of prose.matchAll(REFERENCE)) if (names.has(name) && !found.includes(name)) found.push(name);
+  return found;
+}
+
+/**
+ * Attaches every pstack skill a message names beyond its start, in Pi's own `/skill:<name> args` form: Pi expands the
+ * first command into the skill block it builds for `/skill:`, and every further skill is a block at the head of the
+ * arguments (`skillBlock`). The message stays. A leading `/<name>` that is this package's own prompt, and a leading
+ * `/skill:<name>`, are the first skill. A message led by any other command is left alone, as is a skill already
+ * attached to the message.
+ */
+export function referenceInput(
+  event: Pick<InputEvent, 'text' | 'images'>,
+  skills: ReadonlyMap<string, string>,
+  names: ReadonlySet<string>,
+  conflicts: ReadonlySet<string>,
+  commands: readonly SlashCommandInfo[],
+): InputEventResult {
+  const { text } = event;
+  const leading = /^\/(\S+)/.exec(text)?.[1];
+  const native = /^\/skill:([^\s]+)(?: |$)/.exec(text)?.[1];
+  let first: string | undefined;
+  let rest = text;
+  if (native !== undefined) {
+    if (!skills.has(native)) return { action: 'continue' };
+    first = native;
+    rest = text.slice(`/skill:${native}`.length);
+  } else if (leading !== undefined && names.has(leading) && !conflicts.has(leading)) {
+    first = leading;
+    rest = text.slice(leading.length + 1);
+  } else if (leading !== undefined && (PI_BUILTIN_COMMANDS.includes(leading) || commands.some((command) => command.source !== 'skill' && command.name === leading))) {
+    return { action: 'continue' };
+  }
+  const blocks = new Map<string, string>();
+  for (const name of skillReferences(text, names)) {
+    const path = skills.get(name);
+    const block = path === undefined || name === first || text.includes(`<skill name="${name}" location=`) ? undefined : skillBlock(name, path);
+    if (block !== undefined) blocks.set(name, block);
+  }
+  const [lead, ...others] = first === undefined ? [...blocks.keys()] : [first, ...blocks.keys()];
+  if (lead === undefined || blocks.size === 0) return { action: 'continue' };
+  const args = [...others.flatMap((name) => blocks.get(name) ?? []), ...(first === undefined ? [text] : [rest.trim()])].filter((part) => part !== '').join('\n\n');
+  return { action: 'transform', text: args === '' ? `/skill:${lead}` : `/skill:${lead} ${args}`, ...(event.images === undefined ? {} : { images: event.images }) };
+}
 
 export function registerSkillRouting(pi: ExtensionAPI, names: readonly string[] = generatedSkillNames()): { conflicts: () => SlashConflict[] } {
   const conflicts = () => slashConflicts(pi.getCommands(), names);
   pi.on('input', (event) => {
-    if (!event.text.startsWith(`/${ALIAS_PREFIX}`)) return { action: 'continue' };
-    return aliasInput(event, new Set(conflicts().map((conflict) => conflict.name)), loadedSkillNames(pi.getCommands()));
+    if (event.source === 'extension') return { action: 'continue' };
+    const commands = pi.getCommands();
+    const owned = new Set(conflicts().map((conflict) => conflict.name));
+    const skills = loadedSkills(commands);
+    const aliased = event.text.startsWith(`/${ALIAS_PREFIX}`) ? aliasInput(event, owned, new Set(skills.keys())) : { action: 'continue' as const };
+    const current = aliased.action === 'transform' ? { text: aliased.text, ...(event.images === undefined ? {} : { images: event.images }) } : event;
+    const referenced = referenceInput(current, skills, new Set(names), owned, commands);
+    return referenced.action === 'transform' ? referenced : aliased;
   });
   return { conflicts };
 }
