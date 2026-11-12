@@ -375,9 +375,10 @@ export function commitsNotFromWorkers(view: RunView): string[] {
   return view.git.commitsSinceBase.filter((sha) => !workerShas.has(sha) && !workerPatches.has(patchId(view, sha)));
 }
 
-export function repoUntouched(id: string, title: string, source: Src | Src[]): Check {
+/** `allow` names the paths the skill has the run write beside the repository's own files (a verification skill's proof under artifacts/). */
+export function repoUntouched(id: string, title: string, source: Src | Src[], allow?: RegExp): Check {
   return check(id, title, source, (view) => {
-    const dirty = view.git.dirty;
+    const dirty = view.git.dirty.filter((path) => !allow?.test(path));
     const moved = view.git.commitsSinceBase;
     const parentWrites = parentProductionWrites(view);
     return when(dirty.length === 0 && moved.length === 0 && parentWrites.length === 0, `working tree clean outside .pi/, HEAD at base, ${view.parent.toolCalls.filter((call) => call.name === 'write' || call.name === 'edit').length} parent write calls, none into the repository outside .pi/`, `dirty: ${dirty.join(', ') || 'none'}; commits since base: ${moved.length}; parent writes: ${parentWrites.join(', ') || 'none'}`);
@@ -838,5 +839,5 @@ export function replyOfTurn(view: RunView, index: number): string {
   const turns = userTurns(view);
   const from = turns[index] ?? Number.POSITIVE_INFINITY;
   const to = turns[index + 1] ?? Number.POSITIVE_INFINITY;
-  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.order > from && message.order < to && message.text.trim() !== '' && !message.text.startsWith('waiting for worker ') && message.text !== '(script complete)')?.text ?? '';
+  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.order > from && message.order < to && message.text.trim() !== '' && !message.text.startsWith('waiting for worker ') && message.text !== '(script complete)')?.text.trim() ?? '';
 }

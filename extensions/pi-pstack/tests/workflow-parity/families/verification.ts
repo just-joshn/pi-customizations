@@ -9,7 +9,7 @@ import { couponHistory, fixedHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
 import { finalReply, parentReads, promptRoutes, repoUntouched, runAtCommit } from '../lib/checks.ts';
 import { PKG } from '../lib/driver.ts';
-import { dirtyRepo, parentSession, rewriteFinalReply } from '../lib/mutate.ts';
+import { addUntracked, dirtyRepo, parentSession, rewriteFinalReply } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
 import type { Family } from './types.ts';
 
@@ -642,7 +642,7 @@ export const verificationSkillFamily: Family = {
       void driveHelper;
       return when(doctorAt !== -1 && driveAt > doctorAt && cleanupAt >= driveAt, `doctor at ${doctorAt}, drive at ${driveAt}, cleanup at ${cleanupAt}`, `positions doctor ${doctorAt}, drive ${driveAt}, cleanup ${cleanupAt}`);
     }),
-    repoUntouched('verify-skill.production-code-untouched', 'no production file changed (the skill under .pi/ and the evidence under artifacts/ are the deliverable)', src('create-verification-skill/SKILL.md', 'If the checkout doesn\'t build or start as-is, fix that first')),
+    repoUntouched('verify-skill.production-code-untouched', 'no production file changed (the skill under .pi/ and the evidence under artifacts/ are the deliverable)', src('create-verification-skill/SKILL.md', 'If the checkout doesn\'t build or start as-is, fix that first'), /^artifacts\//),
   ],
   negatives: [
     {
@@ -657,6 +657,7 @@ export const verificationSkillFamily: Family = {
       fails: [],
       passes: ['verify-skill.registers-with-the-required-sections', 'verify-skill.feature-map', 'verify-skill.helper-is-executable-and-shown', 'verify-skill.doctor-and-drive-work-on-the-real-app', 'verify-skill.evidence-survives-cleanup'],
     },
+    { name: 'the run saved its proof under artifacts/ in the repository', mutate: (sandbox) => addUntracked(sandbox, 'artifacts/verify-cart/total/int.txt'), fails: [], passes: ['verify-skill.production-code-untouched'] },
     { name: 'a required section is missing', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo', VDIR, 'SKILL.md'), read(join(sandbox, 'repo', VDIR, 'SKILL.md')).replace('## Doctor', '## Check')), fails: ['verify-skill.registers-with-the-required-sections'] },
     { name: 'a feature file lacks its Gotchas', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo', VDIR, 'features/coupon.md'), read(join(sandbox, 'repo', VDIR, 'features/coupon.md')).replace('## Gotchas', '## Notes')), fails: ['verify-skill.feature-map'] },
     { name: 'the feature map is only an index', mutate: (sandbox) => { rmSync(join(sandbox, 'repo', VDIR, 'features/total.md')); rmSync(join(sandbox, 'repo', VDIR, 'features/coupon.md')); }, fails: ['verify-skill.feature-map'] },
