@@ -295,7 +295,17 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
   return { dir, config: (kind) => loadBennyConfig(dir, kind, file) };
 }
 
-export const wiringDeps = (slack: ReturnType<typeof fakeSlack>, gh: ReturnType<typeof fakeGh>, extra: Partial<WiringDeps> = {}): WiringDeps => ({ fetch: slack.fetch, slackToken: 'xoxb-test', exec: gh.exec, inputCommit: () => 'a'.repeat(40), home: join(tmpdir(), 'benny-no-such-home'), ...extra });
+/** An operator agent dir whose tracker-mcp.json authorizes one write tool, so a non-GitHub tracker's setup probe passes. */
+export function trackerAgentDir(tools: unknown = ['mcp__linear__save_issue']): string {
+  const dir = mkdtempSync(join(tmpdir(), 'benny-agent-'));
+  mkdirSync(join(dir, 'pstack'));
+  writeFileSync(join(dir, 'pstack', 'tracker-mcp.json'), JSON.stringify({ tools }));
+  return dir;
+}
+
+const AUTHORIZED_AGENT_DIR = trackerAgentDir();
+
+export const wiringDeps = (slack: ReturnType<typeof fakeSlack>, gh: ReturnType<typeof fakeGh>, extra: Partial<WiringDeps> = {}): WiringDeps => ({ fetch: slack.fetch, slackToken: 'xoxb-test', exec: gh.exec, inputCommit: () => 'a'.repeat(40), home: join(tmpdir(), 'benny-no-such-home'), env: { PI_CODING_AGENT_DIR: AUTHORIZED_AGENT_DIR }, ...extra });
 
 /**
  * The proof record a repro worker leaves (src/automation/proof.ts): `runs` observations, each with its own capture written

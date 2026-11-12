@@ -14874,10 +14874,11 @@ async function controlHost(target, operation, text) {
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 var MCP_ACCESS_TOOLS = ["codemode", "tool_search"];
-function readonlyMcpTools(env) {
-  const file = join6(agentDirOf(env), "pstack", "readonly-mcp.json");
+var MCP_TOOL_NAME = /^mcp__[A-Za-z0-9_]+__[A-Za-z0-9_]+$/;
+function operatorToolList(env, name) {
+  const file = join6(agentDirOf(env), "pstack", name);
   if (!existsSync5(file))
-    return [];
+    return;
   let raw;
   try {
     raw = JSON.parse(readFileSync5(file, "utf8"));
@@ -14885,15 +14886,25 @@ function readonlyMcpTools(env) {
     throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
   }
   const tools = typeof raw === "object" && raw !== null ? raw.tools : undefined;
-  if (!Array.isArray(tools) || !tools.every((name) => typeof name === "string" && /^mcp__[A-Za-z0-9_]+$/.test(name)))
+  if (!Array.isArray(tools) || !tools.every((tool) => typeof tool === "string" && MCP_TOOL_NAME.test(tool)))
     throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
+  return tools;
+}
+function readonlyMcpTools(env) {
+  return operatorToolList(env, "readonly-mcp.json") ?? [];
+}
+function trackerMcpTools(env) {
+  const file = join6(agentDirOf(env), "pstack", "tracker-mcp.json");
+  const tools = operatorToolList(env, "tracker-mcp.json");
+  if (tools === undefined)
+    throw new Error(`${file} is missing; list the MCP write tools the tracker worker may call as { "tools": ["mcp__<server>__<tool>"] }`);
+  if (tools.length === 0)
+    throw new Error(`${file} lists no tools; name the MCP write tools the tracker worker may call`);
   return tools;
 }
 function readonlyTools(capabilities, authorized) {
   if (capabilities.mcp === "none")
     return { tools: [...READONLY_TOOLS], excludeTools: [] };
-  if (capabilities.externalWrite)
-    return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS], excludeTools: [] };
   return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS, ...authorized], excludeTools: authorized.length === 0 ? ["mcp__*"] : [] };
 }
 function onPath(command) {
@@ -15047,6 +15058,11 @@ function workerSocket(explicit) {
     throw new Error("tests must not use the real pstack tmux server; set PSTACK_TMUX_SOCKET or pass tmuxSocket");
   return socket;
 }
+function authorizedMcpTools(capabilities, env) {
+  if (capabilities.mcp === "none")
+    return [];
+  return [...new Set([...readonlyMcpTools(env), ...capabilities.externalWrite ? trackerMcpTools(env) : []])];
+}
 async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const exec = options.exec ?? nodeExec;
   const socket = workerSocket(options.tmuxSocket);
@@ -15111,7 +15127,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     });
   }
   const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
-  const readonly = assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities, assignment.capabilities.mcp === "none" || assignment.capabilities.externalWrite ? [] : readonlyMcpTools(source)) : undefined;
+  const readonly = assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities, authorizedMcpTools(assignment.capabilities, source)) : undefined;
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: launchModel,
@@ -18219,6 +18235,14 @@ function adapterSkillProblem(tracker, projectRoot, locations = {}) {
   const found = resolveSkill(tracker.adapterSkillName ?? "", { projectRoot, ...locations });
   return found.ok ? undefined : `tracker adapter ${found.problem}`;
 }
+function trackerWriteProblem(env) {
+  try {
+    trackerMcpTools(env);
+    return;
+  } catch (error) {
+    return `tracker write authorization: ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
 function adapterTracker(options) {
   const { projectRoot, automation, tracker } = options;
   const now = options.now ?? (() => new Date);
@@ -18284,7 +18308,7 @@ function wireBenny(config, deps) {
   const locations = { ...deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }, ...deps.home === undefined ? {} : { home: deps.home } };
   if (config.tracker.type !== "github") {
     tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot, { allowExternalWrite: true }), ...config.model === undefined ? {} : { model: config.model }, ...deps.now === undefined ? {} : { now: deps.now } });
-    probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? true;
+    probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? trackerWriteProblem(deps.env ?? process.env) ?? true;
     policy = createTrackerPolicy({ tracker: config.tracker, destination, canCompensate: true });
   } else if (config.tracker.repo !== undefined) {
     const github = githubTracker({ exec: deps.exec, repo: config.tracker.repo, ...deps.now === undefined ? {} : { now: deps.now } });

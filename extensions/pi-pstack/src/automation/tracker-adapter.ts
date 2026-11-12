@@ -12,6 +12,7 @@ import { isTrackerUrl, type RunId, type TrackerAction, type TrackerConfig, untru
 import type { TrackerLander } from './outbox.ts';
 import { type CollectedRun, collectRun } from './settle.ts';
 import { resolveSkill, type SkillLocations } from './skills.ts';
+import { trackerMcpTools } from '../workers.ts';
 
 export const ADAPTER_WORKER_MINUTES = 15;
 
@@ -117,6 +118,16 @@ export interface AdapterTrackerOptions {
 export function adapterSkillProblem(tracker: TrackerConfig, projectRoot: string, locations: Omit<SkillLocations, 'projectRoot'> = {}): string | undefined {
   const found = resolveSkill(tracker.adapterSkillName ?? '', { projectRoot, ...locations });
   return found.ok ? undefined : `tracker adapter ${found.problem}`;
+}
+
+/** The prerequisite: the operator authorized the MCP write tools the tracker worker may call, or why not. Only the agent dir is read. */
+export function trackerWriteProblem(env: Readonly<Record<string, string | undefined>>): string | undefined {
+  try {
+    trackerMcpTools(env);
+    return undefined;
+  } catch (error) {
+    return `tracker write authorization: ${error instanceof Error ? error.message : String(error)}`;
+  }
 }
 
 export function adapterTracker(options: AdapterTrackerOptions): TrackerLander {

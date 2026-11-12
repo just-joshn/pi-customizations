@@ -26,7 +26,8 @@ repository:
 
 tracker:
   # type "linear" (or any other tracker) is reached through the project-owned skill named by adapter_skill_name. The pi-pstack
-  # parent runs each tracker write in a worker that loads that skill and uses the MCP tools the workspace has.
+  # parent runs each tracker write in a worker that loads that skill and uses only the MCP tools the operator lists in
+  # <agent dir>/pstack/tracker-mcp.json (writes) and readonly-mcp.json (reads). A project file cannot add tools.
   # type: "github" (GitHub Issues, through the gh CLI the parent runs) is the one tracker the package ships. It needs
   #   repo: "owner/name" and the four labels, and no adapter_skill_name, team, project, or status.
   type: "linear"

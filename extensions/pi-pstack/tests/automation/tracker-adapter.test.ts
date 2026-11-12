@@ -1,4 +1,4 @@
-import { readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import { afterEach, expect, test } from 'vitest';
@@ -8,7 +8,7 @@ import type { RunId } from '../../src/automation/model.ts';
 import { completeSettledRuns } from '../../src/automation/settle.ts';
 import { outboxEntries, readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, settleWorker, wiringDeps } from './benny-fakes.ts';
+import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, settleWorker, trackerAgentDir, wiringDeps } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -18,14 +18,14 @@ afterEach(() => {
 const VERDICT = 'Reproducible export failure.\n[benny:bug]';
 const CREATE = { text: VERDICT, tracker: { operation: 'create', title: 'Export button does nothing on Safari', body: 'Expected a download.\nSource: https://slack.com/archives/COTHER/p1' } };
 
-function linear(options: { adapterSkill?: string | null } = {}) {
+function linear(options: { adapterSkill?: string | null; env?: Record<string, string> } = {}) {
   const project = bennyProject({ adapterSkill: options.adapterSkill === undefined ? 'linear-adapter' : options.adapterSkill });
   projects.push(project);
   const slack = fakeSlack();
   const gh = fakeGh();
   const spawns: { runId: RunId; assignmentPath: string }[] = [];
   let clock = Date.parse('2026-11-12T08:00:00Z');
-  const build = (): Automation => wireBenny(project.config('triage'), wiringDeps(slack, gh, { spawnWorker: async (runId, assignmentPath) => void spawns.push({ runId, assignmentPath }), now: () => new Date(clock) }));
+  const build = (): Automation => wireBenny(project.config('triage'), wiringDeps(slack, gh, { spawnWorker: async (runId, assignmentPath) => void spawns.push({ runId, assignmentPath }), now: () => new Date(clock), ...(options.env === undefined ? {} : { env: options.env }) }));
   return { project, slack, gh, spawns, build, automation: build(), later: (ms: number) => void (clock += ms) };
 }
 
@@ -202,4 +202,32 @@ test('already-linked is not an outcome of a compensation close: the close is not
   const { parseAdapterResult } = await import('../../src/automation/tracker-adapter.ts');
   expect(() => parseAdapterResult('{"outcome":"already-linked","id":"LIN-3"}', 'close')).toThrow(/not found or closed/);
   expect(parseAdapterResult('{"outcome":"already-linked","id":"LIN-3"}', 'comment')).toMatchObject({ id: 'LIN-3', reconciled: true, alreadyLinked: true });
+});
+
+test.each([
+  ['no tracker-mcp.json', undefined, /tracker-mcp\.json is missing/],
+  ['an empty tool list', [], /lists no tools/],
+  ['a wildcard entry', ['mcp__linear__*'], /exact tool names and no patterns/],
+  ['a namespace entry', ['mcp__linear'], /exact tool names and no patterns/],
+] as const)('a tracker other than GitHub with %s is blocked with a setup error, and no worker starts', async (_name, tools, message) => {
+  const agentDir = tools === undefined ? trackerAgentDir() : trackerAgentDir(tools);
+  if (tools === undefined) rmSync(join(agentDir, 'pstack', 'tracker-mcp.json'));
+  const t = linear({ env: { PI_CODING_AGENT_DIR: agentDir } });
+  expect(await t.automation.handle(REPORT)).toMatchObject({ status: 'blocked', missing: ['tracker'], problems: [expect.stringMatching(message)] });
+  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'blocked', problems: [expect.stringContaining('tracker write authorization')] }));
+  expect(t.spawns).toEqual([]);
+  rmSync(agentDir, { recursive: true, force: true });
+});
+
+test('a tool list in the project cannot satisfy the tracker write authorization', async () => {
+  const agentDir = trackerAgentDir();
+  rmSync(join(agentDir, 'pstack', 'tracker-mcp.json'));
+  const t = linear({ env: { PI_CODING_AGENT_DIR: agentDir } });
+  for (const dir of [join(t.project.dir, '.pi', 'pstack'), join(t.project.dir, '.pi', 'benny')]) {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'tracker-mcp.json'), JSON.stringify({ tools: ['mcp__linear__save_issue'] }));
+  }
+  expect(await t.automation.handle(REPORT)).toMatchObject({ status: 'blocked', missing: ['tracker'], problems: [expect.stringMatching(/tracker-mcp\.json is missing/)] });
+  expect(t.spawns).toEqual([]);
+  rmSync(agentDir, { recursive: true, force: true });
 });
