@@ -18,11 +18,11 @@ Before fanning out, find this conversation's Pi session file. `$PI_SESSION_FILE`
 ls -t "$(dirname "$PI_SESSION_FILE")"/*.jsonl .pi/pstack/runs/*/workers/*/session/*.jsonl 2>/dev/null | head -10
 ```
 
-That covers this workspace's sessions and the pstack worker sessions under the project's run root. For each candidate, read its first entry of type `message`. Take the file whose `message.content[0].text` contains the conversation's opening user prompt. If none matches, pass a tight digest of the session instead.
+That covers this workspace's sessions and the pstack worker sessions under the project's run root. For each candidate, read its first entry of type `message` whose `message.role` is `user`, because a Pi session file opens with a `system` message. Take the file whose `message.content[0].text` contains the conversation's opening user prompt. If none matches, pass a tight digest of the session instead.
 
 ## 2. Spawn three reviewers in parallel
 
-Three `pstack_worker` spawns, one after another without waiting, each with `role: "reviewer"`, `workspace.mode: "readonly"`, and `capabilities.mcp: "inherit"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references. A readonly Pi worker keeps its MCP tools, and `capabilities.mcp: "none"` would strip them.
+Three `pstack_worker` spawns, one after another without waiting, each with `role: "reviewer"`, `workspace: { mode: "readonly", path: "<absolute repository root>" }`, and `capabilities.mcp: "inherit"`. Reviewers need MCP access to look up the tickets, chat threads, and observability traces the transcript references. A readonly Pi worker keeps its MCP tools, and `capabilities.mcp: "none"` would strip them.
 
 Each reviewer and the synthesizer name a role line in the model rule (`~/.pi/agent/pstack/models.json`) and a default. Set `model` to that line's value, or to the default if the rule or the line is missing. Set `model` to `inherit-parent` when the value is `auto` or `inherit-parent`. If `pstack_worker` spawn rejects a slug, use the default and say so. If it rejects the default, use the closest valid slug of the same family from its error message. Pick each subagent's reasoning level and fast or standard speed for the job, per the Subagents section of the **poteto-mode** skill.
 
@@ -36,7 +36,7 @@ Pass each template verbatim, substituting the transcript path or digest where ma
 
 ## 3. Synthesize
 
-One `pstack_worker` spawn, `role: "general"`, `model` from the `reflect judgment, divergent, synthesizer` line (default `claude-opus-5-5-xhigh`), `workspace.mode: "readonly"`, `capabilities.mcp: "inherit"`. It spot-verifies citations through MCP, which a readonly Pi worker keeps. Pass `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. It returns an Accepted / Rejected / Backlog list.
+One `pstack_worker` spawn, `role: "general"`, `model` from the `reflect judgment, divergent, synthesizer` line (default `claude-opus-5-5-xhigh`), `workspace: { mode: "readonly", path: "<absolute repository root>" }`, `capabilities.mcp: "inherit"`. It spot-verifies citations through MCP, which a readonly Pi worker keeps. Pass `references/synthesizer.md` verbatim, with each reviewer's full output inlined where marked. It returns an Accepted / Rejected / Backlog list.
 
 ## 4. Structural enforcement check
 

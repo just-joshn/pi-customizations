@@ -14,7 +14,7 @@ const line = (path: string, n: number) => gen(path).split('\n')[n - 1] ?? '';
 describe('readonly investigators and reviewers (defect 1)', () => {
   test('why spawns every worker readonly with MCP kept and git/gh through bash_readonly', () => {
     const text = line('skills/why/SKILL.md', 13);
-    expect(text).toContain('`workspace.mode: "readonly"`');
+    expect(text).toContain('`workspace: { mode: "readonly", path: "<absolute repository root>" }`');
     expect(text).toContain('`capabilities.mcp: "inherit"`');
     expect(text).toContain('`bash_readonly`');
     expect(text).not.toContain('"worktree"');
@@ -22,14 +22,14 @@ describe('readonly investigators and reviewers (defect 1)', () => {
   });
 
   test('a readonly worker has bash_readonly and reports through its final reply, not report.md', () => {
-    expect(line('skills/poteto-mode/SKILL.md', 97)).toMatch(/`\{ mode: "readonly", path \}` for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`/);
+    expect(line('skills/poteto-mode/SKILL.md', 97)).toMatch(/`\{ mode: "readonly", path \}`, with an absolute `path`, for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`/);
     for (const role of ['poteto.md', 'comment-sicko.md', 'general.md']) expect(gen(`agents/${role}`)).toContain('A readonly worker cannot write files. Its final reply is its report');
     expect(gen('skills/reflect/SKILL.md')).toContain('Reviewers return findings in their final reply, which `collect` returns.');
   });
 
   test('how explorers and reflect reviewers stay readonly', () => {
-    expect(gen('skills/how/SKILL.md')).toContain('`workspace.mode: "readonly"`');
-    expect(gen('skills/reflect/SKILL.md')).toMatch(/`role: "reviewer"`, `workspace.mode: "readonly"`, and `capabilities.mcp: "inherit"`/);
+    expect(gen('skills/how/SKILL.md')).toContain('`workspace: { mode: "readonly", path: "<absolute repository root>" }`');
+    expect(gen('skills/reflect/SKILL.md')).toContain('`role: "reviewer"`, `workspace: { mode: "readonly", path: "<absolute repository root>" }`, and `capabilities.mcp: "inherit"`');
   });
 });
 
@@ -51,12 +51,12 @@ describe('nested spawning (defect 2)', () => {
     expect(gen('agents/poteto.md')).toContain('their wakes come to you');
   });
 
-  test('orchestrate gives a sub-coordinator spawn and maps fork to a fresh worker from the source branch', () => {
+  test('orchestrate gives a sub-coordinator spawn and maps fork to a fresh worker from the source\'s committed state', () => {
     expect(line('skills/poteto-mode/playbooks/orchestrate.md', 11)).toContain('`capabilities.spawn: true`');
     const fork = line('skills/poteto-mode/playbooks/orchestrate.md', 12);
     expect(fork).toMatch(/^- \*\*Fork when new work needs a worker's built state,\*\*/);
     expect(fork).toContain('once that worker settles');
-    expect(fork).toContain("`workspace.inputCommit` is the source worker's worktree `HEAD`");
+    expect(fork).toContain("the new `workspace.inputCommit` is the source's worktree `HEAD`");
     expect(fork).toContain('Steer a worker only for a follow-up on the same work.');
   });
 });
@@ -140,7 +140,7 @@ describe('self-audit fixes', () => {
   test('worktree-cleanup runs the slow scan as a one-shot watch that writes a file, and names no Cursor sidebar', () => {
     const text = gen('skills/poteto-mode/playbooks/worktree-cleanup.md');
     expect(text).not.toMatch(/sidebar|watch loop/);
-    expect(line('skills/poteto-mode/playbooks/worktree-cleanup.md', 3)).toMatch(/run it as a watch \(`kind: "watch"`, `watch\.argv: \["sh", "-c", "scripts\/worktree-audit\.sh <args> > <file>"\]`\)/);
+    expect(line('skills/poteto-mode/playbooks/worktree-cleanup.md', 3)).toContain('run it as a watch, a `kind: "watch"` worker with `role: "watcher"`, `watch.argv: ["sh", "-c", "<pi-pstack>/generated/skills/poteto-mode/scripts/worktree-audit.sh <args> > <absolute file>"]`');
   });
 
   test('orchestrate separates its PR watch from the scripts and polling loops it forbids', () => {

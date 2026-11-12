@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { parse } from 'yaml';
-import { AGENT_OUTPUTS, BUILTIN_COMMANDS, GENERAL_ROLE, KEEPS, type Keep, PRIMITIVES, type PrimitiveId, promptTemplate, RULES, type Rule } from './cursor-to-pi.ts';
+import { AGENT_OUTPUTS, BUILTIN_COMMANDS, GENERAL_ROLE, KEEPS, type Keep, PRIMITIVES, type PrimitiveId, promptTemplate, RULES, type Rule, WORKER_ASSIGNMENT_PATH, WORKER_ASSIGNMENT_REFERENCE } from './cursor-to-pi.ts';
 import { buildDependencyManifest, detectPrimitives, type Hit, lineAt } from './dependencies.ts';
 import { UPSTREAM, VENDOR_ROOTS } from './provenance.ts';
 
@@ -171,13 +171,14 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
     outputs.push({ path: output, source, text: transform(source, output, [stripFrontmatter(text, source)]) });
   }
   outputs.push({ path: 'generated/agents/general.md', source: null, text: GENERAL_ROLE });
+  outputs.push({ path: WORKER_ASSIGNMENT_PATH, source: null, text: WORKER_ASSIGNMENT_REFERENCE });
   for (const rule of rules) {
     for (const file of Object.keys(rule.files)) if (!touched.has(file)) problems.push(`rule ${rule.id} names ${file}, which the compile does not produce`);
   }
   problems.push(...unkeptResiduals(residuals, keeps));
   let prompts = 0;
   for (const skill of required) {
-    const meta = frontmatter(readFileSync(join(root, VENDOR_ROOTS[skill.origin], 'skills', skill.name, 'SKILL.md'), 'utf8'));
+    const meta = frontmatter(outputs.find((o) => o.path === `generated/skills/${skill.name}/SKILL.md`)?.text ?? '');
     if (meta['user-invocable'] === false) continue;
     if (BUILTIN_COMMANDS.has(skill.name)) problems.push(`skill ${skill.name} conflicts with a built-in Pi command`);
     outputs.push({ path: `generated/prompts/${skill.name}.md`, source: null, text: promptTemplate(skill.name, String(meta['description'] ?? skill.name)) });
