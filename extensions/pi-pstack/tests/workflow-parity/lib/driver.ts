@@ -37,6 +37,16 @@ export interface Ctx {
 
 export type ModelRoles = Record<string, string | string[]>;
 
+export type Mode = 'rpc' | 'print' | 'json';
+
+/** What a `drive` hook may do to the live run: send RPC commands, read the events so far, reach the private tmux server. */
+export interface DriveApi {
+  ctx: Ctx;
+  socket: string;
+  request: (command: Json) => Promise<{ success?: boolean } & Json>;
+  events: () => ({ type: string } & Json)[];
+}
+
 export interface Scenario {
   actors: Record<string, unknown[]>;
 }
@@ -58,6 +68,12 @@ export interface RunSpec {
   /** Removes anything the run left outside the sandbox. */
   cleanup?: (ctx: Ctx) => void;
   timeoutMs?: number;
+  /** rpc (default) drives Pi over its RPC protocol. print and json run `pi -p` and `pi --mode json` once, with the prompt as an argument and no stdin. */
+  mode?: Mode;
+  /** Extra environment for the parent Pi process. */
+  env?: Record<string, string>;
+  /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
+  drive?: (api: DriveApi) => Promise<void>;
 }
 
 export const SCRIPTED_ROLES: ModelRoles = {
@@ -165,13 +181,21 @@ class Rpc {
   private next = 0;
   private waiters = new Map<string, (event: RpcEvent) => void>();
   readonly child: ChildProcess;
-  constructor(child: ChildProcess) {
+  readonly raw: string[] = [];
+  private readonly json: boolean;
+  constructor(child: ChildProcess, json: boolean) {
     this.child = child;
+    this.json = json;
     child.stderr?.on('data', (chunk: Buffer) => {
       this.stderr += chunk.toString('utf8');
     });
     child.stdout?.on('data', (chunk: Buffer) => {
       this.buffer += chunk.toString('utf8');
+      if (!this.json) {
+        this.raw.push(chunk.toString('utf8'));
+        this.buffer = '';
+        return;
+      }
       for (let index = this.buffer.indexOf('\n'); index !== -1; index = this.buffer.indexOf('\n')) {
         const line = this.buffer.slice(0, index).trim();
         this.buffer = this.buffer.slice(index + 1);
@@ -268,10 +292,18 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   const env: Record<string, string> = { ...(process.env as Record<string, string>), HOME: join(ctx.sandbox, 'home'), PI_CODING_AGENT_DIR: ctx.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: socket };
   for (const name of Object.keys(env).filter((key) => key.startsWith('PSTACK_') && key !== 'PSTACK_TMUX_SOCKET')) delete env[name];
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
+  Object.assign(env, spec.env);
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
-  const child = spawn(PI, ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model], { cwd: ctx.repo, env, stdio: ['pipe', 'pipe', 'pipe'] });
-  const rpc = new Rpc(child);
+  const mode = spec.mode ?? 'rpc';
+  const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
+  const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
+  const child = spawn(PI, args, { cwd: ctx.repo, env, stdio: [mode === 'rpc' ? 'pipe' : 'ignore', 'pipe', 'pipe'] });
+  const rpc = new Rpc(child, mode === 'rpc');
+  let exitCode: number | null = null;
+  child.once('close', (code) => {
+    exitCode = code;
+  });
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
   const stopObserving = observeRuns(ctx.repo, history, claims);
@@ -280,6 +312,16 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   let timedOut = false;
   let parentSessionFile: string | null = null;
   try {
+    if (mode !== 'rpc') {
+      while (exitCode === null && Date.now() < deadline) await sleep(200);
+      if (exitCode === null) timedOut = true;
+      while (!timedOut) {
+        await sleep(300);
+        if (!workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) break;
+        if (Date.now() > deadline) timedOut = true;
+      }
+      writeFileSync(join(ctx.sandbox, 'one-shot.json'), JSON.stringify({ mode, exitCode, stdout: rpc.raw.join(''), stderr: rpc.stderr }, null, 2));
+    } else {
     const state = await rpc.request({ type: 'get_state' });
     parentSessionFile = ((state['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? null;
     const untilQuiet = async (): Promise<boolean> => {
@@ -304,10 +346,12 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
     for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {
       const accepted = await rpc.request({ type: 'prompt', message });
       if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
+      if (message === prompt && spec.drive !== undefined) await spec.drive({ ctx, socket, request: (command) => rpc.request(command), events: () => rpc.events });
       if (!(await untilQuiet())) {
         timedOut = true;
         break;
       }
+    }
     }
   } finally {
     stopObserving();

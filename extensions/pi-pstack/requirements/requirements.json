@@ -1267,6 +1267,7 @@
       "file": "tests/worker-lifecycle/assignment-defaults.test.ts",
       "name": "a container worker a worktree worker keeps the inherit default"
     },
+<<<<<<< HEAD
     "bn.attachments.1": {
       "file": "tests/automation/attachments.test.ts",
       "name": "the event keeps what a download needs from each Slack file, and the brief's event block does not carry the private link"
@@ -2014,6 +2015,167 @@
     "bn.verdict-wait.8": {
       "file": "tests/automation/verdict-wait.test.ts",
       "name": "the settler's own polling dispatches a waiting case once its verdict is posted"
+=======
+    "hl.print": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-print scripted run: every check passes"
+    },
+    "hl.json": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-json scripted run: every check passes"
+    },
+    "hl.command": {
+      "file": "tests/workflow-parity/headless.test.ts",
+      "name": "headless-command scripted run: every check passes"
+    },
+    "mcp.with": {
+      "file": "tests/workflow-parity/mcp.test.ts",
+      "name": "why-mcp scripted run: every check passes"
+    },
+    "mcp.without": {
+      "file": "tests/workflow-parity/mcp.test.ts",
+      "name": "why-no-mcp scripted run: every check passes"
+    },
+    "cm.compose": {
+      "file": "tests/workflow-parity/codemode.test.ts",
+      "name": "codemode scripted run: every check passes"
+    },
+    "cc.four": {
+      "file": "tests/workflow-parity/concurrency.test.ts",
+      "name": "worker-concurrency scripted run: every check passes"
+    },
+    "di.operator": {
+      "file": "tests/workflow-parity/interaction.test.ts",
+      "name": "worker-interaction scripted run: every check passes"
+    },
+    "wf.how": {
+      "file": "tests/workflow-parity/investigation.test.ts",
+      "name": "how scripted run: every check passes"
+    },
+    "wf.teach": {
+      "file": "tests/workflow-parity/investigation.test.ts",
+      "name": "teach scripted run: every check passes"
+    },
+    "wf.architect": {
+      "file": "tests/workflow-parity/design.test.ts",
+      "name": "architect scripted run: every check passes"
+    },
+    "wf.arena": {
+      "file": "tests/workflow-parity/design.test.ts",
+      "name": "arena scripted run: every check passes"
+    },
+    "wf.arena-dropout": {
+      "file": "tests/workflow-parity/rules.test.ts",
+      "name": "arena-dropout scripted run: every check passes"
+    },
+    "wf.interrogate": {
+      "file": "tests/workflow-parity/design.test.ts",
+      "name": "interrogate scripted run: every check passes"
+    },
+    "wf.feature-contested": {
+      "file": "tests/workflow-parity/gates.test.ts",
+      "name": "feature-contested scripted run: every check passes"
+    },
+    "wf.feature": {
+      "file": "tests/workflow-parity/build.test.ts",
+      "name": "feature scripted run: every check passes"
+    },
+    "wf.bug-fix": {
+      "file": "tests/workflow-parity/build.test.ts",
+      "name": "bug-fix scripted run: every check passes"
+    },
+    "wf.tdd": {
+      "file": "tests/workflow-parity/build.test.ts",
+      "name": "tdd scripted run: every check passes"
+    },
+    "wf.refactoring": {
+      "file": "tests/workflow-parity/build-measured.test.ts",
+      "name": "refactoring scripted run: every check passes"
+    },
+    "wf.perf-issue": {
+      "file": "tests/workflow-parity/build-measured.test.ts",
+      "name": "perf-issue scripted run: every check passes"
+    },
+    "wf.hillclimb": {
+      "file": "tests/workflow-parity/build-measured.test.ts",
+      "name": "hillclimb scripted run: every check passes"
+    },
+    "wf.create-verification-skill": {
+      "file": "tests/workflow-parity/verification.test.ts",
+      "name": "create-verification-skill scripted run: every check passes"
+    },
+    "wf.maintain-verification-skill": {
+      "file": "tests/workflow-parity/maintain.test.ts",
+      "name": "maintain-verification-skill scripted run: every check passes"
+    },
+    "wf.create-formal-verification-skill": {
+      "file": "tests/workflow-parity/verification.test.ts",
+      "name": "create-formal-verification-skill scripted run: every check passes"
+    },
+    "wf.maintain-formal-verification-skill": {
+      "file": "tests/workflow-parity/maintain.test.ts",
+      "name": "maintain-formal-verification-skill scripted run: every check passes"
+    },
+    "wf.recall": {
+      "file": "tests/workflow-parity/history.test.ts",
+      "name": "recall scripted run: every check passes"
+    },
+    "wf.reflect": {
+      "file": "tests/workflow-parity/history.test.ts",
+      "name": "reflect scripted run: every check passes"
+    },
+    "wf.automate-me": {
+      "file": "tests/workflow-parity/skills.test.ts",
+      "name": "automate-me scripted run: every check passes"
+    },
+    "wf.ketchup": {
+      "file": "tests/workflow-parity/history.test.ts",
+      "name": "ketchup scripted run: every check passes"
+    },
+    "wf.ketchup-video": {
+      "file": "tests/workflow-parity/video.test.ts",
+      "name": "ketchup-video scripted run: every check passes"
+    },
+    "wf.ketchup-video-render-fails": {
+      "file": "tests/workflow-parity/video.test.ts",
+      "name": "ketchup-video-render-fails scripted run: every check passes"
+    },
+    "wf.multi-phase-plan": {
+      "file": "tests/workflow-parity/meta.test.ts",
+      "name": "multi-phase-plan scripted run: every check passes"
+    },
+    "wf.swarm-second-miss": {
+      "file": "tests/workflow-parity/rules.test.ts",
+      "name": "swarm-second-miss scripted run: every check passes"
+    },
+    "wf.swarm": {
+      "file": "tests/workflow-parity/design.test.ts",
+      "name": "swarm scripted run: every check passes"
+    },
+    "wf.swarm-race-first-pass": {
+      "file": "tests/workflow-parity/rules.test.ts",
+      "name": "swarm-race-first-pass scripted run: every check passes"
+    },
+    "wf.swarm-race-rank-all": {
+      "file": "tests/workflow-parity/rules.test.ts",
+      "name": "swarm-race-rank-all scripted run: every check passes"
+    },
+    "wf.swarm-race-best-of": {
+      "file": "tests/workflow-parity/rules.test.ts",
+      "name": "swarm-race-best-of scripted run: every check passes"
+    },
+    "wf.statechart": {
+      "file": "tests/workflow-parity/verification.test.ts",
+      "name": "statechart scripted run: every check passes"
+    },
+    "wf.commit-review-gates": {
+      "file": "tests/workflow-parity/gates.test.ts",
+      "name": "commit-review-gates scripted run: every check passes"
+    },
+    "wf.why": {
+      "file": "tests/workflow-parity/investigation.test.ts",
+      "name": "why scripted run: every check passes"
+>>>>>>> pstack/native-u16c
     }
   },
   "structural": [
@@ -2495,8 +2657,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test starts the playbook and checks that the working tree is unchanged apart from the plan file.",
-      "tests": []
+      "verification": "tests/workflow-parity/meta.test.ts run multi-phase-plan on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.multi-phase-plan"
+      ]
     },
     {
       "id": "MX-TODO-PARITY",
@@ -2562,7 +2726,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/concurrency.test.ts (four workers, three models, one message)",
       "tests": [
         "life.spawn",
         "life.distinct",
@@ -2570,9 +2734,9 @@
         "life.reuse-other-branch",
         "life.reuse-own",
         "life.branch-exists",
-        "nest.subcoordinator"
-      ],
-      "coverageGap": "No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise."
+        "nest.subcoordinator",
+        "cc.four"
+      ]
     },
     {
       "id": "MX-DIRECT-INTERACTION",
@@ -2599,14 +2763,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/interaction.test.ts (tmux send-keys into a live worker pane, pstack_worker steer, RPC steer)",
       "tests": [
         "life.steer",
         "life.spawn",
         "life.socket",
-        "life.not-owner"
-      ],
-      "coverageGap": "No test types into the attached tmux pane as an operator and checks the transcript."
+        "life.not-owner",
+        "di.operator"
+      ]
     },
     {
       "id": "MX-WORKER-CRASH",
@@ -2741,12 +2905,14 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/integration/pi-load.test.ts runs RPC mode only",
+      "verification": "tests/workflow-parity/headless.test.ts runs a playbook start under pi -p, pi --mode json and a UI-reporting command on the real pi binary; tests/integration/pi-load.test.ts runs RPC mode",
       "tests": [
         "load.skills",
-        "ext.entry"
-      ],
-      "coverageGap": "No test runs print or JSON mode. The load test uses RPC mode only."
+        "ext.entry",
+        "hl.print",
+        "hl.json",
+        "hl.command"
+      ]
     },
     {
       "id": "MX-MCP",
@@ -2773,13 +2939,16 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts and tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/workflow-parity/mcp.test.ts runs why with a stdio MCP server from Pi's native mcp.json and without one, on the real pi binary; tests/workflow-parity/investigation.test.ts run why on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "sem.why-ro",
         "life.mcp-none",
-        "life.automation-default"
+        "life.automation-default",
+        "mcp.with",
+        "mcp.without",
+        "wf.why"
       ],
-      "coverageGap": "No test runs why with and without configured MCP services and checks citations or explicit missing coverage."
+      "coverageGap": "A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
     },
     {
       "id": "MX-CODEMODE",
@@ -2806,8 +2975,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No pstack test exercises Codemode.",
-      "tests": []
+      "verification": "tests/workflow-parity/codemode.test.ts runs codemode scripts against a stdio MCP server in the parent and in a pstack worker on the real pi binary",
+      "tests": [
+        "cm.compose"
+      ]
     },
     {
       "id": "MX-MODEL-ROUTING",
@@ -2868,8 +3039,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs an arena and checks that candidate outputs are disjoint.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.arena",
+        "wf.arena-dropout"
+      ]
     },
     {
       "id": "MX-SWARM-GAPS",
@@ -2894,16 +3068,17 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/evidence.test.ts",
+      "verification": "tests/worker-lifecycle/evidence.test.ts; tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm-second-miss, swarm on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "evid.none",
         "evid.pass",
         "evid.changed",
         "evid.commit",
         "evid.noartifact",
-        "evid.passfail"
-      ],
-      "coverageGap": "No test runs a swarm that drops a lane, respawns once and records the gap in the final report."
+        "evid.passfail",
+        "wf.swarm-second-miss",
+        "wf.swarm"
+      ]
     },
     {
       "id": "MX-SWARM-OUTCOMES",
@@ -2927,8 +3102,13 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks swarm report outcomes.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run swarm, swarm-race-first-pass, swarm-race-rank-all, swarm-race-best-of on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.swarm",
+        "wf.swarm-race-first-pass",
+        "wf.swarm-race-rank-all",
+        "wf.swarm-race-best-of"
+      ]
     },
     {
       "id": "SCRIPT-WATCH-PR",
@@ -3094,12 +3274,13 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/packaging/installed-helpers.test.ts",
+      "verification": "tests/packaging/installed-helpers.test.ts; tests/workflow-parity/verification.test.ts run statechart on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "scripts.statechart-entry",
         "scripts.statechart-usage",
         "inst.statechart-render",
-        "inst.statechart-tlc"
+        "inst.statechart-tlc",
+        "wf.statechart"
       ]
     },
     {
@@ -3734,7 +3915,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security",
+      "verification": "tests/worker-lifecycle/readonly-worker.test.ts, nested-spawn.test.ts, tests/security; tests/workflow-parity/investigation.test.ts run how on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "sem.how-ro",
         "sem.ro-bash",
@@ -3743,7 +3924,8 @@
         "sec.ro-shell",
         "sec.ro-failclosed",
         "sec.ro-state",
-        "sec.ro-bashenv"
+        "sec.ro-bashenv",
+        "wf.how"
       ]
     },
     {
@@ -3824,8 +4006,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes teach.",
-      "tests": []
+      "verification": "tests/workflow-parity/investigation.test.ts run teach on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.teach"
+      ]
     },
     {
       "id": "WF-ARCHITECT-ARENA",
@@ -3849,8 +4033,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes architect.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.architect"
+      ]
     },
     {
       "id": "WF-ARCHITECT-CHECKPOINT",
@@ -3874,8 +4060,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes architect.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts run architect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.architect"
+      ]
     },
     {
       "id": "WF-ARENA-FLOW",
@@ -3899,8 +4087,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs arena.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/rules.test.ts run arena, arena-dropout on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.arena",
+        "wf.arena-dropout"
+      ]
     },
     {
       "id": "WF-INTERROGATE",
@@ -3924,8 +4115,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs interrogate.",
-      "tests": []
+      "verification": "tests/workflow-parity/design.test.ts and tests/workflow-parity/gates.test.ts run interrogate, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.interrogate",
+        "wf.feature-contested"
+      ]
     },
     {
       "id": "WF-MODEL-INDEPENDENCE",
@@ -3980,8 +4174,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Feature playbook end to end.",
-      "tests": []
+      "verification": "tests/workflow-parity/build.test.ts and tests/workflow-parity/gates.test.ts run feature, feature-contested on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.feature",
+        "wf.feature-contested"
+      ]
     },
     {
       "id": "WF-BUGFIX",
@@ -4005,8 +4202,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Bug fix playbook end to end.",
-      "tests": []
+      "verification": "tests/workflow-parity/build.test.ts run bug-fix on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.bug-fix"
+      ]
     },
     {
       "id": "WF-TDD",
@@ -4030,8 +4229,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes tdd.",
-      "tests": []
+      "verification": "tests/workflow-parity/build.test.ts run tdd on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.tdd"
+      ]
     },
     {
       "id": "WF-REFACTOR",
@@ -4055,8 +4256,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Refactoring playbook.",
-      "tests": []
+      "verification": "tests/workflow-parity/build-measured.test.ts run refactoring on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.refactoring"
+      ]
     },
     {
       "id": "WF-PERF",
@@ -4080,8 +4283,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Perf issue playbook.",
-      "tests": []
+      "verification": "tests/workflow-parity/build-measured.test.ts run perf-issue on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.perf-issue"
+      ]
     },
     {
       "id": "WF-HILLCLIMB",
@@ -4105,8 +4310,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs the Hillclimb playbook.",
-      "tests": []
+      "verification": "tests/workflow-parity/build-measured.test.ts run hillclimb on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.hillclimb"
+      ]
     },
     {
       "id": "WF-CREATE-VERIFICATION-SKILL",
@@ -4130,8 +4337,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes create-verification-skill.",
-      "tests": []
+      "verification": "tests/workflow-parity/verification.test.ts run create-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.create-verification-skill"
+      ]
     },
     {
       "id": "WF-MAINTAIN-VERIFICATION-SKILL",
@@ -4155,8 +4364,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes maintain-verification-skill.",
-      "tests": []
+      "verification": "tests/workflow-parity/maintain.test.ts run maintain-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.maintain-verification-skill"
+      ]
     },
     {
       "id": "WF-FORMAL-VERIFICATION",
@@ -4180,8 +4391,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes the formal verification skills.",
-      "tests": []
+      "verification": "tests/workflow-parity/maintain.test.ts and tests/workflow-parity/verification.test.ts run create-formal-verification-skill, maintain-formal-verification-skill on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.create-formal-verification-skill",
+        "wf.maintain-formal-verification-skill"
+      ]
     },
     {
       "id": "WF-RECALL",
@@ -4205,8 +4419,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes recall.",
-      "tests": []
+      "verification": "tests/workflow-parity/history.test.ts run recall on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.recall"
+      ]
     },
     {
       "id": "WF-REFLECT-TRANSCRIPT",
@@ -4230,12 +4446,12 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/review-fixes.test.ts",
+      "verification": "tests/skill-parity/review-fixes.test.ts; tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "rf.reflect-first-user",
-        "rf.reflect-session"
-      ],
-      "coverageGap": "No test runs reflect with three reviewers and a synthesizer."
+        "rf.reflect-session",
+        "wf.reflect"
+      ]
     },
     {
       "id": "WF-REFLECT-APPROVAL",
@@ -4259,8 +4475,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks the approval gate.",
-      "tests": []
+      "verification": "tests/workflow-parity/history.test.ts run reflect on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.reflect"
+      ]
     },
     {
       "id": "WF-AUTOMATE-ME",
@@ -4284,8 +4502,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes automate-me.",
-      "tests": []
+      "verification": "tests/workflow-parity/skills.test.ts run automate-me on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.automate-me"
+      ]
     },
     {
       "id": "WF-KETCHUP",
@@ -4309,8 +4529,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test invokes ketchup.",
-      "tests": []
+      "verification": "tests/workflow-parity/history.test.ts run ketchup on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.ketchup"
+      ]
     },
     {
       "id": "WF-KETCHUP-VIDEO",
@@ -4336,8 +4558,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test renders a video.",
-      "tests": []
+      "verification": "tests/workflow-parity/video.test.ts run ketchup-video, ketchup-video-render-fails on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.ketchup-video",
+        "wf.ketchup-video-render-fails"
+      ]
     },
     {
       "id": "WF-MAKE-BOT-UI",
@@ -4393,8 +4618,10 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks the compiled rule or the behavior.",
-      "tests": []
+      "verification": "tests/workflow-parity/build.test.ts run feature on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
+      "tests": [
+        "wf.feature"
+      ]
     },
     {
       "id": "WF-SETUP-PSTACK",
@@ -4474,10 +4701,11 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts",
+      "verification": "tests/skill-parity/semantics.test.ts; tests/workflow-parity/gates.test.ts run commit-review-gates on the real pi binary with the scripted model, and check what the run left in the session files, run directory and git",
       "tests": [
         "inv.agents",
-        "sem.nocomments"
+        "sem.nocomments",
+        "wf.commit-review-gates"
       ]
     },
     {

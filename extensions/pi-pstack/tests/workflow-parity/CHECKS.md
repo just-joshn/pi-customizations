@@ -1251,3 +1251,488 @@ Negative cases, each of which must FAIL the named checks:
 - the owners did not start from the migrated primitive → `vp.primitives-first-as-a-blocking-phase`
 - the reply hid a nonzero diff → `vp.reply-has-components-diffs-baseline-and-whats-left`
 
+## headless-print
+
+a pstack playbook start under pi -p: TODO.md, a worker that settles, a delivered wake (MX-HEADLESS)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `todo.investigation.run-from-playbook` | a run for the investigation playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.investigation.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/investigation.md:7` |
+| `todo.investigation.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `headless-print.worker-spawned` | the worker was spawned as its own readonly Pi process under the one-shot parent | `generated/skills/swarm/SKILL.md:27` |
+| `headless-print.worker-settled-and-woke-parent` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-print.exits-without-a-dialog` | the process exits on its own with status 0 and no UI prompt left it waiting | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-print.stdout-carries-the-final-answer` | stdout is the final assistant text that follows the wake | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-print.no-state-lost` | every worker settle and wake is durable: state.json, events.jsonl and the parent session agree | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-print.parent-wrote-nothing-outside-the-run` | the headless run leaves the repository clean | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the wake was never delivered into the parent → `headless-print.worker-settled-and-woke-parent`, `headless-print.no-state-lost`
+- the process was killed instead of exiting → `headless-print.exits-without-a-dialog`
+- stdout lost the final answer → `headless-print.stdout-carries-the-final-answer`
+
+## headless-json
+
+a pstack playbook start under pi --mode json: TODO.md, a worker that settles, a delivered wake (MX-HEADLESS)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `todo.investigation.run-from-playbook` | a run for the investigation playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.investigation.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/investigation.md:7` |
+| `todo.investigation.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `headless-json.worker-spawned` | the worker was spawned as its own readonly Pi process under the one-shot parent | `generated/skills/swarm/SKILL.md:27` |
+| `headless-json.worker-settled-and-woke-parent` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-json.exits-without-a-dialog` | the process exits on its own with status 0 and no UI prompt left it waiting | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-json.stdout-carries-the-final-answer` | the JSON stream is valid JSONL: a session header, the wake as a message, the final answer, and agent_settled last | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-json.no-state-lost` | every worker settle and wake is durable: state.json, events.jsonl and the parent session agree | `generated/skills/poteto-mode/SKILL.md:97` |
+| `headless-json.parent-wrote-nothing-outside-the-run` | the headless run leaves the repository clean | `generated/skills/poteto-mode/playbooks/investigation.md:5` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the wake was never delivered into the parent → `headless-json.worker-settled-and-woke-parent`, `headless-json.no-state-lost`
+- the process was killed instead of exiting → `headless-json.exits-without-a-dialog`
+- stdout lost the final answer → `headless-json.stdout-carries-the-final-answer`
+
+## headless-command
+
+a UI-reporting /pstack command under pi -p neither hangs nor drops its report (MX-HEADLESS)
+
+Known product defect, asserted with test.fails: `headless-command.report-reaches-stdout`. src/commands.ts:609 and :611 deliver every /pstack subcommand result through ctx.ui.notify, which prints nothing under pi -p and pi --mode json: status, doctor, workers and audit output is dropped without an error.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `headless-command.exits-without-hanging` | pi -p /pstack doctor exits 0 by itself, so a UI call is never waited on | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+| `headless-command.report-reaches-stdout` | the doctor report reaches stdout, so no output is silently lost without a UI | `generated/skills/poteto-mode/playbooks/autonomous-run.md:3` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the command hung until the driver killed it → `headless-command.exits-without-hanging`
+
+## why-mcp
+
+why with a configured MCP server: discovery, a real call, citations from its output, readonly kept (MX-MCP)
+
+Known product defect, asserted with test.fails: `why-mcp.readonly-investigator-reaches-mcp`. src/workers.ts:59 and :510 launch a readonly worker with --tools read,grep,find,ls,bash_readonly,pstack_evidence. Pi keeps an MCP tool reachable only through codemode, tool_search or an mcp__ entry in that list (cli.md "MCP tools"), so a readonly investigator has none of them and every MCP call fails with "Tool not found" although capabilities.mcp is inherit and --no-mcp is absent.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `why-mcp.parent-discovers-mcp` | the parent runs pi mcp list before spawning, and it names the server only when one is configured | `generated/skills/why/SKILL.md:35` |
+| `why-mcp.investigators-readonly-with-mcp` | the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none) | `generated/skills/why/SKILL.md:13`, `generated/skills/why/SKILL.md:13` |
+| `why-mcp.worker-launch-keeps-mcp` | no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.worker-discovers-and-calls` | a worker with default tools discovered the namespace, called the tool through codemode, and the server logged the call | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.readonly-holds-beside-mcp` | the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.citations-come-from-tool-output` | every decision id and URL in the reply appears in the MCP tool output | `generated/skills/why/references/investigator-prompt.md:43` |
+| `why-mcp.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/why/SKILL.md:86` |
+| `why-mcp.no-writes` | the repository is untouched | `generated/skills/why/SKILL.md:13` |
+| `why-mcp.readonly-investigator-reaches-mcp` | the readonly investigator, which keeps MCP access, called the MCP tool and got the decision record | `generated/skills/why/SKILL.md:13` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- an investigator was spawned with MCP off → `why-mcp.investigators-readonly-with-mcp`
+- a host was launched with --no-mcp → `why-mcp.worker-launch-keeps-mcp`
+- the reply cites what no tool returned → `why-mcp.citations-come-from-tool-output`
+
+## why-no-mcp
+
+why with no MCP server: nothing is called and the reply reports the missing coverage (MX-MCP)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `why-no-mcp.parent-discovers-mcp` | the parent runs pi mcp list before spawning, and it names the server only when one is configured | `generated/skills/why/SKILL.md:35` |
+| `why-no-mcp.investigators-readonly-with-mcp` | the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none) | `generated/skills/why/SKILL.md:13`, `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.worker-launch-keeps-mcp` | no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.worker-discovers-and-calls` | a worker looking for the server could not even start a codemode script or found no namespace, so nothing was called | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.readonly-holds-beside-mcp` | the readonly investigator was refused a write, with the MCP server configured: MCP did not widen its tools | `generated/skills/why/SKILL.md:13` |
+| `why-no-mcp.citations-come-from-tool-output` | the reply cites no decision id or URL, and its Sources Consulted line says the documents were not searched | `generated/skills/why/references/investigator-prompt.md:43` |
+| `why-no-mcp.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/why/SKILL.md:86` |
+| `why-no-mcp.no-writes` | the repository is untouched | `generated/skills/why/SKILL.md:13` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- an investigator was spawned with MCP off → `why-no-mcp.investigators-readonly-with-mcp`
+- a host was launched with --no-mcp → `why-no-mcp.worker-launch-keeps-mcp`
+- the reply cites what no tool returned → `why-no-mcp.citations-come-from-tool-output`
+- the reply drops the missing-coverage line → `why-no-mcp.citations-come-from-tool-output`
+
+## codemode
+
+codemode composes concurrent tool calls with isolated results, in the parent and in a worker (MX-CODEMODE)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `codemode.parent-isolated` | in the parent, each concurrent call's result lands in its own slot: three labels in order, the error result flagged only on its own slot, the missing tool rejected only on its own | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.parent-concurrent` | the parent's three 700 ms calls ran at the same time: the server received all three within 300 ms, and the script took under 1500 ms | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-isolated` | in the worker, each concurrent call's result lands in its own slot: three labels in order, the error result flagged only on its own slot, the missing tool rejected only on its own | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-concurrent` | the worker's three 700 ms calls ran at the same time: the server received all three within 300 ms, and the script took under 1500 ms | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.worker-ran-codemode` | the worker is a pstack worker with its own worktree that ran codemode itself | `generated/skills/swarm/SKILL.md:27` |
+| `codemode.sessions-do-not-share` | the parent and the worker each ran their own MCP server process, and no label crossed from one to the other | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.large-output-is-bounded` | a 60000 character tool result with max_output_tokens 200 reaches the model truncated with the full text saved to a file, and a script that reduces it returns only a summary | `generated/skills/poteto-mode/SKILL.md:85` |
+| `codemode.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- two parent results swapped slots → `codemode.parent-isolated`
+- the worker calls ran one after another → `codemode.worker-concurrent`
+- a worker label appeared in the parent → `codemode.worker-isolated`, `codemode.sessions-do-not-share`
+- the large result reached the model whole → `codemode.large-output-is-bounded`
+- the worker was readonly, with no codemode → `codemode.worker-ran-codemode`
+
+## worker-concurrency
+
+four workers spawned in one message on three different models: distinct sessions, tmux sessions and worktrees, overlapping in time (MX-WORKER-CONCURRENCY)
+
+Known product defect, asserted with test.fails: `worker-concurrency.workers-get-their-own-pane-env`. src/workers.ts:520-526 builds the worker environment from the parent snapshot (launchEnvironment), which carries the parent's TMUX and TMUX_PANE over the values tmux gives the worker pane; only container workers drop them (src/container.ts:49 hostOnlyEnv). A host worker that runs a bare tmux command targets its parent's pane.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `worker-concurrency.spawned-in-one-message` | the general workers were spawned in a single assistant message | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.spawn-does-not-block` | spawn returned before any worker settled: the parent kept running while all four were live, and the four live intervals share one instant | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-resolved-models` | the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-sessions-and-panes` | every worker has its own Pi session file, session id, tmux session and tmux pane marker, and none is shared | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-worktrees-and-branches` | every worker ran inside its own worktree on its own new branch pstack-run/<run>/<worker>, each started at the input commit and ending with its own commit only | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.no-worker-saw-anothers-files` | each worktree holds its own helper file and none of the other three | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.assignments-differ-only-where-intended` | the four assignments are for the same role and input commit and differ in worker id and model | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.workers-get-their-own-pane-env` | each worker's $TMUX_PANE names its own pane, not the pane its parent runs in | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- two workers share one tmux session → `worker-concurrency.distinct-sessions-and-panes`
+- a worker ran inside another worker's worktree → `worker-concurrency.distinct-worktrees-and-branches`
+- spawn blocked until the workers finished → `worker-concurrency.spawn-does-not-block`
+- all four workers ran on one model → `worker-concurrency.assignments-differ-only-where-intended`
+
+## worker-interaction
+
+an operator types into a live worker pane, the parent steers the worker, and RPC steers the parent: every message lands in a transcript (MX-DIRECT-INTERACTION)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `worker-interaction.spawn-returns-an-attach-command` | the spawn result names the tmux session and an attach command, and returned while the worker was starting | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.pane-shows-the-worker` | the live pane shows the host banner, the operator command echo and a receipt for each typed line | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.typed-prompt-reaches-the-transcript` | the line typed as `prompt <text>` is a user message in the worker session, and the worker acted on it (its next tool call is the long command) | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.typed-steer-lands-mid-run` | the line typed as `steer <text>` while the worker ran is a user message that follows the command it interrupted, and the worker answered it | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.parent-steer-lands` | pstack_worker steer reaches the same worker as a user message, and the worker answered it | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.rpc-steer-lands-in-the-parent` | an RPC steer sent while the parent ran a command is a user message in the parent session after that command and before its next call | `generated/skills/poteto-mode/playbooks/orchestrate.md:12` |
+| `worker-interaction.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the typed prompt never reached the worker → `worker-interaction.typed-prompt-reaches-the-transcript`
+- the typed steer was lost → `worker-interaction.typed-steer-lands-mid-run`
+- the parent steer never arrived → `worker-interaction.parent-steer-lands`
+- the RPC steer was not recorded in the parent → `worker-interaction.rpc-steer-lands-in-the-parent`
+- the pane showed nothing → `worker-interaction.pane-shows-the-worker`
+
+## commit-review-gates
+
+deslop before the commit and no-comments before review: a rejected Comment Sicko report is reverted and rerun once, only the accepted patch is applied (poteto-mode triggers)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `gates.deslop-before-the-commit` | the committing worker opened the deslop skill and removed the slop before its first commit, and the committed file has none of it | `generated/skills/poteto-mode/SKILL.md:30` |
+| `gates.no-comments-before-review` | the parent opened no-comments and had its report accepted before the reviewer was spawned | `generated/skills/poteto-mode/SKILL.md:31` |
+| `gates.comment-sicko-in-its-own-worktree` | each Comment Sicko is role comment-sicko in a worktree started at the scope's base commit | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.scope-patch-applied-first` | scope.patch was written into the worker directory before the spawn, holds the scoped diff, and the brief has the worker apply it with git apply --index | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.rejected-report-is-rerun-once` | a report that edited application code was rejected and the worker rerun once with the failure named; the rejected change never reached the checkout | `generated/skills/no-comments/SKILL.md:20` |
+| `gates.only-the-accepted-patch-is-applied` | the caller's checkout holds exactly the accepted comment deletion: one removed comment line and no other change | `generated/skills/no-comments/SKILL.md:19` |
+| `gates.report-has-the-counts` | the reply reports the deletion count, the rerun and that nothing was restored | `generated/skills/no-comments/SKILL.md:24` |
+| `gates.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the worker never opened deslop → `gates.deslop-before-the-commit`
+- the parent never opened no-comments → `gates.no-comments-before-review`
+- the rejected application edit reached the checkout → `gates.only-the-accepted-patch-is-applied`
+- a Comment Sicko started from the wrong commit → `gates.scope-patch-applied-first`
+- the rerun brief did not name the failure → `gates.rejected-report-is-rerun-once`
+- the report omits the counts → `gates.report-has-the-counts`
+
+## feature-contested
+
+Feature step 7: a contested design is interrogated before shipping, by two families, from the delivered commit, with no fix applied (feature.md step 7)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `todo.feature.run-from-playbook` | a run for the feature playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.feature.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/feature.md:5` |
+| `todo.feature.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.feature.every-step-resolved` | every original step ends done with evidence or skipped with a reason, none open | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.feature.done-steps-proven` | each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass) | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.feature.skips-explained` | a skipped step names its reason, and no mandatory step is skipped | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/feature.md:5` |
+| `todo.feature.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.feature.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `feature-contested.interrogate-step-is-done-not-skipped` | step 7 ends done with a receipt, after the interrogate skill and its two companion skills were opened | `generated/skills/poteto-mode/playbooks/feature.md:16` |
+| `feature-contested.reviewers-from-two-families` | the adversaries are role reviewer, each in its own worktree, on the "interrogate reviewers" line, from at least two families | `generated/skills/interrogate/SKILL.md:17` |
+| `feature-contested.adversaries-start-from-the-delivered-commit` | the reviewers were spawned after the implementation was collected, and each starts at the implementation head | `generated/skills/interrogate/SKILL.md:17` |
+| `feature-contested.finding-was-rerun-and-reported` | the finding in the reply was rerun by the parent with the reported output, and it is left as an open decision | `generated/skills/interrogate/SKILL.md:23` |
+| `feature-contested.no-fix-was-applied` | interrogate reported without fixing: the implementation branch holds only its own commit and the main checkout is untouched | `generated/skills/interrogate/SKILL.md:9` |
+| `feature-contested.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- a step was left open → `todo.feature.every-step-resolved`
+- a step is done with no receipt id → `todo.feature.done-steps-proven`
+- a step cites a receipt that was never recorded → `todo.feature.done-steps-proven`
+- the artifact changed after the receipt hashed it → `todo.feature.done-steps-proven`
+- a step was skipped with no reason → `todo.feature.skips-explained`
+- steps were resolved out of order → `todo.feature.resolved-in-order`
+- a playbook step was deleted from TODO.md → `todo.feature.steps-verbatim-in-order`
+- the interrogate step was skipped as not contested → `feature-contested.interrogate-step-is-done-not-skipped`, `todo.feature.skips-explained`
+- the reviewers were one model family → `feature-contested.reviewers-from-two-families`
+- a reviewer started from the base, not the delivered commit → `feature-contested.adversaries-start-from-the-delivered-commit`
+- a fix was applied while interrogating → `feature-contested.no-fix-was-applied`
+- the reply reports output the rerun did not show → `feature-contested.finding-was-rerun-and-reported`
+
+## swarm-race-first-pass
+
+swarm race, selection rule "first pass": declared before the spawn, same brief for every arm, applied when aggregating (swarm Phase A step 2 and Phase C)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `swarm-race-first-pass.phases-before-launch` | TODO.md lists one entry per phase (Swarm Frame, Swarm Fan out, Swarm Aggregate, Swarm Report) in order, before the first worker is spawned | `generated/skills/swarm/SKILL.md:11` |
+| `swarm-race-first-pass.rule-declared-before-spawning` | the rule "first pass" and each arm's model are written into TODO.md before the first worker is claimed | `generated/skills/swarm/SKILL.md:21` |
+| `swarm-race-first-pass.arms-spawned-together` | the general workers were spawned in a single assistant message | `generated/skills/swarm/SKILL.md:27` |
+| `swarm-race-first-pass.identical-briefs-and-named-models` | every arm has the same brief and runs on the model its TODO line names, three models | `generated/skills/swarm/SKILL.md:22` |
+| `swarm-race-first-pass.separate-writable-outputs` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/swarm/SKILL.md:23` |
+| `swarm-race-first-pass.results-record-sha-and-method` | each arm that finished recorded the SHA and method its brief names | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-first-pass.selection-follows-the-declared-rule` | the winner is the first arm that settled with PASS by the workers' own settle times, and the arm still running was aborted and not counted | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-first-pass.report-states-the-rule-and-gaps` | the report is one table with the race rule and the gaps, not raw worker dumps | `generated/skills/swarm/SKILL.md:41` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the report names the wrong selection → `swarm-race-first-pass.selection-follows-the-declared-rule`
+- an arm had a different brief → `swarm-race-first-pass.identical-briefs-and-named-models`
+- an arm ran on a model the TODO did not name → `swarm-race-first-pass.identical-briefs-and-named-models`
+- an arm's result lacks the SHA → `swarm-race-first-pass.results-record-sha-and-method`
+- the report omits the rule → `swarm-race-first-pass.report-states-the-rule-and-gaps`
+
+## swarm-race-rank-all
+
+swarm race, selection rule "rank all": declared before the spawn, same brief for every arm, applied when aggregating (swarm Phase A step 2 and Phase C)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `swarm-race-rank-all.phases-before-launch` | TODO.md lists one entry per phase (Swarm Frame, Swarm Fan out, Swarm Aggregate, Swarm Report) in order, before the first worker is spawned | `generated/skills/swarm/SKILL.md:11` |
+| `swarm-race-rank-all.rule-declared-before-spawning` | the rule "rank all" and each arm's model are written into TODO.md before the first worker is claimed | `generated/skills/swarm/SKILL.md:21` |
+| `swarm-race-rank-all.arms-spawned-together` | the general workers were spawned in a single assistant message | `generated/skills/swarm/SKILL.md:27` |
+| `swarm-race-rank-all.identical-briefs-and-named-models` | every arm has the same brief and runs on the model its TODO line names, three models | `generated/skills/swarm/SKILL.md:22` |
+| `swarm-race-rank-all.separate-writable-outputs` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/swarm/SKILL.md:23` |
+| `swarm-race-rank-all.results-record-sha-and-method` | each arm that finished recorded the SHA and method its brief names | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-rank-all.selection-follows-the-declared-rule` | every arm was collected and the ranking lists the passing arms by score, best first | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-rank-all.report-states-the-rule-and-gaps` | the report is one table with the race rule and the gaps, not raw worker dumps | `generated/skills/swarm/SKILL.md:41` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the report names the wrong selection → `swarm-race-rank-all.selection-follows-the-declared-rule`
+- an arm had a different brief → `swarm-race-rank-all.identical-briefs-and-named-models`
+- an arm ran on a model the TODO did not name → `swarm-race-rank-all.identical-briefs-and-named-models`
+- an arm's result lacks the SHA → `swarm-race-rank-all.results-record-sha-and-method`
+- the report omits the rule → `swarm-race-rank-all.report-states-the-rule-and-gaps`
+
+## swarm-race-best-of
+
+swarm race, selection rule "best-of": declared before the spawn, same brief for every arm, applied when aggregating (swarm Phase A step 2 and Phase C)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `swarm-race-best-of.phases-before-launch` | TODO.md lists one entry per phase (Swarm Frame, Swarm Fan out, Swarm Aggregate, Swarm Report) in order, before the first worker is spawned | `generated/skills/swarm/SKILL.md:11` |
+| `swarm-race-best-of.rule-declared-before-spawning` | the rule "best-of" and each arm's model are written into TODO.md before the first worker is claimed | `generated/skills/swarm/SKILL.md:21` |
+| `swarm-race-best-of.arms-spawned-together` | the general workers were spawned in a single assistant message | `generated/skills/swarm/SKILL.md:27` |
+| `swarm-race-best-of.identical-briefs-and-named-models` | every arm has the same brief and runs on the model its TODO line names, three models | `generated/skills/swarm/SKILL.md:22` |
+| `swarm-race-best-of.separate-writable-outputs` | writable workers have distinct worktrees and branches at their inputCommit, and each worker session ran inside its own worktree | `generated/skills/swarm/SKILL.md:23` |
+| `swarm-race-best-of.results-record-sha-and-method` | each arm that finished recorded the SHA and method its brief names | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-best-of.selection-follows-the-declared-rule` | every arm was collected and the one winner is the highest score among passing arms | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-race-best-of.report-states-the-rule-and-gaps` | the report is one table with the race rule and the gaps, not raw worker dumps | `generated/skills/swarm/SKILL.md:41` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the report names the wrong selection → `swarm-race-best-of.selection-follows-the-declared-rule`
+- an arm had a different brief → `swarm-race-best-of.identical-briefs-and-named-models`
+- an arm ran on a model the TODO did not name → `swarm-race-best-of.identical-briefs-and-named-models`
+- an arm's result lacks the SHA → `swarm-race-best-of.results-record-sha-and-method`
+- the report omits the rule → `swarm-race-best-of.report-states-the-rule-and-gaps`
+
+## swarm-second-miss
+
+swarm: a result that misses the SHA and method twice is respawned once, then recorded as a gap that is not a pass; a dropout leaves N-1 and is noted (swarm Phase B and C)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `swarm-second-miss.phases-before-launch` | TODO.md lists one entry per phase (Swarm Frame, Swarm Fan out, Swarm Aggregate, Swarm Report) in order, before the first worker is spawned | `generated/skills/swarm/SKILL.md:11` |
+| `swarm-second-miss.respawned-exactly-once` | the slice whose result missed the SHA and method was respawned once, after the first result was collected, and never a third time | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-second-miss.miss-is-judged-from-the-result` | both results of that slice really lack the SHA or the method, and the other slices carry both | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-second-miss.gap-is-not-a-pass` | the report records the second miss as a gap, never as PASS, and does not claim full coverage | `generated/skills/swarm/SKILL.md:37` |
+| `swarm-second-miss.dropout-leaves-n-minus-one` | a worker that never finished was aborted, the swarm proceeded with the rest and the report notes the dropout | `generated/skills/swarm/SKILL.md:33` |
+| `swarm-second-miss.report-is-consolidated` | one result table with gaps and dropouts, no pasted worker result | `generated/skills/swarm/SKILL.md:41` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the slice was respawned a third time → `swarm-second-miss.respawned-exactly-once`
+- the second miss was reported as a pass → `swarm-second-miss.gap-is-not-a-pass`
+- the report claims full coverage → `swarm-second-miss.gap-is-not-a-pass`
+- the dropout was not noted → `swarm-second-miss.dropout-leaves-n-minus-one`
+- the first result had carried the SHA and method → `swarm-second-miss.miss-is-judged-from-the-result`
+
+## arena-dropout
+
+arena: a candidate that produces no output is a dropout, the arena proceeds with N-1, the judge sees only the survivors and the note names the dropout (arena Phase B)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `arena-dropout.phases-before-launch` | TODO.md lists one entry per phase (Arena Frame, Arena Fan out, Arena Cross-judge, Arena Pick, Arena Graft, Arena Verify) in order, before the first worker is spawned | `generated/skills/arena/SKILL.md:9` |
+| `arena-dropout.the-dropout-left-nothing` | candidate-3 left no commit and no file in its worktree, while the other two committed | `generated/skills/arena/SKILL.md:24` |
+| `arena-dropout.judge-sees-only-the-survivors` | the judge is spawned after all three candidates were collected, and its brief labels only the two that produced output | `generated/skills/arena/SKILL.md:28` |
+| `arena-dropout.not-respawned-and-not-waited-on` | no replacement candidate was spawned, and exactly three candidates exist | `generated/skills/arena/SKILL.md:24` |
+| `arena-dropout.parent-read-only-survivors` | the parent read both surviving candidates and did not read the dropout's empty tree | `generated/skills/arena/SKILL.md:32` |
+| `arena-dropout.note-names-the-dropout` | the synthesis note names the dropout and the count it proceeded with, and the base is a survivor | `generated/skills/arena/SKILL.md:48` |
+| `arena-dropout.synthesis-verified` | a passing test receipt verifies the synthesized artifact | `generated/skills/arena/SKILL.md:44` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the judge was shown the dropout → `arena-dropout.judge-sees-only-the-survivors`
+- the note forgot the dropout → `arena-dropout.note-names-the-dropout`
+- the dropout was replaced by a new candidate → `arena-dropout.not-respawned-and-not-waited-on`
+- the dropout had actually committed → `arena-dropout.the-dropout-left-nothing`
+
+## in-your-own-words
+
+in-your-own-words: the goal and the problem restated, nothing started (spec 12.5)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.in-your-own-words` | /in-your-own-words reaches Pi as the pstack skill prompt with the request | `generated/skills/in-your-own-words/SKILL.md:3` |
+| `in-your-own-words.states-goal-and-problem` | the reply restates the user's goal and the problem they are solving, in its own words, using the request's own facts | `generated/skills/in-your-own-words/SKILL.md:3` |
+| `in-your-own-words.starts-no-work` | it only restates: no worker, no run directory, no write, no command beyond reading the skill | `generated/skills/in-your-own-words/SKILL.md:3` |
+| `in-your-own-words.no-writes` | the repository is untouched | `generated/skills/in-your-own-words/SKILL.md:3` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the reply parroted the request → `in-your-own-words.states-goal-and-problem`
+- it started editing → `in-your-own-words.no-writes`
+- it ran a command → `in-your-own-words.starts-no-work`
+
+## automate-me
+
+automate-me: mine this workspace's history in parallel slices, ask a structured question, keep only multi-slice signals, author the mode skill in a worktree (spec 12.5)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.automate-me` | /automate-me reaches Pi as the pstack automate-me skill prompt with the request | `generated/skills/automate-me/SKILL.md:7` |
+| `automate-me.checks-for-an-existing-skill` | the parent looked for an existing *-mode skill before mining | `generated/skills/automate-me/SKILL.md:15` |
+| `automate-me.parallel-slice-miners` | three miners, one per slice, readonly, spawned in one message | `generated/skills/automate-me/SKILL.md:31` |
+| `automate-me.history-is-workspace-scoped` | every miner read only its own slice under this workspace's session folder; nothing touched another workspace's sessions | `generated/skills/automate-me/SKILL.md:29` |
+| `automate-me.asks-a-structured-question` | before drafting, the parent ended a turn with one numbered multiple-choice question of 4 to 6 options, and drafted only after the user answered | `generated/skills/automate-me/SKILL.md:44` |
+| `automate-me.keeps-only-multi-slice-signals` | the skill holds each preference seen in two or more slices and none seen once | `generated/skills/automate-me/SKILL.md:40` |
+| `automate-me.skill-shape-and-placement` | the skill is .pi/skills/jay-mode/SKILL.md with a handle-triggered description and disable-model-invocation true, committed in the author's worktree, references not inlined, no long dash | `generated/skills/automate-me/SKILL.md:73` |
+| `automate-me.reads-unslop-and-authoring-before-drafting` | unslop and the authoring playbook were opened before the author was spawned | `generated/skills/automate-me/SKILL.md:77` |
+| `automate-me.lands-in-a-worktree-not-main` | the skill lives on a worktree branch; main has no new commit and no change | `generated/skills/automate-me/SKILL.md:83` |
+| `automate-me.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- a miner read another workspace's history → `automate-me.history-is-workspace-scoped`
+- a lone signal was codified → `automate-me.keeps-only-multi-slice-signals`
+- the parent never asked → `automate-me.asks-a-structured-question`
+- the parent skipped the existing-skill check → `automate-me.checks-for-an-existing-skill`
+- drafting began before unslop was opened → `automate-me.reads-unslop-and-authoring-before-drafting`
+- a miner was writable → `automate-me.parallel-slice-miners`
+
+## maintain-verification-skill
+
+maintain-verification-skill: locate, index hygiene, concurrent readonly source wave, a live pass that doctors first and tears down last, doc drift fixed in scope, a product gap reported not papered over (spec 12.4)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `maintain-verification-skill.locates-the-target-first` | the parent found the one project-local verification skill by its launch section before anything else | `generated/skills/maintain-verification-skill/SKILL.md:25` |
+| `maintain-verification-skill.index-matches-the-files` | after the pass the feature map index lists exactly the feature files that exist: the dead entry is gone and the missing one is added | `generated/skills/maintain-verification-skill/SKILL.md:27` |
+| `maintain-verification-skill.one-reader-per-feature-file` | one readonly reader per feature file | `generated/skills/maintain-verification-skill/SKILL.md:29` |
+| `maintain-verification-skill.readers-concurrent` | the general workers were spawned in a single assistant message | `generated/skills/maintain-verification-skill/SKILL.md:29` |
+| `maintain-verification-skill.children-never-drive-or-edit` | no reader ran a drive command or called a write tool | `generated/skills/maintain-verification-skill/SKILL.md:29` |
+| `maintain-verification-skill.live-pass-doctors-first-and-tears-down-last` | every feature was driven live after the source wave, each drive preceded by a doctor run in its fresh session, teardown after the last drive, and the evidence still on disk | `generated/skills/maintain-verification-skill/SKILL.md:33` |
+| `maintain-verification-skill.edit-scope-is-the-skill-directory` | one commit on a branch changed only files under the verification skill; product code is untouched | `generated/skills/maintain-verification-skill/SKILL.md:21` |
+| `maintain-verification-skill.drift-fixed-product-gap-reported` | the wrong rounding description is fixed, and the promise the app broke stays in the map while the reply reports it as a product gap with the value the live drive showed | `generated/skills/maintain-verification-skill/SKILL.md:35` |
+| `maintain-verification-skill.outcome-and-notes` | the reply names the outcome, and the run notes were written outside the repository and not committed | `generated/skills/maintain-verification-skill/SKILL.md:39` |
+| `maintain-verification-skill.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- product code was edited during the run → `maintain-verification-skill.edit-scope-is-the-skill-directory`
+- the index still lists the dead entry → `maintain-verification-skill.index-matches-the-files`
+- a feature was never driven live → `maintain-verification-skill.live-pass-doctors-first-and-tears-down-last`
+- the drive ran with no doctor first → `maintain-verification-skill.live-pass-doctors-first-and-tears-down-last`
+- a reader wrote a file → `maintain-verification-skill.children-never-drive-or-edit`
+- the product gap was papered over in the reply → `maintain-verification-skill.drift-fixed-product-gap-reported`
+- no outcome was named → `maintain-verification-skill.outcome-and-notes`
+
+## maintain-formal-verification-skill
+
+maintain-formal-verification-skill: run as it is, read the changes, update the model from the code, rerun with the real model checker, replay the counterexample and call it a bug, never weaken the property (spec 12.4)
+
+Needs tlc; its absence is reported, never passed.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `maintain-formal.runs-the-check-as-it-is-first` | the first real run of the model checker came before any edit and passed, which the skill treats as proof only of the old description | `generated/skills/maintain-formal-verification-skill/SKILL.md:30` |
+| `maintain-formal.reads-every-change-to-covered-code` | before editing, the parent listed and diffed the covered file from the sync commit to HEAD | `generated/skills/maintain-formal-verification-skill/SKILL.md:32` |
+| `maintain-formal.update-mirrors-the-code-and-keeps-the-property` | the model gained a step for the new code path, and the property is exactly what it was | `generated/skills/maintain-formal-verification-skill/SKILL.md:38` |
+| `maintain-formal.rerun-fails-and-the-counterexample-is-replayed` | the rerun on the updated model failed with the property, and the parent replayed authorize then cancel against the real code and saw a refund with no capture | `generated/skills/maintain-formal-verification-skill/SKILL.md:42` |
+| `maintain-formal.bug-named-with-its-commit-not-drift` | the report calls the failure a bug in the code, names the commit that introduced it, tells the steps and the harm, says the old pass was stale, and lists what is not covered | `generated/skills/maintain-formal-verification-skill/SKILL.md:56` |
+| `maintain-formal.edit-scope-and-sync-commit` | only verification files changed, in their own commit, the sync commit moved to the checked commit, and the verify skill was run once as the next agent would | `generated/skills/maintain-formal-verification-skill/SKILL.md:44` |
+| `maintain-formal.no-product-fix-no-weakening` | src/pay.js is as the last code commit left it, so the bug was reported and not patched | `generated/skills/maintain-formal-verification-skill/SKILL.md:24` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the property was weakened to make the check pass → `maintain-formal.update-mirrors-the-code-and-keeps-the-property`
+- product code was edited → `maintain-formal.no-product-fix-no-weakening`
+- the failure was called drift → `maintain-formal.bug-named-with-its-commit-not-drift`
+- no counterexample replay → `maintain-formal.rerun-fails-and-the-counterexample-is-replayed`
+- the model was edited before the first run → `maintain-formal.runs-the-check-as-it-is-first`
+- the covered file was never read → `maintain-formal.reads-every-change-to-covered-code`
+
+## ketchup-video
+
+ketchup-video: a real silent landscape mp4 with burned-in subtitles, holds measured against the words, a frame of each slide inspected (spec 12.5)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `ketchup-video.routes-and-follows-ketchup` | /ketchup-video arrives as the second user turn, and the parent opens ketchup-video and ketchup | `generated/skills/ketchup-video/SKILL.md:9` |
+| `ketchup-video.repository-untouched-video-outside` | the turn changed nothing in the repository: the only writes and the video are outside it | `generated/skills/ketchup-video/SKILL.md:9` |
+| `ketchup-video.plan-notes-stay-out-of-the-reply` | the one-sentence note and the line per slide were written down before drawing and are not in the reply | `generated/skills/ketchup-video/SKILL.md:13` |
+| `ketchup-video.file-is-a-silent-landscape-mp4` | a video file exists outside the repository, in an mp4 container, one video stream, no audio, wider than tall | `generated/skills/ketchup-video/SKILL.md:27` |
+| `ketchup-video.holds-match-the-slides-and-are-long-enough` | matching the file's frames to the slides gives one hold per slide, and each hold is at least one second for every three words that slide adds | `generated/skills/ketchup-video/SKILL.md:27` |
+| `ketchup-video.subtitle-strip-is-readable-and-covers-nothing` | in every hold the strip below the slide has a subtitle of bright pixels on a black strip of the same height, and no bright pixel falls inside the slide | `generated/skills/ketchup-video/SKILL.md:23` |
+| `ketchup-video.each-slide-changes-the-picture` | consecutive slides differ, so every slide changes what the user knows | `generated/skills/ketchup-video/SKILL.md:13` |
+| `ketchup-video.a-frame-of-each-slide-was-inspected` | before embedding, the parent extracted one frame per slide and opened each image | `generated/skills/ketchup-video/SKILL.md:29` |
+| `ketchup-video.reply-embeds-the-video-and-lists-the-calls` | the reply opens with a sentence naming what waits, embeds the video file that exists, names the work left, and lists the call with a pick and its risk | `generated/skills/ketchup-video/SKILL.md:9` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the holds were far too short → `ketchup-video.holds-match-the-slides-and-are-long-enough`
+- the video was portrait → `ketchup-video.file-is-a-silent-landscape-mp4`
+- the video carried an audio track → `ketchup-video.file-is-a-silent-landscape-mp4`
+- every slide was the same picture → `ketchup-video.each-slide-changes-the-picture`
+- the subtitle strip was too thin to hold the text → `ketchup-video.subtitle-strip-is-readable-and-covers-nothing`
+- no frame was looked at → `ketchup-video.a-frame-of-each-slide-was-inspected`
+- the repository was edited → `ketchup-video.repository-untouched-video-outside`
+
+## ketchup-video-render-fails
+
+ketchup-video when the render fails: one line says so and only the calls follow (ketchup-video SKILL.md)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `ketchup-video-render-fails.routes-and-follows-ketchup` | /ketchup-video arrives as the second user turn, and the parent opens ketchup-video and ketchup | `generated/skills/ketchup-video/SKILL.md:9` |
+| `ketchup-video-render-fails.repository-untouched-video-outside` | the turn changed nothing in the repository: the only writes and the video are outside it | `generated/skills/ketchup-video/SKILL.md:9` |
+| `ketchup-video-render-fails.plan-notes-stay-out-of-the-reply` | the one-sentence note and the line per slide were written down before drawing and are not in the reply | `generated/skills/ketchup-video/SKILL.md:13` |
+| `ketchup-video-render-fails.render-failed-for-real` | the render command really failed and no video was left behind | `generated/skills/ketchup-video/SKILL.md:9` |
+| `ketchup-video-render-fails.one-line-then-only-the-calls` | the reply says the render failed in one line, embeds nothing, and then gives only the calls | `generated/skills/ketchup-video/SKILL.md:9` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the reply embedded a video that was never made → `ketchup-video-render-fails.one-line-then-only-the-calls`
+- the failure was never said → `ketchup-video-render-fails.one-line-then-only-the-calls`
+- the render actually succeeded → `ketchup-video-render-fails.render-failed-for-real`
+
