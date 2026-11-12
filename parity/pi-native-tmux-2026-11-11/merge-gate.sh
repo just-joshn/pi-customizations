@@ -8,6 +8,8 @@ if [ -z "${DOCKER_HOST:-}" ] && command -v docker >/dev/null 2>&1; then
   [ -n "$endpoint" ] && export DOCKER_HOST="$endpoint"
 fi
 npx tsc --noEmit -p tsconfig.json
+# Tests run dist/worker-host.js and other bundles; a stale bundle would test old code.
+bun scripts/build-helpers.mjs --check >/dev/null
 log=$(mktemp)
 status=0
 npx vitest run --reporter=dot >"$log" 2>&1 || status=$?
