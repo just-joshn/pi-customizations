@@ -114,6 +114,10 @@
       "file": "tests/integration/pi-load.test.ts",
       "name": "a skill named mid-message attaches the same way in print mode, and a leading prompt template still expands"
     },
+    "statechart.suite": {
+      "file": "tests/packaging/statechart-suite.test.ts",
+      "name": "the upstream statechart suite passes against the generated skill"
+    },
     "load.skills": {
       "file": "tests/integration/pi-load.test.ts",
       "name": "parent session Pi loads all 62 skills with their /name prompts, /pstack, and only the native pstack tools"
@@ -1256,11 +1260,13 @@
       "specSection": "12.6",
       "observable": "The statechart upstream test suite and its corpus ship with the package and pass when run.",
       "invariants": [
-        "The suite is the upstream suite, unmodified."
+        "The suite is the upstream suite. The only rewrite is the launcher-entry assertion in cli.test.ts (rule statechart.installed-entry-test), which follows the launcher's entry at dist/statechart.js."
       ],
-      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test).",
-      "tests": [],
-      "verification": "`bun run test:statechart`, which is not a Vitest test. No Vitest test runs these files, so the status stays INCONCLUSIVE until one does.",
+      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test) and by tests/packaging/statechart-suite.test.ts.",
+      "tests": [
+        "statechart.suite"
+      ],
+      "verification": "tests/packaging/statechart-suite.test.ts runs every test file in the suite under Node and requires zero failures.",
       "group": true
     },
     {
