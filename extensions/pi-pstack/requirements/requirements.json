@@ -2982,6 +2982,122 @@
     "wf.babysit-flake-twice.twice.push": {
       "file": "tests/workflow-parity/pr-babysit.test.ts",
       "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger"
+    },
+    "life.watch-output": {
+      "file": "tests/worker-lifecycle/lifecycle.test.ts",
+      "name": "pstack_worker on real tmux and Pi a watch worker's redacted output tail is readable through inspect while it runs and rides its exit wake"
+    },
+    "wf.babysit-queued.queued.inspect": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-queued negative: inspect returned the host state without the watcher output"
+    },
+    "wf.babysit-restart": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart scripted run: every check passes"
+    },
+    "wf.babysit-restart.restart.second": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the restarted parent armed a second watcher"
+    },
+    "wf.babysit-restart.restart.twice": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the exit wake was delivered twice"
+    },
+    "wf.babysit-restart.restart.live": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-restart negative: the replaced Pi was still running"
+    },
+    "wf.autopilot-lanes": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes scripted run: every check passes"
+    },
+    "wf.autopilot-lanes.lanes.nosign": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the root never countersigned the loosened gate"
+    },
+    "wf.autopilot-lanes.lanes.stale": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the countersign was for a stale head"
+    },
+    "wf.autopilot-lanes.lanes.self": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner countersigned its own gate change"
+    },
+    "wf.autopilot-lanes.lanes.early": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner merged before the countersign"
+    },
+    "wf.autopilot-lanes.lanes.noproof": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the verifier proof of the raise failed"
+    },
+    "wf.autopilot-lanes.lanes.notrail": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner's trail never recorded the countersign"
+    },
+    "wf.autopilot-lanes.lanes.approve": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the root approved on the forge"
+    },
+    "wf.autopilot-lanes.lanes.nolive": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the live lane never posted a verdict"
+    },
+    "wf.autopilot-lanes.lanes.family": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: a lane ran on the owner's model family"
+    },
+    "wf.autopilot-lanes.lanes.onefam": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: every lane ran on one family"
+    },
+    "wf.orchestrate-sub": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub scripted run: every check passes"
+    },
+    "wf.orchestrate-sub.sub.root": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the root spawned a leaf itself"
+    },
+    "wf.orchestrate-sub.sub.cap": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a leaf held the spawn capability"
+    },
+    "wf.orchestrate-sub.sub.shallow": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the leaves were owned by the root session, one level too shallow"
+    },
+    "wf.orchestrate-sub.sub.fourth": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a fourth level was claimed"
+    },
+    "wf.orchestrate-sub.sub.deep": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a leaf ran one level deeper than the tree"
+    },
+    "wf.orchestrate-sub.sub.twoowners": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a second owner pushed the same branch"
+    },
+    "wf.orchestrate-sub.sub.family": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: a verifier ran on its owner's model family"
+    },
+    "wf.orchestrate-sub.sub.noprobe": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the failed owner was never inspected or probed"
+    },
+    "wf.orchestrate-sub.sub.bare": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the replacement got a bare kickoff"
+    },
+    "wf.orchestrate-sub.sub.notfailed": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the host never recorded the owner as failed"
+    },
+    "wf.orchestrate-sub.sub.collect": {
+      "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+      "name": "orchestrate-sub negative: the root collected a leaf's raw report"
     }
   },
   "structural": [
@@ -3651,7 +3767,11 @@
         "rec.other-owner",
         "rec.many",
         "rec.tree-reopen",
-        "sem.watch-rearm"
+        "sem.watch-rearm",
+        "wf.babysit-restart",
+        "wf.babysit-restart.restart.second",
+        "wf.babysit-restart.restart.twice",
+        "wf.babysit-restart.restart.live"
       ]
     },
     {
@@ -4228,7 +4348,9 @@
         "wf.babysit-queued",
         "wf.babysit-queued.queued.merge",
         "wf.babysit-queued.queued.running",
-        "wf.babysit-queued.queued.order"
+        "wf.babysit-queued.queued.order",
+        "life.watch-output",
+        "wf.babysit-queued.queued.inspect"
       ]
     },
     {
@@ -4601,7 +4723,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full)",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full, and autopilot-lanes for the three-lane swarm and the root countersign of a loosened gate)",
       "tests": [
         "forge.merge-auth",
         "forge.stale",
@@ -4611,9 +4733,19 @@
         "wf.autopilot-full.full.pin",
         "wf.autopilot-full.full.root",
         "wf.autopilot-full.full.worktree",
-        "wf.autopilot-full.full.family"
-      ],
-      "coverageGap": "Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised."
+        "wf.autopilot-full.full.family",
+        "wf.autopilot-lanes",
+        "wf.autopilot-lanes.lanes.nosign",
+        "wf.autopilot-lanes.lanes.stale",
+        "wf.autopilot-lanes.lanes.self",
+        "wf.autopilot-lanes.lanes.early",
+        "wf.autopilot-lanes.lanes.noproof",
+        "wf.autopilot-lanes.lanes.notrail",
+        "wf.autopilot-lanes.lanes.approve",
+        "wf.autopilot-lanes.lanes.nolive",
+        "wf.autopilot-lanes.lanes.family",
+        "wf.autopilot-lanes.lanes.onefam"
+      ]
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",
@@ -4701,7 +4833,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts",
+      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts (orchestrate for one owner per PR, orchestrate-sub for a sub-coordinator that spawns its own owners and verifiers, with depth read from the nested run ownership)",
       "tests": [
         "nest.subcoordinator",
         "depth.two",
@@ -4718,9 +4850,20 @@
         "wf.orchestrate.orch.family",
         "wf.orchestrate.orch.abort",
         "wf.orchestrate.orch.bare",
-        "wf.orchestrate.orch.first"
-      ],
-      "coverageGap": "No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests."
+        "wf.orchestrate.orch.first",
+        "wf.orchestrate-sub",
+        "wf.orchestrate-sub.sub.root",
+        "wf.orchestrate-sub.sub.cap",
+        "wf.orchestrate-sub.sub.shallow",
+        "wf.orchestrate-sub.sub.fourth",
+        "wf.orchestrate-sub.sub.deep",
+        "wf.orchestrate-sub.sub.twoowners",
+        "wf.orchestrate-sub.sub.family",
+        "wf.orchestrate-sub.sub.noprobe",
+        "wf.orchestrate-sub.sub.bare",
+        "wf.orchestrate-sub.sub.notfailed",
+        "wf.orchestrate-sub.sub.collect"
+      ]
     },
     {
       "id": "CONTAINER-WORKERS",

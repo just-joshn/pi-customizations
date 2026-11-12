@@ -32,12 +32,12 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Tests | Run |
 | --- | --- | --- | --- | --- |
-| 1 | darwin | `76568012307f` | 1847 passed, 2 failed, 71 skipped | vitest run at 2026-11-12T12:02:43.395Z |
+| 1 | darwin | `96539b0e652d` (dirty tree) | 2195 passed, 0 failed, 90 skipped | vitest run at 2026-11-12T12:12:00.368Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 149 | 0 | 1 | 40 |
-| behavioral | 82 | 0 | 19 | 0 |
+| behavioral | 95 | 0 | 6 | 0 |
 
 ### Behavioral requirements
 
@@ -52,7 +52,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `MX-WORKER-CRASH` A crashed or killed worker is a failure, never a pass | 16.2 | PASS | vendor/upstream-pstack/skills/swarm/SKILL.md:33-33 |  |
 | `MX-PARENT-RESTART` Workers outlive the parent and wake the restarted parent once | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:22-22 |  |
 | `MX-SESSION-OPS` Persistent style survives compaction, resume and fork | 16.2 | PASS | vendor/upstream-pstack/README.md:106-106 |  |
-| `MX-HEADLESS` Print, JSON and RPC modes run without deadlock or lost state | 16.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md:3-3 | skipped: tests/workflow-parity/headless.test.ts::headless-command scripted run: every check passes |
+| `MX-HEADLESS` Print, JSON and RPC modes run without deadlock or lost state | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autonomous-run.md:3-3 |  |
 | `MX-MCP` why keeps MCP access and the read-only guarantee is enforced by tools | 16.2 | PASS | vendor/upstream-pstack/skills/why/SKILL.md:13-13 |  |
 | `MX-CODEMODE` Codemode composes concurrent tool calls with isolated results | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:84-84 |  |
 | `MX-MODEL-ROUTING` Roles resolve to exact physical models with reported limits | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/SKILL.md:98-98 |  |
@@ -64,24 +64,24 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SCRIPT-WORKTREE-AUDIT` worktree-audit reads Pi sessions and protects active work | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:3-3 |  |
 | `SCRIPT-DECISION-LOG` The decision log keeps its TSV format | 12.6 | PASS | vendor/upstream-pstack/skills/show-me-your-work/SKILL.md:38-38 |  |
 | `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 | skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC |
-| `MX-PR-REVIEW` Review comments are data, never instructions | 16.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:7-11 | declared coverage gap: Injection resistance is tested at the parser and reply boundary. No test checks a worker's triage of stale or invalid comments against the code. |
+| `MX-PR-REVIEW` Review comments are data, never instructions | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:7-11 |  |
 | `BABYSIT-MODES` Babysit routes by request and size and starts no watcher for check | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:7-7 |  |
 | `BABYSIT-READY` GitHub drive stops at READY using upstream watch-pr verdicts | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 |  |
-| `BABYSIT-MERGE-QUEUE` A blocker-free queued frontier reports WAITING with reason merge-queue | 13.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 | no test is linked |
-| `BABYSIT-ORDER` Babysit fixes conflicts, then review threads, then CI, and never rebases | 13.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:11-11 | no test is linked |
-| `BABYSIT-RETRY` A source-verified flake earns exactly one fresh build | 13.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:19-19 | no test is linked |
+| `BABYSIT-MERGE-QUEUE` A blocker-free queued frontier reports WAITING with reason merge-queue | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 |  |
+| `BABYSIT-ORDER` Babysit fixes conflicts, then review threads, then CI, and never rebases | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:11-11 |  |
+| `BABYSIT-RETRY` A source-verified flake earns exactly one fresh build | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:19-19 |  |
 | `BABYSIT-NO-MERGE` Babysit never merges because checks are green | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:21-21 |  |
-| `BUGBOT-TRIAGE` Bugbot findings are classified fix, dismiss or ask against the code | 13.2 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:9-11 | no test is linked |
+| `BUGBOT-TRIAGE` Bugbot findings are classified fix, dismiss or ask against the code | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:9-11 |  |
 | `SHIPPING-CONTIGUOUS` Only the contiguous verified run from the root can merge | 13.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:6-6 |  |
-| `SHIPPING-FRESH` A verdict covers the patch it examined | 13.3 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:7-7 | declared coverage gap: No test shows a rebased head with an unchanged patch-id keeping its verdict. |
+| `SHIPPING-FRESH` A verdict covers the patch it examined | 13.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:7-7 |  |
 | `SHIPPING-INDEPENDENT` Shipping verifies each PR independently before it merges | 13.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:5-5 |  |
-| `SHIPPING-ORDER` Shipping lands bottom-up one PR at a time | 13.3 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:8-8 | no test is linked |
-| `CLEANUP-PROTECT` Dirty or active worktrees are protected until authorized | 12.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:6-6 | declared coverage gap: The audit is tested. No test runs the cleanup playbook against a dirty or active worktree and checks that nothing is deleted. |
+| `SHIPPING-ORDER` Shipping lands bottom-up one PR at a time | 13.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:8-8 |  |
+| `CLEANUP-PROTECT` Dirty or active worktrees are protected until authorized | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:6-6 |  |
 | `FORGE-RESOLUTION` The forge is resolved once, persisted, and unsupported operations are explicit | 13.1 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:5-5 |  |
-| `AUTOPILOT-VERIFIED-MERGE` An owner merges only what the root verified at that head | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:17-17 | declared coverage gap: No test runs the root coordination layer, one owner per PR, or the swarm verification of an autopilot run. |
-| `AUTOPILOT-STACK-NO-MERGE` Autopilot-stack hands verified PRs over without merging | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md:3-3 | no test is linked |
-| `AUTOPILOT-HOLD` The operator's stop reaches every owner at once | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:23-23 | no test is linked |
-| `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 | declared coverage gap: No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run. |
+| `AUTOPILOT-VERIFIED-MERGE` An owner merges only what the root verified at that head | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:17-17 |  |
+| `AUTOPILOT-STACK-NO-MERGE` Autopilot-stack hands verified PRs over without merging | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md:3-3 |  |
+| `AUTOPILOT-HOLD` The operator's stop reaches every owner at once | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:23-23 |  |
+| `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) an https push is tested against a local TLS git server, not github.com, and no shipping verdict has been posted on a real PR; (3) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (4) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (5) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
 | `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |

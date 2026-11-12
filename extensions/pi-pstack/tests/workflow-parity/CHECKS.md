@@ -2010,8 +2010,6 @@ Negative cases, each of which must FAIL the named checks:
 
 babysit a queued stack: a blocker-free frontier is a non-terminal WAITING with reason merge-queue, reported merge-ready, watcher stopped, nothing merged (spec 13.2)
 
-Known product defect, asserted with test.fails: `babysit.queued.watcher-verdict-is-readable-through-pstack-worker`. pstack_worker inspect returns only the host state (HostState, src/run-files.ts:303-325, has no output field) and a watcher's wake carries only its exit (src/workers.ts:132-134), so the non-terminal WAITING merge-queue verdict that babysit.md:16 tells the parent to stop on is visible only in the tmux pane. The family reads it with tmux capture-pane.
-
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
@@ -2048,6 +2046,7 @@ Negative cases, each of which must FAIL the named checks:
 - the frontier was merging into the queue → `babysit.queued.never-merges-or-arms-auto-merge`
 - a check is failing, so the frontier is not merge-ready → `babysit.queued.frontier-is-WAITING-merge-queue-never-READY`
 - the watcher was left running → `babysit.queued.watcher-stopped-after-the-report`
+- inspect returned the host state without the watcher output → `babysit.queued.watcher-verdict-is-readable-through-pstack-worker`
 - the live output was never read → `babysit.queued.frontier-is-WAITING-merge-queue-never-READY`
 - the reply claims READY → `babysit.queued.reply-is-merge-ready-and-points-to-shipping`
 
@@ -2211,6 +2210,32 @@ Negative cases, each of which must FAIL the named checks:
 - the owner was not told → `babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs`
 - the babysitter pushed an empty commit to retrigger → `babysit.twice.never-mutates-stack-topology`
 - the reply claims it is merge-ready → `babysit.twice.reply-says-not-merge-ready-and-why`
+
+## babysit-restart
+
+babysit across a parent restart: the live watcher is adopted through pstack_worker inspect, no second watcher is armed, and its one wake reaches the restarted parent once (spec 13.2)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.babysit.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/babysit.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `babysit.restart.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session` | one parent Pi process was stopped, a different one started in the same repo on the same session, and the session holds both babysit requests | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed` | the restarted parent inspected the watcher the first parent armed and found it running with its output, spawned nothing, and the run has exactly one watcher with one claim | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once` | the watcher exited READY (0) after the restart, and the restarted parent got exactly one pstack-worker wake for it, the host transition 1 of that instance, carrying the READY verdict | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
+| `babysit.restart.never-merges` | nothing merged, queued or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
+| `babysit.restart.reply-says-merge-ready-from-the-adopted-watcher` | the reply says the adopted watcher reached READY, that no second watcher was armed, and leaves landing to Shipping | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
+| `babysit.restart.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the restarted parent armed a second watcher → `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed`
+- the restarted parent never looked at the watcher → `babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed`
+- the exit wake was delivered twice → `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once`
+- the exit wake carried no verdict → `babysit.restart.the-watcher-exit-woke-the-restarted-parent-once`
+- the first parent was never stopped → `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session`
+- the replaced Pi was still running → `babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session`
+- the reply claims a second watcher → `babysit.restart.reply-says-merge-ready-from-the-adopted-watcher`
 
 ## shipping
 
@@ -2535,6 +2560,41 @@ Negative cases, each of which must FAIL the named checks:
 - the reply says the stack was merged → `autopilot.stack.reply-lists-each-pr-with-its-verdict`
 - the parent collected with no wake from its workers → `autopilot.stack.independent-verifier-per-pr-at-the-head`
 
+## autopilot-lanes
+
+autopilot-full root layer: three independent verifier lanes fan out at the code-ready head, and a loosened gate needs the verifier's proof and the root's fresh countersign before the owner merges (spec 13.4)
+
+Needs container; its absence is reported, never passed.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.autopilot-full.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/autopilot-full.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `reads.autopilot-full.named-skills` | the parent opens each skill the playbook steps name (deslop, show-me-your-work, swarm, control-ui, control-cli, ketchup) | `generated/skills/poteto-mode/playbooks/autopilot-full.md:7` |
+| `autopilot.lanes.one-container-owner-for-the-pr` | one container owner per PR, each with the forge capability, a distinct id, workspace at its own start commit, and the PR it opened carries that owner as its author | `generated/skills/poteto-mode/playbooks/autopilot-full.md:8` |
+| `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head` | one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each at exactly the code-ready head, on another model family than the owner with at least two families across the lanes, and each posted its own PASS verdict at that head | `generated/skills/poteto-mode/playbooks/autopilot-full.md:14` |
+| `autopilot.lanes.the-root-audited-every-lane-before-the-countersign` | the root collected all three lanes, then audited their receipts through pstack_evidence, then read the PR comments, and only then countersigned | `generated/skills/poteto-mode/playbooks/autopilot-full.md:14` |
+| `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign` | the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces | `generated/skills/poteto-mode/playbooks/autopilot-full.md:20` |
+| `autopilot.lanes.no-merge-without-a-verdict-at-that-head` | every merge has the operator's explicit request, a PASS or PASS+NOTES verdict at exactly the merged head from a worker that did not write the PR, and was requested with --match-head-commit | `generated/skills/poteto-mode/playbooks/autopilot-full.md:17` |
+| `autopilot.lanes.reply-names-the-lanes-and-the-countersign` | the reply catches the operator up on the PR, the three lanes, the gate that was loosened and why it was countersigned, open gates and follow-ups | `generated/skills/poteto-mode/playbooks/autopilot-full.md:25` |
+| `autopilot.lanes.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/autopilot-full.md:20` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the root never countersigned the loosened gate → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the countersign was for a stale head → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner countersigned its own gate change → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner merged before the countersign → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the countersign came before the audit lane spoke → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the verifier proof of the raise failed → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner's trail never recorded the countersign → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the root approved on the forge → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the live lane never posted a verdict → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- a lane ran on the owner's model family → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- every lane ran on one family → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- the root audited nothing before the countersign → `autopilot.lanes.the-root-audited-every-lane-before-the-countersign`
+- the reply left out the countersign → `autopilot.lanes.reply-names-the-lanes-and-the-countersign`
+
 ## orchestrate
 
 orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)
@@ -2575,6 +2635,42 @@ Negative cases, each of which must FAIL the named checks:
 - the reply forgot the replaced worker → `orchestrate.live-state-is-read-and-every-worker-is-accounted-for`
 - the reply asked the user → `orchestrate.live-state-is-read-and-every-worker-is-accounted-for`
 - the parent polled with its own loop → `orchestrate.a-watch-loop-follows-the-pr`
+
+## orchestrate-sub
+
+orchestrate with a sub-coordinator: the root spawns one coordinator, the coordinator spawns the owners and verifiers into its own run, one owner per PR, independent verifier families, a failed owner replaced, depth read from real nested spawns (spec 13.4)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.orchestrate.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/orchestrate.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `orchestrate.sub.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/orchestrate.md:5` |
+| `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns` | the root spawned only the coordinator (the one worker with capabilities.spawn), the coordinator made every leaf spawn call from its own session into its own run, the leaves are owned by the coordinator's session and hold no spawn capability, a spawn of a fourth level was refused and left no claim, and the root got wakes for the coordinator only | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it` | each leaf's own environment agrees with the tree: PSTACK_DEPTH is 3 | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch` | each PR was opened by exactly one live owner that alone pushed its branch, the failed owner wrote nothing, and each PR's forge author is its owner | `generated/skills/poteto-mode/playbooks/orchestrate.md:9` |
+| `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict` | each PR has a verifier on a different model family than its owner whose verdict names the head, and each owner merged only after that verdict, pinned to the head, with the coordinator's steer naming it | `generated/skills/poteto-mode/playbooks/orchestrate.md:13` |
+| `orchestrate.sub.no-merge-without-the-operators-request-and-a-verdict-at-that-head` | every merge has the operator's explicit request, a PASS or PASS+NOTES verdict at exactly the merged head from a worker that did not write the PR, and was requested with --match-head-commit | `generated/skills/poteto-mode/playbooks/orchestrate.md:19` |
+| `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff` | the coordinator got the failed wake, inspected the owner, probed the branch for pushes, then spawned the replacement with the original kickoff plus the reason, and the host recorded the owner as failed | `generated/skills/poteto-mode/playbooks/orchestrate.md:22` |
+| `orchestrate.sub.the-root-read-one-rollup-and-the-live-state` | the root read the coordinator's one rollup and both PRs live, collected no leaf worker and no raw report, and its reply accounts for the coordinator and the replaced owner without asking | `generated/skills/poteto-mode/playbooks/orchestrate.md:11` |
+| `orchestrate.sub.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/orchestrate.md:23` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the root spawned a leaf itself → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a leaf held the spawn capability → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- the leaves were owned by the root session, one level too shallow → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a fourth level was claimed → `orchestrate.sub.the-tree-is-three-levels-deep-from-real-nested-spawns`
+- a leaf ran one level deeper than the tree → `orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it`
+- a second owner pushed the same branch → `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch`
+- the failed owner had pushed a branch → `orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch`
+- a verifier ran on its owner's model family → `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict`
+- an owner merged before the verdict was posted → `orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict`, `orchestrate.sub.no-merge-without-the-operators-request-and-a-verdict-at-that-head`
+- the failed owner was never inspected or probed → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the replacement got a bare kickoff → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the host never recorded the owner as failed → `orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff`
+- the root collected a leaf's raw report → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
+- the reply asked the user → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
+- the rollup never reached the root → `orchestrate.sub.the-root-read-one-rollup-and-the-live-state`
 
 ## opening-a-pr
 

@@ -378,6 +378,7 @@ function loadAssignment(path) {
   return { assignment, file, runRoot, workerDir, digest: createHash2("sha256").update(bytes).digest("hex") };
 }
 var TERMINAL_PHASES = ["stopped", "failed", "exited"];
+var WATCH_OUTPUT_TAIL = 8192;
 var MAX_SETTLES = 1e4;
 var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
 function processStartTime(pid) {
@@ -603,6 +604,8 @@ async function runHost(assignmentFile, launchText) {
   let childPid = null;
   let stderrTail = "";
   let stderrPending = "";
+  let watchOutput = "";
+  let watchPending = "";
   const showStderr = (text) => {
     const clean = scrub(text);
     stderrTail = `${stderrTail}${clean}`.slice(-8192);
@@ -637,6 +640,7 @@ async function runHost(assignmentFile, launchText) {
     generation,
     settles,
     exit,
+    ...assignment.kind === "watch" ? { output: watchOutput } : {},
     updatedAt: new Date().toISOString()
   });
   const event = (kind, data) => {
@@ -684,7 +688,7 @@ async function runHost(assignmentFile, launchText) {
     cwd: workspaceDir(loaded),
     detached: true,
     env: container === null ? piEnv : dockerEnv,
-    stdio: assignment.kind === "watch" ? ["ignore", "inherit", "inherit"] : ["pipe", "pipe", "pipe"]
+    stdio: assignment.kind === "watch" ? ["ignore", "pipe", "pipe"] : ["pipe", "pipe", "pipe"]
   });
   childPid = child.pid ?? null;
   const rejectWaiting = (error) => {
@@ -720,6 +724,8 @@ async function runHost(assignmentFile, launchText) {
       if (stderrPending !== "")
         showStderr(stderrPending);
       stderrPending = "";
+      showWatch(watchPending);
+      watchPending = "";
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event("child_exit", exit);
@@ -823,6 +829,30 @@ async function runHost(assignmentFile, launchText) {
     return fatal;
   };
   child.once("error", (error) => void fail(error));
+  function showWatch(text) {
+    if (text === "")
+      return;
+    const clean = scrub(text);
+    process.stdout.write(clean);
+    watchOutput = `${watchOutput}${clean}`.slice(-WATCH_OUTPUT_TAIL);
+    save();
+  }
+  if (assignment.kind === "watch") {
+    const onOutput = (chunk) => {
+      watchPending += chunk.toString("utf8");
+      const cut = watchPending.lastIndexOf(`
+`);
+      if (cut !== -1) {
+        showWatch(watchPending.slice(0, cut + 1));
+        watchPending = watchPending.slice(cut + 1);
+      } else if (watchPending.length > STDERR_HOLD) {
+        showWatch(watchPending.slice(0, -STDERR_OVERLAP));
+        watchPending = watchPending.slice(-STDERR_OVERLAP);
+      }
+    };
+    child.stdout?.on("data", onOutput);
+    child.stderr?.on("data", onOutput);
+  }
   if (assignment.kind === "pi") {
     child.stdin?.on("error", (error) => {
       if (phase !== "stopping" && !childExited)

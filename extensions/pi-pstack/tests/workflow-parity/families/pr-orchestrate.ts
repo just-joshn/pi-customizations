@@ -9,6 +9,7 @@ import { check, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
+import { orchestrateSubFamilies } from './pr-orchestrate-sub.ts';
 import { ownerBrief, ownerScript, OWNER_FAMILY, ownerWorkers, type Unit } from './pr-autopilot.ts';
 import { BASH, forgeResolvedOnce, REPO_FLAGS } from './pr-shared.ts';
 import { mergesAreAuthorizedAndVerified, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
@@ -210,4 +211,4 @@ function appendLoop(sandbox: string): void {
   writeFileSync(file, `${readFileSync(file, 'utf8')}${lines.map((line) => JSON.stringify(line)).join('\n')}\n`);
 }
 
-export const orchestrateFamilies: Family[] = [orchestrateFamily];
+export const orchestrateFamilies: Family[] = [orchestrateFamily, ...orchestrateSubFamilies];

@@ -13,6 +13,7 @@ import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } fro
 import { editForge, type ForgeAction } from '../fixtures/forge.ts';
 import { todoNegatives } from './shared.ts';
 import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, replyMentions, REPO_FLAGS, REPO_SLUG, stepDone, spawnOrderOf, watchers } from './pr-shared.ts';
+import { babysitRestartFamilies } from './pr-babysit-restart.ts';
 import type { Family } from './types.ts';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
@@ -458,12 +459,6 @@ const QUEUED_ARGS = [...['--owner', 'acme', '--repo', 'widgets'], '--queued-stac
 
 export const babysitQueuedFamily: Family = {
   id: 'babysit-queued',
-  knownDefects: [
-    {
-      checkId: 'babysit.queued.watcher-verdict-is-readable-through-pstack-worker',
-      defect: 'pstack_worker inspect returns only the host state (HostState, src/run-files.ts:303-325, has no output field) and a watcher\'s wake carries only its exit (src/workers.ts:132-134), so the non-terminal WAITING merge-queue verdict that babysit.md:16 tells the parent to stop on is visible only in the tmux pane. The family reads it with tmux capture-pane.',
-    },
-  ],
   title: 'babysit a queued stack: a blocker-free frontier is a non-terminal WAITING with reason merge-queue, reported merge-ready, watcher stopped, nothing merged (spec 13.2)',
   spec: {
     family: 'babysit-queued',
@@ -553,7 +548,8 @@ export const babysitQueuedFamily: Family = {
     }),
     check('babysit.queued.watcher-verdict-is-readable-through-pstack-worker', 'the non-terminal WAITING merge-queue verdict the watcher printed is readable through the pstack_worker surface the parent already has (inspect), not only from the tmux pane', BS('A blocker-free frontier is a non-terminal `WAITING` with reason `merge-queue`'), (view) => {
       const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === 'watch-queue');
-      return when(/merge-queue/.test(inspect?.resultText ?? '') || /merge-queue/.test(JSON.stringify(inspect ?? {})), 'inspect carries the watcher verdict', `inspect returned: ${inspect?.resultText.slice(0, 80)}`);
+      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'watch-queue');
+      return when(inspect !== undefined && !inspect.isError && /"kind":"WAITING"[^\n]*merge-queue|merge-queue[^\n]*"kind":"WAITING"/.test(inspect.resultText) && (abort === undefined || inspect.order < abort.order), 'inspect, before the abort, carries the WAITING merge-queue verdict', `inspect returned: ${inspect?.resultText.slice(0, 200)}`);
     }),
     neverMerges('babysit.queued.never-merges-or-arms-auto-merge', 'nothing merged, queued by the babysitter, or auto-merged', BS('Babysitting never authorizes merging')),
     replyMentions('babysit.queued.reply-is-merge-ready-and-points-to-shipping', 'the reply reports the frontier merge-ready with the merge-queue reason, says the watcher stopped, and leaves landing to Shipping', BS('Report that frontier merge-ready and stop the watcher'), [{ name: 'merge-queue reason', pattern: /merge-queue/ }, { name: 'merge-ready', pattern: /merge-ready/ }, { name: 'stopped', pattern: /stopped the watcher/ }, { name: 'Shipping', pattern: /Shipping/ }], [{ name: 'READY', pattern: /\bREADY\b/ }]),
@@ -566,6 +562,7 @@ export const babysitQueuedFamily: Family = {
     { name: 'the frontier was merging into the queue', mutate: (sandbox) => editForge(sandbox, (actions, state) => { actions.push({ kind: 'merge-queued', tool: 'gh', pr: 51, worker: '', run: '', actor: '', container: false }); (state.prs['51'] as { queued?: boolean }).queued = true; }), fails: ['babysit.queued.never-merges-or-arms-auto-merge'] },
     { name: 'a check is failing, so the frontier is not merge-ready', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['51'] as { checks: { name: string; runId: number; state: string }[] }).checks = [{ name: 'build', runId: 9051, state: 'FAILURE' }]; }), fails: ['babysit.queued.frontier-is-WAITING-merge-queue-never-READY'] },
     { name: 'the watcher was left running', mutate: (sandbox) => rewriteSession(sandbox, '"action":"abort"', '"action":"inspect"'), fails: ['babysit.queued.watcher-stopped-after-the-report'] },
+    { name: 'inspect returned the host state without the watcher output', mutate: (sandbox) => rewriteSession(sandbox, 'merge-queue', 'merge-qXeue'), fails: ['babysit.queued.watcher-verdict-is-readable-through-pstack-worker'] },
     { name: 'the live output was never read', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', QUEUED_RUN, 'watch-queued.out'), ''), fails: ['babysit.queued.frontier-is-WAITING-merge-queue-never-READY'] },
     { name: 'the reply claims READY', mutate: (sandbox) => rewriteFinalReply(sandbox, 'is a blocker-free frontier', 'reached READY'), fails: ['babysit.queued.reply-is-merge-ready-and-points-to-shipping'] },
   ],
@@ -1007,4 +1004,4 @@ function dropCommands(sandbox: string, pattern: RegExp): void {
   writeFileSync(file, lines.join('\n'));
 }
 
-export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily, babysitSingleWatcherFamily, babysitFlakeTwiceFamily];
+export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily, babysitSingleWatcherFamily, babysitFlakeTwiceFamily, ...babysitRestartFamilies];

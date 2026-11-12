@@ -31,6 +31,7 @@ import {
 
 // The tmux server this file starts inherits it, so an inheriting worker sees it.
 process.env['U04A_PARENT_MARKER'] = 'parent-secret-marker';
+process.env['U04A_WATCH_TOKEN'] = 'watch-token-value';
 
 let project: Project;
 let parent: Parent;
@@ -414,6 +415,30 @@ describe('pstack_worker on real tmux and Pi', () => {
     expect(wakes(parent)[0]?.phase).toBe('exited');
     expect(readState(project, 'run1', 'w9')).toMatchObject({ phase: 'exited', exit: { code: 3 } });
     expect(await tmux('capture-pane', '-p', '-t', sessionOf('w9'))).toContain('WATCHED');
+  });
+
+  test('a watch worker\'s redacted output tail is readable through inspect while it runs and rides its exit wake', async () => {
+    await spawn('w9b', 'unused', { kind: 'watch', watch: { argv: ['/bin/sh', '-c', 'echo "WAITING merge-queue token=$U04A_WATCH_TOKEN"; sleep 3; echo LAST-LINE; exit 0'], cwd: project.dir } });
+    const live = await until(
+      () => parent.call('pstack_worker', { action: 'inspect', runId: 'run1', workerId: 'w9b' }),
+      (result) => /merge-queue/.test(result.text),
+      10_000,
+      'live watcher output',
+    );
+    expect((live.details as unknown as { state: { phase: string } }).state.phase).toBe('running');
+    expect(live.text).toContain('WAITING merge-queue token=***');
+    expect(JSON.stringify(live)).not.toContain('watch-token-value');
+    expect(wakes(parent)).toHaveLength(0);
+    await until(
+      () => wakes(parent),
+      (list) => list.length === 1,
+      15_000,
+      'watch exit wake',
+    );
+    const wake = parent.messages.at(-1)?.message.content as string;
+    expect(wake).toContain('LAST-LINE');
+    expect(wake).toContain('WAITING merge-queue token=***');
+    expect(wake).not.toContain('watch-token-value');
   });
 
   test('the control socket is private and rejects a forged identity', async () => {

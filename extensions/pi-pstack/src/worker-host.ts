@@ -42,6 +42,7 @@ import {
   type ThinkingLevel,
   TMUX_SESSION,
   writeJsonAtomic,
+  WATCH_OUTPUT_TAIL,
 } from './run-files.ts';
 import { scrubber, secretValues } from './redact.ts';
 
@@ -305,6 +306,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let childPid: number | null = null;
   let stderrTail = '';
   let stderrPending = '';
+  let watchOutput = '';
+  let watchPending = '';
   const showStderr = (text: string) => {
     const clean = scrub(text);
     stderrTail = `${stderrTail}${clean}`.slice(-8192);
@@ -340,6 +343,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     generation,
     settles,
     exit,
+    ...(assignment.kind === 'watch' ? { output: watchOutput } : {}),
     updatedAt: new Date().toISOString(),
   });
   const event = (kind: string, data?: unknown) => {
@@ -388,7 +392,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     cwd: workspaceDir(loaded),
     detached: true,
     env: container === null ? piEnv : dockerEnv,
-    stdio: assignment.kind === 'watch' ? ['ignore', 'inherit', 'inherit'] : ['pipe', 'pipe', 'pipe'],
+    stdio: assignment.kind === 'watch' ? ['ignore', 'pipe', 'pipe'] : ['pipe', 'pipe', 'pipe'],
   });
   childPid = child.pid ?? null;
 
@@ -422,6 +426,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       childExited = true;
       if (stderrPending !== '') showStderr(stderrPending);
       stderrPending = '';
+      showWatch(watchPending);
+      watchPending = '';
       exit = { code, signal };
       rejectWaiting(new Error(`Child exited (${code ?? signal}); outstanding command outcomes are unknown`));
       event('child_exit', exit);
@@ -520,6 +526,30 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   };
 
   child.once('error', (error) => void fail(error));
+  // A watch command's output still reaches the pane, and its tail is kept in the host state for inspect and the wake.
+  // Only whole lines are scrubbed, so a secret split across two chunks is never shown or stored.
+  function showWatch(text: string) {
+    if (text === '') return;
+    const clean = scrub(text);
+    process.stdout.write(clean);
+    watchOutput = `${watchOutput}${clean}`.slice(-WATCH_OUTPUT_TAIL);
+    save();
+  }
+  if (assignment.kind === 'watch') {
+    const onOutput = (chunk: Buffer) => {
+      watchPending += chunk.toString('utf8');
+      const cut = watchPending.lastIndexOf('\n');
+      if (cut !== -1) {
+        showWatch(watchPending.slice(0, cut + 1));
+        watchPending = watchPending.slice(cut + 1);
+      } else if (watchPending.length > STDERR_HOLD) {
+        showWatch(watchPending.slice(0, -STDERR_OVERLAP));
+        watchPending = watchPending.slice(-STDERR_OVERLAP);
+      }
+    };
+    child.stdout?.on('data', onOutput);
+    child.stderr?.on('data', onOutput);
+  }
   if (assignment.kind === 'pi') {
     child.stdin?.on('error', (error) => {
       if (phase !== 'stopping' && !childExited) void fail(error);
