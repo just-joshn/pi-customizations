@@ -146,6 +146,20 @@ export function wakeText(transition: Transition): string {
   return `pstack worker ${transition.workerId} in run ${transition.runId} ${PHASE_TEXT[transition.phase]}${transition.reason === null ? '' : `: ${transition.reason}`}. Collect it with pstack_worker {"action":"collect","runId":"${transition.runId}","workerId":"${transition.workerId}"}.`;
 }
 
+const collectedMarker = (workerDir: string, transitionId: string): string => join(workerDir, 'collected', transitionId.replace(/[^A-Za-z0-9._-]/g, '_'));
+
+/** A settle the parent already collected owes it no wake: the result is in its context, and a wake would only buy a turn that repeats it. */
+const isCollected = (workerDir: string, transitionId: string): boolean => existsSync(collectedMarker(workerDir, transitionId));
+
+/** Marks every settle `collect` just returned. Idempotent: the marker is a file named for the transition, and writing it again changes nothing. */
+function markCollected(workerDir: string, transitions: Transition[]): void {
+  for (const { transitionId } of transitions) {
+    const marker = collectedMarker(workerDir, transitionId);
+    mkdirSync(dirname(marker), { recursive: true });
+    writeFileSync(marker, '');
+  }
+}
+
 /** Which `pstack_*` tmux sessions have a live pane. undefined when tmux itself could not answer. */
 async function liveSessions(pi: ExtensionAPI, socket: string): Promise<Set<string> | undefined> {
   const result = await pi.exec('tmux', ['-L', socket, 'list-panes', '-a', '-F', '#{session_name} #{pane_dead}'], { timeout: 5_000 });
@@ -785,7 +799,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           continue;
         }
         for (const transition of transitions) {
-          if (delivered.has(transition.transitionId) || sent.has(transition.transitionId)) continue;
+          if (delivered.has(transition.transitionId) || sent.has(transition.transitionId) || isCollected(workerDir, transition.transitionId)) continue;
           appendEvent(runRoot, { runId, workerId, kind: 'wake', data: { transitionId: transition.transitionId, phase: transition.phase } });
           // A throw stops this pass with the wake still unsent, so the next poll tries it again.
           pi.sendMessage({ customType: WAKE_TYPE, content: wakeText(transition), display: true, details: { transitionId: transition.transitionId, runId, workerId, phase: transition.phase } }, { triggerTurn: true, deliverAs: 'followUp' });
@@ -946,6 +960,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         return text(`Worker ${workerId} has not settled (${live.phase}); no result yet.`, { settled: false, live });
       }
       const worker = collectOutputs(loaded, state.sessionFile);
+      markCollected(loaded.workerDir, workerTransitions(runId, workerId, state, readClaim(loaded.workerDir), undefined));
       // The receipts a container worker recorded join the run's receipts here, so collect and verify agree on what exists.
       const receipts = loaded.assignment.workspace.mode === 'container' ? ingestContainerReceipts(runRoot, runId) : undefined;
       const result = {
