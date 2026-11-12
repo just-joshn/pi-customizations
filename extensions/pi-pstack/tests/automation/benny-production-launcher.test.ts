@@ -1,5 +1,6 @@
 // wireBenny with no spawnWorker: the tracker worker is launched by the production default, spawnInTmux(projectRoot, { allowExternalWrite: true }),
-// on the real Pi binary. Only the environment points it at a private tmux server, agent dir, and the scripted model.
+// on the real Pi binary. The workers name their model with --model: a Pi that picks its model from settings.json alone landed on no
+// model in about a quarter of 8 concurrent starts ("No API key found"), and never did with --model. Only the environment points it at a private tmux server, agent dir, and the scripted model.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
@@ -44,7 +45,7 @@ return out.join('\\n');`;
   writeFileSync(join(current.agentDir, 'pstack', 'tracker-mcp.json'), JSON.stringify({ tools: [WRITE] }));
   for (const [name, value] of Object.entries({ HOME: current.home, PI_CODING_AGENT_DIR: current.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: TMUX, PATH: `${dirname(PI)}:${process.env['PATH']}`, PSTACK_SCRIPTED_DIRECTIVES: JSON.stringify([{ when: '# Benny tracker action', directive: `@@script ${trackerScript}` }, { when: '# Benny triage case', directive: `@@say ${caseResult}` }]) })) vi.stubEnv(name, value);
 
-  const benny = bennyProject({ root: current.dir, adapterSkill: 'linear-adapter' });
+  const benny = bennyProject({ root: current.dir, adapterSkill: 'linear-adapter', model: 'scripted/echo' });
   const slack = fakeSlack();
   const gh = fakeGh();
   const automation: Automation = wireBenny(benny.config('triage'), wiringDeps(slack, gh, { env: { PI_CODING_AGENT_DIR: current.agentDir } }));

@@ -273,7 +273,7 @@ export interface BennyProject {
 }
 
 /** A project with a loadable Benny configuration, a valid feature map, and the GitHub tracker selected. */
-export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null; operationsChannel?: string; attachments?: Record<string, number> | null } = {}): BennyProject {
+export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null; operationsChannel?: string; attachments?: Record<string, number> | null; model?: string } = {}): BennyProject {
   const dir = options.root ?? realpathSync(mkdtempSync(join(tmpdir(), 'benny-e2e-')));
   const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
@@ -282,7 +282,7 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
     .replace('artifact_directory: "/tmp/benny-artifacts"', `artifact_directory: "${join(dir, 'artifacts')}"`)
     .replace('operations_channel_id: ""', `operations_channel_id: "${options.operationsChannel ?? ''}"`)
     .replace(/^attachments:\n(?:  .*\n)*/m, (block) => (options.attachments === undefined ? block : options.attachments === null ? '' : `attachments:\n${Object.entries(options.attachments).map(([key, value]) => `  ${key}: ${value}\n`).join('')}`))
-    .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
+    .replaceAll('choose-an-available-public-model-slug', options.model ?? 'inherit-parent')
     .replace(/^  skill_name: ".*"/m, `  skill_name: "${options.controlSkill ?? 'control-ui'}"`);
   const file = join(dir, '.pi/benny/configuration.yaml');
   mkdirSync(dirname(file), { recursive: true });
