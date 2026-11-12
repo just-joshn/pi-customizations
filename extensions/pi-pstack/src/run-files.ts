@@ -117,6 +117,8 @@ export interface Capabilities {
   mcp: 'inherit' | 'none';
   env: 'inherit' | 'minimal';
   externalWrite: boolean;
+  /** Registers pstack_worker in the worker, for Orchestrate's sub-coordinators. Absent means false. */
+  spawn?: boolean;
 }
 const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'inherit', externalWrite: false };
 /** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
@@ -125,13 +127,14 @@ const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', ext
 function parseCapabilities(raw: unknown): Capabilities {
   if (
     !isRecord(raw) ||
-    Object.keys(raw).sort().join(',') !== 'env,externalWrite,mcp' ||
+    !['env,externalWrite,mcp', 'env,externalWrite,mcp,spawn'].includes(Object.keys(raw).sort().join(',')) ||
     !['inherit', 'none'].includes(raw['mcp'] as string) ||
     !['inherit', 'minimal'].includes(raw['env'] as string) ||
-    typeof raw['externalWrite'] !== 'boolean'
+    typeof raw['externalWrite'] !== 'boolean' ||
+    (raw['spawn'] !== undefined && typeof raw['spawn'] !== 'boolean')
   )
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
-  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'] };
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
+  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'], ...(typeof raw['spawn'] === 'boolean' ? { spawn: raw['spawn'] } : {}) };
 }
 
 interface AssignmentBase {

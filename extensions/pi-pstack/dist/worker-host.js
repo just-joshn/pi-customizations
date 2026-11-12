@@ -66,9 +66,9 @@ var THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"
 var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: false };
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
 function parseCapabilities(raw) {
-  if (!isRecord(raw) || Object.keys(raw).sort().join(",") !== "env,externalWrite,mcp" || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"] };
+  if (!isRecord(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
+  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
 }
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
