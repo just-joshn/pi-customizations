@@ -36,7 +36,7 @@ tmux uses its own server: always `tmux -L pstack`. Session name `pstack-<runId>-
 Run root: `<project>/.pi/pstack/runs/<runId>/`. `<project>` is the git toplevel of the parent's cwd, or the cwd outside git.
 
 ```
-run.json            { schemaVersion: 1, runId, title, playbook, upstreamRevision, createdAt, parentSessionFile, inputCommit|null }
+run.json            { schemaVersion: 1, runId, title, playbook, upstreamRevision, createdAt, parentSessionFile|null, inputCommit|null }   // null: an automation run, owned by its automation adapter, not a chat
 TODO.md             parent is the sole writer
 decisions.tsv       show-me-your-work format: ts, phase, decision, why, evidence, result
 events.jsonl        append-only; extension and hosts append { ts, runId, workerId?, kind, data }
