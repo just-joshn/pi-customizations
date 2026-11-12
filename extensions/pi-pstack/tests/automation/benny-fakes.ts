@@ -326,7 +326,7 @@ export const CODE_REPO_URL = 'https://github.com/example-org/example-repo.git';
  * read. A worker's worktree is created the way the host creates it, on `pstack-run/<runId>/owner`.
  */
 export function gitProject(dir: string, options: { existing?: boolean } = {}) {
-  const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=worker', '-c', 'user.email=worker@example.com', ...args], { encoding: 'utf8' }).trim();
+  const git = (cwd: string, ...args: string[]) => execFileSync('git', ['-C', cwd, '-c', 'user.name=worker', '-c', 'user.email=worker@example.com', ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   const origin = join(mkdtempSync(join(tmpdir(), 'benny-origin-')), 'origin.git');
   mkdirSync(origin, { recursive: true });
   git(origin, 'init', '--quiet', '--bare', '-b', 'main');
