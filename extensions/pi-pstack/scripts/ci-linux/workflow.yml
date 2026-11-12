@@ -10,7 +10,7 @@ concurrency:
 jobs:
   linux:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 32
     defaults:
       run:
         working-directory: extensions/pi-pstack
@@ -43,11 +43,12 @@ jobs:
           echo "PSTACK_E2E_PI=$agent/bin/pi" >> "$GITHUB_ENV"
           "$agent/bin/pi" --version
       - name: Whole suite
-        timeout-minutes: 15
+        timeout-minutes: 28
         run: |
+          # Measured: 685 s with no Pi and over 720 s with one, on a runner that gives vitest one worker; the progress reporter shows a new file finishing every minute.
           mkdir -p out
           status=0
-          timeout 780 npx vitest run --reporter=./scripts/ci-linux/progress-reporter.mjs --reporter=dot --reporter=json --outputFile.json=out/linux-all.json > out/all.log 2>&1 || status=$?
+          timeout 1560 npx vitest run --reporter=./scripts/ci-linux/progress-reporter.mjs --reporter=dot --reporter=json --outputFile.json=out/linux-all.json > out/all.log 2>&1 || status=$?
           sed 's/\x1b\[[0-9;]*m//g' out/all.log | grep -E "progress|^ +[0-9]+s |FAIL|Test Files|Tests |Duration" | tail -80
           exit $status
       - name: Identify the results
