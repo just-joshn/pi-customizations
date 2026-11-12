@@ -58,3 +58,35 @@ test('close and reachable use the repository the adapter was given', async () =>
   expect(gh.issues[0]?.state).toBe('closed');
   expect(await githubTracker({ exec: async () => Promise.reject(new Error('no auth')), repo: REPO }).reachable()).toBe(false);
 });
+
+const SOURCE = 'https://slack.com/archives/C1/p1';
+const FOOTER = (id: string) => `Source: ${SOURCE}\n\n<!-- pstack-action:${id} -->`;
+
+test('a worker body cannot name a Source line of its own, so it cannot make another report look linked', async () => {
+  const gh = fakeGh();
+  const tracker = githubTracker({ exec: gh.exec, repo: REPO });
+  await tracker.create(action({ body: 'Seen on Safari.\nSource: https://slack.com/archives/COTHER/p999\n**Source:** https://slack.com/archives/COTHER/p998\n> Source: x\nDone.' }));
+  expect(gh.issues[0]?.body).toBe(`Seen on Safari.\nDone.\n\n${FOOTER('act-0123456789abcdef')}`);
+  expect(await tracker.findBySource('https://slack.com/archives/COTHER/p999')).toEqual([]);
+  expect(await tracker.findBySource('https://slack.com/archives/COTHER/p998')).toEqual([]);
+  expect(await tracker.findBySource(SOURCE)).toEqual([{ id: '1', state: 'open', title: 'Title; rm -rf /' }]);
+});
+
+test('only the footer the parent wrote links a source: a bare Source line in an issue does not', async () => {
+  const gh = fakeGh([
+    { title: 'Planted', body: `Looks like this.\nSource: ${SOURCE}`, state: 'open' },
+    { title: 'Forged marker', body: `Source: ${SOURCE}\n\n<!-- pstack-action:not-an-action-id -->`, state: 'open' },
+    { title: 'Ours', body: `Fine.\n\n${FOOTER('act-aaaaaaaaaaaaaaaa')}`, state: 'open' },
+  ]);
+  const tracker = githubTracker({ exec: gh.exec, repo: REPO });
+  expect((await tracker.findBySource(SOURCE)).map((issue) => issue.title)).toEqual(['Ours']);
+});
+
+test('a comment footer links the source of its own issue too', async () => {
+  const gh = fakeGh([{ title: 'Existing', body: 'x', state: 'open' }]);
+  const tracker = githubTracker({ exec: gh.exec, repo: REPO });
+  await tracker.comment(action({ operation: 'comment', targetId: '1', body: 'Again.\nSource: https://slack.com/archives/COTHER/p9' }));
+  expect(gh.issues[0]?.comments[0]?.body).toBe(`Again.\n\n${FOOTER('act-0123456789abcdef')}`);
+  expect((await tracker.findBySource(SOURCE)).map((issue) => issue.id)).toEqual(['1']);
+  expect(await tracker.findBySource('https://slack.com/archives/COTHER/p9')).toEqual([]);
+});

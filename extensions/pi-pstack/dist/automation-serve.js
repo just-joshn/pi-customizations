@@ -15128,7 +15128,13 @@ var REPO = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9._-]+$/;
 var ISSUE_ID = /^[1-9][0-9]{0,9}$/;
 var MARKER_PREFIX = "pstack-action:";
 var markerComment = (id) => `<!-- ${MARKER_PREFIX}${id} -->`;
-var withoutMarkers = (text) => text.replace(/<!--\s*pstack-action:[^>]*-->/g, "");
+var footerOf = (sourceUrl, marker) => `Source: ${sourceUrl}
+
+${marker}`;
+var untrusted = (text) => text.replace(/<!--\s*pstack-action:[^>]*-->/g, "").split(`
+`).filter((line) => !/^[\s>*_-]*source\s*:/i.test(line)).join(`
+`);
+var escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 var lines = (output) => output.split(`
 `).filter((line) => line.trim() !== "");
 function githubTracker(options) {
@@ -15146,25 +15152,24 @@ function githubTracker(options) {
   const issues = async () => lines(await exec(["api", "--paginate", "-X", "GET", `repos/${repo}/issues`, "-f", "state=all", "-f", `since=${since()}`, "-f", "per_page=100", "--jq", ".[] | select(.pull_request == null) | {number, state, title, body}"])).map((line) => JSON.parse(line));
   const comments = async () => lines(await exec(["api", "--paginate", "-X", "GET", `repos/${repo}/issues/comments`, "-f", `since=${since()}`, "-f", "per_page=100", "--jq", ".[] | {issue_url, body}"])).map((line) => JSON.parse(line));
   const issueOf = (raw) => ({ id: String(raw.number), state: raw.state === "open" ? "open" : "closed", title: raw.title });
-  const containing = async (needle) => {
+  const containing = async (matches) => {
     const found = new Set;
     for (const issue of await issues())
-      if (issue.body?.includes(needle))
+      if (issue.body !== null && matches(issue.body))
         found.add(String(issue.number));
     for (const comment of await comments())
-      if (comment.body?.includes(needle))
+      if (comment.body !== null && matches(comment.body))
         found.add(comment.issue_url.split("/").at(-1));
     return [...found];
   };
   const number = (output) => ({ id: issueId(output.trim()) });
-  const footer = (action) => `${withoutMarkers(action.body).trimEnd()}
+  const footer = (action) => `${untrusted(action.body).trimEnd()}
 
-Source: ${action.sourceUrl}
-
-${markerComment(action.id)}`;
+${footerOf(action.sourceUrl, markerComment(action.id))}`;
   return {
     async searchByMarker(marker) {
-      return (await containing(markerComment(marker))).map((id) => ({ id }));
+      const needle = markerComment(marker);
+      return (await containing((text) => text.includes(needle))).map((id) => ({ id }));
     },
     async create(action) {
       if (action.title === undefined)
@@ -15185,7 +15190,8 @@ ${footer(action)}`, "--jq", ".number"]));
       return { id };
     },
     async findBySource(sourceUrl) {
-      const ids = new Set(await containing(`Source: ${sourceUrl}`));
+      const written = new RegExp(`${escapeRegExp(`Source: ${sourceUrl}`)}\\n\\n<!-- ${MARKER_PREFIX}act-[0-9a-f]{16} -->`);
+      const ids = new Set(await containing((text) => written.test(text)));
       return (await issues()).filter((issue) => ids.has(String(issue.number))).map(issueOf);
     },
     async findOpenByTitle(title) {

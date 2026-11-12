@@ -165,7 +165,7 @@ describe('triage end to end', () => {
   });
 
   test('a report whose permalink is already linked gets no second issue', async () => {
-    const gh = fakeGh([{ title: 'Other title', body: 'Source: https://slack.com/archives/CSOURCE01/p1762900000000100', state: 'open' }]);
+    const gh = fakeGh([{ title: 'Other title', body: 'Source: https://slack.com/archives/CSOURCE01/p1762900000000100\n\n<!-- pstack-action:act-0123456789abcdef -->', state: 'open' }]);
     const t = triage({ gh });
     const run = await t.automation.handle(REPORT);
     if (run.status !== 'dispatched') throw new Error('not dispatched');

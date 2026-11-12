@@ -31,9 +31,19 @@ export const REPO = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9._-]+$/;
 const ISSUE_ID = /^[1-9][0-9]{0,9}$/;
 const MARKER_PREFIX = 'pstack-action:';
 export const markerComment = (id: string) => `<!-- ${MARKER_PREFIX}${id} -->`;
+const footerOf = (sourceUrl: string, marker: string) => `Source: ${sourceUrl}\n\n${marker}`;
 
-/** A worker-written body cannot carry an action marker of its own, so it cannot make a search match an issue it chose. */
-const withoutMarkers = (text: string) => text.replace(/<!--\s*pstack-action:[^>]*-->/g, '');
+/**
+ * A worker-written body cannot carry an action marker or a `Source:` line of its own, so it cannot make a search match
+ * an issue it chose or make another report look already linked. The parent adds the one footer the searches trust.
+ */
+const untrusted = (text: string) =>
+  text
+    .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
+    .split('\n')
+    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
+    .join('\n');
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const lines = (output: string) => output.split('\n').filter((line) => line.trim() !== '');
 
@@ -72,19 +82,20 @@ export function githubTracker(options: { exec: GhExec; repo: string; now?: () =>
     lines(await exec(['api', '--paginate', '-X', 'GET', `repos/${repo}/issues/comments`, '-f', `since=${since()}`, '-f', 'per_page=100', '--jq', '.[] | {issue_url, body}'])).map((line) => JSON.parse(line) as RawComment);
   const issueOf = (raw: RawIssue): TrackerIssue => ({ id: String(raw.number), state: raw.state === 'open' ? 'open' : 'closed', title: raw.title });
 
-  /** Issue ids whose body or comments contain `needle`. */
-  const containing = async (needle: string): Promise<string[]> => {
+  /** Issue ids whose body or comments satisfy `matches`. */
+  const containing = async (matches: (text: string) => boolean): Promise<string[]> => {
     const found = new Set<string>();
-    for (const issue of await issues()) if (issue.body?.includes(needle)) found.add(String(issue.number));
-    for (const comment of await comments()) if (comment.body?.includes(needle)) found.add(comment.issue_url.split('/').at(-1) as string);
+    for (const issue of await issues()) if (issue.body !== null && matches(issue.body)) found.add(String(issue.number));
+    for (const comment of await comments()) if (comment.body !== null && matches(comment.body)) found.add(comment.issue_url.split('/').at(-1) as string);
     return [...found];
   };
   const number = (output: string) => ({ id: issueId(output.trim()) });
-  const footer = (action: TrackerAction) => `${withoutMarkers(action.body).trimEnd()}\n\nSource: ${action.sourceUrl}\n\n${markerComment(action.id)}`;
+  const footer = (action: TrackerAction) => `${untrusted(action.body).trimEnd()}\n\n${footerOf(action.sourceUrl, markerComment(action.id))}`;
 
   return {
     async searchByMarker(marker) {
-      return (await containing(markerComment(marker))).map((id) => ({ id }));
+      const needle = markerComment(marker);
+      return (await containing((text) => text.includes(needle))).map((id) => ({ id }));
     },
     async create(action) {
       if (action.title === undefined) throw new Error('GitHub create needs a title');
@@ -101,7 +112,8 @@ export function githubTracker(options: { exec: GhExec; repo: string; now?: () =>
       return { id };
     },
     async findBySource(sourceUrl) {
-      const ids = new Set(await containing(`Source: ${sourceUrl}`));
+      const written = new RegExp(`${escapeRegExp(`Source: ${sourceUrl}`)}\\n\\n<!-- ${MARKER_PREFIX}act-[0-9a-f]{16} -->`);
+      const ids = new Set(await containing((text) => written.test(text)));
       return (await issues()).filter((issue) => ids.has(String(issue.number))).map(issueOf);
     },
     async findOpenByTitle(title) {
