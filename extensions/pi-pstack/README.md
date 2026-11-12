@@ -111,4 +111,4 @@ bun run test:statechart                                 # the statechart compile
 
 ## Licenses
 
-The port's own code is MIT (`LICENSE`). pstack's files keep their MIT notice in `licenses/pstack.LICENSE` (© 2026 Lauren Tan). The vendored team-kit skills keep theirs in `licenses/cursor-team-kit.LICENSE`.
+The port's own code is MIT (`LICENSE`). pstack's files keep their MIT notice in `licenses/pstack.LICENSE` (© 2026 Lauren Tan). The vendored team-kit skills keep theirs in `licenses/cursor-team-kit.LICENSE`. The standalone `dist/` bundles inline `yaml` (ISC, `licenses/yaml.LICENSE`) and `typebox` (MIT, `licenses/typebox.LICENSE`).

@@ -24,6 +24,7 @@ done
 
 repo="${1:-$(git rev-parse --show-toplevel 2>/dev/null)}"
 [ -z "$repo" ] && { echo "not in a git repo; pass a repo path" >&2; exit 1; }
+invoked_from=$PWD
 cd "$repo" || exit 1
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "error: not a git repo: $repo" >&2; exit 1; }
 
@@ -69,30 +70,43 @@ elif raw=$(gh pr list --author "@me" --state all --limit 1000 \
 fi
 [ -s "$prs" ] || echo "[]" > "$prs"
 
-# Pi session storage, resolved the way Pi resolves it (docs/sessions.md, docs/environment-variables.md):
-# PI_CODING_AGENT_SESSION_DIR, else the sessionDir setting with the project's .pi/settings.json over the
-# agent directory's settings.json, else <agent directory>/sessions. A leading ~ is the home directory, and a
-# relative sessionDir resolves from the working directory. Sessions group by cwd, including each worktree
-# cwd, and every group is searched for references to the candidate.
+# Pi session storage, resolved the way Pi resolves it (docs/sessions.md, docs/environment-variables.md), once per
+# directory a session could have started in. Pi reads project settings from the session's working directory, so a
+# worktree's own .pi/settings.json decides where its sessions live. For each directory:
+# PI_CODING_AGENT_SESSION_DIR, else the sessionDir setting with the project's .pi/settings.json over the agent
+# directory's settings.json (an empty string in the project file still overrides the global one and means the
+# default), else <agent directory>/sessions. A leading ~ is the home directory, file:// is a URL, and a relative
+# sessionDir resolves from that directory.
 pi_home() {
 	case "$1" in
 	"~") printf '%s\n' "$HOME" ;;
 	"~"/*) printf '%s\n' "$HOME/${1#"~/"}" ;;
+	file://*) printf '%b\n' "$(printf '%s' "${1#file://}" | sed 's/%\(..\)/\\x\1/g')" ;;
 	*) printf '%s\n' "$1" ;;
 	esac
 }
 agent_dir=$(pi_home "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}")
-if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
-	session_dir=$(pi_home "$PI_CODING_AGENT_SESSION_DIR")
-else
-	session_dir=""
-	for settings in "$PWD/.pi/settings.json" "$agent_dir/settings.json"; do
-		[ -z "$session_dir" ] && [ -f "$settings" ] \
-			&& session_dir=$(jq -r 'if (.sessionDir | type) == "string" then .sessionDir else "" end' "$settings" 2>/dev/null)
-	done
-	if [ -n "$session_dir" ]; then session_dir=$(pi_home "$session_dir"); else session_dir="$agent_dir/sessions"; fi
-fi
-case "$session_dir" in /*) transcripts="$session_dir" ;; *) transcripts="$PWD/$session_dir" ;; esac
+pi_session_dir() {
+	local cwd=$1 dir="" settings value
+	if [ -n "${PI_CODING_AGENT_SESSION_DIR:-}" ]; then
+		dir=$(pi_home "$PI_CODING_AGENT_SESSION_DIR")
+	else
+		for settings in "$cwd/.pi/settings.json" "$agent_dir/settings.json"; do
+			[ -f "$settings" ] || continue
+			value=$(jq -r 'if (.sessionDir | type) == "string" then "s" + .sessionDir else "" end' "$settings" 2>/dev/null)
+			if [ -n "$value" ]; then dir=$(pi_home "${value#s}"); break; fi
+		done
+		[ -z "$dir" ] && dir="$agent_dir/sessions"
+	fi
+	case "$dir" in /*) printf '%s\n' "$dir" ;; *) printf '%s\n' "$cwd/$dir" ;; esac
+}
+transcript_roots=()
+while IFS= read -r start_dir; do
+	[ -n "$start_dir" ] || continue
+	root=$(pi_session_dir "$start_dir")
+	[ -d "$root" ] || continue
+	case " ${transcript_roots[*]-} " in *" $root "*) ;; *) transcript_roots+=("$root") ;; esac
+done < <(printf '%s\n' "$invoked_from"; git worktree list --porcelain | awk '/^worktree /{print $2}')
 now=$(date +%s)
 
 echo "# base: $base"
@@ -132,8 +146,8 @@ git worktree list --porcelain | awk '/^worktree /{print $2}' | while read -r wt;
 	# Most recent chat whose transcript operated in this worktree. Match path
 	# followed by "/" or a quote so glint-482 does not match glint-482-r37.
 	last="-"; last_ts=0
-	if [ -d "$transcripts" ]; then
-		f=$(rg -l -e "${wt}/" -e "${wt}\"" "$transcripts" 2>/dev/null \
+	if [ "${#transcript_roots[@]}" -gt 0 ]; then
+		f=$(rg -l -e "${wt}/" -e "${wt}\"" "${transcript_roots[@]}" 2>/dev/null \
 			| xargs stat "${stat_fmt[@]}" 2>/dev/null | sort -rn | head -1)
 		if [ -n "$f" ]; then last_ts=$(echo "$f" | awk '{print $1}')
 			last=$(fmt_day "$last_ts" 2>/dev/null); fi

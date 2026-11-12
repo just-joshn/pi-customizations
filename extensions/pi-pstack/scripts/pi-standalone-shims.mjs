@@ -2,7 +2,7 @@
 //
 // dist/routine-setup.js and dist/automation-serve.js run as plain `node <pkg>/dist/...` from an installed package,
 // where Pi does not install its host packages as siblings, so those bundles must not import them. The pieces those
-// bundles actually execute are two small, pure pi-ai functions; the pi-coding-agent symbols they import are never
+// bundles execute through the redirected specifiers are two small, pure pi-ai functions (pi-ai/providers/all is not redirected and is inlined whole, see build-helpers.mjs); the pi-coding-agent symbols they import are never
 // called outside a Pi extension (their only callers run inside pstack_worker, which the CLI bundles do not register).
 // scripts/build-helpers.mjs redirects the three host-package imports here for these two entries only. The rest of the
 // package keeps the real host packages (external, resolved by Pi at runtime), and typebox is bundled directly.
@@ -30,6 +30,7 @@ const API_KEY_ENV = {
   'qwen-token-plan': 'QWEN_TOKEN_PLAN_API_KEY',
   'qwen-token-plan-cn': 'QWEN_TOKEN_PLAN_CN_API_KEY',
   'qwen-token-plan-individual': 'QWEN_TOKEN_PLAN_API_KEY',
+  'qwen-token-plan-individual-cn': 'QWEN_TOKEN_PLAN_CN_API_KEY',
   openai: 'OPENAI_API_KEY',
   azure: 'AZURE_OPENAI_API_KEY',
   nvidia: 'NVIDIA_API_KEY',

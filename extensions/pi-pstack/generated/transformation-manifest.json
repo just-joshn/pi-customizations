@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 180,
-    "spans": 245
+    "rules": 182,
+    "spans": 247
   },
   "skills": [
     "architect",
@@ -871,6 +871,25 @@
     },
     {
       "id": "worktree-audit.transcripts",
+      "primitives": [
+        "cursor-path",
+        "cursor-transcripts"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh": 1
+      }
+    },
+    {
+      "id": "worktree-audit.invoked-from",
+      "primitives": [
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh": 1
+      }
+    },
+    {
+      "id": "worktree-audit.transcript-search",
       "primitives": [
         "cursor-path",
         "cursor-transcripts"
@@ -4532,6 +4551,21 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "rule": "worktree-audit.invoked-from",
+      "offset": [
+        1145,
+        1165
+      ],
+      "lines": [
+        27,
+        27
+      ],
+      "original": "cd \"$repo\" || exit 1",
+      "replacement": "invoked_from=$PWD\ncd \"$repo\" || exit 1",
+      "output": "generated/skills/poteto-mode/scripts/worktree-audit.sh"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh",
       "rule": "worktree-audit.transcripts",
       "offset": [
         3436,
@@ -4542,7 +4576,22 @@
         74
       ],
       "original": "# Transcripts dir: ~/.cursor/projects/<slugified-repo-path>/agent-transcripts.\nslug=$(printf '%s' \"$main_wt\" | sed 's#^/##; s#/#-#g')\ntranscripts=\"$HOME/.cursor/projects/$slug/agent-transcripts\"",
-      "replacement": "# Pi session storage, resolved the way Pi resolves it (docs/sessions.md, docs/environment-variables.md):\n# PI_CODING_AGENT_SESSION_DIR, else the sessionDir setting with the project's .pi/settings.json over the\n# agent directory's settings.json, else <agent directory>/sessions. A leading ~ is the home directory, and a\n# relative sessionDir resolves from the working directory. Sessions group by cwd, including each worktree\n# cwd, and every group is searched for references to the candidate.\npi_home() {\n\tcase \"$1\" in\n\t\"~\") printf '%s\\n' \"$HOME\" ;;\n\t\"~\"/*) printf '%s\\n' \"$HOME/${1#\"~/\"}\" ;;\n\t*) printf '%s\\n' \"$1\" ;;\n\tesac\n}\nagent_dir=$(pi_home \"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}\")\nif [ -n \"${PI_CODING_AGENT_SESSION_DIR:-}\" ]; then\n\tsession_dir=$(pi_home \"$PI_CODING_AGENT_SESSION_DIR\")\nelse\n\tsession_dir=\"\"\n\tfor settings in \"$PWD/.pi/settings.json\" \"$agent_dir/settings.json\"; do\n\t\t[ -z \"$session_dir\" ] && [ -f \"$settings\" ] \\\n\t\t\t&& session_dir=$(jq -r 'if (.sessionDir | type) == \"string\" then .sessionDir else \"\" end' \"$settings\" 2>/dev/null)\n\tdone\n\tif [ -n \"$session_dir\" ]; then session_dir=$(pi_home \"$session_dir\"); else session_dir=\"$agent_dir/sessions\"; fi\nfi\ncase \"$session_dir\" in /*) transcripts=\"$session_dir\" ;; *) transcripts=\"$PWD/$session_dir\" ;; esac",
+      "replacement": "# Pi session storage, resolved the way Pi resolves it (docs/sessions.md, docs/environment-variables.md), once per\n# directory a session could have started in. Pi reads project settings from the session's working directory, so a\n# worktree's own .pi/settings.json decides where its sessions live. For each directory:\n# PI_CODING_AGENT_SESSION_DIR, else the sessionDir setting with the project's .pi/settings.json over the agent\n# directory's settings.json (an empty string in the project file still overrides the global one and means the\n# default), else <agent directory>/sessions. A leading ~ is the home directory, file:// is a URL, and a relative\n# sessionDir resolves from that directory.\npi_home() {\n\tcase \"$1\" in\n\t\"~\") printf '%s\\n' \"$HOME\" ;;\n\t\"~\"/*) printf '%s\\n' \"$HOME/${1#\"~/\"}\" ;;\n\tfile://*) printf '%b\\n' \"$(printf '%s' \"${1#file://}\" | sed 's/%\\(..\\)/\\\\x\\1/g')\" ;;\n\t*) printf '%s\\n' \"$1\" ;;\n\tesac\n}\nagent_dir=$(pi_home \"${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}\")\npi_session_dir() {\n\tlocal cwd=$1 dir=\"\" settings value\n\tif [ -n \"${PI_CODING_AGENT_SESSION_DIR:-}\" ]; then\n\t\tdir=$(pi_home \"$PI_CODING_AGENT_SESSION_DIR\")\n\telse\n\t\tfor settings in \"$cwd/.pi/settings.json\" \"$agent_dir/settings.json\"; do\n\t\t\t[ -f \"$settings\" ] || continue\n\t\t\tvalue=$(jq -r 'if (.sessionDir | type) == \"string\" then \"s\" + .sessionDir else \"\" end' \"$settings\" 2>/dev/null)\n\t\t\tif [ -n \"$value\" ]; then dir=$(pi_home \"${value#s}\"); break; fi\n\t\tdone\n\t\t[ -z \"$dir\" ] && dir=\"$agent_dir/sessions\"\n\tfi\n\tcase \"$dir\" in /*) printf '%s\\n' \"$dir\" ;; *) printf '%s\\n' \"$cwd/$dir\" ;; esac\n}\ntranscript_roots=()\nwhile IFS= read -r start_dir; do\n\t[ -n \"$start_dir\" ] || continue\n\troot=$(pi_session_dir \"$start_dir\")\n\t[ -d \"$root\" ] || continue\n\tcase \" ${transcript_roots[*]-} \" in *\" $root \"*) ;; *) transcript_roots+=(\"$root\") ;; esac\ndone < <(printf '%s\\n' \"$invoked_from\"; git worktree list --porcelain | awk '/^worktree /{print $2}')",
+      "output": "generated/skills/poteto-mode/scripts/worktree-audit.sh"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/scripts/worktree-audit.sh",
+      "rule": "worktree-audit.transcript-search",
+      "offset": [
+        5484,
+        5578
+      ],
+      "lines": [
+        114,
+        115
+      ],
+      "original": "if [ -d \"$transcripts\" ]; then\n\t\tf=$(rg -l -e \"${wt}/\" -e \"${wt}\\\"\" \"$transcripts\" 2>/dev/null",
+      "replacement": "if [ \"${#transcript_roots[@]}\" -gt 0 ]; then\n\t\tf=$(rg -l -e \"${wt}/\" -e \"${wt}\\\"\" \"${transcript_roots[@]}\" 2>/dev/null",
       "output": "generated/skills/poteto-mode/scripts/worktree-audit.sh"
     },
     {
