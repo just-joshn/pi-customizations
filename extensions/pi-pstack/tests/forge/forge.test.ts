@@ -1,4 +1,6 @@
+import { execFileSync } from 'node:child_process';
 import { expect, test } from 'vitest';
+import { loadWatcher } from '../../src/watch-pr.ts';
 import {
   babysitMode, githubForge, mergeAllowed, resolveForge, shippablePrefix,
   unsupportedForge, UnsupportedForgeOperation,
@@ -27,6 +29,24 @@ const verdict = (ref: string, headSha = ref): VerificationVerdict => ({
 const authorization = {
   operator: 'operator', action: 'ship' as const, refs: ['7'], recordedAt: '2026-11-11T00:00:00Z',
 };
+
+test('loads working watcher parsers and memoizes the modules', async () => {
+  const loaded = loadWatcher();
+  expect(loadWatcher()).toBe(loaded);
+  const { github, types } = await loaded;
+  const context = { owner: 'owner', repo: 'repo', number: types.parsePrNumber(7) };
+  expect(github.parsePullRequest(rawPr, context)).toEqual({
+    context, mergeable: 'MERGEABLE', mergeStateStatus: 'CLEAN', reviewDecision: 'APPROVED',
+    headRefOid: 'sha7', headRefName: 'feature', baseRefName: 'main',
+    state: 'OPEN', mergedAt: null, isDraft: false,
+  });
+});
+
+test('keeps emitted watcher declarations current', () => {
+  expect(() => execFileSync(process.execPath, ['scripts/emit-watch-pr-types.mjs', '--check'], {
+    cwd: new URL('../../', import.meta.url), encoding: 'utf8',
+  })).not.toThrow();
+});
 
 test('parses PR and checks using watcher classification, including owner approval', async () => {
   const f = fake([{ value: rawPr }, { code: 8, value: [
@@ -66,8 +86,8 @@ test('sends reply bodies through JSON stdin rather than commands', async () => {
   const f = fake([{ value: { data: {} } }]);
   const body = '$(touch /tmp/pwned) "quoted"';
   await githubForge(f.exec).replyToThread({ threadId: 'thread', body });
-  expect(JSON.parse(f.calls[0].stdin!).variables).toEqual({ thread: 'thread', body });
-  expect(f.calls[0].argv).not.toContain(body);
+  expect(JSON.parse(f.calls[0]!.stdin!).variables).toEqual({ thread: 'thread', body });
+  expect(f.calls[0]!.argv).not.toContain(body);
 });
 
 test('unsupported backends advertise no capabilities and reject every operation', async () => {
@@ -128,7 +148,7 @@ test('merges only with authorization and current independent verification', asyn
   await expect(gh.mergePullRequest({ ...input, headSha: 'new', authorization })).rejects.toThrow('operator authorization');
   expect(f.calls).toEqual([]);
   await gh.mergePullRequest({ ...input, authorization });
-  expect(f.calls[0].argv).toEqual(['gh', 'pr', 'merge', '7', '--squash', '--match-head-commit', '7']);
+  expect(f.calls[0]!.argv).toEqual(['gh', 'pr', 'merge', '7', '--squash', '--match-head-commit', '7']);
 });
 
 test('routes babysitting by request and size without starting a watcher', () => {

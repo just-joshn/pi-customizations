@@ -1,12 +1,5 @@
-import {
-  buildReviewThreads,
-  parseFastCheck,
-  parsePullRequest,
-  parseReviewThreadPage,
-  REVIEW_THREADS_QUERY,
-} from '../skills/poteto-mode/scripts/watch-pr/github.ts';
-import { parsePrNumber } from '../skills/poteto-mode/scripts/watch-pr/types.ts';
-import type * as Watch from '../skills/poteto-mode/scripts/watch-pr/types.ts';
+import { loadWatcher } from './watch-pr.ts';
+import type * as Watch from './watch-pr.ts';
 
 export type PullRequestSnapshot = Watch.PullRequestFacts & { readonly url: string };
 export type CheckSnapshot = Watch.Check;
@@ -98,6 +91,7 @@ export function githubForge(exec: Exec): Forge {
     const url = new URL(raw.url);
     const [owner, repo, pull, number] = url.pathname.slice(1).split('/');
     if (!owner || !repo || pull !== 'pull') throw new Error('Invalid pull request URL');
+    const { github: { parsePullRequest }, types: { parsePrNumber } } = await loadWatcher();
     return { ...parsePullRequest(raw, { owner, repo, number: parsePrNumber(Number(number)) }), url: raw.url };
   }
   return {
@@ -105,9 +99,11 @@ export function githubForge(exec: Exec): Forge {
     async getChecks(ref) {
       const raw = await json(['pr', 'checks', ref, '--json', 'name,state,bucket,description,link,workflow'], undefined, [0, 1, 8]);
       if (!Array.isArray(raw)) throw new Error('Expected check array');
+      const { github: { parseFastCheck } } = await loadWatcher();
       return raw.map(parseFastCheck);
     },
     async getReviewThreads(ref) {
+      const { github: { buildReviewThreads, parseReviewThreadPage, REVIEW_THREADS_QUERY } } = await loadWatcher();
       const { context } = await getPullRequest(ref);
       const threads: Watch.RawReviewThread[] = [];
       let cursor: string | null = null;
