@@ -55,6 +55,14 @@ control:
   artifact_directory: "/tmp/benny-artifacts"
   artifact_retention_hours: 24
 
+# Safeguards on what one report can write to disk. Each key is optional and the values below are the defaults. A file over a limit
+# is not downloaded or stored, and the worker brief, the run log, and the verdict or operations thread name it with the reason.
+# Slack takes three files in one message; that is a limit per message and never a limit on the evidence a run collects.
+attachments:
+  max_files: 20
+  max_file_mib: 50
+  max_total_mib: 200
+
 verdict_markers:
   bug: "[benny:bug]"
   performance: "[benny:performance]"
@@ -70,6 +78,8 @@ status_emoji:
   fixing: "🛠️"
   fix_failed: "❌"
   pull_request_opened: "🔗"
+  reproduced_not_fixed: "🟠"
+  verification_incomplete: "❓"
 
 budgets:
   poll_seconds: 45

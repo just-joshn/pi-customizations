@@ -139,7 +139,7 @@ describe('the allowed evidence goes up with the one source reply', () => {
 });
 
 describe('what upstream does not allow is not attached', () => {
-  test('a file outside the run\'s directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread', async () => {
+  test('a file outside the run\'s directory, behind a link, outside the allowed types, past the retention window or missing is skipped with its reason, the fourth good file goes in the operations thread, and the reply links the operations thread', async () => {
     const t = repro();
     const runId = await dispatch(t);
     artifact(t, runId, 'broken.png', PNG);
@@ -151,17 +151,16 @@ describe('what upstream does not allow is not attached', () => {
     for (const name of ['a.png', 'b.png', 'c.png']) artifact(t, runId, name, PNG);
     await settle(t, runId, ['broken.png', join(t.project.dir, 'secret.txt'), '../../secret.txt', 'looks-fine.txt', 'session.log', 'old.png', 'missing.png', 'a.png', 'b.png', 'c.png']);
 
-    expect(t.slack.uploads).toHaveLength(1);
-    expect(t.slack.uploads[0]?.files.map((file) => file.name)).toEqual(['broken.png', 'a.png', 'b.png']);
+    expect(t.slack.uploads.map((upload) => [upload.channel, upload.files.map((file) => file.name)])).toEqual([['CSOURCE01', ['broken.png', 'a.png', 'b.png']], [OPS_CHANNEL, ['c.png']]]);
     const entry = staged(t);
-    expect(entry).toMatchObject({ attached: 3 });
+    expect(entry).toMatchObject({ attached: 3, further: [{ name: 'c.png' }] });
     const reasons = Object.fromEntries((entry?.kind === 'evidence-staged' ? entry.skipped : []).map((skip) => [skip.requested.split('/').at(-1), skip.reason]));
     expect(reasons['secret.txt']).toMatch(/is not inside the run's artifact directory/);
     expect(reasons['looks-fine.txt']).toMatch(/is not inside the run's artifact directory/);
     expect(reasons['session.log']).toMatch(/is not a screenshot, a recording or a note/);
     expect(reasons['old.png']).toMatch(/older than the 24-hour retention window/);
     expect(reasons['missing.png']).toBe('does not exist');
-    expect(reasons['c.png']).toMatch(/more than 3 evidence files/);
+    expect(reasons['c.png']).toBeUndefined();
     expect(t.slack.uploads[0]?.text).toBe(`Reproduced twice on Safari 17.1.\nEvidence: ${opsLink(t)}`);
   });
 

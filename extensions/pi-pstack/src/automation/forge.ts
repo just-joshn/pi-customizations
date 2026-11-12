@@ -52,7 +52,8 @@ export interface PullRequest {
 
 const FIELDS = 'number,url,isDraft,state,body';
 const PR_URL = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/[1-9]\d{0,9}$/;
-const markerOf = (id: string) => `<!-- pstack-action:${id} -->`;
+/** The line the parent writes at the end of every pull request body it opens. */
+export const markerOf = (id: string) => `<!-- pstack-action:${id} -->`;
 
 function parsePulls(output: string): PullRequest[] {
   const parsed: unknown = JSON.parse(output.trim() === '' ? '[]' : output);

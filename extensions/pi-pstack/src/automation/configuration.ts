@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { parse } from 'yaml';
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
+import { type AttachmentLimits, ATTACHMENT_LIMITS } from './attachments.ts';
 import { isIdentifier, type BennyAutomationKind, type OperationsConfig, type TrackerConfig } from './model.ts';
 import { REPO } from './tracker-github.ts';
 
@@ -22,6 +23,26 @@ export interface BennyConfig extends AutomationConfig {
   defaultBranch: string;
   tracker: TrackerConfig;
   control: { skillName: string; featureMapPath: string };
+  /** `attachments`: the safeguards on report attachments and evidence files, which default to 20 files, 50 MiB each and 200 MiB in all. */
+  attachmentLimits: AttachmentLimits;
+}
+
+const MIB = 1024 ** 2;
+
+/** The optional `attachments` section. Each key is a positive number; a limit left out keeps its default, and one file may not exceed the total. */
+function attachmentLimits(raw: unknown): AttachmentLimits {
+  if (raw === undefined) return ATTACHMENT_LIMITS;
+  const section = object(raw, 'attachments');
+  for (const key of Object.keys(section)) if (!['max_files', 'max_file_mib', 'max_total_mib'].includes(key)) throw new Error(`unknown Benny attachments.${key}`);
+  const positive = (key: string, fallback: number, whole: boolean): number => {
+    const value = section[key];
+    if (value === undefined) return fallback;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0 || (whole && !Number.isInteger(value))) throw new Error(`invalid Benny attachments.${key}; expected a positive ${whole ? 'integer' : 'number'}`);
+    return value;
+  };
+  const limits = { files: positive('max_files', ATTACHMENT_LIMITS.files, true), fileBytes: positive('max_file_mib', ATTACHMENT_LIMITS.fileBytes / MIB, false) * MIB, totalBytes: positive('max_total_mib', ATTACHMENT_LIMITS.totalBytes / MIB, false) * MIB };
+  if (limits.fileBytes > limits.totalBytes) throw new Error('invalid Benny attachments; max_file_mib may not exceed max_total_mib');
+  return limits;
 }
 
 const CHANNEL_ID = /^[A-Z0-9_]{2,32}$/;
@@ -82,5 +103,5 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   const emoji = Object.fromEntries(Object.entries(section('status_emoji')).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   const operations: OperationsConfig | undefined = typeof operationsChannel === 'string' && operationsChannel.trim() !== '' ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section('repository')['url'], 'repository.url'), defaultBranch: text(section('repository')['default_branch'], 'repository.default_branch'), model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, artifactDirectory, artifactRetentionHours: retention, repositoryUrl: text(section('repository')['url'], 'repository.url'), defaultBranch: text(section('repository')['default_branch'], 'repository.default_branch'), model: text(section('models')[kind], `models.${kind}`), tracker, control, attachmentLimits: attachmentLimits(raw['attachments']), budgets, ...(operations === undefined ? {} : { operations }) };
 }

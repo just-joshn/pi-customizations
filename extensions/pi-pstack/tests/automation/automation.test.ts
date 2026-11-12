@@ -328,3 +328,15 @@ describe('slack polling', () => {
     expect(spawns).toHaveLength(0);
   });
 });
+
+describe('a report attachment the parent cannot download is never silently dropped', () => {
+  test('with no Slack file credential every file is named with its reason in the brief and the run log', async () => {
+    const { automation, spawns } = setup();
+    const file = { id: 'F1', name: 'export.png', mimetype: 'image/png', size: 4, permalink: 'https://acme.slack.com/files/U1/export.png', url_private_download: 'https://files.slack.com/files-pri/T1-F1/export.png?download=1' };
+    const run = await automation.handle({ ...REPORT, files: [file] });
+    if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+    const brief = readFileSync(join(dirname(only(spawns).assignmentPath), 'brief.md'), 'utf8');
+    expect(brief).toContain('"skipped": "the parent holds no Slack file credential, so it was not downloaded"');
+    expect(readFileSync(join(project, '.pi/pstack/automation/benny-triage/events.jsonl'), 'utf8')).toContain('"kind":"attachments-omitted"');
+  });
+});

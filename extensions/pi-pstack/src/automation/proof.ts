@@ -109,6 +109,13 @@ export function verifyReproduction(ctx: ProofContext): Verdict {
   return checkRuns(read.proof['reproductions'], 'reproductions', ctx);
 }
 
+/** The github.com link of the existing fix the record names, when it is a usable one. */
+export const existingFixUrl = (ctx: ProofContext): string | undefined => {
+  const read = readRecord(ctx);
+  const url = 'problem' in read ? undefined : record(read.proof['existingFix'])?.['url'];
+  return typeof url === 'string' && GITHUB_FIX.test(url) ? url : undefined;
+};
+
 /** Whether the record says the worker verified an existing fix. */
 export const claimsExistingFix = (ctx: ProofContext): boolean => {
   const read = readRecord(ctx);

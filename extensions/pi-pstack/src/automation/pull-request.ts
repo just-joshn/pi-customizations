@@ -3,7 +3,7 @@
 // draft pull request (forge.ts). The status the operations message shows is what the parent established, never what the
 // worker claimed: `Draft pull request opened` only once a pull request on the run branch is verified to be a draft.
 import type { AutomationConfig } from '../../adapters/automation-events.ts';
-import type { Forge } from './forge.ts';
+import { type Forge, markerOf, type PullRequest } from './forge.ts';
 import { actionIdFor, type EventKey, type RunId, untrustedText } from './model.ts';
 import type { Verdict } from './proof.ts';
 import type { TurnResult } from './repro-turns.ts';
@@ -18,6 +18,8 @@ export interface LandHost {
   forge: Forge;
   /** The worker's record shows the patched build measured twice since `since`. */
   provePatched: (runId: RunId, since: Date) => Verdict;
+  /** Writes down that the parent opened `pr` for the case, so a later pass can tell its own pull request from anyone else's. */
+  recordOpened?: (opened: { key: EventKey; runId: RunId; actionId: string; pr: PullRequest }) => void;
 }
 
 /**
@@ -36,6 +38,9 @@ export async function landFix(host: LandHost, fix: { key: EventKey; runId: RunId
   if (!proven.ok) return fixFailed(`there is no proof that the patched build was run twice (${proven.reason})`);
   const existing = (await host.forge.pullRequests(fix.runId)).some((pr) => pr.state === 'OPEN');
   if (!existing && (title === '' || body === '')) return fixFailed('the worker described no pull request (a title and a body)');
-  const { pr, converted } = await host.forge.openDraft({ projectRoot: fix.projectRoot, runId: fix.runId, actionId: actionIdFor(host.config.name, fix.key, 'pull-request'), title, body });
+  const actionId = actionIdFor(host.config.name, fix.key, 'pull-request');
+  const { pr, converted } = await host.forge.openDraft({ projectRoot: fix.projectRoot, runId: fix.runId, actionId, title, body });
+  // Only a pull request that carries this case's marker is the parent's own. One found on the run branch without it is the worker's, and is adopted but never claimed.
+  if (pr.body.includes(markerOf(actionId))) host.recordOpened?.({ key: fix.key, runId: fix.runId, actionId, pr });
   return { corrected: false, status: 'Draft pull request opened', operations: `Draft pull request: ${pr.url}${converted ? '\nThe worker had already opened it as ready for review, so the parent converted it to a draft.' : ''}` };
 }

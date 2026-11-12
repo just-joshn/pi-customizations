@@ -3,8 +3,10 @@
 // credential only the parent holds. Upstream (vendor reproduce SKILL.md:214) allows an attachment only inside the same
 // source thread and only when the organization's retention policy allows it: `control.artifact_directory` is where the
 // artifacts live and `control.artifact_retention_hours` is how long they may be kept. A screenshot, a recording and a
-// short note are the artifacts the skill names (SKILL.md:190-192), so those are the types and the count (three). Upstream
-// states no size limit, so the byte limits are the report attachments' (attachments.ts), this package's.
+// short note are the artifacts the skill names (SKILL.md:190-192), so those are the types. Upstream states no size or
+// count limit, so the limits are the configured attachment safeguards (attachments.ts), this package's. Three is Slack's
+// limit on one message's files, not a limit on what is collected: every accepted file is stored, the first three go with
+// the one source reply, and the rest go in further messages in the operations thread (see `batchesOf`).
 //
 // Each accepted file is copied into the automation store once, so the bytes the parent uploads are the bytes it checked,
 // whatever the worker does to its own file afterwards, and an upload retried after a restart does not depend on a
@@ -12,9 +14,13 @@
 import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, readSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, extname, isAbsolute, join, resolve, sep } from 'node:path';
 
-import { ATTACHMENT_LIMITS } from './attachments.ts';
+import { type AttachmentLimits, ATTACHMENT_LIMITS, megabytes } from './attachments.ts';
 
-export const EVIDENCE_LIMITS = { files: 3, fileBytes: ATTACHMENT_LIMITS.fileBytes, totalBytes: ATTACHMENT_LIMITS.totalBytes } as const;
+/** What one Slack message takes: a limit on a message, never on the evidence a run collects. */
+export const SLACK_FILES_PER_MESSAGE = 3;
+
+/** The staged files in groups one Slack message can carry. The first group goes with the source reply. */
+export const batchesOf = <T>(files: readonly T[]): T[][] => Array.from({ length: Math.ceil(files.length / SLACK_FILES_PER_MESSAGE) }, (_, index) => files.slice(index * SLACK_FILES_PER_MESSAGE, (index + 1) * SLACK_FILES_PER_MESSAGE));
 
 export const TYPES: Record<string, string> = {
   '.png': 'image/png',
@@ -41,8 +47,6 @@ export interface StagedEvidence {
 }
 
 const safeName = (name: string) => name.replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 80) || 'file';
-const megabytes = (bytes: number) => `${bytes / 1024 ** 2} MiB`;
-
 /** The directory a run's artifacts belong in: its own folder of the configured artifact directory, so two cases never share a file. */
 export const artifactDirOf = (artifactDirectory: string, runId: string) => join(artifactDirectory, runId);
 
@@ -96,6 +100,8 @@ export interface StageOptions {
   now: Date;
   /** Where the parent's copies go. */
   into: string;
+  /** The configured safeguards. Absent: the defaults. */
+  limits?: AttachmentLimits;
 }
 
 /**
@@ -104,7 +110,7 @@ export interface StageOptions {
  * reason. Staging the same request twice leaves the same files.
  */
 export function stageEvidence(options: StageOptions): StagedEvidence {
-  const { requested, artifactDirectory, retentionHours, runId, now, into } = options;
+  const { requested, artifactDirectory, retentionHours, runId, now, into, limits = ATTACHMENT_LIMITS } = options;
   const staged: StagedEvidence = { files: [], skipped: [] };
   const skip = (path: string, reason: string) => staged.skipped.push({ requested: path.slice(0, 200), reason });
   if (artifactDirectory === undefined || retentionHours === undefined) {
@@ -115,8 +121,8 @@ export function stageEvidence(options: StageOptions): StagedEvidence {
   let total = 0;
   const seen = new Set<string>();
   for (const path of requested) {
-    if (staged.files.length >= EVIDENCE_LIMITS.files) {
-      skip(path, `more than ${EVIDENCE_LIMITS.files} evidence files, so this one was not attached`);
+    if (staged.files.length >= limits.files) {
+      skip(path, `more than the ${limits.files} evidence files the configuration allows, so this one was not stored or attached`);
       continue;
     }
     const type = TYPES[extname(path).toLowerCase()];
@@ -138,9 +144,17 @@ export function stageEvidence(options: StageOptions): StagedEvidence {
       skip(path, `is older than the ${retentionHours}-hour retention window`);
       continue;
     }
+    if (info.isFile() && info.size > limits.fileBytes) {
+      skip(path, `is larger than the ${megabytes(limits.fileBytes)} limit per file, so it was not stored or attached`);
+      continue;
+    }
+    if (info.isFile() && total + info.size > limits.totalBytes) {
+      skip(path, `would take the evidence past the ${megabytes(limits.totalBytes)} limit for all of it, so it was not stored or attached`);
+      continue;
+    }
     let bytes: Buffer;
     try {
-      bytes = readRegular(real, Math.min(EVIDENCE_LIMITS.fileBytes, EVIDENCE_LIMITS.totalBytes - total));
+      bytes = readRegular(real, limits.fileBytes);
     } catch (error) {
       skip(path, error instanceof Error ? error.message : String(error));
       continue;

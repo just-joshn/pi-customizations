@@ -38,7 +38,7 @@ interface OpsMessage extends SlackMessage {
  */
 export function fakeSlack(options: { failPosts?: number } = {}) {
   /** Evidence uploads. `denyUploads` makes `files.completeUploadExternal` answer with that error. `hideReads` makes a shared upload invisible to the next N thread reads, which is Slack's lag. */
-  const uploads: { thread_ts: string; text: string; files: { name: string; title: string; bytes: Buffer }[] }[] = [];
+  const uploads: { channel: string; thread_ts: string; text: string; files: { name: string; title: string; bytes: Buffer }[] }[] = [];
   const uploadCalls: string[] = [];
   const pendingUploads = new Map<string, { name: string; bytes?: Buffer }>();
   const uploadState: { deny: string | undefined; hideReads: number; credentialsSeenByUploadHost: (string | null)[] } = { deny: undefined, hideReads: 0, credentialsSeenByUploadHost: [] };
@@ -84,10 +84,14 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
       uploadCalls.push('completeUploadExternal');
       if (uploadState.deny !== undefined) return new Response(JSON.stringify({ ok: false, error: uploadState.deny }));
       const shared = (body['files'] as { id: string; title: string }[]).map((file) => ({ id: file.id, name: pendingUploads.get(file.id)?.name ?? '', title: file.title, bytes: pendingUploads.get(file.id)?.bytes ?? Buffer.alloc(0) }));
-      const ts = `1762900001.${String(messages.length).padStart(6, '0')}`;
-      messages.push({ ts, user: TRIAGE_USER, text: String(body['initial_comment']), files: shared.map(({ id, name, title }) => ({ id, name, title })) });
-      posts.push({ thread_ts: String(body['thread_ts']), text: String(body['initial_comment']) });
-      uploads.push({ thread_ts: String(body['thread_ts']), text: String(body['initial_comment']), files: shared.map(({ name, title, bytes }) => ({ name, title, bytes })) });
+      const toOpsChannel = body['channel_id'] === OPS_CHANNEL;
+      const ts = toOpsChannel ? `1762900100.${String(ops.length).padStart(6, '0')}` : `1762900001.${String(messages.length).padStart(6, '0')}`;
+      if (toOpsChannel) ops.push({ ts, user: TRIAGE_USER, text: String(body['initial_comment']), thread_ts: String(body['thread_ts']), files: shared.map(({ id, name, title }) => ({ id, name, title })) });
+      else {
+        messages.push({ ts, user: TRIAGE_USER, text: String(body['initial_comment']), files: shared.map(({ id, name, title }) => ({ id, name, title })) });
+        posts.push({ thread_ts: String(body['thread_ts']), text: String(body['initial_comment']) });
+      }
+      uploads.push({ channel: String(body['channel_id']), thread_ts: String(body['thread_ts']), text: String(body['initial_comment']), files: shared.map(({ name, title, bytes }) => ({ name, title, bytes })) });
       return (dropAck.delete(method) && new Response(JSON.stringify({ ok: false, error: 'internal_error' }))) || new Response(JSON.stringify({ ok: true, files: shared.map(({ id }) => ({ id })) }));
     }
     const reply = (value: Record<string, unknown>) => new Response(JSON.stringify({ ok: true, ...value }));
@@ -269,7 +273,7 @@ export interface BennyProject {
 }
 
 /** A project with a loadable Benny configuration, a valid feature map, and the GitHub tracker selected. */
-export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null; operationsChannel?: string } = {}): BennyProject {
+export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null; operationsChannel?: string; attachments?: Record<string, number> | null } = {}): BennyProject {
   const dir = options.root ?? realpathSync(mkdtempSync(join(tmpdir(), 'benny-e2e-')));
   const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
@@ -277,6 +281,7 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
     .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, (block) => (options.adapterSkill === undefined ? `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n` : block.replace('issue-tracker-adapter-placeholder', options.adapterSkill ?? 'issue-tracker-adapter-placeholder')))
     .replace('artifact_directory: "/tmp/benny-artifacts"', `artifact_directory: "${join(dir, 'artifacts')}"`)
     .replace('operations_channel_id: ""', `operations_channel_id: "${options.operationsChannel ?? ''}"`)
+    .replace(/^attachments:\n(?:  .*\n)*/m, (block) => (options.attachments === undefined ? block : options.attachments === null ? '' : `attachments:\n${Object.entries(options.attachments).map(([key, value]) => `  ${key}: ${value}\n`).join('')}`))
     .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
     .replace(/^  skill_name: ".*"/m, `  skill_name: "${options.controlSkill ?? 'control-ui'}"`);
   const file = join(dir, '.pi/benny/configuration.yaml');

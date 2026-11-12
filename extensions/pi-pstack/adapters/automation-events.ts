@@ -9,8 +9,8 @@ import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerActio
 import { latestStatus } from '../src/automation/operations.ts';
 import { directLander, enqueue, flushOutbox, type OperationsDestination, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
-import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
-import { type Download, fetchAttachments } from '../src/automation/attachments.ts';
+import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readJson, readLog, writeAtomic } from '../src/automation/store.ts';
+import { type Attachment, type Download, fetchAttachments, omittedOf } from '../src/automation/attachments.ts';
 import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
@@ -18,7 +18,7 @@ import { createRetirement } from '../src/automation/retire.ts';
 import { createFixGuard } from '../src/automation/fix-guard.ts';
 import { type Forge } from '../src/automation/forge.ts';
 import { fixFailed, landFix } from '../src/automation/pull-request.ts';
-import { stageEvidence } from '../src/automation/evidence-files.ts';
+import { batchesOf, type StagedEvidence, stageEvidence } from '../src/automation/evidence-files.ts';
 import { acceptOutcome } from '../src/automation/accept.ts';
 import { verifyPatched, verifyReproduction } from '../src/automation/proof.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
@@ -192,7 +192,10 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     thread ??= await readThread();
     const runId = runIdFor(config.name, key);
     const { files } = event;
-    const attachments = deps.downloadAttachment === undefined || files.length === 0 ? undefined : await fetchAttachments(join(workerDir(config.projectRoot, runId), 'attachments'), files, deps.downloadAttachment);
+    // A report's file that the worker will not get is named, with its reason, to the worker in the brief and in the run log; a case with no downloader omits all of them.
+    const attachments: Attachment[] | undefined = files.length === 0 ? undefined : deps.downloadAttachment === undefined ? files.map(({ name, mimetype, size }) => ({ name, mimetype, ...(size === undefined ? {} : { size }), skipped: 'the parent holds no Slack file credential, so it was not downloaded' })) : await fetchAttachments(join(workerDir(config.projectRoot, runId), 'attachments'), files, deps.downloadAttachment, config.attachmentLimits);
+    const omitted = omittedOf(attachments ?? []);
+    if (omitted.length > 0 && !readLog(store).some((entry) => entry.kind === 'attachments-omitted' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'attachments-omitted', key, runId, omitted });
     const { rejectionWindowMinutes, fixMinutes } = config.budgets ?? {};
     const phases = config.kind === 'reproduce' && rejectionWindowMinutes !== undefined ? { windowMinutes: rejectionWindowMinutes, ...(fixMinutes === undefined ? {} : { fixMinutes }) } : undefined;
     await dispatchRun(config, event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }), ...(phases === undefined ? {} : { phases }) });
@@ -266,6 +269,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       enqueue(store, { id, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, _runId, id, source, result.evidence) });
       await flush();
       if (entryOf(id)?.state === 'pending') return false;
+      if (await postFurtherEvidence(event, id)) return false;
     }
     if (operations === undefined) return true;
     if (result.status !== undefined) showStatus(event, result.status);
@@ -279,7 +283,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     await flush();
     return entryOf(id)?.state !== 'pending';
   };
-  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), land: async (fix, reported) => (deps.forge === undefined ? fixFailed('no repository is configured to open a pull request in') : landFix({ config, forge: deps.forge, provePatched: (runId, since) => verifyPatched({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }) }, { ...fix, projectRoot: config.projectRoot }, reported)), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, prove: (runId, since) => verifyReproduction({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }), land: async (fix, reported) => (deps.forge === undefined ? fixFailed('no repository is configured to open a pull request in') : landFix({ config, forge: deps.forge, recordOpened: ({ key, runId, actionId, pr }) => { if (!readLog(store).some((entry) => entry.kind === 'pull-request-opened' && entry.runId === runId && entry.number === pr.number)) appendLog(store, { ts: stamp(), kind: 'pull-request-opened', key, runId, actionId, number: pr.number, url: pr.url }); }, provePatched: (runId, since) => verifyPatched({ artifactDirectory: config.artifactDirectory, runId, since, now: now() }) }, { ...fix, projectRoot: config.projectRoot }, reported)), steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const reproduce = {
     anchor: (key: EventKey) => reproTurns.followUpAnchor(key),
     outcome: (key: EventKey) => {
@@ -302,14 +306,71 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
    * Files the parent may not attach are named in the log, and the reply then links the operations thread, where the
    * evidence is. A reply never waits on its files.
    */
+  /**
+   * The report's files the worker never got, as one line a reply can carry. Upstream's triage skill has the verdict say so when an
+   * attachment cannot be read (triage SKILL.md:65), and the worker may not have: a file whose name the text already carries is not repeated.
+   */
+  /** A name a reporter chose may not read as a verdict marker. */
+  const neutral = (text: string) => text.replace(/\[(benny:[^\]]*)\]/gi, '($1)');
+  const omittedNote = (runId: RunId, text: string): string => {
+    const entry = readLog(store).find((candidate) => candidate.kind === 'attachments-omitted' && candidate.runId === runId);
+    if (entry === undefined || entry.kind !== 'attachments-omitted') return '';
+    const missing = entry.omitted.filter(({ name }) => !text.includes(name));
+    return missing.length === 0 ? '' : neutral(untrustedText(`Not read: ${missing.map(({ name, reason }) => `${name} (${reason})`).join('; ')}`)).replace(/\s+/g, ' ').trim().slice(0, 1000);
+  };
+  const manifestOf = (replyId: ActionId) => join(store.dir, 'evidence', replyId, 'manifest.json');
+  /**
+   * Every file the worker asked to attach, checked once and copied into the store, with what was left out and why. The result is
+   * written down, so a later pass after a crash, or after the retention window emptied the artifact folder, reads the same answer.
+   */
+  const stagedEvidence = (event: AutomationEvent, runId: RunId, replyId: ActionId, requested: readonly string[]): StagedEvidence => {
+    const kept = readJson<StagedEvidence>(manifestOf(replyId));
+    if (kept !== undefined) return kept;
+    const staged = stageEvidence({ requested, artifactDirectory: config.artifactDirectory, retentionHours: config.artifactRetentionHours, runId, now: now(), into: join(store.dir, 'evidence', replyId), ...(config.attachmentLimits === undefined ? {} : { limits: config.attachmentLimits }) });
+    writeAtomic(manifestOf(replyId), `${JSON.stringify(staged)}\n`);
+    const [first = [], ...further] = batchesOf(staged.files);
+    appendLog(store, { ts: stamp(), kind: 'evidence-staged', key: event.key, runId, attached: first.length, skipped: staged.skipped, ...(further.length === 0 ? {} : { further: further.flat().map(({ name, path }) => ({ name, path })) }) });
+    return staged;
+  };
+  /**
+   * The source reply with the evidence the worker asked to attach, so far as upstream allows it (vendor reproduce SKILL.md:214).
+   * Slack takes three files in one message, so the first three go with the reply and the rest go in further messages in the
+   * operations thread (see `postFurtherEvidence`). Files the parent may not attach are named in the log and in the operations
+   * thread, and the reply then links the operations thread, where the evidence is. A reply never waits on its files.
+   */
   const withEvidence = (event: AutomationEvent, runId: RunId, replyId: ActionId, text: string, requested: readonly string[] | undefined): { text: string; attachments?: { path: string; name: string; mimetype: string }[]; textWithoutAttachments?: string } => {
     if (config.kind !== 'reproduce' || requested === undefined || requested.length === 0 || text.trim() === '' || entryOf(replyId) !== undefined) return { text };
-    const staged = stageEvidence({ requested, artifactDirectory: config.artifactDirectory, retentionHours: config.artifactRetentionHours, runId, now: now(), into: join(store.dir, 'evidence', replyId) });
-    appendLog(store, { ts: stamp(), kind: 'evidence-staged', key: event.key, runId, attached: staged.files.length, skipped: staged.skipped });
+    const staged = stagedEvidence(event, runId, replyId, requested);
+    const [first = []] = batchesOf(staged.files);
     const root = entryOf(actionIdFor(config.name, event.key, 'ops-root'));
     const linked = root?.state === 'done' && operations !== undefined ? `${text}\nEvidence: https://slack.com/archives/${operations.channelId}/p${root.destinationTs.replace('.', '')}` : text;
-    if (staged.files.length === 0) return { text: linked };
-    return { text: staged.skipped.length > 0 ? linked : text, attachments: staged.files, textWithoutAttachments: linked };
+    if (first.length === 0) return { text: linked };
+    return { text: staged.skipped.length > 0 || staged.files.length > first.length ? linked : text, attachments: first, textWithoutAttachments: linked };
+  };
+  /**
+   * The evidence beyond the first message and the files that were left out, in the operations thread: one reply for each further
+   * three files, and one that lists every omitted file with its reason. Each has its own action id, so a repeat queues nothing.
+   * True while one is still to land. Without an operations thread the files stay in the store and the run log names them.
+   */
+  const postFurtherEvidence = async (event: AutomationEvent, replyId: ActionId): Promise<boolean> => {
+    const staged = readJson<StagedEvidence>(manifestOf(replyId));
+    if (staged === undefined || operations === undefined) return false;
+    const [, ...further] = batchesOf(staged.files);
+    if (further.length === 0 && staged.skipped.length === 0) return false;
+    const root = entryOf(actionIdFor(config.name, event.key, 'ops-root'));
+    if (root?.state !== 'done') return root?.state === 'pending';
+    const total = staged.files.length;
+    for (const [index, batch] of further.entries()) {
+      const from = (index + 1) * 3 + 1;
+      const id = actionIdFor(config.name, event.key, `evidence-more-${index + 1}`);
+      enqueue(store, { id, kind: 'thread-reply', channel: operations.channelId, threadTs: root.destinationTs, text: `More evidence from the repro (files ${from} to ${from + batch.length - 1} of ${total}): ${batch.map((file) => file.name).join(', ')}`, attachments: batch, textWithoutAttachments: `More evidence from the repro (files ${from} to ${from + batch.length - 1} of ${total}) could not be attached: ${batch.map((file) => file.name).join(', ')}. The parent keeps the files.` });
+      // One message at a time, in order: the next waits until this one landed.
+      await flush();
+      if (entryOf(id)?.state === 'pending') return true;
+    }
+    if (staged.skipped.length > 0) enqueue(store, { id: actionIdFor(config.name, event.key, 'evidence-omitted'), kind: 'thread-reply', channel: operations.channelId, threadTs: root.destinationTs, text: neutral(untrustedText(`Evidence files that were not attached: ${staged.skipped.map(({ requested, reason }) => `${requested} (${reason})`).join('; ')}`)).slice(0, 3000) });
+    await flush();
+    return [...further.keys()].map((index) => `evidence-more-${index + 1}`).concat(staged.skipped.length > 0 ? ['evidence-omitted'] : []).some((purpose) => entryOf(actionIdFor(config.name, event.key, purpose))?.state === 'pending');
   };
   /** The link to the issue the case's tracker action wrote or updated, once it landed. */
   const issueUrlOf = (id: ActionId): string | undefined => {
@@ -374,11 +435,13 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
           if (landed?.state === 'failed') failure = `the tracker write failed after ${landed.attempts} attempts: ${landed.reason}`;
         }
         const status = typeof result === 'string' ? undefined : result.status;
-        const operationsReply = typeof result === 'string' ? undefined : result.operations;
+        const reportedOperations = typeof result === 'string' ? undefined : result.operations;
+        const omission = config.kind === 'reproduce' ? omittedNote(runId, reportedOperations ?? '') : '';
+        const operationsReply = omission === '' ? reportedOperations : [reportedOperations ?? '', omission].filter((part) => part !== '').join('\n');
         if (config.kind === 'reproduce') appendLog(store, { ts: stamp(), kind: 'repro-outcome', key: event.key, runId, ...(status === undefined ? {} : { status }), ...(operationsReply === undefined ? {} : { note: operationsReply.slice(0, 500) }), ...('existingFix' in proven && proven.existingFix === true ? { existingFix: true } : {}), ...('unverified' in proven && proven.unverified !== undefined ? { unverified: proven.unverified } : {}) });
         if (operations !== undefined) {
           // Upstream updates the operations status first. A root that cannot land holds the source reply only until its retry limit.
-          showStatus(event, status ?? latestStatus(config.projectRoot, runId)?.status ?? 'Reproducing');
+          showStatus(event, ('shown' in proven ? proven.shown : undefined) ?? status ?? latestStatus(config.projectRoot, runId)?.status ?? 'Reproducing');
           await flush();
           const rootId = actionIdFor(config.name, event.key, 'ops-root');
           const root = entryOf(rootId);
@@ -389,7 +452,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
           if (root?.state === 'pending') return { status: 'retrying', key: event.key };
         }
         const replyId = actionIdFor(config.name, event.key, 'result');
-        const replyText = failure !== undefined ? failureReply(config.kind, failure) : markers === null ? text : withTrackerAttribute(text, trackerAttribute, issueUrlOf(trackerId));
+        const triageOmission = config.kind === 'triage' && failure === undefined ? omittedNote(runId, text) : '';
+        const replyText = failure !== undefined ? failureReply(config.kind, failure) : markers === null ? text : withTrackerAttribute(triageOmission === '' ? text : `${text.trimEnd()}\n${triageOmission}`, trackerAttribute, issueUrlOf(trackerId));
         // A repro run with nothing confirmed posts nothing in the source thread: the operations thread and the run log carry it.
         const queued = replyText.trim() === '' ? false : enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, ...withEvidence(event, runId, replyId, replyText, typeof result === 'string' ? undefined : result.evidence) });
         await flush();
@@ -397,6 +461,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         if (reply?.state === 'pending') return { status: 'retrying', key: event.key };
         // (the reply entry is absent when nothing was queued)
         if (reply?.state === 'failed' && (await compensate(event, trackerId)) === 'retrying') return { status: 'retrying', key: event.key };
+        if (reply?.state === 'done' && (await postFurtherEvidence(event, replyId))) return { status: 'retrying', key: event.key };
         if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
         return { status: reply?.state === 'failed' ? 'failed' : queued ? 'queued' : 'already-queued', key: event.key };
       }),

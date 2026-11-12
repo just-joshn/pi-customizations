@@ -262,12 +262,13 @@ describe('an existing fix is verified, not competed with', () => {
     expect(t.steers).toEqual([]);
   });
 
-  test('an insufficient fix is reported as Reproduced and still starts no fix of the worker\'s own', async () => {
+  test('an insufficient fix is a verified failing fix: shown as Reproduced but not fixed, recorded as Reproduced, and it starts no fix of the worker\'s own', async () => {
     const t = repro();
     const runId = await dispatch(t);
     verified(t, runId, 'insufficient');
     await report(t, runId);
-    expect(status(t)).toBe('✅ Reproduced');
+    expect(status(t)).toBe('🟠 Reproduced but not fixed');
+    expect(opsReplies(t).join('\n')).toContain(`Reproduced but not fixed: ${FIX_URL} did not resolve the symptom`);
     expect(outcome(t)).toMatchObject({ status: 'Reproduced', existingFix: true });
     await settleWindow(t);
     expect(t.steers).toEqual([]);
@@ -281,13 +282,54 @@ describe('an existing fix is verified, not competed with', () => {
     ['a baseline measured once', (t: Repro, runId: RunId) => verified(t, runId, 'confirmed', (fix) => void (fix['baseline'] = fix['baseline'].slice(0, 1))), /baseline runs: 1 of 2/],
     ['no patched runs', (t: Repro, runId: RunId) => verified(t, runId, 'confirmed', (fix) => void delete fix['patched']), /lists no patched runs/],
     ['patched runs measured before the baseline', (t: Repro, runId: RunId) => verified(t, runId, 'confirmed', (fix) => void (fix['patched'] = fix['patched'].map((entry: { at: string }) => ({ ...entry, at: new Date(t.now().getTime() - 1000).toISOString() })))), /before the work it proves started|patched runs/],
-  ] as const)('Verifying existing fix with %s is recorded as Blocked, with nothing in the source thread', async ([, prepare, reason]) => {
+  ] as const)('Verifying existing fix with %s is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread', async ([, prepare, reason]) => {
     const t = repro();
     const runId = await dispatch(t);
     prepare(t, runId);
     await report(t, runId, CONFIRMED);
     expect(t.slack.posts).toEqual([]);
-    expect(outcome(t)).toMatchObject({ status: 'Blocked', unverified: expect.stringMatching(reason) });
-    expect(status(t)).toBe('⛔ Blocked');
+    expect(outcome(t)).toMatchObject({ status: 'Verification incomplete', existingFix: true, unverified: expect.stringMatching(reason) });
+    expect(status(t)).toBe('❓ Verification incomplete');
+  });
+
+  test('a fix claimed to leave the symptom, with a baseline that never showed it twice, is incomplete verification and not a verified failing fix', async () => {
+    const t = repro();
+    const runId = await dispatch(t);
+    verified(t, runId, 'insufficient', (fix) => void (fix['baseline'] = fix['baseline'].slice(0, 1)));
+    await report(t, runId);
+    expect(status(t)).toBe('❓ Verification incomplete');
+    expect(outcome(t)).toMatchObject({ status: 'Verification incomplete', existingFix: true });
+    expect(t.slack.posts).toEqual([]);
+  });
+
+  test('a worker that reports its own verification incomplete posts nothing in the source thread, whatever its text, and starts no fix', async () => {
+    const t = repro();
+    const runId = await dispatch(t);
+    verified(t, runId, 'inconclusive');
+    await report(t, runId, JSON.stringify({ text: 'It is probably fixed.', status: 'Verification incomplete', operations: 'The patched build would not start, so only the baseline was measured.' }));
+    expect(t.slack.posts).toEqual([]);
+    expect(status(t)).toBe('❓ Verification incomplete');
+    expect(opsReplies(t).join('\n')).toContain('only the baseline was measured');
+    await settleWindow(t);
+    expect(t.steers).toEqual([]);
+  });
+
+  test('a worker that claims Reproduced but not fixed with no record of any reproduction is not believed', async () => {
+    const t = repro();
+    const runId = await dispatch(t);
+    await report(t, runId, JSON.stringify({ text: 'Still broken.', status: 'Reproduced but not fixed', operations: 'x' }));
+    expect(status(t)).toBe('⚪ Could not reproduce');
+    expect(t.slack.posts).toEqual([]);
+  });
+
+  test('a reproduction that finished without evidence the parent can confirm stays Could not reproduce, and a missing environment stays Blocked', async () => {
+    const t = repro();
+    const runId = await dispatch(t);
+    await report(t, runId);
+    expect(status(t)).toBe('⚪ Could not reproduce');
+    const blocked = repro();
+    const second = await dispatch(blocked);
+    await report(blocked, second, JSON.stringify({ text: '', status: 'Blocked', operations: 'The app would not start: the control adapter has no recording capability.' }));
+    expect(status(blocked)).toBe('⛔ Blocked');
   });
 });

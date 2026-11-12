@@ -22,6 +22,9 @@ test('the shipped configuration template keeps every upstream default and transl
   delete slack['prefer_cursor_actions'];
   (expected['routing'] as Record<string, unknown>)['map_path'] = '.pi/benny/routing.md';
   (expected['control'] as Record<string, unknown>)['feature_map_path'] = '.pi/benny/feature-map.md';
+  // The additions this package makes, each a safeguard or a status upstream names without giving it a key: the attachment limits (defaults unchanged), and the emoji for the two existing-fix outcomes.
+  expected['attachments'] = { max_files: 20, max_file_mib: 50, max_total_mib: 200 };
+  Object.assign(expected['status_emoji'] as Record<string, unknown>, { reproduced_not_fixed: '🟠', verification_incomplete: '❓' });
   expect(shipped).toEqual(expected);
 });
 
