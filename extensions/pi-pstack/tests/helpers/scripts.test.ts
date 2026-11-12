@@ -90,6 +90,7 @@ describe.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('
     // The repo has no origin, so the MERGED base is named explicitly, as upstream 0.15.20 requires.
     const output = execFileSync('bash', [join(SCRIPTS, 'worktree-audit.sh'), '-b', 'main', repo], {
       encoding: 'utf8',
+      cwd: repo,
       env: { ...process.env, HOME: home, PI_CODING_AGENT_DIR: agentDir, PATH: `${bin}:/usr/bin:/bin:${process.env['PATH'] ?? ''}`, ...extraEnv },
       stdio: ['ignore', 'pipe', 'ignore'],
     });
@@ -127,6 +128,40 @@ describe.skipIf(process.platform !== 'darwin' && process.platform !== 'linux')('
       const sessions = join(home, 'my-sessions');
       mkdirSync(sessions, { recursive: true });
       writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ sessionDir: '~/my-sessions' }));
+      writeFileSync(join(sessions, '2026-10-12T00-00-00-000Z_s.jsonl'), `${JSON.stringify({ type: 'session', cwd: worktree })}\n`);
+    });
+    expect(row.slice(6, 8)).toEqual([today(), 'verify-recent-chat']);
+  });
+
+  test("a worktree's own .pi/settings.json sessionDir is searched, relative to that worktree (Pi reads project settings from the session cwd)", () => {
+    const row = auditRow(({ worktree }) => {
+      mkdirSync(join(worktree, '.pi'), { recursive: true });
+      writeFileSync(join(worktree, '.pi', 'settings.json'), JSON.stringify({ sessionDir: 'wt-sessions' }));
+      mkdirSync(join(worktree, 'wt-sessions'), { recursive: true });
+      writeFileSync(join(worktree, 'wt-sessions', '2026-10-12T00-00-00-000Z_s.jsonl'), `${JSON.stringify({ type: 'session', cwd: worktree })}\n`);
+    });
+    expect(row.slice(6, 8)).toEqual([today(), 'verify-recent-chat']);
+  });
+
+  test('an empty project sessionDir overrides the global one, so Pi falls back to the default directory', () => {
+    const row = auditRow(({ worktree, agentDir, home, repo }) => {
+      const sessions = join(home, 'global-sessions');
+      mkdirSync(sessions, { recursive: true });
+      writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ sessionDir: sessions }));
+      writeFileSync(join(sessions, '2026-10-12T00-00-00-000Z_s.jsonl'), `${JSON.stringify({ type: 'session', cwd: worktree })}\n`);
+      mkdirSync(join(repo, '.pi'), { recursive: true });
+      writeFileSync(join(repo, '.pi', 'settings.json'), JSON.stringify({ sessionDir: '' }));
+      mkdirSync(join(worktree, '.pi'), { recursive: true });
+      writeFileSync(join(worktree, '.pi', 'settings.json'), JSON.stringify({ sessionDir: '' }));
+    });
+    expect(row[7]).not.toBe('verify-recent-chat');
+  });
+
+  test('a file:// sessionDir is converted to a path like Pi does', () => {
+    const row = auditRow(({ worktree, agentDir, home }) => {
+      const sessions = join(home, 'url-sessions');
+      mkdirSync(sessions, { recursive: true });
+      writeFileSync(join(agentDir, 'settings.json'), JSON.stringify({ sessionDir: `file://${sessions}` }));
       writeFileSync(join(sessions, '2026-10-12T00-00-00-000Z_s.jsonl'), `${JSON.stringify({ type: 'session', cwd: worktree })}\n`);
     });
     expect(row.slice(6, 8)).toEqual([today(), 'verify-recent-chat']);
