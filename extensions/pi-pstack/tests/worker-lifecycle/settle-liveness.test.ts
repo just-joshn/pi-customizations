@@ -40,13 +40,20 @@ const settledResult = (workerId: string, ms = 20_000) =>
 
 test('a brief that an extension command handles settles as handled and wakes the parent', async () => {
   await spawn('h1', '/pstack-noop');
-  expect((await settledResult('h1')).lastSettle).toMatchObject({ phase: 'handled', generation: 1 });
+  // Settling is watched with inspect: a collect that found it settled would mark the settle collected, and a collected settle sends no wake.
+  await until(
+    async () => (await parent.call('pstack_worker', { action: 'inspect', runId: 'run1', workerId: 'h1' })).details.state?.settles ?? [],
+    (settles) => settles.length === 1,
+    20_000,
+    'h1 settles',
+  );
   await until(
     () => wakes(parent).map((wake) => wake?.phase),
     (phases) => phases.includes('handled'),
     5_000,
     'handled wake',
   );
+  expect((await collect('h1')).lastSettle).toMatchObject({ phase: 'handled', generation: 1 });
 });
 
 test('a steer that an extension command handles on an idle worker settles that steer', async () => {
