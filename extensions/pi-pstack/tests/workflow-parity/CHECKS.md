@@ -1454,6 +1454,8 @@ Negative cases, each of which must FAIL the named checks:
 
 babysit a queued stack: a blocker-free frontier is a non-terminal WAITING with reason merge-queue, reported merge-ready, watcher stopped, nothing merged (spec 13.2)
 
+Known product defect, asserted with test.fails: `babysit.queued.watcher-verdict-is-readable-through-pstack-worker`. pstack_worker inspect returns only the host state (HostState, src/run-files.ts:303-325, has no output field) and a watcher's wake carries only its exit (src/workers.ts:132-134), so the non-terminal WAITING merge-queue verdict that babysit.md:16 tells the parent to stop on is visible only in the tmux pane. The family reads it with tmux capture-pane.
+
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
@@ -1471,6 +1473,7 @@ babysit a queued stack: a blocker-free frontier is a non-terminal WAITING with r
 | `babysit.queued.queue-frozen-bottom-to-top-once` | the stack was captured once from the forge, bottom to top, and the queued watcher got that exact list | `generated/skills/poteto-mode/playbooks/babysit.md:18` |
 | `babysit.queued.frontier-is-WAITING-merge-queue-never-READY` | the real watch-pr in queued mode, run over the final forge state, emits a non-terminal WAITING with reason merge-queue and never READY; the parent saw it in the live watcher output | `generated/skills/poteto-mode/playbooks/babysit.md:16` |
 | `babysit.queued.watcher-stopped-after-the-report` | the watcher was aborted after the parent read WAITING merge-queue, and no watcher is left running | `generated/skills/poteto-mode/playbooks/babysit.md:16` |
+| `babysit.queued.watcher-verdict-is-readable-through-pstack-worker` | the non-terminal WAITING merge-queue verdict the watcher printed is readable through the pstack_worker surface the parent already has (inspect), not only from the tmux pane | `generated/skills/poteto-mode/playbooks/babysit.md:16` |
 | `babysit.queued.never-merges-or-arms-auto-merge` | nothing merged, queued by the babysitter, or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
 | `babysit.queued.reply-is-merge-ready-and-points-to-shipping` | the reply reports the frontier merge-ready with the merge-queue reason, says the watcher stopped, and leaves landing to Shipping | `generated/skills/poteto-mode/playbooks/babysit.md:16` |
 | `babysit.queued.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
@@ -1575,7 +1578,7 @@ Negative cases, each of which must FAIL the named checks:
 
 ## babysit-single-watcher
 
-babysit one watcher per stack: a second babysit request while the first watcher is live finds it and arms no duplicate, and the one watcher ends at READY (spec 13.2)
+babysit one watcher per stack: a second babysit request while the first watcher is live finds it and arms no duplicate (spec 13.2)
 
 | Check | Contract | Source |
 | --- | --- | --- |
@@ -1592,8 +1595,7 @@ babysit one watcher per stack: a second babysit request while the first watcher 
 | `babysit.single.mode-declared-from-the-request` | the mode is declared in TODO.md before any forge call or watcher spawn, and equals the table's answer for the request (drive) | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
 | `babysit.single.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
 | `babysit.single.the-second-request-armed-no-second-watcher` | two babysit requests arrived, the second found watch-1 live through the assignments and an inspect, and made no pstack_worker spawn | `generated/skills/poteto-mode/playbooks/babysit.md:9` |
-| `babysit.single.only-one-watcher-ever-polled-the-pr` | one watcher worker exists, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
-| `babysit.single.stops-at-READY-by-the-real-watch-pr` | the real watch-pr over the final forge state answers READY and the parent armed nothing after it | `generated/skills/poteto-mode/playbooks/babysit.md:16` |
+| `babysit.single.only-one-watcher-ever-polled-the-pr` | one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
 | `babysit.single.never-merges` | nothing merged, queued or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
 | `babysit.single.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
 
@@ -1609,13 +1611,56 @@ Negative cases, each of which must FAIL the named checks:
 - the second request armed a second watcher → `babysit.single.only-one-watcher-ever-polled-the-pr`
 - a second spawn call came with the repeated request → `babysit.single.the-second-request-armed-no-second-watcher`
 - the repeated request never looked for the live watcher → `babysit.single.the-second-request-armed-no-second-watcher`
-- a check is red at the end → `babysit.single.stops-at-READY-by-the-real-watch-pr`
 - the PR was merged → `babysit.single.never-merges`
 - the mode was declared as check → `babysit.single.mode-declared-from-the-request`
+
+## babysit-flake-twice
+
+babysit CI: a flake gets one fresh build, an identical second failure is reclassified from the logs, never retried again, and reported to the owner (spec 13.2)
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.babysit.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/babysit.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.run-from-playbook` | a run for the babysit playbook exists with run.json and TODO.md pinned to the upstream revision | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.steps-verbatim-in-order` | the original playbook steps appear in TODO.md in source order, numbered from 1, with their complete text | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `todo.babysit.initial-states-open` | the first TODO.md the run wrote has every original step open | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.every-step-resolved` | every original step ends done with evidence or skipped with a reason, none open | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.done-steps-proven` | each done step cites receipts that are recorded and re-verify (files exist, sha256 match, verdict pass) | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.skips-explained` | a skipped step names its reason, and no mandatory step is skipped | `generated/skills/poteto-mode/SKILL.md:127`, `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `todo.babysit.resolved-in-order` | step N is not resolved before step N-1 is resolved | `generated/skills/poteto-mode/SKILL.md:127` |
+| `todo.babysit.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `babysit.twice.mode-declared-from-the-request` | the mode is declared in TODO.md before any forge call or watcher spawn, and equals the table's answer for the request (drive) | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `babysit.twice.forge-resolved-once-gh-fallback-recorded` | the forge is resolved with `command -v origin` before the first forge call and every forge call after it uses gh alone | `generated/skills/poteto-mode/playbooks/babysit.md:7` |
+| `babysit.twice.exactly-one-fresh-build-then-no-more` | both watchers ended on failing checks (exit 4), exactly one whole-run rerun was requested, after the run log and the base were read, and none after the second failure | `generated/skills/poteto-mode/playbooks/babysit.md:19` |
+| `babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs` | after the second failure the parent read the full run log, recorded a not-a-flake decision, and reported the cause to the owner on the PR instead of retrying | `generated/skills/poteto-mode/playbooks/babysit.md:19` |
+| `babysit.twice.never-mutates-stack-topology` | the babysitter changed no ref, base, or merge state: no ref update by the parent in the bare repository, no edit-base, no rebase or force-push command | `generated/skills/poteto-mode/playbooks/babysit.md:10` |
+| `babysit.twice.never-merges` | nothing merged, queued or auto-merged | `generated/skills/poteto-mode/playbooks/babysit.md:21` |
+| `babysit.twice.reply-says-not-merge-ready-and-why` | the reply says the PR is not merge-ready, that one fresh build failed identically, and what was reported | `generated/skills/poteto-mode/playbooks/babysit.md:19` |
+| `babysit.twice.no-tool-errors` | no parent tool call failed unexpectedly | `generated/skills/poteto-mode/playbooks/babysit.md:12` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- a step was left open → `todo.babysit.every-step-resolved`
+- a step is done with no receipt id → `todo.babysit.done-steps-proven`
+- a step cites a receipt that was never recorded → `todo.babysit.done-steps-proven`
+- the artifact changed after the receipt hashed it → `todo.babysit.done-steps-proven`
+- a step was skipped with no reason → `todo.babysit.skips-explained`
+- steps were resolved out of order → `todo.babysit.resolved-in-order`
+- a playbook step was deleted from TODO.md → `todo.babysit.steps-verbatim-in-order`
+- a second fresh build was requested after the identical failure → `babysit.twice.exactly-one-fresh-build-then-no-more`
+- the second failure was retried as a job → `babysit.twice.exactly-one-fresh-build-then-no-more`
+- the build was retried without reading the log → `babysit.twice.exactly-one-fresh-build-then-no-more`
+- the second failure was never read from the logs → `babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs`
+- the owner was not told → `babysit.twice.the-identical-second-failure-is-reclassified-from-the-logs`
+- the babysitter pushed an empty commit to retrigger → `babysit.twice.never-mutates-stack-topology`
+- the reply claims it is merge-ready → `babysit.twice.reply-says-not-merge-ready-and-why`
 
 ## shipping
 
 shipping a stack with a failed middle PR: container verifiers with the forge capability record receipts, only the contiguous verified prefix merges bottom-up, green CI is not a verdict (spec 13.3)
+
+Needs container; its absence is reported, never passed.
 
 | Check | Contract | Source |
 | --- | --- | --- |
@@ -1673,6 +1718,8 @@ Negative cases, each of which must FAIL the named checks:
 ## shipping-freshness
 
 shipping after a chain rebase: a verdict covers the patch, so a rebased head with the same patch-id keeps it and a changed patch loses it; the shipper moves only the next PR, with --force-with-lease (spec 13.3)
+
+Needs container; its absence is reported, never passed.
 
 | Check | Contract | Source |
 | --- | --- | --- |
@@ -1758,6 +1805,8 @@ Negative cases, each of which must FAIL the named checks:
 
 shipping blocked by ForgeUnavailable: the container verifier cannot start, so the step is reported blocked, no local fallback verifies, and nothing lands (spec 13.3)
 
+Needs container; its absence is reported, never passed.
+
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
@@ -1790,6 +1839,8 @@ Negative cases, each of which must FAIL the named checks:
 ## autopilot-full
 
 autopilot-full: one container owner per PR off trunk, independent verifiers at the code-ready head, an owner merges only what the root verified, an hourly watch loop (spec 13.4)
+
+Needs container; its absence is reported, never passed.
 
 | Check | Contract | Source |
 | --- | --- | --- |
@@ -1844,6 +1895,8 @@ Negative cases, each of which must FAIL the named checks:
 
 autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)
 
+Needs container; its absence is reported, never passed.
+
 | Check | Contract | Source |
 | --- | --- | --- |
 | `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
@@ -1881,6 +1934,8 @@ Negative cases, each of which must FAIL the named checks:
 ## autopilot-stack
 
 autopilot-stack: autopilot-full without the merge: a PR stacks only on the PR it builds on, every PR is verified at its head, nothing merges, nobody pushes after the handoff (spec 13.4)
+
+Needs container; its absence is reported, never passed.
 
 | Check | Contract | Source |
 | --- | --- | --- |
@@ -1927,6 +1982,8 @@ Negative cases, each of which must FAIL the named checks:
 ## orchestrate
 
 orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)
+
+Needs container; its absence is reported, never passed.
 
 | Check | Contract | Source |
 | --- | --- | --- |

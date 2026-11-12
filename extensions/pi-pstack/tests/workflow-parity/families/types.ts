@@ -10,7 +10,7 @@ export interface Family {
   checks: Check[];
   negatives: Negative[];
   /** A tool the family needs that this machine may not have. Its absence is reported, never passed. */
-  requires?: 'tlc';
+  requires?: 'tlc' | 'container';
   /** Checks that fail today because of a product defect. Each is asserted with test.fails, so fixing the defect turns the test red until this entry is removed. */
   knownDefects?: { checkId: string; defect: string }[];
 }

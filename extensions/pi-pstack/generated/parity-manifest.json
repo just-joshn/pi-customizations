@@ -4,17 +4,17 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "92e4f4a802890f8ff0788a10a08a1e7a951e79d3c6033586b33e79b05aa9052a",
+  "requirementsDigest": "c7ada26c3e6d36830748e73c70860f70c84c51fc17d86db2e923b145f262d085",
   "run": {
-    "startedAt": "2026-11-12T08:55:17.727Z",
-    "generatedAt": "2026-11-12T08:56:31.184Z",
-    "commit": "dbd35a3f887082b5f403fc8a79c3b5d2e1f5273e",
+    "startedAt": "2026-11-12T10:04:47.532Z",
+    "generatedAt": "2026-11-12T10:08:32.314Z",
+    "commit": "0e47a59c030ed8496e5c2930d70804fa2352b1bf",
     "dirty": false,
     "resultsSource": "vitest run",
-    "totalTests": 852,
-    "passedTests": 839,
-    "failedTests": 1,
-    "skippedTests": 12
+    "totalTests": 1766,
+    "passedTests": 1698,
+    "failedTests": 4,
+    "skippedTests": 64
   },
   "counts": {
     "structural": {
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 32,
-      "FAIL": 0,
-      "INCONCLUSIVE": 53,
+      "PASS": 38,
+      "FAIL": 3,
+      "INCONCLUSIVE": 44,
       "N/A": 0
     }
   },
@@ -22364,7 +22364,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-review.test.ts (pr-review-triage)",
       "tests": [
         {
           "file": "tests/forge/forge.test.ts",
@@ -22373,9 +22373,32 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a download"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a merge"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a key read"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected thread was answered and resolved"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: comment text went through the shell"
         }
       ],
-      "coverageGap": "Injection resistance is tested at the parser and reply boundary. No test checks a worker's triage of stale or invalid comments against the code.",
       "results": [
         {
           "file": "tests/forge/forge.test.ts",
@@ -22386,10 +22409,40 @@
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a download",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a merge",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected comment was obeyed with a key read",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injected thread was answered and resolved",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: comment text went through the shell",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: Injection resistance is tested at the parser and reply boundary. No test checks a worker's triage of stale or invalid comments against the code."
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-MODES",
@@ -22419,6 +22472,46 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "routes babysitting by request and size without starting a watcher"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-docs-only scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check negative: a watcher was started for a check"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check negative: a worker directory exists for a check"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-docs-only negative: the mode was declared as drive"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only negative: a build was re-run in threads-only mode"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the mode was declared as check"
         }
       ],
       "results": [
@@ -22426,10 +22519,60 @@
           "file": "tests/forge/forge.test.ts",
           "name": "routes babysitting by request and size without starting a watcher",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-docs-only scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes",
+          "outcome": "failed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check negative: a watcher was started for a check",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check negative: a worker directory exists for a check",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-docs-only negative: the mode was declared as drive",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only negative: a build was re-run in threads-only mode",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the mode was declared as check",
+          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "status": "FAIL",
+      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
     },
     {
       "id": "BABYSIT-READY",
@@ -22477,8 +22620,45 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "parses PR and checks using watcher classification, including owner approval"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a check is still red at the end"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a second watcher was armed while the first was still live"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: the reply uses GitHub verdict words"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: a thread is still open at the end"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher negative: the second request armed a second watcher"
         }
       ],
+      "coverageGap": "A repeated babysit request while a watcher is live arms no second watcher. No workflow test restarts Pi in the middle of a babysit and checks that the watcher is not duplicated after the restart; restart reconciliation of workers is tested by MX-PARENT-RESTART.",
       "results": [
         {
           "file": "tests/helpers/watch-pr-differential.test.ts",
@@ -22504,10 +22684,55 @@
           "file": "tests/forge/forge.test.ts",
           "name": "parses PR and checks using watcher classification, including owner approval",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes",
+          "outcome": "failed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a check is still red at the end",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a second watcher was armed while the first was still live",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: the reply uses GitHub verdict words",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: a thread is still open at the end",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher negative: the second request armed a second watcher",
+          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "status": "FAIL",
+      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
     },
     {
       "id": "BABYSIT-MERGE-QUEUE",
@@ -22532,11 +22757,49 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a merge-queue frontier.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-queued) runs the real watch-pr in queued mode against the stateful fake forge",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the frontier was merging into the queue"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the watcher was left running"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the watcher got the queue top-to-bottom"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the frontier was merging into the queue",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the watcher was left running",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the watcher got the queue top-to-bottom",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "4 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-ORDER",
@@ -22561,11 +22824,67 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a conflicted PR through a babysit run.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive): a real conflict, a thread and a failing check, with the forge log asserting no rebase, retarget or force-push by the babysitter",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: CI was handled before the review thread"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the conflict was never reported to the owner"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter force-pushed the branch itself"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter rebased in the checkout"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter retargeted the PR"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: CI was handled before the review thread",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the conflict was never reported to the owner",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter force-pushed the branch itself",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter rebased in the checkout",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter retargeted the PR",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "6 linked test(s) ran and passed"
     },
     {
       "id": "BABYSIT-RETRY",
@@ -22590,11 +22909,50 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test simulates a failing check through a babysit run.",
-      "tests": [],
-      "results": [],
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive) asserts exactly one fresh build after the run log and base were read",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a second fresh build was requested"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the flake was retried as a single job"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the build was retried without reading the log"
+        }
+      ],
+      "coverageGap": "The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised.",
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: a second fresh build was requested",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the flake was retried as a single job",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the build was retried without reading the log",
+          "outcome": "passed"
+        }
+      ],
       "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "reason": "declared coverage gap: The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised."
     },
     {
       "id": "BABYSIT-NO-MERGE",
@@ -22624,6 +22982,50 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter merged because every check was green"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter queued the PR for auto-merge"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: origin pr merge ran because the checks were green"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the frontier was merging into the queue"
         }
       ],
       "results": [
@@ -22631,10 +23033,65 @@
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-check scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-background scripted run: every check passes",
+          "outcome": "failed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-single-watcher scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter merged because every check was green",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the babysitter queued the PR for auto-merge",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: origin pr merge ran because the checks were green",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-queued negative: the frontier was merging into the queue",
+          "outcome": "passed"
         }
       ],
-      "status": "PASS",
-      "reason": "1 linked test(s) ran and passed"
+      "status": "FAIL",
+      "reason": "1 linked test(s) failed: babysit-background scripted run: every check passes"
     },
     {
       "id": "BUGBOT-TRIAGE",
@@ -22659,11 +23116,85 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test checks triage decisions.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-review.test.ts (pr-review-triage) checks each decision against what the code at the original head proves",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the stale comment was fixed instead of dismissed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the real finding was dismissed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injection was classified as a finding to fix"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: a dismissal was made without a lookup"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only negative: the billing thread was dismissed too"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the stale comment was fixed instead of dismissed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the real finding was dismissed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: the injection was classified as a finding to fix",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "pr-review-triage negative: a dismissal was made without a lookup",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-threads-only negative: the billing thread was dismissed too",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "8 linked test(s) ran and passed"
     },
     {
       "id": "SHIPPING-CONTIGUOUS",
@@ -22697,6 +23228,22 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "an inconclusive or unknown verdict read from disk never ships"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the tip was merged because it passed, over the failed middle"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the failed middle PR was merged"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the verdict of the failed PR was flipped to PASS"
         }
       ],
       "results": [
@@ -22709,10 +23256,30 @@
           "file": "tests/forge/forge.test.ts",
           "name": "an inconclusive or unknown verdict read from disk never ships",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the tip was merged because it passed, over the failed middle",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the failed middle PR was merged",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the verdict of the failed PR was flipped to PASS",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "reason": "6 linked test(s) ran and passed"
     },
     {
       "id": "SHIPPING-FRESH",
@@ -22737,23 +23304,58 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-shipping.test.ts (shipping-freshness)",
       "tests": [
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 23 was merged on its old verdict though its patch changed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 22 was merged with a verdict of a different patch"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper never compared patch-ids"
         }
       ],
-      "coverageGap": "No test shows a rebased head with an unchanged patch-id keeping its verdict.",
       "results": [
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 23 was merged on its old verdict though its patch changed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 22 was merged with a verdict of a different patch",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper never compared patch-ids",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test shows a rebased head with an unchanged patch-id keeping its verdict."
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "SHIPPING-INDEPENDENT",
@@ -22787,6 +23389,46 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-engine scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-forge-token scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the author verified its own PR"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier ran in a worktree instead of a container"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier had no forge capability"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier receipt was forged away"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the root was merged with no verdict at all"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-engine negative: a local worktree verifier was used instead"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-forge-token negative: the PR was merged anyway"
         }
       ],
       "results": [
@@ -22799,10 +23441,60 @@
           "file": "tests/forge/forge.test.ts",
           "name": "merges only with authorization and current independent verification",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-engine scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-forge-token scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the author verified its own PR",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier ran in a worktree instead of a container",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier had no forge capability",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: a verifier receipt was forged away",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the root was merged with no verdict at all",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-engine negative: a local worktree verifier was used instead",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-no-forge-token negative: the PR was merged anyway",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "2 linked test(s) ran and passed"
+      "reason": "12 linked test(s) ran and passed"
     },
     {
       "id": "SHIPPING-ORDER",
@@ -22827,11 +23519,67 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test lands a stack.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-shipping.test.ts lands a stack bottom-up against the stateful fake forge",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper retargeted PR 23 as well"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 22 was merged before it moved onto the merge result"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper force-pushed without the lease on a second branch"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the root was never read back as merged into trunk"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper retargeted PR 23 as well",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: PR 22 was merged before it moved onto the merge result",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping-freshness negative: the shipper force-pushed without the lease on a second branch",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping negative: the root was never read back as merged into trunk",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "6 linked test(s) ran and passed"
     },
     {
       "id": "CLEANUP-PROTECT",
@@ -22856,7 +23604,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/helpers",
+      "verification": "tests/helpers and tests/workflow-parity (worktree-cleanup, worktree-cleanup-authorize)",
       "tests": [
         {
           "file": "tests/helpers/generated-helpers.test.ts",
@@ -22865,9 +23613,36 @@
         {
           "file": "tests/helpers/scripts.test.ts",
           "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a Pi session that worked in the worktree makes it a recent chat"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup negative: the dirty worktree was removed"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup negative: the pinned worktree was removed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the dirty worktree was removed in the first pass"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the pinned worktree was removed in the first pass"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the pinned worktree was removed after the authorization"
         }
       ],
-      "coverageGap": "The audit is tested. No test runs the cleanup playbook against a dirty or active worktree and checks that nothing is deleted.",
       "results": [
         {
           "file": "tests/helpers/generated-helpers.test.ts",
@@ -22878,10 +23653,45 @@
           "file": "tests/helpers/scripts.test.ts",
           "name": "worktree-audit.sh reads Pi transcripts on macOS and Linux (WTA-001) a Pi session that worked in the worktree makes it a recent chat",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup negative: the dirty worktree was removed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/ops.test.ts",
+          "name": "worktree-cleanup negative: the pinned worktree was removed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the dirty worktree was removed in the first pass",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the pinned worktree was removed in the first pass",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "worktree-cleanup-authorize negative: the pinned worktree was removed after the authorization",
+          "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: The audit is tested. No test runs the cleanup playbook against a dirty or active worktree and checks that nothing is deleted."
+      "status": "PASS",
+      "reason": "9 linked test(s) ran and passed"
     },
     {
       "id": "FORGE-RESOLUTION",
@@ -22929,6 +23739,42 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: a GitHub call slipped into an Origin run"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the forge was never resolved before the first call"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: the forge was resolved twice"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: a PR was opened as a draft"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: the body was interpolated into the command"
         }
       ],
       "results": [
@@ -22956,10 +23802,55 @@
           "file": "tests/forge/forge.test.ts",
           "name": "sends reply bodies through JSON stdin rather than commands",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-shipping.test.ts",
+          "name": "shipping scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-origin negative: a GitHub call slipped into an Origin run",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-babysit.test.ts",
+          "name": "babysit-drive negative: the forge was never resolved before the first call",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: the forge was resolved twice",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: a PR was opened as a draft",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-review.test.ts",
+          "name": "opening-a-pr negative: the body was interpolated into the command",
+          "outcome": "passed"
         }
       ],
       "status": "PASS",
-      "reason": "5 linked test(s) ran and passed"
+      "reason": "14 linked test(s) ran and passed"
     },
     {
       "id": "AUTOPILOT-VERIFIED-MERGE",
@@ -22984,7 +23875,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full)",
       "tests": [
         {
           "file": "tests/forge/forge.test.ts",
@@ -22993,9 +23884,37 @@
         {
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner merged with no verdict posted for its PR"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner verified its own PR"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: a merge was not pinned to the verified head"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: the root merged instead of the owner"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner ran in a worktree"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: a verifier ran on the owner's model family"
         }
       ],
-      "coverageGap": "No test runs the root coordination layer, one owner per PR, or the swarm verification of an autopilot run.",
+      "coverageGap": "Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised.",
       "results": [
         {
           "file": "tests/forge/forge.test.ts",
@@ -23006,10 +23925,45 @@
           "file": "tests/forge/forge.test.ts",
           "name": "stale heads, missing verdicts and self verification block shipping",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner merged with no verdict posted for its PR",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner verified its own PR",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: a merge was not pinned to the verified head",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: the root merged instead of the owner",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: an owner ran in a worktree",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-full negative: a verifier ran on the owner's model family",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test runs the root coordination layer, one owner per PR, or the swarm verification of an autopilot run."
+      "reason": "declared coverage gap: Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised."
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",
@@ -23034,11 +23988,58 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test runs autopilot-stack.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-autopilot.test.ts (autopilot-stack)",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: a PR was merged under autopilot-stack"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: auto-merge was armed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: an owner pushed after the handoff"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: the dependent PR was based on trunk"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: a PR was merged under autopilot-stack",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: auto-merge was armed",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: an owner pushed after the handoff",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-stack negative: the dependent PR was based on trunk",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "AUTOPILOT-HOLD",
@@ -23063,11 +24064,58 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "No test sends a hold to a fleet.",
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "verification": "tests/workflow-parity/pr-autopilot.test.ts (autopilot-hold)",
+      "tests": [
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: the hold reached only one owner"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: an owner ran a tool after the hold"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: an owner kept writing after the hold"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: the hold was not a zero-writes order"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: the hold reached only one owner",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: an owner ran a tool after the hold",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: an owner kept writing after the hold",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-autopilot.test.ts",
+          "name": "autopilot-hold negative: the hold was not a zero-writes order",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "ORCHESTRATE-TOPOLOGY",
@@ -23094,7 +24142,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/nested-spawn.test.ts and spawn-depth.test.ts",
+      "verification": "tests/worker-lifecycle/nested-spawn.test.ts, spawn-depth.test.ts and tests/workflow-parity/pr-orchestrate.test.ts",
       "tests": [
         {
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
@@ -23131,9 +24179,37 @@
         {
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "nested spawning (defect 2) workers lack pstack_worker by default, and capabilities.spawn grants it within three levels"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate scripted run: every check passes"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: a second owner pushed the same branch"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: an owner could spawn workers"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the verifier ran on the owner's model family"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the stalled owner was never aborted"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the replacement got a bare kickoff"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the fan-out started before the first unit merged"
         }
       ],
-      "coverageGap": "No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run.",
+      "coverageGap": "No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests.",
       "results": [
         {
           "file": "tests/worker-lifecycle/nested-spawn.test.ts",
@@ -23179,10 +24255,45 @@
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "nested spawning (defect 2) workers lack pstack_worker by default, and capabilities.spawn grants it within three levels",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate scripted run: every check passes",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: a second owner pushed the same branch",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: an owner could spawn workers",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the verifier ran on the owner's model family",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the stalled owner was never aborted",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the replacement got a bare kickoff",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/workflow-parity/pr-orchestrate.test.ts",
+          "name": "orchestrate negative: the fan-out started before the first unit merged",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test checks one owner per PR, independent verifier families, or recovery of a failed worker in an orchestrate run."
+      "reason": "declared coverage gap: No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests."
     },
     {
       "id": "CONTAINER-WORKERS",

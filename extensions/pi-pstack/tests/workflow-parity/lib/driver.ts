@@ -232,6 +232,8 @@ function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: 
       const path = join(runs, id, 'TODO.md');
       if (existsSync(path)) {
         const text = readFileSync(path, 'utf8');
+        // start-run.mjs writes the file in one go, but a read can land mid-write; a half-written TODO.md is not a snapshot.
+        if (!text.includes('## Task-specific work')) continue;
         const seen = (history[id] ??= []);
         if (seen.at(-1)?.text !== text) seen.push({ t: Date.now(), seq: seq++, text });
       }

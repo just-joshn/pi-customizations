@@ -301,6 +301,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
 
 export const shippingFamily: Family = {
   id: 'shipping',
+  requires: 'container',
   title: 'shipping a stack with a failed middle PR: container verifiers with the forge capability record receipts, only the contiguous verified prefix merges bottom-up, green CI is not a verdict (spec 13.3)',
   spec: shippingSpec('shipping', SHIP_RUN, SHIP_STORE, shipScenario, '/poteto-mode ship the stack: land PR 21, PR 22 and PR 23'),
   checks: [
@@ -411,6 +412,7 @@ function freshScenario(ctx: Ctx, store: typeof FRESH_STORE) {
 
 export const shippingFreshnessFamily: Family = {
   id: 'shipping-freshness',
+  requires: 'container',
   title: 'shipping after a chain rebase: a verdict covers the patch, so a rebased head with the same patch-id keeps it and a changed patch loses it; the shipper moves only the next PR, with --force-with-lease (spec 13.3)',
   spec: shippingSpec('shipping-freshness', FRESH_RUN, FRESH_STORE, freshScenario, '/poteto-mode ship the stack: land PR 21, PR 22 and PR 23', { events: FRESH_EVENTS, broken: false }),
   checks: [
@@ -496,7 +498,6 @@ function blockedFamily(kind: BlockedKind): Family {
   const reason = kind === 'ContainerUnavailable' ? 'no container engine answers' : 'the operator has no forge token to give a worker';
   const scenarioOf = (ctx: Ctx) => {
     const parent = new Parent(ctx);
-    const dir = parent.runDir;
     const blocked = `step 1 is blocked: ${kind}, so nothing lands`;
     parent.beginPlaybook('shipping', `Ship the stack, blocked by ${kind}`);
     for (const skill of ['control-cli', 'control-ui']) parent.readSkill(skill);
@@ -507,11 +508,11 @@ function blockedFamily(kind: BlockedKind): Family {
     parent.decision('ship-run', `blocked: ${kind}`, `pstack_worker spawn answered ${kind}, so the independent verification cannot run and no PR may land`, 'pstack_worker spawn result', 'landed nothing');
     for (const n of [1, 2, 3, 4, 5, 6]) parent.skip('shipping', n, blocked);
     parent.text(`Shipping is blocked: ${kind}. The verifier for PR 21 could not start (${reason}), so I verified nothing and landed nothing. Every PR is still open and unchanged. Fix the cause and say ship again.`);
-    void dir;
     return scenario(parent);
   };
   return {
     id,
+    ...(kind === 'ForgeUnavailable' ? { requires: 'container' as const } : {}),
     title: `shipping blocked by ${kind}: the container verifier cannot start, so the step is reported blocked, no local fallback verifies, and nothing lands (spec 13.3)`,
     spec: {
       family: id,
@@ -582,4 +583,3 @@ function rewriteSessionSafe(sandbox: string, from: string, to: string): void {
 
 export const shippingFamilies: Family[] = [shippingFamily, shippingFreshnessFamily, shippingNoEngineFamily, shippingNoForgeTokenFamily];
 
-void [finalReply, stepDone];

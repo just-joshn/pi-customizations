@@ -5,18 +5,19 @@ import type { Family } from '../families/types.ts';
 import { validateSources } from './check.ts';
 import { realTmux, REAL_MODEL } from './driver.ts';
 import { type FamilyRun, report, runFamily, writeEvidence } from './run.ts';
+import { engineAvailable, withContainerLock } from './container-lock.ts';
 import { tlcAvailable } from './tlc.ts';
 
 export function defineFamilyTests(list: Family[]): void {
   for (const family of list) {
-    const skip = family.requires === 'tlc' && !tlcAvailable();
+    const skip = (family.requires === 'tlc' && !tlcAvailable()) || (family.requires === 'container' && !engineAvailable());
     describe.skipIf(skip)(family.id, () => {
       let run: FamilyRun | undefined;
       beforeAll(async () => {
-        run = await runFamily(family, 'scripted');
+        run = family.requires === 'container' ? await withContainerLock(() => runFamily(family, 'scripted')) : await runFamily(family, 'scripted');
         console.log(report(run));
         writeEvidence(run);
-      }, 300_000);
+      }, family.requires === 'container' ? 1_800_000 : 300_000);
       afterAll(() => run?.cleanup());
 
       test('every check cites a source span that resolves in the compiled skills', () => {
@@ -51,7 +52,7 @@ export function defineFamilyTests(list: Family[]): void {
       test.skipIf(REAL_MODEL === '')(
         `real model ${REAL_MODEL}: every check passes`,
         async () => {
-          const real = await runFamily(family, 'real');
+          const real = family.requires === 'container' ? await withContainerLock(() => runFamily(family, 'real')) : await runFamily(family, 'real');
           console.log(report(real));
           writeEvidence(real);
           try {

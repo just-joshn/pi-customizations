@@ -5,7 +5,7 @@ import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:f
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
-import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeHandle, predictCommit, predictCommits, readForge, revParse, setupForge, WATCH_PR, writeContainerScenario } from '../fixtures/forge.ts';
+import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeHandle, predictCommit, predictCommits, readForge, revParse, setupForge, writeContainerScenario } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, openedAt, playbookFile, playbookReads, promptRoutes, todoChecks } from '../lib/checks.ts';
@@ -105,13 +105,12 @@ const specOf = (id: string, runId: string, store: Store, scenarioOf: (ctx: Ctx) 
   scenario: scenarioOf,
 });
 
-const independentUnits = (store: Store) => (handle: ForgeHandle): Unit[] => {
+const independentUnits = () => (handle: ForgeHandle): Unit[] => {
   const base = handle.tip('main');
   const a = unitA(31, 'feat-greet');
   const b = unitB(32, 'feat-shout', base, 'main', SHOUT);
   a.from = base;
   for (const unit of [a, b]) unit.sha = predictCommit(handle, { from: 'main', files: unit.files, message: unit.title });
-  void store;
   return [a, b];
 };
 
@@ -236,15 +235,12 @@ const FULL_RUN = 'autopilot-full-queue';
 const FULL_STORE: Store = { units: [] };
 const PROMPT_FULL = '/poteto-mode autopilot this queue, full autopilot, go: PR 31 adds greet, PR 32 adds shout. Merge each once it is verified.';
 
-function rootBegin(ctx: Ctx, parent: Parent, playbook: string, title: string, store: Store, owners: Unit[]): { pr: string } {
-  void owners;
+function rootBegin(parent: Parent, playbook: string, title: string): { pr: string } {
   parent.beginPlaybook(playbook, title);
   if (playbook === 'autopilot-stack') parent.readPlaybook('autopilot-full');
-  for (const skill of ['deslop', 'show-me-your-work', 'swarm', 'control-ui', 'control-cli', 'ketchup']) if (playbook === 'autopilot-full') parent.readSkill(skill);
+  if (playbook === 'autopilot-full') for (const skill of ['deslop', 'show-me-your-work', 'swarm', 'control-ui', 'control-cli', 'ketchup']) parent.readSkill(skill);
   parent.bash('command -v origin || echo "no origin CLI: staying on gh"');
   parent.task('Forge: gh (origin CLI absent, fallback recorded)');
-  void ctx;
-  void store;
   return { pr: REPO_FLAGS };
 }
 
@@ -252,7 +248,7 @@ function fullScenario(ctx: Ctx, store: Store, mode: 'merge' | 'hold') {
   const parent = new Parent(ctx);
   const [a, b] = store.units as [Unit, Unit];
   const dir = parent.runDir;
-  const { pr } = rootBegin(ctx, parent, 'autopilot-full', 'Autopilot the greet and shout queue', store, [a, b]);
+  const { pr } = rootBegin(parent, 'autopilot-full', 'Autopilot the greet and shout queue');
   parent.task('Grant: autopilot queue is PR 31 and PR 32; operator-held items: none; the go is the operator\'s prompt');
   stepDone(parent, 'autopilot-full', 1, 'af-gates', `grep -q 'Grant: autopilot queue' ${join(dir, 'TODO.md')}`);
   parent.fire(stageOwner(parent, a), stageOwner(parent, b));
@@ -314,8 +310,9 @@ const fullChecks = (prefix: string, store: Store): Check[] => [
 
 export const autopilotFullFamily: Family = {
   id: 'autopilot-full',
+  requires: 'container',
   title: 'autopilot-full: one container owner per PR off trunk, independent verifiers at the code-ready head, an owner merges only what the root verified, an hourly watch loop (spec 13.4)',
-  spec: specOf('autopilot-full', FULL_RUN, FULL_STORE, (ctx) => fullScenario(ctx, FULL_STORE, 'merge'), independentUnits(FULL_STORE), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
+  spec: specOf('autopilot-full', FULL_RUN, FULL_STORE, (ctx) => fullScenario(ctx, FULL_STORE, 'merge'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL),
   checks: [
     ...fullChecks('autopilot.full', FULL_STORE),
     ...todoChecks({ playbook: 'autopilot-full', skipReason: { 7: /stop/ } }),
@@ -364,11 +361,12 @@ const HOLD_STORE: Store = { units: [] };
 
 export const autopilotHoldFamily: Family = {
   id: 'autopilot-hold',
+  requires: 'container',
   title: 'autopilot-full operator hold: a zero-writes order reaches every owner in one message, each owner reports standing down and writes nothing more, nothing merges (spec 13.4)',
-  spec: specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(HOLD_STORE), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL, ['/poteto-mode hold everything: stop all writes now, do not merge anything']),
+  spec: specOf('autopilot-hold', HOLD_RUN, HOLD_STORE, (ctx) => fullScenario(ctx, HOLD_STORE, 'hold'), independentUnits(), { 'feat-greet': 31, 'feat-shout': 32 }, PROMPT_FULL, ['/poteto-mode hold everything: stop all writes now, do not merge anything']),
   checks: [
     ...fullChecks('autopilot.hold', HOLD_STORE),
-    ...todoChecks({ playbook: 'autopilot-full', skipReason: { 4: /held|hold/, 5: /held|hold/, 6: /held|hold/, 7: /./ } }).filter((entry) => !entry.id.endsWith('done-steps-proven') || true),
+    ...todoChecks({ playbook: 'autopilot-full', skipReason: { 4: /held|hold/, 5: /held|hold/, 6: /held|hold/, 7: /./ } }),
     check('autopilot.hold.the-hold-reached-every-owner-in-one-message', 'the hold turn steered every owner in the run from one assistant message, with a zero-writes order', AF('A hold reaches every owner as a zero-writes order'), (view) => {
       const turns = view.parent.messages.filter((message) => message.role === 'user');
       const holdTurn = turns[1]?.order ?? Number.POSITIVE_INFINITY;
@@ -414,7 +412,7 @@ const STACK_STORE: Store = { units: [] };
 function stackScenario(ctx: Ctx, store: Store) {
   const parent = new Parent(ctx);
   const [a, b] = store.units as [Unit, Unit];
-  const { pr } = rootBegin(ctx, parent, 'autopilot-stack', 'Autopilot-stack greet and shout', store, [a, b]);
+  const { pr } = rootBegin(parent, 'autopilot-stack', 'Autopilot-stack greet and shout');
   parent.task('Grant: autopilot-stack queue is PR 41 and PR 42; do not merge; PR 42 builds on PR 41');
   parent.spawn('owner-a', { role: 'owner', model: 'sim/grok-sim', workspace: { mode: 'container', inputCommit: a.from }, capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: false, forge: true } }, ownerBrief(a));
   parent.wait('owner-a').collect('owner-a');
@@ -436,6 +434,7 @@ function stackScenario(ctx: Ctx, store: Store) {
 
 export const autopilotStackFamily: Family = {
   id: 'autopilot-stack',
+  requires: 'container',
   title: 'autopilot-stack: autopilot-full without the merge: a PR stacks only on the PR it builds on, every PR is verified at its head, nothing merges, nobody pushes after the handoff (spec 13.4)',
   spec: specOf('autopilot-stack', STACK_RUN, STACK_STORE, (ctx) => stackScenario(ctx, STACK_STORE), stackedUnits, { 'feat-greet-stack': 41, 'feat-shout-stack': 42 }, '/poteto-mode autopilot-stack: build PR 41 (greet) and PR 42 (shout, which builds on greet), verify them, and do not merge, I will land them'),
   checks: [
@@ -484,8 +483,6 @@ export const autopilotStackFamily: Family = {
 };
 
 const STACK_UNITS = (view: RunView): Unit[] => {
-  const { actions } = readForge(view);
-  void actions;
   const a = unitA(41, 'feat-greet-stack');
   const bare = bareOf(view.sandbox);
   a.sha = revParse(bare, 'refs/heads/feat-greet-stack');
@@ -525,8 +522,6 @@ function appendOwnerCall(sandbox: string, runId: string, workerId: string): void
   ];
   appendFileSync(file, `${lines.map((line) => JSON.stringify(line)).join('\n')}\n`);
 }
-
-void [WATCH_PR];
 
 export { stageOwner, ownerBrief, OWNER_FAMILY, ownerWorkers, rootBegin };
 

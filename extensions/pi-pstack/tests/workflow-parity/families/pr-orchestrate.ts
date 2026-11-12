@@ -9,8 +9,7 @@ import { check, src, type Src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
-import type { RunView } from '../lib/view.ts';
-import { ownerBrief, ownerScript, OWNER_FAMILY, ownerWorkers, stageOwner, type Unit } from './pr-autopilot.ts';
+import { ownerBrief, ownerScript, OWNER_FAMILY, ownerWorkers, type Unit } from './pr-autopilot.ts';
 import { BASH, forgeResolvedOnce, REPO_FLAGS } from './pr-shared.ts';
 import { mergesAreAuthorizedAndVerified, mergesIn, removeRunContainers, stageVerifier, verdictsOf, verifierScript } from './pr-shipping.ts';
 import type { Family } from './types.ts';
@@ -79,13 +78,9 @@ function scenarioOf(ctx: Ctx, store: Store) {
   return scenario(parent, workers);
 }
 
-const unitsOf = (view: RunView): Unit[] => {
-  void view;
-  return [STORE.first, STORE.second];
-};
-
 export const orchestrateFamily: Family = {
   id: 'orchestrate',
+  requires: 'container',
   title: 'orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)',
   spec: {
     family: 'orchestrate',
@@ -213,7 +208,5 @@ function appendLoop(sandbox: string): void {
   ];
   writeFileSync(file, `${readFileSync(file, 'utf8')}${lines.map((line) => JSON.stringify(line)).join('\n')}\n`);
 }
-
-void [stageOwner, unitsOf];
 
 export const orchestrateFamilies: Family[] = [orchestrateFamily];

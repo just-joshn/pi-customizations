@@ -259,7 +259,7 @@ export function writeContainerScenario(ctx: Ctx, scenario: unknown): void {
 }
 
 /** Runs the real watch-pr against a copy of the finished forge, so reading it changes nothing in the artifact. */
-export function watchVerdict(view: Pick<RunView, 'sandbox'>, args: string[], timeoutMs = 60_000): { code: number; stdout: string } {
+export function watchVerdict(view: Pick<RunView, 'sandbox'>, args: string[], options: { timeoutMs?: number; until?: string } = {}): { code: number; stdout: string } {
   const scratch = mkdtempSync(join(tmpdir(), 'forge-watch-'));
   try {
     const copy = join(scratch, 'origin.git');
@@ -269,7 +269,8 @@ export function watchVerdict(view: Pick<RunView, 'sandbox'>, args: string[], tim
     mkdirSync(bin);
     writeFileSync(join(bin, 'gh'), `#!/bin/sh\nexport FORGE_GIT_DIR='${copy}'\nexec node '${FORGE_CLI}' gh "$@"\n`);
     chmodSync(join(bin, 'gh'), 0o755);
-    const run = spawnSync(WATCH_PR, args, { encoding: 'utf8', timeout: timeoutMs, env: { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}` } });
+    const env = { ...process.env, PATH: `${bin}:${process.env['PATH'] ?? ''}` };
+    const run = options.until === undefined ? spawnSync(WATCH_PR, args, { encoding: 'utf8', timeout: options.timeoutMs ?? 60_000, env }) : spawnSync('node', [join(PKG, 'tests/workflow-parity/fixtures/watch-until.mjs'), WATCH_PR, options.until, ...args], { encoding: 'utf8', timeout: 60_000, env });
     return { code: run.status ?? -1, stdout: run.stdout };
   } finally {
     rmSync(scratch, { recursive: true, force: true });

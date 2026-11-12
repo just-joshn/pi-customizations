@@ -1674,6 +1674,22 @@
     "wf.orchestrate.orch.first": {
       "file": "tests/workflow-parity/pr-orchestrate.test.ts",
       "name": "orchestrate negative: the fan-out started before the first unit merged"
+    },
+    "wf.babysit-flake-twice": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-flake-twice scripted run: every check passes"
+    },
+    "wf.babysit-flake-twice.twice.second": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-flake-twice negative: a second fresh build was requested after the identical failure"
+    },
+    "wf.babysit-flake-twice.twice.nolog": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-flake-twice negative: the second failure was never read from the logs"
+    },
+    "wf.babysit-flake-twice.twice.push": {
+      "file": "tests/workflow-parity/pr-babysit.test.ts",
+      "name": "babysit-flake-twice negative: the babysitter pushed an empty commit to retrigger"
     }
   },
   "structural": [
@@ -2873,8 +2889,7 @@
         "wf.babysit-origin.origin.vocab",
         "wf.babysit-origin.origin.thread",
         "wf.babysit-single-watcher.single.dup"
-      ],
-      "coverageGap": "A repeated babysit request while a watcher is live arms no second watcher. No workflow test restarts Pi in the middle of a babysit and checks that the watcher is not duplicated after the restart; restart reconciliation of workers is tested by MX-PARENT-RESTART."
+      ]
     },
     {
       "id": "BABYSIT-MERGE-QUEUE",
@@ -2960,14 +2975,17 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive) asserts exactly one fresh build after the run log and base were read",
+      "verification": "tests/workflow-parity/pr-babysit.test.ts (babysit-drive, babysit-flake-twice) assert exactly one fresh build after the run log and base were read, and reclassification from the logs after an identical second failure",
       "tests": [
         "wf.babysit-drive",
         "wf.babysit-drive.drive.second",
         "wf.babysit-drive.drive.job",
-        "wf.babysit-drive.drive.nolog"
-      ],
-      "coverageGap": "The one-retry limit is asserted: a second rerun or a job retry fails the run. No scenario makes the fresh build fail identically, so the reclassification and child-log read after an identical second failure is not exercised."
+        "wf.babysit-drive.drive.nolog",
+        "wf.babysit-flake-twice",
+        "wf.babysit-flake-twice.twice.second",
+        "wf.babysit-flake-twice.twice.nolog",
+        "wf.babysit-flake-twice.twice.push"
+      ]
     },
     {
       "id": "BABYSIT-NO-MERGE",

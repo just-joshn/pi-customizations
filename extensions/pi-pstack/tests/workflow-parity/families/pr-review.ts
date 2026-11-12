@@ -10,7 +10,7 @@ import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, src, type Src, when } from '../lib/check.ts';
 import { assignmentOf, allWorkers, callsInTurn, finalReply, noToolErrors, openedAt, playbookReads, primaryRun, promptRoutes, todoChecks, userTurns } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
-import { appendToolCall, dirtyRepo, parentSession, patchGit, rewriteFinalReply } from '../lib/mutate.ts';
+import { appendToolCall, parentSession, patchGit, rewriteFinalReply } from '../lib/mutate.ts';
 import { cleanupFamily } from './ops.ts';
 import { bodyHasSections } from './pr-autopilot.ts';
 import { BASH, forgeResolvedOnce, modeDeclared, neverMerges, REPO_FLAGS, REPO_SLUG, stepDone } from './pr-shared.ts';
@@ -404,7 +404,5 @@ function rewriteFinalReplyFirst(sandbox: string, from: string, to: string): void
   const file = parentSession(sandbox);
   writeFileSync(file, readFileSync(file, 'utf8').replace(from, to));
 }
-
-void [dirtyRepo, rewriteFinalReply, forgeResolvedOnce];
 
 export const reviewFamilies: Family[] = [openingFamily, triageFamily, cleanupAuthorizeFamily];
