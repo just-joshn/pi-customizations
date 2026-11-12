@@ -1,10 +1,10 @@
 {
-  "inputs": "c892648eb1f43c4aa789987c6bac98feea0486092305d521c70d2a9f6c98b1da",
+  "inputs": "852c5c7b85cc847af4b6770aa8b4660d37fb89aff166554cc940ce26982459fd",
   "outputs": {
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
     "dist/worker-host.js": "fde7776dd32b63fdb9c0195692a38e2fc3df481c8c41b3ec97e55398346e3148",
-    "dist/routine-setup.js": "5c7c4421a46e6450b72c53f20d111490c496adb824ded0fa1a1fbfbd4a216fab",
-    "dist/automation-serve.js": "6930e8dfe371c29e12568a97412c015192f2d9e64ec37787e62d3f43a2dd7fa2",
+    "dist/routine-setup.js": "f02268516fb3eaffd0687d9e19c71f05f9e6eb88a8df2c0651da6b6c991202bc",
+    "dist/automation-serve.js": "5993644df1970087f81d08422dfb703e808d5c2d56b5ce90ca854090b8546012",
     "dist/statechart.js": "3b180b5ebabac82256f6538844fc6b5d1798e0bf406f875fc27032a633b38d4a",
     "dist/worker.js": "df24c4d87f25024c57c3a2b8a0f36894f8aa5eaae51078402d1d6d37427c6fc7"
   }
