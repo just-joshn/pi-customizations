@@ -15234,7 +15234,13 @@ function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny
     throw new Error("Benny configuration must be project-owned");
   const tracker = {
     type: trackerType,
-    ...trackerType === "github" ? { repo: text(section("tracker")["repo"], "tracker.repo") } : {},
+    ...trackerType === "github" ? { repo: text(section("tracker")["repo"], "tracker.repo") } : {
+      adapterSkillName: text(section("tracker")["adapter_skill_name"], "tracker.adapter_skill_name"),
+      team: text(section("tracker")["team"], "tracker.team"),
+      project: text(section("tracker")["project"], "tracker.project"),
+      status: text(section("tracker")["status"], "tracker.status")
+    },
+    ...typeof section("tracker")["source_link_title"] === "string" ? { sourceLinkTitle: section("tracker")["source_link_title"] } : {},
     labels: { bug: text(labels["bug"], "tracker.labels.bug"), performance: text(labels["performance"], "tracker.labels.performance"), intake: text(labels["intake"], "tracker.labels.intake"), needsRepro: text(labels["needs_repro"], "tracker.labels.needs_repro") }
   };
   const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };

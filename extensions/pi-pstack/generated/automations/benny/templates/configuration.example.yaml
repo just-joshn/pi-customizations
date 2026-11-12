@@ -25,13 +25,20 @@ repository:
   draft_only: true
 
 tracker:
-  type: "github"
-  repo: "example-org/example-repo"
+  # type "linear" (or any other tracker) is reached through the project-owned skill named by adapter_skill_name. The pi-pstack
+  # parent runs each tracker write in a worker that loads that skill and uses the MCP tools the workspace has.
+  # type: "github" (GitHub Issues, through the gh CLI the parent runs) is the one tracker the package ships. It needs
+  #   repo: "owner/name" and the four labels, and no adapter_skill_name, team, project, or status.
+  type: "linear"
+  adapter_skill_name: "issue-tracker-adapter-placeholder"
+  team: "team-placeholder"
+  project: "project-placeholder"
   labels:
-    bug: "bug"
-    performance: "performance"
-    intake: "intake"
-    needs_repro: "needs-repro"
+    bug: "bug-label-placeholder"
+    performance: "performance-label-placeholder"
+    intake: "intake-label-placeholder"
+    needs_repro: "needs-repro-label-placeholder"
+  status: "intake-status-placeholder"
   source_link_title: "Slack report"
   require_compensation_action: true
 
@@ -42,7 +49,7 @@ routing:
   allow_confirmed_regression_author_ping: false
 
 control:
-  skill_name: "control-ui"
+  skill_name: "control-target-app"
   feature_map_path: ".pi/benny/feature-map.md"
   environment: "safe-test-environment-placeholder"
   artifact_directory: "/tmp/benny-artifacts"

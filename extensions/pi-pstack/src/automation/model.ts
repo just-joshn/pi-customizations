@@ -128,6 +128,12 @@ export interface TrackerConfig {
   type: string;
   /** `owner/name`, required by the GitHub adapter. */
   repo?: string;
+  /** Any other tracker: the project-owned skill the parent's tracker worker loads, and the targets it resolves at runtime. */
+  adapterSkillName?: string;
+  team?: string;
+  project?: string;
+  status?: string;
+  sourceLinkTitle?: string;
   labels: { bug: string; performance: string; intake: string; needsRepro: string };
 }
 

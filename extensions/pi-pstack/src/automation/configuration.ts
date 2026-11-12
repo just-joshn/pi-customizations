@@ -31,7 +31,7 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   if (!/^[A-Z0-9_]{2,32}$/.test(sourceChannelId)) throw new Error('invalid Benny source channel');
   const triageIdentityUserId = text(section('slack')['triage_identity_user_id'], 'triage identity');
   const trackerType = text(section('tracker')['type'], 'tracker.type');
-  // GitHub Issues has no team, project, or status, and the adapter ships with the package.
+  // GitHub Issues has no team, project, or status, and the adapter ships with the package. Any other tracker is a project-owned adapter skill.
   const trackerFields = trackerType === 'github' ? ['repo'] : ['adapter_skill_name', 'team', 'project', 'status'];
   for (const [group, fields] of Object.entries({ repository: ['url', 'default_branch'], tracker: trackerFields, control: ['skill_name', 'feature_map_path', 'environment'] })) {
     for (const field of fields) text(section(group)[field], `${group}.${field}`);
@@ -50,7 +50,15 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   if (configPath.startsWith('..')) throw new Error('Benny configuration must be project-owned');
   const tracker: TrackerConfig = {
     type: trackerType,
-    ...(trackerType === 'github' ? { repo: text(section('tracker')['repo'], 'tracker.repo') } : {}),
+    ...(trackerType === 'github'
+      ? { repo: text(section('tracker')['repo'], 'tracker.repo') }
+      : {
+          adapterSkillName: text(section('tracker')['adapter_skill_name'], 'tracker.adapter_skill_name'),
+          team: text(section('tracker')['team'], 'tracker.team'),
+          project: text(section('tracker')['project'], 'tracker.project'),
+          status: text(section('tracker')['status'], 'tracker.status'),
+        }),
+    ...(typeof section('tracker')['source_link_title'] === 'string' ? { sourceLinkTitle: section('tracker')['source_link_title'] as string } : {}),
     labels: { bug: text(labels['bug'], 'tracker.labels.bug'), performance: text(labels['performance'], 'tracker.labels.performance'), intake: text(labels['intake'], 'tracker.labels.intake'), needsRepro: text(labels['needs_repro'], 'tracker.labels.needs_repro') },
   };
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };

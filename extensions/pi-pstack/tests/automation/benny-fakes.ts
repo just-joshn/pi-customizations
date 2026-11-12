@@ -116,7 +116,7 @@ export function bennyProject(options: { featureMap?: string | null; controlSkill
   const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
     .replace('TRIAGE_IDENTITY_USER_ID', TRIAGE_USER)
-    .replace('example-org/example-repo"\n  labels', `${REPO}"\n  labels`)
+    .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n`)
     .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
     .replace(/skill_name: ".*"/, `skill_name: "${options.controlSkill ?? 'control-ui'}"`);
   const file = join(dir, '.pi/benny/configuration.yaml');

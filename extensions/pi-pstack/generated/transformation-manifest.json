@@ -2007,37 +2007,36 @@
       }
     },
     {
-      "id": "templates-configuration-example.top",
+      "id": "templates-configuration-example.slack-actions",
       "primitives": [
-        "cursor-automations",
-        "cursor-host"
+        "cursor-automations"
       ],
       "files": {
         "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
       }
     },
     {
-      "id": "templates-configuration-example.top-2",
-      "primitives": [],
-      "files": {
-        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
-      }
-    },
-    {
-      "id": "templates-configuration-example.top-3",
+      "id": "templates-configuration-example.tracker-types",
       "primitives": [
-        "cursor-path",
-        "cursor-host"
+        "cursor-automations"
       ],
       "files": {
         "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
       }
     },
     {
-      "id": "templates-configuration-example.top-4",
+      "id": "templates-configuration-example.routing-path",
       "primitives": [
-        "cursor-path",
-        "cursor-host"
+        "cursor-path"
+      ],
+      "files": {
+        "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
+      }
+    },
+    {
+      "id": "templates-configuration-example.feature-map-path",
+      "primitives": [
+        "cursor-path"
       ],
       "files": {
         "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml": 1
@@ -2512,7 +2511,7 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
-      "rule": "templates-configuration-example.top",
+      "rule": "templates-configuration-example.slack-actions",
       "offset": [
         455,
         484
@@ -2527,22 +2526,22 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
-      "rule": "templates-configuration-example.top-2",
+      "rule": "templates-configuration-example.tracker-types",
       "offset": [
-        862,
-        1214
+        853,
+        878
       ],
       "lines": [
-        28,
-        37
+        27,
+        28
       ],
-      "original": "  type: \"linear\"\n  adapter_skill_name: \"issue-tracker-adapter-placeholder\"\n  team: \"team-placeholder\"\n  project: \"project-placeholder\"\n  labels:\n    bug: \"bug-label-placeholder\"\n    performance: \"performance-label-placeholder\"\n    intake: \"intake-label-placeholder\"\n    needs_repro: \"needs-repro-label-placeholder\"\n  status: \"intake-status-placeholder\"",
-      "replacement": "  type: \"github\"\n  repo: \"example-org/example-repo\"\n  labels:\n    bug: \"bug\"\n    performance: \"performance\"\n    intake: \"intake\"\n    needs_repro: \"needs-repro\"",
+      "original": "tracker:\n  type: \"linear\"",
+      "replacement": "tracker:\n  # type \"linear\" (or any other tracker) is reached through the project-owned skill named by adapter_skill_name. The pi-pstack\n  # parent runs each tracker write in a worker that loads that skill and uses the MCP tools the workspace has.\n  # type: \"github\" (GitHub Issues, through the gh CLI the parent runs) is the one tracker the package ships. It needs\n  #   repo: \"owner/name\" and the four labels, and no adapter_skill_name, team, project, or status.\n  type: \"linear\"",
       "output": "generated/automations/benny/templates/configuration.example.yaml"
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
-      "rule": "templates-configuration-example.top-3",
+      "rule": "templates-configuration-example.routing-path",
       "offset": [
         1297,
         1335
@@ -2557,17 +2556,17 @@
     },
     {
       "file": "vendor/upstream-pstack/automations/benny/templates/configuration.example.yaml",
-      "rule": "templates-configuration-example.top-4",
+      "rule": "templates-configuration-example.feature-map-path",
       "offset": [
-        1457,
+        1492,
         1542
       ],
       "lines": [
-        48,
+        49,
         49
       ],
-      "original": "  skill_name: \"control-target-app\"\n  feature_map_path: \".cursor/benny/feature-map.md\"",
-      "replacement": "  skill_name: \"control-ui\"\n  feature_map_path: \".pi/benny/feature-map.md\"",
+      "original": "  feature_map_path: \".cursor/benny/feature-map.md\"",
+      "replacement": "  feature_map_path: \".pi/benny/feature-map.md\"",
       "output": "generated/automations/benny/templates/configuration.example.yaml"
     },
     {
