@@ -70,6 +70,8 @@ export interface RunSpec {
   timeoutMs?: number;
   /** rpc (default) drives Pi over its RPC protocol. print and json run `pi -p` and `pi --mode json` once, with the prompt as an argument and no stdin. */
   mode?: Mode;
+  /** Extra environment for the parent Pi process. */
+  env?: Record<string, string>;
   /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
   drive?: (api: DriveApi) => Promise<void>;
 }
@@ -290,6 +292,7 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   const env: Record<string, string> = { ...(process.env as Record<string, string>), HOME: join(ctx.sandbox, 'home'), PI_CODING_AGENT_DIR: ctx.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: socket };
   for (const name of Object.keys(env).filter((key) => key.startsWith('PSTACK_') && key !== 'PSTACK_TMUX_SOCKET')) delete env[name];
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
+  Object.assign(env, spec.env);
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
   const mode = spec.mode ?? 'rpc';

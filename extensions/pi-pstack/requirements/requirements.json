@@ -1290,6 +1290,10 @@
     "cm.compose": {
       "file": "tests/workflow-parity/codemode.test.ts",
       "name": "codemode scripted run: every check passes"
+    },
+    "cc.four": {
+      "file": "tests/workflow-parity/concurrency.test.ts",
+      "name": "worker-concurrency scripted run: every check passes"
     }
   },
   "structural": [
@@ -1838,7 +1842,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/worker-lifecycle/lifecycle.test.ts",
+      "verification": "tests/worker-lifecycle/lifecycle.test.ts and tests/workflow-parity/concurrency.test.ts (four workers, three models, one message)",
       "tests": [
         "life.spawn",
         "life.distinct",
@@ -1846,9 +1850,9 @@
         "life.reuse-other-branch",
         "life.reuse-own",
         "life.branch-exists",
-        "nest.subcoordinator"
-      ],
-      "coverageGap": "No test spawns several workers at once with different resolved models. Session and worktree distinctness are tested pairwise."
+        "nest.subcoordinator",
+        "cc.four"
+      ]
     },
     {
       "id": "MX-DIRECT-INTERACTION",

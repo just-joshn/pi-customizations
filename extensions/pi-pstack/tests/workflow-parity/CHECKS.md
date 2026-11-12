@@ -1383,3 +1383,28 @@ Negative cases, each of which must FAIL the named checks:
 - the large result reached the model whole → `codemode.large-output-is-bounded`
 - the worker was readonly, with no codemode → `codemode.worker-ran-codemode`
 
+## worker-concurrency
+
+four workers spawned in one message on three different models: distinct sessions, tmux sessions and worktrees, overlapping in time (MX-WORKER-CONCURRENCY)
+
+Known product defect, asserted with test.fails: `worker-concurrency.workers-get-their-own-pane-env`. src/workers.ts:520-526 builds the worker environment from the parent snapshot (launchEnvironment), which carries the parent's TMUX and TMUX_PANE over the values tmux gives the worker pane; only container workers drop them (src/container.ts:49 hostOnlyEnv). A host worker that runs a bare tmux command targets its parent's pane.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `worker-concurrency.spawned-in-one-message` | the general workers were spawned in a single assistant message | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.spawn-does-not-block` | spawn returned before any worker settled: the parent kept running while all four were live, and the four live intervals share one instant | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-resolved-models` | the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-sessions-and-panes` | every worker has its own Pi session file, session id, tmux session and tmux pane marker, and none is shared | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.distinct-worktrees-and-branches` | every worker ran inside its own worktree on its own new branch pstack-run/<run>/<worker>, each started at the input commit and ending with its own commit only | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.no-worker-saw-anothers-files` | each worktree holds its own helper file and none of the other three | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.assignments-differ-only-where-intended` | the four assignments are for the same role and input commit and differ in worker id and model | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.workers-get-their-own-pane-env` | each worker's $TMUX_PANE names its own pane, not the pane its parent runs in | `generated/skills/swarm/SKILL.md:27` |
+| `worker-concurrency.settled-and-collected` | every worker settled, the parent was woken by a pstack-worker message, and collected it after that wake | `generated/skills/poteto-mode/SKILL.md:97` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- two workers share one tmux session → `worker-concurrency.distinct-sessions-and-panes`
+- a worker ran inside another worker's worktree → `worker-concurrency.distinct-worktrees-and-branches`
+- spawn blocked until the workers finished → `worker-concurrency.spawn-does-not-block`
+- all four workers ran on one model → `worker-concurrency.assignments-differ-only-where-intended`
+

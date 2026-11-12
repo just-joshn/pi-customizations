@@ -1,6 +1,7 @@
 import { buildFamilies } from './build.ts';
 import { measuredFamilies } from './build-measured.ts';
 import { codemodeFamily } from './codemode.ts';
+import { concurrencyFamily } from './concurrency.ts';
 import { forensicsFamilies } from './forensics.ts';
 import { headlessFamilies } from './headless.ts';
 import { historyFamilies } from './history.ts';
@@ -12,7 +13,7 @@ import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...headlessFamilies, ...mcpFamilies, codemodeFamily];
+export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...headlessFamilies, ...mcpFamilies, codemodeFamily, concurrencyFamily];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);
