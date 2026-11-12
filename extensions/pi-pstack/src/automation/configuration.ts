@@ -16,6 +16,8 @@ function text(value: unknown, name: string): string {
 
 /** The configuration the automation serve process acts on, beyond the fields the adapter core reads. */
 export interface BennyConfig extends AutomationConfig {
+  /** `repository.url`, where a draft pull request is opened. */
+  repositoryUrl: string;
   tracker: TrackerConfig;
   control: { skillName: string; featureMapPath: string };
 }
@@ -41,6 +43,8 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   if (trackerType === 'github' && !REPO.test(text(section('tracker')['repo'], 'tracker.repo'))) throw new Error('invalid Benny tracker.repo; expected owner/name');
   if (section('slack')['allow_source_root_posts'] !== false || section('slack')['allow_worker_slack_writes'] !== false || section('repository')['draft_only'] !== true) throw new Error('unsafe Benny write configuration');
   for (const marker of ['bug', 'performance', 'other']) if (section('verdict_markers')[marker] !== `[benny:${marker}]`) throw new Error('unsupported Benny verdict marker');
+  const trackerAttribute = text(section('verdict_markers')['tracker_attribute'], 'verdict_markers.tracker_attribute');
+  if (!/^[a-z][a-z_]{0,31}$/.test(trackerAttribute)) throw new Error('invalid Benny verdict_markers.tracker_attribute');
   const labels = object(section('tracker')['labels'], 'tracker.labels');
   for (const label of ['bug', 'performance', 'intake', 'needs_repro']) text(labels[label], `tracker.labels.${label}`);
   for (const model of ['triage', 'reproduce', 'code', 'media_review']) text(section('models')[model], `models.${model}`);
@@ -64,7 +68,7 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
     labels: { bug: text(labels['bug'], 'tracker.labels.bug'), performance: text(labels['performance'], 'tracker.labels.performance'), intake: text(labels['intake'], 'tracker.labels.intake'), needsRepro: text(labels['needs_repro'], 'tracker.labels.needs_repro') },
   };
   const budgetOf = (name: string) => section('budgets')[name] as number;
-  const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes') };
+  const budgets = kind === 'triage' ? { totalMinutes: budgetOf('triage_total_minutes'), followUpMinutes: budgetOf('triage_follow_up_minutes') } : { totalMinutes: budgetOf('repro_minutes'), followUpMinutes: budgetOf('operations_follow_up_minutes'), verdictWaitMinutes: budgetOf('verdict_wait_minutes'), rejectionWindowMinutes: budgetOf('rejection_window_minutes'), fixMinutes: budgetOf('fix_minutes') };
   // An empty operations_channel_id disables the operations thread. A channel is never the source channel: upstream forbids a root post there.
   const operationsChannel = section('slack')['operations_channel_id'];
   if (operationsChannel !== undefined && typeof operationsChannel !== 'string') throw new Error('invalid Benny slack.operations_channel_id');
@@ -72,5 +76,5 @@ export function loadBennyConfig(projectRoot: string, kind: BennyAutomationKind, 
   const emoji = Object.fromEntries(Object.entries(section('status_emoji')).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
   const operations: OperationsConfig | undefined = typeof operationsChannel === 'string' && operationsChannel.trim() !== '' ? { channelId: operationsChannel.trim(), emoji } : undefined;
   const control = { skillName: text(section('control')['skill_name'], 'control.skill_name'), featureMapPath: text(section('control')['feature_map_path'], 'control.feature_map_path') };
-  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
+  return { name, kind, projectRoot: resolve(projectRoot), configPath, sourceChannelId, triageIdentityUserId, trackerAttribute, repositoryUrl: text(section('repository')['url'], 'repository.url'), model: text(section('models')[kind], `models.${kind}`), tracker, control, budgets, ...(operations === undefined ? {} : { operations }) };
 }

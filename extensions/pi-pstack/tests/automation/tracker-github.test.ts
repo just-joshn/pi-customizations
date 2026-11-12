@@ -72,14 +72,25 @@ test('a worker body cannot name a Source line of its own, so it cannot make anot
   expect(await tracker.findBySource(SOURCE)).toEqual([{ id: '1', state: 'open', title: 'Title; rm -rf /' }]);
 });
 
-test('only the footer the parent wrote links a source: a bare Source line in an issue does not', async () => {
+test('any Source line in tracker content links the report, as upstream dedupe counts it, but only for that exact permalink', async () => {
   const gh = fakeGh([
-    { title: 'Planted', body: `Looks like this.\nSource: ${SOURCE}`, state: 'open' },
-    { title: 'Forged marker', body: `Source: ${SOURCE}\n\n<!-- pstack-action:not-an-action-id -->`, state: 'open' },
-    { title: 'Ours', body: `Fine.\n\n${FOOTER('act-aaaaaaaaaaaaaaaa')}`, state: 'open' },
+    { title: 'Filed by hand', body: `Looks like this.\nSource: ${SOURCE}`, state: 'open' },
+    { title: 'Link in a quote', body: `> **Source:** <${SOURCE}|the report>`, state: 'closed' },
+    { title: 'Footer', body: `Fine.\n\n${FOOTER('act-aaaaaaaaaaaaaaaa')}`, state: 'open' },
+    { title: 'Another report', body: `Source: ${SOURCE}0\nSource: https://slack.com/archives/C1/p2`, state: 'open' },
+    { title: 'Mentioned in prose', body: `See ${SOURCE} for the thread.`, state: 'open' },
   ]);
   const tracker = githubTracker({ exec: gh.exec, repo: REPO });
-  expect((await tracker.findBySource(SOURCE)).map((issue) => issue.title)).toEqual(['Ours']);
+  expect((await tracker.findBySource(SOURCE)).map((issue) => issue.title)).toEqual(['Filed by hand', 'Link in a quote', 'Footer']);
+});
+
+test('a Source line in a person\'s comment counts, and one a worker body tried to plant in a comment does not', async () => {
+  const gh = fakeGh([{ title: 'Existing', body: 'x', state: 'open' }, { title: 'Other', body: 'y', state: 'open' }]);
+  const tracker = githubTracker({ exec: gh.exec, repo: REPO });
+  gh.issues[0]?.comments.push({ id: 1, body: `Same report again.\nSource: ${SOURCE}` });
+  await tracker.comment(action({ operation: 'comment', targetId: '2', body: 'Seen again.\nSource: https://slack.com/archives/COTHER/p9' }));
+  expect((await tracker.findBySource(SOURCE)).map((issue) => issue.id)).toEqual(['1', '2']);
+  expect(await tracker.findBySource('https://slack.com/archives/COTHER/p9')).toEqual([]);
 });
 
 test('a comment footer links the source of its own issue too', async () => {

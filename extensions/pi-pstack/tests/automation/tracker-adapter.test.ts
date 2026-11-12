@@ -74,7 +74,7 @@ test('a tracker other than GitHub is written by a dedicated worker that loads th
   settleWorker(t.project.dir, worker?.runId as RunId, { phase: 'idle', finalText: '```json\n{"outcome":"created","id":"LIN-42","url":"https://linear.app/x/issue/LIN-42"}\n```' });
   expect(await completeSettledRuns(t.automation)).toBe(1);
   expect(trackerEntry(t)).toMatchObject({ state: 'done', destinationTs: 'LIN-42', reconciled: false });
-  expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: VERDICT }]);
+  expect(t.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: `${VERDICT} tracker=https://linear.app/x/issue/LIN-42` }]);
   expect(t.gh.calls).toHaveLength(0);
 });
 

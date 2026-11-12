@@ -1,18 +1,20 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { afterEach, expect, test } from 'vitest';
+import { afterAll, afterEach, expect, test } from 'vitest';
 import type { Automation } from '../../adapters/automation-events.ts';
-import type { AbortOutcome } from '../../src/automation/abort.ts';
+import { abortInTmux, type AbortOutcome } from '../../src/automation/abort.ts';
 import { workerDir } from '../../src/automation/dispatch.ts';
 import type { RunId } from '../../src/automation/model.ts';
 import { collectRun, completeSettledRuns } from '../../src/automation/settle.ts';
 import { readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
 import type { HostState } from '../../src/run-files.ts';
+import { killTmuxServer, TMUX } from '../worker-lifecycle/harness.ts';
 import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, wiringDeps } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
+afterAll(killTmuxServer);
 afterEach(() => {
   for (const project of projects.splice(0)) rmSync(project.dir, { recursive: true, force: true });
 });
@@ -30,7 +32,7 @@ function triage() {
   const automation: Automation = wireBenny(config, wiringDeps(slack, fakeGh(), { spawnWorker: async () => undefined, now: () => new Date(clock) }));
   const abort = async (_root: string, runId: RunId): Promise<AbortOutcome> => {
     aborts.push(runId);
-    return 'aborted';
+    return 'stopped';
   };
   return { project, slack, automation, aborts, abort, later: (minutes: number) => void (clock += minutes * 60_000) };
 }
@@ -85,7 +87,7 @@ test.for<[string, 'idle' | 'running', number]>([
   expect(t.slack.posts).toHaveLength(1);
   expect(t.slack.posts[0]).toMatchObject({ thread_ts: ROOT_TS });
   expect(t.slack.posts[0]?.text).toMatch(/could not finish this report: the worker exceeded its 30-minute budget\. No ticket was created\.\n\[benny:other\]$/);
-  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', runId, minutes: MINUTES, abort: 'aborted' }));
+  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', runId, minutes: MINUTES, abort: 'stopped' }));
   expect(t.automation.pendingRuns()).toEqual([]);
   expect(await completeSettledRuns(t.automation, { collect, abort: t.abort })).toBe(0);
   expect(t.slack.posts).toHaveLength(1);
@@ -96,12 +98,12 @@ test('a claim with no state.json past the deadline completes with the failure re
   const runId = await dispatched(t);
   mkdirSync(join(workerDir(t.project.dir, runId), 'claim'), { recursive: true });
   writeFileSync(join(workerDir(t.project.dir, runId), 'claim', 'identity.json'), '{}');
-  const unreachable = async (): Promise<AbortOutcome> => 'unreachable';
+  const unreachable = async (): Promise<AbortOutcome> => 'refused: no tmux session';
   expect(await completeSettledRuns(t.automation, { abort: unreachable })).toBe(0);
   t.later(MINUTES + 1);
   expect(await completeSettledRuns(t.automation, { abort: unreachable })).toBe(1);
   expect(t.slack.posts[0]?.text).toContain('exceeded its 30-minute budget');
-  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', abort: 'unreachable' }));
+  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', abort: 'refused: no tmux session' }));
 });
 
 test('a worker that settles after the deadline but before the next poll keeps its result', async () => {
@@ -122,4 +124,21 @@ test('an abort that throws still completes the case', async () => {
   const broken = async (): Promise<AbortOutcome> => Promise.reject(new Error('socket exploded'));
   expect(await completeSettledRuns(t.automation, { abort: broken })).toBe(1);
   expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', abort: expect.stringContaining('socket exploded') }));
+});
+
+test('a claim no host ever took is abandoned through the runtime abort when its deadline passes, and the case still completes', async () => {
+  const t = triage();
+  const runId = await dispatched(t);
+  const worker = workerDir(t.project.dir, runId);
+  mkdirSync(join(worker, 'claim'), { recursive: true });
+  writeFileSync(join(worker, 'claim', 'launch-env.json'), '{"SECRET":"left-behind"}', { mode: 0o600 });
+  const abort = abortInTmux({ tmuxSocket: TMUX, startCheckMs: 300 });
+  t.later(MINUTES + 1);
+  expect(await completeSettledRuns(t.automation, { abort })).toBe(1);
+  expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'deadline', runId, abort: 'abandoned' }));
+  expect(existsSync(join(worker, 'claim', 'launch-env.json'))).toBe(false);
+  expect(existsSync(join(worker, 'claim'))).toBe(true);
+  const events = readFileSync(join(t.project.dir, '.pi/pstack/runs', runId, 'events.jsonl'), 'utf8').trim().split('\n').map((line) => JSON.parse(line) as { kind: string });
+  expect(events.map((event) => event.kind)).toEqual(['abandoned', 'abort']);
+  expect(t.slack.posts[0]?.text).toContain('exceeded its 30-minute budget');
 });

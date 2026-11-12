@@ -3,7 +3,7 @@
 // `searchByMarker` finds it by listing recent issues and comments instead of the search index, which lags writes.
 import { execFile } from 'node:child_process';
 
-import { type TrackerAction, untrustedText } from './model.ts';
+import { linksSource, type TrackerAction, untrustedText } from './model.ts';
 import type { TrackerDestination } from './outbox.ts';
 
 /** Runs `gh <args>` and returns stdout; rejects when gh exits nonzero. */
@@ -32,8 +32,6 @@ const ISSUE_ID = /^[1-9][0-9]{0,9}$/;
 const MARKER_PREFIX = 'pstack-action:';
 export const markerComment = (id: string) => `<!-- ${MARKER_PREFIX}${id} -->`;
 const footerOf = (sourceUrl: string, marker: string) => `Source: ${sourceUrl}\n\n${marker}`;
-
-const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const lines = (output: string) => output.split('\n').filter((line) => line.trim() !== '');
 
@@ -110,8 +108,7 @@ export function githubTracker(options: { exec: GhExec; repo: string; now?: () =>
       return { id };
     },
     async findBySource(sourceUrl) {
-      const written = new RegExp(`${escapeRegExp(`Source: ${sourceUrl}`)}\\n\\n<!-- ${MARKER_PREFIX}act-[0-9a-f]{16} -->`);
-      const ids = new Set(await containing((text) => written.test(text)));
+      const ids = new Set(await containing((text) => linksSource(text, sourceUrl)));
       return (await issues()).filter((issue) => ids.has(String(issue.number))).map(issueOf);
     },
     async findOpenByTitle(title) {

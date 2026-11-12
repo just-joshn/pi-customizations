@@ -1,3 +1,4 @@
+import type { Download } from './attachments.ts';
 import type { ThreadReplyAction } from './model.ts';
 import type { ChannelMessage, OperationsDestination, ThreadDestination, ThreadMessage } from './outbox.ts';
 import { type AutomationStore, readCursor, writeCursor } from './store.ts';
@@ -111,5 +112,44 @@ export function slackDestination(api: SlackApi): ThreadDestination & OperationsD
       });
       return { ts: result.ts };
     },
+  };
+}
+
+const FILE_HOST = 'files.slack.com';
+
+/**
+ * Downloads a Slack private file with the parent's credential, which goes to `files.slack.com` over https and nowhere
+ * else: a link anywhere else is refused before any request. A redirect is not followed, so the credential cannot be
+ * carried to another host, and an HTML page (what Slack answers a token that cannot read files) is not a file.
+ */
+export function slackFileDownloader(api: SlackApi): Download {
+  return async (url, maxBytes) => {
+    let link: URL;
+    try {
+      link = new URL(url);
+    } catch {
+      throw new Error('the link is not a Slack file link');
+    }
+    if (link.protocol !== 'https:' || link.hostname !== FILE_HOST || link.port !== '' || link.username !== '' || link.password !== '') throw new Error(`the link is not a Slack file link (https://${FILE_HOST}/...)`);
+    const response = await api.fetch(link, { method: 'GET', redirect: 'manual', headers: { authorization: `Bearer ${api.token}` } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (/^text\/html/i.test(response.headers.get('content-type') ?? '')) throw new Error('Slack answered with a sign-in page, so the token cannot read files; it needs the files:read scope');
+    const declared = Number(response.headers.get('content-length'));
+    if (Number.isFinite(declared) && declared > maxBytes) throw new Error(`the file is larger than ${maxBytes} bytes`);
+    const reader = response.body?.getReader();
+    if (reader === undefined) return new Uint8Array();
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) {
+        await reader.cancel();
+        throw new Error(`the file is larger than ${maxBytes} bytes`);
+      }
+      chunks.push(value);
+    }
+    return Buffer.concat(chunks);
   };
 }

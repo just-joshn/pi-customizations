@@ -12,7 +12,7 @@ import { outboxEntries } from '../../src/automation/store.ts';
 const SECRET = 'webhook-secret-0123456789abcdef-do-not-leak';
 const CHANNEL = 'CSOURCE01';
 const REPORT = { source_channel_id: CHANNEL, ts: '1762900000.000100', user: 'U123', text: 'Export button does nothing on Safari' };
-const VERDICT = 'Reproducible export failure in the Safari download path.\n[benny:bug] tracker=https://tracker.example/ISSUE-1';
+const VERDICT = 'Reproducible export failure in the Safari download path.\n[benny:bug]';
 
 let root: string;
 let project: string;

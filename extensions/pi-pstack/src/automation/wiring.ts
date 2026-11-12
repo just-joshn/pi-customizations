@@ -4,9 +4,12 @@ import { type Automation, type AutomationConfig, createAutomation } from '../../
 import { controlProbes } from './control-adapter.ts';
 import type { BennyConfig } from './configuration.ts';
 import { type SpawnWorker, spawnInTmux } from './dispatch.ts';
-import type { Prerequisite, Probe } from './model.ts';
+import type { AbortRun } from './abort.ts';
+import type { Prerequisite, Probe, RunId } from './model.ts';
+import type { CollectedRun } from './settle.ts';
+import type { SteerRun } from './steer.ts';
 import type { TrackerDestination, TrackerLander } from './outbox.ts';
-import { slackDestination } from './slack.ts';
+import { slackDestination, slackFileDownloader } from './slack.ts';
 import { adapterSkillProblem, adapterTracker } from './tracker-adapter.ts';
 import { type GhExec, githubTracker } from './tracker-github.ts';
 import { createTrackerPolicy } from './tracker-policy.ts';
@@ -18,6 +21,10 @@ export interface WiringDeps {
   spawnWorker?: SpawnWorker;
   inputCommit?: () => string;
   now?: () => Date;
+  /** How a worker's result is read, a worker stopped, and an idle worker sent its next message. Default to the runtime's own. */
+  collect?: (runId: RunId) => Promise<CollectedRun>;
+  abort?: AbortRun;
+  steer?: SteerRun;
   packageRoot?: string;
   /** Where `~/.pi/agent/skills` and `~/.agents/skills` are looked up. Defaults to the user's home. */
   home?: string;
@@ -40,14 +47,20 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
     probes.tracker = () => github.reachable();
     policy = createTrackerPolicy({ tracker: config.tracker, reader: github, destination, canCompensate: true });
   }
+  const repo = config.tracker.repo;
   const automationConfig: AutomationConfig = config;
   return createAutomation(automationConfig, {
     destination,
     operations: destination,
+    downloadAttachment: slackFileDownloader({ fetch: deps.fetch, token: deps.slackToken }),
     prerequisites: probes,
     ...(tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy }),
+    ...(config.tracker.type === 'github' && repo !== undefined ? { trackerUrl: (id: string) => `https://github.com/${repo}/issues/${id}` } : {}),
     ...(deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker }),
     ...(deps.inputCommit === undefined ? {} : { inputCommit: deps.inputCommit }),
+    ...(deps.collect === undefined ? {} : { collect: deps.collect }),
+    ...(deps.abort === undefined ? {} : { abort: deps.abort }),
+    ...(deps.steer === undefined ? {} : { steer: deps.steer }),
     ...(deps.now === undefined ? {} : { now: deps.now }),
   });
 }

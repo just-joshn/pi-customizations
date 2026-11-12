@@ -55,7 +55,7 @@ If any check fails, post nothing. Never retry at the root or in a fallback chann
 
 ## 2. Wait for the triage contract
 
-Watch the source thread for the configured verdict budget. Stay silent while waiting.
+The parent watched the source thread for `budgets.verdict_wait_minutes` before it started you, and stayed silent while it waited.
 
 Accept a verdict only when:
 
@@ -73,7 +73,7 @@ Public marker forms:
 [benny:other]
 ```
 
-Proceed only for `bug` or `performance`. Capture the optional tracker URL. Stop silently for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout.
+The parent applied these checks before it started you. It starts nothing for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout. Your brief carries the optional tracker URL from the verdict.
 
 This marker replaces private bot identities and free-form verdict matching.
 
@@ -213,7 +213,12 @@ For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed 
 
 You cannot attach files. Link evidence in your `operations` reply instead.
 
-Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.
+Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.
+
+- If a person shows that the setup or interpretation was wrong, correct the repro once and report where it ends.
+- If a person claims the fix, gives a concrete implementation plan, or asks you to stop, decide `stop`. The parent then stops you and no fix is attempted.
+
+Do not start the fix phase until the parent sends the go-ahead message, which it sends only when the window closes without a valid rejection.
 
 ## 10. Verify an existing fix
 
@@ -300,6 +305,15 @@ On success, write operations status `Draft pull request opened`, and put one con
 
 ## 15. Follow-ups and cleanup
 
-The parent does not watch the operations thread after a repro run, so this package has no repro follow-up window and `budgets.operations_follow_up_minutes` is read and not acted on. Put the evidence a reader would ask about in your `operations` reply, and keep it from your own gathered evidence.
+After the repro lifecycle ends (the report, the rejection window, and the fix phase when there is one), the parent watches the operations thread for `budgets.operations_follow_up_minutes`, then stops. With no operations channel there is no window. It starts one follow-up worker for each batch of new human messages. You are that worker when your brief says follow-up, and these rules are yours.
+
+- Answer a direct question from evidence already gathered.
+- Apply one concrete correction and rerun the repro once when it invalidates the setup. You cannot rerun it yourself. Ask for it with `rerun` in your result, and the parent sends the correction to the repro worker as its next message. The parent allows one rerun per case.
+- Stay out of human coordination and side chatter.
+- Stop when asked.
+
+Your final message is one JSON object: `{ "text": "<the reply, or an empty string to say nothing>", "rerun": { "correction": "<the correction>" }, "stop": true }`. Leave out `rerun` and `stop` when they do not apply. The parent posts `text` as a reply in the operations thread and drops any reply that carries a verdict marker.
+
+When you are the repro worker and the parent sends you a rerun message, rerun the repro once with that correction, report where it ends in the JSON result the message asks for, and do not start the fix phase. The parent never extends the window.
 
 Always call the control adapter's cleanup capability. Keep artifacts only as long as the configured retention policy allows.

@@ -20,7 +20,7 @@ export interface AutomationEvent {
   messageTs: string;
   user: string;
   text: string;
-  files: { name: string; mimetype: string; permalink: string }[];
+  files: { name: string; mimetype: string; permalink: string; size?: number; /** Slack's private download link. Only the parent follows it, with its own credential. */ downloadUrl?: string }[];
 }
 
 export type ParsedEvent = { ok: true; event: AutomationEvent } | { ok: false; reason: string };
@@ -57,7 +57,11 @@ export function parseEvent(raw: unknown): ParsedEvent {
       text: typeof body['text'] === 'string' ? body['text'] : '',
       files: files
         .filter((file): file is Record<string, unknown> => typeof file === 'object' && file !== null)
-        .map((file) => ({ name: str(file['name']) ?? '', mimetype: str(file['mimetype']) ?? '', permalink: str(file['permalink']) ?? '' })),
+        .map((file) => {
+          const link = str(file['url_private_download']) || str(file['url_private']);
+          const size = file['size'];
+          return { name: str(file['name']) ?? '', mimetype: str(file['mimetype']) ?? '', permalink: str(file['permalink']) ?? '', ...(typeof size === 'number' && Number.isFinite(size) && size >= 0 ? { size } : {}), ...(link ? { downloadUrl: link } : {}) };
+        }),
     },
   };
 }
@@ -181,16 +185,27 @@ export interface TrackerConfig {
   labels: { bug: string; performance: string; intake: string; needsRepro: string };
 }
 
+/** The start of a line that links a source: `Source:` after optional whitespace and quote or emphasis characters. */
+const SOURCE_LINE = /^[\s>*_-]*source\s*:/i;
+
 /**
  * Worker-supplied text a parent copies into an external system. It cannot carry an action marker or a `Source:` line,
- * because the parent writes the one footer that later searches trust.
+ * so every `Source:` line a tracker holds was written by the parent or by a person, which is what `linksSource` trusts.
  */
 export const untrustedText = (text: string) =>
   text
     .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
     .split('\n')
-    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
+    .filter((line) => !SOURCE_LINE.test(line))
     .join('\n');
+
+/** Whether `text` has a `Source:` line naming exactly `url`, with or without Slack's `<url|label>` or angle brackets. */
+export const linksSource = (text: string, url: string): boolean =>
+  text.split('\n').some((line) => {
+    const prefix = SOURCE_LINE.exec(line);
+    const named = prefix === null ? undefined : line.slice(prefix[0].length).replace(/^[*_\s]+/, '').split(/\s+/)[0]?.replace(/^<|>$/g, '').split('|')[0];
+    return named === url;
+  });
 
 /** The Slack permalink the parent computes from the immutable source coordinates. */
 export const sourceUrlOf = (event: Pick<AutomationEvent, 'channel' | 'rootTs'>) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}`;
@@ -201,6 +216,32 @@ export type Classification = 'bug' | 'performance' | 'other';
 export function classificationOf(reply: string): Classification {
   const found = /\[benny:(bug|performance|other)\]/.exec(reply)?.[1];
   return found === 'bug' || found === 'performance' ? found : 'other';
+}
+
+/** A link a verdict may carry: http or https, one token, no characters that end a Slack link or a marker line. */
+export const isTrackerUrl = (value: string) => /^https?:\/\/[^\s<>\]|]{1,500}$/.test(value);
+
+const MARKER_LINE = /^(\[benny:(?:bug|performance|other)\])(.*)$/;
+const attributeOf = (attribute: string) => new RegExp(`\\s+${attribute}=\\S+`, 'g');
+
+/** The tracker url in the marker line of a verdict (`[benny:bug] tracker=<url>`), when it is a link a verdict may carry. */
+export function trackerUrlOf(verdict: string, attribute: string): string | undefined {
+  const rest = MARKER_LINE.exec(verdict.trimEnd().split('\n').at(-1)?.trim() ?? '')?.[2] ?? '';
+  const url = new RegExp(`\\s${attribute}=(\\S+)`).exec(rest)?.[1];
+  return url !== undefined && isTrackerUrl(url) ? url : undefined;
+}
+
+/**
+ * The verdict with the parent's tracker url in its marker line, and only that url: one the worker wrote is replaced,
+ * and without a url the attribute is dropped, because only the parent knows which issue it wrote or updated. The
+ * result is the same however often it is applied.
+ */
+export function withTrackerAttribute(verdict: string, attribute: string, url: string | undefined): string {
+  const lines = verdict.trimEnd().split('\n');
+  const marker = MARKER_LINE.exec(lines.at(-1)?.trim() ?? '');
+  if (marker === null) return verdict;
+  const line = `${marker[1]}${(marker[2] ?? '').replace(attributeOf(attribute), '').trimEnd()}${url === undefined || !isTrackerUrl(url) ? '' : ` ${attribute}=${url}`}`;
+  return line === lines.at(-1) ? verdict : [...lines.slice(0, -1), line].join('\n');
 }
 
 const oneLine = (value: string) => value.replace(/\s+/g, ' ').trim().slice(0, 200);
