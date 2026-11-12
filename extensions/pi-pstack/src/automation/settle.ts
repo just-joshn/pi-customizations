@@ -139,6 +139,7 @@ export function startSettler(automation: Automation, options: SettleOptions & { 
       .then(() => automation.advanceRepro())
       .then(() => completeSettledRuns(automation, options))
       .then(() => automation.advanceFollowUps())
+      .then(() => automation.retireWorkers())
       .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;
     timer = setTimeout(() => {

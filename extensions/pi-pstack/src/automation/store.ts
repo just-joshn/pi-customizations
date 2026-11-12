@@ -23,6 +23,7 @@ export type LogEntry =
   | { ts: string; kind: 'repro-turn'; key: EventKey; runId: RunId; turn: number; purpose: 'review' | 'fix' | 'rerun'; generation: number; prompt: string; seenTs?: string }
   | { ts: string; kind: 'repro-turn-completed'; key: EventKey; runId: RunId; turn: number; failure?: string; decision?: string; corrected?: boolean }
   | { ts: string; kind: 'repro-closed'; key: EventKey; runId: RunId; reason: string }
+  | { ts: string; kind: 'worker-retired'; key: EventKey; runId: RunId; outcome: string; ok: boolean }
   | { ts: string; kind: 'deadline'; runId: RunId; minutes: number; abort: string }
   | { ts: string; kind: 'compensated'; key: EventKey; issue: string; verified: boolean; reason?: string }
   | { ts: string; kind: 'outbox-failed'; actionId: ActionId; attempts: number; error: string; final: boolean }

@@ -215,3 +215,39 @@ test('a real follow-up worker answers a question in the operations thread and as
   expect(r.slack.posts).toEqual([{ thread_ts: ROOT_TS, text: 'Reproduced with the admin account.' }]);
   expect(r.prompts).toHaveLength(1);
 }, 180_000);
+
+test('a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart', async () => {
+  project = makeProject('pstack-benny-retire-');
+  const current = project;
+  const benny = bennyProject({ root: current.dir });
+  const slack = fakeSlack();
+  const gh = fakeGh();
+  let clock = Date.now();
+  const spawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }) });
+  const build = (): Automation =>
+    wireBenny(benny.config('triage'), wiringDeps(slack, gh, {
+      now: () => new Date(clock),
+      abort: abortInTmux({ tmuxSocket: TMUX }),
+      spawnWorker: async (runId, assignmentPath) => {
+        writeFileSync(join(assignmentPath, '..', 'brief.md'), `@@say ${JSON.stringify({ text: 'A bug.\n[benny:bug]' })}`);
+        await spawn(runId, assignmentPath);
+      },
+    }));
+  const automation = build();
+  const run = await automation.handle(REPORT);
+  if (run.status !== 'dispatched') throw new Error(`not dispatched: ${JSON.stringify(run)}`);
+  await until(async () => (await completeSettledRuns(automation)) > 0 || automation.pendingRuns().length === 0, Boolean, 45_000, 'the worker to settle and the case to complete');
+  const dir = workerDir(current.dir, run.runId);
+  expect(readHostState(dir)?.phase).toBe('idle');
+
+  await automation.retireWorkers();
+  expect(readHostState(dir)?.phase).toBe('idle');
+  clock += 11 * 60_000;
+  await automation.retireWorkers();
+  await until(() => readHostState(dir)?.phase, (phase) => phase === 'stopped' || phase === 'exited', 30_000, 'the retired host to stop');
+
+  const restarted = build();
+  await restarted.reconcile();
+  await restarted.retireWorkers();
+  expect(readLog(automation.store).filter((entry) => entry.kind === 'worker-retired')).toEqual([expect.objectContaining({ runId: run.runId, ok: true })]);
+}, 120_000);

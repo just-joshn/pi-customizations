@@ -14,6 +14,7 @@ import { type Download, fetchAttachments } from '../src/automation/attachments.t
 import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { createReproTurns } from '../src/automation/repro-turns.ts';
+import { createRetirement } from '../src/automation/retire.ts';
 import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
 import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -85,6 +86,8 @@ export interface Automation {
   retryWaiting(): Promise<void>;
   /** Repro only: holds the rejection window after the first report, and sends the worker its review and fix turns. */
   advanceRepro(): Promise<void>;
+  /** Shuts down the idle worker of each case whose lifecycle is over, once. */
+  retireWorkers(): Promise<void>;
   /** Brings the operations status message in line with what each pending repro run last reported, then retries every pending outbox action. */
   syncOperations(): Promise<void>;
   /** When the run was dispatched, from the event log. */
@@ -278,6 +281,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     rerun: (key: EventKey, correction: string) => reproTurns.startRerun(key, correction),
   };
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush(), ...(deps.collect === undefined ? {} : { collect: deps.collect }), ...(deps.abort === undefined ? {} : { abort: deps.abort }), reproduce });
+  const retirement = createRetirement({ config, store, now, abort: deps.abort ?? abortRun, anchor: (key, completedTs) => (config.kind === 'reproduce' ? reproTurns.followUpAnchor(key) : completedTs), inFlight: () => reproTurns.inFlightRuns() });
   const pendingRuns = (): RunId[] => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
@@ -379,6 +383,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
     advanceRepro: () => serial(() => reproTurns.advance()),
+    retireWorkers: () => serial(() => retirement.advance()),
     syncOperations: () =>
       serial(async () => {
         if (operations !== undefined) {

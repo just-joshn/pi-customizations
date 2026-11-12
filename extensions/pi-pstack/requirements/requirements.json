@@ -2038,6 +2038,46 @@
     "bn.tracker-adapter.17": {
       "file": "tests/automation/tracker-adapter.test.ts",
       "name": "already-linked is not an outcome of a compensation close: the close is not recorded as landed"
+    },
+    "bn.retire.1": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "triage the idle worker is shut down once the follow-up window ends, and not before"
+    },
+    "bn.retire.2": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "triage a repeated pass and a restart shut it down once"
+    },
+    "bn.retire.3": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "triage a follow-up worker still answering keeps the case worker until the window closes"
+    },
+    "bn.retire.4": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "triage a shutdown the host refuses is tried again on the next pass, up to the attempt limit, and a success ends it"
+    },
+    "bn.retire.5": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "triage a host that keeps refusing is left after the attempt limit instead of being retried forever"
+    },
+    "bn.retire.6": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "repro the idle worker is shut down once the operations follow-up window ends"
+    },
+    "bn.retire.7": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "repro a rerun turn still in flight keeps the worker past the window, and it is shut down after the turn settles"
+    },
+    "bn.retire.8": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "repro without an operations channel there is no window, so the worker is shut down as soon as its lifecycle is over"
+    },
+    "bn.retire.9": {
+      "file": "tests/automation/retire.test.ts",
+      "name": "repro a case still inside its rejection window keeps its worker"
+    },
+    "bn.benny-tmux.7": {
+      "file": "tests/automation/benny-tmux.test.ts",
+      "name": "a real triage worker idles after its verdict and is shut down through its host once the follow-up window ends, once across a restart"
     }
   },
   "structural": [
@@ -5456,6 +5496,39 @@
         "bn.deadline.4",
         "bn.deadline.5",
         "bn.deadline.6"
+      ]
+    },
+    {
+      "title": "An idle case worker is shut down when its lifecycle is over",
+      "specSection": "14.2",
+      "source": {
+        "specOnly": true,
+        "reason": "A Cursor automation agent ends with its run. A Pi worker host stays up idle after its last turn, so the parent shuts it down; upstream ends both follow-up windows with 'then stop' (triage SKILL.md:230, reproduce SKILL.md:301)."
+      },
+      "observable": "After the follow-up window ends, and while no repro turn or follow-up round is running, the parent shuts the case worker down through the host's shutdown, once, derived from the event log, so a restart does not repeat it; a refused shutdown is retried up to a limit.",
+      "invariants": [
+        "A worker is never shut down while a turn or round is in flight.",
+        "A restart never shuts a worker down twice."
+      ],
+      "piMechanism": "src/automation/retire.ts, run by the settler after the follow-up pass.",
+      "dependencies": [],
+      "prerequisites": [],
+      "applicability": {
+        "mandatory": true
+      },
+      "verification": "tests/automation/retire.test.ts and benny-tmux.test.ts",
+      "id": "BENNY-WORKER-RETIREMENT",
+      "tests": [
+        "bn.retire.1",
+        "bn.retire.2",
+        "bn.retire.3",
+        "bn.retire.4",
+        "bn.retire.5",
+        "bn.retire.6",
+        "bn.retire.7",
+        "bn.retire.8",
+        "bn.retire.9",
+        "bn.benny-tmux.7"
       ]
     },
     {
