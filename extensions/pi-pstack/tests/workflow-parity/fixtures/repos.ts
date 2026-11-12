@@ -183,3 +183,119 @@ export const couponHistory: Commit[] = [
   { message: 'feat: clampPercent keeps coupons in 0..100 (#142)', files: { 'src/coupon.js': COUPON_JS, 'test/coupon.test.js': COUPON_TEST_JS } },
   { message: 'feat: cart CLI prints a total (#143)', files: { 'bin/cart.js': `import { total } from '../src/cart.js';\nconst [price = '0', qty = '1', percent = '0'] = process.argv.slice(2);\nconsole.log('total=' + total([{ price: Number(price), qty: Number(qty) }], Number(percent)));\n` } },
 ];
+
+export const SPIN_JS = `export function idleTick() {
+  return 1;
+}
+
+export function hotLoop(rounds) {
+  let total = 0;
+  for (let index = 0; index < rounds; index += 1) total += Math.sqrt(index);
+  return total;
+}
+`;
+export const SPINNER_JS = `import { hotLoop, idleTick } from '../src/spin.js';
+
+const end = Date.now() + 1500;
+while (Date.now() < end) {
+  hotLoop(200000);
+  idleTick();
+}
+`;
+
+/** The cart repository plus a spinning program, for a CPU profile taken from it. */
+export const spinHistory: Commit[] = [...cartHistory, { message: 'feat: spinner program (#160)', files: { 'src/spin.js': SPIN_JS, 'bin/spinner.js': SPINNER_JS } }];
+
+export const CONFIG_JS = `export function parseConfig(text) {
+  return Object.fromEntries(text.split('\\n').filter(Boolean).map((line) => line.split('=')));
+}
+`;
+export const INDEXER_JS = `// builds the lookup index
+export function buildIndex(rows) {
+  const index = new Map();
+  for (const row of rows) {
+    for (const other of rows) if (other.key === row.key) index.set(row.key, other);
+  }
+  return index;
+}
+`;
+
+/** A handed-over V8 cpuprofile whose hot frame is buildIndex in src/indexer.js, with deterministic sample counts. */
+export function indexProfile(repo: string): string {
+  const nodes = [
+    { id: 1, callFrame: { functionName: '(root)', scriptId: '0', url: '', lineNumber: -1, columnNumber: -1 }, children: [2, 5] },
+    { id: 2, callFrame: { functionName: 'parseConfig', scriptId: '1', url: `file://${repo}/src/config.js`, lineNumber: 0, columnNumber: 0 }, children: [] },
+    { id: 3, callFrame: { functionName: 'buildIndex', scriptId: '2', url: `file://${repo}/src/indexer.js`, lineNumber: 1, columnNumber: 0 }, children: [] },
+    { id: 4, callFrame: { functionName: '(idle)', scriptId: '0', url: '', lineNumber: -1, columnNumber: -1 }, children: [] },
+    { id: 5, callFrame: { functionName: 'main', scriptId: '3', url: `file://${repo}/bin/run.js`, lineNumber: 0, columnNumber: 0 }, children: [3] },
+  ];
+  const samples = [...Array(12).fill(3), ...Array(3).fill(2), ...Array(2).fill(4), 5];
+  return JSON.stringify({ nodes, startTime: 0, endTime: samples.length * 1000, samples, timeDeltas: samples.map(() => 1000) });
+}
+
+export const UI_PALETTE_V1 = `export const palette = { fill: '#3366ff', edge: '#112244', badge: '#ffaa00', hover: '#5588ff' };
+export const rgb = (hex) => [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16));
+`;
+export const UI_PALETTE_V2 = `const parse = (hex) => [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16));
+export const palette = { fill: parse('#3366ff'), edge: parse('#112244'), badge: parse('#ffaa00'), hover: parse('#5588ff') };
+export const rgb = (value) => (Array.isArray(value) ? value : parse(value));
+`;
+export const UI_BUTTON_V1 = `import { palette, rgb } from './palette.js';
+
+export function renderButton(state) {
+  const pixels = [];
+  for (let y = 0; y < 4; y += 1) {
+    for (let x = 0; x < 8; x += 1) {
+      const edge = y === 0 || y === 3 || x === 0 || x === 7;
+      pixels.push(rgb(edge ? palette.edge : state === 'hover' ? palette.hover : palette.fill));
+    }
+  }
+  return { width: 8, height: 4, pixels };
+}
+`;
+export const UI_BUTTON_V2 = `import { palette, rgb } from './palette.js';
+
+const row = (edge, body) => [rgb(edge), ...Array(6).fill(rgb(body)), rgb(edge)];
+
+export function renderButton(state) {
+  const body = state === 'hover' ? palette.hover : palette.fill;
+  const rows = [Array(8).fill(rgb(palette.edge)), row(palette.edge, body), row(palette.edge, body), Array(8).fill(rgb(palette.edge))];
+  return { width: 8, height: 4, pixels: rows.flat() };
+}
+`;
+export const UI_BADGE_V1 = `import { palette, rgb } from './palette.js';
+
+export function renderBadge(state) {
+  const pixels = [];
+  for (let y = 0; y < 4; y += 1) for (let x = 0; x < 4; x += 1) pixels.push(rgb(state === 'hover' ? palette.hover : palette.badge));
+  return { width: 4, height: 4, pixels };
+}
+`;
+export const UI_BADGE_V2 = `import { palette, rgb } from './palette.js';
+
+export function renderBadge(state) {
+  const color = rgb(state === 'hover' ? palette.hover : palette.badge);
+  return { width: 4, height: 4, pixels: Array(16).fill(color) };
+}
+`;
+export const UI_RENDER = `import { renderBadge } from './badge.js';
+import { renderButton } from './button.js';
+
+const [component, state = 'idle'] = process.argv.slice(2);
+const image = (component === 'button' ? renderButton : renderBadge)(state);
+const rows = Array.from({ length: image.height }, (_, y) => image.pixels.slice(y * image.width, (y + 1) * image.width).map((pixel) => pixel.join(' ')).join(' '));
+console.log(['P3', \`\${image.width} \${image.height}\`, '255', ...rows].join('\\n'));
+`;
+export const UI_IMGDIFF = `import { readFileSync } from 'node:fs';
+
+const [a, b] = process.argv.slice(2).map((path) => readFileSync(path, 'utf8').split(/\\s+/));
+const differing = a.filter((value, index) => value !== b[index]).length + Math.abs(a.length - b.length);
+console.log('diff=' + differing);
+process.exit(differing === 0 ? 0 : 1);
+`;
+
+/** The cart repository plus a two-component UI renderer that prints PPM images, for a visual parity migration. */
+export const uiHistory: Commit[] = [
+  ...cartHistory,
+  { message: 'feat: button and badge renderers (#170)', files: { 'ui/palette.js': UI_PALETTE_V1, 'ui/button.js': UI_BUTTON_V1, 'ui/badge.js': UI_BADGE_V1, 'ui/render.mjs': UI_RENDER, 'ui/imgdiff.mjs': UI_IMGDIFF } },
+];

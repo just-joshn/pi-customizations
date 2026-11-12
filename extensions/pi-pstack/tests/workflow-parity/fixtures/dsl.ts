@@ -64,6 +64,8 @@ export interface ProofOptions {
   /** Overrides the verdict the exit status implies, for a check whose pass means a defect reproduced. */
   verdict?: 'pass' | 'fail' | 'inconclusive';
   reason?: string;
+  /** More files to hash into the receipt besides the command's output. */
+  artifacts?: string[];
   id: string;
   target: string;
   /** Shell command run in `cwd`; its output is the artifact and its exit status the verdict. */
@@ -128,6 +130,14 @@ export class Parent extends Actor {
     this.write(join(dir, 'assignment.json'), `${JSON.stringify(assignment, null, 2)}\n`);
     return { tool: 'pstack_worker', args: { action: 'spawn', runId, assignmentPath: join(dir, 'assignment.json') } };
   }
+  /** Spawns a worktree worker whose input commit is only known when the run reaches it: the shell resolves `ref` and writes the files. */
+  spawnFromRef(workerId: string, role: string, model: string, ref: string, brief: string): this {
+    const dir = join(this.runDir, 'workers', workerId);
+    const assignment = { schemaVersion: 1, runId: this.ctx.runId, workerId, kind: 'pi', role, brief: 'brief.md', model, thinkingLevel: null, skills: [] };
+    const json = JSON.stringify(assignment, null, 2).replace(/\n}$/, `,\n  "workspace": { "mode": "worktree", "inputCommit": "__SHA__" }\n}`);
+    this.bash([`mkdir -p ${JSON.stringify(dir)}`, `sha=$(git -C ${JSON.stringify(this.ctx.repo)} rev-parse ${JSON.stringify(ref)})`, `printf '%s\\n' ${shQuote(json)} | sed "s/__SHA__/$sha/" > ${JSON.stringify(join(dir, 'assignment.json'))}`, `printf '%s\\n' ${shQuote(brief)} > ${JSON.stringify(join(dir, 'brief.md'))}`].join('\n'));
+    return this.call('pstack_worker', { action: 'spawn', runId: this.ctx.runId, assignmentPath: join(dir, 'assignment.json') });
+  }
   spawn(workerId: string, fields: AssignmentFields, brief: string): this {
     return this.together(this.stage(workerId, fields, brief));
   }
@@ -178,7 +188,7 @@ export function proofSteps<T extends Actor>(actor: T, ctx: Ctx, options: ProofOp
     `mkdir -p ${JSON.stringify(dir)}`,
     `cd ${JSON.stringify(options.cwd ?? ctx.repo)}`,
     `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
-    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${shQuote(options.command)} --artifact ${JSON.stringify(artifact)}`,
+    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${shQuote(options.command)} --artifact ${JSON.stringify(artifact)} ${(options.artifacts ?? []).map((extra) => `--artifact ${JSON.stringify(extra)}`).join(' ')}`,
     'exit 0',
   ].join('\n');
   actor.bash(script);

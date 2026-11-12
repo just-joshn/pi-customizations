@@ -184,7 +184,6 @@ const swapNegatives = (id: string, prefix: string): Negative[] => [
   { name: 'the synthesized artifact was never verified', mutate: (sandbox) => deleteReceipt(sandbox, id, 'arena-verify'), fails: [`${prefix}.verified`] },
   { name: 'the verification artifact was tampered with', mutate: (sandbox) => corruptArtifact(sandbox, id, 'arena-verify'), fails: [`${prefix}.verified`] },
   { name: 'the reply forgot the cross-judge verdict', mutate: (sandbox) => rewriteFinalReply(sandbox, /cross-judge/gi, 'panel'), fails: [`${prefix}.synthesis-note`] },
-  { name: 'x', mutate: (sandbox) => rewriteFinalReply(sandbox, 'x', 'x'), fails: [] },
 ];
 
 export const arenaFamily: Family = {

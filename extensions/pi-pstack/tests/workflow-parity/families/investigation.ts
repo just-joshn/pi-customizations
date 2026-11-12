@@ -397,7 +397,7 @@ export const investigationFamily: Family = {
     ...playbookReads('investigation', ['why']),
     ...todoChecks({ playbook: 'investigation' }),
     check('investigation.throughput-checkpoint-line', 'the one-line throughput checkpoint is written verbatim', src('poteto-mode/playbooks/investigation.md', 'Throughput checkpoint stays one line'), (view) => {
-      const todo = primaryRun(view, 'investigation')?.todoText ?? '';
+      const todo = primaryRun(view, 'investigation')?.todoText?.split('## Task-specific work')[1] ?? '';
       return when(todo.includes('throughput checkpoint: n/a, read-only investigation'), 'TODO.md carries the checkpoint line', 'TODO.md lacks `throughput checkpoint: n/a, read-only investigation`');
     }),
     workersCheck('investigation.routed-through-how', 'the question was routed through how: an explainer or explorers, readonly on the root', src('poteto-mode/playbooks/investigation.md', 'Route through the **how** skill'), { role: ['explainer', 'explorer', 'general'], min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
