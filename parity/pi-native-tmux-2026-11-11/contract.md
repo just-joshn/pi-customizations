@@ -103,11 +103,27 @@ Receipt:
 
 ## Wakeups (spec 9.1, 11.3)
 
-While a parent session is live, the extension watches its run's hosts. When a worker settles (idle after work, failed, aborted, unavailable) or a `watch` worker exits, it posts one `pi.sendMessage({ customType: 'pstack-worker', content, display: true }, { triggerTurn: true, deliverAs: 'followUp' })` per transition, recording the delivery in `events.jsonl` so a restart never repeats or drops it. On `session_start` the extension reconciles `run.json` files whose `parentSessionFile` matches, against `tmux -L pstack list-sessions`. A missing session with no settled state is reported `unavailable`, never complete.
+While a parent session is live, the extension watches its run's hosts. When a worker settles (idle after work, failed, aborted, unavailable) or a `watch` worker exits, it posts one `pi.sendMessage({ customType: 'pstack-worker', content, display: true }, { triggerTurn: true, deliverAs: 'followUp' })` per transition, with `details: { transitionId, runId, workerId, phase }` where `transitionId = <workerId>:<host instance>:<settle sequence>`. The parent session file is the delivery record: Pi persists each `sendMessage` as a `custom_message` entry with its `details` (docs/session-format.md; observed for `pstack/shell`). Before sending, and on every reconcile, the extension scans `ctx.sessionManager.getEntries()` for `custom_message` entries of type `pstack-worker` and sends only transitions whose id is absent. `events.jsonl` logs the attempt for audit only and is not consulted for delivery. On `session_start` the extension reconciles `run.json` files whose `parentSessionFile` matches, against `tmux -L pstack list-sessions`. A missing session with no settled state is reported `unavailable`, never complete.
 
 ## Worker process
 
 The host runs `pi --mode rpc` in the worker's workspace with `--model`, `--thinking`, `--session-dir <workerDir>/session`, `--append-system-prompt <generated/agents/<role>.md>`, env `PSTACK_WORKER=1`, `PSTACK_RUN_ID`, `PSTACK_WORKER_ID`, and the user's normal Pi resources (extensions, skills, MCP) so pstack skills and MCP are available. With `PSTACK_WORKER=1`, the pstack extension registers only `pstack_evidence`, and no `pstack_worker`. Readonly workers get `--tools read,grep,find,ls` plus MCP tools. The proof host in `parity/pi-native-tmux-2026-11-11/proof/host.mjs` is the reference implementation. It passed 11 lifecycle gates on real processes.
+
+## Capability boundary (spec 9.6, 14.2, 15)
+
+`assignment.json` gains `capabilities`:
+
+```ts
+capabilities: {
+  mcp: 'inherit' | 'none',          // 'none' launches pi with --no-mcp
+  env: 'inherit' | 'minimal',       // 'minimal': only PATH, HOME, LANG, TERM, TMPDIR, PI_CODING_AGENT_DIR, PSTACK_* and the provider credential variables the resolved model needs
+  externalWrite: false | true       // true only for the parent or a trusted adapter; workers default false
+}
+```
+
+Default: `{ mcp: 'inherit', env: 'inherit', externalWrite: false }` for engineering roles, and `{ mcp: 'none', env: 'minimal', externalWrite: false }` for automation-dispatched workers. A worker with `PSTACK_WORKER=1` gets no tool that posts to Slack, a tracker, or a forge. Only `pstack_evidence` is registered. The host enforces `mcp` and `env` at spawn. Automation credentials live in `~/.pi/agent/pstack/credentials/<connector>.json` (0600), which is never named in a brief or assignment.
+
+The same-uid limit is stated, not hidden. A worker process running as the operator's uid can still read 0600 files that uid owns. The tool and env boundary stops a worker from posting through Pi, but it is not an OS boundary. The full guarantee of spec 15.1 requires `environment: 'container'` (the container unit). Until then, automation setup reports this limit, and the parity manifest marks the credential-isolation requirement `partial`.
 
 ## Models (spec 10.3)
 
