@@ -4,11 +4,11 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "7f8b33d43785de7a9ad8edc455863894d0add0bb3dbbd4d52ed7a9b80bcf7128",
+  "requirementsDigest": "dd9a142c7cf277ce6e2cdabf5ccd677f40598923b7c3faa7d2bdf98f29151ca9",
   "run": {
     "startedAt": "2026-11-12T10:40:35.752Z",
-    "generatedAt": "2026-11-12T10:50:55.999Z",
-    "commit": "048e2915d51ac93e9821304526d5a4b7b30cabcb",
+    "generatedAt": "2026-11-12T11:11:30.652Z",
+    "commit": "8c20386cd014737a78603d435e010d55895f7c8b",
     "dirty": true,
     "resultsSource": "file",
     "totalTests": 1679,
@@ -24,9 +24,9 @@
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 79,
+      "PASS": 80,
       "FAIL": 0,
-      "INCONCLUSIVE": 20,
+      "INCONCLUSIVE": 19,
       "N/A": 0
     }
   },
@@ -21649,7 +21649,6 @@
           "name": "why scripted run: every check passes"
         }
       ],
-      "coverageGap": "A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage.",
       "results": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -21682,8 +21681,8 @@
           "outcome": "passed"
         }
       ],
-      "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: A readonly worker cannot reach MCP: tests/workflow-parity/families/mcp.ts why-mcp.readonly-investigator-reaches-mcp is a known product defect (src/workers.ts:59 and :510 launch readonly workers with a --tools allowlist that names neither codemode, tool_search nor an mcp__ entry, so Pi leaves every MCP tool unreachable). The same server is reached and cited from a worker with default tools, and the no-server run reports the missing coverage."
+      "status": "PASS",
+      "reason": "6 linked test(s) ran and passed"
     },
     {
       "id": "MX-CODEMODE",
