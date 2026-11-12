@@ -733,6 +733,30 @@ export function artifactText(run: RunDir | undefined, receipt: Receipt | undefin
   }
 }
 
+/** The text of every artifact a receipt names, joined; empty files and unreadable ones contribute nothing. */
+export function artifactsText(run: RunDir | undefined, receipt: Receipt | undefined): string {
+  if (run === undefined || receipt === undefined) return '';
+  return receipt.artifacts
+    .map((artifact) => {
+      try {
+        return readFileSync(isAbsolute(artifact.path) ? artifact.path : resolve(run.dir, artifact.path), 'utf8');
+      } catch {
+        return '';
+      }
+    })
+    .join('\n');
+}
+
+/** Commits the delegate made itself: its branch beyond the commit it was spawned at, oldest first. */
+export function delegateOwnCommits(view: RunView): string[] {
+  const delegate = delegateOf(view);
+  const run = delegate === undefined ? undefined : view.runs.find((entry) => entry.workers.includes(delegate));
+  const input = delegate === undefined ? undefined : assignmentOf(delegate).workspace?.inputCommit;
+  if (delegate === undefined || run === undefined || typeof input !== 'string') return [];
+  const listed = spawnSync('git', ['-C', view.repo, 'rev-list', '--reverse', `${input}..pstack-run/${run.id}/${delegate.id}`], { encoding: 'utf8' });
+  return listed.status === 0 ? listed.stdout.split('\n').filter(Boolean) : [];
+}
+
 /** Order of the parent's first `pstack_evidence record` of this receipt (by its file name), or -1. */
 export function recordOrder(view: RunView, receiptId: string): number {
   const named = (path: string) => basename(path).replace(/\.json$/, '').replace(/\.receipt$/, '') === receiptId;

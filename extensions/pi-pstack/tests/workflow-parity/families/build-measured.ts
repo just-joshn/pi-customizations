@@ -1,17 +1,28 @@
 // Families: refactoring, perf-issue, hillclimb, prototype (spec 12.3).
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
 import { BENCH_JS, cartHistory, DEDUPE_JS, perfHistory, quadraticComparisons, SET_DEDUPE_JS } from '../fixtures/repos.ts';
-import { check, fail, src, when } from '../lib/check.ts';
+import { check, fail, pass, src, when } from '../lib/check.ts';
 import {
   allWorkers,
+  artifactsText,
   assignmentOf,
   branchCommits,
+  delegateCommits,
+  delegateOf,
+  delegateOwnCommits,
   everyCommitGreen,
+  isTestFile,
+  namesCommit,
+  collectOrder,
+  openedAt,
+  recordOrder,
+  spawnOrder,
+  stepReceipts,
   fanOutBeforeCollect,
   filesChanged,
   finalReply,
@@ -30,8 +41,9 @@ import {
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { SCRIPTED_ROLES } from '../lib/driver.ts';
-import { corruptArtifact, deleteReceipt, dirtyRepo, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, rewriteFinalReply, setStep, squashBranch, stripEvidence } from '../lib/mutate.ts';
-import { todoNegatives, worktreeOf, writer } from './shared.ts';
+import { appendToolCall, corruptArtifact, rewriteSession, deleteReceipt, dirtyRepo, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, rewriteFinalReply, setStep, squashBranch, stripEvidence } from '../lib/mutate.ts';
+import { taskItems, todoNegatives, worktreeOf, writer } from './shared.ts';
+import type { RunView, WorkerView } from '../lib/view.ts';
 import type { Family } from './types.ts';
 
 const model = (line: string) => String(SCRIPTED_ROLES[line]);
@@ -50,6 +62,12 @@ const artifactOf = (view: { runs: { receipts: { id: string; artifacts: { path: s
   return '';
 };
 const comparisons = (text: string): number => Number(/comparisons=(\d+)/.exec(text)?.[1] ?? Number.NaN);
+/** The receipts of steps 1 and 3 that carry the benchmark's comparisons: the baseline and the post-fix run, whatever ids the run gave them. */
+function perfReceipts(view: RunView) {
+  const run = primaryRun(view, 'perf-issue');
+  const measured = (step: number) => stepReceipts(run, step).find((receipt) => !Number.isNaN(comparisons(artifactsText(run, receipt))));
+  return { run, before: measured(1), after: measured(3) };
+}
 const BENCH = 'node bench/bench.js';
 
 // ---- refactoring
@@ -158,17 +176,18 @@ export const refactoringFamily: Family = {
     workersCheck('refactoring.contract-learned-with-how', 'step 1: how ran to learn the contract, a readonly explainer on the repository root', src('poteto-mode/playbooks/refactoring.md', 'Run the **how** skill over the affected subsystem to learn the contract'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /explainer/ }),
     workersCheck('refactoring.mechanical-edits-delegated', 'step 5: the mechanical edits go to a poteto worker in its own worktree on the "feature, refactoring" model line', src('poteto-mode/playbooks/refactoring.md', 'Delegate the mechanical edits to a subagent using your configured refactoring model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'feature, refactoring' }),
     check('refactoring.pin-lands-first-and-holds', 'step 1: the first commit is the characterization test alone, green on the unchanged code, and no later commit edits it', src('poteto-mode/playbooks/refactoring.md', 'write a characterization test, snapshot, or equivalence harness that captures current behavior before any structure moves'), (view) => {
-      const commits = branchCommits(view, primaryRun(view, 'refactoring')?.id ?? '', 'mover');
-      if (commits.length < 2) return fail(`${commits.length} commits on the branch`);
+      // The pin may be committed by the parent on the checkout before it spawns the delegate, whose branch then starts there.
+      const commits = delegateCommits(view);
+      if (commits.length < 2) return fail(`${commits.length} commits on the delegate's branch`);
       const first = commits[0] as string;
       const files = filesChanged(view, first);
       const green = runAtCommit(view, first, 'node --test');
-      const later = commits.slice(1).flatMap((sha) => filesChanged(view, sha)).filter((file) => file === 'test/pin.test.js');
-      return when(files.length === 1 && files[0] === 'test/pin.test.js' && green.status === 0 && later.length === 0, `commit 1 adds only ${files.join(', ')} and passes on the unchanged source; no later commit edits it`, `files ${files.join(', ')}, exit ${green.status}, later edits ${later.length}`);
+      const later = commits.slice(1).flatMap((sha) => filesChanged(view, sha)).filter((file) => files.includes(file));
+      return when(files.length >= 1 && files.every(isTestFile) && green.status === 0 && later.length === 0, `commit 1 adds only ${files.join(', ')} and passes on the unchanged source; no later commit edits it`, `files ${files.join(', ')}, exit ${green.status}, later edits ${later.length}`);
     }),
-    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', 'mover', { min: 2 }),
+    everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 2 }),
     check('refactoring.behavior-is-unchanged', 'step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself', src('poteto-mode/playbooks/refactoring.md', 'Prove behavior is unchanged on the real artifact'), (view) => {
-      const head = branchCommits(view, primaryRun(view, 'refactoring')?.id ?? '', 'mover').at(-1);
+      const head = delegateCommits(view).at(-1);
       if (head === undefined) return fail('no refactor commit');
       const dir = mkdtempSync(join(tmpdir(), 'wf-equiv-'));
       try {
@@ -183,12 +202,12 @@ export const refactoringFamily: Family = {
       }
     }),
     check('refactoring.old-api-deleted-callers-migrated', 'the old API is deleted in the same wave: no lineTotal remains and no compatibility shim was added', src('poteto-mode/playbooks/refactoring.md', 'migrate every caller and delete the old API in the same wave'), (view) => {
-      const head = branchCommits(view, primaryRun(view, 'refactoring')?.id ?? '', 'mover').at(-1) ?? '';
+      const head = delegateCommits(view).at(-1) ?? '';
       const grep = runAtCommit(view, head, "grep -rn -E 'lineTotal|deprecated|legacy|compat' src test");
       return when(head !== '' && grep.status === 1, 'no lineTotal and no shim wording at the delivered commit', `still present: ${grep.output.trim().slice(0, 160)}`);
     }),
     check('refactoring.reader-load-is-lower-and-no-new-behavior', 'step 7: src/cart.js has fewer lines and fewer functions, and exports nothing new', src('poteto-mode/playbooks/refactoring.md', 'The success measure is reduced reader load'), (view) => {
-      const head = branchCommits(view, primaryRun(view, 'refactoring')?.id ?? '', 'mover').at(-1) ?? '';
+      const head = delegateCommits(view).at(-1) ?? '';
       const read = (sha: string) => runAtCommit(view, sha, 'cat src/cart.js').output;
       const [before, after] = [read(view.base), read(head)];
       const exportsOf = (text: string) => [...text.matchAll(/export function (\w+)/g)].map((match) => match[1] as string);
@@ -196,7 +215,7 @@ export const refactoringFamily: Family = {
       const count = (text: string) => ({ lines: text.split('\n').length, functions: (text.match(/function /g) ?? []).length });
       return when(head !== '' && count(after).lines < count(before).lines && count(after).functions < count(before).functions && added.length === 0, `lines ${count(before).lines} to ${count(after).lines}, functions ${count(before).functions} to ${count(after).functions}, new exports none`, `before ${JSON.stringify(count(before))}, after ${JSON.stringify(count(after))}, new exports ${added.join(', ')}`);
     }),
-    parentWritesOnlyScratch('refactoring.parent-stays-in-the-lead', 'the parent wrote no production code: the contract is its, the edits are the worker\'s', src('poteto-mode/playbooks/refactoring.md', '**You own the contract.')),
+    parentWritesOnlyScratch('refactoring.parent-stays-in-the-lead', 'the parent wrote no production code: the contract is its, the edits are the worker\'s (the pin it writes under test/ is step 1)', src('poteto-mode/playbooks/refactoring.md', '**You own the contract.'), /^test\//),
     writableWorkerRecords('refactoring.worker-records', src('poteto-mode/playbooks/refactoring.md', 'Delegate the mechanical edits'), ['poteto']),
     settledAndCollected('refactoring.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
     noToolErrors('refactoring.no-tool-errors', src('poteto-mode/playbooks/refactoring.md', '**Reply:** the structure that changed')),
@@ -288,47 +307,61 @@ export const perfFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('perf-issue', ['architect']),
     ...todoChecks({ playbook: 'perf-issue', skipReason: { 5: /PR|reply/i, 6: /PR|remote/i } }),
-    check('perf-issue.baseline-before-the-fix-and-vetted', 'step 1: the baseline ran at the base commit before any fix was spawned, with the harness printing its error count and work done', src('poteto-mode/playbooks/perf-issue.md', 'Capture a baseline trace via the matching control skill'), (view) => {
-      const run = primaryRun(view, 'perf-issue');
-      const baseline = run?.receipts.find((entry) => entry.id === 'perf-baseline');
-      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/fix/'));
-      const ran = view.parent.toolCalls.find((call) => call.name === 'bash' && String(call.args['command']).includes('perf-baseline.receipt'));
-      const text = artifactOf(view, 'perf-baseline');
-      return when(baseline?.commit === view.base && ran !== undefined && spawn !== undefined && ran.order < spawn.order && /errors=0 work=\d+ comparisons=\d+/.test(text), `baseline ${text.trim()} at ${view.base.slice(0, 8)}, run at ${ran?.order} before the fix spawn at ${spawn?.order}`, `commit ${String(baseline?.commit).slice(0, 8)} vs base, run ${ran?.order}, spawn ${spawn?.order}, output ${text.trim()}`);
+    check('perf-issue.baseline-before-the-fix-and-vetted', 'step 1: the baseline ran before any fix was spawned, at the delegate\'s input commit (or the base), with the harness printing its error count and work done', src('poteto-mode/playbooks/perf-issue.md', 'Capture a baseline trace via the matching control skill'), (view) => {
+      const { run, before } = perfReceipts(view);
+      const delegate = delegateOf(view);
+      const spawn = delegate === undefined ? -1 : spawnOrder(view, delegate.id);
+      const recorded = before === undefined ? -1 : recordOrder(view, before.id);
+      const text = artifactsText(run, before);
+      // The parent may commit the frozen harness before it spawns the delegate: the baseline is then at that input commit, not the original base.
+      const inputs = [view.base, String(delegate === undefined ? '' : assignmentOf(delegate).workspace?.inputCommit)];
+      return when(before !== undefined && namesCommit(before.commit, inputs) && recorded !== -1 && spawn !== -1 && recorded < spawn && /errors=0 work=\d+ comparisons=\d+/.test(text), `${before?.id} ${text.trim().slice(0, 60)} at ${before?.commit?.slice(0, 8)}, recorded at ${recorded} before the fix spawn at ${spawn}`, `step 1 baseline receipt ${before?.id ?? 'none'}: commit ${String(before?.commit).slice(0, 8)} vs ${inputs.map((input) => input.slice(0, 8)).join('/')}, recorded ${recorded}, spawn ${spawn}, output ${text.trim().slice(0, 80)}`);
     }),
-    check('perf-issue.same-command-after-on-the-delivered-commit', 'step 3: the post-fix number is the same command on the delivered commit, with no errors, and lower', src('poteto-mode/playbooks/perf-issue.md', 'Capture a post-fix trace'), (view) => {
-      const run = primaryRun(view, 'perf-issue');
-      const [before, after] = ['perf-baseline', 'perf-after'].map((id) => run?.receipts.find((entry) => entry.id === id));
-      const head = branchCommits(view, run?.id ?? '', 'fix').at(-1);
-      const [b, a] = [comparisons(artifactOf(view, 'perf-baseline')), comparisons(artifactOf(view, 'perf-after'))];
-      return when(JSON.stringify(before?.command) === JSON.stringify(after?.command) && after?.commit === head && head !== undefined && a < b && /errors=0/.test(artifactOf(view, 'perf-after')), `same command, ${b} to ${a} comparisons, after-commit is the worker head`, `same command ${JSON.stringify(before?.command) === JSON.stringify(after?.command)}, commit ${String(after?.commit).slice(0, 8)} vs ${String(head).slice(0, 8)}, ${b} to ${a}`);
+    check('perf-issue.same-command-after-on-the-delivered-commit', 'step 3: the post-fix number is the same benchmark on a delivered commit, with no errors, and lower', src('poteto-mode/playbooks/perf-issue.md', 'Capture a post-fix trace'), (view) => {
+      const { run, before, after } = perfReceipts(view);
+      const delivered = [...delegateCommits(view), ...view.git.commitsSinceBase, view.git.head];
+      const [b, a] = [comparisons(artifactsText(run, before)), comparisons(artifactsText(run, after))];
+      const scripts = (receipt: typeof before) => new Set((receipt?.command ?? []).join(' ').match(/bench\/[\w.-]+\.m?js/g) ?? []);
+      const sameCommand = JSON.stringify(before?.command) === JSON.stringify(after?.command) || [...scripts(before)].some((script) => scripts(after).has(script));
+      return when(before !== undefined && after !== undefined && sameCommand && namesCommit(after.commit, delivered) && a < b && /errors=0/.test(artifactsText(run, after)), `same benchmark, ${b} to ${a} comparisons, after-commit ${after?.commit?.slice(0, 8)} is delivered`, `same benchmark ${sameCommand}, commit ${String(after?.commit).slice(0, 8)} delivered ${namesCommit(after?.commit, delivered)}, ${b} to ${a}`);
     }),
     check('perf-issue.numbers-reproduce', 'the recorded numbers reproduce when the checker runs the benchmark at the base and at the delivered commit', src('poteto-mode/playbooks/perf-issue.md', 'Tie every fix to a measurement'), (view) => {
-      const head = branchCommits(view, primaryRun(view, 'perf-issue')?.id ?? '', 'fix').at(-1) ?? '';
+      const head = delegateCommits(view).at(-1) ?? '';
+      const { run, before, after } = perfReceipts(view);
       const [b, a] = [comparisons(runAtCommit(view, view.base, BENCH).output), comparisons(runAtCommit(view, head, BENCH).output)];
-      const [rb, ra] = [comparisons(artifactOf(view, 'perf-baseline')), comparisons(artifactOf(view, 'perf-after'))];
+      const [rb, ra] = [comparisons(artifactsText(run, before)), comparisons(artifactsText(run, after))];
       return when(head !== '' && b === rb && a === ra, `reproduced ${b} and ${a}`, `rerun ${b}/${a}, recorded ${rb}/${ra}`);
     }),
     check('perf-issue.reply-explains-the-number', 'the reply gives the baseline number, the post-fix number, a delta that matches them, and an artifact path that exists', src('poteto-mode/playbooks/perf-issue.md', '**Reply:** baseline number, post-fix number, delta, artifact path'), (view) => {
       const reply = finalReply(view);
-      const [b, a] = [comparisons(artifactOf(view, 'perf-baseline')), comparisons(artifactOf(view, 'perf-after'))];
-      const claimed = Number(/(-?\d+(?:\.\d+)?)%/.exec(reply)?.[1] ?? Number.NaN);
-      const path = /(\/[^\s]+perf-compare\.txt)/.exec(reply)?.[1];
-      return when(reply.includes(String(b)) && reply.includes(String(a)) && Math.abs(Math.abs(claimed) - Math.abs(delta(b, a))) < 0.5 && path !== undefined && existsSync(path), `reply states ${b}, ${a}, ${claimed}% (computed ${delta(b, a)}%) and ${path}`, `reply ${reply.slice(0, 160)}; computed ${delta(b, a)}%`);
+      const { run, before, after } = perfReceipts(view);
+      const [b, a] = [comparisons(artifactsText(run, before)), comparisons(artifactsText(run, after))];
+      // Numbers may be written with thousands separators (40,000).
+      const plain = reply.replace(/(\d),(?=\d{3}\b)/g, '$1');
+      const claimed = [...plain.matchAll(/(-?\d+(?:\.\d+)?)\s*%/g)].map((match) => Number(match[1]));
+      const candidates = [...reply.matchAll(/`?((?:\/|\.{0,2}\/)?[\w.\/-]+\.(?:txt|json|md|tsv))`?/g)].map((match) => match[1] as string);
+      const path = candidates.find((candidate) => [candidate, join(view.repo, candidate), join(run?.dir ?? view.repo, candidate)].some((full) => existsSync(full)));
+      return when(plain.includes(String(b)) && plain.includes(String(a)) && claimed.some((value) => Math.abs(Math.abs(value) - Math.abs(delta(b, a))) < 0.5) && path !== undefined, `reply states ${b}, ${a}, a delta near ${delta(b, a)}% and the artifact ${path}`, `reply ${reply.slice(0, 160)}; computed ${delta(b, a)}%; percentages ${claimed.join(', ') || 'none'}; artifact ${path ?? 'none'}`);
     }),
-    check('perf-issue.mantras-in-order', 'the delegate brief lists the seven performance mantras in the playbook order', src('poteto-mode/playbooks/perf-issue.md', "Try the performance mantras in order, cheapest first"), (view) => {
+    check('perf-issue.mantras-in-order', 'the mantras were tried in the playbook order: the delegate brief lists all seven in order, or the run\'s own notes (TODO.md, the brief, the reply) walk "Mantra 1", "Mantra 2", ... upward from the cheapest', src('poteto-mode/playbooks/perf-issue.md', "Try the performance mantras in order, cheapest first"), (view) => {
       const brief = allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto')?.brief ?? '';
       const positions = MANTRAS.map((mantra) => brief.indexOf(mantra));
-      return when(!positions.includes(-1) && positions.every((position, index) => index === 0 || position > (positions[index - 1] as number)), 'seven mantras in order', `positions ${positions.join(',')}`);
+      if (!positions.includes(-1) && positions.every((position, index) => index === 0 || position > (positions[index - 1] as number))) return pass('seven mantras in order');
+      // "Mantra 1 declined ... Mantra 2 ... Meets the target, so mantras 3 through 7 stay unused": the numbers a note cites, in order of first mention.
+      const notes = `${primaryRun(view, 'perf-issue')?.todoText ?? ''}\n${brief}\n${finalReply(view)}`;
+      const cited: number[] = [];
+      for (const match of notes.matchAll(/mantras?\s+(\d)(?:\s*(?:,|and|through|to|-)\s*(\d))?/gi)) for (const digit of [match[1], match[2]]) if (digit !== undefined && !cited.includes(Number(digit))) cited.push(Number(digit));
+      return when(cited[0] === 1 && cited.length >= 2 && cited.every((number, index) => index === 0 || number > (cited[index - 1] as number)), `the notes try mantras ${cited.join(', ')} in order`, `no ordered list in the brief (positions ${positions.join(',')}) and the notes cite mantras ${cited.join(', ') || 'none'}`);
     }),
     workersCheck('perf-issue.fix-delegated', 'step 3: the fix is delegated to a poteto worker in its own worktree on the "perf-issue" model line', src('poteto-mode/playbooks/perf-issue.md', 'Delegate implementation to a subagent using your configured perf-issue model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'perf-issue' }),
     check('perf-issue.harness-untouched', 'the benchmark is frozen: the delivered commit leaves bench/ as it was', src('poteto-mode/playbooks/perf-issue.md', 'Vet the baseline, and each later number'), (view) => {
-      const commits = branchCommits(view, primaryRun(view, 'perf-issue')?.id ?? '', 'fix');
+      // The frozen harness may be committed by the parent before it spawns the delegate; the fix leaves it as it found it.
+      const commits = delegateOwnCommits(view);
       const touched = commits.flatMap((sha) => filesChanged(view, sha)).filter((file) => file.startsWith('bench/'));
       return when(commits.length > 0 && touched.length === 0, 'no commit touches bench/', `touched ${touched.join(', ')}`);
     }),
-    everyCommitGreen('perf-issue.commits-green', src('poteto-mode/playbooks/perf-issue.md', 'verifying each attempt before trying the next'), (view) => primaryRun(view, 'perf-issue')?.id ?? '', 'fix', { min: 1 }),
-    parentWritesOnlyScratch('perf-issue.parent-stays-in-the-lead', 'the parent wrote no production code', src('poteto-mode/playbooks/perf-issue.md', '**You own the measurement story.')),
+    everyCommitGreen('perf-issue.commits-green', src('poteto-mode/playbooks/perf-issue.md', 'verifying each attempt before trying the next'), (view) => primaryRun(view, 'perf-issue')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 1 }),
+    parentWritesOnlyScratch('perf-issue.parent-stays-in-the-lead', 'the parent wrote no production code (the benchmark and test files it writes under bench/ and test/ are step 1)', src('poteto-mode/playbooks/perf-issue.md', '**You own the measurement story.'), /^(bench|test)\//),
     writableWorkerRecords('perf-issue.worker-records', src('poteto-mode/playbooks/perf-issue.md', 'Review the diff'), ['poteto']),
     settledAndCollected('perf-issue.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
@@ -339,6 +372,11 @@ export const perfFamily: Family = {
     { name: 'the recorded baseline is not what the benchmark prints', mutate: (sandbox) => lieAboutBaseline(sandbox), fails: ['perf-issue.numbers-reproduce'] },
     { name: 'the reply claims a delta the numbers do not give', mutate: (sandbox) => rewriteFinalReply(sandbox, /-?\d+(\.\d+)?%/, '-50%'), fails: ['perf-issue.reply-explains-the-number'] },
     { name: 'the mantras were handed over out of order', mutate: (sandbox) => rewriteBriefMantras(sandbox), fails: ['perf-issue.mantras-in-order'] },
+    { name: 'the brief does not list the mantras, and the run notes walk them upward: Mantra 1 declined, Mantra 2 meets the target', mutate: (sandbox) => { writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/workers/fix/brief.md'), 'Fix src/dedupe.js.'); appendFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/TODO.md'), '\n- [x] Pick the mantra. Mantra 1 declined, nothing is unused. Mantra 2 meets the target, so mantras 3 through 7 stay unused.\n'); }, fails: [], passes: ['perf-issue.mantras-in-order'] },
+    { name: 'the run notes cite the mantras downward: Mantra 3 first, then Mantra 1', mutate: (sandbox) => { writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/workers/fix/brief.md'), 'Fix src/dedupe.js.'); appendFileSync(join(sandbox, 'repo/.pi/pstack/runs/perf-dedupe/TODO.md'), '\n- [x] Pick the mantra. Mantra 3 first, then mantra 1.\n'); }, fails: ['perf-issue.mantras-in-order'] },
+    { name: 'the reply writes the baseline with a thousands separator', mutate: (sandbox) => rewriteFinalReply(sandbox, String(quadraticComparisons()), quadraticComparisons().toLocaleString('en-US')), fails: [], passes: ['perf-issue.reply-explains-the-number'] },
+    { name: 'the reply names an artifact that does not exist', mutate: (sandbox) => rewriteFinalReply(sandbox, /Artifact: \S+/, 'Artifact: nowhere/none.txt'), fails: ['perf-issue.reply-explains-the-number'] },
+    { name: 'the parent wrote its timing harness under bench/', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'write', { path: `${sandbox}/repo/bench/time.js`, content: 'x' }), fails: [], passes: ['perf-issue.parent-stays-in-the-lead'] },
     { name: 'the benchmark was edited', mutate: (sandbox) => onBranch(sandbox, 'pstack-run/perf-dedupe/fix', (dir) => writeFileSync(join(dir, 'bench/bench.js'), `${BENCH_JS}// tuned\n`)), fails: ['perf-issue.harness-untouched'] },
     { name: 'the parent edited production code', mutate: (sandbox) => dirtyRepo(sandbox, 'src/dedupe.js'), fails: ['perf-issue.parent-stays-in-the-lead'] },
     { name: 'the fix ran on the wrong model line', mutate: (sandbox) => patchAssignment(sandbox, 'perf-dedupe', 'fix', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['perf-issue.fix-delegated'] },
@@ -364,6 +402,18 @@ void [parentReads, fanOutBeforeCollect, repoUntouched, setStep, stripEvidence, d
 
 // ---- hillclimb
 
+/** An attempt is a poteto worker in its own worktree; the playbook names no ids, so a run's attempts are whatever it called them. */
+const isAttempt = (worker: WorkerView) => assignmentOf(worker).kind !== 'watch' && assignmentOf(worker).role === 'poteto' && assignmentOf(worker).workspace?.mode === 'worktree';
+const attemptsOf = (view: RunView) => allWorkers(view).filter(isAttempt);
+/** The baseline: a receipt of step 1 or 2 whose artifacts carry the metric, or the scripted run's hill-baseline. */
+function hillBaseline(view: RunView) {
+  const run = primaryRun(view, 'hillclimb');
+  const candidates = [...stepReceipts(run, 1), ...stepReceipts(run, 2), ...(run?.receipts.filter((receipt) => receipt.id === 'hill-baseline') ?? [])];
+  return { run, receipt: candidates.find((receipt) => !Number.isNaN(comparisons(artifactsText(run, receipt)))), gates: candidates.filter((receipt) => receipt.exitCode === 0 && (receipt.kind === 'test' || receipt.artifacts.some((artifact) => /test/i.test(artifact.path)))) };
+}
+/** An attempt's own measurement: the scripted hill-<id>-bench, or the measurement receipt that targets the attempt. */
+const attemptBench = (view: RunView, id: string) => primaryRun(view, 'hillclimb')?.receipts.find((receipt) => receipt.id === `hill-${id}-bench`) ?? primaryRun(view, 'hillclimb')?.receipts.find((receipt) => receipt.target === id && receipt.kind === 'measurement');
+const attemptComparisons = (view: RunView, id: string) => comparisons(artifactsText(primaryRun(view, 'hillclimb'), attemptBench(view, id)));
 const HILL_HEADER = ['id', 'hypothesis', 'change', 'before', 'after', 'delta', 'tests', 'verdict', 'note'];
 const NOOP_DEDUPE = DEDUPE_JS.replace('const out = [];', 'const out = []; // same work');
 const BROKEN_DEDUPE = `export const counter = { comparisons: 0 };
@@ -449,30 +499,36 @@ export const hillclimbFamily: Family = {
   },
   checks: [
     promptRoutes('poteto-mode'),
-    ...playbookReads('hillclimb', ['architect']),
+    ...playbookReads('hillclimb', ['architect'], ['principle-separate-before-serializing-shared-state']),
+    check('reads.hillclimb.separate-before-serializing', 'when attempts fan out in parallel, the parent opens principle-separate-before-serializing-shared-state: "fan them to parallel subagents, each in its own worktree (the separate-before-serializing-shared-state principle skill)"', src('poteto-mode/playbooks/hillclimb.md', 'fan them to parallel subagents, each in its own worktree'), (view) => {
+      const spawns = attemptsOf(view).map((worker) => spawnOrder(view, worker.id)).filter((order) => order !== -1);
+      const firstCollect = Math.min(...attemptsOf(view).map((worker) => collectOrder(view, worker.id)).filter((order) => order !== -1));
+      const fannedOut = spawns.filter((order) => order < firstCollect).length >= 2;
+      if (!fannedOut) return pass('the attempts ran one at a time, so there was no shared state to separate');
+      return when(openedAt(view.parent, 'generated/skills/principle-separate-before-serializing-shared-state/SKILL.md') !== -1, 'attempts fanned out and the leaf was opened', 'attempts fanned out in parallel and the parent never opened principle-separate-before-serializing-shared-state');
+    }),
     ...todoChecks({ playbook: 'hillclimb', skipReason: { 4: /.+/ } }),
     check('hillclimb.baseline-and-green-gate-before-any-change', 'step 2: the baseline metric and a green run of the regression gate are recorded at the base commit before the first attempt is spawned', src('poteto-mode/playbooks/hillclimb.md', 'Record the baseline metric and a green run of the regression gate'), (view) => {
-      const run = primaryRun(view, 'hillclimb');
-      const baseline = run?.receipts.find((entry) => entry.id === 'hill-baseline');
-      const gate = run?.receipts.find((entry) => entry.id === 'hill-gate');
-      const spawn = Math.min(...allWorkers(view).filter((worker) => /^h\d/.test(worker.id)).map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/${worker.id}/`))?.order ?? Number.POSITIVE_INFINITY));
-      const ran = view.parent.toolCalls.find((call) => call.name === 'bash' && String(call.args['command']).includes('hill-gate.receipt'));
-      return when(baseline?.commit === view.base && gate?.commit === view.base && gate.exitCode === 0 && ran !== undefined && ran.order < spawn, 'baseline and a green gate at the base, recorded before the first attempt', `baseline commit ${String(baseline?.commit).slice(0, 8)}, gate ${String(gate?.exitCode)}, gate run ${ran?.order} vs first spawn ${spawn}`);
+      const { receipt: baseline, gates } = hillBaseline(view);
+      const spawn = Math.min(...attemptsOf(view).map((worker) => spawnOrder(view, worker.id) === -1 ? Number.POSITIVE_INFINITY : spawnOrder(view, worker.id)));
+      const recorded = Math.max(baseline === undefined ? -1 : recordOrder(view, baseline.id), ...gates.map((gate) => recordOrder(view, gate.id)));
+      const inputs = [view.base, ...attemptsOf(view).map((worker) => String(assignmentOf(worker).workspace?.inputCommit))];
+      return when(baseline !== undefined && gates.length > 0 && namesCommit(baseline.commit, inputs) && gates.some((gate) => namesCommit(gate.commit, inputs)) && recorded !== -1 && recorded < spawn, 'baseline and a green gate at the base, recorded before the first attempt', `baseline ${baseline?.id ?? 'none'} commit ${String(baseline?.commit).slice(0, 8)}, green gates ${gates.map((gate) => gate.id).join(', ') || 'none'}, recorded ${recorded} vs first spawn ${spawn}`);
     }),
     check('hillclimb.decision-log-shape', 'step 3: decision.tsv has the nine columns, one row per attempt, verdicts kept or reverted, and stays out of git', src('poteto-mode/playbooks/hillclimb.md', 'A `decision.tsv`, one row per attempt'), (view) => {
       const run = primaryRun(view, 'hillclimb');
       const text = readFile(join(run?.dir ?? '', 'decision.tsv'));
       const rows = text.split('\n').filter(Boolean).map((line) => line.split('\t'));
       const [header, ...body] = rows;
-      const attempts = allWorkers(view).filter((worker) => /^h\d/.test(worker.id));
+      const attempts = attemptsOf(view);
       const tracked = spawnSync('git', ['-C', view.repo, 'log', '--all', '--format=%H', '--', '.pi'], { encoding: 'utf8' }).stdout.trim();
       const problems: string[] = [];
       if (JSON.stringify(header) !== JSON.stringify(HILL_HEADER)) problems.push(`header ${JSON.stringify(header)}`);
       if (body.length !== attempts.length) problems.push(`${body.length} rows for ${attempts.length} attempts`);
-      const baseline = comparisons(artifactOf(view, 'hill-baseline'));
+      const baseline = comparisons(artifactsText(run, hillBaseline(view).receipt));
       for (const row of body) {
         if (row.length !== 9 || !['kept', 'reverted'].includes(String(row[7]))) problems.push(`bad row ${JSON.stringify(row)}`);
-        const measured = comparisons(artifactOf(view, `hill-${row[0]}-bench`));
+        const measured = attemptComparisons(view, String(row[0]));
         const percent = Number(String(row[5]).replace('%', ''));
         if (String(row[3]) !== String(baseline) || String(row[4]) !== String(measured) || Math.abs(Math.abs(percent) - Math.abs(delta(baseline, measured))) > 0.5) problems.push(`${row[0]}: logged ${row[3]} to ${row[4]} (${row[5]}), measured ${baseline} to ${measured}`);
       }
@@ -483,10 +539,10 @@ export const hillclimbFamily: Family = {
     check('hillclimb.keep-or-revert-matches-the-measurements', 'each attempt is kept only when its metric moved past noise and its gate stayed green; the log row and the branch agree with the receipts the checker re-verifies', src('poteto-mode/playbooks/hillclimb.md', 'Accept only when the metric moves past noise and the gate stays green'), (view) => {
       const run = primaryRun(view, 'hillclimb');
       const rows = readFile(join(run?.dir ?? '', 'decision.tsv')).split('\n').filter(Boolean).slice(1).map((line) => line.split('\t'));
-      const baseline = comparisons(artifactOf(view, 'hill-baseline'));
+      const baseline = comparisons(artifactsText(run, hillBaseline(view).receipt));
       const problems = rows.flatMap((row) => {
         const id = row[0] as string;
-        const after = comparisons(artifactOf(view, `hill-${id}-bench`));
+        const after = attemptComparisons(view, id);
         const gate = run?.receipts.find((entry) => entry.id === `hill-${id}-gate`)?.exitCode === 0;
         const moved = (baseline - after) / baseline > 0.05;
         const commits = branchCommits(view, run?.id ?? '', id);
@@ -513,7 +569,7 @@ export const hillclimbFamily: Family = {
       return when(rows.some((row) => row[7] === 'kept') && problems.length === 0, 'kept commits touch only their named files', problems.join('; ') || 'nothing was kept');
     }),
     check('hillclimb.harness-is-frozen', 'no attempt touched the frozen harness in its worktree or its commits', src('poteto-mode/playbooks/hillclimb.md', 'prove its sensitivity, then freeze it'), (view) => {
-      const touched = allWorkers(view).filter((worker) => /^h\d/.test(worker.id)).flatMap((worker) => {
+      const touched = attemptsOf(view).flatMap((worker) => {
         const run = view.runs.find((entry) => entry.workers.includes(worker));
         const dirty = view.git.worktreeDirty[join(worker.dir, 'worktree')] ?? [];
         return [...branchCommits(view, run?.id ?? '', worker.id).flatMap((sha) => filesChanged(view, sha)), ...dirty].filter((file) => file.startsWith('bench/')).map((file) => `${worker.id}:${file}`);
@@ -525,8 +581,9 @@ export const hillclimbFamily: Family = {
     check('hillclimb.reply-states-the-result', 'the reply names the metric and target, baseline to final with a percent that matches the receipts, kept versus reverted, the decision.tsv path, and the next idea', src('poteto-mode/playbooks/hillclimb.md', '**Reply:** the metric and target'), (view) => {
       const reply = finalReply(view);
       const run = primaryRun(view, 'hillclimb');
-      const baseline = comparisons(artifactOf(view, 'hill-baseline'));
-      const final = comparisons(artifactOf(view, 'hill-h1-bench'));
+      const baseline = comparisons(artifactsText(run, hillBaseline(view).receipt));
+      const keptRow = readFile(join(run?.dir ?? '', 'decision.tsv')).split('\n').filter(Boolean).slice(1).map((line) => line.split('\t')).find((row) => row[7] === 'kept');
+      const final = keptRow === undefined ? Number.NaN : attemptComparisons(view, String(keptRow[0]));
       const claimed = Number(/(\d+(?:\.\d+)?)% drop/.exec(reply)?.[1] ?? Number.NaN);
       return when(reply.includes(String(baseline)) && reply.includes(String(final)) && Math.abs(claimed - delta(baseline, final)) < 1 && /kept 1, reverted 2/.test(reply) && reply.includes(join(run?.dir ?? '', 'decision.tsv')) && /Next idea/i.test(reply), `reply states ${baseline} to ${final} (${claimed}%), 1 kept and 2 reverted, the log path, and a next idea`, `reply: ${reply.slice(0, 200)}; computed ${delta(baseline, final)}%`);
     }),
@@ -535,6 +592,8 @@ export const hillclimbFamily: Family = {
   ],
   negatives: [
     ...todoNegatives('hill-dedupe', 'hillclimb', { done: [1, 2, 3], receipts: { 1: 'hill-baseline', 2: 'hill-harness', 3: 'hill-harness' } }),
+    { name: 'the parent never opened the separate-before-serializing leaf although the attempts ran in parallel', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'principle-separate-before-serializing-shared-state', 'principle-zzz'), fails: ['reads.hillclimb.separate-before-serializing'] },
+    { name: 'the baseline and gate receipts target the steps as "1" and "2"', mutate: (sandbox) => { patchReceipt(sandbox, 'hill-dedupe', 'hill-baseline', { target: '1' }); patchReceipt(sandbox, 'hill-dedupe', 'hill-gate', { target: '2' }); }, fails: [], passes: ['hillclimb.baseline-and-green-gate-before-any-change'] },
     { name: 'a reverted attempt kept its commit', mutate: (sandbox) => onBranch(sandbox, 'pstack-run/hill-dedupe/h3', (dir) => writeFileSync(join(dir, 'src/dedupe.js'), `${readFile(join(dir, 'src/dedupe.js'))}// kept anyway\n`)), fails: ['hillclimb.keep-or-revert-matches-the-measurements'] },
     { name: 'a win was logged as reverted', mutate: (sandbox) => relog(sandbox, 'kept', 'reverted'), fails: ['hillclimb.keep-or-revert-matches-the-measurements'] },
     { name: 'the log row lies about the measurement', mutate: (sandbox) => relog(sandbox, /\t-\d+(\.\d+)?%/, '\t-12%'), fails: ['hillclimb.decision-log-shape'] },
@@ -567,6 +626,27 @@ const variant = variants[name];
 console.log(name + ' ' + variant.label + ': ' + inputs.map((input) => variant.round(Number(input))).join(' '));
 `;
 const SAMPLES = ['1.005', '2.675', '0.125', '1.115'];
+const RECOMMENDS = /\*{0,2}Recommendation\*{0,2}\s*[:.]|\bI recommend\b|\brecommended?\b/i;
+
+/**
+ * The prototype's scratch directory as the reply names it: `Scratch path: <dir>`, or any scratch path in a code span (a file's directory).
+ * A relative path is read against the run directory, the repository, and the sandbox.
+ */
+function scratchOf(view: RunView): string {
+  const reply = finalReply(view);
+  const named = /Scratch (?:path|dir(?:ectory)?)\s*:?\s*`?(\S+?)`?(?:\.\s|\s|$)/i.exec(reply)?.[1] ?? [...reply.matchAll(/`([^`\n]*scratch[^`\n]*)`/gi)].map((match) => match[1] as string).find((candidate) => candidate !== undefined);
+  if (named === undefined) return '';
+  const run = primaryRun(view, 'prototype');
+  const found = [named, join(run?.dir ?? view.repo, named), join(view.repo, named), join(view.sandbox, named)].find((candidate) => existsSync(candidate));
+  if (found === undefined) return named;
+  return statSync(found).isDirectory() ? found : dirname(found);
+}
+/** A step's receipts, or the scripted receipt of that id. */
+const stepText = (view: RunView, step: number, scriptedId: string) => {
+  const run = primaryRun(view, 'prototype');
+  return [...stepReceipts(run, step), ...(run?.receipts.filter((receipt) => receipt.id === scriptedId) ?? [])].map((receipt) => artifactsText(run, receipt)).join('\n');
+};
+
 const PROTO_REPLY = (scratch: string) => `Variants explored: A half up, B banker's, C truncate, behind one switcher.
 Evidence: on 1.005, 2.675, 0.125 and 1.115 the variants differ, the observed output is in the receipts.
 | variant | tradeoff |
@@ -611,33 +691,39 @@ export const prototypeFamily: Family = {
     promptRoutes('poteto-mode'),
     ...playbookReads('prototype', ['architect']),
     ...todoChecks({ playbook: 'prototype', skipReason: { 2: /.+/ } }),
-    check('prototype.decision-scoped', 'step 1: the decision the prototype makes is written down before building', src('poteto-mode/playbooks/prototype.md', 'Scope the decision the prototype exists to make'), (view) => when(/Decision this prototype makes/i.test(primaryRun(view, 'prototype')?.todoText ?? ''), 'TODO.md states the decision', 'no decision statement in TODO.md')),
-    check('prototype.throwaway-scratch-outside-production', 'step 3: the prototype lives in an isolated scratch directory outside the repository, with no tests, no dependencies, no production edits', src('poteto-mode/playbooks/prototype.md', 'Build throwaway in an isolated scratch dir, separate from production source'), (view) => {
-      const scratch = /Scratch path: (\/\S*?)\. This/.exec(finalReply(view))?.[1] ?? '';
-      const files = existsSync(scratch) ? readdirSync(scratch) : [];
+    check('prototype.decision-scoped', 'step 1: the decision the prototype makes is written down before building: a task item of TODO.md, or the artifact of the step 1 receipt', src('poteto-mode/playbooks/prototype.md', 'Scope the decision the prototype exists to make'), (view) => {
+      const run = primaryRun(view, 'prototype');
+      const items = taskItems(run).map((item) => item.text);
+      const written = items.find((item) => /decision/i.test(item)) ?? (/decision/i.test(artifactsText(run, stepReceipts(run, 1)[0])) ? 'the step 1 artifact' : undefined);
+      return when(written !== undefined, `the decision is written down: ${String(written).slice(0, 80)}`, 'no task item and no step 1 artifact states the decision');
+    }),
+    check('prototype.throwaway-scratch-outside-production', 'step 3: the prototype lives in an isolated scratch directory, outside production source (outside the repository, or under .pi/), with no tests, no dependencies, no production edits', src('poteto-mode/playbooks/prototype.md', 'Build throwaway in an isolated scratch dir, separate from production source'), (view) => {
+      const scratch = scratchOf(view);
+      const files = scratch !== '' && existsSync(scratch) ? readdirSync(scratch) : [];
       const tests = files.filter((file) => /test|spec/.test(file));
-      return when(scratch !== '' && !scratch.startsWith(view.repo) && files.length >= 2 && tests.length === 0 && !files.includes('node_modules') && !files.includes('package.json') && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, `scratch ${scratch} holds ${files.join(', ')}; the repository is untouched`, `scratch ${scratch}; files ${files.join(', ')}; dirty ${view.git.dirty.join(', ') || 'none'}`);
+      const isolated = scratch !== '' && (!scratch.startsWith(view.repo) || scratch.startsWith(join(view.repo, '.pi')));
+      return when(isolated && files.length >= 1 && tests.length === 0 && !files.includes('node_modules') && !files.includes('package.json') && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, `scratch ${scratch} holds ${files.join(', ')}; the repository is untouched`, `scratch ${scratch || 'not named in the reply'}; files ${files.join(', ')}; dirty ${view.git.dirty.join(', ') || 'none'}`);
     }),
     check('prototype.variants-behind-one-switcher', 'step 4: at least two labeled variants run behind one switcher', src('poteto-mode/playbooks/prototype.md', 'build them behind one switcher'), (view) => {
-      const scratch = /Scratch path: (\/\S*?)\. This/.exec(finalReply(view))?.[1] ?? '';
+      const scratch = scratchOf(view);
       const variants = readFile(join(scratch, 'variants.js'));
       const labels = [...variants.matchAll(/label: '([^']+)'|label: "([^"]+)"/g)];
       const runs = spawnSync('node', [join(scratch, 'switch.js'), 'B', '1.005'], { encoding: 'utf8' });
       return when(labels.length >= 2 && runs.status === 0 && /^B /.test(runs.stdout), `${labels.length} labeled variants, the switcher runs: ${runs.stdout.trim()}`, `labels ${labels.length}, switcher exit ${runs.status}`);
     }),
-    check('prototype.observation-is-the-evidence', 'step 5: the decision rests on observed output: one receipt holds every variant\'s output on the same inputs, and the variants differ on them', src('poteto-mode/playbooks/prototype.md', 'The observation is the test here, not an assertion'), (view) => {
-      const text = artifactOf(view, 'proto-observed');
-      const lines = text.split('\n').filter(Boolean);
-      const outputs = lines.map((line) => line.split(': ')[1]);
-      return when(lines.length >= 2 && new Set(outputs).size >= 2 && lines.every((line) => SAMPLES.every((sample) => Number.isFinite(Number(sample))) && line.split(': ')[1]?.split(' ').length === SAMPLES.length), `${lines.length} variants observed on ${SAMPLES.length} inputs, outputs differ`, `observed ${JSON.stringify(lines)}`);
+    check('prototype.observation-is-the-evidence', 'step 5: the decision rests on observed output: the step 5 receipt holds every variant\'s output, and the variants differ', src('poteto-mode/playbooks/prototype.md', 'The observation is the test here, not an assertion'), (view) => {
+      const lines = stepText(view, 5, 'proto-observed').split('\n').map((line) => line.trim()).filter(Boolean);
+      // "A half up: 1 1 1 1" is a variant, its label, and its outputs on the shared inputs; the outputs are what the variants must not share.
+      const outputs = lines.map((line) => (line.includes(': ') ? line.slice(line.indexOf(': ') + 2) : line));
+      return when(lines.length >= 2 && new Set(outputs).size >= 2, `${lines.length} lines observed, ${new Set(outputs).size} distinct outputs`, `observed ${JSON.stringify(lines.slice(0, 4))}`);
     }),
     check('prototype.decides-without-asking-the-human', 'an empirical fork is settled by running it: the reply gives a recommendation and does not hand the choice back as a question', src('poteto-mode/SKILL.md', 'it is not the human\'s to answer'), (view) => {
       const reply = finalReply(view).trim();
-      return when(/Recommendation:/i.test(reply) && !reply.endsWith('?') && !/which would you like|should I\b.*\?/i.test(reply), 'the reply recommends and asks nothing', `reply ends: ${reply.slice(-100)}`);
+      return when(RECOMMENDS.test(reply) && !reply.endsWith('?') && !/which would you like|should I\b.*\?/i.test(reply), 'the reply recommends and asks nothing', `reply ends: ${reply.slice(-100)}`);
     }),
     check('prototype.reply-names-tradeoffs-scratch-and-throwaway', 'the reply gives the variants, tradeoffs, the scratch path, says the prototype is throwaway, and hands the real build to Feature', src('poteto-mode/playbooks/prototype.md', 'Say plainly that the prototype is throwaway'), (view) => {
       const reply = finalReply(view);
-      const missing = [{ name: 'variants', pattern: /Variants explored/ }, { name: 'tradeoff table', pattern: /\| variant \| tradeoff \|/ }, { name: 'recommendation', pattern: /Recommendation:/ }, { name: 'throwaway', pattern: /throwaway/i }, { name: 'Feature', pattern: /Feature/ }].filter(({ pattern }) => !pattern.test(reply)).map(({ name }) => name);
+      const missing = [{ name: 'variants', pattern: /variants?/i }, { name: 'tradeoffs', pattern: /trade-?offs?/i }, { name: 'recommendation', pattern: RECOMMENDS }, { name: 'throwaway', pattern: /throwaway/i }, { name: 'Feature', pattern: /Feature/ }, { name: 'a scratch path', pattern: /scratch/i }].filter(({ pattern }) => !pattern.test(reply)).map(({ name }) => name);
       return when(missing.length === 0, 'reply has variants, tradeoffs, recommendation, throwaway, Feature', `missing ${missing.join(', ')}`);
     }),
     repoUntouched('prototype.repository-untouched', 'no prototype code entered the repository', src('poteto-mode/playbooks/prototype.md', 'The output is the decision plus the throwaway artifact, not shippable code')),
@@ -649,6 +735,9 @@ export const prototypeFamily: Family = {
     { name: 'the prototype grew a test suite', mutate: (sandbox) => writeFileSync(join(sandbox, 'scratch/rounding/variants.test.js'), 'x\n'), fails: ['prototype.throwaway-scratch-outside-production'] },
     { name: 'only one variant was built', mutate: (sandbox) => writeFileSync(join(sandbox, 'scratch/rounding/variants.js'), "export const variants = { A: { label: 'half up', round: (v) => Math.round(v * 100) / 100 } };\n"), fails: ['prototype.variants-behind-one-switcher'] },
     { name: 'the variants printed the same output', mutate: (sandbox) => collapseObservation(sandbox), fails: ['prototype.observation-is-the-evidence'] },
+    { name: 'the decision is written only in a step 1 artifact, not as a task item', mutate: (sandbox) => { const path = join(sandbox, 'repo/.pi/pstack/runs/prototype-rounding/TODO.md'); writeFileSync(path, readFile(path).split('\n').filter((line) => !line.includes('Decision this prototype makes')).join('\n')); }, fails: ['prototype.decision-scoped'] },
+    { name: 'the reply recommends in bold with a period and states tradeoffs in prose, naming the scratch folder in a code span', mutate: (sandbox) => rewriteFinalReply(sandbox, /Variants explored[\s\S]*$/, 'Three variants, A half up, B banker\'s, C truncate, behind one switcher. Tradeoffs: A is biased upward, B surprises shoppers, C undercharges. **Recommendation.** A half up. The scratch is `scratch/rounding/variants.js`, a throwaway. The real build follows Feature.'), fails: [], passes: ['prototype.decides-without-asking-the-human', 'prototype.reply-names-tradeoffs-scratch-and-throwaway', 'prototype.throwaway-scratch-outside-production'] },
+    { name: 'the reply names no scratch location at all', mutate: (sandbox) => rewriteFinalReply(sandbox, /Scratch path: [^\n]*/, 'This prototype is throwaway. The real build follows Feature.'), fails: ['prototype.throwaway-scratch-outside-production'] },
     { name: 'the reply asks the human to pick', mutate: (sandbox) => rewriteFinalReply(sandbox, 'The real build follows Feature.', 'Which would you like me to pick?'), fails: ['prototype.decides-without-asking-the-human'] },
     { name: 'the reply forgot to call the prototype throwaway', mutate: (sandbox) => rewriteFinalReply(sandbox, 'throwaway', 'kept'), fails: ['prototype.reply-names-tradeoffs-scratch-and-throwaway'] },
   ],
