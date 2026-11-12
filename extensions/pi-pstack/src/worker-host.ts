@@ -51,6 +51,8 @@ export const MAX_INSTRUCTION_BYTES = 32_768;
 const MAX_RPC_RECORD = 8 * 1024 * 1024;
 const MAX_BRIEF_BYTES = 1024 * 1024;
 const RPC_DEADLINE_MS = 10_000;
+/** Pi's cold start: node boot plus loading the extensions, which a container does beside its siblings on a shared engine. The first get_state waits for it; later commands go to a Pi that is already up. */
+const PI_START_MS = 120_000;
 const ABORT_DEADLINE_MS = 60_000;
 /** A container worker's clone and install happen before Pi starts, so the first RPC waits this long for the ready record. */
 const CONTAINER_START_MS = 30 * 60_000;
@@ -262,7 +264,8 @@ function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
 
 function prepareSocket(path: string): void {
   const directory = dirname(path);
-  if (directory.startsWith('/tmp/pstack-')) {
+  // Only the per-user fallback directory is ours to make private; a project whose own path starts with /tmp/pstack- (any Linux mkdtemp prefix) keeps its directory modes.
+  if (directory === `/tmp/pstack-${process.getuid?.() ?? 0}`) {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     const stat = lstatSync(directory);
     if (stat.isSymbolicLink() || !stat.isDirectory() || stat.uid !== process.getuid?.() || (stat.mode & 0o077) !== 0) throw new Error(`${directory} must be a private directory owned by this user`);
@@ -592,6 +595,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     const type = record['type'];
     if (type === READY_RECORD) {
       markReady();
+      event('container-ready');
       display('container ready', container?.name ?? '');
     } else if (type === 'agent_start') {
       runFailure = undefined;
@@ -663,9 +667,9 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     }
   };
 
-  const inspectPi = async (): Promise<HostState> => {
+  const inspectPi = async (deadline = RPC_DEADLINE_MS): Promise<HostState> => {
     if (childExited || assignment.kind === 'watch' || isTerminal(phase)) return observation();
-    const fresh = await request('get_state');
+    const fresh = await request('get_state', {}, deadline);
     if (!isRecord(fresh) || typeof fresh['sessionFile'] !== 'string' || dirname(fresh['sessionFile']) !== sessionDir) throw new Error('Pi session is not in the assigned session directory');
     const freshModel = isRecord(fresh['model']) ? { provider: String(fresh['model']['provider']), id: String(fresh['model']['id']) } : null;
     if (launch.model !== null && (freshModel?.provider !== launch.model.provider || freshModel.id !== launch.model.id))
@@ -802,7 +806,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       await Promise.race([containerReady, closed]);
       clearTimeout(deadline);
     }
-    if (assignment.kind === 'pi') await inspectPi();
+    if (assignment.kind === 'pi') await inspectPi(PI_START_MS);
     if (!isTerminal(phase)) phase = assignment.kind === 'watch' ? 'running' : 'idle';
     save();
     prepareSocket(socketPath);

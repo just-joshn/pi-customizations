@@ -68,11 +68,11 @@ console.log(JSON.stringify({ conclusion: view.conclusion, url: view.url, jobs: v
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 const dl = spawnSync('gh', ['run', 'download', String(id), '-R', repo, '-n', 'linux-results', '-D', out], { stdio: 'inherit' });
-if (dl.status !== 0 || !existsSync(join(out, 'linux-security.json'))) {
+if (dl.status !== 0 || !existsSync(join(out, 'linux-all.json'))) {
   console.error('ci-linux: no results artifact was downloaded');
   process.exit(1);
 }
-for (const name of ['linux-security']) {
+for (const name of ['linux-all']) {
   const path = join(out, `${name}.json`);
   const r = JSON.parse(readFileSync(path, 'utf8'));
   if (!r.numTotalTests) {
