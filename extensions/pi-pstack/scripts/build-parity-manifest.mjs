@@ -2,20 +2,24 @@
 // Derives every requirement's status from a Vitest JSON report and writes generated/parity-manifest.json and the
 // generated section of docs/parity-status.md. Status is never taken from the requirements source.
 //   node scripts/build-parity-manifest.mjs                 runs `npx vitest run --reporter=json` first
+//   node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json   runs Vitest and keeps the report and its sidecar
 //   node scripts/build-parity-manifest.mjs --results r.json  uses a report you already have
 //   node scripts/build-parity-manifest.mjs --results local.json --results ci.json  merges several reports per test
-// A report with a sibling <name>.identity.json (platform, commit, sourceDigest, runUrl) is a CI result recorded elsewhere.
-// A report without one is attributed to this checkout and this host.
+// A report with a sibling <name>.identity.json is attributed to what that file says: a CI result (platform, commit, sourceDigest,
+// runUrl, root) or a local one (resultsSource "local", with the commit, dirty flag and sourceDigest taken around its own run).
+// A report without one has no known commit, platform or digest, so the release gate stays closed until it is rerun with --save.
+// A run is accepted when Vitest exits 0, or 1 with a complete report whose failures then close the gate; the checkout's source digest
+// must be the same before and after it, and a dirty tree is recorded so the gate rejects it.
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { buildRecords, evaluate, loadInputs, renderStatusSection, requirementsDigest, runIdentity, sidecarIdentity, spliceStatusSection, tally } from './parity-lib.mjs';
+import { buildRecords, evaluate, loadInputs, renderStatusSection, requirementsDigest, runIdentity, sidecarIdentity, sourceState, spliceStatusSection, tally, UNATTRIBUTED, vitestRunOutcome } from './parity-lib.mjs';
 
-const { values } = parseArgs({ options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, out: { type: 'string' }, docs: { type: 'string' }, 'no-docs': { type: 'boolean' } } });
+const { values } = parseArgs({ options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, save: { type: 'string' }, out: { type: 'string' }, docs: { type: 'string' }, 'no-docs': { type: 'boolean' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 
 const inputs = loadInputs(root);
@@ -28,17 +32,32 @@ if (problems.length) {
 
 const loaded = [];
 const resultFiles = (values.results ?? []).map((p) => resolve(p));
-if (!resultFiles.length) {
+if (!resultFiles.length || values.save) {
   const temp = mkdtempSync(join(tmpdir(), 'pstack-vitest-'));
   const path = join(temp, 'report.json');
-  spawnSync('npx', ['vitest', 'run', '--reporter=json', `--outputFile=${path}`], { cwd: root, stdio: ['ignore', 'ignore', 'inherit'] });
-  if (!existsSync(path)) {
-    console.error('parity manifest: the Vitest run wrote no JSON report; nothing written');
+  const before = sourceState(root);
+  const run = spawnSync('npx', ['vitest', 'run', '--reporter=json', `--outputFile=${path}`], { cwd: root, stdio: ['ignore', 'ignore', 'inherit'] });
+  const reportText = existsSync(path) ? readFileSync(path, 'utf8') : null;
+  rmSync(temp, { recursive: true, force: true });
+  const { report, problem } = vitestRunOutcome(run, reportText);
+  if (problem) {
+    console.error(`parity manifest: ${problem}; nothing written`);
     process.exit(1);
   }
-  const report = JSON.parse(readFileSync(path, 'utf8'));
-  rmSync(temp, { recursive: true, force: true });
-  loaded.push({ report, identity: runIdentity(root, report, 'vitest run') });
+  const after = sourceState(root);
+  if (before.sourceDigest !== after.sourceDigest || before.commit !== after.commit) {
+    console.error('parity manifest: the code changed while Vitest ran, so the report cannot be attributed to one revision; nothing written');
+    process.exit(1);
+  }
+  const identity = runIdentity(root, report, 'local', before);
+  if (values.save) {
+    const target = resolve(values.save);
+    mkdirSync(dirname(target), { recursive: true });
+    writeFileSync(target, reportText);
+    const { platform, commit, dirty, sourceDigest } = identity;
+    writeFileSync(target.replace(/\.json$/, '.identity.json'), `${JSON.stringify({ resultsSource: 'local', platform, commit, dirty, sourceDigest }, null, 2)}\n`);
+  }
+  loaded.push({ report, identity });
 }
 for (const path of resultFiles) {
   if (!existsSync(path)) {
@@ -48,7 +67,7 @@ for (const path of resultFiles) {
   const report = JSON.parse(readFileSync(path, 'utf8'));
   const sidecarPath = path.replace(/\.json$/, '.identity.json');
   if (!existsSync(sidecarPath)) {
-    loaded.push({ report, identity: runIdentity(root, report, 'file') });
+    loaded.push({ report, identity: runIdentity(root, report, 'file', UNATTRIBUTED) });
     continue;
   }
   const { identity, problem } = sidecarIdentity(JSON.parse(readFileSync(sidecarPath, 'utf8')));
@@ -56,7 +75,7 @@ for (const path of resultFiles) {
     console.error(`parity manifest: ${sidecarPath}: ${problem}; nothing written`);
     process.exit(1);
   }
-  loaded.push({ report, identity: runIdentity(root, report, 'ci', { ...identity, dirty: false }) });
+  loaded.push({ report, identity: runIdentity(root, report, identity.resultsSource ?? 'ci', { dirty: false, ...identity }) });
 }
 
 const requirements = evaluate(records, loaded, root);

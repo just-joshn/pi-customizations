@@ -1,13 +1,27 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
+import { sourceDigest } from '../../scripts/parity-lib.mjs';
 import { PKG } from '../skill-parity/helpers.ts';
 
 export { PKG };
+/** The execution-time sidecar a real run leaves beside its report, for fixtures whose report stands for tests that just ran against this tree. */
+const attributeReports = (args: string[]) => {
+  const root = args[args.indexOf('--root') + 1];
+  if (!root) return;
+  const digest = sourceDigest(root);
+  if (!digest) return;
+  args.forEach((a, i) => {
+    const sidecar = args[i + 1]?.replace(/\.json$/, '.identity.json');
+    if (a === '--results' && sidecar && !(existsSync(sidecar) && JSON.parse(readFileSync(sidecar, 'utf8')).resultsSource !== 'local')) writeFileSync(sidecar, JSON.stringify({ resultsSource: 'local', platform: process.platform, commit: '0'.repeat(40), dirty: false, sourceDigest: digest }));
+  });
+};
+
 export const script = (name: string, args: string[]) => {
+  if (name === 'build-parity-manifest.mjs') attributeReports(args);
   const r = spawnSync(process.execPath, [join(PKG, 'scripts', name), ...args], { encoding: 'utf8' });
   return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 };
@@ -66,7 +80,8 @@ export function miniRoot(overrides: { behavioral?: object[]; extraFiles?: Record
   );
   write('tests/t.test.ts', '// fixture');
   const report = (tests: Record<string, string>) => {
-    const path = join(root, 'vitest-report.json');
+    mkdirSync(join(root, 'parity-results/local'), { recursive: true });
+    const path = join(root, 'parity-results/local/vitest-report.json');
     writeFileSync(
       path,
       JSON.stringify({
