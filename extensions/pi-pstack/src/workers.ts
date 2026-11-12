@@ -11,7 +11,7 @@ import { findEnvKeys } from '@earendil-works/pi-ai/compat';
 import { getBuiltinProviders } from '@earendil-works/pi-ai/providers/all';
 import type { ExtensionAPI, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { ENGINE_ENV, GIT_CREDENTIAL_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
+import { ENGINE_ENV, outDirOf, type PreparedContainer, prepareContainer, removeRecordedContainers, writeEngineRecord } from './container.ts';
 import { ingestContainerReceipts, registerEvidenceTool } from './evidence.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { piCommand as runningPiCommand } from './pi-command.ts';
@@ -472,6 +472,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
       piEntry: options.containerPi ?? source['PSTACK_CONTAINER_PI'] ?? process.argv[1],
       roleDoc,
       extraMounts: options.containerMounts ?? [],
+      forge: assignment.capabilities.forge === true,
     });
   const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
   const launch: HostLaunch = {
@@ -482,7 +483,8 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: [...(container?.piArgs ?? []), ...(options.extraPiArgs ?? [])],
-    credentialEnv: assignment.kind === 'pi' ? [...credentialEnv(provider), ...(container === null ? [] : GIT_CREDENTIAL_ENV)] : [],
+    // A container worker's forge token travels under GH_TOKEN, so a minimal environment must let that name through.
+    credentialEnv: assignment.kind === 'pi' ? [...credentialEnv(provider), ...(assignment.capabilities.forge === true ? ['GH_TOKEN'] : [])] : [],
     container: container?.plan ?? null,
   };
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.

@@ -120,6 +120,8 @@ export interface Capabilities {
   externalWrite: boolean;
   /** Registers pstack_worker in the worker, for Orchestrate's sub-coordinators. Absent means false. */
   spawn?: boolean;
+  /** A container worker gets a forge token (the operator's `gh` login, or PSTACK_CONTAINER_FORGE_TOKEN) to clone, push, and run `gh`. Absent means false. */
+  forge?: boolean;
 }
 export const ENGINEERING_CAPABILITIES: Capabilities = { mcp: 'inherit', env: 'inherit', externalWrite: false };
 /** Defaults for a worker of an automation run, the run whose run.json has no parent session. */
@@ -129,16 +131,25 @@ const AUTOMATION_CAPABILITIES: Capabilities = { mcp: 'none', env: 'minimal', ext
 const defaultCapabilities = (role: Capabilities, workspace: Workspace): Capabilities => (workspace.mode === 'container' ? { ...role, env: 'minimal' } : role);
 
 function parseCapabilities(raw: unknown): Capabilities {
+  const required = ['env', 'externalWrite', 'mcp'];
+  const optional = ['spawn', 'forge'];
   if (
     !isRecord(raw) ||
-    !['env,externalWrite,mcp', 'env,externalWrite,mcp,spawn'].includes(Object.keys(raw).sort().join(',')) ||
+    !required.every((key) => key in raw) ||
+    Object.keys(raw).some((key) => !required.includes(key) && !optional.includes(key)) ||
     !['inherit', 'none'].includes(raw['mcp'] as string) ||
     !['inherit', 'minimal'].includes(raw['env'] as string) ||
     typeof raw['externalWrite'] !== 'boolean' ||
-    (raw['spawn'] !== undefined && typeof raw['spawn'] !== 'boolean')
+    optional.some((key) => raw[key] !== undefined && typeof raw[key] !== 'boolean')
   )
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
-  return { mcp: raw['mcp'] as Capabilities['mcp'], env: raw['env'] as Capabilities['env'], externalWrite: raw['externalWrite'], ...(typeof raw['spawn'] === 'boolean' ? { spawn: raw['spawn'] } : {}) };
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean, forge?: boolean }");
+  return {
+    mcp: raw['mcp'] as Capabilities['mcp'],
+    env: raw['env'] as Capabilities['env'],
+    externalWrite: raw['externalWrite'],
+    ...(typeof raw['spawn'] === 'boolean' ? { spawn: raw['spawn'] } : {}),
+    ...(typeof raw['forge'] === 'boolean' ? { forge: raw['forge'] } : {}),
+  };
 }
 
 interface AssignmentBase {
@@ -199,6 +210,7 @@ export function parseAssignment(raw: unknown, defaults: AssignmentDefaults): Ass
   if (brief !== undefined && brief !== BRIEF) throw new Error(`Assignment brief must be '${BRIEF}'`);
   const capabilities = raw['capabilities'] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw['capabilities']);
   if (capabilities.spawn === true && parsedWorkspace.mode !== 'worktree') throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
+  if (capabilities.forge === true && parsedWorkspace.mode !== 'container') throw new Error("Assignment capabilities.forge needs a container workspace: a worktree or readonly worker already runs as the operator, with the operator's own gh login");
   const base: AssignmentBase = { schemaVersion: 1, runId, workerId, role: role as WorkerRole, model, thinkingLevel: thinkingLevel as ThinkingLevel | null, workspace: parsedWorkspace, skills: skills as string[], capabilities };
   if (kind === 'pi') {
     if (raw['watch'] !== undefined) throw new Error("Assignment watch is only for kind 'watch'");

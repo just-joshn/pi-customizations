@@ -92,6 +92,15 @@ describe('a container worker', () => {
     expect(parseAssignment(container({ mcp: 'inherit', env: 'inherit', externalWrite: false }), defaults).capabilities.env).toBe('inherit');
   });
 
+  test('takes the forge capability only on a container workspace, as a boolean', () => {
+    const forge = { mcp: 'inherit', env: 'minimal', externalWrite: false, forge: true };
+    expect(parseAssignment(container(forge), defaults).capabilities).toEqual(forge);
+    expect(() => parseAssignment({ ...container(forge), workspace: { mode: 'worktree', inputCommit: 'abc1234' } }, defaults)).toThrow(/forge needs a container workspace/);
+    expect(() => parseAssignment({ ...container(forge), workspace: { mode: 'readonly' } }, defaults)).toThrow(/forge needs a container workspace/);
+    expect(() => parseAssignment(container({ ...forge, forge: 'yes' }), defaults)).toThrow(/capabilities must be/);
+    expect(() => parseAssignment(container({ ...forge, push: true }), defaults)).toThrow(/capabilities must be/);
+  });
+
   test('a worktree worker keeps the inherit default', () => {
     expect(parseAssignment({ ...container(), workspace: { mode: 'worktree', inputCommit: 'abc1234' } }, defaults).capabilities.env).toBe('inherit');
   });

@@ -12,13 +12,32 @@ import { redactUserinfo, stripUserinfo } from './redact.ts';
 
 /** The label every pstack container carries, valued with its worker's tmux session name; pstack removes only containers that have it. */
 export const CONTAINER_LABEL = 'pstack.worker';
-/** Debian with node and git: enough to clone, run Pi, and build most repositories. */
+/** Debian with node and git. The default environment derives its image from this one (see DEFAULT_DOCKERFILE). */
 export const DEFAULT_IMAGE = 'node:24-bookworm';
+/** The GitHub CLI the default environment ships, pinned by release and checked against the release's published digests. */
+export const GH_VERSION = '2.103.3';
+const GH_SHA256 = { amd64: '4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d', arm64: 'ee32df2323c8847f5fac6cb6b4b69ca75828e9329a8f22f677021f7b3306ce63' } as const;
+/** What a container worker runs in when the project names no image: node, git, base64, and `gh`. */
+export const DEFAULT_DOCKERFILE = `FROM ${DEFAULT_IMAGE}
+RUN set -eu; \\
+  arch="$(dpkg --print-architecture)"; \\
+  case "$arch" in \\
+    amd64) sum=${GH_SHA256.amd64} ;; \\
+    arm64) sum=${GH_SHA256.arm64} ;; \\
+    *) echo "no gh release for $arch" >&2; exit 1 ;; \\
+  esac; \\
+  curl -fsSL -o /tmp/gh.tgz "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_$arch.tar.gz"; \\
+  echo "$sum  /tmp/gh.tgz" | sha256sum -c -; \\
+  tar -xzf /tmp/gh.tgz -C /tmp; \\
+  install -m 0755 "/tmp/gh_${GH_VERSION}_linux_$arch/bin/gh" /usr/local/bin/gh; \\
+  rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_$arch"; \\
+  gh --version
+`;
+/** The cache key of the derived image: its Dockerfile. Removing the tag rebuilds it, which also takes a newer node base. */
+export const DEFAULT_IMAGE_TAG = `pstack-default:${createHash('sha256').update(DEFAULT_DOCKERFILE).digest('hex').slice(0, 16)}`;
 export const ENVIRONMENT_FILE = join('.pi', 'environment.json');
 /** The docker client's own configuration. It reaches the client, never the container. */
 export const ENGINE_ENV = ['DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_CONFIG', 'DOCKER_CERT_PATH', 'DOCKER_TLS_VERIFY', 'DOCKER_API_VERSION'] as const;
-/** What git reads to clone and push over https. */
-export const GIT_CREDENTIAL_ENV = ['GH_TOKEN', 'GITHUB_TOKEN'] as const;
 export const CONTAINER_HOME = '/tmp/pstack-home';
 export const CONTAINER_WORKSPACE = '/tmp/workspace';
 /** Where the host's Pi install is mounted: a `node_modules` directory, so Pi's dependencies resolve beside it. */
@@ -76,13 +95,13 @@ export function parseContainerPlan(raw: unknown): ContainerPlan {
 }
 
 /** Runs the docker CLI and resolves with its stdout; a non-zero exit rejects with the CLI's stderr. */
-function dockerCli(docker: string, args: readonly string[], env: NodeJS.ProcessEnv, timeoutMs: number): Promise<string> {
+function dockerCli(docker: string, args: readonly string[], env: NodeJS.ProcessEnv, timeoutMs: number, input?: string): Promise<string> {
   return new Promise((resolveRun, reject) => {
     const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: 'utf8', maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
       if (error === null) resolveRun(stdout);
       else reject(new Error(redactUserinfo(`docker ${args[0] ?? ''} failed: ${stderr.trim() || error.message}`)));
     });
-    child.stdin?.end();
+    child.stdin?.end(input);
   });
 }
 
@@ -123,7 +142,7 @@ export async function connectEngine(source: Record<string, string | undefined>):
 export interface Environment {
   /** `.pi/environment.json` when the project has one. */
   source: string | undefined;
-  image: { kind: 'pull'; reference: string } | { kind: 'build'; dockerfile: string; context: string; tag: string };
+  image: { kind: 'default' } | { kind: 'pull'; reference: string } | { kind: 'build'; dockerfile: string; context: string; tag: string };
   install: string | undefined;
 }
 
@@ -146,7 +165,7 @@ function optionalString(path: string, value: unknown, field: string): string | u
 /** The project's `.pi/environment.json`: `image` or `build.dockerfile` (relative to `.pi/`), and `install`. A malformed file fails the spawn instead of being ignored. */
 export function readEnvironment(project: string): Environment {
   const path = join(project, ENVIRONMENT_FILE);
-  if (!existsSync(path)) return { source: undefined, image: { kind: 'pull', reference: DEFAULT_IMAGE }, install: undefined };
+  if (!existsSync(path)) return { source: undefined, image: { kind: 'default' }, install: undefined };
   let raw: unknown;
   try {
     raw = JSON.parse(readFileSync(path, 'utf8'));
@@ -158,7 +177,7 @@ export function readEnvironment(project: string): Environment {
   if (unknown.length > 0) fail(path, `unsupported field${unknown.length === 1 ? '' : 's'} ${unknown.join(', ')}; a container worker reads image, build, and install`);
   const reference = optionalString(path, raw['image'], 'image');
   const install = optionalString(path, raw['install'], 'install');
-  if (raw['build'] === undefined) return { source: path, image: { kind: 'pull', reference: reference ?? DEFAULT_IMAGE }, install };
+  if (raw['build'] === undefined) return { source: path, image: reference === undefined ? { kind: 'default' } : { kind: 'pull', reference }, install };
   if (reference !== undefined) fail(path, 'set image or build, not both');
   const build = raw['build'];
   if (!isRecord(build)) return fail(path, 'build must be an object with a dockerfile');
@@ -180,21 +199,61 @@ export function readEnvironment(project: string): Environment {
 export async function ensureImage(engine: Engine, environment: Environment): Promise<{ reference: string; id: string }> {
   const { image } = environment;
   const inspect = (reference: string) => dockerCli(engine.docker, ['image', 'inspect', '--format', '{{.Id}}', reference], engine.env, 30_000);
+  const present = (reference: string) =>
+    inspect(reference).then(
+      () => true,
+      () => false,
+    );
   let reference: string;
-  if (image.kind === 'pull') {
+  if (image.kind === 'default') {
+    reference = DEFAULT_IMAGE_TAG;
+    if (!(await present(reference))) await dockerCli(engine.docker, ['build', '--quiet', '-t', reference, '-'], engine.env, 30 * 60_000, DEFAULT_DOCKERFILE);
+  } else if (image.kind === 'pull') {
     reference = image.reference;
-    if (
-      !(await inspect(reference).then(
-        () => true,
-        () => false,
-      ))
-    )
-      await dockerCli(engine.docker, ['pull', '--quiet', reference], engine.env, 30 * 60_000);
+    if (!(await present(reference))) await dockerCli(engine.docker, ['pull', '--quiet', reference], engine.env, 30 * 60_000);
   } else {
     reference = image.tag;
     await dockerCli(engine.docker, ['build', '--quiet', '-f', image.dockerfile, '-t', reference, image.context], engine.env, 30 * 60_000);
   }
   return { reference, id: (await inspect(reference)).trim() };
+}
+
+export class ForgeUnavailableError extends Error {
+  constructor(reason: string) {
+    super(`ForgeUnavailable: ${reason}`);
+    this.name = 'ForgeUnavailable';
+  }
+}
+
+/** What `gh` reads to find its login. The rest of the parent's environment never reaches it. */
+const GH_ENV = ['PATH', 'HOME', 'GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'GH_HOST', 'GH_CONFIG_DIR', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_STATE_HOME'] as const;
+
+/**
+ * The token a worker with the forge capability gets: `PSTACK_CONTAINER_FORGE_TOKEN` when the parent sets one (a token the
+ * operator scoped for workers, such as a fine-grained one), else what `gh auth token` prints. Throws ForgeUnavailable when
+ * neither exists, so the spawn fails before any claim. `gh auth token` reads the operator's own login, so it holds their scopes.
+ */
+export async function resolveForgeToken(source: Record<string, string | undefined>): Promise<string> {
+  const explicit = source['PSTACK_CONTAINER_FORGE_TOKEN'];
+  if (explicit !== undefined && explicit !== '') return explicit;
+  const env = Object.fromEntries(GH_ENV.flatMap((name) => (typeof source[name] === 'string' ? [[name, source[name]]] : [])));
+  const gh = findOnPath('gh', env['PATH']);
+  if (gh === undefined) throw new ForgeUnavailableError('capabilities.forge needs a token, and there is no `gh` on PATH to read one from. Install gh and log in, or set PSTACK_CONTAINER_FORGE_TOKEN.');
+  const token = await new Promise<string>((resolveRun, reject) => {
+    const child = execFile(gh, ['auth', 'token'], { env, timeout: 15_000, encoding: 'utf8' }, (error, stdout, stderr) => (error === null ? resolveRun(stdout.trim()) : reject(new Error(redactUserinfo(stderr.trim() || error.message)))));
+    child.stdin?.end();
+  }).catch((error: unknown) => {
+    throw new ForgeUnavailableError(`capabilities.forge needs a token, and \`gh auth token\` gave none (${error instanceof Error ? error.message : String(error)}). Run \`gh auth login\`, or set PSTACK_CONTAINER_FORGE_TOKEN.`);
+  });
+  if (token === '') throw new ForgeUnavailableError('capabilities.forge needs a token, and `gh auth token` printed none. Run `gh auth login`, or set PSTACK_CONTAINER_FORGE_TOKEN.');
+  return token;
+}
+
+/** Fails the spawn when the image has no `gh`: a forge worker in it could not use its token. The default image always has it. */
+async function assertImageHasGh(engine: Engine, image: { reference: string; id: string }): Promise<void> {
+  await dockerCli(engine.docker, ['run', '--rm', '--entrypoint', 'sh', image.id, '-c', 'command -v gh'], engine.env, 120_000).catch(() => {
+    throw new ForgeUnavailableError(`the image ${image.reference} has no \`gh\`, which this worker's forge capability needs. Add it to the image, or leave the image to the default, which ships gh ${GH_VERSION}.`);
+  });
 }
 
 function git(cwd: string, args: readonly string[], env: NodeJS.ProcessEnv): Promise<string> {
@@ -297,6 +356,8 @@ while IFS= read -r line; do
   export "$name=\${value%x}"
 done
 [ -n "\${PSTACK_CONTAINER_CLONE_URL:-}" ] || fail "the launch environment did not arrive on stdin"
+export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_NO_UPDATE_NOTIFIER=1
+[ -z "\${PSTACK_CONTAINER_FORGE:-}" ] || command -v gh >/dev/null 2>&1 || fail "the image has no gh, which this worker's forge capability needs"
 WS=${CONTAINER_WORKSPACE}
 {
   mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
@@ -304,14 +365,14 @@ WS=${CONTAINER_WORKSPACE}
   [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
   [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
   if [ -n "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ]; then
-    git config --global credential.https://github.com.helper '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
+    git config --global "credential.https://\${PSTACK_CONTAINER_FORGE_HOST:-github.com}.helper" '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
   fi
   git clone --quiet --no-checkout "$PSTACK_CONTAINER_CLONE_URL" "$WS" || fail "could not clone the remote"
   git -C "$WS" rev-parse --verify --quiet "$PSTACK_CONTAINER_COMMIT^{commit}" >/dev/null || fail "commit $PSTACK_CONTAINER_COMMIT is not on the remote"
   git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
   if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
 } >&2
-unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST
 printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
@@ -408,6 +469,8 @@ export interface ContainerRequest {
   roleDoc: string | null;
   /** Further read-only host paths to mount at the same path. */
   extraMounts: readonly string[];
+  /** The assignment's `capabilities.forge`: the worker gets a forge token and needs `gh`. */
+  forge: boolean;
 }
 
 export interface PreparedContainer {
@@ -434,7 +497,9 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
   assertRemoteOutsideCheckout(project, remote);
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
+  const forgeToken = request.forge ? await resolveForgeToken(source) : undefined;
   const image = await ensureImage(engine, environment);
+  if (forgeToken !== undefined && environment.image.kind !== 'default') await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
   const mounts: ContainerMount[] = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];
   for (const path of [packageRoot, ...(request.roleDoc === null ? [] : [resolve(request.roleDoc, '..')]), ...request.extraMounts])
@@ -451,6 +516,7 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
       PSTACK_CONTAINER_CLONE_URL: remote.url,
       PSTACK_CONTAINER_COMMIT: commit,
       PSTACK_CONTAINER_BRANCH: `pstack-run/${runId}/${workerId}`,
+      ...(forgeToken === undefined ? {} : { GH_TOKEN: forgeToken, PSTACK_CONTAINER_FORGE: '1', PSTACK_CONTAINER_FORGE_HOST: source['GH_HOST'] || 'github.com' }),
       ...(environment.install === undefined ? {} : { PSTACK_CONTAINER_INSTALL: environment.install }),
       ...(name === undefined || name === '' ? {} : { PSTACK_CONTAINER_GIT_NAME: name }),
       ...(email === undefined || email === '' ? {} : { PSTACK_CONTAINER_GIT_EMAIL: email }),

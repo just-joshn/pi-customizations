@@ -10854,9 +10854,26 @@ var redactUserinfo = (text) => text.replace(/(\/\/)[^\s/@]+@/g, "$1***@");
 
 // src/container.ts
 var DEFAULT_IMAGE = "node:24-bookworm";
+var GH_VERSION = "2.103.3";
+var GH_SHA256 = { amd64: "4c806978ffce1cec70853302a56d70ac6da4f19bae7adca4e1a8ab00633dd91d", arm64: "ee32df2323c8847f5fac6cb6b4b69ca75828e9329a8f22f677021f7b3306ce63" };
+var DEFAULT_DOCKERFILE = `FROM ${DEFAULT_IMAGE}
+RUN set -eu; \\
+  arch="$(dpkg --print-architecture)"; \\
+  case "$arch" in \\
+    amd64) sum=${GH_SHA256.amd64} ;; \\
+    arm64) sum=${GH_SHA256.arm64} ;; \\
+    *) echo "no gh release for $arch" >&2; exit 1 ;; \\
+  esac; \\
+  curl -fsSL -o /tmp/gh.tgz "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_$arch.tar.gz"; \\
+  echo "$sum  /tmp/gh.tgz" | sha256sum -c -; \\
+  tar -xzf /tmp/gh.tgz -C /tmp; \\
+  install -m 0755 "/tmp/gh_${GH_VERSION}_linux_$arch/bin/gh" /usr/local/bin/gh; \\
+  rm -rf /tmp/gh.tgz "/tmp/gh_${GH_VERSION}_linux_$arch"; \\
+  gh --version
+`;
+var DEFAULT_IMAGE_TAG = `pstack-default:${createHash("sha256").update(DEFAULT_DOCKERFILE).digest("hex").slice(0, 16)}`;
 var ENVIRONMENT_FILE = join(".pi", "environment.json");
 var ENGINE_ENV = ["DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG", "DOCKER_CERT_PATH", "DOCKER_TLS_VERIFY", "DOCKER_API_VERSION"];
-var GIT_CREDENTIAL_ENV = ["GH_TOKEN", "GITHUB_TOKEN"];
 var CONTAINER_WORKSPACE = "/tmp/workspace";
 var CONTAINER_PI_ROOT = "/opt/pstack/pi/node_modules";
 var READY_RECORD = "pstack_container_ready";
@@ -10868,7 +10885,7 @@ class ContainerUnavailableError extends Error {
 }
 var isRecord = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var MOUNT_PATH = /^\/[^\0\n,]*$/;
-function dockerCli(docker, args, env, timeoutMs) {
+function dockerCli(docker, args, env, timeoutMs, input) {
   return new Promise((resolveRun, reject) => {
     const child = execFile(docker, [...args], { env, timeout: timeoutMs, encoding: "utf8", maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
       if (error === null)
@@ -10876,7 +10893,7 @@ function dockerCli(docker, args, env, timeoutMs) {
       else
         reject(new Error(redactUserinfo(`docker ${args[0] ?? ""} failed: ${stderr.trim() || error.message}`)));
     });
-    child.stdin?.end();
+    child.stdin?.end(input);
   });
 }
 function clientEnv(source) {
@@ -10922,7 +10939,7 @@ function optionalString(path, value, field) {
 function readEnvironment(project) {
   const path = join(project, ENVIRONMENT_FILE);
   if (!existsSync(path))
-    return { source: undefined, image: { kind: "pull", reference: DEFAULT_IMAGE }, install: undefined };
+    return { source: undefined, image: { kind: "default" }, install: undefined };
   let raw;
   try {
     raw = JSON.parse(readFileSync(path, "utf8"));
@@ -10937,7 +10954,7 @@ function readEnvironment(project) {
   const reference = optionalString(path, raw["image"], "image");
   const install = optionalString(path, raw["install"], "install");
   if (raw["build"] === undefined)
-    return { source: path, image: { kind: "pull", reference: reference ?? DEFAULT_IMAGE }, install };
+    return { source: path, image: reference === undefined ? { kind: "default" } : { kind: "pull", reference }, install };
   if (reference !== undefined)
     fail(path, "set image or build, not both");
   const build = raw["build"];
@@ -10964,16 +10981,52 @@ function readEnvironment(project) {
 async function ensureImage(engine, environment) {
   const { image } = environment;
   const inspect = (reference) => dockerCli(engine.docker, ["image", "inspect", "--format", "{{.Id}}", reference], engine.env, 30000);
+  const present = (reference) => inspect(reference).then(() => true, () => false);
   let reference;
-  if (image.kind === "pull") {
+  if (image.kind === "default") {
+    reference = DEFAULT_IMAGE_TAG;
+    if (!await present(reference))
+      await dockerCli(engine.docker, ["build", "--quiet", "-t", reference, "-"], engine.env, 30 * 60000, DEFAULT_DOCKERFILE);
+  } else if (image.kind === "pull") {
     reference = image.reference;
-    if (!await inspect(reference).then(() => true, () => false))
+    if (!await present(reference))
       await dockerCli(engine.docker, ["pull", "--quiet", reference], engine.env, 30 * 60000);
   } else {
     reference = image.tag;
     await dockerCli(engine.docker, ["build", "--quiet", "-f", image.dockerfile, "-t", reference, image.context], engine.env, 30 * 60000);
   }
   return { reference, id: (await inspect(reference)).trim() };
+}
+
+class ForgeUnavailableError extends Error {
+  constructor(reason) {
+    super(`ForgeUnavailable: ${reason}`);
+    this.name = "ForgeUnavailable";
+  }
+}
+var GH_ENV = ["PATH", "HOME", "GH_TOKEN", "GITHUB_TOKEN", "GH_ENTERPRISE_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "GH_HOST", "GH_CONFIG_DIR", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"];
+async function resolveForgeToken(source) {
+  const explicit = source["PSTACK_CONTAINER_FORGE_TOKEN"];
+  if (explicit !== undefined && explicit !== "")
+    return explicit;
+  const env = Object.fromEntries(GH_ENV.flatMap((name) => typeof source[name] === "string" ? [[name, source[name]]] : []));
+  const gh = findOnPath("gh", env["PATH"]);
+  if (gh === undefined)
+    throw new ForgeUnavailableError("capabilities.forge needs a token, and there is no `gh` on PATH to read one from. Install gh and log in, or set PSTACK_CONTAINER_FORGE_TOKEN.");
+  const token = await new Promise((resolveRun, reject) => {
+    const child = execFile(gh, ["auth", "token"], { env, timeout: 15000, encoding: "utf8" }, (error, stdout, stderr) => error === null ? resolveRun(stdout.trim()) : reject(new Error(redactUserinfo(stderr.trim() || error.message))));
+    child.stdin?.end();
+  }).catch((error) => {
+    throw new ForgeUnavailableError(`capabilities.forge needs a token, and \`gh auth token\` gave none (${error instanceof Error ? error.message : String(error)}). Run \`gh auth login\`, or set PSTACK_CONTAINER_FORGE_TOKEN.`);
+  });
+  if (token === "")
+    throw new ForgeUnavailableError("capabilities.forge needs a token, and `gh auth token` printed none. Run `gh auth login`, or set PSTACK_CONTAINER_FORGE_TOKEN.");
+  return token;
+}
+async function assertImageHasGh(engine, image) {
+  await dockerCli(engine.docker, ["run", "--rm", "--entrypoint", "sh", image.id, "-c", "command -v gh"], engine.env, 120000).catch(() => {
+    throw new ForgeUnavailableError(`the image ${image.reference} has no \`gh\`, which this worker's forge capability needs. Add it to the image, or leave the image to the default, which ships gh ${GH_VERSION}.`);
+  });
 }
 function git(cwd, args, env) {
   return new Promise((resolveRun, reject) => {
@@ -11051,6 +11104,8 @@ while IFS= read -r line; do
   export "$name=\${value%x}"
 done
 [ -n "\${PSTACK_CONTAINER_CLONE_URL:-}" ] || fail "the launch environment did not arrive on stdin"
+export GIT_TERMINAL_PROMPT=0 GH_PROMPT_DISABLED=1 GH_NO_UPDATE_NOTIFIER=1
+[ -z "\${PSTACK_CONTAINER_FORGE:-}" ] || command -v gh >/dev/null 2>&1 || fail "the image has no gh, which this worker's forge capability needs"
 WS=${CONTAINER_WORKSPACE}
 {
   mkdir -p "$HOME" "$PI_CODING_AGENT_DIR" "$WS" || fail "cannot create the workspace"
@@ -11058,14 +11113,14 @@ WS=${CONTAINER_WORKSPACE}
   [ -z "\${PSTACK_CONTAINER_GIT_NAME:-}" ] || git config --global user.name "$PSTACK_CONTAINER_GIT_NAME"
   [ -z "\${PSTACK_CONTAINER_GIT_EMAIL:-}" ] || git config --global user.email "$PSTACK_CONTAINER_GIT_EMAIL"
   if [ -n "\${GH_TOKEN:-\${GITHUB_TOKEN:-}}" ]; then
-    git config --global credential.https://github.com.helper '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
+    git config --global "credential.https://\${PSTACK_CONTAINER_FORGE_HOST:-github.com}.helper" '!f() { test "$1" = get || exit 0; echo username=x-access-token; echo "password=\${GH_TOKEN:-$GITHUB_TOKEN}"; }; f'
   fi
   git clone --quiet --no-checkout "$PSTACK_CONTAINER_CLONE_URL" "$WS" || fail "could not clone the remote"
   git -C "$WS" rev-parse --verify --quiet "$PSTACK_CONTAINER_COMMIT^{commit}" >/dev/null || fail "commit $PSTACK_CONTAINER_COMMIT is not on the remote"
   git -C "$WS" checkout --quiet -b "$PSTACK_CONTAINER_BRANCH" "$PSTACK_CONTAINER_COMMIT" || fail "cannot check out $PSTACK_CONTAINER_COMMIT"
   if [ -n "\${PSTACK_CONTAINER_INSTALL:-}" ]; then (cd "$WS" && sh -c "$PSTACK_CONTAINER_INSTALL") || fail "the environment's install command failed"; fi
 } >&2
-unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL
+unset PSTACK_CONTAINER_CLONE_URL PSTACK_CONTAINER_COMMIT PSTACK_CONTAINER_BRANCH PSTACK_CONTAINER_INSTALL PSTACK_CONTAINER_GIT_NAME PSTACK_CONTAINER_GIT_EMAIL PSTACK_CONTAINER_FORGE PSTACK_CONTAINER_FORGE_HOST
 printf '{"type":"%s"}\\n' ${READY_RECORD}
 cd "$WS"
 exec "$@"
@@ -11081,7 +11136,10 @@ async function prepareContainer(request) {
   assertRemoteOutsideCheckout(project, remote);
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
+  const forgeToken = request.forge ? await resolveForgeToken(source) : undefined;
   const image = await ensureImage(engine, environment);
+  if (forgeToken !== undefined && environment.image.kind !== "default")
+    await assertImageHasGh(engine, image);
   const pi = resolvePiInstall(request.piEntry);
   const mounts = [{ src: pi.root, dst: CONTAINER_PI_ROOT, readonly: true }];
   for (const path of [packageRoot, ...request.roleDoc === null ? [] : [resolve(request.roleDoc, "..")], ...request.extraMounts])
@@ -11101,6 +11159,7 @@ async function prepareContainer(request) {
       PSTACK_CONTAINER_CLONE_URL: remote.url,
       PSTACK_CONTAINER_COMMIT: commit,
       PSTACK_CONTAINER_BRANCH: `pstack-run/${runId}/${workerId}`,
+      ...forgeToken === undefined ? {} : { GH_TOKEN: forgeToken, PSTACK_CONTAINER_FORGE: "1", PSTACK_CONTAINER_FORGE_HOST: source["GH_HOST"] || "github.com" },
       ...environment.install === undefined ? {} : { PSTACK_CONTAINER_INSTALL: environment.install },
       ...name === undefined || name === "" ? {} : { PSTACK_CONTAINER_GIT_NAME: name },
       ...email === undefined || email === "" ? {} : { PSTACK_CONTAINER_GIT_EMAIL: email }
@@ -14147,9 +14206,17 @@ var ENGINEERING_CAPABILITIES = { mcp: "inherit", env: "inherit", externalWrite: 
 var AUTOMATION_CAPABILITIES = { mcp: "none", env: "minimal", externalWrite: false };
 var defaultCapabilities = (role, workspace) => workspace.mode === "container" ? { ...role, env: "minimal" } : role;
 function parseCapabilities(raw) {
-  if (!isRecord2(raw) || !["env,externalWrite,mcp", "env,externalWrite,mcp,spawn"].includes(Object.keys(raw).sort().join(",")) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || raw["spawn"] !== undefined && typeof raw["spawn"] !== "boolean")
-    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean }");
-  return { mcp: raw["mcp"], env: raw["env"], externalWrite: raw["externalWrite"], ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {} };
+  const required = ["env", "externalWrite", "mcp"];
+  const optional = ["spawn", "forge"];
+  if (!isRecord2(raw) || !required.every((key) => (key in raw)) || Object.keys(raw).some((key) => !required.includes(key) && !optional.includes(key)) || !["inherit", "none"].includes(raw["mcp"]) || !["inherit", "minimal"].includes(raw["env"]) || typeof raw["externalWrite"] !== "boolean" || optional.some((key) => raw[key] !== undefined && typeof raw[key] !== "boolean"))
+    throw new Error("Assignment capabilities must be { mcp: 'inherit' | 'none', env: 'inherit' | 'minimal', externalWrite: boolean, spawn?: boolean, forge?: boolean }");
+  return {
+    mcp: raw["mcp"],
+    env: raw["env"],
+    externalWrite: raw["externalWrite"],
+    ...typeof raw["spawn"] === "boolean" ? { spawn: raw["spawn"] } : {},
+    ...typeof raw["forge"] === "boolean" ? { forge: raw["forge"] } : {}
+  };
 }
 var BRIEF = "brief.md";
 var MODEL_SPEC = /^(inherit-parent|[^/\s:]+\/[^\s]+)$/;
@@ -14196,6 +14263,8 @@ function parseAssignment(raw, defaults) {
   const capabilities = raw["capabilities"] === undefined ? defaultCapabilities(defaults.capabilities, parsedWorkspace) : parseCapabilities(raw["capabilities"]);
   if (capabilities.spawn === true && parsedWorkspace.mode !== "worktree")
     throw new Error("Assignment capabilities.spawn needs a worktree workspace: a sub-coordinator writes its workers' assignments and keeps its runs in its own workspace");
+  if (capabilities.forge === true && parsedWorkspace.mode !== "container")
+    throw new Error("Assignment capabilities.forge needs a container workspace: a worktree or readonly worker already runs as the operator, with the operator's own gh login");
   const base = { schemaVersion: 1, runId, workerId, role, model, thinkingLevel, workspace: parsedWorkspace, skills, capabilities };
   if (kind === "pi") {
     if (raw["watch"] !== undefined)
@@ -14590,7 +14659,8 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
       packageRoot: PACKAGE_ROOT,
       piEntry: options.containerPi ?? source["PSTACK_CONTAINER_PI"] ?? process.argv[1],
       roleDoc,
-      extraMounts: options.containerMounts ?? []
+      extraMounts: options.containerMounts ?? [],
+      forge: assignment.capabilities.forge === true
     });
   const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
   const launch = {
@@ -14601,7 +14671,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     tools: assignment.workspace.mode === "readonly" ? [...READONLY_TOOLS] : null,
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
-    credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...container === null ? [] : GIT_CREDENTIAL_ENV] : [],
+    credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],
     container: container?.plan ?? null
   };
   const launchEnv = {
