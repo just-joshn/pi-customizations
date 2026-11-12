@@ -43,12 +43,20 @@ export type EvidenceVerdict = { kind: 'pass'; receipts: string[] } | { kind: 'fa
 
 const COMMIT = /^[0-9a-f]{7,64}$/;
 
-export function parseReceipt(raw: unknown, runId: RunId): Receipt {
-  if (!Value.Check(ReceiptSchema, raw)) {
-    const first = Value.Errors(ReceiptSchema, raw)[0];
-    throw new Error(`Invalid receipt${first === undefined ? '' : ` at ${first.instancePath || '/'}: ${first.message}`}`);
-  }
-  if (raw.runId !== runId) throw new Error(`Receipt runId ${raw.runId} is not ${runId}`);
+/** The properties a receipt got wrong, each with what the schema said, so the author knows which field to fix. */
+function describeSchemaErrors(raw: unknown): string {
+  const lines = Value.Errors(ReceiptSchema, raw).map((error) => {
+    const params = error.params as { requiredProperties?: string[]; additionalProperties?: string[] };
+    const property = error.instancePath !== '' ? error.instancePath.slice(1).replaceAll('/', '.') : (params.requiredProperties ?? params.additionalProperties ?? ['(receipt)']).join(', ');
+    return `${property}: ${error.message}`;
+  });
+  return [...new Set(lines)].slice(0, 4).join('; ');
+}
+
+/** `source` is the file the receipt came from, named in every error so a malformed receipt can be found and fixed. */
+export function parseReceipt(raw: unknown, runId: RunId, source = '(receipt)'): Receipt {
+  if (!Value.Check(ReceiptSchema, raw)) throw new Error(`Invalid receipt ${source}: ${describeSchemaErrors(raw)}`);
+  if (raw.runId !== runId) throw new Error(`Invalid receipt ${source}: runId is ${raw.runId}, the run is ${runId}`);
   return raw;
 }
 
@@ -76,7 +84,7 @@ const RECEIPT_FILE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.json$/;
 function readRecorded(scope: EvidenceScope, runId: RunId, file: string): RecordedReceipt {
   const path = join(scope.receipts, file);
   const raw = readJson(path) as Partial<RecordedReceipt>;
-  const receipt = parseReceipt(raw.receipt, runId);
+  const receipt = parseReceipt(raw.receipt, runId, path);
   if (`${receipt.id}.json` !== file || typeof raw.receiptPath !== 'string' || typeof raw.recordedAt !== 'string') throw new Error(`${path} is not a recorded receipt`);
   return { receipt, receiptPath: raw.receiptPath, recordedAt: raw.recordedAt };
 }
@@ -128,12 +136,23 @@ function storeReceipt(scope: EvidenceScope, runId: RunId, receipt: Receipt, sour
   }
 }
 
-export function recordReceipt(runRoot: string | EvidenceScope, runId: RunId, receiptPath: string): RecordedReceipt {
+/**
+ * A relative receipt path is the one a model copies from `ls` run in its project directory (`.pi/pstack/runs/<id>/...`), so
+ * it is tried against `cwd` first and against the run root second. A file under both is the project's. When neither holds a
+ * file, the run-root reading is the one reported, so a typo is not mistaken for a path outside the run.
+ */
+function resolveReceiptPath(scope: EvidenceScope, receiptPath: string, cwd: string | undefined): { path: string; tried: string[] } {
+  if (isAbsolute(receiptPath)) return { path: receiptPath, tried: [receiptPath] };
+  const tried = [...(cwd === undefined ? [] : [resolve(cwd, receiptPath)]), resolve(scope.base, receiptPath)];
+  return { path: tried.find((candidate) => existsSync(candidate) && statSync(candidate).isFile()) ?? tried.at(-1)!, tried };
+}
+
+export function recordReceipt(runRoot: string | EvidenceScope, runId: RunId, receiptPath: string, cwd?: string): RecordedReceipt {
   const scope = scopeOf(runRoot);
-  const path = isAbsolute(receiptPath) ? receiptPath : resolve(scope.base, receiptPath);
+  const { path, tried } = resolveReceiptPath(scope, receiptPath, cwd);
   if (!isInside(scope.root, path)) throw new Error(`Receipt ${receiptPath} is outside ${scope.root === scope.base ? `run ${runId}` : `this worker's directory ${scope.root}`}`);
-  if (!existsSync(path) || !statSync(path).isFile()) throw new Error(`Receipt ${receiptPath} is not a file`);
-  const receipt = parseReceipt(readJson(path), runId);
+  if (!existsSync(path) || !statSync(path).isFile()) throw new Error(`Receipt ${receiptPath} is not a file (looked at ${tried.join(', ')})`);
+  const receipt = parseReceipt(readJson(path), runId, path);
   for (const artifact of receipt.artifacts) if (!isInside(scope.root, artifactPath(scope.base, artifact.path))) throw new Error(`Artifact ${artifact.path} is outside ${scope.root === scope.base ? `run ${runId}` : `this worker's directory ${scope.root}`}`);
   return storeReceipt(scope, runId, receipt, path);
 }
@@ -170,7 +189,7 @@ export function ingestContainerReceipts(runRoot: string, runId: RunId): Ingested
           continue;
         }
         const raw = JSON.parse(read.bytes.toString('utf8')) as { receipt?: unknown };
-        const receipt = parseReceipt(raw.receipt, runId);
+        const receipt = parseReceipt(raw.receipt, runId, join(inbox, file));
         if (`${receipt.id}.json` !== file) throw new Error(`receipt id ${receipt.id} does not match its file name`);
         for (const artifact of receipt.artifacts) {
           const named = artifactPath(runRoot, artifact.path);
@@ -251,7 +270,7 @@ export function evidenceScope(cwd: string, runId: RunId, env: NodeJS.ProcessEnv 
 const EvidenceParams = Type.Object({
   action: StringEnum(['record', 'verify', 'list'] as const, { description: 'record stores a receipt file as verification/receipts/<id>.json; verify re-checks every receipt for a target; list shows recorded receipts.' }),
   runId: Type.String({ description: 'The run id (the folder under .pi/pstack/runs).' }),
-  receiptPath: Type.Optional(Type.String({ description: 'record: the receipt JSON file, inside the run root.' })),
+  receiptPath: Type.Optional(Type.String({ description: 'record: the receipt JSON file, inside the run root. A relative path is tried under the project directory first (so `.pi/pstack/runs/<id>/x.json` works), then under the run root.' })),
   target: Type.Optional(Type.String({ description: 'verify: a TODO step id, worker id, or commit.' })),
 });
 
@@ -272,7 +291,7 @@ export function registerEvidenceTool(pi: ExtensionAPI): void {
       if (!existsSync(where)) throw new Error(`Run ${runId} does not exist at ${where}`);
       if (params.action === 'record') {
         if (params.receiptPath === undefined) throw new Error('receiptPath is required');
-        const recorded = recordReceipt(scope, runId, params.receiptPath);
+        const recorded = recordReceipt(scope, runId, params.receiptPath, ctx.cwd);
         const pending = typeof scope === 'string' ? '' : ' The parent takes it into the run when it next reads the receipts.';
         return text(`Recorded receipt ${recorded.receipt.id} for ${recorded.receipt.target} (${recorded.receipt.verdict}).${pending}`, recorded);
       }

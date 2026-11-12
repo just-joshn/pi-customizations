@@ -1,7 +1,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { PACKAGE_ROOT } from '../../src/paths.ts';
@@ -102,8 +102,26 @@ describe('pstack_evidence', () => {
     await expect(evidence({ action: 'record', receiptPath: receipt('r1', { verdict: 'fail' }) })).rejects.toThrow(/different content/);
   });
 
-  test('record rejects a malformed receipt', async () => {
-    await expect(evidence({ action: 'record', receiptPath: receipt('r1', { verdict: 'probably' }) })).rejects.toThrow(/Invalid receipt/);
+  test('record rejects a malformed receipt and names its path and the offending property', async () => {
+    const path = receipt('r1', { verdict: 'probably' });
+    await expect(evidence({ action: 'record', receiptPath: path })).rejects.toThrow(new RegExp(`Invalid receipt ${path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}: .*verdict`));
+  });
+
+  test('record names a missing property', async () => {
+    const path = receipt('r1');
+    writeFileSync(path, JSON.stringify({ schemaVersion: 1, id: 'r1', runId: 'run1' }));
+    await expect(evidence({ action: 'record', receiptPath: path })).rejects.toThrow(/Invalid receipt .*r1\.json: .*target/);
+  });
+
+  test('a relative path that exists under the project directory records, as does one relative to the run root', async () => {
+    const full = receipt('r1');
+    await evidence({ action: 'record', receiptPath: relative(project.dir, full) });
+    await evidence({ action: 'record', receiptPath: relative(runRoot, receipt('r2')) });
+    expect((await evidence({ action: 'list' })).details.receipts.map((entry: { receipt: { id: string } }) => entry.receipt.id).sort()).toEqual(['r1', 'r2']);
+  });
+
+  test('a relative path found under neither base says where it looked', async () => {
+    await expect(evidence({ action: 'record', receiptPath: 'nowhere/r9.json' })).rejects.toThrow(/is not a file \(looked at .*nowhere\/r9\.json, .*run1\/nowhere\/r9\.json\)/);
   });
 });
 
