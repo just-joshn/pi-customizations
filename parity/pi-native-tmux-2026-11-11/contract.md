@@ -241,7 +241,9 @@ An upstream cloud agent has no host credentials beyond a push token. A container
 
 ### Outputs
 
-`<workerDir>/out` is mounted at `<workerDir>` inside, so the brief's paths are the same in both places. The host links `session`, `evidence`, and `report.md` in the worker directory to `out/`, so every reader of the worker directory sees the live files. `collect` reads them only while they stay inside `out`: a report, session file, or evidence entry that is a symlink out of it is refused or left out, because the worker controls that directory. ### Receipts
+`<workerDir>/out` is mounted at `<workerDir>` inside, so the brief's paths are the same in both places. The host links `session`, `evidence`, and `report.md` in the worker directory to `out/`, so every reader of the worker directory sees the live files. `collect` reads them only while they stay inside `out`: a report, session file, or evidence entry that is a symlink out of it is refused or left out, because the worker controls that directory.
+
+### Receipts
 
 The verifier records its own receipt. Inside a container (`PSTACK_CONTAINER=1`, set by the host) the run root is not mounted, so `pstack_evidence` works on the worker's directory instead: `record` writes `<workerDir>/receipts/<id>.json` (host path `<workerDir>/out/receipts/`, the inbox), refusing a receipt or an artifact outside the worker's own directory, with the contract's rules unchanged (its own temporary file hard-linked to the receipt name, an identical re-record a no-op, a different receipt under a recorded id an error). `verify` and `list` read that inbox. The worker saves receipt and artifact files under `evidence/` as before; paths are the same strings on both sides.
 
