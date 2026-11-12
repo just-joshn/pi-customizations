@@ -1,6 +1,6 @@
 // Fakes for the two external edges of the Benny serve process: Slack's HTTP API and the `gh` CLI. Both keep state, so a
 // test can assert what the destination holds after a crash and a restart, not only which calls were made.
-import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
@@ -156,15 +156,34 @@ Lets a user export a report.
 - click Export should download a file.
 `;
 
-/** Writes what a settled host leaves behind: its state file and the native session file with the worker's final message. */
-export function settleWorker(dir: string, runId: RunId, outcome: { phase: 'idle' | 'failed' | 'aborted'; reason?: string; finalText?: string }, workerId = 'owner') {
+const stateFile = (dir: string, runId: RunId) => join(workerDir(dir, runId), 'state.json');
+const readState = (dir: string, runId: RunId): { generation: number } | undefined => (existsSync(stateFile(dir, runId)) ? (JSON.parse(readFileSync(stateFile(dir, runId), 'utf8')) as { generation: number }) : undefined);
+
+/**
+ * Writes what a host leaves behind: its state file and the native session file with the worker's last message. A settle
+ * covers the host's current generation unless `unsettled` says the host holds work no settle covers yet, which is what a
+ * host looks like between a message it took and the end of that turn. The pid is this process's, so that state reads as
+ * running rather than as a host that died.
+ */
+export function settleWorker(dir: string, runId: RunId, outcome: { phase: 'idle' | 'failed' | 'aborted'; reason?: string; finalText?: string; generation?: number; unsettled?: boolean }, workerId = 'owner') {
   const worker = workerDir(dir, runId);
   const sessionFile = join(worker, 'session', 'fake.jsonl');
   mkdirSync(join(worker, 'session'), { recursive: true });
-  const message = outcome.finalText === undefined ? '' : `${JSON.stringify({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: outcome.finalText }] } })}\n`;
-  writeFileSync(sessionFile, message);
-  const state = { schemaVersion: 1, runId, workerId, kind: 'pi', digest: 'x', instance: 'i1', hostPid: 2 ** 22 - 1, childPid: null, tmuxSession: 's', socketPath: '/nonexistent', phase: 'idle', reason: null, model: null, sessionFile, briefSent: true, generation: 1, settles: [{ sequence: 1, generation: 1, phase: outcome.phase, reason: outcome.reason ?? null, at: new Date().toISOString() }], exit: null, updatedAt: new Date().toISOString() };
-  writeFileSync(join(worker, 'state.json'), JSON.stringify(state));
+  if (outcome.finalText !== undefined || !existsSync(sessionFile)) {
+    const message = outcome.finalText === undefined ? '' : `${JSON.stringify({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: outcome.finalText }] } })}\n`;
+    writeFileSync(sessionFile, message);
+  }
+  const generation = outcome.generation ?? readState(dir, runId)?.generation ?? 1;
+  const settles = outcome.unsettled === true ? [] : [{ sequence: generation, generation, phase: outcome.phase, reason: outcome.reason ?? null, at: new Date().toISOString() }];
+  const state = { schemaVersion: 1, runId, workerId, kind: 'pi', digest: 'x', instance: 'i1', hostPid: outcome.unsettled === true ? process.pid : 2 ** 22 - 1, childPid: null, tmuxSession: 's', socketPath: '/nonexistent', phase: outcome.unsettled === true ? 'running' : 'idle', reason: null, model: null, sessionFile, briefSent: true, generation, settles, exit: null, updatedAt: new Date().toISOString() };
+  writeFileSync(stateFile(dir, runId), JSON.stringify(state));
+}
+
+/** The host takes one more message: its generation moves up and nothing settles it until `settleWorker` does. */
+export function beginTurn(dir: string, runId: RunId): number {
+  const generation = (readState(dir, runId)?.generation ?? 1) + 1;
+  settleWorker(dir, runId, { phase: 'idle', generation, unsettled: true });
+  return generation;
 }
 
 export interface BennyProject {

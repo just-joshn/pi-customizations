@@ -213,7 +213,12 @@ For `Could not reproduce` or `Blocked`, return an empty `text`. For a confirmed 
 
 You cannot attach files. Link evidence in your `operations` reply instead.
 
-Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.
+Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.
+
+- If a person shows that the setup or interpretation was wrong, correct the repro once and report where it ends.
+- If a person claims the fix, gives a concrete implementation plan, or asks you to stop, decide `stop`. The parent then stops you and no fix is attempted.
+
+Do not start the fix phase until the parent sends the go-ahead message, which it sends only when the window closes without a valid rejection.
 
 ## 10. Verify an existing fix
 

@@ -13,10 +13,9 @@ import { enqueue, type ThreadDestination } from './outbox.ts';
 import { type CollectedRun, collectRun } from './settle.ts';
 import { type AutomationStore, appendLog, type LogEntry, outboxEntries, readLog } from './store.ts';
 import { type SpawnWorker, launchRun } from './dispatch.ts';
+import { fenced, humanMessagesAfter, latestTs } from './thread-watch.ts';
 
 const MAX_REPLY_CHARS = 3000;
-const fenced = (value: unknown) => JSON.stringify(value, null, 2).replace(/</g, '\\u003c');
-const after = (left: string, right: string) => BigInt(left.replace('.', '')) > BigInt(right.replace('.', ''));
 
 export const followUpRunId = (automation: string, key: EventKey, round: number): RunId => `fu-${createHash('sha256').update([automation, key, String(round)].join('\0')).digest('hex').slice(0, 16)}` as RunId;
 
@@ -166,7 +165,7 @@ export function createFollowUps(host: FollowUpHost): { advance(): Promise<void> 
     const verdict = replyEntry?.action.kind === 'thread-reply' ? replyEntry.action.text : '';
     const assignment = { schemaVersion: 1, runId, workerId: WORKER_ID, kind: 'pi', role: 'owner', brief: 'brief.md', model: config.model ?? 'inherit-parent', thinkingLevel: null, workspace: { mode: 'readonly', path: config.projectRoot }, skills: [], capabilities: { mcp: 'none', env: 'minimal', externalWrite: false } };
     await launchRun(config.projectRoot, { runId, title: `Benny triage follow-up ${window.key} round ${round}`, playbook: 'benny-triage-follow-up', inputCommit: null, brief: briefOf(host, window.event, verdict, issueOf(window.key), fresh, round), assignment }, { spawnWorker: host.spawnWorker, now: host.now });
-    const seenTs = fresh.reduce((latest, message) => (after(message.ts, latest) ? message.ts : latest), fresh[0]?.ts ?? '0.0');
+    const seenTs = latestTs(fresh, '0.0');
     appendLog(store, { ts: stamp(), kind: 'follow-up-dispatched', key: window.key, runId, round, seenTs });
   };
 
@@ -200,7 +199,7 @@ export function createFollowUps(host: FollowUpHost): { advance(): Promise<void> 
         if (thread === undefined) continue;
         const reply = entryOf(actionIdFor(config.name, window.key, 'result'));
         const seen = window.rounds.at(-1)?.seenTs ?? (reply?.state === 'done' ? reply.destinationTs : window.event.rootTs);
-        const fresh = thread.filter((message) => message.ts !== window.event.rootTs && after(message.ts, seen) && message.marker === undefined && message.user !== undefined && message.user !== '' && message.user !== config.triageIdentityUserId);
+        const fresh = humanMessagesAfter(thread, seen, window.event.rootTs, config.triageIdentityUserId);
         if (fresh.length > 0) await dispatch(window, fresh);
       }
     },

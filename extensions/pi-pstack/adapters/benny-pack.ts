@@ -144,6 +144,20 @@ export const BENNY_RULES: readonly Rule[] = [
     'The parent applied these checks before it started you. It starts nothing for `other`, a missing verdict, an untrusted author, conflicting markers, or a timeout. Your brief carries the optional tracker URL from the verdict.',
   ),
   rule(
+    'reproduce-and-fix-issues.9-rejection-window',
+    'cursor-automations',
+    BN('skills/reproduce-and-fix-issues/SKILL.md'),
+    'Wait for the configured rejection window. If a person shows that the setup or interpretation was wrong, correct the repro once. Do not start the fix phase until the window closes without a valid rejection.',
+    L([
+      'Stop after this report. The parent holds the configured rejection window (`budgets.rejection_window_minutes`) and reads the source thread, which you cannot. It sends you the new human messages as data, and you decide as follows.',
+      '',
+      '- If a person shows that the setup or interpretation was wrong, correct the repro once and report where it ends.',
+      '- If a person claims the fix, gives a concrete implementation plan, or asks you to stop, decide `stop`. The parent then stops you and no fix is attempted.',
+      '',
+      'Do not start the fix phase until the parent sends the go-ahead message, which it sends only when the window closes without a valid rejection.',
+    ]),
+  ),
+  rule(
     'reproduce-and-fix-issues.4-root-status-message',
     'cursor-automations',
     BN('skills/reproduce-and-fix-issues/SKILL.md'),

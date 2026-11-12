@@ -77,3 +77,10 @@ test('the repro instructions say the parent waited for the verdict and already c
   expect(repro).toContain('The parent applied these checks before it started you.');
   expect(repro).not.toContain('Stay silent while waiting.');
 });
+
+test('the repro instructions hand the rejection window to the parent and keep the fix phase behind its go-ahead message', () => {
+  const repro = text('skills/reproduce-and-fix-issues/SKILL.md');
+  expect(repro).toContain('The parent holds the configured rejection window');
+  expect(repro).toContain('Do not start the fix phase until the parent sends the go-ahead message');
+  expect(repro).not.toContain('Wait for the configured rejection window.');
+});

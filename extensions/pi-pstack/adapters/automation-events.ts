@@ -11,7 +11,11 @@ import { directLander, enqueue, flushOutbox, type OperationsDestination, type Th
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
 import { type Download, fetchAttachments } from '../src/automation/attachments.ts';
+import { abortRun, type AbortRun } from '../src/automation/abort.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
+import { createReproTurns } from '../src/automation/repro-turns.ts';
+import { type CollectedRun, collectRun } from '../src/automation/settle.ts';
+import { type SteerRun, steerRun } from '../src/automation/steer.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
 
 export { createRoutine, startRoutineSource, type RoutineConfig } from '../src/automation/routine.ts';
@@ -32,6 +36,10 @@ export interface AutomationDeps {
   spawnWorker?: SpawnWorker;
   /** A synchronous tracker the parent writes itself, or a lander that hands each write to a worker. */
   tracker?: TrackerDestination | TrackerLander;
+  /** How the parent reads a worker's settled result, stops a worker, and sends an idle one its next message. Default to the runtime's own. */
+  collect?: (runId: RunId) => Promise<CollectedRun>;
+  abort?: AbortRun;
+  steer?: SteerRun;
   /** Fetches a report attachment with the parent's Slack credential. Absent: no attachment is downloaded. */
   downloadAttachment?: Download;
   /** The url of the issue with this id, for a tracker whose urls the parent can build. Another tracker's worker returns its own. */
@@ -75,6 +83,8 @@ export interface Automation {
   advanceFollowUps(): Promise<void>;
   /** Repro only: looks again at each case still waiting for its triage verdict. Dispatches it, closes it, or lets it wait. */
   retryWaiting(): Promise<void>;
+  /** Repro only: holds the rejection window after the first report, and sends the worker its review and fix turns. */
+  advanceRepro(): Promise<void>;
   /** Brings the operations status message in line with what each pending repro run last reported, then retries every pending outbox action. */
   syncOperations(): Promise<void>;
   /** When the run was dispatched, from the event log. */
@@ -172,7 +182,9 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     const runId = runIdFor(config.name, key);
     const { files } = event;
     const attachments = deps.downloadAttachment === undefined || files.length === 0 ? undefined : await fetchAttachments(join(workerDir(config.projectRoot, runId), 'attachments'), files, deps.downloadAttachment);
-    await dispatchRun(config, event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }) });
+    const { rejectionWindowMinutes, fixMinutes } = config.budgets ?? {};
+    const phases = config.kind === 'reproduce' && rejectionWindowMinutes !== undefined ? { windowMinutes: rejectionWindowMinutes, ...(fixMinutes === undefined ? {} : { fixMinutes }) } : undefined;
+    await dispatchRun(config, event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }), ...(phases === undefined ? {} : { phases }) });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };
@@ -235,6 +247,21 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
   const operations = config.kind === 'reproduce' && config.operations !== undefined && deps.operations !== undefined ? config.operations : undefined;
   const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, sourceChannel: config.sourceChannelId, ...(deps.operations === undefined ? {} : { operations: deps.operations }), ...options });
   const followUps = createFollowUps({ config, store, destination: deps.destination, spawnWorker, now, flush: () => flush() });
+  /** A turn's status on the operations message and its reply in the operations thread. False while one of them is still to land. */
+  const reportTurn = async (event: AutomationEvent, _runId: RunId, result: { status?: OpsStatus; operations?: string }, replyKey: string): Promise<boolean> => {
+    if (operations === undefined) return true;
+    if (result.status !== undefined) showStatus(event, result.status);
+    await flush();
+    const root = entryOf(actionIdFor(config.name, event.key, 'ops-root'));
+    if (root?.state === 'pending') return false;
+    const reply = result.operations === undefined ? '' : untrustedText(result.operations).trim();
+    if (root?.state !== 'done' || reply === '') return true;
+    const id = actionIdFor(config.name, event.key, `ops-reply-${replyKey}`);
+    enqueue(store, { id, kind: 'thread-reply', channel: operations.channelId, threadTs: root.destinationTs, text: reply });
+    await flush();
+    return entryOf(id)?.state !== 'pending';
+  };
+  const reproTurns = createReproTurns({ config, store, destination: deps.destination, now, collect: deps.collect ?? ((runId) => collectRun(config.projectRoot, runId)), abort: deps.abort ?? abortRun, steer: (runId, text) => (deps.steer ?? steerRun)(config.projectRoot, runId, text), report: reportTurn });
   const pendingRuns = (): RunId[] => {
     const log = readLog(store);
     const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
@@ -335,10 +362,11 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
+    advanceRepro: () => serial(() => reproTurns.advance()),
     syncOperations: () =>
       serial(async () => {
         if (operations !== undefined) {
-          for (const runId of pendingRuns()) {
+          for (const runId of [...pendingRuns(), ...reproTurns.inFlightRuns()]) {
             const event = eventOf(runId);
             if (event === undefined) continue;
             const reported = latestStatus(config.projectRoot, runId);

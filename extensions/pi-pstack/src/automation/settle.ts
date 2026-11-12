@@ -136,6 +136,7 @@ export function startSettler(automation: Automation, options: SettleOptions & { 
     await automation
       .syncOperations()
       .then(() => automation.retryWaiting())
+      .then(() => automation.advanceRepro())
       .then(() => completeSettledRuns(automation, options))
       .then(() => automation.advanceFollowUps())
       .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));

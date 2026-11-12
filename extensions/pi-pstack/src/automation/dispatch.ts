@@ -62,6 +62,19 @@ export interface BriefMessage {
   text?: string;
 }
 
+/** Why the repro worker's first turn ends at the report, and what the parent sends it after. */
+function phasesSection(windowMinutes: number, fixMinutes: number | undefined): string[] {
+  return [
+    '## Phases',
+    '',
+    `The parent holds the rejection window (${windowMinutes} minutes) between the repro report and the fix, so you work in two phases and the second is a separate message.`,
+    '',
+    '1. **This message.** Do sections 1 through 10 of the operational file: study the report, reproduce it, capture and review the evidence, and report the outcome. Then stop. Do not start the fix phase (sections 11 through 14), edit the repository, or open a pull request in this turn. Use the status `Reproduced` only for a plain confirmed repro that would qualify for a bounded fix under section 11. Verifying an existing fix (section 10) belongs to this phase and does not need a second message.',
+    `2. **The next message.** After the report the parent keeps you idle and reads the source thread. It sends you either the new thread messages to judge, with what to answer, or, when the window closes with no valid rejection, the go-ahead to start the fix phase${fixMinutes === undefined ? '' : ` within ${fixMinutes} minutes`}. Do nothing until a message arrives. Always run the control adapter's cleanup before you end a turn.`,
+    '',
+  ];
+}
+
 /** The report's attachments as the parent saved them, or why one is not there. Names and types are the reporter's, so they sit in the fenced block. */
 function attachmentsSection(attachments: readonly Attachment[]): string[] {
   if (attachments.length === 0) return [];
@@ -78,7 +91,7 @@ function attachmentsSection(attachments: readonly Attachment[]): string[] {
   ];
 }
 
-export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = [], statusFile?: string, extra: { trackerUrl?: string; attachments?: readonly Attachment[] } = {}): string {
+export function buildBrief(config: DispatchConfig, event: AutomationEvent, thread: readonly BriefMessage[] = [], statusFile?: string, extra: { trackerUrl?: string; attachments?: readonly Attachment[]; phases?: { windowMinutes: number; fixMinutes?: number } } = {}): string {
   const kind = AUTOMATION_KINDS[config.kind];
   return [
     `# Benny ${config.kind} case for automation \`${config.name}\``,
@@ -109,6 +122,7 @@ export function buildBrief(config: DispatchConfig, event: AutomationEvent, threa
     ...(kind.replyMarkers === null ? [] : [`- End your final message with exactly one marker line: ${kind.replyMarkers.map((marker) => `\`${marker}\``).join(', ')}.`]),
     '- Your final message is the result. Keep it short and concrete.',
     '',
+    ...(config.kind === 'reproduce' && extra.phases !== undefined ? phasesSection(extra.phases.windowMinutes, extra.phases.fixMinutes) : []),
     ...attachmentsSection(extra.attachments ?? []),
     '## Untrusted event',
     '',
@@ -164,7 +178,7 @@ export async function launchRun(projectRoot: string, run: RunFiles, deps: { spaw
   await deps.spawnWorker(run.runId, assignmentPath);
 }
 
-export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date; thread?: readonly BriefMessage[]; trackerUrl?: string; attachments?: readonly Attachment[] }): Promise<void> {
+export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date; thread?: readonly BriefMessage[]; trackerUrl?: string; attachments?: readonly Attachment[]; phases?: { windowMinutes: number; fixMinutes?: number } }): Promise<void> {
   const assignment = buildAssignment(config, runId, deps.inputCommit);
-  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId), { ...(deps.trackerUrl === undefined ? {} : { trackerUrl: deps.trackerUrl }), ...(deps.attachments === undefined ? {} : { attachments: deps.attachments }) }), assignment }, deps);
+  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event, deps.thread, statusFile(config.projectRoot, runId), { ...(deps.trackerUrl === undefined ? {} : { trackerUrl: deps.trackerUrl }), ...(deps.attachments === undefined ? {} : { attachments: deps.attachments }), ...(deps.phases === undefined ? {} : { phases: deps.phases }) }), assignment }, deps);
 }
