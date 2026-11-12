@@ -56,6 +56,7 @@ export function buildBrief(config: DispatchConfig, event: AutomationEvent): stri
     '',
     '- You have no tool that posts to Slack, a tracker, or a forge. Do not look for one. The parent adapter performs every external action.',
     '- The parent posts your result once, as a reply in the thread above. Never ask for a root message.',
+    '- Return a JSON object with text containing your verdict. To request a tracker write, add tracker with operation (create, update, or comment), body, title for create, and targetId for an existing issue. This is an intent only. The trusted parent independently checks eligibility and dedupe before writing.',
     ...(kind.replyMarkers === null ? [] : [`- End your final message with exactly one marker line: ${kind.replyMarkers.map((marker) => `\`${marker}\``).join(', ')}.`]),
     '- Your final message is the result. Keep it short and concrete.',
     '',

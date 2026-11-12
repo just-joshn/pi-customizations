@@ -3,12 +3,14 @@
 // credential limit, and proves the dispatcher on a harmless event with a fake spawn.
 //
 //   node scripts/benny-setup.mjs --project <dir> [--name <automation>] [--credentials <file>]
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { mergeBennySettings } from '../src/automation/settings.ts';
 import { createAutomation } from '../adapters/automation-events.ts';
 import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
 
@@ -89,6 +91,13 @@ for (const file of files(pack)) report.pack[bucket[place(join(pack, file), join(
 for (const [source, target] of LOCAL_CONFIG) report.localConfig[bucket[place(join(pack, source), join(configTarget, target))]].push(relative(project, join(configTarget, target)));
 
 const credentialFile = values.credentials ?? defaultCredentialFile(values.name);
+mkdirSync(dirname(credentialFile), { recursive: true });
+try {
+  writeFileSync(credentialFile, JSON.stringify({ key: randomBytes(32).toString('hex') }), { flag: 'wx', mode: 0o600 });
+} catch (error) {
+  if (error.code !== 'EEXIST') throw error;
+}
+report.settings = mergeBennySettings(join(project, '.pi', 'settings.json'));
 const credential = readCredential(credentialFile, 'key');
 report.connector = { webhookSecret: credential.ok ? 'present, 0600' : credential.reason };
 report.sameUidLimit = SAME_UID_LIMIT;

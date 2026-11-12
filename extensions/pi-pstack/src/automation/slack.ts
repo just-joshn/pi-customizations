@@ -1,4 +1,4 @@
-import type { OutboxAction } from './model.ts';
+import type { ThreadReplyAction } from './model.ts';
 import type { ThreadDestination, ThreadMessage } from './outbox.ts';
 import { type AutomationStore, readCursor, writeCursor } from './store.ts';
 
@@ -80,10 +80,10 @@ export function slackDestination(api: SlackApi): ThreadDestination {
       const messages = await allPages(api, 'conversations.replies', { channel, ts: threadTs, include_all_metadata: true });
       return messages.map((message): ThreadMessage => {
         const id = message.metadata?.event_type === MARKER_EVENT ? message.metadata.event_payload?.['action_id'] : undefined;
-        return typeof id === 'string' ? { ts: message.ts, marker: id } : { ts: message.ts };
+        return { ts: message.ts, user: message.user ?? message.bot_id ?? '', text: message.text ?? '', ...(typeof id === 'string' ? { marker: id } : {}) };
       });
     },
-    async post(action: OutboxAction) {
+    async post(action: ThreadReplyAction) {
       const result = await call<{ ts: string }>(api, 'chat.postMessage', {
         channel: action.channel,
         thread_ts: action.threadTs,
