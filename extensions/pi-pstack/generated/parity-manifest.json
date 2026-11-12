@@ -4,15 +4,15 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "017d0874001d1ed629d01b7529ac1016a8f38b9c985b1d15d348cad4bb791f0a",
+  "requirementsDigest": "7fa06fd98a3ed7024fc45e3959f650943b4cc284d959b4bf3170d79ebfc738a3",
   "run": {
-    "startedAt": "2026-11-12T08:07:42.051Z",
-    "generatedAt": "2026-11-12T08:08:27.185Z",
-    "commit": "bca9f67af47acd189ebe441f3554bfa7df205a85",
-    "dirty": false,
+    "startedAt": "2026-11-12T08:14:23.252Z",
+    "generatedAt": "2026-11-12T08:15:00.963Z",
+    "commit": "bcdad6ebfb12a85cb2a8aec01f7c4f08e1f2a5b3",
+    "dirty": true,
     "resultsSource": "vitest run",
-    "totalTests": 631,
-    "passedTests": 623,
+    "totalTests": 685,
+    "passedTests": 677,
     "failedTests": 0,
     "skippedTests": 8
   },
@@ -23073,7 +23073,7 @@
       "invariants": [
         "No silent downgrade to a local worker."
       ],
-      "piMechanism": "Planned container workspace mode.",
+      "piMechanism": "workspace.mode 'container': the tmux host runs `docker run -i ... pi --mode rpc` (src/container.ts); fresh clone at inputCommit; credentials on stdin.",
       "dependencies": [
         "Docker"
       ],
@@ -23083,7 +23083,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/skill-parity/semantics.test.ts checks the generated text only",
+      "verification": "tests/container/container.test.ts on a real engine, plus generated-text semantics tests",
       "tests": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -23104,9 +23104,37 @@
         {
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "container workers (defect 3) poteto-mode defines the container shape and the refusal"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker runs a scripted prompt through the real host and settles, collectable with its report and evidence"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker works in a fresh clone at inputCommit, on its own branch, and leaves the host checkout untouched"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker receives a credential from the launch snapshot, and the credential is nowhere an engine or the host shows it"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker is labelled so pstack finds its own container, and abort removes it"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker that cannot start ContainerUnavailable when no engine answers, with no claim left"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker that cannot start an inputCommit that is not on the remote is refused before any container exists, with no claim left"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container whose host dies without cleaning up ends with its stdin, so no container outlives the host"
         }
       ],
-      "coverageGap": "parseAssignment in src/run-files.ts accepts only worktree and readonly workspaces, so a container assignment is refused with a different message. No test starts a container worker.",
+      "coverageGap": "Container workers run, but upstream cloud verifiers and owners cannot yet complete their playbooks: pstack_evidence record fails inside the container (run root not mounted), Pi logins in auth.json do not reach the container, the default environment is the whole host env rather than a fresh machine's, and push to a real GitHub remote through GH_TOKEN is untested.",
       "results": [
         {
           "file": "tests/skill-parity/semantics.test.ts",
@@ -23132,10 +23160,45 @@
           "file": "tests/skill-parity/semantics.test.ts",
           "name": "container workers (defect 3) poteto-mode defines the container shape and the refusal",
           "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker runs a scripted prompt through the real host and settles, collectable with its report and evidence",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker works in a fresh clone at inputCommit, on its own branch, and leaves the host checkout untouched",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker receives a credential from the launch snapshot, and the credential is nowhere an engine or the host shows it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker is labelled so pstack finds its own container, and abort removes it",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker that cannot start ContainerUnavailable when no engine answers, with no claim left",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container worker that cannot start an inputCommit that is not on the remote is refused before any container exists, with no claim left",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/container/container.test.ts",
+          "name": "a container whose host dies without cleaning up ends with its stdin, so no container outlives the host",
+          "outcome": "passed"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: parseAssignment in src/run-files.ts accepts only worktree and readonly workspaces, so a container assignment is refused with a different message. No test starts a container worker."
+      "reason": "declared coverage gap: Container workers run, but upstream cloud verifiers and owners cannot yet complete their playbooks: pstack_evidence record fails inside the container (run root not mounted), Pi logins in auth.json do not reach the container, the default environment is the whole host env rather than a fresh machine's, and push to a real GitHub remote through GH_TOKEN is untested."
     },
     {
       "id": "WF-HOW-READONLY",
@@ -24648,11 +24711,11 @@
         {
           "file": "tests/automation/automation-command.test.ts",
           "name": "Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe",
-          "outcome": "passed"
+          "outcome": "missing"
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No tracker or control adapter ships, so a case needing one is blocked in practice."
+      "reason": "missing: tests/automation/automation-command.test.ts::Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe"
     },
     {
       "id": "BENNY-REPRODUCE-TWICE",
@@ -24970,7 +25033,7 @@
         {
           "file": "tests/automation/automation-command.test.ts",
           "name": "Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe",
-          "outcome": "passed"
+          "outcome": "missing"
         },
         {
           "file": "tests/automation/automation-command.test.ts",
@@ -24979,7 +25042,7 @@
         }
       ],
       "status": "INCONCLUSIVE",
-      "reason": "declared coverage gap: No test proves that an unconfigured install starts nothing."
+      "reason": "missing: tests/automation/automation-command.test.ts::Benny starts through loadBennyConfig and startEventSource, fails closed without the Slack connector, and blocks a case it cannot probe"
     },
     {
       "id": "BENNY-SETUP",

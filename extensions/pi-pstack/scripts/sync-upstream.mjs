@@ -28,6 +28,7 @@ const PIN_FILES = [
   'adapters/provenance.ts',
   'adapters/cursor-to-pi.ts',
   'scripts/start-run.mjs',
+  'src/automation/dispatch.ts',
   'README.md',
   'docs/parity-status.md',
   'tests/skill-parity/review-fixes.test.ts',

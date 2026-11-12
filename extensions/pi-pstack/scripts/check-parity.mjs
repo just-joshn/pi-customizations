@@ -21,8 +21,6 @@ if (existsSync(join(root, 'requirements/requirements.json'))) for (const problem
 else fail('requirements/requirements.json: missing');
 const pinned = JSON.parse(read('package.json')).pstackSource;
 if (pinned.revision !== lock.revision) fail(`package.json pstackSource.revision ${pinned.revision} differs from generated/upstream-lock.json ${lock.revision}`);
-const dispatchRevision = /UPSTREAM_REVISION = '([0-9a-f]{40})'/.exec(read('src/automation/dispatch.ts'))?.[1];
-if (dispatchRevision !== lock.revision) fail(`src/automation/dispatch.ts UPSTREAM_REVISION ${dispatchRevision} differs from generated/upstream-lock.json ${lock.revision}`);
 if (!existsSync(join(root, 'generated/source-review-log.json'))) fail('generated/source-review-log.json: missing; move the pin with scripts/sync-upstream.mjs');
 else {
   const { entries } = JSON.parse(read('generated/source-review-log.json'));
@@ -31,6 +29,13 @@ else {
     if (entry.contentChanged && !(entry.review?.reviewer && entry.review?.notes && entry.changedFiles.length)) fail(`source-review-log entry ${index}: a content change to ${entry.to} has no recorded parity review`);
   });
   if (entries.at(-1)?.to !== lock.revision) fail(`source-review-log ends at ${entries.at(-1)?.to}, not the locked revision ${lock.revision}: the pin moved without scripts/sync-upstream.mjs`);
+  const retired = new Set(entries.map((entry) => entry.from).filter((from) => from && from !== lock.revision));
+  for (const dir of ['src', 'adapters', 'scripts']) {
+    if (!existsSync(join(root, dir))) continue;
+    for (const file of listFiles(join(root, dir))) {
+      for (const pin of retired) if (read(`${dir}/${file}`).includes(pin)) fail(`${dir}/${file} still names the retired pin ${pin}; add it to PIN_FILES in scripts/sync-upstream.mjs`);
+    }
+  }
 }
 
 let compiled;
