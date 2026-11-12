@@ -6944,55 +6944,9 @@ var require_public_api = __commonJS(function(exports) {
 });
 
 // src/automation/serve-cli.ts
-import { existsSync as existsSync6, readFileSync as readFileSync6, realpathSync as realpathSync3 } from "node:fs";
-import { relative as relative4, resolve as resolve4 } from "node:path";
+import { realpathSync as realpathSync4 } from "node:fs";
+import { resolve as resolve5 } from "node:path";
 import { parseArgs } from "node:util";
-
-// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
-var composer = require_composer();
-var Document = require_Document();
-var Schema = require_Schema();
-var errors = require_errors();
-var Alias = require_Alias();
-var identity = require_identity();
-var Pair = require_Pair();
-var Scalar = require_Scalar();
-var YAMLMap = require_YAMLMap();
-var YAMLSeq = require_YAMLSeq();
-var cst = require_cst();
-var lexer = require_lexer();
-var lineCounter = require_line_counter();
-var parser = require_parser();
-var publicApi = require_public_api();
-var visit = require_visit();
-var $Composer = composer.Composer;
-var $Document = Document.Document;
-var $Schema = Schema.Schema;
-var $YAMLError = errors.YAMLError;
-var $YAMLParseError = errors.YAMLParseError;
-var $YAMLWarning = errors.YAMLWarning;
-var $Alias = Alias.Alias;
-var $isAlias = identity.isAlias;
-var $isCollection = identity.isCollection;
-var $isDocument = identity.isDocument;
-var $isMap = identity.isMap;
-var $isNode = identity.isNode;
-var $isPair = identity.isPair;
-var $isScalar = identity.isScalar;
-var $isSeq = identity.isSeq;
-var $Pair = Pair.Pair;
-var $Scalar = Scalar.Scalar;
-var $YAMLMap = YAMLMap.YAMLMap;
-var $YAMLSeq = YAMLSeq.YAMLSeq;
-var $Lexer = lexer.Lexer;
-var $LineCounter = lineCounter.LineCounter;
-var $Parser = parser.Parser;
-var $parse = publicApi.parse;
-var $parseAllDocuments = publicApi.parseAllDocuments;
-var $parseDocument = publicApi.parseDocument;
-var $stringify = publicApi.stringify;
-var $visit = visit.visit;
-var $visitAsync = visit.visitAsync;
 
 // adapters/automation-events.ts
 import { execFileSync } from "node:child_process";
@@ -14035,6 +13989,8 @@ function loadAssignment(path) {
     throw new Error(`Assignment runId ${assignment.runId} does not name its run root`);
   return { assignment, file, runRoot, workerDir, digest: createHash("sha256").update(bytes).digest("hex") };
 }
+var TERMINAL_PHASES = ["stopped", "failed", "exited"];
+var isTerminal = (phase) => TERMINAL_PHASES.includes(phase);
 function readHostState(workerDir) {
   const path = join(workerDir, "state.json");
   if (!existsSync(path))
@@ -14504,6 +14460,11 @@ function runIdFor(automation, key) {
 }
 function actionIdFor(automation, key, purpose) {
   return `act-${shortHash(automation, key, purpose)}`;
+}
+var sourceUrlOf = (event) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace(".", "")}`;
+function classificationOf(reply) {
+  const found = /\[benny:(bug|performance|other)\]/.exec(reply)?.[1];
+  return found === "bug" || found === "performance" ? found : "other";
 }
 function eligibleTrackerAction(intent, policy) {
   if (!["bug", "performance"].includes(policy.classification) || !policy.live || !policy.sourceVerified || !policy.targetResolved || !intent.body?.trim())
@@ -15003,17 +14964,29 @@ function createAutomation(config, deps) {
       }
       const { event } = state.entry;
       if (intent !== undefined) {
-        const policy = await deps.trackerPolicy?.(event, intent);
-        if (config.kind !== "triage" || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy))
-          return { status: "refused", reason: "ineligible tracker action" };
-        enqueue(store, { ...intent, id: actionIdFor(config.name, event.key, "tracker"), kind: "tracker", sourceUrl: `https://slack.com/archives/${event.channel}/p${event.rootTs.replace(".", "")}` });
+        const trackerId = actionIdFor(config.name, event.key, "tracker");
+        if (!outboxEntries(store).some((entry) => entry.action.id === trackerId)) {
+          const policy = await deps.trackerPolicy?.(event, intent, text);
+          if (config.kind !== "triage" || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy))
+            return { status: "refused", reason: "ineligible tracker action" };
+          const classification = classificationOf(text);
+          const labels = intent.operation === "create" && config.tracker !== undefined && classification !== "other" ? [config.tracker.labels[classification], config.tracker.labels.intake] : undefined;
+          enqueue(store, { ...intent, id: trackerId, kind: "tracker", sourceUrl: sourceUrlOf(event), ...labels === undefined ? {} : { labels } });
+        }
         await flush();
       }
       const queued = enqueue(store, { id: actionIdFor(config.name, event.key, "result"), kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text });
       await flush();
+      if (!readLog(store).some((entry) => entry.kind === "completed" && entry.runId === runId))
+        appendLog(store, { ts: stamp(), kind: "completed", key: event.key, runId });
       return { status: queued ? "queued" : "already-queued", key: event.key };
     }),
-    flush: () => serial(flush)
+    flush: () => serial(flush),
+    pendingRuns: () => {
+      const log = readLog(store);
+      const completed = new Set(log.flatMap((entry) => entry.kind === "completed" ? [entry.runId] : []));
+      return log.flatMap((entry) => entry.kind === "dispatched" && !completed.has(entry.runId) ? [entry.runId] : []);
+    }
   };
 }
 var httpStatus = { rejected: 422, blocked: 202, dispatched: 200, duplicate: 200 };
@@ -15068,6 +15041,147 @@ async function startEventSource(automation, source) {
 // src/automation/configuration.ts
 import { readFileSync as readFileSync5 } from "node:fs";
 import { join as join7, relative as relative3, resolve as resolve3 } from "node:path";
+
+// ../../node_modules/.bun/yaml@2.9.0/node_modules/yaml/dist/index.js
+var composer = require_composer();
+var Document = require_Document();
+var Schema = require_Schema();
+var errors4 = require_errors();
+var Alias = require_Alias();
+var identity = require_identity();
+var Pair = require_Pair();
+var Scalar = require_Scalar();
+var YAMLMap = require_YAMLMap();
+var YAMLSeq = require_YAMLSeq();
+var cst = require_cst();
+var lexer = require_lexer();
+var lineCounter = require_line_counter();
+var parser = require_parser();
+var publicApi = require_public_api();
+var visit = require_visit();
+var $Composer = composer.Composer;
+var $Document = Document.Document;
+var $Schema = Schema.Schema;
+var $YAMLError = errors4.YAMLError;
+var $YAMLParseError = errors4.YAMLParseError;
+var $YAMLWarning = errors4.YAMLWarning;
+var $Alias = Alias.Alias;
+var $isAlias = identity.isAlias;
+var $isCollection = identity.isCollection;
+var $isDocument = identity.isDocument;
+var $isMap = identity.isMap;
+var $isNode = identity.isNode;
+var $isPair = identity.isPair;
+var $isScalar = identity.isScalar;
+var $isSeq = identity.isSeq;
+var $Pair = Pair.Pair;
+var $Scalar = Scalar.Scalar;
+var $YAMLMap = YAMLMap.YAMLMap;
+var $YAMLSeq = YAMLSeq.YAMLSeq;
+var $Lexer = lexer.Lexer;
+var $LineCounter = lineCounter.LineCounter;
+var $Parser = parser.Parser;
+var $parse = publicApi.parse;
+var $parseAllDocuments = publicApi.parseAllDocuments;
+var $parseDocument = publicApi.parseDocument;
+var $stringify = publicApi.stringify;
+var $visit = visit.visit;
+var $visitAsync = visit.visitAsync;
+
+// src/automation/tracker-github.ts
+import { execFile as execFile2 } from "node:child_process";
+var nodeGh = (args) => new Promise((resolve, reject) => {
+  execFile2("gh", args, { encoding: "utf8", timeout: 60000, maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => error === null ? resolve(stdout) : reject(new Error(`gh ${args.slice(0, 3).join(" ")} failed: ${stderr.trim() || error.message}`)));
+});
+var REPO = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9._-]+$/;
+var ISSUE_ID = /^[1-9][0-9]{0,9}$/;
+var MARKER_PREFIX = "pstack-action:";
+var markerComment = (id) => `<!-- ${MARKER_PREFIX}${id} -->`;
+var withoutMarkers = (text) => text.replace(/<!--\s*pstack-action:[^>]*-->/g, "");
+var lines = (output) => output.split(`
+`).filter((line) => line.trim() !== "");
+function githubTracker(options) {
+  const { exec, repo } = options;
+  if (!REPO.test(repo))
+    throw new Error(`invalid GitHub repository ${repo}; expected owner/name`);
+  const now = options.now ?? (() => new Date);
+  const lookbackMs = (options.lookbackDays ?? 90) * 86400000;
+  const issueId = (id) => {
+    if (!ISSUE_ID.test(id))
+      throw new Error(`invalid GitHub issue number ${id}`);
+    return id;
+  };
+  const since = () => new Date(now().getTime() - lookbackMs).toISOString();
+  const issues = async () => lines(await exec(["api", "--paginate", "-X", "GET", `repos/${repo}/issues`, "-f", "state=all", "-f", `since=${since()}`, "-f", "per_page=100", "--jq", ".[] | select(.pull_request == null) | {number, state, title, body}"])).map((line) => JSON.parse(line));
+  const comments = async () => lines(await exec(["api", "--paginate", "-X", "GET", `repos/${repo}/issues/comments`, "-f", `since=${since()}`, "-f", "per_page=100", "--jq", ".[] | {issue_url, body}"])).map((line) => JSON.parse(line));
+  const issueOf = (raw) => ({ id: String(raw.number), state: raw.state === "open" ? "open" : "closed", title: raw.title });
+  const containing = async (needle) => {
+    const found = new Set;
+    for (const issue of await issues())
+      if (issue.body?.includes(needle))
+        found.add(String(issue.number));
+    for (const comment of await comments())
+      if (comment.body?.includes(needle))
+        found.add(comment.issue_url.split("/").at(-1));
+    return [...found];
+  };
+  const number = (output) => ({ id: issueId(output.trim()) });
+  const footer = (action) => `${withoutMarkers(action.body).trimEnd()}
+
+Source: ${action.sourceUrl}
+
+${markerComment(action.id)}`;
+  return {
+    async searchByMarker(marker) {
+      return (await containing(markerComment(marker))).map((id) => ({ id }));
+    },
+    async create(action) {
+      if (action.title === undefined)
+        throw new Error("GitHub create needs a title");
+      return number(await exec(["api", "-X", "POST", `repos/${repo}/issues`, "-f", `title=${action.title}`, "-f", `body=${footer(action)}`, ...(action.labels ?? []).flatMap((label) => ["-f", `labels[]=${label}`]), "--jq", ".number"]));
+    },
+    async update(action) {
+      const id = issueId(action.targetId ?? "");
+      const current = (await exec(["api", `repos/${repo}/issues/${id}`, "--jq", '.body // ""'])).replace(/\n$/, "");
+      return number(await exec(["api", "-X", "PATCH", `repos/${repo}/issues/${id}`, "-f", `body=${current}
+
+---
+${footer(action)}`, "--jq", ".number"]));
+    },
+    async comment(action) {
+      const id = issueId(action.targetId ?? "");
+      await exec(["api", "-X", "POST", `repos/${repo}/issues/${id}/comments`, "-f", `body=${footer(action)}`, "--jq", ".id"]);
+      return { id };
+    },
+    async findBySource(sourceUrl) {
+      const ids = new Set(await containing(`Source: ${sourceUrl}`));
+      return (await issues()).filter((issue) => ids.has(String(issue.number))).map(issueOf);
+    },
+    async findOpenByTitle(title) {
+      const wanted = title.trim().toLowerCase();
+      return (await issues()).filter((issue) => issue.state === "open" && issue.title.trim().toLowerCase() === wanted).map(issueOf);
+    },
+    async read(id) {
+      if (!ISSUE_ID.test(id))
+        return;
+      const output = await exec(["api", `repos/${repo}/issues/${id}`, "--jq", "{number, state, title, pull_request: (.pull_request != null)}"]).catch(() => {
+        return;
+      });
+      if (output === undefined)
+        return;
+      const raw = JSON.parse(output);
+      return raw.pull_request ? undefined : issueOf(raw);
+    },
+    async close(id) {
+      await exec(["api", "-X", "PATCH", `repos/${repo}/issues/${issueId(id)}`, "-f", "state=closed", "--jq", ".number"]);
+    },
+    async reachable() {
+      return (await exec(["api", `repos/${repo}`, "--jq", ".full_name"]).catch(() => "")).trim() === repo;
+    }
+  };
+}
+
+// src/automation/configuration.ts
 function object3(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value))
     throw new Error(`invalid Benny ${name}`);
@@ -15091,10 +15205,14 @@ function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny
   if (!/^[A-Z0-9_]{2,32}$/.test(sourceChannelId))
     throw new Error("invalid Benny source channel");
   const triageIdentityUserId = text(section("slack")["triage_identity_user_id"], "triage identity");
-  for (const [group, fields] of Object.entries({ repository: ["url", "default_branch"], tracker: ["type", "adapter_skill_name", "team", "project", "status"], control: ["skill_name", "feature_map_path", "environment"] })) {
+  const trackerType = text(section("tracker")["type"], "tracker.type");
+  const trackerFields = trackerType === "github" ? ["repo"] : ["adapter_skill_name", "team", "project", "status"];
+  for (const [group, fields] of Object.entries({ repository: ["url", "default_branch"], tracker: trackerFields, control: ["skill_name", "feature_map_path", "environment"] })) {
     for (const field of fields)
       text(section(group)[field], `${group}.${field}`);
   }
+  if (trackerType === "github" && !REPO.test(text(section("tracker")["repo"], "tracker.repo")))
+    throw new Error("invalid Benny tracker.repo; expected owner/name");
   if (section("slack")["allow_source_root_posts"] !== false || section("slack")["allow_worker_slack_writes"] !== false || section("repository")["draft_only"] !== true)
     throw new Error("unsafe Benny write configuration");
   for (const marker of ["bug", "performance", "other"])
@@ -15113,33 +15231,239 @@ function loadBennyConfig(projectRoot, kind, path = join7(projectRoot, ".pi/benny
   const configPath = relative3(resolve3(projectRoot), resolve3(path));
   if (configPath.startsWith(".."))
     throw new Error("Benny configuration must be project-owned");
-  return { name, kind, projectRoot: resolve3(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`) };
+  const tracker = {
+    type: trackerType,
+    ...trackerType === "github" ? { repo: text(section("tracker")["repo"], "tracker.repo") } : {},
+    labels: { bug: text(labels["bug"], "tracker.labels.bug"), performance: text(labels["performance"], "tracker.labels.performance"), intake: text(labels["intake"], "tracker.labels.intake"), needsRepro: text(labels["needs_repro"], "tracker.labels.needs_repro") }
+  };
+  const control = { skillName: text(section("control")["skill_name"], "control.skill_name"), featureMapPath: text(section("control")["feature_map_path"], "control.feature_map_path") };
+  return { name, kind, projectRoot: resolve3(projectRoot), configPath, sourceChannelId, triageIdentityUserId, model: text(section("models")[kind], `models.${kind}`), tracker, control };
+}
+
+// src/automation/settle.ts
+import { existsSync as existsSync6, readFileSync as readFileSync6 } from "node:fs";
+import { join as join8 } from "node:path";
+function finalAssistantText(sessionFile) {
+  if (sessionFile === null || !existsSync6(sessionFile))
+    return null;
+  let text = null;
+  for (const line of readFileSync6(sessionFile, "utf8").split(`
+`)) {
+    if (line.trim() === "")
+      continue;
+    const entry = JSON.parse(line);
+    if (entry.type !== "message" || entry.message?.role !== "assistant")
+      continue;
+    const content = entry.message.content;
+    const parts = typeof content === "string" ? [content] : Array.isArray(content) ? content.flatMap((part) => part.type === "text" && typeof part.text === "string" ? [part.text] : []) : [];
+    if (parts.length > 0)
+      text = parts.join("");
+  }
+  return text;
+}
+var alive2 = (pid) => {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return error.code === "EPERM";
+  }
+};
+var oneLine = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
+async function collectRun(projectRoot, runId, inspect = inspectHost) {
+  const loaded = loadAssignment(join8(workerDir(projectRoot, runId), "assignment.json"));
+  let live;
+  try {
+    live = await inspect(hostTarget(loaded));
+  } catch {}
+  const state = live ?? readHostState(loaded.workerDir);
+  if (state === undefined)
+    return { settled: false };
+  const last = state.settles.at(-1);
+  if (last === undefined || last.generation !== state.generation || !(isTerminal(state.phase) || state.phase === "idle")) {
+    const gone = live === undefined && (isTerminal(state.phase) || !alive2(state.hostPid));
+    return gone ? { settled: true, failure: `the worker host ended in phase ${state.phase} without finishing its work`, finalText: null } : { settled: false };
+  }
+  if (last.phase === "failed" || last.phase === "aborted" || last.phase === "exited")
+    return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? "" : `: ${oneLine(last.reason)}`}`, finalText: null };
+  const finalText = finalAssistantText(state.sessionFile);
+  if (finalText === null || finalText.trim() === "")
+    return { settled: true, failure: "the worker produced no final message", finalText: null };
+  return { settled: true, failure: null, finalText };
+}
+var OPERATIONS = ["create", "update", "comment"];
+function intentOf(value) {
+  if (typeof value !== "object" || value === null)
+    return;
+  const raw = value;
+  const operation = OPERATIONS.find((candidate) => candidate === raw["operation"]);
+  if (operation === undefined || typeof raw["body"] !== "string")
+    return;
+  return {
+    operation,
+    body: raw["body"],
+    ...typeof raw["title"] === "string" ? { title: raw["title"] } : {},
+    ...typeof raw["targetId"] === "string" ? { targetId: raw["targetId"] } : {}
+  };
+}
+function parseWorkerResult(finalText) {
+  const body = /^```(?:json)?\s*([\s\S]*?)\s*```$/.exec(finalText.trim())?.[1] ?? finalText.trim();
+  try {
+    const parsed = JSON.parse(body);
+    if (typeof parsed === "object" && parsed !== null && typeof parsed.text === "string") {
+      const tracker = intentOf(parsed.tracker);
+      return { text: parsed.text, ...tracker === undefined ? {} : { tracker } };
+    }
+  } catch {}
+  return finalText;
+}
+function failureReply(kind, failure) {
+  return kind === "triage" ? `Benny triage could not finish this report: ${failure}. No ticket was created.
+[benny:other]` : `Benny repro and fix could not finish: ${failure}. No pull request was opened.`;
+}
+async function completeSettledRuns(automation, collect = (runId) => collectRun(automation.config.projectRoot, runId)) {
+  let completed = 0;
+  for (const runId of automation.pendingRuns()) {
+    const run = await collect(runId);
+    if (!run.settled)
+      continue;
+    const failure = failureReply(automation.config.kind, run.failure ?? "its reply was not a verdict this automation may post");
+    const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
+    const attempts = typeof result === "string" ? [result] : [result, result.text];
+    for (const attempt of [...attempts, failure]) {
+      if ((await automation.complete(runId, attempt)).status !== "refused") {
+        completed += 1;
+        break;
+      }
+    }
+  }
+  return completed;
+}
+function startSettler(automation, options) {
+  let stopped = false;
+  let timer;
+  let running = Promise.resolve();
+  const tick = async () => {
+    await completeSettledRuns(automation, options.collect).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    if (stopped)
+      return;
+    timer = setTimeout(() => {
+      running = tick();
+    }, options.intervalMs);
+    timer.unref();
+  };
+  running = tick();
+  return {
+    stop: async () => {
+      stopped = true;
+      clearTimeout(timer);
+      await running;
+    }
+  };
+}
+
+// src/automation/control-adapter.ts
+import { existsSync as existsSync7, readFileSync as readFileSync7, realpathSync as realpathSync3, statSync as statSync3 } from "node:fs";
+import { join as join9, relative as relative4, resolve as resolve4 } from "node:path";
+var REQUIRED_SECTIONS = ["How a user gets there", "How the control adapter drives it"];
+function featureMapProblem(projectRoot, featureMapPath) {
+  const root = realpathSync3(resolve4(projectRoot));
+  const file = resolve4(root, featureMapPath);
+  if (relative4(root, file).startsWith(".."))
+    return "the feature map is outside the project";
+  if (!existsSync7(file) || !statSync3(file).isFile())
+    return `the feature map ${featureMapPath} does not exist`;
+  if (relative4(root, realpathSync3(file)).startsWith(".."))
+    return "the feature map resolves outside the project";
+  const sections = readFileSync7(file, "utf8").split(/^### /m).slice(1);
+  if (sections.length === 0)
+    return "the feature map has no feature section";
+  for (const section of sections) {
+    const name = section.split(`
+`)[0]?.trim() ?? "";
+    if (/<[^>]+>/.test(name))
+      return `the feature map still has the placeholder feature ${name}`;
+    const missing = REQUIRED_SECTIONS.filter((title) => !new RegExp(`^#### ${title}`, "m").test(section));
+    if (missing.length > 0)
+      return `feature ${name} lacks ${missing.join(" and ")}`;
+  }
+  return;
+}
+function controlSkillProblem(skillName, packageRoot = PACKAGE_ROOT) {
+  if (!isIdentifier(skillName))
+    return `control skill name ${JSON.stringify(skillName)} is not a skill name`;
+  return existsSync7(join9(packageRoot, "generated", "skills", skillName, "SKILL.md")) ? undefined : `control skill ${skillName} is not in generated/skills`;
+}
+function controlProbes(projectRoot, control, packageRoot = PACKAGE_ROOT) {
+  return {
+    controlAdapter: async () => controlSkillProblem(control.skillName, packageRoot) === undefined,
+    featureMap: async () => featureMapProblem(projectRoot, control.featureMapPath) === undefined
+  };
+}
+
+// src/automation/tracker-policy.ts
+function createTrackerPolicy(options) {
+  const { tracker, reader, destination } = options;
+  return async (event, intent, reply) => {
+    const classification = classificationOf(reply);
+    const sourceVerified = (await destination.readThread(event.channel, event.rootTs).catch(() => [])).some((message) => message.ts === event.rootTs);
+    const linked = await reader.findBySource(sourceUrlOf(event));
+    const labelsResolved = classification !== "other" && tracker.labels[classification].trim() !== "" && tracker.labels.intake.trim() !== "";
+    const base = { classification, sourceVerified, canCompensate: options.canCompensate };
+    if (intent.operation === "create") {
+      const duplicate = linked.length > 0 ? "already-linked" : (await reader.findOpenByTitle(intent.title ?? "")).length > 0 ? "possible" : "none";
+      return { ...base, clearlyBroken: true, live: true, duplicate, targetResolved: labelsResolved };
+    }
+    const target = intent.targetId === undefined ? undefined : await reader.read(intent.targetId);
+    const duplicate = linked.length > 0 ? "already-linked" : target === undefined ? "none" : target.state === "open" ? "confident" : "weak";
+    return { ...base, clearlyBroken: true, live: target?.state === "open", duplicate, ...duplicate === "confident" && target !== undefined ? { duplicateId: target.id } : {}, targetResolved: target !== undefined };
+  };
+}
+
+// src/automation/wiring.ts
+function wireBenny(config, deps) {
+  const destination = slackDestination({ fetch: deps.fetch, token: deps.slackToken });
+  const probes = controlProbes(config.projectRoot, config.control, deps.packageRoot);
+  let tracker;
+  let policy;
+  if (config.tracker.type === "github" && config.tracker.repo !== undefined) {
+    const github = githubTracker({ exec: deps.exec, repo: config.tracker.repo, ...deps.now === undefined ? {} : { now: deps.now } });
+    tracker = github;
+    probes.tracker = () => github.reachable();
+    policy = createTrackerPolicy({ tracker: config.tracker, reader: github, destination, canCompensate: true });
+  }
+  const automationConfig = config;
+  return createAutomation(automationConfig, {
+    destination,
+    prerequisites: probes,
+    ...tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy },
+    ...deps.spawnWorker === undefined ? {} : { spawnWorker: deps.spawnWorker },
+    ...deps.inputCommit === undefined ? {} : { inputCommit: deps.inputCommit },
+    ...deps.now === undefined ? {} : { now: deps.now }
+  });
 }
 
 // src/automation/serve-cli.ts
-var { values } = parseArgs({ options: { project: { type: "string" }, kind: { type: "string" }, port: { type: "string", default: "0" } } });
+var { values } = parseArgs({ options: { project: { type: "string" }, kind: { type: "string" }, port: { type: "string", default: "0" }, "settle-poll-ms": { type: "string", default: "5000" } } });
 var kind = values.kind;
 var port = Number(values.port);
-if (values.project === undefined || kind !== "triage" && kind !== "reproduce" || !Number.isInteger(port) || port < 0 || port > 65535) {
-  throw new Error("usage: automation-serve.mjs --project <root> --kind triage|reproduce [--port <port>]");
+var settlePollMs = Number(values["settle-poll-ms"]);
+if (values.project === undefined || kind !== "triage" && kind !== "reproduce" || !Number.isInteger(port) || port < 0 || port > 65535 || !Number.isInteger(settlePollMs) || settlePollMs < 100) {
+  throw new Error("usage: automation-serve.mjs --project <root> --kind triage|reproduce [--port <port>] [--settle-poll-ms <ms>]");
 }
-var project = realpathSync3(resolve4(values.project));
-var configFile = resolve4(project, ".pi/benny/configuration.yaml");
+var project = realpathSync4(resolve5(values.project));
+var configFile = resolve5(project, ".pi/benny/configuration.yaml");
 var config = loadBennyConfig(project, kind, configFile);
 var slackFile = defaultCredentialFile("slack");
 var slack = readCredential(slackFile, "token");
 if (!slack.ok)
   throw new Error(`Slack connector credential ${slackFile} is ${slack.reason}; Benny posts only through it, so it does not start`);
-var featureMap = $parse(readFileSync6(configFile, "utf8")).control.feature_map_path;
-var featureMapFile = resolve4(project, featureMap);
-var automation = createAutomation(config, {
-  destination: slackDestination({ fetch, token: slack.value }),
-  prerequisites: { featureMap: async () => !relative4(project, featureMapFile).startsWith("..") && existsSync6(featureMapFile) }
-});
+var automation = wireBenny(config, { fetch, slackToken: slack.value, exec: nodeGh });
 var source = await startEventSource(automation, { kind: "webhook", credentialFile: defaultCredentialFile(config.name), port });
-console.log(JSON.stringify({ url: source.url, automation: config.name, kind, unprobedPrerequisites: ["tracker", "controlAdapter"], sameUidLimit: SAME_UID_LIMIT }));
+var settler = startSettler(automation, { intervalMs: settlePollMs });
+console.log(JSON.stringify({ url: source.url, automation: config.name, kind, tracker: config.tracker.type, sameUidLimit: SAME_UID_LIMIT }));
 for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"]) {
   process.once(signal, () => {
-    source.stop().then(() => process.exit(0));
+    Promise.all([source.stop(), settler.stop()]).then(() => process.exit(0));
   });
 }

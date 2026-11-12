@@ -9,6 +9,7 @@ export type LogEntry =
   | { ts: string; kind: 'dispatched'; key: EventKey; runId: RunId }
   | { ts: string; kind: 'rejected'; reason: string }
   | { ts: string; kind: 'reply-refused'; key: EventKey; reason: string }
+  | { ts: string; kind: 'completed'; key: EventKey; runId: RunId }
   | { ts: string; kind: 'posted'; actionId: ActionId; destinationTs: string; reconciled: boolean }
   | { ts: string; kind: 'source-error'; reason: string };
 

@@ -1,10 +1,10 @@
 {
-  "inputs": "e77c13cdedcb6df5ed4920c8331303aa16d9ad7514cd359ba99df0789a748d6b",
+  "inputs": "cc966008d93d33fe6691f3212240025a161668d5400b1336eaff8c9a3112ff9d",
   "outputs": {
     "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
     "dist/worker-host.js": "80742b2101fb53c3b91eb71770979048b069097d5746fc02ce09d2f416f923c3",
     "dist/routine-setup.js": "da2fb8331b964aafe24667c18044a2af9e0649a7872047f21ccbbebf8a11be14",
-    "dist/automation-serve.js": "3fd5329e90e1e239d13d88f7f9c0807ee1c8a33b859ec2cfe274ac2ccc07e24c",
+    "dist/automation-serve.js": "ac0f7778e50764c3b794153b83aeb4789e897c28bcabd0e1afa1b0e934fbcaa5",
     "dist/statechart.js": "3b180b5ebabac82256f6538844fc6b5d1798e0bf406f875fc27032a633b38d4a",
     "dist/worker.js": "df24c4d87f25024c57c3a2b8a0f36894f8aa5eaae51078402d1d6d37427c6fc7"
   }

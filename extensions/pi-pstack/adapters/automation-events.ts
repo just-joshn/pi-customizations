@@ -4,10 +4,10 @@
 import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
-import { AUTOMATION_KINDS, eligibleTrackerAction, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
+import { AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, sourceUrlOf, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
 import { enqueue, flushOutbox, type ThreadDestination, type TrackerDestination } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
-import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, readLog } from '../src/automation/store.ts';
+import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
 
 export { createRoutine, startRoutineSource, type RoutineConfig } from '../src/automation/routine.ts';
@@ -16,6 +16,7 @@ export interface AutomationConfig extends DispatchConfig {
   /** The only channel this automation accepts events from. */
   sourceChannelId: string;
   triageIdentityUserId?: string;
+  tracker?: TrackerConfig;
 }
 
 export interface AutomationDeps {
@@ -23,7 +24,7 @@ export interface AutomationDeps {
   spawnWorker?: SpawnWorker;
   tracker?: TrackerDestination;
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
-  trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent) => Promise<TrackerEligibility>;
+  trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent, reply: string) => Promise<TrackerEligibility>;
   destination: ThreadDestination;
   /** A required prerequisite with no probe counts as missing. */
   prerequisites: Partial<Record<Prerequisite, Probe>>;
@@ -49,6 +50,8 @@ export interface Automation {
   /** Queues the settled worker's result as the case's single thread reply and flushes the outbox. */
   complete(runId: RunId, result: string | WorkerResult): Promise<CompleteOutcome>;
   flush(): Promise<void>;
+  /** Dispatched runs whose case has no `completed` entry in the event log, oldest first. Derived from the log alone. */
+  pendingRuns(): RunId[];
 }
 
 type CaseState = { phase: 'unknown' } | { phase: 'received'; entry: Extract<LogEntry, { kind: 'received' }> } | { phase: 'dispatched'; entry: Extract<LogEntry, { kind: 'received' }>; runId: RunId };
@@ -150,16 +153,28 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         }
         const { event } = state.entry;
         if (intent !== undefined) {
-          const policy = await deps.trackerPolicy?.(event, intent);
-          if (config.kind !== 'triage' || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy)) return { status: 'refused', reason: 'ineligible tracker action' };
-          enqueue(store, { ...intent, id: actionIdFor(config.name, event.key, 'tracker'), kind: 'tracker', sourceUrl: `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}` });
+          const trackerId = actionIdFor(config.name, event.key, 'tracker');
+          // An action already queued passed the policy before a crash. Asking again would see its own issue as a duplicate.
+          if (!outboxEntries(store).some((entry) => entry.action.id === trackerId)) {
+            const policy = await deps.trackerPolicy?.(event, intent, text);
+            if (config.kind !== 'triage' || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy)) return { status: 'refused', reason: 'ineligible tracker action' };
+            const classification = classificationOf(text);
+            const labels = intent.operation === 'create' && config.tracker !== undefined && classification !== 'other' ? [config.tracker.labels[classification], config.tracker.labels.intake] : undefined;
+            enqueue(store, { ...intent, id: trackerId, kind: 'tracker', sourceUrl: sourceUrlOf(event), ...(labels === undefined ? {} : { labels }) });
+          }
           await flush();
         }
         const queued = enqueue(store, { id: actionIdFor(config.name, event.key, 'result'), kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text });
         await flush();
+        if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
         return { status: queued ? 'queued' : 'already-queued', key: event.key };
       }),
     flush: () => serial(flush),
+    pendingRuns: () => {
+      const log = readLog(store);
+      const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
+      return log.flatMap((entry) => (entry.kind === 'dispatched' && !completed.has(entry.runId) ? [entry.runId] : []));
+    },
   };
 }
 
