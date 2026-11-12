@@ -38,11 +38,15 @@ afterEach(async () => {
   await stopProject(project);
 });
 
+// The complete entries of a session file Pi may still be writing. Pi creates the file only once the session holds a
+// conversation, and appends one newline-terminated entry at a time, so the text after the last newline is unfinished.
 const sessionEntries = (file: string) =>
-  readFileSync(file, 'utf8')
-    .trim()
-    .split('\n')
-    .map((line) => JSON.parse(line));
+  existsSync(file)
+    ? readFileSync(file, 'utf8')
+        .split('\n')
+        .slice(0, -1)
+        .map((line) => JSON.parse(line))
+    : [];
 
 test('a sub-coordinator spawns a worker into its own run, gets its wake, and its parent never does; it cannot spawn a third coordinator level', async () => {
   const worktree = join(workerDir(project, 'run1', 'sub'), 'worktree');
