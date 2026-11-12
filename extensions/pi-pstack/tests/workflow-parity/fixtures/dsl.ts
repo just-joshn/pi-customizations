@@ -6,6 +6,9 @@ import type { Ctx } from '../lib/driver.ts';
 
 type Args = Record<string, unknown>;
 
+/** Single-quotes text for sh, so `$(...)` and backticks inside it stay text. */
+export const shQuote = (text: string): string => `'${text.replaceAll("'", "'\\''")}'`;
+
 export class Actor {
   readonly steps: unknown[] = [];
   call(tool: string, args: Args): this {
@@ -111,7 +114,7 @@ export class Parent extends Actor {
   }
   /** Appends a task-specific item under `## Task-specific work`. */
   task(text: string): this {
-    return this.bash(`printf '%s\\n' ${JSON.stringify(`- [ ] ${text}`)} >> ${JSON.stringify(this.todo())}`);
+    return this.bash(`printf '%s\\n' ${shQuote(`- [ ] ${text}`)} >> ${JSON.stringify(this.todo())}`);
   }
   /** Writes brief.md and assignment.json and returns the spawn call, so several spawns can go out in one message. */
   stage(workerId: string, fields: AssignmentFields, brief: string): { tool: string; args: Args } {
@@ -175,7 +178,7 @@ export function proofSteps<T extends Actor>(actor: T, ctx: Ctx, options: ProofOp
     `mkdir -p ${JSON.stringify(dir)}`,
     `cd ${JSON.stringify(options.cwd ?? ctx.repo)}`,
     `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
-    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${JSON.stringify(options.command)} --artifact ${JSON.stringify(artifact)}`,
+    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${shQuote(options.command)} --artifact ${JSON.stringify(artifact)}`,
     'exit 0',
   ].join('\n');
   actor.bash(script);

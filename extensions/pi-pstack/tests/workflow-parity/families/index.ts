@@ -1,12 +1,13 @@
 import { buildFamilies } from './build.ts';
 import { measuredFamilies } from './build-measured.ts';
 import { historyFamilies } from './history.ts';
+import { opsFamilies } from './ops.ts';
 import { verificationFamilies } from './verification.ts';
 import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies];
+export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);

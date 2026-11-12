@@ -215,13 +215,15 @@ function readJson(path: string): Json | null {
   return existsSync(path) ? (JSON.parse(readFileSync(path, 'utf8')) as Json) : null;
 }
 
-function git(repo: string, ...args: string[]): string {
+function gitRaw(repo: string, ...args: string[]): string {
   try {
-    return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    return execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   } catch {
     return '';
   }
 }
+
+const git = (repo: string, ...args: string[]): string => gitRaw(repo, ...args).trim();
 
 function loadWorker(dir: string, id: string): WorkerView {
   const sessionDir = join(dir, 'session');
@@ -281,7 +283,7 @@ export function loadRun(project: string, id: string): RunDir {
 }
 
 export function loadGit(repo: string, base: string): GitState {
-  const status = git(repo, 'status', '--porcelain', '--untracked-files=all')
+  const status = gitRaw(repo, 'status', '--porcelain', '--untracked-files=all')
     .split('\n')
     .filter((line) => line !== '')
     .map((line) => line.slice(3))
@@ -298,7 +300,7 @@ export function loadGit(repo: string, base: string): GitState {
   const branches = lines(git(repo, 'for-each-ref', '--format=%(refname:short)', 'refs/heads'));
   return {
     branchCommits: Object.fromEntries(branches.map((branch) => [branch, lines(git(repo, 'rev-list', `${base}..${branch}`))])),
-    worktreeDirty: Object.fromEntries(worktrees.map((tree) => [tree.path, lines(git(tree.path, 'status', '--porcelain', '--untracked-files=all')).map((line) => line.slice(3))])),
+    worktreeDirty: Object.fromEntries(worktrees.map((tree) => [tree.path, lines(gitRaw(tree.path, 'status', '--porcelain', '--untracked-files=all')).map((line) => line.slice(3))])),
     head: git(repo, 'rev-parse', 'HEAD'),
     dirty: status,
     commitsSinceBase: git(repo, 'rev-list', `${base}..HEAD`)

@@ -205,14 +205,17 @@ function workerPhases(repo: string): string[] {
   return readdirSync(runs).flatMap((runId) => {
     const workers = join(runs, runId, 'workers');
     if (!existsSync(workers)) return [];
-    return readdirSync(workers).map((id) => {
+    return readdirSync(workers).flatMap((id) => {
+      const assignment = join(workers, id, 'assignment.json');
+      // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
+      if (existsSync(assignment) && (JSON.parse(readFileSync(assignment, 'utf8')) as Json)['kind'] === 'watch') return [];
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
-      if (!existsSync(statePath)) return existsSync(claim) ? 'starting' : 'unspawned';
+      if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
       try {
-        return String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase']);
+        return [String((JSON.parse(readFileSync(statePath, 'utf8')) as Json)['phase'])];
       } catch {
-        return 'starting';
+        return ['starting'];
       }
     });
   });

@@ -1,7 +1,7 @@
 // Pieces several families share: a writable worker script, TODO phase items, and small file fixtures.
 import { join } from 'node:path';
 
-import { proofSteps, type Parent, Worker } from '../fixtures/dsl.ts';
+import { type Parent, proofSteps, shQuote, Worker } from '../fixtures/dsl.ts';
 import { type Check, check, fail, pass, src, when, type Src } from '../lib/check.ts';
 import { finalReply, FAMILY_OF } from '../lib/checks.ts';
 import { corruptArtifact, deleteReceipt, deleteStep, type Negative, reorderHistory, setStep, stripEvidence } from '../lib/mutate.ts';
@@ -47,7 +47,7 @@ export const writes = (parent: Parent, id: string, files: Record<string, string>
 
 /** Task-specific TODO items, one per phase, appended before anything launches. */
 export function phaseItems(parent: Parent, phases: string[]): Parent {
-  return parent.bash(phases.map((phase) => `printf '%s\\n' ${JSON.stringify(`- [ ] ${phase}`)} >> ${JSON.stringify(join(parent.runDir, 'TODO.md'))}`).join('\n'));
+  return parent.bash(phases.map((phase) => `printf '%s\\n' ${shQuote(`- [ ] ${phase}`)} >> ${JSON.stringify(join(parent.runDir, 'TODO.md'))}`).join('\n'));
 }
 
 export function markPhase(parent: Parent, phase: string): Parent {
