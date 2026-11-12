@@ -42,7 +42,7 @@ routing:
   allow_confirmed_regression_author_ping: false
 
 control:
-  skill_name: "control-target-app"
+  skill_name: "control-ui"
   feature_map_path: ".pi/benny/feature-map.md"
   environment: "safe-test-environment-placeholder"
   artifact_directory: "/tmp/benny-artifacts"

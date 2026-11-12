@@ -2,7 +2,7 @@
 
 ## what i want to automate
 
-i want two pi-pstack automations that work together in one slack issue channel. each runs with no chat open, on its own cloud machine.
+i want two pi-pstack automations that work together in one slack issue channel. each runs with no chat open, as a process this package starts on my machine.
 
 ### automation 1: triage issue reports
 
@@ -80,8 +80,8 @@ if project-scoped packages are unavailable or any shared dependency does not res
 
 tell me that `.pi/settings.json`, `.pi/automations/benny/`, and any referenced secret-free configuration must be committed before either automation is enabled. do not create or update an automation until i explicitly ask.
 
-for first-time creation, use `/automate`, the automate skill pi-pstack ships, once for triage and once for repro and fix, each with `sessionStrategy: "new_session"` and `environment: "cloud"`. complete the draft review, approval, readiness check, and `/automations` handoff for the first automation before starting the second.
+this package has no hosted automation service. an automation is a configured event source that `/pstack automation start <name>` runs as a watch worker in tmux. each case it accepts starts one worker whose brief reads the committed operational file, `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for triage and `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for repro and fix. the package writes that brief itself, so there is no prompt to draft or paste anywhere.
 
-paraphrase this intent and the finished configuration into each draft. the triage prompt must read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md`. the repro prompt must read and follow `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`. use these repo-relative paths only after the automate skill confirms they are committed in the repository where the automation will run.
+for first-time setup, follow `skills/setup-benny/SKILL.md`. it runs `node scripts/benny-setup.mjs --project <target-repository>` from the pi-pstack package root, helps me fill `.pi/benny/configuration.yaml`, and then starts triage and, once its prerequisites hold, repro and fix with `/pstack automation start <name>`. start the first before the second.
 
-for existing automations, do not use `/automate` to inspect or update them; use `/automations`. validate the configuration, then use the concise field checklist in the copied setup file so i can edit each automation with `/automations edit <name>`. do not create duplicates.
+for automations that already exist, check them with `/pstack automation status <name>`, change the configuration file, and restart with `/pstack automation stop <name>` and then `/pstack automation start <name>`. do not start a second source for a name that is already running.

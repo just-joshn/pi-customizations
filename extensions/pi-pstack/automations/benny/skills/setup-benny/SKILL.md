@@ -10,17 +10,17 @@ Benny ships as a dormant automation pack inside pstack. The pi-pstack package ex
 
 The human enters setup by pointing Pi at the pack's `FOR_AGENTS.md`. The bootstrap flow copies the whole pack into the target repository, then reads this file directly at `.pi/automations/benny/skills/setup-benny/SKILL.md`.
 
-Benny needs external configuration and two live pi-pstack automations.
+Benny needs external configuration and two automations that pi-pstack runs as event sources.
 
-Do not create or update an automation until the user explicitly asks. Never put a secret value in package files, prompts, or committed configuration.
+Do not start or restart an automation until the user explicitly asks. Never put a secret value in package files, prompts, or committed configuration.
 
 ## 1. Copy the pack and enable shared pstack skills
 
-Do this before asking for Benny configuration and before invoking the `automate` skill pi-pstack ships (`/automate`).
+Do this before asking for Benny configuration and before starting any automation.
 
 Ask which repository will run the automations. The source pack is the directory containing `FOR_AGENTS.md`. The destination is `<target-repository>/.pi/automations/benny/`.
 
-Merge the entire source pack into the destination:
+`node scripts/benny-setup.mjs --project <target-repository>`, run from the pi-pstack package root, does this whole step. It copies the pack and the three user-owned configuration files (`.pi/benny/configuration.yaml`, `.pi/benny/feature-map.md`, `.pi/benny/routing.md`) only where they are absent, merges the settings entry below, creates the webhook secret, and proves the dispatcher on a harmless event. Read its JSON report. A path listed under `conflicts` differs from the pack and was left alone. By hand, the same merge is:
 
 1. Create the destination when it is absent.
 2. Copy every source file to the same relative path.
@@ -85,9 +85,9 @@ Fill one feature-map section for every user-facing feature the automation may re
 
 Do not edit the copied examples. Pack refreshes may update source-managed files after conflict review, but they must never touch the user-owned copies.
 
-Prefer committed, secret-free files in the target repository when a fresh automation checkout must read them. Otherwise paraphrase the required values into the live prompt. Reference a repository file only after the `automate` skill confirms that the file is committed in the repository where the automation runs.
+Commit the secret-free copies. The triage worker reads the project directory, but the repro worker runs in a git worktree of the committed revision, so it sees only what is committed. Keep secret values out of them.
 
-Use stable repository-relative paths for committed pack and configuration files. Never reference the pi-pstack package directory from a live automation.
+Use stable repository-relative paths for committed pack and configuration files. Never reference the pi-pstack package directory from a worker.
 
 ## 3. Fill the required choices
 
@@ -97,10 +97,10 @@ Ask for or confirm:
 - Optional operations or status channel ID
 - Repository URL and default branch
 - Triage identity or Slack user ID
-- Issue tracker type, team, project, labels, and intake status
-- Tracker adapter skill or MCP actions
+- Issue tracker. Set `tracker.type: "github"` and `tracker.repo: "owner/name"`. The adapter ships with this package and talks to GitHub through the `gh` CLI. GitHub Issues has no team, project, or status, so those keys are not needed.
+- The four tracker labels. They must already exist in the repository, because the adapter applies them and never creates one.
 - Optional routing map path
-- Required control skill name
+- Required control skill name, which must be a skill pi-pstack ships in `generated/skills`, such as `control-ui` or `control-cli`
 - Required user-facing feature-map path
 - Status emoji strings
 - Pull request URL format
@@ -115,23 +115,14 @@ Use pstack's `unslop` skill on the final automation names, descriptions, and pro
 
 ## 4. Check integration capabilities
 
-The triage automation needs:
+The pi-pstack process that runs an automation is the only one that talks to Slack and the tracker. It performs every read of the source thread, every post, and every tracker write. Workers return findings and an optional tracker request, and have no tool for any of those writes.
 
-- Read access to the configured source Slack channel and its threads
-- Thread-reply access in that channel
-- Attachment metadata and file download access when reports include media
-- Search, read, create, and update access through the configured issue-tracker adapter
+Check, in this order:
 
-The repro automation needs:
-
-- Read access to the source thread
-- Thread-reply access in the source channel
-- Optional post and edit access in the configured operations channel
-- Repository read and history access
-- A pull request action that can open a draft pull request
-- The configured control-adapter skill
-
-Prefer pi-pstack's Slack tools (`slack_read_thread`, `slack_send`, `slack_react`, `slack_update`) for reads and posts; they work once the Slack bot token is stored with `request_secret` (connector `slack`, field `token`). The optional `BENNY_SLACK_BOT_TOKEN` may fill a narrow gap such as editing one operations status message or downloading an attachment. Store the value in a secret manager or environment, not in YAML.
+1. The Slack connector. `~/.pi/agent/pstack/credentials/slack.json` must hold `{ "token": "xoxb-..." }` with mode 0600. The bot needs `conversations.replies` read access and `chat.postMessage` in the source channel. Without the file, the automation does not start. Never put the token in YAML or in any committed file.
+2. The tracker. With `tracker.type: "github"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing.
+3. The webhook secret. `benny-setup.mjs` creates `~/.pi/agent/pstack/credentials/<automation name>.json`. The event sender presents its `key` as `Authorization: Bearer <key>` on `POST /events`.
+4. For repro and fix, a draft pull request needs `gh` access to the repository. A worker cannot post or open one itself.
 
 Do not use undocumented integration endpoints.
 
@@ -150,6 +141,8 @@ If no routing map is configured, triage may classify a report but must not guess
 
 Read `../reproduce-and-fix-issues/references/control-adapter.md` and the user's completed feature map.
 
+The automation checks two things itself before it dispatches a repro case, and logs the case `blocked` when either fails: the feature map at `control.feature_map_path` exists inside the project and is complete, meaning it has at least one feature section with no unfilled `<placeholder>` heading and each feature has `How a user gets there` and `How the control adapter drives it`; and `control.skill_name` names a skill in the package's `generated/skills`. Whether the skill can do the following is judged by the repro worker and by the setup check below, not by code.
+
 Confirm that the named skill can:
 
 - Bring up the target app
@@ -162,94 +155,34 @@ Confirm that the named skill can:
 
 If any capability is missing, leave the repro automation disabled. It must fail closed rather than claim a reproduction it did not perform.
 
-## 7. Prepare the live automations
+## 7. Start the automations
 
-Ask whether this is first-time creation or configuration of existing automations.
+Read `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source. Use it to understand the two triggers, outcomes, and shared rules, and `../../templates/triage-automation-prompt.md` and `../../templates/reproduce-automation-prompt.md` for what each case's worker is told.
 
-Read `../../FOR_AGENTS.md` from the copied pack as the primary user-intent source for either path. Use it to understand the two triggers, tools, instructions, outcomes, and shared rules.
+There is nothing to draft or paste. When an event arrives, pi-pstack writes the worker's brief itself. The brief names the exact committed operational file, `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` or `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`, and carries the event as untrusted data.
 
-### First-time creation
+Start one automation at a time, and only after the user asks:
 
-Create one automation at a time.
+1. Read the automation names from `.pi/benny/configuration.yaml`: `automations.triage_name` and `automations.reproduce_name`.
+2. Run `/pstack automation start <triage name>`. It starts the receiver as a watch worker in tmux on this machine.
+3. Run `/pstack automation status <triage name>` and read the receiver URL from it. Point the user's Slack event sender at that URL (`POST /events`, bearer key from step 3 of section 4).
+4. Start repro and fix the same way with `/pstack automation start <reproduce name>` once section 6 passes. Repro dispatches a case only when the tracker, the control skill, the feature map, and a trusted triage marker in the source thread all hold.
 
-For each automation:
+`/pstack automation stop <name>` ends a source. To apply a changed configuration, stop it and start it again.
 
-1. Read the matching copied prompt template as secondary internal source material.
-2. Turn `FOR_AGENTS.md`, the finished Benny configuration, and the template intent into a complete natural-language request.
-3. Tell the live prompt to read and follow its exact committed operational file under `.pi/automations/benny/`.
-4. Use the stable repository-relative path, not a pi-pstack package path. Do not copy the operational file contents into the live prompt.
-5. Read and follow the `automate` skill pi-pstack ships (`/automate`). Create each automation with `sessionStrategy: "new_session"` and `environment: "cloud"`, so every run starts on its own cloud machine with a fresh clone of the configured repository and branch.
-6. Let `automate` discover the Slack channel (with `slack_read_channel`), the repository, and connected integrations.
-7. Let `automate` confirm that the copied pack and any referenced configuration files are committed in the same repository where the automation will run.
-8. Let `automate` show its draft table, obtain approval, ask readiness, create the automation, and hand it to `/automations`.
-9. Finish the `/automations` handoff for this automation before starting the next one.
+To change an automation that already exists, validate the configuration, then stop and start it. Never start a second source for a name that is already running. `start` refuses one that is.
 
-Give `automate` this complete triage intent, filled from configuration:
+### Start boundary
 
-- Name `benny-triage`.
-- Read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for every run.
-- Trigger on each new top-level report in the configured source Slack channel.
-- Read the triggering thread and reply only inside it.
-- Use the configured issue-tracker integration.
-- Classify, inspect evidence, trace cause, dedupe, and create only clear new bugs.
-- End one thread-only verdict with the configured `[benny:bug]`, `[benny:performance]`, or `[benny:other]` marker and optional tracker URL.
-- Never post a source-channel root message.
+Never write the event log, the outbox, a cursor, or a credential file by hand. Never run the serve script directly. `/pstack automation start <name>` is the only path, because it records the source as a run the operator can stop.
 
-After the triage `/automations` handoff is complete, give `automate` this complete repro and fix intent:
-
-- Name `benny-reproduce`.
-- Read and follow `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md` for every run.
-- Trigger on the same new top-level reports in the configured source Slack channel.
-- Use the configured repository and default branch.
-- Read the source thread and reply only inside it.
-- Include pull request creation and the configured tracker, control-adapter, and feature-map requirements. Paraphrase mapped user paths and states unless `automate` confirms an eligible committed file in the same repository.
-- Wait for a trusted triage marker before acting.
-- Reproduce the exact symptom twice through the mapped real UI and capture evidence.
-- Verify an existing fix without authoring over it.
-- Attempt an optional bounded fix only after confirmed repro, then open a draft pull request when proof and checks pass.
-- Never post a source-channel root message.
-
-Do not duplicate `automate`'s Slack, repository, integration, completeness, authentication, draft-review, approval, readiness, or editor-handoff work.
-
-### Existing automations
-
-The `automate` skill is creation-only. Do not use it to search for, inspect, or update existing automations.
-
-Finish configuration, routing, control-adapter, and feature-map validation. Then give the user this concise editor checklist.
-
-For the existing triage automation, update:
-
-- Name and description
-- Direct instruction to read `.pi/automations/benny/skills/triage-issue-reports/SKILL.md`
-- New top-level Slack report trigger and source channel
-- Slack thread read and reply capabilities
-- Issue-tracker integration
-- Paraphrased triage instructions, thread-only rule, and Benny verdict markers
-
-For the existing repro automation, update:
-
-- Name and description
-- Direct instruction to read `.pi/automations/benny/skills/reproduce-and-fix-issues/SKILL.md`
-- Matching Slack trigger and source channel
-- Repository and default branch
-- Slack thread read and reply capabilities
-- Pull request action
-- Tracker, control-adapter, and feature-map requirements
-- Paraphrased marker wait, evidence, verification, and bounded-fix instructions
-
-Ask the user to update each existing automation with `/automations edit <name>`. Do not create replacements or duplicates.
-
-### Creation boundary
-
-Never write the subscription registry, a supervisor file, or a credential file by hand, and never create an automation with a raw `subscribe_*` call that skipped the review. For new automations, the only finish path is the `automate` skill's reviewed draft, approval, and `/automations` handoff.
-
-Do not enable either automation until the thread-safety test passes after the `/automations` create or edit handoff.
+Do not enable normal traffic until the thread-safety test passes.
 
 ## 8. Test thread safety
 
 Use a test channel or a harmless test report.
 
-Before testing, confirm that the target repository's `.pi/settings.json`, `.pi/automations/benny/`, and every referenced secret-free configuration file are committed on the branch used by the automation checkout. Confirm that both live prompts point at their exact committed operational files. If any check fails, stop. Tell the user that the automation cannot be enabled yet.
+Before testing, confirm that the target repository's `.pi/settings.json`, `.pi/automations/benny/`, and every referenced secret-free configuration file are committed. Confirm that `/pstack automation status <name>` shows each automation running with a receiver URL. If any check fails, stop. Tell the user that the automation cannot be enabled yet.
 
 Verify:
 

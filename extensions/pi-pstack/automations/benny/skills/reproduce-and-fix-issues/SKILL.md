@@ -119,7 +119,7 @@ Use the configured plain Unicode status strings. Keep status text short:
 - Draft pull request opened
 - Fix did not land
 
-Prefer pi-pstack's Slack tools (`slack_read_thread`, `slack_send`, `slack_react`, `slack_update`). Use `BENNY_SLACK_BOT_TOKEN` only when the user configured it for a narrow missing capability such as editing this one status message. Never expose the token to a worker.
+Under pi-pstack, a worker has no Slack tool and never holds a token. The trusted parent posts thread replies in the source thread only, and it has no operations-channel post or edit. Keep these statuses in the final message and the run output instead.
 
 If no operations channel is configured, keep detailed status in the automation run output. Do not substitute a source-channel root message.
 

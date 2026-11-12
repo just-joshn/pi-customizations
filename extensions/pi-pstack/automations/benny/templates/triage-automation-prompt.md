@@ -1,6 +1,6 @@
 # Triage automation prompt
 
-> Source material for the copied setup workflow. Paraphrase this intent into a built-in `automate` draft after `automate` confirms that the copied pack is committed in the repository where the automation will run.
+> Source material for the copied setup workflow. pi-pstack writes each worker's real brief itself when an event arrives, and it names the operational file below. This file records the intent that brief carries. Nothing here is pasted into a draft.
 
 Read and follow `.pi/automations/benny/skills/triage-issue-reports/SKILL.md` for this run.
 
@@ -20,7 +20,7 @@ Trigger:
 }
 ```
 
-The creation intent should describe this as a new top-level report in the configured source Slack channel.
+The event is a new top-level report in the configured source Slack channel.
 
 Treat the source channel and root thread timestamp as immutable. If either is missing or does not match configuration, stop without posting or writing to the issue tracker.
 
