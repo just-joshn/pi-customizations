@@ -356,7 +356,7 @@ export const reflectFamily: Family = {
       const missing = REVIEW_TEMPLATES.filter((file) => !view.parent.toolCalls.some((call) => call.name === 'read' && String(call.args['path']).endsWith(`reflect/references/${file}`)));
       return when(missing.length === 0, 'all four opened', `not opened: ${missing.join(', ')}`);
     }),
-    workersCheck('reflect.three-reviewers', 'three reviewers, role reviewer, readonly on the repository root, MCP inherited, on the judgment, tooling and divergent role lines', [src('reflect/SKILL.md', 'Three `pstack_worker` spawns, one after another without waiting'), src('reflect/SKILL.md', 'A readonly Pi worker keeps its MCP tools')], { role: 'reviewer', min: 3, max: 3, mode: 'readonly', rootPath: true, mcpInherit: true }),
+    workersCheck('reflect.three-reviewers', 'three reviewers, role reviewer, readonly on the repository root, MCP inherited, on the judgment, tooling and divergent role lines', [src('reflect/SKILL.md', 'Three `pstack_worker` spawns, one after another without waiting'), src('reflect/SKILL.md', 'A readonly Pi worker keeps the MCP tools the operator authorized')], { role: 'reviewer', min: 3, max: 3, mode: 'readonly', rootPath: true, mcpInherit: true }),
     spawnedTogether('reflect.reviewers-in-parallel', src('reflect/SKILL.md', '## 2. Spawn three reviewers in parallel'), ['reviewer']),
     check('reflect.lenses-use-the-role-lines', 'the tooling reviewer is on the "reflect tooling" line and the judgment and divergent reviewers on the judgment line', src('reflect/SKILL.md', '| Tooling | `reflect tooling`'), (view) => {
       const by = (id: string) => String(assignmentOf(allWorkers(view).find((worker) => worker.id === id) as never).model);

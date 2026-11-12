@@ -14635,7 +14635,7 @@ var RECEIPT_FIELD_HINTS = {
   artifacts: "an array of { path, sha256 }, [] when there is no file; path is relative to the run root or absolute inside it; sha256 is 64 lowercase hex characters of the file",
   defects: "optional; an array of strings",
   reason: "optional; text",
-  expectedFail: "optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero. verify then reads the recorded output and confirms the tests named in expectedFailTests failed for expectedFailReason, and that the run did not fail from a crash, a syntax error, a missing file, or zero tests run",
+  expectedFail: "optional; true marks an intended failing-before proof: verdict pass then means the command failed as intended, and exitCode must be non-zero. verify then reads the recorded output and confirms the tests named in expectedFailTests failed for expectedFailReason, with the reason inside the failure of each named test itself (its per-test result, or the JSON or TAP results of the runner), and that the run did not fail from a crash, a syntax error, a missing file, or zero tests run",
   expectedFailTests: "required with expectedFail; the failing test names or assertion text the output must show failing, as they appear in it",
   expectedFailReason: "required with expectedFail; text from the failure message that states why they fail, which the output must contain",
   createdAt: "an ISO timestamp string"
@@ -14650,7 +14650,7 @@ ${RECEIPT_FIELDS.map((field) => `- \`${field}\`: ${RECEIPT_FIELD_HINTS[field]}.`
 
 \`pstack_evidence\` \`verify\` takes a \`target\` and re-checks every receipt recorded for it. A missing receipt is \`inconclusive\`. A \`pass\` with no artifacts is \`inconclusive\`, because it is an assertion and not evidence. A \`pass\` whose \`exitCode\` is not 0 fails, unless \`expectedFail\` is \`true\`. A \`fail\` receipt makes the target fail. \`verify\` also fails a receipt whose artifact is missing or does not match its \`sha256\`, and, when the target is a commit, one whose \`commit\` differs.
 
-To prove a check fails before the fix, run it and record a receipt with \`expectedFail: true\`, \`verdict: "pass"\`, the non-zero \`exitCode\`, and the failing output as the artifact, under its own target such as \`<step>-before\`. Name the failing tests (or assertion) in \`expectedFailTests\` and the failure message text in \`expectedFailReason\`. \`verify\` reads the recorded output and is \`inconclusive\` without those fields, and \`fail\` when a named test is not shown failing, the reason is absent, or the output shows a crash, a syntax error, a missing file, or zero tests run. Record the passing run after the fix under the step's target. A receipt without \`expectedFail\` that says \`pass\` with a non-zero \`exitCode\` is rejected as contradicting itself.
+To prove a check fails before the fix, run it and record a receipt with \`expectedFail: true\`, \`verdict: "pass"\`, the non-zero \`exitCode\`, and the failing output as the artifact, under its own target such as \`<step>-before\`. Name the failing tests (or assertion) in \`expectedFailTests\` and the failure message text in \`expectedFailReason\`. \`verify\` reads the recorded output and is \`inconclusive\` without those fields or when the output holds no per-test results to tie a failure to a name, and \`fail\` when a named test is not shown failing, the reason is not in that test's own failure, or the output shows a crash, a syntax error, a missing file, or zero tests run. Record the passing run after the fix under the step's target. A receipt without \`expectedFail\` that says \`pass\` with a non-zero \`exitCode\` is rejected as contradicting itself.
 
 \`\`\`json receipt
 {
@@ -14874,7 +14874,28 @@ async function controlHost(target, operation, text) {
 // src/workers.ts
 var READONLY_TOOLS = ["read", "grep", "find", "ls", "bash_readonly", "pstack_evidence"];
 var MCP_ACCESS_TOOLS = ["codemode", "tool_search"];
-var readonlyTools = (mcp) => [...READONLY_TOOLS, ...mcp === "none" ? [] : MCP_ACCESS_TOOLS];
+function readonlyMcpTools(env) {
+  const file = join6(agentDirOf(env), "pstack", "readonly-mcp.json");
+  if (!existsSync5(file))
+    return [];
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync5(file, "utf8"));
+  } catch (error) {
+    throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const tools = typeof raw === "object" && raw !== null ? raw.tools : undefined;
+  if (!Array.isArray(tools) || !tools.every((name) => typeof name === "string" && /^mcp__[A-Za-z0-9_]+$/.test(name)))
+    throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
+  return tools;
+}
+function readonlyTools(capabilities, authorized) {
+  if (capabilities.mcp === "none")
+    return { tools: [...READONLY_TOOLS], excludeTools: [] };
+  if (capabilities.externalWrite)
+    return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS], excludeTools: [] };
+  return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS, ...authorized], excludeTools: authorized.length === 0 ? ["mcp__*"] : [] };
+}
 function onPath(command) {
   if (isAbsolute4(command))
     return command;
@@ -15038,7 +15059,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
   const assignment = loaded.assignment;
   if (loaded.runRoot !== runRoot || assignment.runId !== runId)
     throw new Error(`Assignment must be ${join6(runRoot, "workers", "<workerId>", "assignment.json")}`);
-  if (assignment.capabilities.externalWrite)
+  if (assignment.capabilities.externalWrite && options.allowExternalWrite !== true)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
   const depth = spawnDepth(process.env) + 1;
   const spawns = assignment.capabilities.spawn === true;
@@ -15090,13 +15111,15 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     });
   }
   const startupMs = options.startupMs ?? (container === null ? 30000 : 300000);
+  const readonly = assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities, assignment.capabilities.mcp === "none" || assignment.capabilities.externalWrite ? [] : readonlyMcpTools(source)) : undefined;
   const launch = {
     piCommand: container === null ? [onPath(command[0]), ...command.slice(1)] : container.piCommand,
     model: launchModel,
     modelNote: model?.note ?? null,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === "readonly" ? readonlyTools(assignment.capabilities.mcp) : null,
+    tools: readonly?.tools ?? null,
+    excludeTools: readonly?.excludeTools ?? [],
     tmuxSession: session,
     extraArgs: [...container?.piArgs ?? [], ...options.extraPiArgs ?? []],
     credentialEnv: assignment.kind === "pi" ? [...credentialEnv(provider), ...assignment.capabilities.forge === true ? ["GH_TOKEN"] : []] : [],
@@ -18209,7 +18232,7 @@ function adapterTracker(options) {
         if (!skill.ok)
           throw new Error(`tracker adapter ${skill.problem}`);
         const runId = trackerRunId(automation, action, progress.attempt);
-        const assignment = { schemaVersion: 1, runId, workerId: WORKER_ID, kind: "pi", role: "owner", brief: "brief.md", model: options.model ?? "inherit-parent", thinkingLevel: null, workspace: { mode: "readonly", path: projectRoot }, skills: [], capabilities: { mcp: "inherit", env: "minimal", externalWrite: false } };
+        const assignment = { schemaVersion: 1, runId, workerId: WORKER_ID, kind: "pi", role: "owner", brief: "brief.md", model: options.model ?? "inherit-parent", thinkingLevel: null, workspace: { mode: "readonly", path: projectRoot }, skills: [], capabilities: { mcp: "inherit", env: "minimal", externalWrite: true } };
         await launchRun(projectRoot, { runId, title: `Benny tracker ${action.operation} ${action.id}`, playbook: "benny-tracker", inputCommit: null, brief: buildTrackerBrief(action, skill.path, tracker), assignment }, { spawnWorker: options.spawnWorker, now });
         return { status: "working", work: { runId, startedAt: now().toISOString() } };
       }
@@ -18260,7 +18283,7 @@ function wireBenny(config, deps) {
   let policy;
   const locations = { ...deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }, ...deps.home === undefined ? {} : { home: deps.home } };
   if (config.tracker.type !== "github") {
-    tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot), ...config.model === undefined ? {} : { model: config.model }, ...deps.now === undefined ? {} : { now: deps.now } });
+    tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot, { allowExternalWrite: true }), ...config.model === undefined ? {} : { model: config.model }, ...deps.now === undefined ? {} : { now: deps.now } });
     probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? true;
     policy = createTrackerPolicy({ tracker: config.tracker, destination, canCompensate: true });
   } else if (config.tracker.repo !== undefined) {

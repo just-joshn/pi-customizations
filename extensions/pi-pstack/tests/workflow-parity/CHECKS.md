@@ -532,7 +532,7 @@ Refactoring playbook: pin first, subtract, small green steps, independent equiva
 | `todo.refactoring.parent-sole-writer` | no worker writes the run TODO.md | `generated/skills/poteto-mode/SKILL.md:127` |
 | `refactoring.contract-learned-with-how` | step 1: how ran to learn the contract, a readonly explainer on the repository root | `generated/skills/poteto-mode/playbooks/refactoring.md:7` |
 | `refactoring.mechanical-edits-delegated` | step 5: the mechanical edits go to a poteto worker in its own worktree on the "feature, refactoring" model line | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
-| `refactoring.pin-lands-first-and-holds` | step 1: the first commit is the characterization test alone, green on the unchanged code, and no later commit edits it | `generated/skills/poteto-mode/playbooks/refactoring.md:7` |
+| `refactoring.pin-lands-first-and-holds` | step 1: a pin that executes the changed code was green before each structural commit, never in the same commit as the change, and no later commit edits it | `generated/skills/poteto-mode/playbooks/refactoring.md:7` |
 | `refactoring.small-steps-keep-the-pin-green` | the worker's branch holds at least 1 commits and every one passes `node --test` on its own, except a test-only commit that fails and is followed by a passing one | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
 | `refactoring.behavior-is-unchanged` | step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself | `generated/skills/poteto-mode/playbooks/refactoring.md:12` |
 | `refactoring.old-api-deleted-callers-migrated` | the old API is deleted in the same wave: no lineTotal remains and no compatibility shim was added | `generated/skills/poteto-mode/playbooks/refactoring.md:11` |
@@ -552,6 +552,7 @@ Negative cases, each of which must FAIL the named checks:
 - steps were resolved out of order → `todo.refactoring.resolved-in-order`
 - a playbook step was deleted from TODO.md → `todo.refactoring.steps-verbatim-in-order`
 - the pin and the refactor landed as one commit → `refactoring.pin-lands-first-and-holds`
+- the delegate made one focused commit and the existing tests were the pin → 
 - the refactor changed behavior → `refactoring.behavior-is-unchanged`, `refactoring.small-steps-keep-the-pin-green`
 - the old API was left behind as a shim → `refactoring.old-api-deleted-callers-migrated`
 - the diff did not lower reader load → `refactoring.reader-load-is-lower-and-no-new-behavior`

@@ -1,5 +1,5 @@
 // MX-MCP: why with a stdio MCP server configured through Pi's native mcp.json, and without one (why/SKILL.md "It strips MCP access").
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
@@ -94,6 +94,10 @@ function whyMcp(withServer: boolean): Family {
       history: cartHistory,
       prompt: () => `/why ${QUESTION}`,
       prepare: (ctx) => {
+        if (withServer) {
+          mkdirSync(join(ctx.agentDir, 'pstack'), { recursive: true });
+          writeFileSync(join(ctx.agentDir, 'pstack', 'readonly-mcp.json'), JSON.stringify({ tools: [TOOL] }, null, 2));
+        }
         if (withServer) writeFileSync(join(ctx.agentDir, 'mcp.json'), JSON.stringify({ mcpServers: { decisions: { command: 'node', args: [SERVER], env: { MCP_FIXTURE_LOG: join(ctx.sandbox, 'mcp-calls.jsonl') }, description: 'Product decision records' } } }, null, 2));
       },
       scenario: (ctx) => {

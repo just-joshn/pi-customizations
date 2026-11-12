@@ -15,9 +15,7 @@ import {
   delegateCommits,
   delegateOf,
   delegateOwnCommits,
-  workflowCommits,
   everyCommitGreen,
-  isTestFile,
   namesCommit,
   collectOrder,
   openedAt,
@@ -30,6 +28,7 @@ import {
   finalReply,
   noToolErrors,
   parentReads,
+  pinBeforeChange,
   parentWritesOnlyScratch,
   playbookReads,
   primaryRun,
@@ -43,7 +42,7 @@ import {
   writableWorkerRecords,
 } from '../lib/checks.ts';
 import { SCRIPTED_ROLES } from '../lib/driver.ts';
-import { appendToolCall, corruptArtifact, rewriteSession, deleteReceipt, dirtyRepo, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, rewriteFinalReply, setStep, squashBranch, stripEvidence } from '../lib/mutate.ts';
+import { appendToolCall, corruptArtifact, rewriteSession, deleteReceipt, dirtyRepo, parentSession, patchAssignment, patchGit, patchReceipt, refreshGit, rewriteFinalReply, setStep, squashBranch, squashBranchWithout, stripEvidence } from '../lib/mutate.ts';
 import { taskItems, todoNegatives, worktreeOf, writer } from './shared.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 import type { Family } from './types.ts';
@@ -170,16 +169,7 @@ export const refactoringFamily: Family = {
     ...todoChecks({ playbook: 'refactoring', skipReason: { 8: /PR|remote/i } }),
     workersCheck('refactoring.contract-learned-with-how', 'step 1: how ran to learn the contract, a readonly explainer on the repository root', src('poteto-mode/playbooks/refactoring.md', 'Run the **how** skill over the affected subsystem to learn the contract'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /explainer/ }),
     workersCheck('refactoring.mechanical-edits-delegated', 'step 5: the mechanical edits go to a poteto worker in its own worktree on the "feature, refactoring" model line', src('poteto-mode/playbooks/refactoring.md', 'Delegate the mechanical edits to a subagent using your configured refactoring model'), { role: 'poteto', min: 1, max: 1, mode: 'worktree', modelLine: 'feature, refactoring' }),
-    check('refactoring.pin-lands-first-and-holds', 'step 1: the first commit is the characterization test alone, green on the unchanged code, and no later commit edits it', src('poteto-mode/playbooks/refactoring.md', 'write a characterization test, snapshot, or equivalence harness that captures current behavior before any structure moves'), (view) => {
-      // Workflow level: the pin may be committed by the parent on the checkout before it spawns the delegate. It counts here and is not the delegate's own commit.
-      const commits = workflowCommits(view);
-      if (commits.length < 2) return fail(`${commits.length} commits in the workflow (the parent's before the spawn, then the delegate's)`);
-      const first = commits[0] as string;
-      const files = filesChanged(view, first);
-      const green = runAtCommit(view, first, 'node --test');
-      const later = commits.slice(1).flatMap((sha) => filesChanged(view, sha)).filter((file) => files.includes(file));
-      return when(files.length >= 1 && files.every(isTestFile) && green.status === 0 && later.length === 0, `commit 1 adds only ${files.join(', ')} and passes on the unchanged source; no later commit edits it`, `files ${files.join(', ')}, exit ${green.status}, later edits ${later.length}`);
-    }),
+    check('refactoring.pin-lands-first-and-holds', 'step 1: a pin that executes the changed code was green before each structural commit, never in the same commit as the change, and no later commit edits it', src('poteto-mode/playbooks/refactoring.md', 'write a characterization test, snapshot, or equivalence harness that captures current behavior before any structure moves'), pinBeforeChange),
     everyCommitGreen('refactoring.small-steps-keep-the-pin-green', src('poteto-mode/playbooks/refactoring.md', 'Move in small behavior-preserving steps, each keeping the pin green'), (view) => primaryRun(view, 'refactoring')?.id ?? '', (view) => delegateOf(view)?.id ?? '', { min: 1, commits: delegateCommits }),
     check('refactoring.behavior-is-unchanged', 'step 6: the old and new src/cart.js give identical subtotal and total over a grid the checker runs itself', src('poteto-mode/playbooks/refactoring.md', 'Prove behavior is unchanged on the real artifact'), (view) => {
       const head = delegateCommits(view).at(-1);
@@ -198,17 +188,19 @@ export const refactoringFamily: Family = {
     }),
     check('refactoring.old-api-deleted-callers-migrated', 'the old API is deleted in the same wave: no lineTotal remains and no compatibility shim was added', src('poteto-mode/playbooks/refactoring.md', 'migrate every caller and delete the old API in the same wave'), (view) => {
       const head = delegateCommits(view).at(-1) ?? '';
+      if (head === '') return fail('no delegate commit to examine');
       const grep = runAtCommit(view, head, "grep -rn -E 'lineTotal|deprecated|legacy|compat' src test");
-      return when(head !== '' && grep.status === 1, 'no lineTotal and no shim wording at the delivered commit', `still present: ${grep.output.trim().slice(0, 160)}`);
+      return when(grep.status === 1, 'no lineTotal and no shim wording at the delivered commit', `still present: ${grep.output.trim().slice(0, 160)}`);
     }),
     check('refactoring.reader-load-is-lower-and-no-new-behavior', 'step 7: src/cart.js has fewer lines and fewer functions, and exports nothing new', src('poteto-mode/playbooks/refactoring.md', 'The success measure is reduced reader load'), (view) => {
       const head = delegateCommits(view).at(-1) ?? '';
+      if (head === '') return fail('no delegate commit to examine');
       const read = (sha: string) => runAtCommit(view, sha, 'cat src/cart.js').output;
       const [before, after] = [read(view.base), read(head)];
       const exportsOf = (text: string) => [...text.matchAll(/export function (\w+)/g)].map((match) => match[1] as string);
       const added = exportsOf(after).filter((name) => !exportsOf(before).includes(name));
       const count = (text: string) => ({ lines: text.split('\n').length, functions: (text.match(/function /g) ?? []).length });
-      return when(head !== '' && count(after).lines < count(before).lines && count(after).functions < count(before).functions && added.length === 0, `lines ${count(before).lines} to ${count(after).lines}, functions ${count(before).functions} to ${count(after).functions}, new exports none`, `before ${JSON.stringify(count(before))}, after ${JSON.stringify(count(after))}, new exports ${added.join(', ')}`);
+      return when(count(after).lines < count(before).lines && count(after).functions < count(before).functions && added.length === 0, `lines ${count(before).lines} to ${count(after).lines}, functions ${count(before).functions} to ${count(after).functions}, new exports none`, `before ${JSON.stringify(count(before))}, after ${JSON.stringify(count(after))}, new exports ${added.join(', ')}`);
     }),
     parentWritesOnlyScratch('refactoring.parent-stays-in-the-lead', 'the parent wrote no production code: the contract is its, the edits are the worker\'s (the pin it writes under test/ is step 1)', src('poteto-mode/playbooks/refactoring.md', '**You own the contract.'), /^test\//),
     writableWorkerRecords('refactoring.worker-records', src('poteto-mode/playbooks/refactoring.md', 'Delegate the mechanical edits'), ['poteto']),
@@ -218,6 +210,7 @@ export const refactoringFamily: Family = {
   negatives: [
     ...todoNegatives('refactor-cart', 'refactoring', { done: [1, 2, 4, 5, 6, 7], receipts: { 1: 'ref-pin', 2: 'ref-structure', 4: 'ref-subtract', 5: 'mover-check', 6: 'ref-equivalence', 7: 'ref-reader-load' } }),
     { name: 'the pin and the refactor landed as one commit', mutate: (sandbox) => squashBranch(sandbox, 'pstack-run/refactor-cart/mover'), fails: ['refactoring.pin-lands-first-and-holds'] },
+    { name: 'the delegate made one focused commit and the existing tests were the pin', mutate: (sandbox) => squashBranchWithout(sandbox, 'pstack-run/refactor-cart/mover', 'test/pin.test.js'), fails: [], passes: ['refactoring.pin-lands-first-and-holds', 'refactoring.small-steps-keep-the-pin-green', 'refactoring.behavior-is-unchanged', 'refactoring.old-api-deleted-callers-migrated'] },
     { name: 'the refactor changed behavior', mutate: (sandbox) => changeBehavior(sandbox), fails: ['refactoring.behavior-is-unchanged', 'refactoring.small-steps-keep-the-pin-green'] },
     { name: 'the old API was left behind as a shim', mutate: (sandbox) => addShim(sandbox), fails: ['refactoring.old-api-deleted-callers-migrated'] },
     { name: 'the diff did not lower reader load', mutate: (sandbox) => addBulk(sandbox), fails: ['refactoring.reader-load-is-lower-and-no-new-behavior'] },

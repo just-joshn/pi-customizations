@@ -131,7 +131,7 @@ export function adapterTracker(options: AdapterTrackerOptions): TrackerLander {
         const skill = resolveSkill(tracker.adapterSkillName ?? '', { projectRoot, ...options.locations });
         if (!skill.ok) throw new Error(`tracker adapter ${skill.problem}`);
         const runId = trackerRunId(automation, action, progress.attempt);
-        const assignment = { schemaVersion: 1, runId, workerId: WORKER_ID, kind: 'pi', role: 'owner', brief: 'brief.md', model: options.model ?? 'inherit-parent', thinkingLevel: null, workspace: { mode: 'readonly', path: projectRoot }, skills: [], capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: false } };
+        const assignment = { schemaVersion: 1, runId, workerId: WORKER_ID, kind: 'pi', role: 'owner', brief: 'brief.md', model: options.model ?? 'inherit-parent', thinkingLevel: null, workspace: { mode: 'readonly', path: projectRoot }, skills: [], capabilities: { mcp: 'inherit', env: 'minimal', externalWrite: true } };
         await launchRun(projectRoot, { runId, title: `Benny tracker ${action.operation} ${action.id}`, playbook: 'benny-tracker', inputCommit: null, brief: buildTrackerBrief(action, skill.path, tracker), assignment }, { spawnWorker: options.spawnWorker, now });
         return { status: 'working', work: { runId, startedAt: now().toISOString() } };
       }

@@ -69,7 +69,7 @@ tmux -L pstack attach -t pstack_<runId>_<workerId>_<hash>
 
 Workers run on their own tmux server (`-L pstack`), so they never mix with your tmux sessions. Detach with the usual tmux key. Detaching does not stop the worker. When a worker settles, the parent session gets one `pstack-worker` message and starts a turn. A restarted parent finds its live workers again and still gets each result once (`tests/recovery/recovery.test.ts`).
 
-A writable worker gets its own git worktree and branch, `pstack-run/<runId>/<workerId>`. A readonly worker runs in the project directory with the tools `read`, `grep`, `find`, and `ls`. A worker gets `pstack_evidence`, and only a sub-coordinator also gets `pstack_worker` (`tests/worker-lifecycle/`).
+A writable worker gets its own git worktree and branch, `pstack-run/<runId>/<workerId>`. A readonly worker runs in the project directory with the tools `read`, `grep`, `find`, and `ls`. It reaches MCP only through the tools you list in `<agent dir>/pstack/readonly-mcp.json` (`{ "tools": ["mcp__<server>__<tool>"] }`, exact names, read at spawn); with no file it reaches none. A server's `readOnlyHint` is the server's own claim and is not used. A worker gets `pstack_evidence`, and only a sub-coordinator also gets `pstack_worker` (`tests/worker-lifecycle/`).
 
 ## Read the run files
 
@@ -89,7 +89,7 @@ Plans live in `<project>/.pi/pstack/plans/<slug>.md`.
 ## Limits
 
 - Container workers are not implemented. The assignment parser accepts only `worktree` and `readonly` workspaces (`src/run-files.ts`), so every worker runs on this machine. The compiled Shipping and Autopilot-full playbooks ask for container workers and tell the agent to report the step blocked when the spawn fails.
-- A worker runs as your user. The tool and environment limits stop a worker from posting to Slack, a tracker, or a forge through Pi, but a worker process can still read any file your user can read, including 0600 credential files. Only a container can close that gap.
+- A worker runs as your user. The tool and environment limits stop a worker from posting to Slack, a tracker, or a forge through Pi's own tools, but a worker process keeps your filesystem and network authority: it can read any file your user can read, including 0600 credential files, and a shell command can still write to an external system. Only a container worker closes that gap.
 - Cursor-hosted services are replaced, not copied. Cursor Automations become `/pstack automation` event sources, Cursor webhooks become a local routine receiver (`scripts/routine-setup.mjs`), and cloud agents wait for container workers. Bugbot has no replacement. The Benny pack in `generated/automations/benny/` (compiled from the pinned upstream pack by `adapters/benny-pack.ts`) is set up with `scripts/benny-setup.mjs` and run with `/pstack automation start <name>`.
 - The readonly worker shell, `bash_readonly`, is not wired yet. Its sandbox code ships in `src/readonly-shell.ts` and is tested in `tests/security/`.
 - An npm install cannot run the statechart skill on Node. Node refuses to strip types in a file under `node_modules`, and the wrapper runs `statechart.ts` (`tests/packaging/installed-helpers.test.ts`, marked `test.fails`). A checkout install works.

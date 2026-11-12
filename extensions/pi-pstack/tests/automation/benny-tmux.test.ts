@@ -71,6 +71,7 @@ test('a tracker that is not GitHub is written by a real worker that reads the pr
   const trackerScript = JSON.stringify([{ tool: 'read', args: { path: skillPath } }, { text: '{"outcome":"created","id":"LIN-42"}' }]);
   const current = project;
   const spawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }) });
+  const trackerSpawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }), allowExternalWrite: true });
   const spawned: string[] = [];
   const automation: Automation = wireBenny(
     benny.config('triage'),
@@ -78,7 +79,7 @@ test('a tracker that is not GitHub is written by a real worker that reads the pr
       spawnWorker: async (runId, assignmentPath) => {
         spawned.push(runId);
         writeFileSync(join(assignmentPath, '..', 'brief.md'), runId.startsWith('trk-') ? `@@script ${trackerScript}` : `@@say ${caseResult}`);
-        await spawn(runId, assignmentPath);
+        await (runId.startsWith('trk-') ? trackerSpawn : spawn)(runId, assignmentPath);
       },
     }),
   );

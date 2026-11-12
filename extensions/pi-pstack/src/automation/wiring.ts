@@ -43,7 +43,7 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   const locations = { ...(deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }), ...(deps.home === undefined ? {} : { home: deps.home }) };
   // GitHub is the one tracker the package ships. Any other type is a project-owned adapter skill, run by a worker.
   if (config.tracker.type !== 'github') {
-    tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot), ...(config.model === undefined ? {} : { model: config.model }), ...(deps.now === undefined ? {} : { now: deps.now }) });
+    tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot, { allowExternalWrite: true }), ...(config.model === undefined ? {} : { model: config.model }), ...(deps.now === undefined ? {} : { now: deps.now }) });
     probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? true;
     policy = createTrackerPolicy({ tracker: config.tracker, destination, canCompensate: true });
   } else if (config.tracker.repo !== undefined) {

@@ -433,6 +433,7 @@ function parseLaunch(text) {
     throw new Error("Launch must be an object");
   const strings = (value) => Array.isArray(value) && value.every((part) => typeof part === "string" && !part.includes("\x00"));
   const { piCommand, model, thinkingLevel, appendSystemPrompt, tools, tmuxSession, extraArgs, credentialEnv } = raw;
+  const excludeTools = raw["excludeTools"] ?? [];
   const container = raw["container"] === null ? null : parseContainerPlan(raw["container"]);
   if (!strings(piCommand) || piCommand.length === 0 || container === null && !isAbsolute3(piCommand[0] ?? ""))
     throw new Error("Launch piCommand must start with an absolute executable");
@@ -444,6 +445,8 @@ function parseLaunch(text) {
     throw new Error("Launch appendSystemPrompt must be an absolute path or null");
   if (tools !== null && !(strings(tools) && tools.every((name) => /^[A-Za-z0-9_*+-]+$/.test(name))))
     throw new Error("Launch tools must be tool names or null");
+  if (!(strings(excludeTools) && excludeTools.every((name) => /^[A-Za-z0-9_*]+$/.test(name))))
+    throw new Error("Launch excludeTools must be tool names or patterns");
   if (typeof tmuxSession !== "string" || !TMUX_SESSION.test(tmuxSession))
     throw new Error("Launch tmuxSession is invalid");
   if (!strings(extraArgs))
@@ -460,6 +463,7 @@ function parseLaunch(text) {
     thinkingLevel,
     appendSystemPrompt,
     tools,
+    excludeTools,
     tmuxSession,
     extraArgs,
     credentialEnv,
@@ -548,6 +552,7 @@ function piArgs(loaded, launch) {
     ...launch.thinkingLevel === null ? [] : ["--thinking", launch.thinkingLevel],
     ...launch.appendSystemPrompt === null ? [] : ["--append-system-prompt", launch.appendSystemPrompt],
     ...launch.tools === null ? [] : ["--tools", launch.tools.join(",")],
+    ...launch.excludeTools === undefined || launch.excludeTools.length === 0 ? [] : ["--exclude-tools", launch.excludeTools.join(",")],
     ...loaded.assignment.capabilities.mcp === "none" ? ["--no-mcp"] : [],
     ...launch.extraArgs
   ];

@@ -59,7 +59,7 @@ The removals are deliberate. Each old feature was a second implementation of som
 
 The design has three limits that only more infrastructure can remove.
 
-1. Workers run on the parent's machine as the parent's user. The capability boundary (`capabilities` in `assignment.json`) strips MCP, environment variables, and posting tools from automation workers. A process with the same uid can still read the same files. Container workers would close that gap.
+1. Workers run on the parent's machine as the parent's user. The capability boundary (`capabilities` in `assignment.json`) strips MCP, environment variables, and posting tools from automation workers, and a readonly worker reaches only the MCP tools the operator lists in `<agent dir>/pstack/readonly-mcp.json`. None of that is a credential or filesystem boundary. A local worker keeps your filesystem and network authority, so a shell command can still write to an external system. A container worker closes that gap, and a requirement that needs it is reported blocked otherwise.
 2. Cursor-hosted services are replaced by local equivalents with the same contract, not reproduced. A routine receiver on `127.0.0.1` stands in for Cursor's webhook URL. Bugbot has no stand-in.
 3. A second model family must be configured for a diverse review panel. `/pstack doctor` reports a panel that resolves to one family.
 
