@@ -117,6 +117,27 @@ Rejected: silently turning NaN into 0, because it hides caller bugs.
 Convergence and dropouts: none dropped, both candidates kept the signature.
 Verification: node --test passes on the synthesized artifact, receipt arena-verify.`;
 
+/**
+ * Phase C may skip the judge: "If none of those runs, skip the judge, pick the base alone in Phase D, and say so"
+ * (arena/SKILL.md). A run with no judge worker that says so took that branch, and the judge contracts do not apply.
+ */
+function judgeSkipped(view: RunView): boolean {
+  const reply = finalReply(view);
+  return !allWorkers(view).some((worker) => assignmentOf(worker).role === 'judge') && /judge/i.test(reply) && /\b(skipped|skip|did not run|no judge)\b/i.test(reply);
+}
+
+const JUDGE_SKIP_SPAN = src('arena/SKILL.md', 'skip the judge, pick the base alone in Phase D, and say so');
+
+/** Holds `inner` to a run that spawned a judge; a run that skipped the judge and said so owes only the statement. */
+function whenJudged(inner: Check): Check {
+  return check(inner.id, inner.title, [...inner.src, JUDGE_SKIP_SPAN], (view) => (judgeSkipped(view) ? pass('the judge was skipped and the note says so, so there is no judge to hold to this') : inner.run(view)));
+}
+
+/** Container workers are clones in their own containers, so each already has its own writable output; only worktree workers share a host to separate. */
+function containerAware(inner: Check): Check {
+  return check(inner.id, inner.title, inner.src, (view) => (allWorkers(view).length > 0 && allWorkers(view).every((worker) => assignmentOf(worker).workspace?.mode === 'container') ? pass('every worker runs in its own container clone') : inner.run(view)));
+}
+
 function judgeNotParentFamily(id: string): Check {
   return check(id, "the judge is never from the parent's model family", src('arena/SKILL.md', "The judge is never from the parent's family"), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
@@ -137,13 +158,13 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     const normal = workers.map((worker) => (worker.brief ?? '').replaceAll(join(worker.dir, 'worktree'), '<own>'));
     return when(workers.length >= 2 && new Set(normal).size === 1, `${workers.length} briefs identical`, `${new Set(normal).size} distinct briefs`);
   }),
-  check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
+  whenJudged(check(`${prefix}.rubric-held-back`, 'the rubric reaches the judge and never a candidate: "Candidates only see the task"', src('arena/SKILL.md', 'Candidates only see the task'), (view) => {
     const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
     const criteria = (judge?.brief ?? '').split('\n').filter((line) => line.startsWith('- ') && !/^- candidate/.test(line)).map((line) => line.slice(2));
     if (criteria.length < 3 || criteria.length > 6) return fail(`the judge brief carries ${criteria.length} rubric criteria, want 3 to 6`);
     const leaked = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate' && criteria.some((criterion) => (worker.brief ?? '').includes(criterion)));
     return when(leaked.length === 0, `${criteria.length} criteria in the judge brief, none in ${allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').length} candidate briefs`, `rubric leaked to ${leaked.map((worker) => worker.id).join(', ')}`);
-  }),
+  })),
   writableWorkerRecords(`${prefix}.candidate-records`, src('arena/SKILL.md', 'instructions to produce the artifact and a short rationale'), ['candidate']),
   check(`${prefix}.candidates-committed`, 'each candidate committed its artifact on its own branch', src('arena/SKILL.md', 'instructions to produce the artifact and a short rationale'), (view) => {
     const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').filter((worker) => {
@@ -152,18 +173,18 @@ const ARENA_CHECKS = (prefix: string, skillName: string, runnerLine: string): Ch
     });
     return when(bad.length === 0, 'every candidate branch holds at least one commit', `no commit on: ${bad.map((worker) => worker.id).join(', ')}`);
   }),
-  workersCheck(`${prefix}.judge`, 'one judge, role judge, readonly on the repository root, model from the cross-judge pool', src('arena/SKILL.md', 'Spawn one judge worker with `role: "judge"`'), { role: 'judge', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'arena cross-judge pool' }),
-  judgeNotParentFamily(`${prefix}.judge-not-parent-family`),
-  spawnedAfterCollect(`${prefix}.judge-after-candidates`, "the judge is spawned only after every candidate completes: \"Don't spawn it while candidates are still writing\"", src('arena/SKILL.md', "Don't spawn it while candidates are still writing"), ['judge'], ['candidate']),
-  briefsContain(`${prefix}.judge-brief`, 'the judge brief carries the rubric and the candidates by path label', src('arena/SKILL.md', 'The judge sees the rubric and the candidates by path label'), ['judge'], [
+  whenJudged(workersCheck(`${prefix}.judge`, 'one judge, role judge, readonly on the repository root, model from the cross-judge pool', src('arena/SKILL.md', 'Spawn one judge worker with `role: "judge"`'), { role: 'judge', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'arena cross-judge pool' })),
+  whenJudged(judgeNotParentFamily(`${prefix}.judge-not-parent-family`)),
+  whenJudged(spawnedAfterCollect(`${prefix}.judge-after-candidates`, "the judge is spawned only after every candidate completes: \"Don't spawn it while candidates are still writing\"", src('arena/SKILL.md', "Don't spawn it while candidates are still writing"), ['judge'], ['candidate'])),
+  whenJudged(briefsContain(`${prefix}.judge-brief`, 'the judge brief carries the rubric and the candidates by path label', src('arena/SKILL.md', 'The judge sees the rubric and the candidates by path label'), ['judge'], [
     { name: 'rubric', pattern: /Rubric/ },
     { name: 'candidate path labels', pattern: /candidate-?[\w-]*: \/.+worktree/ },
-  ]),
+  ])),
   parentOpenedFiles(`${prefix}.read-every-candidate`, 'the parent read every candidate end to end before picking', src('arena/SKILL.md', 'Read every candidate end to end before picking'), (view) => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').map((worker) => `${worker.id}/worktree/src/coupon.js`)),
   receiptsFor(`${prefix}.verified`, 'a passing receipt verifies the synthesized artifact (Phase F)', src('arena/SKILL.md', 'Verify the synthesized artifact like any other output'), (receipt) => receipt.target === 'arena-verify' && receipt.kind === 'test', 1),
   replyHas(`${prefix}.synthesis-note`, 'the synthesis note names the base, the cross-judge verdict, the grafts with their source, what was rejected, convergence or dropouts, and the verification', src('arena/SKILL.md', 'with a short synthesis note alongside naming the base and why'), [
     { name: 'base', pattern: /\bBase\b/i },
-    { name: 'cross-judge', pattern: /cross-judge/i },
+    { name: 'cross-judge verdict, or that the judge was skipped', pattern: /cross-judge|judge[^.\n]*skipped|skipped[^.\n]*judge/i },
     { name: 'grafts', pattern: /\bGrafts?\b/i },
     { name: 'rejected', pattern: /\bRejected\b/i },
     { name: 'dropouts', pattern: /dropouts?/i },
@@ -223,6 +244,23 @@ export const arenaFamily: Family = {
   ],
   negatives: [
     ...swapNegatives('arena-coupon', 'arena'),
+    {
+      name: 'no other-family judge could run, so the judge was skipped and the note says so',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'arena-coupon', 'judge');
+        rewriteFinalReply(sandbox, /Cross-judge:[^\n]*/, 'Cross-judge: no model from another family could run, so the judge was skipped and the base was picked alone.');
+      },
+      fails: [],
+      passes: ['arena.judge', 'arena.judge-not-parent-family', 'arena.judge-after-candidates', 'arena.judge-brief', 'arena.rubric-held-back', 'arena.synthesis-note'],
+    },
+    {
+      name: 'the judge was dropped without saying so',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'arena-coupon', 'judge');
+        rewriteFinalReply(sandbox, /Cross-judge:[^\n]*/, 'Panel: none.');
+      },
+      fails: ['arena.judge', 'arena.synthesis-note'],
+    },
     { name: 'the phase entries were written after the fan-out', mutate: (sandbox) => writeFileSync(join(sandbox, 'claims.json'), JSON.stringify([{ runId: 'arena-coupon', workerId: 'candidate-1', seq: -1 }])), fails: ['arena.phase-todos-before-fan-out'] },
   ],
 };
@@ -319,16 +357,16 @@ export const architectFamily: Family = {
       return when(missing.length === 0, 'all three references opened', `not opened: ${missing.join(', ')}`);
     }),
     phasesBeforeLaunch('architect.phase-todos-before-work', src('architect/SKILL.md', 'Add one `TODO.md` entry per phase'), [/Ground/, /Sketch/, /Agree/, /Implement/, /Scrap/], { allResolved: true }),
-    workersCheck('architect.phase-a-grounded-with-how', 'Phase A: how ran over the subsystem, a readonly explainer on the repository root', src('architect/SKILL.md', 'Produce the architectural explanation `how` prescribes'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer', id: /ground/ }),
+    workersCheck('architect.phase-a-grounded-with-how', 'Phase A: how ran over the subsystem, a readonly explainer on the repository root', src('architect/SKILL.md', 'Produce the architectural explanation `how` prescribes'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explainer' }),
     panelCheck('architect.runners-from-architect-line', 'Phase B: candidates run on the "architect runners" line, at least two structurally distinct designs, in separate writable worktrees', src('architect/SKILL.md', 'Take the runners from the `architect runners` line'), { role: 'candidate', line: 'architect runners', mode: 'worktree' }),
     check('architect.designs-are-distinct', 'at least two candidate design packages exist and differ ("Design it twice")', src('architect/SKILL.md', 'Require at least two structurally distinct candidates'), (view) => {
       const designs = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').map((worker) => (worker.worktree === null ? '' : safeRead(join(worker.worktree, 'design.md'))));
       return when(designs.length >= 2 && designs.every((design) => design !== '') && new Set(designs).size === designs.length, `${designs.length} distinct design packages`, `${designs.length} candidates, ${new Set(designs).size} distinct non-empty designs`);
     }),
     worktreeIsolation('architect.separate-writable-locations', src('arena/SKILL.md', 'Give each candidate its own output location')),
-    judgeNotParentFamily('architect.judge-not-parent-family'),
-    workersCheck('architect.judge-from-another-family', 'arena Phase C ran: one judge, readonly, from the cross-judge pool', src('architect/SKILL.md', 'Run the **arena** skill with the design-sketch task'), { role: 'judge', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'arena cross-judge pool' }),
-    spawnedAfterCollect('architect.judge-after-candidates', 'the judge is spawned after every candidate completes', src('arena/SKILL.md', "Don't spawn it while candidates are still writing"), ['judge'], ['candidate']),
+    whenJudged(judgeNotParentFamily('architect.judge-not-parent-family')),
+    whenJudged(workersCheck('architect.judge-from-another-family', 'arena Phase C ran: one judge, readonly, from the cross-judge pool', src('architect/SKILL.md', 'Run the **arena** skill with the design-sketch task'), { role: 'judge', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'arena cross-judge pool' })),
+    whenJudged(spawnedAfterCollect('architect.judge-after-candidates', 'the judge is spawned after every candidate completes', src('arena/SKILL.md', "Don't spawn it while candidates are still writing"), ['judge'], ['candidate'])),
     check('architect.rationale-shipped', 'the rationale ships alongside, shaped per rationale-template.md, with the usage section before the shape', src('architect/SKILL.md', 'The rationale ships alongside, shaped per `references/rationale-template.md`'), (view) => {
       const write = view.parent.toolCalls.find((call) => call.name === 'write' && typeof call.args['content'] === 'string' && String(call.args['content']).includes('## Synthesis decision'));
       if (write === undefined) return fail('the parent wrote no rationale document');
@@ -337,12 +375,13 @@ export const architectFamily: Family = {
       if (positions.includes(-1)) return fail(`rationale lacks ${RATIONALE_HEADINGS.filter((_, index) => positions[index] === -1).join(', ')}`);
       return when(positions.every((position, index) => index === 0 || position > (positions[index - 1] as number)) && !/Filled in by arena\./.test(text), `rationale at ${String(write.args['path'])} has all eight sections in order and a filled synthesis decision`, 'sections are out of order or the synthesis decision is still the template note');
     }),
-    check('architect.proceeds-to-implementation', 'with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge was collected', src('architect/SKILL.md', 'Default: proceed directly to implementation with the synthesized design'), (view) => {
+    check('architect.proceeds-to-implementation', 'with no checkpoint requested, implementation follows the synthesis directly: a writable worker commits after the judge (or, with the judge skipped, the candidates) was collected', src('architect/SKILL.md', 'Default: proceed directly to implementation with the synthesized design'), (view) => {
       const implement = allWorkers(view).find((worker) => assignmentOf(worker).role === 'poteto' || /implement/.test(worker.id));
       const run = view.runs[0];
       const commits = view.git.branchCommits[`pstack-run/${run?.id}/${implement?.id}`] ?? [];
       const judge = allWorkers(view).find((worker) => assignmentOf(worker).role === 'judge');
-      return when(implement !== undefined && commits.length >= 1 && judge !== undefined && spawnOrder(view, implement.id) > collectOrder(view, judge.id), `${implement?.id} committed ${commits.length} after the judge was collected`, `implementer ${implement?.id}, commits ${commits.length}`);
+      const gate = judge === undefined ? Math.max(...allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate').map((worker) => collectOrder(view, worker.id))) : collectOrder(view, judge.id);
+      return when(implement !== undefined && commits.length >= 1 && (judge !== undefined || judgeSkipped(view)) && spawnOrder(view, implement.id) > gate, `${implement?.id} committed ${commits.length} after ${judge === undefined ? 'the candidates' : 'the judge'} was collected`, `implementer ${implement?.id}, commits ${commits.length}, judge ${judge?.id ?? 'none and not reported as skipped'}`);
     }),
     receiptsFor('architect.implementation-verified', 'the implementation worker recorded a passing test receipt', src('architect/SKILL.md', 'Replace `not implemented` bodies with code'), (receipt) => receipt.target === 'implement' && receipt.kind === 'test', 1),
     settledAndCollected('architect.settled-and-collected', src('arena/SKILL.md', 'After all Phase B candidates complete')),
@@ -355,6 +394,15 @@ export const architectFamily: Family = {
     { name: 'the rationale kept the template note for the synthesis decision', mutate: (sandbox) => rewriteSessionSynthesis(sandbox), fails: ['architect.rationale-shipped'] },
     { name: 'the implementation committed nothing', mutate: (sandbox) => patchGit(sandbox, (git) => (git['branchCommits'] = {})), fails: ['architect.proceeds-to-implementation'] },
     { name: 'the implementation receipt is gone', mutate: (sandbox) => deleteReceipt(sandbox, 'architect-coupon', 'implement-check'), fails: ['architect.implementation-verified'] },
+    {
+      name: 'no other-family judge could run, so the judge was skipped and the final message says so',
+      mutate: (sandbox) => {
+        removeWorker(sandbox, 'architect-coupon', 'judge');
+        rewriteFinalReply(sandbox, 'Implemented against', 'The judge was skipped because no other-family model could run. Implemented against');
+      },
+      fails: [],
+      passes: ['architect.judge-not-parent-family', 'architect.judge-from-another-family', 'architect.judge-after-candidates', 'architect.proceeds-to-implementation'],
+    },
     { name: 'the judge shares the parent family', mutate: (sandbox) => patchAssignment(sandbox, 'architect-coupon', 'judge', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['architect.judge-not-parent-family'] },
     { name: 'the phase entries were written after workers launched', mutate: (sandbox) => writeFileSync(join(sandbox, 'claims.json'), JSON.stringify([{ runId: 'architect-coupon', workerId: 'ground', seq: -1 }])), fails: ['architect.phase-todos-before-work'] },
   ],
@@ -374,6 +422,9 @@ function safeRead(path: string): string {
 }
 
 // ---- swarm
+
+/** A brief that names something only the user's computer has (swarm/SKILL.md Phase B). */
+const LOCAL_ACCESS = /(user'?s|your|local) (computer|machine|laptop|checkout)|uncommitted|not (yet )?pushed|working tree/i;
 
 const SWARM_PHASES = ['Swarm Frame', 'Swarm Fan out', 'Swarm Aggregate', 'Swarm Report'];
 const SLICES = ['src/cart.js', 'src/money.js', 'src/checkout.js'];
@@ -441,33 +492,46 @@ export const swarmFamily: Family = {
     promptRoutes('swarm'),
     parentReads('swarm.reads-skill', 'the parent opens the swarm skill', src('swarm/SKILL.md', '# Swarm'), ['swarm']),
     phasesBeforeLaunch('swarm.phase-todos-before-fan-out', src('swarm/SKILL.md', 'Add one `TODO.md` entry per phase'), [/Frame/, /Fan out/, /Aggregate/, /Report/], { allResolved: true }),
-    check('swarm.container-tried-first', 'Phase B tries a container workspace first for the first worker', src('swarm/SKILL.md', '`workspace: { mode: "container", inputCommit }`'), (view) => {
+    check('swarm.container-tried-first', 'Phase B asks for a container workspace first, or its brief names what it needs on the user\'s computer', [src('swarm/SKILL.md', '`workspace: { mode: "container", inputCommit }`'), src('swarm/SKILL.md', 'When a worker needs access to something on the user\'s computer')], (view) => {
       const firstSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
       if (firstSpawn === undefined) return fail('no spawn');
       const assignmentPath = String(firstSpawn.args['assignmentPath']);
       const write = view.parent.toolCalls.find((call) => call.name === 'write' && call.args['path'] === assignmentPath && call.order < firstSpawn.order);
       const mode = (JSON.parse(String(write?.args['content'] ?? '{}')) as { workspace?: { mode?: string } }).workspace?.mode;
-      return when(mode === 'container', 'the first spawn asked for a container workspace', `the first spawn staged workspace.mode ${String(mode)}`);
+      if (mode === 'container') return pass('the first spawn asked for a container workspace');
+      const brief = allWorkers(view).find((worker) => assignmentPath.includes(`/workers/${worker.id}/`))?.brief ?? '';
+      return when(mode === 'worktree' && LOCAL_ACCESS.test(brief), 'the first worker needs the user\'s computer and its brief says so', `the first spawn staged workspace.mode ${String(mode)} and its brief names no local need`);
     }),
-    check('swarm.container-refusal-is-ContainerUnavailable', 'a refused container spawn answers ContainerUnavailable, which the swarm skill reads as its fallback signal', src('swarm/SKILL.md', 'or spawn returns `ContainerUnavailable`'), (view) => {
+    check('swarm.container-refusal-is-ContainerUnavailable', 'a refused spawn answers ContainerUnavailable, which the swarm skill reads as its fallback signal; with no refusal the container workers ran', src('swarm/SKILL.md', 'or spawn returns `ContainerUnavailable`'), (view) => {
       const refused = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.isError);
-      return refused === undefined ? fail('the container spawn was not refused') : when(/ContainerUnavailable/.test(refused.resultText), 'the refusal names ContainerUnavailable', `the refusal reads: ${refused.resultText.slice(0, 200)}`);
+      if (refused !== undefined) return when(/ContainerUnavailable/.test(refused.resultText), 'the refusal names ContainerUnavailable', `the refusal reads: ${refused.resultText.slice(0, 200)}`);
+      const modes = allWorkers(view).map((worker) => assignmentOf(worker).workspace?.mode);
+      return when(modes.length > 0 && modes.every((mode) => mode === 'container' || mode === 'worktree'), `no spawn was refused; workers ran as ${[...new Set(modes)].join(', ')}`, 'no spawn was refused and a worker has neither container nor worktree');
     }),
-    check('swarm.falls-back-to-worktree', 'after the refusal each worker is spawned with a worktree workspace at the base commit', src('swarm/SKILL.md', 'spawn it with `workspace: { mode: "worktree", inputCommit }` instead'), (view) => {
+    check('swarm.falls-back-to-worktree', 'each worker runs in a container at the base commit, or in a worktree at the base commit after a refused container spawn or because its brief names a local need', src('swarm/SKILL.md', 'spawn it with `workspace: { mode: "worktree", inputCommit }` instead'), (view) => {
       const workers = allWorkers(view);
-      const bad = workers.filter((worker) => assignmentOf(worker).workspace?.mode !== 'worktree' || assignmentOf(worker).workspace?.inputCommit !== view.base);
-      return when(workers.length >= 3 && bad.length === 0, `${workers.length} workers on worktrees at ${view.base.slice(0, 12)}`, `not worktree at base: ${bad.map((worker) => worker.id).join(', ') || 'too few workers'}`);
+      const refused = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.isError && /ContainerUnavailable/.test(call.resultText));
+      const bad = workers.filter((worker) => {
+        const workspace = assignmentOf(worker).workspace;
+        if (workspace?.inputCommit !== view.base) return true;
+        if (workspace.mode === 'container') return false;
+        return !(workspace.mode === 'worktree' && (refused || LOCAL_ACCESS.test(worker.brief ?? '')));
+      });
+      return when(workers.length >= 3 && bad.length === 0, `${workers.length} workers at ${view.base.slice(0, 12)}: ${[...new Set(workers.map((worker) => assignmentOf(worker).workspace?.mode))].join(', ')}`, `off-contract workers: ${bad.map((worker) => worker.id).join(', ') || 'too few workers'}`);
     }),
     check('swarm.workers-use-the-swarm-model-line', 'workers are role general on the "swarm workers" model line', src('swarm/SKILL.md', 'Pick the worker model from the `swarm workers` line'), (view) => {
       const bad = allWorkers(view).filter((worker) => assignmentOf(worker).role !== 'general' || ![model('swarm workers'), 'inherit-parent'].includes(String(assignmentOf(worker).model)));
       return when(allWorkers(view).length > 0 && bad.length === 0, `${allWorkers(view).length} workers, role general, ${model('swarm workers')}`, `off-contract workers: ${bad.map((worker) => `${worker.id}:${String(assignmentOf(worker).role)}:${String(assignmentOf(worker).model)}`).join(', ')}`);
     }),
-    check('swarm.fan-out-without-waiting', 'the first N workers are spawned together before the parent collects any', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {
-      const first = ['slice-1', 'slice-2', 'slice-3'].map((id) => spawnOrder(view, id));
-      const collect = Math.min(...['slice-1', 'slice-2', 'slice-3'].map((id) => collectOrder(view, id)).filter((order) => order !== -1));
-      return when(!first.includes(-1) && Math.max(...first) < collect, `spawns at ${first.join(',')} before the first collect at ${collect}`, `spawns ${first.join(',')}, first collect ${collect}`);
+    check('swarm.fan-out-without-waiting', 'the workers are spawned together before the parent collects any; only replacements for a dropped result come later', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {
+      const spawns = allWorkers(view).map((worker) => spawnOrder(view, worker.id)).filter((order) => order !== -1);
+      const collects = allWorkers(view).map((worker) => collectOrder(view, worker.id)).filter((order) => order !== -1);
+      const firstCollect = Math.min(...collects);
+      const together = spawns.filter((order) => order < firstCollect).length;
+      const replacements = spawns.length - together;
+      return when(together >= 2 && replacements <= together, `${together} workers spawned before the first collect at ${firstCollect}, ${replacements} after it`, `${together} workers spawned before the first collect at ${firstCollect}, ${replacements} after`);
     }),
-    worktreeIsolation('swarm.separate-writable-outputs', src('swarm/SKILL.md', 'Give each worker its own writable output when it writes')),
+    containerAware(worktreeIsolation('swarm.separate-writable-outputs', src('swarm/SKILL.md', 'Give each worker its own writable output when it writes'))),
     briefsContain('swarm.briefs-stand-alone', 'every brief names the goal, the scope, the exact commit SHA, the measurement method, and the PASS, ISSUES, BLOCKED report', src('swarm/SKILL.md', 'Every brief stands alone'), ['general'], [
       { name: 'goal', pattern: /Goal:/ },
       { name: 'scope', pattern: /Scope:/ },
@@ -526,6 +590,12 @@ export const swarmFamily: Family = {
     { name: 'the slice was respawned twice', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs/swarm-rounding/workers/slice-2/brief.md'), 'Goal: x. Scope: src/checkout.js.'), fails: ['swarm.one-replacement-per-slice'] },
     { name: 'the report invented an outcome', mutate: (sandbox) => rewriteFinalReply(sandbox, '| ISSUES |', '| MOSTLY FINE |'), fails: ['swarm.report-keeps-outcome-distinctions'] },
     { name: 'the workers ran on the wrong model line', mutate: (sandbox) => patchAssignment(sandbox, 'swarm-rounding', 'slice-1', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['swarm.workers-use-the-swarm-model-line'] },
+    {
+      name: 'the container workers were accepted, so no fallback was needed',
+      mutate: (sandbox) => ['slice-1', 'slice-2', 'slice-3', 'slice-3b'].forEach((id) => patchAssignment(sandbox, 'swarm-rounding', id, (assignment) => (assignment['workspace'] = { mode: 'container', inputCommit: readFileSync(join(sandbox, 'meta.json'), 'utf8').match(/"base": "([0-9a-f]+)"/)?.[1] }))),
+      fails: [],
+      passes: ['swarm.container-refusal-is-ContainerUnavailable', 'swarm.falls-back-to-worktree', 'swarm.separate-writable-outputs', 'swarm.fan-out-without-waiting', 'swarm.container-tried-first'],
+    },
     { name: 'a worker was a read-only container-less fallback', mutate: (sandbox) => patchAssignment(sandbox, 'swarm-rounding', 'slice-1', (assignment) => (assignment['workspace'] = { mode: 'readonly', path: sandbox })), fails: ['swarm.falls-back-to-worktree'] },
   ],
 };

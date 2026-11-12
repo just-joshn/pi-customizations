@@ -12,6 +12,8 @@ export interface NegativeResult {
   name: string;
   expected: string[];
   failedChecks: string[];
+  /** Checks the case requires to pass that did not. */
+  rejected: string[];
   detected: boolean;
 }
 
@@ -45,14 +47,15 @@ export async function runFamily(family: Family, driver: 'scripted' | 'real'): Pr
 
 function runNegative(family: Family, negative: Family['negatives'][number], sandbox: string): NegativeResult {
   const failedChecks = withCopy(sandbox, negative.mutate, (view) => failed(evaluate(family.checks, view)));
-  return { name: negative.name, expected: negative.fails, failedChecks, detected: negative.fails.every((id) => failedChecks.includes(id)) };
+  const rejected = (negative.passes ?? []).filter((id) => failedChecks.includes(id));
+  return { name: negative.name, expected: negative.fails, failedChecks, rejected, detected: negative.fails.every((id) => failedChecks.includes(id)) && rejected.length === 0 };
 }
 
 export function report(run: FamilyRun): string {
   const lines = [table(run.family, run.driver, run.results, run.known), `timing: pi run ${run.runMs} ms, negative cases ${run.negativesMs} ms`];
   if (run.negatives.length > 0) {
     lines.push(`-- negative cases for ${run.family}`);
-    for (const negative of run.negatives) lines.push(`${negative.detected ? 'DETECTED' : 'MISSED  '} ${negative.name} -> must fail ${negative.expected.join(', ')}; failed ${negative.failedChecks.join(', ') || 'nothing'}`);
+    for (const negative of run.negatives) lines.push(`${negative.detected ? 'DETECTED' : 'MISSED  '} ${negative.name} -> must fail ${negative.expected.join(', ') || 'nothing'}${negative.rejected.length > 0 ? `; rejected a branch the skill allows: ${negative.rejected.join(', ')}` : ''}; failed ${negative.failedChecks.join(', ') || 'nothing'}`);
   }
   return lines.join('\n');
 }

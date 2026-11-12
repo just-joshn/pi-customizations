@@ -13,6 +13,11 @@ export interface Negative {
   mutate: (sandbox: string, view: RunView) => void;
   /** Check ids that must FAIL on the mutated run. */
   fails: string[];
+  /**
+   * Check ids that must still PASS: the mutation moves the run to another branch the skill allows, so the checker has
+   * to accept that branch, not only the branch the scripted scenario took.
+   */
+  passes?: string[];
 }
 
 /** Rewrites the original sandbox path inside every text file of the copy, so receipts and sessions point into the copy. */
@@ -85,6 +90,17 @@ export function patchAssignment(sandbox: string, runId: string, workerId: string
 
 export function removeWorker(sandbox: string, runId: string, workerId: string): void {
   rmSync(join(runDir(sandbox, runId), 'workers', workerId), { recursive: true, force: true });
+}
+
+/** A copy of a worker under another id, as if the run had spawned one more worker like it. */
+export function cloneWorker(sandbox: string, runId: string, from: string, to: string, patch: Record<string, unknown>): void {
+  const workers = join(runDir(sandbox, runId), 'workers');
+  cpSync(join(workers, from), join(workers, to), { recursive: true });
+  patchAssignment(sandbox, runId, to, (assignment) => Object.assign(assignment, { workerId: to }, patch));
+}
+
+export function appendToBrief(sandbox: string, runId: string, workerId: string, text: string): void {
+  appendFileSync(join(runDir(sandbox, runId), 'workers', workerId, 'brief.md'), text);
 }
 
 export function workerSessionFile(sandbox: string, runId: string, workerId: string): string {

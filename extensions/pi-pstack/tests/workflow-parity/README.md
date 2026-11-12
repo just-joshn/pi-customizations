@@ -33,6 +33,10 @@ PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash npx vitest run tests/workflow-pari
 - `families/` one file per group of families: its scenario, its checks with source spans, and its negative cases.
 - `fixtures/` the scenario model, the scenario builders, the receipt helper and the controlled repositories.
 
+Where a skill allows more than one branch (how's simple or complex path, why's inline answer, teach running only how or only why, arena's skipped judge, swarm's container or worktree workers), the checker detects the branch the run took from what it left behind and holds the run to that branch's contract. A case with `passes` moves the finished sandbox to another allowed branch and requires the named checks to still PASS.
+
+The driver reports a pi that crashed, hung, or left no session as that, with pi's stderr tail. Sandboxes live under `$TMPDIR/pstack-parity-<hash of this checkout>/`, so a cleanup that sweeps another checkout's `pstack-wf-*` sandboxes cannot reach them.
+
 A negative case copies the finished sandbox, breaks one thing in it (skips a TODO step, writes during a read-only run, forges a receipt, lets two writers share a worktree), and requires the named checks to FAIL.
 
 ## Known product defects, asserted with `test.fails`
