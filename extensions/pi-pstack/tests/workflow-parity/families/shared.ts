@@ -70,7 +70,9 @@ export function taskItems(run: RunDir | undefined): { state: string; text: strin
  * "Before launching anything" is judged on the driver's one observation sequence: the first TODO.md that holds every
  * phase must precede the first claim directory.
  */
-export function phasesBeforeLaunch(id: string, source: Src | Src[], phases: RegExp[], options: { allResolved?: boolean } = {}): Check {
+export function phasesBeforeLaunch(id: string, source: Src | Src[], phasesAsWritten: RegExp[], options: { allResolved?: boolean } = {}): Check {
+  // A phase named "Fan out" is a TODO entry however it is written: "Fan out", "fan-out", "arena-fan-out" (the skill gives the phase names, not their spelling).
+  const phases = phasesAsWritten.map((phase) => ({ source: phase.source, test: (text: string) => new RegExp(phase.source.replaceAll('-', ' '), 'i').test(text.replace(/[-_]+/g, ' ')) }));
   return check(id, `TODO.md lists one entry per phase (${phases.map((phase) => phase.source).join(', ')}) in order, before the first worker is spawned${options.allResolved === true ? ', and each ends resolved' : ''}`, source, (view: RunView) => {
     const run = view.runs[0];
     const items = taskItems(run);

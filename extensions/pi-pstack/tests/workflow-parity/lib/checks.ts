@@ -20,8 +20,19 @@ const READERS = /\b(cat|head|tail|sed|less|bat|nl)\b/;
 /** Order of the first tool call that opens the file, or -1. A read of the path or a shell reader naming it counts. */
 export function openedAt(session: Session | null, suffix: string): number {
   if (session === null) return -1;
-  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && (String(entry.args['command'] ?? '').includes(suffix) || readsInDirectory(String(entry.args['command'] ?? ''), suffix))));
+  const call = session.toolCalls.find((entry) => (entry.name === 'read' && String(entry.args['path'] ?? '').endsWith(suffix)) || (entry.name === 'bash' && READERS.test(String(entry.args['command'] ?? '')) && shellCommands(String(entry.args['command'] ?? '')).some((command) => command.includes(suffix) || readsInDirectory(command, suffix))));
   return call?.order ?? -1;
+}
+
+/**
+ * The command, plus its body once per word of each `for VAR in WORDS; do BODY; done` it holds, with the variable replaced:
+ * `for s in how why; do cat generated/skills/$s/SKILL.md; done` opens both SKILL.md files without writing either path out.
+ */
+export function shellCommands(command: string): string[] {
+  const expanded = [...command.matchAll(/\bfor\s+(\w+)\s+in\s+([^;\n]+?)\s*[;\n]\s*do\b([\s\S]*?)(?:;\s*done\b|\bdone\b|$)/g)].flatMap((loop) =>
+    (loop[2] as string).split(/\s+/).filter(Boolean).map((word) => (loop[3] as string).replace(new RegExp(`\\$\\{${loop[1]}\\}|\\$${loop[1]}\\b`, 'g'), word.replace(/^["']|["']$/g, ''))),
+  );
+  return [command, ...expanded];
 }
 
 /**
@@ -335,11 +346,12 @@ export function readonlyEnforced(id: string, source: Src | Src[], roles: string[
  * Files the parent wrote into the repository outside `.pi/`. A hidden file (`.pi-setup-workers.mjs`) that is in no commit and not in the
  * working tree afterwards is a scratch script the parent used to write worker files and then removed: it left nothing in the repository.
  */
-export function parentProductionWrites(view: RunView): string[] {
+export function parentProductionWrites(view: RunView, allow?: RegExp): string[] {
   const written = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && !call.isError).map((call) => String(call.args['path'] ?? ''));
   const inRepo = written.filter((path) => (path.startsWith(view.repo) || !path.startsWith('/')) && !path.includes('/.pi/') && !path.startsWith('.pi/'));
   const kept = (path: string) => {
     const relativePath = path.startsWith(view.repo) ? path.slice(view.repo.length + 1) : path;
+    if (allow?.test(relativePath)) return false;
     if (!basename(relativePath).startsWith('.')) return true;
     if (view.git.dirty.includes(relativePath)) return true;
     return spawnSync('git', ['-C', view.repo, 'cat-file', '-e', `HEAD:${relativePath}`]).status === 0;
@@ -433,8 +445,14 @@ export function writableWorkerRecords(id: string, source: Src | Src[], roles?: s
       // The worker's own receipt: its file is in the worker's evidence/ under the receipt's id, or the receipt names an artifact there
       // (the parent may record it under a run-unique id, since two workers can each write a node-test receipt).
       const own = run.receipts.filter((receipt) => worker.evidenceFiles.includes(`${receipt.id}.json`) || worker.evidenceFiles.includes(`${receipt.id}.receipt.json`) || receipt.artifacts.some((artifact) => artifact.path.includes(`workers/${worker.id}/evidence/`)));
-      if (worker.report === null || worker.report.trim() === '') return [`${worker.id}: no report.md`];
-      return own.length === 0 ? [`${worker.id}: no receipt recorded from its evidence/ (${worker.evidenceFiles.join(', ') || 'empty'})`] : [];
+      // The worker contract has a writable worker write report.md and receipts "in the worker directory the brief names": a brief that
+      // names neither report.md, a worker directory, nor evidence leaves the worker owing its final reply, which collect hands back.
+      const brief = worker.brief ?? undefined;
+      const asksReport = brief === undefined || /report\.md|worker directory|workers\/[\w-]+\//i.test(brief);
+      const asksReceipt = brief === undefined || /receipt|pstack_evidence|\bevidence\//i.test(brief);
+      if (asksReport && (worker.report === null || worker.report.trim() === '')) return [`${worker.id}: no report.md, and its brief asks for one`];
+      if (!asksReport && (worker.report === null || worker.report.trim() === '') && worker.finalText.trim() === '') return [`${worker.id}: no report.md and no final reply`];
+      return asksReceipt && own.length === 0 ? [`${worker.id}: no receipt recorded from its evidence/ (${worker.evidenceFiles.join(', ') || 'empty'}), and its brief asks for one`] : [];
     });
     return when(problems.length === 0, `${workers.length} workers left their records`, problems.join('; '));
   });
@@ -472,7 +490,7 @@ export function fileReferencesResolve(id: string, source: Src | Src[], options: 
 }
 
 export function citationsResolve(id: string, source: Src | Src[], options: { min: number; from?: (view: RunView) => string } = { min: 1 }): Check {
-  return check(id, `the reply cites at least ${options.min} file:line references, and each resolves in the repository`, source, (view) => {
+  return check(id, `the reply\'s file:line citations each resolve in the repository (at least ${options.min} required)`, source, (view) => {
     const text = (options.from ?? finalReply)(view);
     const cites = [...text.matchAll(/(?<![\w/.-])((?:[\w.-]+\/)*[\w.-]+\.(?:js|ts|json|md|mjs|tla|sh|py|css|html)):(\d+)/g)].map((match) => ({ file: match[1] as string, line: Number(match[2]) }));
     const bad = cites.filter((cite) => {
@@ -679,6 +697,51 @@ export function parentOpenedFiles(id: string, title: string, source: Src | Src[]
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 
+/**
+ * The playbook's writable delegate: the poteto worker in a worktree. The playbooks name a role, never a worker id, so a run's
+ * delegate is whatever it called that worker.
+ */
+export function delegateOf(view: RunView): WorkerView | undefined {
+  return allWorkers(view).find((worker) => assignmentOf(worker).kind !== 'watch' && assignmentOf(worker).role === 'poteto' && assignmentOf(worker).workspace?.mode === 'worktree');
+}
+
+/** Commits on the delegate's branch beyond the base commit, oldest first: its own, and any the parent committed before it spawned. */
+export function delegateCommits(view: RunView): string[] {
+  const delegate = delegateOf(view);
+  const run = delegate === undefined ? undefined : view.runs.find((entry) => entry.workers.includes(delegate));
+  return delegate === undefined || run === undefined ? [] : branchCommits(view, run.id, delegate.id);
+}
+
+/** The receipts a TODO step owns: the ones it cites, and the ones whose target is the step ("3", "step-3"). */
+export function stepReceipts(run: RunDir | undefined, n: number): Receipt[] {
+  if (run === undefined) return [];
+  const cited = run.steps.find((step) => step.n === n)?.evidence ?? [];
+  return run.receipts.filter((receipt) => cited.includes(receipt.id) || [`${n}`, `step-${n}`, `step${n}`].includes(receipt.target.trim().toLowerCase()));
+}
+
+/** A full or abbreviated SHA (7 or more characters) as a prefix of one of `commits`. */
+export const namesCommit = (sha: string | null | undefined, commits: string[]): boolean => typeof sha === 'string' && /^[0-9a-f]{7,40}$/.test(sha) && commits.some((commit) => commit.startsWith(sha));
+
+/** The text of a receipt's first artifact, whether its path is absolute or relative to the run directory; empty when unreadable. */
+export function artifactText(run: RunDir | undefined, receipt: Receipt | undefined): string {
+  const path = receipt?.artifacts[0]?.path;
+  if (run === undefined || path === undefined) return '';
+  try {
+    return readFileSync(isAbsolute(path) ? path : resolve(run.dir, path), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+/** Order of the parent's first `pstack_evidence record` of this receipt (by its file name), or -1. */
+export function recordOrder(view: RunView, receiptId: string): number {
+  const named = (path: string) => basename(path).replace(/\.json$/, '').replace(/\.receipt$/, '') === receiptId;
+  return view.parent.toolCalls.find((call) => call.name === 'pstack_evidence' && call.args['action'] === 'record' && !call.isError && named(String(call.args['receiptPath'] ?? '')))?.order ?? -1;
+}
+
+/** Commits on the checkout since the base, oldest first. */
+export const checkoutCommits = (view: RunView): string[] => [...view.git.commitsSinceBase].reverse();
+
 /** Commits a worker's branch holds beyond the base commit, oldest first. */
 export function branchCommits(view: RunView, runId: string, workerId: string): string[] {
   return [...(view.git.branchCommits[`pstack-run/${runId}/${workerId}`] ?? [])].reverse();
@@ -702,20 +765,30 @@ export function runAtCommit(view: RunView, sha: string, command: string): { stat
   }
 }
 
-/** Every commit of the worker's branch, run on its own: each unit ends in a check that passes. */
+export const isTestFile = (file: string): boolean => file.startsWith('test/') || /\.(test|spec)\.[jt]sx?$/.test(file);
+
+/**
+ * Every commit of the worker's branch, run on its own: each unit ends in a check that passes. A commit that only adds tests and fails is
+ * the failing test first, the canonical shape of sequence-verifiable-units ("the failing test first, then the fix on top"), so it is
+ * excused when a later commit makes the tests pass.
+ */
 export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string | ((view: RunView) => string), options: { min: number; command?: string }): Check {
-  return check(id, `the worker's branch holds at least ${options.min} commits and every one passes \`${options.command ?? 'node --test'}\` on its own`, source, (view) => {
+  return check(id, `the worker's branch holds at least ${options.min} commits and every one passes \`${options.command ?? 'node --test'}\` on its own, except a test-only commit that fails and is followed by a passing one`, source, (view) => {
     const commits = branchCommits(view, runId(view), typeof workerId === 'function' ? workerId(view) : workerId);
     const results = commits.map((sha) => ({ sha, ...runAtCommit(view, sha, options.command ?? 'node --test') }));
-    const red = results.filter((result) => result.status !== 0);
+    const lastGreen = results.findLastIndex((result) => result.status === 0);
+    const red = results.filter((result, index) => result.status !== 0 && !(index < lastGreen && filesChanged(view, result.sha).every(isTestFile)));
     return when(commits.length >= options.min && red.length === 0, `${commits.length} commits, all green: ${commits.map((sha) => sha.slice(0, 8)).join(', ')}`, `commits ${commits.length}, red at ${red.map((result) => `${result.sha.slice(0, 8)}: ${result.output.slice(-120)}`).join('; ')}`);
   });
 }
 
-/** The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. */
-export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[]): Check {
+/**
+ * The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. `allow` names the paths the playbook
+ * has the parent write itself (the failing repro, the pin, the frozen benchmark): they are the parent's evidence, not production source.
+ */
+export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[], allow?: RegExp): Check {
   return check(id, title, source, (view) => {
-    const production = parentProductionWrites(view);
+    const production = parentProductionWrites(view, allow);
     const own = commitsNotFromWorkers(view);
     return when(production.length === 0 && view.git.dirty.length === 0 && own.length === 0, 'the parent wrote nothing into production source, the main checkout is clean, and every commit on it is a worker\'s', `parent wrote ${production.join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits the parent made itself ${own.length}`);
   });
