@@ -3,10 +3,12 @@
 // replays a scenario. The real driver (PSTACK_E2E_REAL_MODEL=<provider>/<id>) lets that model decide.
 import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
+import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
+import { assertOauthOutlastsRun, packagesRegistering, providerOf } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
 export const PKG = resolve(import.meta.dirname, '../../..');
@@ -72,6 +74,7 @@ export interface RunSpec {
   prepare?: (ctx: Ctx) => void;
   /** Removes anything the run left outside the sandbox. */
   cleanup?: (ctx: Ctx) => void;
+  /** Overrides both limits of the run budget: the run is stopped at this age, or when it has been quiet this long. */
   timeoutMs?: number;
   /** rpc (default) drives Pi over its RPC protocol. print and json run `pi -p` and `pi --mode json` once, with the prompt as an argument and no stdin. */
   mode?: Mode;
@@ -79,6 +82,12 @@ export interface RunSpec {
   env?: Record<string, string>;
   /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
   drive?: (api: DriveApi) => Promise<void>;
+}
+
+/** A scripted run is fast and deterministic, so one limit serves; a real model gets its family's idle and ceiling limits (budget.ts). */
+export function budgetOf(spec: RunSpec, driver: 'scripted' | 'real'): Budget {
+  if (spec.timeoutMs !== undefined) return { idleMs: spec.timeoutMs, ceilingMs: spec.timeoutMs };
+  return driver === 'scripted' ? { idleMs: 120_000, ceilingMs: 120_000 } : budgetFor(spec.family);
 }
 
 export const SCRIPTED_ROLES: ModelRoles = {
@@ -162,10 +171,13 @@ function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real'): { ctx: Ctx; s
     const [provider = '', ...id] = REAL_MODEL.split('/');
     settings['defaultProvider'] = provider;
     settings['defaultModel'] = id.join('/');
+    const needed = [...new Set(Object.values(spec.roles ?? realRoles()).flat().map(providerOf).concat(providerOf(REAL_MODEL)))];
+    settings['packages'] = [PKG, ...new Set(needed.flatMap((provider) => packagesRegistering(provider)))];
     for (const file of ['auth.json', 'models.json', 'models-store.json']) {
       const source = join(process.env['PSTACK_E2E_AGENT_DIR'] ?? join(process.env['HOME'] ?? '', '.pi', 'agent'), file);
       if (existsSync(source)) cpSync(source, join(agentDir, file));
     }
+    if (existsSync(join(agentDir, 'auth.json'))) assertOauthOutlastsRun(join(agentDir, 'auth.json'), needed, budgetOf(spec, driver).ceilingMs);
   }
   writeFileSync(join(agentDir, 'settings.json'), JSON.stringify(settings, null, 2));
   const roles = spec.roles ?? (driver === 'scripted' ? SCRIPTED_ROLES : realRoles());
@@ -216,6 +228,10 @@ class Rpc {
         if (event.type === 'response') this.waiters.get(String(event['id']))?.(event);
       }
     });
+  }
+  /** Events the model's work produced; the answers to the driver's own requests are not progress. */
+  progressEvents(): number {
+    return this.events.filter((event) => event.type !== 'response').length;
   }
   private ended(how: string): void {
     this.exit ??= how;
@@ -283,6 +299,31 @@ function workerPhases(repo: string): string[] {
   });
 }
 
+/** Everything a run writes while it works: worker phases, and the size of each worker's session and each run's event log. A model turn that is still going shows as a session that grows. */
+function runActivity(repo: string): string {
+  const runs = join(repo, '.pi', 'pstack', 'runs');
+  if (!existsSync(runs)) return '';
+  const sizes: number[] = [];
+  const size = (path: string) => {
+    try {
+      sizes.push(statSync(path).size);
+    } catch {
+      sizes.push(-1);
+    }
+  };
+  for (const runId of readdirSync(runs)) {
+    size(join(runs, runId, 'events.jsonl'));
+    const workers = join(runs, runId, 'workers');
+    if (!existsSync(workers)) continue;
+    for (const workerId of readdirSync(workers)) {
+      for (const sessions of [join(workers, workerId, 'session'), join(workers, workerId, 'out', 'session')]) {
+        if (existsSync(sessions)) for (const file of readdirSync(sessions)) size(join(sessions, file));
+      }
+    }
+  }
+  return `${JSON.stringify(workerPhases(repo))}${sizes.join(',')}`;
+}
+
 function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: Claim[]): () => void {
   let seq = 0;
   const timer = setInterval(() => {
@@ -317,6 +358,8 @@ export interface Meta {
   parentSessionFile: string | null;
   prompt: string;
   timedOut: boolean;
+  /** Why the run was stopped, when it was: it went quiet (idle), or it reached its ceiling. */
+  stopReason?: StopReason;
   tmuxSocket: string;
   piStderr: string;
 }
@@ -331,6 +374,8 @@ export interface RunOutcome {
 export interface DriverOptions {
   /** The pi binary; the suite's own pi unless a test drives a stand-in. */
   pi?: string;
+  /** Replaces the run's budget; a test of the stop rules uses limits of a few seconds. */
+  budget?: Budget;
   /** How long one RPC request may go unanswered. */
   rpcTimeoutMs?: number;
 }
@@ -370,18 +415,31 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   const history: Record<string, Snapshot[]> = {};
   const claims: Claim[] = [];
   const stopObserving = observeRuns(ctx.repo, history, claims);
-  const timeoutMs = spec.timeoutMs ?? (driver === 'scripted' ? 120_000 : 900_000);
-  const deadline = Date.now() + timeoutMs;
+  const budget = options.budget ?? budgetOf(spec, driver);
+  const startedAt = Date.now();
+  let lastProgressAt = startedAt;
+  let lastActivity = '';
+  let stopWhy: StopReason | null = null;
+  /** Records the run's progress and returns why it must stop, or null. `outputs` is what the parent process has emitted so far. */
+  const mustStop = (outputs: number): StopReason | null => {
+    const activity = `${outputs}|${runActivity(ctx.repo)}`;
+    if (activity !== lastActivity) {
+      lastActivity = activity;
+      lastProgressAt = Date.now();
+    }
+    stopWhy ??= stopReason(budget, startedAt, lastProgressAt, Date.now());
+    return stopWhy;
+  };
   let timedOut = false;
   let parentSessionFile: string | null = null;
   try {
     if (mode !== 'rpc') {
-      while (exitCode === null && Date.now() < deadline) await sleep(200);
+      while (exitCode === null && mustStop(rpc.raw.length) === null) await sleep(200);
       if (exitCode === null) timedOut = true;
       while (!timedOut) {
         await sleep(300);
         if (!workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) break;
-        if (Date.now() > deadline) timedOut = true;
+        if (mustStop(rpc.raw.length) !== null) timedOut = true;
       }
       writeFileSync(join(ctx.sandbox, 'one-shot.json'), JSON.stringify({ mode, exitCode, stdout: rpc.raw.join(''), stderr: rpc.stderr }, null, 2));
       const oneShotSessions = readdirSync(ctx.sessionsDir).filter((name) => name.endsWith('.jsonl'));
@@ -401,7 +459,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
           workerSignature = signature;
           quietSince = Date.now();
         }
-        if (Date.now() > deadline) return false;
+        if (mustStop(rpc.progressEvents()) !== null) return false;
         if (Date.now() - quietSince < 2_500) continue;
         const parent = ((await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs))['data'] ?? {}) as Json;
         const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
@@ -438,7 +496,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   }
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (!timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
+  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
