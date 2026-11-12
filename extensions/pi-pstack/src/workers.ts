@@ -58,6 +58,15 @@ import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
 export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'pstack_evidence'] as const;
+/**
+ * Pi keeps MCP tools registered under a --tools list but declares none of them: codemode scripts and tool_search reach
+ * them (cli.md "MCP tools"). Neither is a write tool, and codemode calls only the active direct tools and the MCP tools.
+ * An mcp__ entry is left out because it would make the list filter MCP tools instead of keeping them.
+ */
+export const MCP_ACCESS_TOOLS = ['codemode', 'tool_search'] as const;
+
+/** The --tools allowlist of a readonly worker: read-class tools, plus the MCP route unless the worker has no MCP. */
+export const readonlyTools = (mcp: Capabilities['mcp']): string[] => [...READONLY_TOOLS, ...(mcp === 'none' ? [] : MCP_ACCESS_TOOLS)];
 
 export interface ResolvedModel {
   provider: string;
@@ -520,7 +529,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     model: launchModel,
     thinkingLevel: model?.thinkingLevel ?? assignment.thinkingLevel,
     appendSystemPrompt: roleDoc,
-    tools: assignment.workspace.mode === 'readonly' ? [...READONLY_TOOLS] : null,
+    tools: assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities.mcp) : null,
     tmuxSession: session,
     extraArgs: [...(container?.piArgs ?? []), ...(options.extraPiArgs ?? [])],
     // A container worker's forge token travels under GH_TOKEN, so a minimal environment must let that name through.
