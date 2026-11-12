@@ -1,11 +1,11 @@
-import { appendFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { appendFileSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { buildRecords, loadInputs } from '../../scripts/parity-lib.mjs';
 import { fixture } from '../skill-parity/helpers.ts';
-import { PKG, type MiniRoot, miniRoot, script, SKILL } from './helpers.ts';
+import { type MiniRoot, miniRoot, PKG, SKILL, script } from './helpers.ts';
 
 let mini: MiniRoot;
 let cleanup = () => {};
@@ -19,13 +19,19 @@ describe('every upstream file has a requirement record', () => {
     const inputs = loadInputs(PKG);
     const { records, problems } = buildRecords(PKG, inputs);
     expect(problems).toEqual([]);
-    const covered = new Set(records.flatMap((r: { source?: { file?: string; files?: { file: string }[] } }) => (r.source?.file ? [r.source.file] : (r.source?.files?.map((f) => f.file) ?? []))));
+    const covered = new Set(records.flatMap((r) => (r.source?.file ? [r.source.file] : (r.source?.files?.map((f) => f.file) ?? []))));
     for (const path of Object.keys(inputs.lock.files)) expect(covered.has(path), path).toBe(true);
   });
 
   test('a new upstream file with no record fails the build', () => {
     mini = miniRoot({ extraFiles: { 'vendor/upstream-pstack/skills/x/new-file.md': 'new\n' } });
-    mini.write('requirements/requirements.json', JSON.stringify({ ...JSON.parse(readFileSync(join(mini.root, 'requirements/requirements.json'), 'utf8')), structural: [{ id: 'only-skill-md', match: '^pstack:skills/x/SKILL\\.md$', kind: 'primary-skill', title: 'S', specSection: '4.1', observable: 'o', invariants: ['i'], piMechanism: 'm', tests: [], verification: 'v' }] }));
+    mini.write(
+      'requirements/requirements.json',
+      JSON.stringify({
+        ...JSON.parse(readFileSync(join(mini.root, 'requirements/requirements.json'), 'utf8')),
+        structural: [{ id: 'only-skill-md', match: '^pstack:skills/x/SKILL\\.md$', kind: 'primary-skill', title: 'S', specSection: '4.1', observable: 'o', invariants: ['i'], piMechanism: 'm', tests: [], verification: 'v' }],
+      }),
+    );
     const { problems } = buildRecords(mini.root, loadInputs(mini.root));
     expect(problems).toContain('vendor/upstream-pstack/skills/x/new-file.md: upstream file has no requirement record; add a structural rule to requirements/requirements.json');
   });
@@ -57,7 +63,9 @@ describe('every upstream file has a requirement record', () => {
 
 describe('a source span cannot be fabricated', () => {
   const withSource = (source: object) => {
-    mini = miniRoot({ behavioral: [{ id: 'BEH-ONE', title: 'One', specSection: '12', source, observable: 'o', invariants: ['i'], piMechanism: 'm', dependencies: [], prerequisites: [], applicability: { mandatory: true }, verification: 'v', tests: [] }] });
+    mini = miniRoot({
+      behavioral: [{ id: 'BEH-ONE', title: 'One', specSection: '12', source, observable: 'o', invariants: ['i'], piMechanism: 'm', dependencies: [], prerequisites: [], applicability: { mandatory: true }, verification: 'v', tests: [] }],
+    });
     return buildRecords(mini.root, loadInputs(mini.root)).problems;
   };
 

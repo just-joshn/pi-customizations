@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 import { renderStatusSection, spliceStatusSection } from '../../scripts/parity-lib.mjs';
-import { PKG, type MiniRoot, miniRoot, script } from './helpers.ts';
+import { type MiniRoot, miniRoot, PKG, script } from './helpers.ts';
 
 let mini: MiniRoot;
 afterEach(() => mini?.cleanup());
@@ -72,7 +72,24 @@ describe('release gate', () => {
   });
 
   test('a not-applicable requirement does not hold the gate shut', () => {
-    mini = miniRoot({ behavioral: [{ id: 'BEH-NA', title: 'N', specSection: '12', source: { specOnly: true, reason: 'package property' }, observable: 'o', invariants: ['i'], piMechanism: 'm', dependencies: [], prerequisites: [], applicability: { mandatory: false, justification: 'Cursor-only service' }, verification: 'v', tests: [] }] });
+    mini = miniRoot({
+      behavioral: [
+        {
+          id: 'BEH-NA',
+          title: 'N',
+          specSection: '12',
+          source: { specOnly: true, reason: 'package property' },
+          observable: 'o',
+          invariants: ['i'],
+          piMechanism: 'm',
+          dependencies: [],
+          prerequisites: [],
+          applicability: { mandatory: false, justification: 'Cursor-only service' },
+          verification: 'v',
+          tests: [],
+        },
+      ],
+    });
     build({ 'suite passes': 'passed' });
     expect(gate().status).toBe(0);
   });

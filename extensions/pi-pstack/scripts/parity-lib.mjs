@@ -92,7 +92,16 @@ export function buildRecords(root, inputs) {
   }
   for (const rule of rules) {
     if (rule.files.length === 0) problems.push(`structural rule ${rule.id}: matches no upstream file (stale rule)`);
-    const base = { kind: rule.kind, specSection: rule.specSection, piMechanism: rule.piMechanism, dependencies: rule.dependencies ?? [], prerequisites: rule.prerequisites ?? [], verification: rule.verification, applicability: rule.mandatory === false ? { mandatory: false, justification: rule.naJustification } : { mandatory: true }, ...(rule.coverageGap ? { coverageGap: rule.coverageGap } : {}) };
+    const base = {
+      kind: rule.kind,
+      specSection: rule.specSection,
+      piMechanism: rule.piMechanism,
+      dependencies: rule.dependencies ?? [],
+      prerequisites: rule.prerequisites ?? [],
+      verification: rule.verification,
+      applicability: rule.mandatory === false ? { mandatory: false, justification: rule.naJustification } : { mandatory: true },
+      ...(rule.coverageGap ? { coverageGap: rule.coverageGap } : {}),
+    };
     if (rule.mandatory === false && !rule.naJustification?.trim()) problems.push(`structural rule ${rule.id}: not applicable without a written justification`);
     if (rule.group) {
       const owner = `SRC-GROUP/${rule.id}`;
@@ -128,10 +137,20 @@ export function buildRecords(root, inputs) {
     const tests = expandTests(b.tests ?? [], catalog, undefined, lists, problems, owner);
     checkTestFiles(root, tests, problems, owner);
     records.push({
-      id: owner, kind: 'behavioral', title: b.title, specSection: b.specSection,
+      id: owner,
+      kind: 'behavioral',
+      title: b.title,
+      specSection: b.specSection,
       source: b.source?.specOnly ? { specOnly: true, reason: b.source.reason } : b.source && existsSync(join(root, b.source.file ?? '')) ? spanFacts(root, b.source) : null,
-      observable: b.observable, invariants: b.invariants, piMechanism: b.piMechanism, dependencies: b.dependencies, prerequisites: b.prerequisites,
-      applicability: b.applicability, verification: b.verification, tests, ...(b.coverageGap ? { coverageGap: b.coverageGap } : {}),
+      observable: b.observable,
+      invariants: b.invariants,
+      piMechanism: b.piMechanism,
+      dependencies: b.dependencies,
+      prerequisites: b.prerequisites,
+      applicability: b.applicability,
+      verification: b.verification,
+      tests,
+      ...(b.coverageGap ? { coverageGap: b.coverageGap } : {}),
     });
   }
   return { records, problems };
@@ -150,14 +169,21 @@ export function checkSource(root, lock, source, owner) {
   const problems = [];
   const { file, lines, anchor } = source;
   if (!(file in lock.files)) return [`${owner}: source ${file} is not a locked upstream file`];
-  if (!Array.isArray(lines) || lines.length !== 2 || !Number.isInteger(lines[0]) || !Number.isInteger(lines[1]) || lines[0] < 1 || lines[1] < lines[0]) return [`${owner}: source lines for ${file} must be [first, last] with 1 <= first <= last`];
+  if (!Array.isArray(lines) || lines.length !== 2 || !Number.isInteger(lines[0]) || !Number.isInteger(lines[1]) || lines[0] < 1 || lines[1] < lines[0])
+    return [`${owner}: source lines for ${file} must be [first, last] with 1 <= first <= last`];
   const buffer = readFileSync(join(root, file));
   if (buffer.includes(0)) return [`${owner}: ${file} is binary, so it has no line span`];
   const content = buffer.toString('utf8').replace(/\n$/, '').split('\n');
   if (lines[1] > content.length) return [`${owner}: source span ${file}:${lines[0]}-${lines[1]} is past the end of the file (${content.length} lines)`];
   if (lines[1] - lines[0] + 1 > MAX_SPAN_LINES) problems.push(`${owner}: span ${file}:${lines[0]}-${lines[1]} is longer than ${MAX_SPAN_LINES} lines; cite the lines it derives from`);
   if (typeof anchor !== 'string' || !anchor.trim()) problems.push(`${owner}: source needs an anchor, a phrase that appears in the span`);
-  else if (!content.slice(lines[0] - 1, lines[1]).join('\n').includes(anchor)) problems.push(`${owner}: anchor "${anchor}" is not in ${file}:${lines[0]}-${lines[1]}`);
+  else if (
+    !content
+      .slice(lines[0] - 1, lines[1])
+      .join('\n')
+      .includes(anchor)
+  )
+    problems.push(`${owner}: anchor "${anchor}" is not in ${file}:${lines[0]}-${lines[1]}`);
   return problems;
 }
 
@@ -205,7 +231,13 @@ export function evaluate(records, report, root) {
 }
 
 export function runIdentity(root, report, resultsSource) {
-  const git = (...args) => { try { return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim(); } catch { return null; } };
+  const git = (...args) => {
+    try {
+      return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
+    } catch {
+      return null;
+    }
+  };
   return {
     startedAt: report.startTime ? new Date(report.startTime).toISOString() : null,
     generatedAt: new Date().toISOString(),
@@ -229,14 +261,28 @@ export function tally(evaluated) {
   return counts;
 }
 
-export const sourceLabel = (r) => (r.source?.file ? `${r.source.file}${r.source.lines ? `:${r.source.lines[0]}-${r.source.lines[1]}` : ''}` : r.source?.files ? `${r.source.files.length} files under ${r.source.files[0].file.split('/').slice(0, 4).join('/')}` : r.source?.specOnly ? `specification ${r.specSection}` : 'no source');
+export const sourceLabel = (r) =>
+  r.source?.file
+    ? `${r.source.file}${r.source.lines ? `:${r.source.lines[0]}-${r.source.lines[1]}` : ''}`
+    : r.source?.files
+      ? `${r.source.files.length} files under ${r.source.files[0].file.split('/').slice(0, 4).join('/')}`
+      : r.source?.specOnly
+        ? `specification ${r.specSection}`
+        : 'no source';
 
 export const MARKERS = ['<!-- parity-status:begin (generated by scripts/build-parity-manifest.mjs; do not edit) -->', '<!-- parity-status:end -->'];
 
 export function renderStatusSection(manifest) {
   const { evaluated: rows, run, counts } = { evaluated: manifest.requirements, run: manifest.run, counts: manifest.counts };
   const cell = (s) => String(s).replaceAll('|', '\\|').replaceAll('\n', ' ');
-  const lines = [MARKERS[0], '', `Computed from a Vitest run of commit \`${run.commit?.slice(0, 12) ?? 'unknown'}\`${run.dirty ? ' (dirty tree)' : ''} at ${run.generatedAt}, by \`node scripts/build-parity-manifest.mjs\`. A requirement is PASS only when every linked test ran and passed. A skipped, missing, or unlinked test is INCONCLUSIVE. \`node scripts/check-release.mjs\` exits non-zero until every mandatory requirement is PASS.`, '', '| Kind | PASS | FAIL | INCONCLUSIVE | N/A |', '| --- | --- | --- | --- | --- |'];
+  const lines = [
+    MARKERS[0],
+    '',
+    `Computed from a Vitest run of commit \`${run.commit?.slice(0, 12) ?? 'unknown'}\`${run.dirty ? ' (dirty tree)' : ''} at ${run.generatedAt}, by \`node scripts/build-parity-manifest.mjs\`. A requirement is PASS only when every linked test ran and passed. A skipped, missing, or unlinked test is INCONCLUSIVE. \`node scripts/check-release.mjs\` exits non-zero until every mandatory requirement is PASS.`,
+    '',
+    '| Kind | PASS | FAIL | INCONCLUSIVE | N/A |',
+    '| --- | --- | --- | --- | --- |',
+  ];
   for (const [kind, c] of Object.entries(counts)) lines.push(`| ${kind} | ${c.PASS} | ${c.FAIL} | ${c.INCONCLUSIVE} | ${c['N/A']} |`);
   lines.push('', '### Behavioral requirements', '', '| Requirement | Spec | Status | Upstream source | Why not PASS |', '| --- | --- | --- | --- | --- |');
   for (const r of rows.filter((x) => x.kind === 'behavioral')) lines.push(`| \`${r.id}\` ${cell(r.title)} | ${r.specSection} | ${r.status} | ${cell(sourceLabel(r))} | ${r.status === 'PASS' || r.status === 'N/A' ? '' : cell(r.reason)} |`);

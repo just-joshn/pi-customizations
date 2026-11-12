@@ -10,7 +10,7 @@ afterEach(() => mini?.cleanup());
 
 const record = (tests: string[], extra: object = {}) => ({ id: 'R', kind: 'behavioral', applicability: { mandatory: true }, tests: tests.map((name) => ({ file: 'tests/t.test.ts', name })), ...extra });
 const report = (tests: Record<string, string>, suiteStatus = 'passed') => ({ testResults: [{ name: 'tests/t.test.ts', status: suiteStatus, assertionResults: Object.entries(tests).map(([fullName, status]) => ({ fullName, status })) }] });
-const run = (tests: string[], results: Record<string, string>, extra: object = {}) => evaluate([record(tests, extra)], report(results), '/x')[0];
+const run = (tests: string[], results: Record<string, string>, extra: object = {}) => evaluate([record(tests, extra)], report(results), '/x')[0]!;
 
 describe('status derivation', () => {
   const results = { 'a passed test': 'passed', 'a failed test': 'failed', 'a skipped test': 'skipped', 'another passed test': 'passed' };
@@ -52,13 +52,24 @@ describe('status derivation', () => {
   });
 
   test('a test file that failed to load fails its linked requirements instead of hiding as missing', () => {
-    const r = evaluate([record(['a passed test'])], report({}, 'failed'), '/x')[0];
+    const r = evaluate([record(['a passed test'])], report({}, 'failed'), '/x')[0]!;
     expect(r.status).toBe('FAIL');
   });
 
   test('a duplicated test name passes only when every instance passed', () => {
-    const dup = { testResults: [{ name: 'tests/t.test.ts', status: 'passed', assertionResults: [{ fullName: 'twice', status: 'passed' }, { fullName: 'twice', status: 'skipped' }] }] };
-    expect(evaluate([record(['twice'])], dup, '/x')[0].status).toBe('INCONCLUSIVE');
+    const dup = {
+      testResults: [
+        {
+          name: 'tests/t.test.ts',
+          status: 'passed',
+          assertionResults: [
+            { fullName: 'twice', status: 'passed' },
+            { fullName: 'twice', status: 'skipped' },
+          ],
+        },
+      ],
+    };
+    expect(evaluate([record(['twice'])], dup, '/x')[0]!.status).toBe('INCONCLUSIVE');
   });
 
   test('a not-applicable requirement is N/A whatever its tests did', () => {

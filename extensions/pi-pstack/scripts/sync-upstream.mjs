@@ -24,7 +24,17 @@ const SOURCES = [
   ['cursor-team-kit', 'vendor/upstream-cursor-team-kit', ['skills']],
 ];
 // Files that spell the pinned revision literally. The sync rewrites them so they cannot lag the lock.
-const PIN_FILES = ['adapters/provenance.ts', 'adapters/cursor-to-pi.ts', 'scripts/start-run.mjs', 'README.md', 'docs/parity-status.md', 'tests/skill-parity/review-fixes.test.ts', 'tests/integration/commands.test.ts', 'tests/integration/pi-load.test.ts', 'tests/todo/start-run.test.ts'];
+const PIN_FILES = [
+  'adapters/provenance.ts',
+  'adapters/cursor-to-pi.ts',
+  'scripts/start-run.mjs',
+  'README.md',
+  'docs/parity-status.md',
+  'tests/skill-parity/review-fixes.test.ts',
+  'tests/integration/commands.test.ts',
+  'tests/integration/pi-load.test.ts',
+  'tests/todo/start-run.test.ts',
+];
 
 const sha = (buffer) => createHash('sha256').update(buffer).digest('hex');
 function hashTree(base) {
