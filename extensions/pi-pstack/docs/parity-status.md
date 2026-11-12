@@ -32,12 +32,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Tests | Run |
 | --- | --- | --- | --- | --- |
-| 1 | darwin | `630f1721d46f` | 2162 passed, 2 failed, 91 skipped | vitest run at 2026-11-12T12:32:34.693Z |
+| 1 | darwin | `8acf14ba9637` | 2291 passed, 1 failed, 94 skipped | file at 2026-11-12T15:05:49.093Z |
+| 2 | linux | `8acf14ba9637` | 2257 passed, 1 failed, 114 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43240400127 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 149 | 0 | 1 | 40 |
-| behavioral | 93 | 0 | 8 | 0 |
+| behavioral | 96 | 0 | 5 | 0 |
 
 ### Behavioral requirements
 
@@ -78,13 +79,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SHIPPING-ORDER` Shipping lands bottom-up one PR at a time | 13.3 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:8-8 |  |
 | `CLEANUP-PROTECT` Dirty or active worktrees are protected until authorized | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:6-6 |  |
 | `FORGE-RESOLUTION` The forge is resolved once, persisted, and unsupported operations are explicit | 13.1 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/shipping.md:5-5 |  |
-| `AUTOPILOT-VERIFIED-MERGE` An owner merges only what the root verified at that head | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:17-17 | declared coverage gap: Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised. |
+| `AUTOPILOT-VERIFIED-MERGE` An owner merges only what the root verified at that head | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:17-17 |  |
 | `AUTOPILOT-STACK-NO-MERGE` Autopilot-stack hands verified PRs over without merging | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-stack.md:3-3 |  |
 | `AUTOPILOT-HOLD` The operator's stop reaches every owner at once | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md:23-23 |  |
-| `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 | declared coverage gap: No orchestrate scenario spawns a sub-coordinator, so the three-level tree is asserted from each worker's own PSTACK_DEPTH report and the absence of the spawn capability, not from a coordinator that spawns; the sub-coordinator mechanics are tested by nest.subcoordinator and the depth tests. |
+| `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
