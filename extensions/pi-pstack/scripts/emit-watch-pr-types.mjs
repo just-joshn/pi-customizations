@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const sourceDir = join(root, 'skills/poteto-mode/scripts/watch-pr');
+const sourceDir = join(root, 'generated/skills/poteto-mode/scripts/watch-pr');
 const destination = join(root, 'src/vendor-types/watch-pr');
 const check = process.argv.includes('--check');
 const temporary = mkdtempSync(join(tmpdir(), 'watch-pr-types-'));

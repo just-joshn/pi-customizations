@@ -14,7 +14,7 @@ export function loadWatcher(): Promise<Watcher> {
   return watcher ??= (async () => {
     const built = new URL('../dist/watch-pr/', import.meta.url);
     const directory = existsSync(new URL('github.js', built)) && existsSync(new URL('types.js', built))
-      ? built : new URL('../skills/poteto-mode/scripts/watch-pr/', import.meta.url);
+      ? built : new URL('../generated/skills/poteto-mode/scripts/watch-pr/', import.meta.url);
     const extension = directory === built ? 'js' : 'ts';
     const [github, types] = await Promise.all([
       import(new URL(`github.${extension}`, directory).href),
