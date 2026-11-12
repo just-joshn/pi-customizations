@@ -68,9 +68,6 @@ export interface ControlRequest {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
 const message = (error: unknown): string => (error instanceof Error ? error.message : String(error));
 
-/** Pi answered the command with a failure, so it did not take the command as work. */
-class PiRejected extends Error {}
-
 export function parseLaunch(text: string | undefined): HostLaunch {
   if (text === undefined) throw new Error('Missing launch argument');
   const raw: unknown = JSON.parse(text);
@@ -203,10 +200,14 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   let model: HostState['model'] = null;
   let sessionFile: string | null = null;
   let briefSent = false;
-  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. A settle covers the
-  // generations Pi acknowledged before it: Pi answers a prompt before that prompt's run can settle.
+  // Units of work accepted for forwarding to Pi, and the highest of them Pi has acknowledged. Both change only while
+  // handling a response record, in stdout order, so a settle sees exactly the acknowledgements that preceded it.
   let generation = 0;
   let acknowledged = 0;
+  // Prompt request id to the generation it carries, until Pi answers it, even after its deadline.
+  const unacknowledged = new Map<string, number>();
+  // get_state request id to the outcome of the agent_settled that sent it.
+  const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null }>();
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -322,10 +323,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       if (childExited || stdin === null || stdin.destroyed) return reject(new Error('Pi is unavailable; outcome unknown'));
       stdin.write(`${JSON.stringify(record)}\n`, (error) => (error ? reject(error) : resolveWrite()));
     });
-  const request = (type: string, fields: Record<string, unknown> = {}, deadline = RPC_DEADLINE_MS) =>
+  const nextRequestId = () => `${instance}-${++requestNumber}`;
+  const request = (type: string, fields: Record<string, unknown> = {}, deadline = RPC_DEADLINE_MS, id = nextRequestId()) =>
     new Promise<unknown>((resolveRequest, reject) => {
       if (waiting.size >= 32) return reject(new Error('Too many pending RPC commands'));
-      const id = `${instance}-${++requestNumber}`;
       const timer = setTimeout(() => {
         waiting.delete(id);
         reject(new Error(`Pi ${type} deadline expired; outcome unknown, do not retry`));
@@ -433,15 +434,39 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     } else if (type === 'agent_settled') {
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
-      // A shutdown records its own single settle; the run it aborts is part of it.
-      if (phase !== 'stopping') settle(aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', aborted ? 'Run aborted' : (runFailure ?? null), acknowledged);
+      // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
+      const id = nextRequestId();
+      quiescenceChecks.set(id, { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) });
+      request('get_state', {}, RPC_DEADLINE_MS, id).catch((error: Error) => {
+        quiescenceChecks.delete(id);
+        if (!childExited && phase !== 'stopping') void fail(error);
+      });
     } else if (type === 'response') {
-      const pending = typeof record['id'] === 'string' ? waiting.get(record['id']) : undefined;
-      if (pending !== undefined && typeof record['id'] === 'string') {
-        waiting.delete(record['id']);
+      const id = typeof record['id'] === 'string' ? record['id'] : undefined;
+      const success = record['success'] === true;
+      const data = record['data'];
+      const carried = id === undefined ? undefined : unacknowledged.get(id);
+      if (id !== undefined && carried !== undefined) {
+        unacknowledged.delete(id);
+        // A rejected or handled prompt joins no run, so no settle will cover it.
+        if (success && !(isRecord(data) && data['disposition'] === 'handled')) acknowledged = Math.max(acknowledged, carried);
+        else if (generation === carried) generation -= 1;
+        save();
+      }
+      const check = id === undefined ? undefined : quiescenceChecks.get(id);
+      if (id !== undefined && check !== undefined) {
+        quiescenceChecks.delete(id);
+        // Pi is quiescent: no run active and nothing queued, so every acknowledged prompt has run to this settle.
+        // Otherwise the settle covers nothing and the next one decides. A shutdown records its own single settle.
+        const quiescent = success && isRecord(data) && data['isStreaming'] === false && data['pendingMessageCount'] === 0;
+        if (quiescent && phase !== 'stopping' && !isTerminal(phase)) settle(check.phase, check.reason, acknowledged);
+      }
+      const pending = id === undefined ? undefined : waiting.get(id);
+      if (pending !== undefined && id !== undefined) {
+        waiting.delete(id);
         clearTimeout(pending.timer);
         if (record['success'] === true) pending.resolve(record['data']);
-        else pending.reject(new PiRejected(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
+        else pending.reject(new Error(typeof record['error'] === 'string' ? record['error'] : 'Pi rejected command'));
       }
     } else if (type === 'extension_ui_request') {
       // Nobody answers a dialog inside a worker; cancelling keeps the run from blocking forever.
@@ -472,22 +497,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
     if (settles.length >= MAX_SETTLES) throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
     generation += 1;
     save();
-    let result: unknown;
-    try {
-      result = await request('prompt', { message: text, streamingBehavior });
-    } catch (error) {
-      if (error instanceof PiRejected) {
-        generation -= 1;
-        save();
-      }
-      throw error;
-    }
-    const disposition = isRecord(result) ? result['disposition'] : undefined;
-    // A handled prompt started no run and joined none, so no settle will cover it.
-    if (disposition === 'handled') generation -= 1;
-    else acknowledged = generation;
-    save();
-    return { disposition };
+    const id = nextRequestId();
+    unacknowledged.set(id, generation);
+    const result = await request('prompt', { message: text, streamingBehavior }, RPC_DEADLINE_MS, id);
+    return { disposition: isRecord(result) ? result['disposition'] : undefined };
   };
 
   const dispatch = async (operation: HostOperation, text?: string): Promise<unknown> => {

@@ -197,9 +197,6 @@ var HOST_OPERATIONS = ["inspect", "start", "prompt", "steer", "follow-up", "canc
 var TEXT_OPERATIONS = ["prompt", "steer", "follow-up"];
 var isRecord2 = (value) => typeof value === "object" && value !== null && !Array.isArray(value);
 var message = (error) => error instanceof Error ? error.message : String(error);
-
-class PiRejected extends Error {
-}
 function parseLaunch(text) {
   if (text === undefined)
     throw new Error("Missing launch argument");
@@ -342,6 +339,8 @@ async function runHost(assignmentFile, launchText) {
   let briefSent = false;
   let generation = 0;
   let acknowledged = 0;
+  const unacknowledged = new Map;
+  const quiescenceChecks = new Map;
   let settles = [];
   let childPid = null;
   let stderrTail = "";
@@ -456,10 +455,10 @@ async function runHost(assignmentFile, launchText) {
     stdin.write(`${JSON.stringify(record)}
 `, (error) => error ? reject(error) : resolveWrite());
   });
-  const request = (type, fields = {}, deadline = RPC_DEADLINE_MS) => new Promise((resolveRequest, reject) => {
+  const nextRequestId = () => `${instance}-${++requestNumber}`;
+  const request = (type, fields = {}, deadline = RPC_DEADLINE_MS, id = nextRequestId()) => new Promise((resolveRequest, reject) => {
     if (waiting.size >= 32)
       return reject(new Error("Too many pending RPC commands"));
-    const id = `${instance}-${++requestNumber}`;
     const timer = setTimeout(() => {
       waiting.delete(id);
       reject(new Error(`Pi ${type} deadline expired; outcome unknown, do not retry`));
@@ -578,17 +577,41 @@ async function runHost(assignmentFile, launchText) {
       const aborted = record["aborted"] === true;
       if (phase === "running")
         phase = "idle";
-      if (phase !== "stopping")
-        settle(aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", aborted ? "Run aborted" : runFailure ?? null, acknowledged);
+      const id = nextRequestId();
+      quiescenceChecks.set(id, { phase: aborted ? "aborted" : runFailure !== undefined ? "failed" : "idle", reason: aborted ? "Run aborted" : runFailure ?? null });
+      request("get_state", {}, RPC_DEADLINE_MS, id).catch((error) => {
+        quiescenceChecks.delete(id);
+        if (!childExited && phase !== "stopping")
+          fail(error);
+      });
     } else if (type === "response") {
-      const pending = typeof record["id"] === "string" ? waiting.get(record["id"]) : undefined;
-      if (pending !== undefined && typeof record["id"] === "string") {
-        waiting.delete(record["id"]);
+      const id = typeof record["id"] === "string" ? record["id"] : undefined;
+      const success = record["success"] === true;
+      const data = record["data"];
+      const carried = id === undefined ? undefined : unacknowledged.get(id);
+      if (id !== undefined && carried !== undefined) {
+        unacknowledged.delete(id);
+        if (success && !(isRecord2(data) && data["disposition"] === "handled"))
+          acknowledged = Math.max(acknowledged, carried);
+        else if (generation === carried)
+          generation -= 1;
+        save();
+      }
+      const check = id === undefined ? undefined : quiescenceChecks.get(id);
+      if (id !== undefined && check !== undefined) {
+        quiescenceChecks.delete(id);
+        const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
+        if (quiescent && phase !== "stopping" && !isTerminal(phase))
+          settle(check.phase, check.reason, acknowledged);
+      }
+      const pending = id === undefined ? undefined : waiting.get(id);
+      if (pending !== undefined && id !== undefined) {
+        waiting.delete(id);
         clearTimeout(pending.timer);
         if (record["success"] === true)
           pending.resolve(record["data"]);
         else
-          pending.reject(new PiRejected(typeof record["error"] === "string" ? record["error"] : "Pi rejected command"));
+          pending.reject(new Error(typeof record["error"] === "string" ? record["error"] : "Pi rejected command"));
       }
     } else if (type === "extension_ui_request") {
       display("pi ui", { method: record["method"], title: record["title"] });
@@ -616,23 +639,10 @@ async function runHost(assignmentFile, launchText) {
       throw new Error(`Worker has recorded ${settles.length} settles, the limit; spawn a fresh worker for more work`);
     generation += 1;
     save();
-    let result;
-    try {
-      result = await request("prompt", { message: text, streamingBehavior });
-    } catch (error) {
-      if (error instanceof PiRejected) {
-        generation -= 1;
-        save();
-      }
-      throw error;
-    }
-    const disposition = isRecord2(result) ? result["disposition"] : undefined;
-    if (disposition === "handled")
-      generation -= 1;
-    else
-      acknowledged = generation;
-    save();
-    return { disposition };
+    const id = nextRequestId();
+    unacknowledged.set(id, generation);
+    const result = await request("prompt", { message: text, streamingBehavior }, RPC_DEADLINE_MS, id);
+    return { disposition: isRecord2(result) ? result["disposition"] : undefined };
   };
   const dispatch = async (operation, text) => {
     if (operation === "inspect")
