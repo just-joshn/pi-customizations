@@ -49,7 +49,7 @@ workers/<workerId>/
   report.md         written by the worker
   evidence/         receipts written by the worker
   worktree/         git worktree for writable workers
-verification/verdicts.json   written only by pstack_evidence
+verification/receipts/<id>.json   one file per receipt, created with O_EXCL; no shared file, no lock. The verdict list is derived by reading the directory.
 ```
 
 Write JSON atomically (temp file plus rename). Plans live in `<project>/.pi/pstack/plans/<slug>.md`.
@@ -157,3 +157,11 @@ The same-uid limit is stated, not hidden. A worker process running as the operat
 | `.cursor/rules/pstack-models.mdc` | `~/.pi/agent/pstack/models.json` |
 | Cursor transcripts | Pi session files under `~/.pi/agent/sessions/` |
 | Cursor Automations, webhooks | U08 event adapter |
+
+## Runtime invariants (third design, after two rejected rounds)
+
+- Settle coverage: after `agent_settled`, the host sends RPC `get_state`. A settle covers exactly the generations acknowledged before that `get_state` response, and only when the response shows `isStreaming: false` and `pendingMessageCount: 0`. Otherwise the settle covers nothing and the host waits for the next one. Acknowledgement bookkeeping happens synchronously in the response handler.
+- tmux identity: `new-session -P -F '#{session_id} #{session_created}'` is recorded in the claim. Abort's fallback lists `#{session_id} #{session_created}`, matches both, and kills `-t <session_id>`. Otherwise it refuses.
+- Launch secrets: credential values and any extra env go in `<workerDir>/claim/launch-env.json` (0600, created exclusively), which the host reads once and unlinks before spawning Pi. Never argv, never logs.
+- Worktrees: the host creates `worktree/` under its claim. A pre-existing path is refused; there is no reuse.
+- Wake delivery after compaction: the delivery record is the active branch from `getBranch()`, compacted entries included, so a wake summarized by compaction counts as delivered. Each branch change increments a branch version. A poll started under an older version discards its result and reruns.
