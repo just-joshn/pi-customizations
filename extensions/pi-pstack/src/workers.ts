@@ -443,6 +443,8 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
   const resolveModel = options.resolveModel ?? literalModelResolver;
   const socket = options.tmuxSocket ?? 'pstack';
   const pollMs = options.pollMs ?? 1_000;
+  const startCheckMs = options.startCheckMs ?? 10_000;
+  const exec: Exec = (command, args, execOptions) => pi.exec(command, args, execOptions);
   // Wakes this instance handed to Pi since the active branch last changed. A follow-up queued behind a running turn is
   // not on the branch yet.
   const sent = new Set<string>();
@@ -546,7 +548,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     if (assignmentPath === undefined) throw new Error('assignmentPath is required');
     const { runId, project, run } = runOf(ctx, rawRunId);
     requireOwner(ctx, run, runId);
-    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec: (command, args, execOptions) => pi.exec(command, args, execOptions), resolveModel: (request) => resolveModel(request, ctx) });
+    const result = await spawnAssignment(project, runId, assignmentPath, { ...options, exec, resolveModel: (request) => resolveModel(request, ctx) });
     watch(ctx);
     return result;
   };
@@ -568,6 +570,30 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     const same = `#{&&:#{==:#{pid},${owned.serverPid}},#{&&:#{==:#{start_time},${owned.serverStarted}},#{==:#{session_created},${owned.created}}}}`;
     await pi.exec('tmux', ['-L', socket, 'if-shell', '-F', '-t', owned.sessionId, same, `kill-session -t ${owned.sessionId}`], { timeout: 10_000 });
     return (await sessions()).includes(line) ? { disposition: 'refused', reason: `${reason}; tmux session ${line} did not end` } : { disposition: 'session-ended', reason };
+  };
+
+  /**
+   * A claim with no identity.json may belong to a spawn whose parent died before tmux started a host. When no host and
+   * no session by the worker's name appear within the wait, the worker is abandoned: its launch secrets are removed and
+   * its claim stays, so it is never spawned again. A fresh worker id is the retry.
+   */
+  const abortUnreachable = async (project: string, loaded: LoadedAssignment, reason: string) => {
+    const { runId, workerId } = loaded.assignment;
+    const claimDir = join(loaded.workerDir, 'claim');
+    if (!existsSync(claimDir) || existsSync(join(claimDir, 'identity.json'))) return endHostSession(loaded, reason);
+    const check = await checkStart(exec, socket, tmuxSessionName(project, runId, workerId), loaded.workerDir, startCheckMs);
+    if (check.outcome === 'started') {
+      try {
+        return await controlHost(hostTarget(loaded), 'shutdown');
+      } catch (error) {
+        if (!(error instanceof HostUnavailableError)) throw error;
+        return endHostSession(loaded, error.message);
+      }
+    }
+    if (check.outcome === 'unknown') return { disposition: 'refused', reason: `${reason}; a tmux session by the worker's name exists but no host claimed the worker, so nothing was ended` };
+    rmSync(launchEnvPath(loaded.workerDir), { force: true });
+    appendEvent(loaded.runRoot, { runId, workerId, kind: 'abandoned', data: { reason } });
+    return { disposition: 'abandoned', reason: 'No host started for this claim. The claim stays, so the worker is never spawned again; retry with a fresh worker id' };
   };
 
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
@@ -594,7 +620,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           result,
         );
       }
-      const { runId, runRoot, run } = runOf(ctx, params.runId);
+      const { runId, project, runRoot, run } = runOf(ctx, params.runId);
       const loaded = workerOf(runRoot, params.workerId);
       const { workerId } = loaded.assignment;
       if (params.action === 'inspect') {
@@ -615,7 +641,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           receipt = await controlHost(hostTarget(loaded), 'shutdown');
         } catch (error) {
           if (!(error instanceof HostUnavailableError)) throw error;
-          receipt = await endHostSession(loaded, error.message);
+          receipt = await abortUnreachable(project, loaded, error.message);
         }
         appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
         return text(`Aborted worker ${workerId}.`, receipt);
