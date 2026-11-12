@@ -125,6 +125,12 @@ export interface Environment {
   install: string | undefined;
 }
 
+/** `child` is `parent` or inside it, by path. */
+const within = (parent: string, child: string): boolean => {
+  const path = relative(parent, child);
+  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
+};
+
 const fail = (path: string, problem: string): never => {
   throw new Error(`${path}: ${problem}`);
 };
@@ -160,6 +166,10 @@ export function readEnvironment(project: string): Environment {
   const file = resolve(base, dockerfile);
   if (!existsSync(file)) fail(path, `build.dockerfile ${file} does not exist`);
   const context = resolve(base, optionalString(path, build['context'], 'build.context') ?? '.');
+  if (!existsSync(context)) fail(path, `build.context ${context} does not exist`);
+  const root = realpathSync(project);
+  if (!within(root, realpathSync(file))) fail(path, `build.dockerfile ${file} is outside the project ${root}`);
+  if (!within(root, realpathSync(context))) fail(path, `build.context ${context} is outside the project ${root}; the docker client would send that folder to the engine`);
   const digest = createHash('sha256').update(readFileSync(file)).update('\0').update(relative(project, context)).digest('hex').slice(0, 16);
   return { source: path, image: { kind: 'build', dockerfile: file, context, tag: `pstack-env:${digest}` }, install };
 }
@@ -224,6 +234,17 @@ export async function resolveRemote(project: string, env: NodeJS.ProcessEnv): Pr
   const url = await git(project, ['remote', 'get-url', name], env);
   const localPath = localPathOf(url, project);
   return { name, url: localPath ?? url, localPath };
+}
+
+/** A local remote is mounted read-write, so it must not be, contain, or lie inside the checkout the operator works in. */
+export function assertRemoteOutsideCheckout(project: string, remote: Remote): void {
+  if (remote.localPath === null) return;
+  const target = existsSync(remote.localPath) ? realpathSync(remote.localPath) : remote.localPath;
+  const checkout = realpathSync(project);
+  if (within(target, checkout) || within(checkout, target))
+    throw new Error(
+      `The remote ${remote.name} is the local path ${remote.localPath}, which is, contains, or lies inside the project checkout ${checkout}. A container worker gets a local remote mounted read-write, so that would hand it the checkout. Push to a bare repository outside the project, or use a network remote.`,
+    );
 }
 
 /**
@@ -381,11 +402,6 @@ export interface PreparedContainer {
   remote: string;
 }
 
-const within = (parent: string, child: string): boolean => {
-  const path = relative(parent, child);
-  return path === '' || (!path.startsWith('..') && !isAbsolute(path));
-};
-
 /**
  * Everything the parent settles before it claims the worker: the engine answers, the commit is pushed, the image exists, and
  * Pi's install can be mounted. A refusal leaves nothing behind, so the assignment can be fixed and spawned again.
@@ -394,6 +410,7 @@ export async function prepareContainer(request: ContainerRequest): Promise<Prepa
   const { project, runId, workerId, session, source, packageRoot } = request;
   const engine = await connectEngine(source);
   const remote = await resolveRemote(project, source);
+  assertRemoteOutsideCheckout(project, remote);
   const commit = await verifyPushed(project, remote, request.inputCommit, source);
   const environment = readEnvironment(project);
   const image = await ensureImage(engine, environment);

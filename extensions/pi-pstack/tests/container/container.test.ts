@@ -240,6 +240,34 @@ describe('a container worker that cannot start', () => {
   });
 });
 
+describe('a container worker whose environment would hand it the checkout', () => {
+  test.each([
+    ['is the checkout itself', () => project.dir],
+    ['lies inside the checkout', () => join(project.dir, 'nested.git')],
+    ['contains the checkout', () => dirname(project.dir)],
+  ])('a local remote that %s is refused before any claim, and the remote is untouched', async (_name, remoteUrl) => {
+    const target = remoteUrl();
+    if (target.endsWith('nested.git')) git(dirname(project.dir), 'init', '--quiet', '--bare', '-b', 'main', target);
+    git(project.dir, 'remote', 'set-url', 'origin', target);
+    try {
+      await expect(spawn('hand-over', '@@say NEVER')).rejects.toThrow(/is, contains, or lies inside the project checkout/);
+    } finally {
+      git(project.dir, 'remote', 'set-url', 'origin', remote);
+    }
+
+    expect(existsSync(join(workerDir(project, RUN_ID, 'hand-over'), 'claim'))).toBe(false);
+    expect(await containersOf('hand-over')).toEqual([]);
+  });
+
+  test('a build context outside the project is refused before any claim', async () => {
+    writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ build: { dockerfile: 'Dockerfile', context: '../..' } }));
+
+    await expect(spawn('wide-context', '@@say NEVER')).rejects.toThrow(/build\.context .* is outside the project/);
+
+    expect(existsSync(join(workerDir(project, RUN_ID, 'wide-context'), 'claim'))).toBe(false);
+  });
+});
+
 describe('a container worker that points its outputs at host files', () => {
   test('collect refuses a report, evidence directory, or session path that leaves its output directory', async () => {
     const dir = workerDir(project, RUN_ID, 'd');
