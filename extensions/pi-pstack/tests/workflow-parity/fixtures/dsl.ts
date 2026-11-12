@@ -29,6 +29,11 @@ export class Actor {
   edit(path: string, oldText: string, newText: string): this {
     return this.call('edit', { path, edits: [{ oldText, newText }] });
   }
+  /** Says something and calls tools in the same assistant message. */
+  say(text: string, ...calls: { tool: string; args: Args }[]): this {
+    this.steps.push({ say: text, calls });
+    return this;
+  }
   text(text: string): this {
     this.steps.push({ text });
     return this;

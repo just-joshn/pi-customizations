@@ -5,16 +5,17 @@
 // Each provider call consumes the next step of its actor:
 //   { tool, args } | [{ tool, args }, ...]   call these tools (several in one array run in one assistant message)
 //   { text }                                 reply with text and end the turn
+//   { say, calls }                           text and tool calls in one assistant message
 //   { await: { wake: <workerId>, count? } }  end the turn until that many pstack-worker wakes for that worker are in the context
 // After the last step the actor answers "(script complete)", so a late wake turn does no harm.
 import { readFileSync } from 'node:fs';
 
 import type { AssistantMessage, Message, TextContent } from '@earendil-works/pi-ai';
-import { fauxAssistantMessage, fauxProvider, fauxToolCall } from '@earendil-works/pi-ai';
+import { fauxAssistantMessage, fauxProvider, fauxText, fauxToolCall } from '@earendil-works/pi-ai';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 
 type Call = { tool: string; args: Record<string, unknown> };
-type Step = Call | Call[] | { text: string } | { await: { wake: string; count?: number } };
+type Step = Call | Call[] | { text: string } | { say: string; calls: Call[] } | { await: { wake: string; count?: number } };
 
 const textOf = (content: string | readonly { type: string }[]): string =>
   typeof content === 'string'
@@ -48,6 +49,7 @@ function respond(messages: readonly Message[]): AssistantMessage {
   }
   cursor += 1;
   if (!Array.isArray(step) && 'text' in step) return fauxAssistantMessage(step.text);
+  if (!Array.isArray(step) && 'say' in step) return fauxAssistantMessage([fauxText(step.say), ...step.calls.map((call) => fauxToolCall(call.tool, call.args as never))], { stopReason: 'toolUse' });
   const calls = Array.isArray(step) ? step : [step];
   return fauxAssistantMessage(
     calls.map((call) => fauxToolCall(call.tool, call.args as never)),

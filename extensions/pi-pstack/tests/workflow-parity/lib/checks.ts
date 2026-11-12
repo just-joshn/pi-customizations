@@ -596,3 +596,26 @@ export function parentWritesOnlyScratch(id: string, title: string, source: Src |
     return when(production.length === 0 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, 'the parent wrote nothing into production source and the main checkout is clean', `parent wrote ${production.map((call) => String(call.args['path'])).join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits ${view.git.commitsSinceBase.length}`);
   });
 }
+
+// ---- chat turns in the parent session
+
+/** Orders of the user's own messages (a wake is a custom message, not a user turn). */
+export const userTurns = (view: RunView): number[] => view.parent.messages.filter((message) => message.role === 'user').map((message) => message.order);
+
+/** Tool calls the parent made between user turn `index` and the next one. */
+export function callsInTurn(view: RunView, index: number): ToolCall[] {
+  const turns = userTurns(view);
+  const from = turns[index] ?? Number.POSITIVE_INFINITY;
+  const to = turns[index + 1] ?? Number.POSITIVE_INFINITY;
+  return view.parent.toolCalls.filter((call) => call.order > from && call.order < to);
+}
+
+export const userText = (view: RunView, index: number): string => view.parent.messages.filter((message) => message.role === 'user')[index]?.text ?? '';
+
+/** The reply that ended user turn `index`. */
+export function replyOfTurn(view: RunView, index: number): string {
+  const turns = userTurns(view);
+  const from = turns[index] ?? Number.POSITIVE_INFINITY;
+  const to = turns[index + 1] ?? Number.POSITIVE_INFINITY;
+  return [...view.parent.messages].reverse().find((message) => message.role === 'assistant' && message.order > from && message.order < to && message.text.trim() !== '' && !message.text.startsWith('waiting for worker ') && message.text !== '(script complete)')?.text ?? '';
+}

@@ -46,6 +46,8 @@ export interface RunSpec {
   history: Commit[];
   /** The text sent as the user's first message, normally a slash command. */
   prompt: (ctx: Ctx) => string;
+  /** Later user messages, each sent once the run is quiet again: a chat with more than one turn. */
+  followUps?: (ctx: Ctx) => string[];
   scenario: (ctx: Ctx) => Scenario;
   runId: string;
   roles?: ModelRoles;
@@ -277,27 +279,32 @@ export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real'): P
   try {
     const state = await rpc.request({ type: 'get_state' });
     parentSessionFile = ((state['data'] as Json | undefined)?.['sessionFile'] as string | undefined) ?? null;
-    const accepted = await rpc.request({ type: 'prompt', message: prompt });
-    if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
-    let quietSince = Date.now();
-    let seen = rpc.events.length;
-    let workerSignature = '';
-    while (true) {
-      await sleep(300);
-      const signature = JSON.stringify(workerPhases(ctx.repo));
-      if (rpc.events.length !== seen || signature !== workerSignature) {
-        seen = rpc.events.length;
-        workerSignature = signature;
-        quietSince = Date.now();
+    const untilQuiet = async (): Promise<boolean> => {
+      let quietSince = Date.now();
+      let seen = rpc.events.length;
+      let workerSignature = '';
+      while (true) {
+        await sleep(300);
+        const signature = JSON.stringify(workerPhases(ctx.repo));
+        if (rpc.events.length !== seen || signature !== workerSignature) {
+          seen = rpc.events.length;
+          workerSignature = signature;
+          quietSince = Date.now();
+        }
+        if (Date.now() > deadline) return false;
+        if (Date.now() - quietSince < 2_500) continue;
+        const parent = ((await rpc.request({ type: 'get_state' }))['data'] ?? {}) as Json;
+        const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
+        if (idle && !workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) return true;
       }
-      if (Date.now() > deadline) {
+    };
+    for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {
+      const accepted = await rpc.request({ type: 'prompt', message });
+      if (accepted['success'] !== true) throw new Error(`prompt rejected: ${JSON.stringify(accepted)}`);
+      if (!(await untilQuiet())) {
         timedOut = true;
         break;
       }
-      if (Date.now() - quietSince < 2_500) continue;
-      const parent = ((await rpc.request({ type: 'get_state' }))['data'] ?? {}) as Json;
-      const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
-      if (idle && !workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) break;
     }
   } finally {
     stopObserving();

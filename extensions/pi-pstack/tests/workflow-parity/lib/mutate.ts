@@ -108,6 +108,8 @@ export function rewriteSession(sessionFile: string, from: string | RegExp, to: s
 }
 
 export function parentSession(sandbox: string): string {
+  const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { parentSessionFile: string | null };
+  if (meta.parentSessionFile !== null && existsSync(meta.parentSessionFile)) return meta.parentSessionFile;
   const dir = join(sandbox, 'sessions');
   return join(dir, readdirSync(dir).find((file) => file.endsWith('.jsonl')) as string);
 }
