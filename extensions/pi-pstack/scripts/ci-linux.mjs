@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Runs the test suite on a GitHub Actions Linux runner and downloads the Vitest JSON results, so the tests that skip off Linux
 // (bubblewrap, seccomp) can feed the parity manifest.
-//   node scripts/ci-linux.mjs [--repo owner/name] [--out generated/ci-results] [--no-wait]
+//   node scripts/ci-linux.mjs [--repo owner/name] [--out parity-results/ci] [--no-wait]
 // It pushes a snapshot of the git-tracked package files (never the working tree, never anything outside this package) to a
 // ci/<commit>-<time> branch of the sandbox repo, authenticated by `gh auth git-credential` for that one command.
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -14,7 +14,7 @@ import { parseArgs } from 'node:util';
 const { values } = parseArgs({ options: { repo: { type: 'string' }, out: { type: 'string' }, root: { type: 'string' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 const repo = values.repo ?? 'just-joshn/pstack-parity-sandbox';
-const out = resolve(root, values.out ?? 'generated/ci-results');
+const out = resolve(root, values.out ?? 'parity-results/ci');
 const PACKAGE_DIR = 'extensions/pi-pstack';
 const EXCLUDE = /^(generated\/ci-results\/|node_modules\/)/;
 
