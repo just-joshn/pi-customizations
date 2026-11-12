@@ -2,8 +2,17 @@ export interface TestRef {
   file: string;
   name: string;
 }
+export interface RunOutcome {
+  platform: string;
+  outcome: string;
+}
 export interface TestOutcome extends TestRef {
   outcome: string;
+  byRun?: RunOutcome[];
+}
+export interface ResultRun {
+  report: VitestReport;
+  identity: { platform: string };
 }
 export interface Applicability {
   mandatory: boolean;
@@ -22,6 +31,7 @@ export interface Requirement {
   coverageGap?: string;
   source?: Source | null;
   tests: TestRef[];
+  platforms?: string[];
 }
 export interface Evaluated extends Requirement {
   results: TestOutcome[];
@@ -39,7 +49,11 @@ export interface VitestReport {
 }
 export function loadInputs(root: string): Inputs;
 export function buildRecords(root: string, inputs: Inputs): { records: Requirement[]; problems: string[] };
-export function evaluate(records: Requirement[], report: VitestReport, root: string): Evaluated[];
+export function evaluate(records: Requirement[], input: VitestReport | ResultRun[], root: string): Evaluated[];
 export function deriveStatus(record: Pick<Requirement, 'applicability' | 'coverageGap'> & { tests?: unknown[] }, outcomes: TestOutcome[]): { status: Evaluated['status']; reason: string };
 export function renderStatusSection(manifest: unknown): string;
 export function spliceStatusSection(doc: string, section: string): string;
+export function mergeOutcomes(record: Pick<Requirement, 'platforms'>, byRun: RunOutcome[]): string;
+export function sourceDigest(root: string): string | null;
+export function sidecarIdentity(sidecar: unknown): { identity?: { platform: string; commit: string; sourceDigest: string; runUrl: string }; problem?: string };
+export function checkRuns(manifest: { runs?: Record<string, unknown>[] }, currentDigest: string | null): string[];

@@ -133,6 +133,7 @@ export function buildRecords(root, inputs) {
     if (b.applicability?.mandatory === false) {
       if (!b.applicability.justification?.trim()) problems.push(`${owner}: not applicable without a written justification`);
     } else if (b.applicability?.mandatory !== true) problems.push(`${owner}: applicability.mandatory must be true or false`);
+    if (b.platforms !== undefined && (!Array.isArray(b.platforms) || !b.platforms.length || b.platforms.some((p) => typeof p !== 'string'))) problems.push(`${owner}: platforms must be a non-empty array of platform names`);
     problems.push(...checkSource(root, lock, b.source, owner));
     const tests = expandTests(b.tests ?? [], catalog, undefined, lists, problems, owner);
     checkTestFiles(root, tests, problems, owner);
@@ -150,6 +151,7 @@ export function buildRecords(root, inputs) {
       applicability: b.applicability,
       verification: b.verification,
       tests,
+      ...(b.platforms ? { platforms: b.platforms } : {}),
       ...(b.coverageGap ? { coverageGap: b.coverageGap } : {}),
     });
   }
@@ -210,6 +212,16 @@ function outcomeOf(statuses, fileFailed) {
   return statuses.find((s) => s !== 'passed');
 }
 
+/** A failure on any platform is a failure. Otherwise a pass counts only from a run on a platform the requirement targets. */
+export function mergeOutcomes(record, byRun) {
+  const bad = byRun.find((r) => r.outcome === 'failed' || r.outcome === 'failed-to-run');
+  if (bad) return bad.outcome;
+  const targets = record.platforms;
+  const eligible = targets?.length ? byRun.filter((r) => targets.includes(r.platform)) : byRun;
+  if (eligible.some((r) => r.outcome === 'passed')) return 'passed';
+  return eligible.find((r) => r.outcome !== 'missing')?.outcome ?? 'missing';
+}
+
 /** FAIL beats INCONCLUSIVE beats PASS. Only a linked test that ran and passed counts toward PASS. */
 export function deriveStatus(record, outcomes) {
   if (record.applicability.mandatory === false) return { status: STATUS.NA, reason: record.applicability.justification };
@@ -222,15 +234,34 @@ export function deriveStatus(record, outcomes) {
   return { status: STATUS.PASS, reason: `${outcomes.length} linked test(s) ran and passed` };
 }
 
-export function evaluate(records, report, root) {
-  const { byTest, failedFiles } = indexResults(report, root);
+const asRuns = (input) => (Array.isArray(input) ? input : [{ report: input, identity: { platform: 'unspecified' } }]);
+
+/** `input` is one vitest report or a list of { report, identity: { platform } }. */
+export function evaluate(records, input, root) {
+  const runs = asRuns(input).map((run) => ({ platform: run.identity.platform, index: indexResults(run.report, root) }));
   return records.map((record) => {
-    const results = record.tests.map((t) => ({ file: t.file, name: t.name, outcome: outcomeOf(byTest.get(key(t.file, t.name)), failedFiles.has(t.file)) }));
+    const results = record.tests.map((t) => {
+      const byRun = runs.map((run) => ({ platform: run.platform, outcome: outcomeOf(run.index.byTest.get(key(t.file, t.name)), run.index.failedFiles.has(t.file)) }));
+      return { file: t.file, name: t.name, outcome: mergeOutcomes(record, byRun), byRun };
+    });
     return { ...record, results, ...deriveStatus(record, results) };
   });
 }
 
-export function runIdentity(root, report, resultsSource) {
+/** Hash of the files the tests exercise, so a result can be tied to the code it ran against. */
+export function sourceDigest(root) {
+  try {
+    const files = execFileSync('git', ['-C', root, 'ls-files', '-z', '--', 'src', 'tests', 'requirements', 'dist', 'scripts'], { encoding: 'utf8' }).split('\0').filter(Boolean).sort();
+    if (!files.length) return null;
+    const hash = createHash('sha256');
+    for (const f of files) hash.update(`${f}\0${sha256(readFileSync(join(root, f)))}\n`);
+    return hash.digest('hex');
+  } catch {
+    return null;
+  }
+}
+
+export function runIdentity(root, report, resultsSource, attributed = {}) {
   const git = (...args) => {
     try {
       return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
@@ -239,16 +270,44 @@ export function runIdentity(root, report, resultsSource) {
     }
   };
   return {
+    platform: process.platform,
     startedAt: report.startTime ? new Date(report.startTime).toISOString() : null,
     generatedAt: new Date().toISOString(),
     commit: git('rev-parse', 'HEAD'),
     dirty: Boolean(git('status', '--porcelain', '--', '.')),
+    sourceDigest: sourceDigest(root),
     resultsSource,
     totalTests: report.numTotalTests ?? null,
     passedTests: report.numPassedTests ?? null,
     failedTests: report.numFailedTests ?? null,
     skippedTests: report.numPendingTests ?? null,
+    ...attributed,
   };
+}
+
+const SIDECAR_FIELDS = ['platform', 'commit', 'sourceDigest', 'runUrl'];
+
+/** A result file recorded elsewhere (CI) must say what it is. Returns { identity } or { problem }. */
+export function sidecarIdentity(sidecar) {
+  const missing = SIDECAR_FIELDS.filter((f) => typeof sidecar?.[f] !== 'string' || !sidecar[f].trim());
+  if (missing.length) return { problem: `identity is missing ${missing.join(', ')}` };
+  return { identity: Object.fromEntries(SIDECAR_FIELDS.map((f) => [f, sidecar[f]])) };
+}
+
+/** Problems that make a manifest's recorded runs untrustworthy: unattributed, or recorded against other code than the tree now holds. */
+export function checkRuns(manifest, currentDigest) {
+  const problems = [];
+  const runs = manifest.runs ?? [];
+  if (!runs.length) problems.push('manifest records no result file; rebuild it');
+  runs.forEach((run, i) => {
+    const label = `result ${i + 1} (${run.platform ?? 'unknown platform'})`;
+    if (typeof run.platform !== 'string' || !run.platform) problems.push(`${label}: no platform recorded; the result is unattributed`);
+    if (run.resultsSource === 'ci' && (typeof run.commit !== 'string' || !run.commit)) problems.push(`${label}: no commit recorded; the result is unattributed`);
+    if (run.resultsSource === 'ci' && !run.runUrl) problems.push(`${label}: a CI result without its run URL is unattributed`);
+    if (run.sourceDigest && currentDigest && run.sourceDigest !== currentDigest) problems.push(`${label}: stale, it ran against code that has since changed (commit ${run.commit?.slice(0, 12)}); rerun it`);
+    if (!run.sourceDigest && run.resultsSource === 'ci') problems.push(`${label}: no source digest recorded; the result is unattributed`);
+  });
+  return problems;
 }
 
 export function tally(evaluated) {
@@ -278,7 +337,11 @@ export function renderStatusSection(manifest) {
   const lines = [
     MARKERS[0],
     '',
-    `Computed from a Vitest run of commit \`${run.commit?.slice(0, 12) ?? 'unknown'}\`${run.dirty ? ' (dirty tree)' : ''} at ${run.generatedAt}, by \`node scripts/build-parity-manifest.mjs\`. A requirement is PASS only when every linked test ran and passed. A skipped, missing, or unlinked test is INCONCLUSIVE. \`node scripts/check-release.mjs\` exits non-zero until every mandatory requirement is PASS.`,
+    `Computed from the Vitest result files below, by \`node scripts/build-parity-manifest.mjs\`. A requirement is PASS only when every linked test ran and passed on a platform it targets, and a failure on any platform is FAIL. A skipped, missing, or unlinked test is INCONCLUSIVE. \`node scripts/check-release.mjs\` exits non-zero until every mandatory requirement is PASS.`,
+    '',
+    '| Result | Platform | Commit | Tests | Run |',
+    '| --- | --- | --- | --- | --- |',
+    ...(manifest.runs ?? [run]).map((r, i) => `| ${i + 1} | ${r.platform ?? 'unknown'} | \`${r.commit?.slice(0, 12) ?? 'unknown'}\`${r.dirty ? ' (dirty tree)' : ''} | ${r.passedTests ?? '?'} passed, ${r.failedTests ?? '?'} failed, ${r.skippedTests ?? '?'} skipped | ${r.runUrl ?? `${r.resultsSource ?? 'local'} at ${r.generatedAt}`} |`),
     '',
     '| Kind | PASS | FAIL | INCONCLUSIVE | N/A |',
     '| --- | --- | --- | --- | --- |',
