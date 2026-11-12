@@ -14467,6 +14467,12 @@ function classificationOf(reply) {
   const found = /\[benny:(bug|performance|other)\]/.exec(reply)?.[1];
   return found === "bug" || found === "performance" ? found : "other";
 }
+var oneLine = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
+function failureReply(kind, failure) {
+  const reason = oneLine(failure);
+  return kind === "triage" ? `Benny triage could not finish this report: ${reason}. No ticket was created.
+[benny:other]` : `Benny repro and fix could not finish: ${reason}. No pull request was opened.`;
+}
 function eligibleTrackerAction(intent, policy) {
   if (!["bug", "performance"].includes(policy.classification) || !policy.live || !policy.sourceVerified || !policy.targetResolved || !intent.body?.trim())
     return false;
@@ -14660,27 +14666,41 @@ async function dispatchRun(config, event, runId, deps) {
 function enqueue(store, action) {
   return createExclusive(outboxFile(store, action.id), json({ action, state: "pending" }));
 }
-async function flushOutbox(store, destination, tracker) {
+var OUTBOX_RETRY_LIMIT = 5;
+var backoffMs = (attempts) => Math.min(60000, 5000 * 2 ** (attempts - 1));
+var messageOf = (error) => error instanceof Error ? error.message : String(error);
+async function flushOutbox(store, destination, tracker, options = {}) {
+  const now = options.now ?? (() => new Date);
   for (const entry of outboxEntries(store)) {
-    if (entry.state === "done")
+    if (entry.state !== "pending")
+      continue;
+    if (options.ignoreBackoff !== true && entry.retryAt !== undefined && entry.retryAt > now().toISOString())
       continue;
     const { action } = entry;
-    if (action.kind === "tracker") {
-      if (!tracker)
-        throw new Error("tracker destination unavailable");
-      const matches = await tracker.searchByMarker(action.id);
-      if (matches.length > 1)
-        throw new Error("ambiguous tracker action marker");
-      const landed = matches[0];
-      const written = landed ?? await tracker[action.operation](action);
-      writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs: written.id, reconciled: landed !== undefined }));
-      continue;
+    try {
+      if (action.kind === "tracker") {
+        if (!tracker)
+          throw new Error("tracker destination unavailable");
+        const matches = await tracker.searchByMarker(action.id);
+        if (matches.length > 1)
+          throw new Error("ambiguous tracker action marker");
+        const landed = matches[0];
+        const written = landed ?? await tracker[action.operation](action);
+        writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs: written.id, reconciled: landed !== undefined }));
+        continue;
+      }
+      const landed = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
+      const destinationTs = landed?.ts ?? (await destination.post(action)).ts;
+      const reconciled = landed !== undefined;
+      writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs, reconciled }));
+      appendLog(store, { ts: now().toISOString(), kind: "posted", actionId: action.id, destinationTs, reconciled });
+    } catch (error) {
+      const attempts = (entry.attempts ?? 0) + 1;
+      const reason = messageOf(error);
+      const final = attempts >= OUTBOX_RETRY_LIMIT;
+      writeAtomic(outboxFile(store, action.id), json(final ? { action, state: "failed", attempts, reason } : { action, state: "pending", attempts, retryAt: new Date(now().getTime() + backoffMs(attempts)).toISOString() }));
+      appendLog(store, { ts: now().toISOString(), kind: "outbox-failed", actionId: action.id, attempts, error: reason, final });
     }
-    const landed = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);
-    const destinationTs = landed?.ts ?? (await destination.post(action)).ts;
-    const reconciled = landed !== undefined;
-    writeAtomic(outboxFile(store, action.id), json({ action, state: "done", destinationTs, reconciled }));
-    appendLog(store, { ts: new Date().toISOString(), kind: "posted", actionId: action.id, destinationTs, reconciled });
   }
 }
 
@@ -14925,7 +14945,8 @@ function createAutomation(config, deps) {
     appendLog(store, { ts: stamp(), kind: "rejected", reason });
     return { status: "rejected", reason };
   };
-  const flush = () => flushOutbox(store, deps.destination, deps.tracker);
+  const flush = (options = {}) => flushOutbox(store, deps.destination, deps.tracker, { now, ...options });
+  const entryOf = (id) => outboxEntries(store).find((entry) => entry.action.id === id);
   return {
     config,
     store,
@@ -14945,7 +14966,7 @@ function createAutomation(config, deps) {
       const keys = new Set(log.flatMap((entry) => entry.kind === "received" ? [entry.key] : []));
       for (const key of keys)
         await advance(key);
-      await flush();
+      await flush({ ignoreBackoff: true });
     }),
     complete: (runId, result) => serial(async () => {
       const text = typeof result === "string" ? result : result.text;
@@ -14964,9 +14985,10 @@ function createAutomation(config, deps) {
         return { status: "refused", reason: problem };
       }
       const { event } = state.entry;
-      if (intent !== undefined) {
-        const trackerId = actionIdFor(config.name, event.key, "tracker");
-        if (!outboxEntries(store).some((entry) => entry.action.id === trackerId)) {
+      const trackerId = actionIdFor(config.name, event.key, "tracker");
+      let failure;
+      if (intent !== undefined || entryOf(trackerId) !== undefined) {
+        if (entryOf(trackerId) === undefined && intent !== undefined) {
           const policy = await deps.trackerPolicy?.(event, intent, text);
           if (config.kind !== "triage" || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy))
             return { status: "refused", reason: "ineligible tracker action" };
@@ -14975,9 +14997,17 @@ function createAutomation(config, deps) {
           enqueue(store, { ...intent, id: trackerId, kind: "tracker", sourceUrl: sourceUrlOf(event), ...labels === undefined ? {} : { labels } });
         }
         await flush();
+        const landed = entryOf(trackerId);
+        if (landed?.state === "pending")
+          return { status: "retrying", key: event.key };
+        if (landed?.state === "failed")
+          failure = `the tracker write failed after ${landed.attempts} attempts: ${landed.reason}`;
       }
-      const queued = enqueue(store, { id: actionIdFor(config.name, event.key, "result"), kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text });
+      const replyId = actionIdFor(config.name, event.key, "result");
+      const queued = enqueue(store, { id: replyId, kind: "thread-reply", channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
       await flush();
+      if (entryOf(replyId)?.state === "pending")
+        return { status: "retrying", key: event.key };
       if (!readLog(store).some((entry) => entry.kind === "completed" && entry.runId === runId))
         appendLog(store, { ts: stamp(), kind: "completed", key: event.key, runId });
       return { status: queued ? "queued" : "already-queued", key: event.key };
@@ -15276,7 +15306,7 @@ var alive2 = (pid) => {
     return error.code === "EPERM";
   }
 };
-var oneLine = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
+var oneLine2 = (value) => value.replace(/\s+/g, " ").trim().slice(0, 200);
 async function collectRun(projectRoot, runId, inspect = inspectHost) {
   const loaded = loadAssignment(join8(workerDir(projectRoot, runId), "assignment.json"));
   let live;
@@ -15292,7 +15322,7 @@ async function collectRun(projectRoot, runId, inspect = inspectHost) {
     return gone ? { settled: true, failure: `the worker host ended in phase ${state.phase} without finishing its work`, finalText: null } : { settled: false };
   }
   if (last.phase === "failed" || last.phase === "aborted" || last.phase === "exited")
-    return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? "" : `: ${oneLine(last.reason)}`}`, finalText: null };
+    return { settled: true, failure: `the worker ${last.phase}${last.reason === null ? "" : `: ${oneLine2(last.reason)}`}`, finalText: null };
   const finalText = finalAssistantText(state.sessionFile);
   if (finalText === null || finalText.trim() === "")
     return { settled: true, failure: "the worker produced no final message", finalText: null };
@@ -15324,10 +15354,6 @@ function parseWorkerResult(finalText) {
   } catch {}
   return finalText;
 }
-function failureReply(kind, failure) {
-  return kind === "triage" ? `Benny triage could not finish this report: ${failure}. No ticket was created.
-[benny:other]` : `Benny repro and fix could not finish: ${failure}. No pull request was opened.`;
-}
 async function completeSettledRuns(automation, collect = (runId) => collectRun(automation.config.projectRoot, runId)) {
   let completed = 0;
   for (const runId of automation.pendingRuns()) {
@@ -15338,7 +15364,10 @@ async function completeSettledRuns(automation, collect = (runId) => collectRun(a
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
     const attempts = typeof result === "string" ? [result] : [result, result.text];
     for (const attempt of [...attempts, failure]) {
-      if ((await automation.complete(runId, attempt)).status !== "refused") {
+      const outcome = await automation.complete(runId, attempt);
+      if (outcome.status === "retrying")
+        break;
+      if (outcome.status !== "refused") {
         completed += 1;
         break;
       }

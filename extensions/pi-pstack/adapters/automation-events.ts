@@ -4,7 +4,7 @@
 import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
-import { AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, sourceUrlOf, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
+import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, sourceUrlOf, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
 import { enqueue, flushOutbox, type ThreadDestination, type TrackerDestination } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
@@ -38,7 +38,8 @@ export type HandleOutcome =
   | { status: 'dispatched'; key: EventKey; runId: RunId }
   | { status: 'duplicate'; key: EventKey; runId: RunId };
 
-export type CompleteOutcome = { status: 'queued' | 'already-queued'; key: EventKey } | { status: 'refused'; reason: string };
+/** `retrying`: an action is still pending and the next attempt is owed; the run stays pending and `complete` is called again. */
+export type CompleteOutcome = { status: 'queued' | 'already-queued' | 'retrying'; key: EventKey } | { status: 'refused'; reason: string };
 
 export interface Automation {
   config: AutomationConfig;
@@ -115,7 +116,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return { status: 'rejected', reason };
   };
 
-  const flush = () => flushOutbox(store, deps.destination, deps.tracker);
+  const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, deps.tracker, { now, ...options });
+  const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
 
   return {
     config,
@@ -134,7 +136,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
         const log = readLog(store);
         const keys = new Set(log.flatMap((entry) => (entry.kind === 'received' ? [entry.key] : [])));
         for (const key of keys) await advance(key);
-        await flush();
+        await flush({ ignoreBackoff: true });
       }),
     complete: (runId, result) =>
       serial(async (): Promise<CompleteOutcome> => {
@@ -152,10 +154,11 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
           return { status: 'refused', reason: problem };
         }
         const { event } = state.entry;
-        if (intent !== undefined) {
-          const trackerId = actionIdFor(config.name, event.key, 'tracker');
+        const trackerId = actionIdFor(config.name, event.key, 'tracker');
+        let failure: string | undefined;
+        if (intent !== undefined || entryOf(trackerId) !== undefined) {
           // An action already queued passed the policy before a crash. Asking again would see its own issue as a duplicate.
-          if (!outboxEntries(store).some((entry) => entry.action.id === trackerId)) {
+          if (entryOf(trackerId) === undefined && intent !== undefined) {
             const policy = await deps.trackerPolicy?.(event, intent, text);
             if (config.kind !== 'triage' || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy)) return { status: 'refused', reason: 'ineligible tracker action' };
             const classification = classificationOf(text);
@@ -163,9 +166,14 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
             enqueue(store, { ...intent, id: trackerId, kind: 'tracker', sourceUrl: sourceUrlOf(event), ...(labels === undefined ? {} : { labels }) });
           }
           await flush();
+          const landed = entryOf(trackerId);
+          if (landed?.state === 'pending') return { status: 'retrying', key: event.key };
+          if (landed?.state === 'failed') failure = `the tracker write failed after ${landed.attempts} attempts: ${landed.reason}`;
         }
-        const queued = enqueue(store, { id: actionIdFor(config.name, event.key, 'result'), kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text });
+        const replyId = actionIdFor(config.name, event.key, 'result');
+        const queued = enqueue(store, { id: replyId, kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: failure === undefined ? text : failureReply(config.kind, failure) });
         await flush();
+        if (entryOf(replyId)?.state === 'pending') return { status: 'retrying', key: event.key };
         if (!readLog(store).some((entry) => entry.kind === 'completed' && entry.runId === runId)) appendLog(store, { ts: stamp(), kind: 'completed', key: event.key, runId });
         return { status: queued ? 'queued' : 'already-queued', key: event.key };
       }),

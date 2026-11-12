@@ -172,7 +172,7 @@ describe('outbox reconciliation', () => {
     const before = createAutomation(first.config, { ...first.deps, destination: crashing });
     const dispatched = await before.handle(REPORT);
     expect(dispatched.status).toBe('dispatched');
-    await expect(before.complete(only(first.spawns).runId, VERDICT)).rejects.toThrow(/before acknowledging/);
+    expect(await before.complete(only(first.spawns).runId, VERDICT)).toMatchObject({ status: 'retrying' });
     expect(first.thread.posts).toHaveLength(1);
 
     const restarted = createAutomation(first.config, first.deps);

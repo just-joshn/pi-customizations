@@ -88,9 +88,10 @@ describe('triage end to end', () => {
     const run = await t.automation.handle(REPORT);
     if (run.status !== 'dispatched') throw new Error('not dispatched');
     settleWorker(t.project.dir, run.runId, { phase: 'idle', finalText: JSON.stringify(CREATE) });
-    await expect(completeSettledRuns(t.automation)).rejects.toThrow('ratelimited');
+    expect(await completeSettledRuns(t.automation)).toBe(0);
     expect(t.gh.issues).toHaveLength(1);
     expect(t.slack.posts).toHaveLength(0);
+    expect(readLog(t.automation.store)).toContainEqual(expect.objectContaining({ kind: 'outbox-failed', error: expect.stringContaining('ratelimited'), final: false }));
 
     const restarted = t.build();
     await restarted.reconcile();

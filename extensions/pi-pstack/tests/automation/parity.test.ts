@@ -54,7 +54,7 @@ test('tracker crash recovery and redelivery creates one ticket', async () => {
   const f = fixture();
   const run = await f.automation.handle(event);
   if (run.status !== 'dispatched') throw Error('not dispatched');
-  await expect(f.automation.complete(run.runId, result)).rejects.toThrow('crash');
+  expect(await f.automation.complete(run.runId, result)).toMatchObject({ status: 'retrying' });
   const restarted = createAutomation(f.config, f.deps);
   await restarted.reconcile();
   await restarted.complete(run.runId, result);

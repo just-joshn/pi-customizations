@@ -8,7 +8,7 @@ import type { Automation } from '../../adapters/automation-events.ts';
 import { hostTarget, inspectHost } from '../rpc-client.ts';
 import { type HostState, isTerminal, loadAssignment, readHostState } from '../run-files.ts';
 import { workerDir } from './dispatch.ts';
-import type { BennyAutomationKind, RunId, TrackerIntent, WorkerResult } from './model.ts';
+import { failureReply, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
 import { appendLog } from './store.ts';
 
 export type CollectedRun = { settled: false } | { settled: true; failure: string | null; finalText: string | null };
@@ -90,11 +90,6 @@ export function parseWorkerResult(finalText: string): string | WorkerResult {
   return finalText;
 }
 
-/** Triage replies need a marker, and `other` is the one the repro automation never trusts, so a failure cannot start a repro. */
-export function failureReply(kind: BennyAutomationKind, failure: string): string {
-  return kind === 'triage' ? `Benny triage could not finish this report: ${failure}. No ticket was created.\n[benny:other]` : `Benny repro and fix could not finish: ${failure}. No pull request was opened.`;
-}
-
 /**
  * Completes every dispatched run that has settled. A tracker request the parent refuses still leaves the worker's
  * verdict to post without it, and a verdict the parent refuses (no single marker) becomes the failure reply.
@@ -108,7 +103,9 @@ export async function completeSettledRuns(automation: Automation, collect: (runI
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
     const attempts = typeof result === 'string' ? [result] : [result, result.text];
     for (const attempt of [...attempts, failure]) {
-      if ((await automation.complete(runId, attempt)).status !== 'refused') {
+      const outcome = await automation.complete(runId, attempt);
+      if (outcome.status === 'retrying') break;
+      if (outcome.status !== 'refused') {
         completed += 1;
         break;
       }

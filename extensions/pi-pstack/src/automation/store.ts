@@ -11,9 +11,13 @@ export type LogEntry =
   | { ts: string; kind: 'reply-refused'; key: EventKey; reason: string }
   | { ts: string; kind: 'completed'; key: EventKey; runId: RunId }
   | { ts: string; kind: 'posted'; actionId: ActionId; destinationTs: string; reconciled: boolean }
+  | { ts: string; kind: 'outbox-failed'; actionId: ActionId; attempts: number; error: string; final: boolean }
   | { ts: string; kind: 'source-error'; reason: string };
 
-export type OutboxEntry = { action: OutboxAction; state: 'pending' } | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean };
+export type OutboxEntry =
+  | { action: OutboxAction; state: 'pending'; attempts?: number; retryAt?: string }
+  | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean }
+  | { action: OutboxAction; state: 'failed'; attempts: number; reason: string };
 
 /** `<project>/.pi/pstack/automation/<name>/`: one directory per automation, written by one source at a time. */
 export interface AutomationStore {

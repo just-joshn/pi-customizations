@@ -148,6 +148,14 @@ export function classificationOf(reply: string): Classification {
   return found === 'bug' || found === 'performance' ? found : 'other';
 }
 
+const oneLine = (value: string) => value.replace(/\s+/g, ' ').trim().slice(0, 200);
+
+/** Triage replies need a marker, and `other` is the one the repro automation never trusts, so a failure cannot start a repro. */
+export function failureReply(kind: BennyAutomationKind, failure: string): string {
+  const reason = oneLine(failure);
+  return kind === 'triage' ? `Benny triage could not finish this report: ${reason}. No ticket was created.\n[benny:other]` : `Benny repro and fix could not finish: ${reason}. No pull request was opened.`;
+}
+
 export interface WorkerResult {
   text: string;
   tracker?: TrackerIntent;
