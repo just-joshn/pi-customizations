@@ -70,12 +70,15 @@ test('a tracker that is not GitHub is written by a real worker that reads the pr
   const skillPath = join(project.dir, '.pi/skills/linear-adapter/SKILL.md');
   const trackerScript = JSON.stringify([{ tool: 'read', args: { path: skillPath } }, { text: '{"outcome":"created","id":"LIN-42"}' }]);
   const current = project;
+  mkdirSync(join(current.agentDir, 'pstack'), { recursive: true });
+  writeFileSync(join(current.agentDir, 'pstack', 'tracker-mcp.json'), JSON.stringify({ tools: ['mcp__linear__save_issue'] }));
   const spawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }) });
   const trackerSpawn = spawnInTmux(current.dir, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: TEST_PI_ARGS, extraEnv: workerTestEnv(current), agentsDir: current.agentsDir, resolveModel: () => ({ provider: 'scripted', id: 'echo', thinkingLevel: null }), allowExternalWrite: true });
   const spawned: string[] = [];
   const automation: Automation = wireBenny(
     benny.config('triage'),
     wiringDeps(slack, gh, {
+      env: workerTestEnv(current),
       spawnWorker: async (runId, assignmentPath) => {
         spawned.push(runId);
         writeFileSync(join(assignmentPath, '..', 'brief.md'), runId.startsWith('trk-') ? `@@script ${trackerScript}` : `@@say ${caseResult}`);

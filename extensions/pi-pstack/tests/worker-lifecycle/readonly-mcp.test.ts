@@ -12,6 +12,7 @@ const WORKER_SIDE = join(PACKAGE_ROOT, 'tests/worker-lifecycle/worker-side-exten
 const SERVER = join(PACKAGE_ROOT, 'tests/worker-lifecycle/fixtures/notes-mcp-server.mjs');
 const READ = 'mcp__notes__read_note';
 const WRITE = 'mcp__notes__write_note';
+const DELETE = 'mcp__notes__delete_note';
 const PI_ARGS = [...TEST_PI_ARGS.filter((arg) => arg !== '--no-mcp' && arg !== '--no-extensions'), '--extension', WORKER_SIDE];
 
 const REACH = `const out = [];
@@ -19,6 +20,12 @@ for (const [name, args] of [['${READ}', { key: 'alpha' }], ['${WRITE}', { key: '
   try { out.push(name + ' => ' + JSON.stringify(await tools[name](args))); } catch (error) { out.push(name + ' unreachable: ' + error.message.slice(0, 60)); }
 }
 return out.join('\\n');`;
+const TRACKER_REACH = `const out = [];
+for (const [name, args] of [['${READ}', { key: 'alpha' }], ['${WRITE}', { key: 'alpha', text: 'TRACKED' }], ['${DELETE}', { key: 'alpha' }]]) {
+  try { out.push(name + ' => ' + JSON.stringify(await tools[name](args))); } catch (error) { out.push(name + ' unreachable: ' + error.message.slice(0, 60)); }
+}
+return out.join('\\n');`;
+const TRACKER_SCRIPT = [{ tool: 'codemode', args: { code: TRACKER_REACH } }, { tool: DELETE, args: { key: 'alpha' } }, { tool: 'tool_search', args: { query: 'delete note' } }, { tool: WRITE, args: { key: 'beta', text: 'direct' } }];
 const SCRIPT = [{ tool: 'codemode', args: { code: REACH } }, { tool: WRITE, args: { key: 'alpha', text: 'OVERWRITTEN' } }, { tool: 'tool_search', args: { query: 'write note' } }, { tool: 'tool_search', args: { query: 'read note' } }, { tool: READ, args: { key: 'alpha' } }];
 const BRIEF = `@@script ${JSON.stringify(SCRIPT)}`;
 
@@ -57,6 +64,16 @@ const finalText = (workerId: string) =>
     `${workerId} settles`,
   ).then((result) => result.finalText as string);
 
+const authorizeTracker = (...tools: string[]) => {
+  mkdirSync(join(project.agentDir, 'pstack'), { recursive: true });
+  writeFileSync(join(project.agentDir, 'pstack', 'tracker-mcp.json'), JSON.stringify({ tools }));
+};
+
+const spawnTracker = (workerId: string, script: unknown[]) => {
+  const path = writeAssignment(project, 'run1', workerId, `@@script ${JSON.stringify(script)}`, { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
+  return spawnAssignment(project.dir, 'run1' as never, path, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: PI_ARGS, extraEnv: workerTestEnv(project), agentsDir: project.agentsDir, allowExternalWrite: true });
+};
+
 const results = (text: string) => text.split('\n[');
 
 test('a readonly worker with an authorized read tool reads through codemode and directly, and cannot write by codemode, directly, or after tool_search', async () => {
@@ -80,10 +97,37 @@ test('with nothing authorized a readonly worker reaches no MCP tool at all', asy
   expect(serverCalls()).toEqual([]);
 });
 
-test('a trusted spawner that grants externalWrite gives a readonly worker the whole MCP route', async () => {
-  const path = writeAssignment(project, 'run1', 'trusted', BRIEF, { capabilities: { mcp: 'inherit', env: 'inherit', externalWrite: true } });
-  await spawnAssignment(project.dir, 'run1' as never, path, { tmuxSocket: TMUX, piCommand: [PI], extraPiArgs: PI_ARGS, extraEnv: workerTestEnv(project), agentsDir: project.agentsDir, allowExternalWrite: true });
-  const text = await finalText('trusted');
+test('a trusted tracker worker writes through the authorized tool and cannot reach any other write tool by codemode, directly, or after tool_search', async () => {
+  authorize(READ);
+  authorizeTracker(WRITE);
+  await spawnTracker('tracker', TRACKER_SCRIPT);
+  const text = await finalText('tracker');
+  expect(text).toContain(`${READ} => {"content":[{"type":"text","text":"the stored note"}]}`);
   expect(text).toContain(`${WRITE} => {"content":[{"type":"text","text":"stored alpha"}]}`);
-  expect(serverCalls()).toContain('write_note');
+  expect(text).toContain(`${DELETE} unreachable`);
+  expect(text).not.toContain(`- ${DELETE}`);
+  expect(results(text).some((entry) => entry.startsWith(`${DELETE} error`) || /Tool mcp__notes__delete_note not found/.test(entry))).toBe(true);
+  expect(serverCalls()).toEqual(expect.arrayContaining(['read_note', 'write_note']));
+  expect(serverCalls()).not.toContain('delete_note');
+});
+
+test('a project-side tool list cannot add to what the agent dir authorizes', async () => {
+  authorize(READ);
+  authorizeTracker(WRITE);
+  mkdirSync(join(project.dir, '.pi', 'pstack'), { recursive: true });
+  for (const file of ['tracker-mcp.json', 'readonly-mcp.json']) writeFileSync(join(project.dir, '.pi', 'pstack', file), JSON.stringify({ tools: [DELETE, WRITE, READ] }));
+  await spawnTracker('tracker', TRACKER_SCRIPT);
+  const text = await finalText('tracker');
+  expect(text).toContain(`${DELETE} unreachable`);
+  expect(serverCalls()).not.toContain('delete_note');
+});
+
+test('a tracker worker spawned with no write authorization does not start and reaches no MCP tool', async () => {
+  authorize(READ);
+  await expect(spawnTracker('tracker', TRACKER_SCRIPT)).rejects.toThrow(/tracker-mcp\.json is missing/);
+  authorizeTracker();
+  await expect(spawnTracker('tracker', TRACKER_SCRIPT)).rejects.toThrow(/lists no tools/);
+  authorizeTracker('mcp__notes__*');
+  await expect(spawnTracker('tracker', TRACKER_SCRIPT)).rejects.toThrow(/exact tool names and no patterns/);
+  expect(serverCalls()).toEqual([]);
 });

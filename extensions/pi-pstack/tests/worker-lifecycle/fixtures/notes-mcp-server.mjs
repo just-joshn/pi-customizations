@@ -1,4 +1,4 @@
-// A stdio MCP server (newline-delimited JSON-RPC 2.0) with one read tool and one write tool. Every tools/call is appended
+// A stdio MCP server (newline-delimited JSON-RPC 2.0) with one read tool and two write tools. Every tools/call is appended
 // to $MCP_FIXTURE_LOG, so a test sees which tool reached the server whatever route the worker used.
 import { appendFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
@@ -6,6 +6,7 @@ import { createInterface } from 'node:readline';
 const TOOLS = [
   { name: 'read_note', description: 'Read the note stored under a key.', inputSchema: { type: 'object', properties: { key: { type: 'string' } }, required: ['key'] }, annotations: { readOnlyHint: true } },
   { name: 'write_note', description: 'Store a note under a key, replacing what was there.', inputSchema: { type: 'object', properties: { key: { type: 'string' }, text: { type: 'string' } }, required: ['key', 'text'] } },
+  { name: 'delete_note', description: 'Delete the note stored under a key.', inputSchema: { type: 'object', properties: { key: { type: 'string' } }, required: ['key'] } },
 ];
 
 const send = (message) => process.stdout.write(`${JSON.stringify({ jsonrpc: '2.0', ...message })}\n`);
@@ -25,6 +26,10 @@ createInterface({ input: process.stdin }).on('line', (line) => {
     if (name === 'write_note') {
       notes[args.key] = args.text;
       return send({ id, result: { content: [{ type: 'text', text: `stored ${args.key}` }] } });
+    }
+    if (name === 'delete_note') {
+      delete notes[args.key];
+      return send({ id, result: { content: [{ type: 'text', text: `deleted ${args.key}` }] } });
     }
     return send({ id, error: { code: -32602, message: `unknown tool ${name}` } });
   }

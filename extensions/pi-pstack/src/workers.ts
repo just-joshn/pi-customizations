@@ -68,14 +68,15 @@ export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls', 'bash_readonly', 'p
  */
 export const MCP_ACCESS_TOOLS = ['codemode', 'tool_search'] as const;
 
+const MCP_TOOL_NAME = /^mcp__[A-Za-z0-9_]+__[A-Za-z0-9_]+$/;
+
 /**
- * The operator's list of MCP tools a readonly worker may call, `<agent dir>/pstack/readonly-mcp.json`: `{ "tools": ["mcp__<server>__<tool>"] }`.
- * It is the only authority. A server's `readOnlyHint` annotation is not: Pi reports it, but it is the server's own unverified claim.
- * Names are exact, so one entry never admits a server's write tool by pattern. A missing file authorizes nothing.
+ * An operator list of MCP tools: `<agent dir>/pstack/<name>`, `{ "tools": ["mcp__<server>__<tool>"] }`. Names are exact, so one entry
+ * never admits a server's other tools by pattern or by namespace. A missing file is undefined, and a malformed one throws.
  */
-export function readonlyMcpTools(env: Readonly<Record<string, string | undefined>>): string[] {
-  const file = join(agentDirOf(env), 'pstack', 'readonly-mcp.json');
-  if (!existsSync(file)) return [];
+function operatorToolList(env: Readonly<Record<string, string | undefined>>, name: string): string[] | undefined {
+  const file = join(agentDirOf(env), 'pstack', name);
+  if (!existsSync(file)) return undefined;
   let raw: unknown;
   try {
     raw = JSON.parse(readFileSync(file, 'utf8'));
@@ -83,17 +84,38 @@ export function readonlyMcpTools(env: Readonly<Record<string, string | undefined
     throw new Error(`${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`);
   }
   const tools = typeof raw === 'object' && raw !== null ? (raw as { tools?: unknown }).tools : undefined;
-  if (!Array.isArray(tools) || !tools.every((name) => typeof name === 'string' && /^mcp__[A-Za-z0-9_]+$/.test(name))) throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
+  if (!Array.isArray(tools) || !tools.every((tool) => typeof tool === 'string' && MCP_TOOL_NAME.test(tool))) throw new Error(`${file} must be { "tools": ["mcp__<server>__<tool>", ...] } with exact tool names and no patterns`);
   return tools;
 }
 
 /**
- * Pi's tool selection for a readonly worker: read-class tools, plus the MCP route unless the worker has no MCP. `externalWrite` is
- * the trusted adapter's grant and keeps every MCP tool; any other worker reaches only the `authorized` ones.
+ * The operator's list of MCP tools a readonly worker may call, `<agent dir>/pstack/readonly-mcp.json`.
+ * It is the only authority. A server's `readOnlyHint` annotation is not: Pi reports it, but it is the server's own unverified claim.
+ * A missing file authorizes nothing.
  */
-export function readonlyTools(capabilities: Pick<Capabilities, 'mcp' | 'externalWrite'>, authorized: readonly string[]): { tools: string[]; excludeTools: string[] } {
+export function readonlyMcpTools(env: Readonly<Record<string, string | undefined>>): string[] {
+  return operatorToolList(env, 'readonly-mcp.json') ?? [];
+}
+
+/**
+ * The operator's list of MCP write tools the trusted tracker worker may call, `<agent dir>/pstack/tracker-mcp.json`. Only the agent
+ * dir is read: no project file, adapter skill, or brief can add to it. A missing, malformed, or empty file throws, because a tracker
+ * worker with no write authorization must not start, and nothing falls back to the unrestricted MCP route.
+ */
+export function trackerMcpTools(env: Readonly<Record<string, string | undefined>>): string[] {
+  const file = join(agentDirOf(env), 'pstack', 'tracker-mcp.json');
+  const tools = operatorToolList(env, 'tracker-mcp.json');
+  if (tools === undefined) throw new Error(`${file} is missing; list the MCP write tools the tracker worker may call as { "tools": ["mcp__<server>__<tool>"] }`);
+  if (tools.length === 0) throw new Error(`${file} lists no tools; name the MCP write tools the tracker worker may call`);
+  return tools;
+}
+
+/**
+ * Pi's tool selection for a readonly worker: read-class tools, plus the MCP route unless the worker has no MCP. Every worker
+ * reaches only the `authorized` MCP tools. `externalWrite` never widens this.
+ */
+export function readonlyTools(capabilities: Pick<Capabilities, 'mcp'>, authorized: readonly string[]): { tools: string[]; excludeTools: string[] } {
   if (capabilities.mcp === 'none') return { tools: [...READONLY_TOOLS], excludeTools: [] };
-  if (capabilities.externalWrite) return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS], excludeTools: [] };
   return { tools: [...READONLY_TOOLS, ...MCP_ACCESS_TOOLS, ...authorized], excludeTools: authorized.length === 0 ? ['mcp__*'] : [] };
 }
 
@@ -524,6 +546,12 @@ export function workerSocket(explicit?: string): string {
   return socket;
 }
 
+/** The MCP tools a readonly worker's --tools names: the read list, plus the tracker write list when a trusted spawner grants `externalWrite`. */
+function authorizedMcpTools(capabilities: Pick<Capabilities, 'mcp' | 'externalWrite'>, env: Readonly<Record<string, string | undefined>>): string[] {
+  if (capabilities.mcp === 'none') return [];
+  return [...new Set([...readonlyMcpTools(env), ...(capabilities.externalWrite ? trackerMcpTools(env) : [])])];
+}
+
 export async function spawnAssignment(project: string, runId: RunId, assignmentPath: string, options: SpawnOptions = {}): Promise<SpawnResult> {
   const exec = options.exec ?? nodeExec;
   const socket = workerSocket(options.tmuxSocket);
@@ -588,7 +616,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     });
   }
   const startupMs = options.startupMs ?? (container === null ? 30_000 : 300_000);
-  const readonly = assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities, assignment.capabilities.mcp === 'none' || assignment.capabilities.externalWrite ? [] : readonlyMcpTools(source)) : undefined;
+  const readonly = assignment.workspace.mode === 'readonly' ? readonlyTools(assignment.capabilities, authorizedMcpTools(assignment.capabilities, source)) : undefined;
   const launch: HostLaunch = {
     piCommand: container === null ? [onPath(command[0] as string), ...command.slice(1)] : container.piCommand,
     model: launchModel,

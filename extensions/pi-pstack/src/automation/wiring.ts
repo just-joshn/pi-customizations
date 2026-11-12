@@ -10,7 +10,7 @@ import type { CollectedRun } from './settle.ts';
 import type { SteerRun } from './steer.ts';
 import type { TrackerDestination, TrackerLander } from './outbox.ts';
 import { type SlackApi, slackDestination, slackFileDownloader } from './slack.ts';
-import { adapterSkillProblem, adapterTracker } from './tracker-adapter.ts';
+import { adapterSkillProblem, adapterTracker, trackerWriteProblem } from './tracker-adapter.ts';
 import { createForge, type Git, githubRepoOf, nodeGit } from './forge.ts';
 import { type GhExec, githubTracker } from './tracker-github.ts';
 import { createTrackerPolicy } from './tracker-policy.ts';
@@ -33,6 +33,8 @@ export interface WiringDeps {
   slackUpload?: SlackApi['upload'];
   /** Where `~/.pi/agent/skills` and `~/.agents/skills` are looked up. Defaults to the user's home. */
   home?: string;
+  /** The environment the tracker worker's agent dir is found from. Defaults to this process's. */
+  env?: Readonly<Record<string, string | undefined>>;
 }
 
 export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
@@ -44,7 +46,7 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   // GitHub is the one tracker the package ships. Any other type is a project-owned adapter skill, run by a worker.
   if (config.tracker.type !== 'github') {
     tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot, { allowExternalWrite: true }), ...(config.model === undefined ? {} : { model: config.model }), ...(deps.now === undefined ? {} : { now: deps.now }) });
-    probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? true;
+    probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? trackerWriteProblem(deps.env ?? process.env) ?? true;
     policy = createTrackerPolicy({ tracker: config.tracker, destination, canCompensate: true });
   } else if (config.tracker.repo !== undefined) {
     const github = githubTracker({ exec: deps.exec, repo: config.tracker.repo, ...(deps.now === undefined ? {} : { now: deps.now }) });
