@@ -7,7 +7,7 @@ import { Parent, scenario } from '../fixtures/dsl.ts';
 import { forgeEnv, type ForgeHandle, readForge, setupForge, watchVerdict, WATCH_PR, type ChaosStep } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, fail, pass, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
 import { editForge, type ForgeAction } from '../fixtures/forge.ts';
@@ -771,6 +771,99 @@ function duplicateWorker(sandbox: string, runId: string, from: string, to: strin
   writeFileSync(join(base, to, 'assignment.json'), JSON.stringify(assignment));
 }
 
+// ---- one watcher only: a repeated babysit request finds the live watcher and arms no second one
+
+const DUP_RUN = 'babysit-dup-16';
+const DUP_STORE: { handle?: ForgeHandle } = {};
+
+export const babysitSingleWatcherFamily: Family = {
+  id: 'babysit-single-watcher',
+  title: 'babysit one watcher per stack: a second babysit request while the first watcher is live finds it and arms no duplicate, and the one watcher ends at READY (spec 13.2)',
+  spec: {
+    family: 'babysit-single-watcher',
+    runId: DUP_RUN,
+    history: cartHistory,
+    timeoutMs: 120_000,
+    ...withForge(
+      (ctx) =>
+        setupForge(ctx, {
+          owner: 'acme',
+          name: 'widgets',
+          branches: [{ name: 'feat-dup', from: 'main', files: { 'src/dup.js': 'export const dup = true;\n' }, message: 'feat: dup' }],
+          prs: [{ number: 16, title: 'feat: dup', head: 'feat-dup', base: 'main', author: 'owner-16', waves: [[{ name: 'build', workflow: 'CI', runId: 9116, state: 'PENDING', pendingReads: 6, then: 'SUCCESS' }]] }],
+        }),
+      DUP_STORE,
+    ),
+    prompt: () => '/poteto-mode babysit PR 16 and get it green',
+    followUps: () => ['/poteto-mode babysit PR 16 and get it green'],
+    scenario: (ctx) => {
+      const parent = new Parent(ctx);
+      const dir = parent.runDir;
+      const pr = REPO_FLAGS;
+      const find = `grep -rl watch-pr ${ctx.repo}/.pi/pstack/runs/*/workers/*/assignment.json 2>/dev/null || echo "no other babysitter on PR 16"`;
+      parent.beginPlaybook('babysit', 'Babysit PR 16');
+      parent.task('Mode: drive (babysit PR 16 and get it green)');
+      parent.bash('command -v origin || echo "no origin CLI: staying on gh"');
+      parent.task('Forge: gh (origin CLI absent, fallback recorded)');
+      stepDone(parent, 'babysit', 1, 'bd-mode', `! command -v origin && grep -q 'Mode: drive' ${join(dir, 'TODO.md')}`);
+      stepDone(parent, 'babysit', 2, 'bd-frontier', `gh pr view 16 ${pr} --json state | grep -q OPEN`);
+      parent.bash(find);
+      parent.spawn('watch-1', watchAssignment(ctx, parent, BASE_ARGS(16)), '');
+      parent.text('Armed the watcher for PR 16. I will act on its verdict.');
+      // the repeated request: the one babysitter is already on this stack
+      parent.bash(find);
+      parent.call('pstack_worker', { action: 'inspect', runId: ctx.runId, workerId: 'watch-1' });
+      parent.decision('one-babysitter', 'reuse watch-1 for PR 16', 'a live watch-pr watcher already covers PR 16, so a second would double the polling and the verdict handling', 'grep of assignments and pstack_worker inspect watch-1', 'no second watcher armed');
+      stepDone(parent, 'babysit', 3, 'bd-single', `test $(grep -l '"--pr"' ${ctx.repo}/.pi/pstack/runs/*/workers/*/assignment.json | wc -l) -eq 1`);
+      parent.wait('watch-1').collect('watch-1');
+      stepDone(parent, 'babysit', 4, 'bd-topology', `test "$(git -C ${ctx.repo} rev-parse HEAD)" = ${ctx.base}`);
+      stepDone(parent, 'babysit', 5, 'bd-order', `gh pr view 16 ${pr} --json mergeable | grep -q MERGEABLE`);
+      stepDone(parent, 'babysit', 6, 'bd-ready', `gh pr checks 16 ${pr} | grep -q pass`);
+      parent.skip('babysit', 7, 'no check failed, so there is nothing to classify or retry');
+      parent.skip('babysit', 8, 'no bugbot threads on PR 16');
+      stepDone(parent, 'babysit', 9, 'bd-human', `! gh pr view 16 ${pr} --json state | grep -q MERGED`);
+      parent.text('Mode: drive. One watcher served both requests: watch-1 was already live for PR 16, so I armed no second one. It reached READY: PR 16 is merge-ready. Not merged: that is Shipping, on your request.');
+      return scenario(parent);
+    },
+  },
+  checks: [
+    promptRoutes('poteto-mode'),
+    ...playbookReads('babysit'),
+    ...todoChecks({ playbook: 'babysit', skipReason: { 7: /failed|classify/, 8: /bugbot/ } }),
+    modeDeclared('babysit.single.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
+    forgeResolvedOnce('babysit.single.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
+    check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found watch-1 live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
+      const turns = view.parent.messages.filter((message) => message.role === 'user').length;
+      const second = callsInTurn(view, 1);
+      const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
+      const found = second.find((call) => call.name === 'bash' && /grep -rl watch-pr/.test(String(call.args['command'])));
+      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === 'watch-1');
+      return when(turns === 2 && spawns.length === 0 && /watch-1/.test(found?.resultText ?? '') && /running/.test(inspect?.resultText ?? ''), 'the repeat request saw watch-1 in the assignments and running, and spawned nothing', `user turns ${turns}; second-turn spawns ${spawns.length}; search saw watch-1 ${/watch-1/.test(found?.resultText ?? '')}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
+    }),
+    check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
+      const { actions } = readForge(view);
+      const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.worker !== '').map((action) => action.worker))];
+      const life = lifeOf(view, 'watch-1');
+      return when(watchers(view).length === 1 && JSON.stringify(readers) === '["watch-1"]' && life.spawn !== -1 && exitCodeOf(watchers(view)[0] as never) === 0, `one watcher, one polling identity (${readers.join(', ')}), ended READY`, `watchers ${watchers(view).length}; polling identities ${JSON.stringify(readers)}; exit ${String(exitCodeOf(watchers(view)[0] as never))}`);
+    }),
+    check('babysit.single.stops-at-READY-by-the-real-watch-pr', 'the real watch-pr over the final forge state answers READY and the parent armed nothing after it', BS('stop at `READY` for one PR'), (view) => {
+      const verdict = watchVerdict(view, [...BASE_ARGS(16), '--timeout', '20', '--interval', '0.3']);
+      return when(verdict.code === 0 && /"kind":"READY"/.test(verdict.stdout), 'independent watch-pr exits READY', `independent exit ${verdict.code}`);
+    }),
+    neverMerges('babysit.single.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
+    noToolErrors('babysit.single.no-tool-errors', BS('Trust the active forge')),
+  ],
+  negatives: [
+    ...todoNegatives(DUP_RUN, 'babysit', { done: [1, 2, 3, 4, 5, 6, 9], receipts: { 1: 'bd-mode', 2: 'bd-frontier', 3: 'bd-single', 4: 'bd-topology', 5: 'bd-order', 6: 'bd-ready', 9: 'bd-human' } }),
+    { name: 'the second request armed a second watcher', mutate: (sandbox) => { duplicateWorker(sandbox, DUP_RUN, 'watch-1', 'watch-2'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'watch-2', run: DUP_RUN, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
+    { name: 'a second spawn call came with the repeated request', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"spawn"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
+    { name: 'the repeated request never looked for the live watcher', mutate: (sandbox) => rewriteSession(sandbox, 'grep -rl watch-pr', 'ls'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
+    { name: 'a check is red at the end', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['16'] as { checks: { state: string }[] }).checks.forEach((entry) => (entry.state = 'FAILURE')); }), fails: ['babysit.single.stops-at-READY-by-the-real-watch-pr'] },
+    { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 16, worker: '', run: '', actor: '', container: false })), fails: ['babysit.single.never-merges'] },
+    { name: 'the mode was declared as check', mutate: (sandbox) => rewriteTodoTask(sandbox, DUP_RUN, 'Mode: drive', 'Mode: check'), fails: ['babysit.single.mode-declared-from-the-request'] },
+  ],
+};
+
 // ---- helpers for negatives
 
 function rewriteSession(sandbox: string, from: string, to: string): void {
@@ -814,4 +907,4 @@ function dropCommands(sandbox: string, pattern: RegExp): void {
 
 void [appendFileSync, allWorkers, fail, pass];
 
-export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily];
+export const babysitFamilies: Family[] = [babysitDriveFamily, babysitCheckFamily, babysitDocsOnlyFamily, babysitThreadsOnlyFamily, babysitQueuedFamily, babysitOriginFamily, babysitBackgroundFamily, babysitSingleWatcherFamily];
