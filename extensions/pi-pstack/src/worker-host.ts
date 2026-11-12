@@ -240,6 +240,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   // get_state request id to the outcome its quiescence check records. A run's own settle records even when no new
   // generation is outstanding; any other check records only to cover acknowledged work no settle covers yet.
   const quiescenceChecks = new Map<string, { phase: SettlePhase; reason: string | null; always: boolean }>();
+  // The outcome of the latest agent_settled while no settle has recorded it, because Pi was not quiescent yet.
+  let unrecorded: { phase: SettlePhase; reason: string | null } | undefined;
   let settles: HostState['settles'] = [];
   let childPid: number | null = null;
   let stderrTail = '';
@@ -286,6 +288,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
   const display = (kind: string, value: unknown) => process.stdout.write(`[${kind}] ${typeof value === 'string' ? value : JSON.stringify(value)}\n`);
   /** Records an outcome. A run's settle covers what Pi acknowledged; the host ending covers everything accepted. */
   const settle = (settlePhase: SettlePhase, why: string | null, covers = generation) => {
+    unrecorded = undefined;
     const last = settles.at(-1)?.sequence ?? 0;
     settles = [...settles, { sequence: last + 1, generation: covers, phase: settlePhase, reason: why, at: new Date().toISOString() }];
     save();
@@ -379,6 +382,8 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       if (!childExited && phase !== 'stopping') void fail(error);
     });
   };
+  /** After a quiescent transition that is not a run's settle: covers acknowledged work no settle covers yet. */
+  const recheck = (fallback: { phase: SettlePhase; reason: string | null }) => checkQuiescence({ ...(unrecorded ?? fallback), always: false });
   const closeChild = async () => {
     if (childExited) return closed;
     if (assignment.kind === 'watch') signalChild('SIGTERM');
@@ -476,7 +481,11 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       const aborted = record['aborted'] === true;
       if (phase === 'running') phase = 'idle';
       // Which work this settle covers is decided by the answer to get_state, not here: see the response branch.
-      checkQuiescence({ phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null), always: true });
+      unrecorded = { phase: aborted ? 'aborted' : runFailure !== undefined ? 'failed' : 'idle', reason: aborted ? 'Run aborted' : (runFailure ?? null) };
+      checkQuiescence({ ...unrecorded, always: true });
+    } else if (type === 'compaction_end' || type === 'auto_retry_end') {
+      // Either can end after the run's agent_settled found Pi busy; no other settle may follow.
+      recheck({ phase: 'idle', reason: null });
     } else if (type === 'response') {
       const id = typeof record['id'] === 'string' ? record['id'] : undefined;
       const success = record['success'] === true;
@@ -488,7 +497,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         // A rejected prompt is no work. A handled one ran as a command and joins no run, so its settle comes from here.
         else if (generation === carried) generation -= 1;
         save();
-        if (success && isRecord(data) && data['disposition'] === 'handled') checkQuiescence({ phase: 'handled', reason: null, always: false });
+        if (success && isRecord(data) && data['disposition'] === 'handled') recheck({ phase: 'handled', reason: null });
       }
       const check = id === undefined ? undefined : quiescenceChecks.get(id);
       if (id !== undefined && check !== undefined) {
@@ -568,6 +577,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         if (after['isStreaming'] === true || after['pendingMessageCount'] !== 0) throw new Error('Cancellation did not reach quiescence');
         phase = 'idle';
         save();
+        recheck({ phase: 'aborted', reason: 'Run cancelled' });
         return { disposition: 'cancelled', removed, wasStreaming: before['isStreaming'] === true };
       }
       const before = phase;

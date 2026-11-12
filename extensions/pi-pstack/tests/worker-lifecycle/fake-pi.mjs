@@ -4,6 +4,8 @@
 //   @@chunk <text>   run: the prompt response, the run, and agent_settled in one stdout write
 //   @@hold <text>    start a run that replies <text> and stays open until the next prompt arrives
 //   @@env <name>     run: reply with the value of environment variable <name>, or (unset)
+//   @@settle-busy <text>  run: reply <text>, emit agent_settled while still streaming, then compaction_end once quiescent
+//   @@hold-late <text>    like @@hold, but abort emits agent_settled while still streaming and answers once quiescent
 //   @@env-json <names...>  run: reply with a JSON object of each named variable's value, null when unset
 // A prompt that arrives while a held run is open is acknowledged as queued, then the held run settles. The queued
 // prompt stays pending (`@@say`) or starts streaming at once (`@@stream`) until <session-dir>/release exists, then runs.
@@ -18,6 +20,7 @@ const modelArg = process.argv.includes('--model') ? process.argv[process.argv.in
 const model = { provider: modelArg.slice(0, modelArg.indexOf('/')), id: modelArg.slice(modelArg.indexOf('/') + 1) };
 let streaming = false;
 let held = false;
+let late = false;
 const pending = [];
 
 const line = (record) => `${JSON.stringify(record)}\n`;
@@ -37,6 +40,13 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
     process.stdout.write(response(id, type, { model, sessionFile, isStreaming: streaming, pendingMessageCount: pending.length }));
   } else if (type === 'clear_queue') {
     process.stdout.write(response(id, type, { steering: pending.splice(0), followUp: [] }));
+  } else if (type === 'abort' && late) {
+    late = false;
+    process.stdout.write(settled(true));
+    await sleep(100);
+    held = false;
+    streaming = false;
+    process.stdout.write(response(id, type));
   } else if (type === 'abort') {
     const wasHeld = held;
     held = false;
@@ -69,6 +79,18 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
         : textOf(command.message);
     if (command.message.startsWith('@@chunk ')) {
       process.stdout.write(response(id, type, { disposition: 'started' }) + run(text) + settled());
+    } else if (command.message.startsWith('@@settle-busy ')) {
+      streaming = true;
+      process.stdout.write(response(id, type, { disposition: 'started' }) + run(text) + settled());
+      await sleep(300);
+      streaming = false;
+      process.stdout.write(line({ type: 'compaction_end', reason: 'threshold', aborted: false, willRetry: false }));
+    } else if (command.message.startsWith('@@hold-late ')) {
+      streaming = true;
+      held = true;
+      late = true;
+      process.stdout.write(response(id, type, { disposition: 'started' }));
+      process.stdout.write(run(text));
     } else if (command.message.startsWith('@@hold ')) {
       streaming = true;
       held = true;
