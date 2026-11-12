@@ -35,6 +35,9 @@ interface OpsMessage extends SlackMessage {
  * then answer with an error, which is what a crash between a write and its acknowledgement looks like to the parent.
  */
 export function fakeSlack(options: { failPosts?: number } = {}) {
+  /** Files by their private download url, and every request made for one with the Authorization header it carried. */
+  const files = new Map<string, { bytes: Uint8Array | string; contentType: string; status?: number }>();
+  const downloads: { url: string; authorization: string | null; redirect?: string }[] = [];
   const messages: SlackMessage[] = [{ ts: ROOT_TS, user: 'U123', text: REPORT.text }];
   const posts: { thread_ts: string; text: string }[] = [];
   const ops: OpsMessage[] = [];
@@ -44,6 +47,13 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
   const state = { opsDown: false };
   let failPosts = options.failPosts ?? 0;
   const fetchFake: typeof fetch = async (input, init) => {
+    if (init?.method !== 'POST') {
+      const url = String(input);
+      downloads.push({ url, authorization: new Headers(init?.headers).get('authorization'), ...(init?.redirect === undefined ? {} : { redirect: init.redirect }) });
+      const file = files.get(url);
+      if (file === undefined) return new Response('not found', { status: 404 });
+      return new Response(file.bytes as ConstructorParameters<typeof Response>[0], { status: file.status ?? 200, headers: { 'content-type': file.contentType } });
+    }
     const method = new URL(String(input)).pathname.split('/').at(-1) as string;
     const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
     const reply = (value: Record<string, unknown>) => new Response(JSON.stringify({ ok: true, ...value }));
@@ -84,7 +94,7 @@ export function fakeSlack(options: { failPosts?: number } = {}) {
     }
     return new Response(JSON.stringify({ ok: false, error: `unexpected ${method}` }));
   };
-  return { messages, posts, ops, opsEdits, calls, dropAck, state, fetch: fetchFake };
+  return { messages, posts, ops, opsEdits, calls, dropAck, state, files, downloads, fetch: fetchFake };
 }
 
 interface Issue {

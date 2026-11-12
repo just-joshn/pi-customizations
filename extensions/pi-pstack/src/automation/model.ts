@@ -20,7 +20,7 @@ export interface AutomationEvent {
   messageTs: string;
   user: string;
   text: string;
-  files: { name: string; mimetype: string; permalink: string }[];
+  files: { name: string; mimetype: string; permalink: string; size?: number; /** Slack's private download link. Only the parent follows it, with its own credential. */ downloadUrl?: string }[];
 }
 
 export type ParsedEvent = { ok: true; event: AutomationEvent } | { ok: false; reason: string };
@@ -57,7 +57,11 @@ export function parseEvent(raw: unknown): ParsedEvent {
       text: typeof body['text'] === 'string' ? body['text'] : '',
       files: files
         .filter((file): file is Record<string, unknown> => typeof file === 'object' && file !== null)
-        .map((file) => ({ name: str(file['name']) ?? '', mimetype: str(file['mimetype']) ?? '', permalink: str(file['permalink']) ?? '' })),
+        .map((file) => {
+          const link = str(file['url_private_download']) || str(file['url_private']);
+          const size = file['size'];
+          return { name: str(file['name']) ?? '', mimetype: str(file['mimetype']) ?? '', permalink: str(file['permalink']) ?? '', ...(typeof size === 'number' && Number.isFinite(size) && size >= 0 ? { size } : {}), ...(link ? { downloadUrl: link } : {}) };
+        }),
     },
   };
 }

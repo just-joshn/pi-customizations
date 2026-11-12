@@ -6,7 +6,7 @@ import type { BennyConfig } from './configuration.ts';
 import { type SpawnWorker, spawnInTmux } from './dispatch.ts';
 import type { Prerequisite, Probe } from './model.ts';
 import type { TrackerDestination, TrackerLander } from './outbox.ts';
-import { slackDestination } from './slack.ts';
+import { slackDestination, slackFileDownloader } from './slack.ts';
 import { adapterSkillProblem, adapterTracker } from './tracker-adapter.ts';
 import { type GhExec, githubTracker } from './tracker-github.ts';
 import { createTrackerPolicy } from './tracker-policy.ts';
@@ -45,6 +45,7 @@ export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   return createAutomation(automationConfig, {
     destination,
     operations: destination,
+    downloadAttachment: slackFileDownloader({ fetch: deps.fetch, token: deps.slackToken }),
     prerequisites: probes,
     ...(tracker === undefined || policy === undefined ? {} : { tracker, trackerPolicy: policy }),
     ...(config.tracker.type === 'github' && repo !== undefined ? { trackerUrl: (id: string) => `https://github.com/${repo}/issues/${id}` } : {}),

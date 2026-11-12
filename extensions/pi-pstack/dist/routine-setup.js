@@ -8015,6 +8015,9 @@ var WorkerParams = _Object_({
   message: Optional(String2({ description: "steer: the instruction. Delivered as a steer while the worker runs, or as its next prompt when idle." }))
 });
 
+// src/automation/attachments.ts
+var ATTACHMENT_LIMITS = { files: 20, fileBytes: 50 * 1024 ** 2, totalBytes: 200 * 1024 ** 2 };
+
 // src/automation/model.ts
 import { createHash as createHash3 } from "node:crypto";
 var IDENTIFIER = /^[a-z0-9][a-z0-9-]{0,39}$/;

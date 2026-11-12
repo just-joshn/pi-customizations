@@ -2,13 +2,15 @@
 // case gets one tmux worker with no posting capability, and the parent alone performs external posts through an outbox
 // it reconciles against the destination.
 import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
 
-import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
+import { type DispatchConfig, dispatchRun, workerDir, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
 import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, trackerUrlOf, withTrackerAttribute, type OpsEditAction, type OpsStatus, opsText, sourceUrlOf, untrustedText, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
 import { latestStatus } from '../src/automation/operations.ts';
 import { directLander, enqueue, flushOutbox, type OperationsDestination, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
+import { type Download, fetchAttachments } from '../src/automation/attachments.ts';
 import { createFollowUps } from '../src/automation/follow-up.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
 
@@ -30,6 +32,8 @@ export interface AutomationDeps {
   spawnWorker?: SpawnWorker;
   /** A synchronous tracker the parent writes itself, or a lander that hands each write to a worker. */
   tracker?: TrackerDestination | TrackerLander;
+  /** Fetches a report attachment with the parent's Slack credential. Absent: no attachment is downloaded. */
+  downloadAttachment?: Download;
   /** The url of the issue with this id, for a tracker whose urls the parent can build. Another tracker's worker returns its own. */
   trackerUrl?: (id: string) => string | undefined;
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
@@ -130,7 +134,9 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     }
     const runId = runIdFor(config.name, key);
     const trackerUrl = config.kind === 'reproduce' ? trackerUrlOf(thread.find((message) => message.user === config.triageIdentityUserId && /\[benny:(bug|performance)\]/.test(message.text ?? ''))?.text ?? '', trackerAttribute) : undefined;
-    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }) });
+    const { files } = state.entry.event;
+    const attachments = deps.downloadAttachment === undefined || files.length === 0 ? undefined : await fetchAttachments(join(workerDir(config.projectRoot, runId), 'attachments'), files, deps.downloadAttachment);
+    await dispatchRun(config, state.entry.event, runId, { spawnWorker, inputCommit, now, thread, ...(trackerUrl === undefined ? {} : { trackerUrl }), ...(attachments === undefined ? {} : { attachments }) });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
     return { status: 'dispatched', key, runId };
   };
