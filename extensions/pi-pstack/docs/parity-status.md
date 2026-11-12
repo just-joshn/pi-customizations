@@ -22,6 +22,15 @@ node scripts/check-release.mjs                     # the release gate: non-zero 
 
 Run `build-parity-manifest.mjs` from `extensions/pi-pstack` on a clean, committed tree. `--save` writes the report and a `<name>.identity.json` sidecar with the commit, dirty flag and source digest taken around the run. A Vitest exit other than 0 or 1, a signal, an incomplete report, or code that changes during the run aborts the build. A report passed with `--results` and no sidecar has no commit or digest, so the release gate stays closed until it is rerun with `--save`. `node scripts/ci-linux.mjs` writes the Linux sidecar beside its report.
 
+`tests/packaging/installed-helpers.test.ts` checks the installed statechart with real TLC and skips unless `TLA2TOOLS` names the pinned jar (sha256 `936a2620…`, TLC v1.7.4; the test verifies the hash). Run the `--save` step with it set, or the two statechart requirements stay INCONCLUSIVE. `mise install` fetches the same pinned jar and Java:
+
+```sh
+export TLA2TOOLS="$(mise where 'http:tla2tools[url=https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar,checksum=sha256:936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88]@1.7.4')/tla2tools.jar"
+export JAVA="$(mise which java --tool java@temurin-25)"
+```
+
+The Linux workflow downloads the same jar and checks its sha256 before the suite.
+
 `git status` must be clean after `regen.sh`. `tests/integration/pi-load.test.ts` runs the real Pi binary, `/Users/josh-desktop/.pi/agent/bin/pi` unless `PSTACK_E2E_PI` names another.
 
 ## Status by requirement
@@ -34,12 +43,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Tests | Run |
 | --- | --- | --- | --- | --- |
-| 1 | darwin | `fd5f0b0c9de6` | 2564 passed, 0 failed, 94 skipped | local at 2026-11-12T23:41:52.079Z |
+| 1 | darwin | `fd5f0b0c9de6` | 2564 passed, 0 failed, 94 skipped | local at 2026-11-12T23:59:23.936Z |
+| 2 | linux | `50dad3a9ca7a` | 2497 passed, 0 failed, 116 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43326928560 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 149 | 0 | 1 | 40 |
-| behavioral | 93 | 0 | 8 | 0 |
+| behavioral | 96 | 0 | 5 | 0 |
 
 ### Behavioral requirements
 
@@ -86,7 +96,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
@@ -121,7 +131,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `BENNY-DUPLICATE-TICKET` A redelivery or crash never creates a second ticket | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:11-11 |  |
 | `BENNY-FAIL-CLOSED` Missing or uncertain prerequisites block the case | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:35-35 |  |
 | `BENNY-REPRODUCE-TWICE` A symptom is reproduced twice through the real UI before any fix | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:25-25 | declared coverage gap: The parent proves that a worker left two timestamped, distinct captures in the run folder, not that a real application UI was driven or that a capture shows the discriminating broken state. That needs a live application and the project's control skill, which no test runs. |
-| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 | missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with an insufficient fix is reported as Reproduced and still starts no fix of the worker's own; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Blocked, with nothing in the source thread; missing: tests/automation/proof.test.ts::an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Blocked, with nothing in the source thread |
+| `BENNY-EXISTING-FIX` An existing fix is verified, not competed with | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:19-19 | declared coverage gap: The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs. |
 | `BENNY-DRAFT-ONLY` Benny opens draft PRs only and never merges or deploys | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:291-291 |  |
 | `BENNY-OUTBOX-RESTART` A crash after posting but before acknowledgement does not post again | 14.2 | PASS | vendor/upstream-pstack/automations/benny/FOR_AGENTS.md:13-13 |  |
 | `BENNY-EVENT-DELIVERY` Webhook delivery authenticates, bounds and deduplicates events | 14.1 | PASS | specification 14.1 |  |
@@ -133,8 +143,8 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `BENNY-VERDICT-WAIT` Reproduce waits for a trusted triage verdict instead of rejecting at event time | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:56-78 |  |
 | `BENNY-TRACKER-URL` The posted verdict carries the tracker url the repro automation reads | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:209-222 |  |
 | `BENNY-ATTACHMENTS` Report attachments are inspected, and an unreadable one is named | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:59-65 |  |
-| `BENNY-EVIDENCE-IN-THREAD` Allowed evidence is attached to the one source reply by the parent, or linked | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:214-214 | missing: tests/automation/evidence.test.ts::what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread |
-| `BENNY-REJECTION-WINDOW` No fix starts until the rejection window closes without a valid rejection | 14.2 | INCONCLUSIVE | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:216-216 | missing: tests/automation/fix-guard.test.ts::a fix started before the go-ahead is stopped a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place |
+| `BENNY-EVIDENCE-IN-THREAD` Allowed evidence is attached to the one source reply by the parent, or linked | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:214-214 |  |
+| `BENNY-REJECTION-WINDOW` No fix starts until the rejection window closes without a valid rejection | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:216-216 |  |
 | `BENNY-OPS-FOLLOW-UP` The repro automation watches the operations thread for one follow-up window | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:301-308 |  |
 | `BENNY-TRIAGE-FOLLOW-UP` Triage watches the source thread for one follow-up window | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/triage-issue-reports/SKILL.md:230-240 |  |
 | `BENNY-OPS-STATUS` The repro workflow's one root post is the operations status message | 14.2 | PASS | vendor/upstream-pstack/automations/benny/skills/reproduce-and-fix-issues/SKILL.md:107-107 |  |

@@ -2265,7 +2265,7 @@
     },
     "bn.evidence.7": {
       "file": "tests/automation/evidence.test.ts",
-      "name": "what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the count, past the retention window or missing is skipped with its reason, and the reply links the operations thread"
+      "name": "what upstream does not allow is not attached a file outside the run's directory, behind a link, outside the allowed types, past the retention window or missing is skipped with its reason, the fourth good file goes in the operations thread, and the reply links the operations thread"
     },
     "bn.evidence.8": {
       "file": "tests/automation/evidence.test.ts",
@@ -2417,35 +2417,35 @@
     },
     "bn.proof.26": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with an insufficient fix is reported as Reproduced and still starts no fix of the worker's own"
+      "name": "an existing fix is verified, not competed with an insufficient fix is a verified failing fix: shown as Reproduced but not fixed, recorded as Reproduced, and it starts no fix of the worker's own"
     },
     "bn.proof.27": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with no existingFix section is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.28": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a link that is not a github.com pull request or commit is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.29": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a thread claim in place of a link is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.30": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with an outcome that is not confirmed is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.31": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with a baseline measured once is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.32": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with no patched runs is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.proof.33": {
       "file": "tests/automation/proof.test.ts",
-      "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Blocked, with nothing in the source thread"
+      "name": "an existing fix is verified, not competed with Verifying existing fix with patched runs measured before the baseline is recorded as Verification incomplete, not Blocked and not Could not reproduce, with nothing in the source thread"
     },
     "bn.benny-tmux.9": {
       "file": "tests/automation/benny-tmux.test.ts",
@@ -2525,7 +2525,7 @@
     },
     "bn.fix-guard.18": {
       "file": "tests/automation/fix-guard.test.ts",
-      "name": "a fix started before the go-ahead is stopped a pull request the worker opened early is made a draft, closed with a comment, and its branch is left in place"
+      "name": "a fix started before the go-ahead is stopped an early draft pull request the parent opened, by its own record and marker, is closed with an explanatory comment and its branch is left in place"
     },
     "bn.fix-guard.19": {
       "file": "tests/automation/fix-guard.test.ts",
@@ -3150,6 +3150,38 @@
     "real.container.push": {
       "file": "tests/workflow-parity/real-forge.test.ts",
       "name": "real forge evidence replay a container worker with the forge capability pushed a branch to github.com: the commit the worker made is the one the GitHub API showed"
+    },
+    "bn.proof.34": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with a fix claimed to leave the symptom, with a baseline that never showed it twice, is incomplete verification and not a verified failing fix"
+    },
+    "bn.proof.35": {
+      "file": "tests/automation/proof.test.ts",
+      "name": "an existing fix is verified, not competed with a worker that reports its own verification incomplete posts nothing in the source thread, whatever its text, and starts no fix"
+    },
+    "bn.evidence.16": {
+      "file": "tests/automation/attachment-limits.test.ts",
+      "name": "three files is what one Slack message takes, never what a run collects seven evidence files are all stored; the first three go with the one source reply and the rest in further operations-thread messages"
+    },
+    "bn.evidence.17": {
+      "file": "tests/automation/attachment-limits.test.ts",
+      "name": "three files is what one Slack message takes, never what a run collects exactly three files need no further message"
+    },
+    "bn.fix-guard.25": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a pull request the worker opened itself is reported and left open: the branch name alone does not make it the automation's"
+    },
+    "bn.fix-guard.26": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped the marker in a body without the parent's record, or the record without the marker in the body, is not ownership"
+    },
+    "bn.fix-guard.27": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped a record for another pull request number does not make this one the automation's"
+    },
+    "bn.fix-guard.28": {
+      "file": "tests/automation/fix-guard.test.ts",
+      "name": "a fix started before the go-ahead is stopped the stop repeated after a restart closes nothing twice and comments once"
     }
   },
   "structural": [
@@ -6165,7 +6197,7 @@
         ],
         "anchor": "verification instead of a competing change"
       },
-      "observable": "When an open PR or merged commit may fix the report, the automation verifies it. The parent accepts Verifying existing fix only with a record naming a github.com pull request or commit link, a baseline measured twice and the patched build measured twice after it, and records Blocked without one; an existing fix, confirmed or insufficient, starts no fix of the case's own.",
+      "observable": "When an open PR or merged commit may fix the report, the automation verifies it. The parent accepts Verifying existing fix only with a record naming a github.com pull request or commit link, a baseline measured twice and the patched build measured twice after it, and records Verification incomplete without one, with nothing in the source thread; an existing fix, confirmed or insufficient, starts no fix of the case's own.",
       "invariants": [
         "No competing change."
       ],
@@ -6186,7 +6218,9 @@
         "bn.proof.30",
         "bn.proof.31",
         "bn.proof.32",
-        "bn.proof.33"
+        "bn.proof.33",
+        "bn.proof.34",
+        "bn.proof.35"
       ],
       "coverageGap": "The parent proves the verification record, not that a fix artifact existed for the report (a worker's search of the thread, tracker and repository) or that the patched build really ran. That needs a live application and repository, which no test runs."
     },
@@ -6604,7 +6638,9 @@
         "bn.benny-template.5",
         "bn.benny-template.6",
         "bn.benny-template.7",
-        "bn.benny-tmux.8"
+        "bn.benny-tmux.8",
+        "bn.evidence.16",
+        "bn.evidence.17"
       ]
     },
     {
@@ -6619,7 +6655,7 @@
         ],
         "anchor": "Wait for the configured rejection window."
       },
-      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection. A worker that commits, pushes or opens a pull request before the go-ahead is found from the run branch, the worktree's reflog, the remote and the forge, and is stopped: the repro report stands, no pull request is left (an open one is made a draft and closed with a comment), its branch is left in place, the operations thread says what was found, and no fix turn follows.",
+      "observable": "After the repro report the parent holds rejection_window_minutes, sends the idle worker the people's messages to judge, stops it when a person rejects or claims the fix, allows one correction, and sends the fix-phase go-ahead only when the window closes with no rejection. A worker that commits, pushes or opens a pull request before the go-ahead is found from the run branch, the worktree's reflog, the remote and the forge, and is stopped: the repro report stands, no pull request the parent opened is left open (it is closed with a comment), and one the worker opened itself is left open and reported, because a branch name alone does not make a pull request the automation's, its branch is left in place, the operations thread says what was found, and no fix turn follows.",
       "invariants": [
         "Do not start the fix phase until the window closes without a valid rejection.",
         "Correct the repro once."
@@ -6659,7 +6695,11 @@
         "bn.fix-guard.22",
         "bn.fix-guard.23",
         "bn.fix-guard.24",
-        "bn.benny-tmux.11"
+        "bn.benny-tmux.11",
+        "bn.fix-guard.25",
+        "bn.fix-guard.26",
+        "bn.fix-guard.27",
+        "bn.fix-guard.28"
       ]
     },
     {

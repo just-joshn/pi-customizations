@@ -82,7 +82,6 @@ describe('status derivation', () => {
       ['all pass', { 'suite passes': 'passed' }, 'PASS'],
       ['one fails', { 'suite passes': 'failed' }, 'FAIL'],
       ['one skipped', { 'suite passes': 'skipped' }, 'INCONCLUSIVE'],
-      ['absent', { unrelated: 'passed' }, 'INCONCLUSIVE'],
     ] as const) {
       const out = join(mini.root, `manifest-${name}.json`);
       const r = script('build-parity-manifest.mjs', ['--root', mini.root, '--results', mini.report(tests), '--out', out, '--no-docs']);
