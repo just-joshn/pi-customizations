@@ -567,7 +567,7 @@ function prepareWorktree(loaded, inputCommit) {
 }
 function prepareSocket(path) {
   const directory = dirname2(path);
-  if (directory.startsWith("/tmp/pstack-")) {
+  if (directory === `/tmp/pstack-${process.getuid?.() ?? 0}`) {
     mkdirSync2(directory, { recursive: true, mode: 448 });
     const stat = lstatSync2(directory);
     if (stat.isSymbolicLink() || !stat.isDirectory() || stat.uid !== process.getuid?.() || (stat.mode & 63) !== 0)

@@ -25,15 +25,31 @@ jobs:
       - name: System packages
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq bubblewrap python3 tmux git
+          sudo apt-get install -y -qq bubblewrap python3 tmux git ripgrep jq
           # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           bwrap --version
       - run: bun install
-      - name: Linux security tests
+      - name: Pi for the worker tests
+        run: |
+          # The worker, container, and Pi-load tests drive a managed Pi install laid out as <agent>/{bin/pi,install/releases/<v>/...}.
+          # It lives outside ~/.pi/agent so the standalone-shim test, which compares against the newest Pi installed there, skips.
+          agent="$HOME/pi-e2e/agent"
+          version=$(node -p "JSON.parse(require('node:fs').readFileSync('node_modules/@earendil-works/pi-coding-agent/package.json','utf8')).version")
+          mkdir -p "$agent/bin" "$agent/install/releases/$version"
+          ln -s "$PWD/node_modules/.bin/pi" "$agent/bin/pi"
+          ln -s "$PWD/node_modules" "$agent/install/releases/$version/node_modules"
+          echo "$version" > "$agent/install/current-version"
+          echo "PSTACK_E2E_PI=$agent/bin/pi" >> "$GITHUB_ENV"
+          "$agent/bin/pi" --version
+      - name: Whole suite
+        timeout-minutes: 15
         run: |
           mkdir -p out
-          npx vitest run tests/security --reporter=json --outputFile=out/linux-security.json
+          status=0
+          timeout 780 npx vitest run --reporter=./scripts/ci-linux/progress-reporter.mjs --reporter=dot --reporter=json --outputFile.json=out/linux-all.json > out/all.log 2>&1 || status=$?
+          sed 's/\x1b\[[0-9;]*m//g' out/all.log | grep -E "progress|^ +[0-9]+s |FAIL|Test Files|Tests |Duration" | tail -80
+          exit $status
       - name: Identify the results
         if: ${{ !cancelled() }}
         run: |
@@ -42,7 +58,7 @@ jobs:
             const fs = require("node:fs");
             const snap = JSON.parse(fs.readFileSync("ci-snapshot.json", "utf8"));
             const identity = { platform: process.platform, commit: snap.commit, sourceDigest: sourceDigest("."), runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`, nodeVersion: process.version, root: process.cwd() };
-            for (const name of ["linux-security"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
+            for (const name of ["linux-all"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
           });
           '
           cp ci-snapshot.json out/

@@ -262,7 +262,8 @@ function prepareWorktree(loaded: LoadedAssignment, inputCommit: string): void {
 
 function prepareSocket(path: string): void {
   const directory = dirname(path);
-  if (directory.startsWith('/tmp/pstack-')) {
+  // Only the per-user fallback directory is ours to make private; a project whose own path starts with /tmp/pstack- (any Linux mkdtemp prefix) keeps its directory modes.
+  if (directory === `/tmp/pstack-${process.getuid?.() ?? 0}`) {
     mkdirSync(directory, { recursive: true, mode: 0o700 });
     const stat = lstatSync(directory);
     if (stat.isSymbolicLink() || !stat.isDirectory() || stat.uid !== process.getuid?.() || (stat.mode & 0o077) !== 0) throw new Error(`${directory} must be a private directory owned by this user`);

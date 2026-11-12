@@ -11,8 +11,7 @@ const bundled: [name: string, notice: string][] = [['yaml', 'licenses/yaml.LICEN
 test.each(bundled)('%s is inlined into a dist bundle, so its license ships and the README lists it', (name, notice) => {
   const bundle = readFileSync(join(root, 'dist/automation-serve.js'), 'utf8');
   expect(bundle).toContain(`node_modules/${name}/`);
-  const installed = readFileSync(join(root, 'node_modules', name, 'LICENSE'), 'utf8');
-  if (name === 'yaml') expect(readFileSync(join(root, notice), 'utf8')).toContain(installed.trim());
+  if (name === 'yaml') expect(readFileSync(join(root, notice), 'utf8')).toContain(readFileSync(join(root, 'node_modules', name, 'LICENSE'), 'utf8').trim());
   expect(readFileSync(join(root, 'README.md'), 'utf8')).toContain(notice);
   const pack = spawnSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { cwd: root, encoding: 'utf8' });
   expect(pack.status, pack.stderr).toBe(0);
