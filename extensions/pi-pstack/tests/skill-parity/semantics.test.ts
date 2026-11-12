@@ -23,7 +23,7 @@ describe('readonly investigators and reviewers (defect 1)', () => {
 
   test('a readonly worker has bash_readonly and reports through its final reply, not report.md', () => {
     expect(line('skills/poteto-mode/SKILL.md', 97)).toMatch(/`\{ mode: "readonly", path \}`, with an absolute `path`, for a worker limited to `read`, `grep`, `find`, `ls`, `bash_readonly`/);
-    for (const role of ['poteto.md', 'comment-sicko.md', 'general.md']) expect(gen(`agents/${role}`)).toContain('A readonly worker cannot write files. Its final reply is its report');
+    for (const role of ['poteto.md', 'comment-sicko.md', 'general.md']) expect(gen(`agents/${role}`)).toContain('writes no `report.md` and records no receipts. Its final reply is its report');
     expect(gen('skills/reflect/SKILL.md')).toContain('Reviewers return findings in their final reply, which `collect` returns.');
   });
 

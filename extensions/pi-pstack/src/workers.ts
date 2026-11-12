@@ -308,6 +308,7 @@ export function workerFinalText(loaded: LoadedAssignment, sessionFile: string | 
 function collectOutputs(loaded: LoadedAssignment, sessionFile: string | null): { report: string | null; finalText: string | null; evidence: string[] } {
   const { workerDir, assignment } = loaded;
   const finalText = workerFinalText(loaded, sessionFile);
+  if (assignment.workspace.mode === 'readonly') return { report: finalText, finalText, evidence: [] };
   if (assignment.workspace.mode !== 'container') {
     const report = join(workerDir, 'report.md');
     return { report: existsSync(report) ? readFileSync(report, 'utf8') : null, finalText, evidence: listFiles(join(workerDir, 'evidence')) };
@@ -905,7 +906,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
     name: 'pstack_worker',
     label: 'pstack worker',
     description:
-      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. You choose the runId (a short lowercase id); write the assignment and brief under it, then spawn: the first spawn into an id creates the run for this session, with no other setup. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled.`,
+      `Run pstack workers: real Pi processes in tmux sessions, each with its own assignment file under .pi/pstack/runs/<runId>/workers/<workerId>/. You choose the runId (a short lowercase id); write the assignment and brief under it, then spawn: the first spawn into an id creates the run for this session, with no other setup. spawn returns with the tmux attach command once the worker's host answers. When tmux loses its answer about the launch, spawn first waits up to ${startCheckMs / 1000} s to learn whether the worker started. The parent is woken by a pstack-worker message when the worker settles. inspect reads live state, steer sends an instruction, abort clears queued work and stops the worker, collect returns report.md, the final assistant text, and evidence files once the worker has settled. A readonly worker writes no report.md, so collect returns its final reply as the report.`,
     promptSnippet: 'Spawn, inspect, steer, abort, or collect tmux-hosted pstack worker processes',
     promptGuidelines: ['Use pstack_worker collect only after a pstack-worker wake message or an inspect that shows the worker settled; before that it returns live state, not a result.'],
     parameters: WorkerParams,
@@ -957,8 +958,10 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
         sessionFile: state.sessionFile,
       };
       const rejected = receipts === undefined || receipts.rejected.length === 0 ? '' : `\n\nContainer receipts rejected: ${receipts.rejected.map(({ workerId: from, file, reason }) => `${from}/${file}: ${reason}`).join('; ')}`;
+      const settledLine = `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).`;
+      if (loaded.assignment.workspace.mode === 'readonly') return text(`${settledLine}\n\nReport (a readonly worker's final reply, since it cannot write report.md):\n${result.finalText ?? '(none)'}${rejected}`, result);
       return text(
-        `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
+        `${settledLine}\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },

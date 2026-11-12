@@ -7633,7 +7633,7 @@ var ReceiptSchema = _Object_({
 var EvidenceParams = _Object_({
   action: StringEnum(["record", "verify", "list"], { description: "record stores a receipt file as verification/receipts/<id>.json; verify re-checks every receipt for a target; list shows recorded receipts." }),
   runId: String2({ description: "The run id (the folder under .pi/pstack/runs)." }),
-  receiptPath: Optional(String2({ description: "record: the receipt JSON file, inside the run root." })),
+  receiptPath: Optional(String2({ description: "record: the receipt JSON file, inside the run root. A relative path is tried under the project directory first (so `.pi/pstack/runs/<id>/x.json` works), then under the run root." })),
   target: Optional(String2({ description: "verify: a TODO step id, worker id, or commit." }))
 });
 
