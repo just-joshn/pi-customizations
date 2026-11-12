@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["src/run-files.ts", "src/worker-host.ts", "src/rpc-client.ts", "src/workers.ts", "src/evidence.ts", "tests/worker-lifecycle/**/*.ts", "tests/recovery/**/*.ts"]
+}
