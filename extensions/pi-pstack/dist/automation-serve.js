@@ -16934,6 +16934,31 @@ function createFixGuard(host) {
         appendLog(store, { ts: stamp(), kind: "draft-guard", key: run.key, runId: run.runId, pullRequest: pr.url });
     }
   };
+  const stop = async (run, seen) => {
+    await host.abort(config.projectRoot, run.runId);
+    let pushed = "unknown";
+    const urls = [];
+    if (forge.target !== undefined) {
+      pushed = await forge.pushed(config.projectRoot, run.runId);
+      for (const pr of await forge.pullRequests(run.runId)) {
+        if (pr.state !== "OPEN")
+          continue;
+        const { pr: draft } = await forge.ensureDraft(pr);
+        await forge.close(draft, "Closed by the Benny parent: the repro worker started its fix before the rejection window closed, so no pull request is wanted for this case.");
+        urls.push(pr.url);
+      }
+    }
+    const commits = (count, where) => `${count} commit${count === 1 ? "" : "s"} ${where}`;
+    const found = [seen.ahead > 0 ? commits(seen.ahead, "on its run branch") : seen.committed > 0 ? commits(seen.committed, "in its worktree") : "", pushed === true ? "a pushed run branch" : "", urls.length > 0 ? `a pull request (${urls.join(", ")})` : ""].filter((part) => part !== "");
+    if (run.event !== undefined) {
+      const reported = await host.report(run.event, run.runId, { operations: `The repro worker started the fix before the go-ahead (${found.join(", ")}). It was stopped and no fix was attempted: the repro report stands.${urls.length > 0 ? " The pull request was closed." : ""}${pushed === true ? " Its branch was left in place." : ""}` }, "unprompted-fix");
+      if (!reported)
+        return;
+    }
+    appendLog(store, { ts: stamp(), kind: "unprompted-fix", key: run.key, runId: run.runId, ahead: seen.ahead, committed: seen.committed, pushed, pullRequests: urls });
+    if (run.completed && !readLog(store).some((entry) => entry.kind === "repro-closed" && entry.key === run.key))
+      appendLog(store, { ts: stamp(), kind: "repro-closed", key: run.key, runId: run.runId, reason: "the worker started the fix before the go-ahead, so it was stopped and no fix was attempted" });
+  };
   return {
     async advance() {
       if (config.kind !== "reproduce")
@@ -16942,9 +16967,22 @@ function createFixGuard(host) {
         if (run.retired || run.stopped)
           continue;
         try {
+          if (!run.goAhead) {
+            const seen = await forge.state(config.projectRoot, run.runId);
+            if (seen.ahead > 0 || seen.committed > 0) {
+              await stop(run, seen);
+              continue;
+            }
+          }
           const due = host.now().getTime() - (lastRead.get(run.runId) ?? 0) >= FORGE_READ_MS;
           if (due) {
             lastRead.set(run.runId, host.now().getTime());
+            if (!run.goAhead && forge.target !== undefined) {
+              if (await forge.pushed(config.projectRoot, run.runId) || (await forge.pullRequests(run.runId)).length > 0) {
+                await stop(run, await forge.state(config.projectRoot, run.runId));
+                continue;
+              }
+            }
             await sweepDrafts(run);
           }
         } catch (error) {
