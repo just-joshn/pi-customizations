@@ -4,23 +4,23 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "9ca83fbfb62de56f79936305acc7eb6eecdca282d65e4863b84aaa1ec3a65989",
+  "requirementsDigest": "92e4f4a802890f8ff0788a10a08a1e7a951e79d3c6033586b33e79b05aa9052a",
   "run": {
-    "startedAt": "2026-11-12T08:49:13.112Z",
-    "generatedAt": "2026-11-12T08:49:50.265Z",
-    "commit": "a77dc66a4dcf62b3c5afaba992861156b38d19ac",
+    "startedAt": "2026-11-12T08:55:17.727Z",
+    "generatedAt": "2026-11-12T08:56:31.184Z",
+    "commit": "dbd35a3f887082b5f403fc8a79c3b5d2e1f5273e",
     "dirty": false,
     "resultsSource": "vitest run",
-    "totalTests": 743,
-    "passedTests": 730,
+    "totalTests": 852,
+    "passedTests": 839,
     "failedTests": 1,
     "skippedTests": 12
   },
   "counts": {
     "structural": {
-      "PASS": 148,
+      "PASS": 149,
       "FAIL": 0,
-      "INCONCLUSIVE": 2,
+      "INCONCLUSIVE": 1,
       "N/A": 40
     },
     "behavioral": {
@@ -15113,10 +15113,10 @@
       "id": "SRC-GROUP/statechart-tests",
       "kind": "script-test",
       "specSection": "12.6",
-      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test).",
+      "piMechanism": "Shipped under generated/skills/statechart/scripts/test; run by `bun run test:statechart` (node --test) and by tests/packaging/statechart-suite.test.ts.",
       "dependencies": [],
       "prerequisites": [],
-      "verification": "`bun run test:statechart`, which is not a Vitest test. No Vitest test runs these files, so the status stays INCONCLUSIVE until one does.",
+      "verification": "tests/packaging/statechart-suite.test.ts runs every test file in the suite under Node and requires zero failures.",
       "applicability": {
         "mandatory": true
       },
@@ -18135,12 +18135,23 @@
       },
       "observable": "The statechart upstream test suite and its corpus ship with the package and pass when run.",
       "invariants": [
-        "The suite is the upstream suite, unmodified."
+        "The suite is the upstream suite. The only rewrite is the launcher-entry assertion in cli.test.ts (rule statechart.installed-entry-test), which follows the launcher's entry at dist/statechart.js."
       ],
-      "tests": [],
-      "results": [],
-      "status": "INCONCLUSIVE",
-      "reason": "no test is linked"
+      "tests": [
+        {
+          "file": "tests/packaging/statechart-suite.test.ts",
+          "name": "the upstream statechart suite passes against the generated skill"
+        }
+      ],
+      "results": [
+        {
+          "file": "tests/packaging/statechart-suite.test.ts",
+          "name": "the upstream statechart suite passes against the generated skill",
+          "outcome": "passed"
+        }
+      ],
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "SRC/pstack/automations/benny/FOR_AGENTS.md",
@@ -20485,9 +20496,9 @@
       "invariants": [
         "Skill names equal upstream names.",
         "Arguments after the name arrive unchanged.",
-        "Only a leading /name expands."
+        "A leading /name expands through its own prompt, and a /name later in a message attaches its skill once, as Cursor's findSkillReferences does, only inside an active pstack workflow: the persistent style is on for the session branch, or the message itself invokes a pstack skill (leading /name, /skill:name, /pstack:name, or a mid-message pstack name). Inside that scope every skill Pi loaded (pstack or not, from pi.getCommands) attaches; outside it the input is untouched and Pi behaves natively."
       ],
-      "piMechanism": "generated/prompts aliases plus the input handler in src/extension.ts.",
+      "piMechanism": "generated/prompts aliases plus the input handler in src/skill-routing.ts, which rewrites a message that names a skill beyond its start to Pi's own /skill:<name> form.",
       "dependencies": [],
       "prerequisites": [
         "pi on PATH"
@@ -20516,6 +20527,58 @@
         {
           "file": "tests/skill-parity/slash-routing.test.ts",
           "name": "the package ships 62 generated skills, each with a prompt that loads it and passes the arguments"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a skill named after other words is attached as a /skill: command carrying the whole message"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "several skills attach once each: the first as the command, the rest as blocks ahead of the message"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a leading /name keeps its own skill and later names attach after it, in order"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "paths, other words, code, and an attached block name nothing"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a message led by another command or template is not touched"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "every attached block is the text Pi builds for /skill:<name>"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "inside a pstack workflow a loaded non-pstack skill attaches too, in first-reference order"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "with the pstack style on, a non-pstack skill attaches without a pstack name"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "outside a pstack workflow a non-pstack skill name leaves the input untouched"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "a loaded non-pstack skill attaches mid-message only inside a pstack workflow"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "parent session a skill named mid-message attaches as Pi expands /skill:<name>, once, in RPC mode"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "a skill named mid-message attaches the same way in print mode, and a leading prompt template still expands"
         },
         {
           "file": "tests/integration/pi-load.test.ts",
@@ -20553,6 +20616,71 @@
           "outcome": "passed"
         },
         {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a skill named after other words is attached as a /skill: command carrying the whole message",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "several skills attach once each: the first as the command, the rest as blocks ahead of the message",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a leading /name keeps its own skill and later names attach after it, in order",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "paths, other words, code, and an attached block name nothing",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "a message led by another command or template is not touched",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "every attached block is the text Pi builds for /skill:<name>",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "inside a pstack workflow a loaded non-pstack skill attaches too, in first-reference order",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "with the pstack style on, a non-pstack skill attaches without a pstack name",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/skill-parity/mid-message.test.ts",
+          "name": "outside a pstack workflow a non-pstack skill name leaves the input untouched",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "a loaded non-pstack skill attaches mid-message only inside a pstack workflow",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "parent session a skill named mid-message attaches as Pi expands /skill:<name>, once, in RPC mode",
+          "outcome": "passed"
+        },
+        {
+          "file": "tests/integration/pi-load.test.ts",
+          "name": "a skill named mid-message attaches the same way in print mode, and a leading prompt template still expands",
+          "outcome": "passed"
+        },
+        {
           "file": "tests/integration/pi-load.test.ts",
           "name": "parent session /name expands the skill prompt with its arguments, and /pstack on puts poteto-mode in context once",
           "outcome": "passed"
@@ -20564,7 +20692,7 @@
         }
       ],
       "status": "PASS",
-      "reason": "7 linked test(s) ran and passed"
+      "reason": "20 linked test(s) ran and passed"
     },
     {
       "id": "MX-PLAN-ONLY",
