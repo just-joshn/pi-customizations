@@ -549,3 +549,50 @@ export function parentOpenedFiles(id: string, title: string, source: Src | Src[]
     return when(wanted.length > 0 && missing.length === 0, `parent opened ${wanted.length} files`, `parent never opened ${missing.join(', ')}`);
   });
 }
+
+// ---- git evidence, read independently of the product
+
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+
+/** Commits a worker's branch holds beyond the base commit, oldest first. */
+export function branchCommits(view: RunView, runId: string, workerId: string): string[] {
+  return [...(view.git.branchCommits[`pstack-run/${runId}/${workerId}`] ?? [])].reverse();
+}
+
+export function filesChanged(view: RunView, sha: string): string[] {
+  const result = spawnSync('git', ['-C', view.repo, 'diff-tree', '--no-commit-id', '--name-only', '-r', '--root', sha], { encoding: 'utf8' });
+  return result.stdout.split('\n').filter(Boolean);
+}
+
+/** Runs a shell command in a clean export of the commit and returns its exit status and output. */
+export function runAtCommit(view: RunView, sha: string, command: string): { status: number; output: string } {
+  const dir = mkdtempSync(join(tmpdir(), 'wf-commit-'));
+  try {
+    const archive = spawnSync('sh', ['-c', `git -C ${JSON.stringify(view.repo)} archive ${sha} | tar -x -C ${JSON.stringify(dir)}`], { encoding: 'utf8' });
+    if (archive.status !== 0) return { status: 127, output: archive.stderr };
+    const run = spawnSync('sh', ['-c', command], { cwd: dir, encoding: 'utf8', timeout: 60_000 });
+    return { status: run.status ?? 1, output: `${run.stdout}${run.stderr}` };
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+/** Every commit of the worker's branch, run on its own: each unit ends in a check that passes. */
+export function everyCommitGreen(id: string, source: Src | Src[], runId: (view: RunView) => string, workerId: string, options: { min: number; command?: string }): Check {
+  return check(id, `the worker's branch holds at least ${options.min} commits and every one passes \`${options.command ?? 'node --test'}\` on its own`, source, (view) => {
+    const commits = branchCommits(view, runId(view), workerId);
+    const results = commits.map((sha) => ({ sha, ...runAtCommit(view, sha, options.command ?? 'node --test') }));
+    const red = results.filter((result) => result.status !== 0);
+    return when(commits.length >= options.min && red.length === 0, `${commits.length} commits, all green: ${commits.map((sha) => sha.slice(0, 8)).join(', ')}`, `commits ${commits.length}, red at ${red.map((result) => `${result.sha.slice(0, 8)}: ${result.output.slice(-120)}`).join('; ')}`);
+  });
+}
+
+/** The parent's own writes stay out of production source: only .pi/pstack and the sandbox scratch. */
+export function parentWritesOnlyScratch(id: string, title: string, source: Src | Src[]): Check {
+  return check(id, title, source, (view) => {
+    const production = view.parent.toolCalls.filter((call) => (call.name === 'write' || call.name === 'edit') && String(call.args['path'] ?? '').startsWith(view.repo) && !String(call.args['path']).includes('/.pi/pstack/'));
+    return when(production.length === 0 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, 'the parent wrote nothing into production source and the main checkout is clean', `parent wrote ${production.map((call) => String(call.args['path'])).join(', ') || 'nothing'}; dirty ${view.git.dirty.join(', ') || 'none'}; commits ${view.git.commitsSinceBase.length}`);
+  });
+}

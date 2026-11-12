@@ -97,6 +97,8 @@ export interface Receipt {
   verdict: string;
   commit: string | null;
   artifacts: { path: string; sha256: string }[];
+  exitCode?: number;
+  command?: string[];
   [key: string]: unknown;
 }
 

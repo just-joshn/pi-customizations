@@ -90,7 +90,7 @@ function arenaSteps(parent: Parent, options: { candidate: (index: number) => { i
   markPhase(parent, ARENA_PHASE_NAMES[0] as string);
   parent.fire(...staged);
   ids.forEach((id, index) => {
-    workers[id] = writer(parent, id, { files: options.files[index as 0 | 1], commit: `candidate ${id}`, test: 'node --test', report: options.reports[index as 0 | 1] });
+    workers[id] = writer(parent, id, { units: [{ files: options.files[index as 0 | 1], commit: `candidate ${id}` }], test: 'node --test', report: options.reports[index as 0 | 1] });
   });
   markPhase(parent, ARENA_PHASE_NAMES[1] as string);
   for (const id of ids) parent.wait(id);
@@ -291,7 +291,7 @@ export const architectFamily: Family = {
       const staged = ids.map((id, index) => parent.stage(id, { role: 'candidate', model: model('architect runners', index), workspace: parent.worktree() }, brief(worktreeOf(parent, id))));
       parent.fire(...staged);
       ids.forEach((id, index) => {
-        workers[id] = writer(parent, id, { files: { 'design.md': DESIGN_A(index === 0 ? SHAPE_1 : SHAPE_2) }, commit: `design ${id}`, test: 'test -s design.md', testKind: 'command', report: `Design ${id} written. Alternatives considered: ${index === 0 ? 'branded type' : 'plain function'}.` });
+        workers[id] = writer(parent, id, { units: [{ files: { 'design.md': DESIGN_A(index === 0 ? SHAPE_1 : SHAPE_2) }, commit: `design ${id}` }], test: 'test -s design.md', testKind: 'command', report: `Design ${id} written. Alternatives considered: ${index === 0 ? 'branded type' : 'plain function'}.` });
       });
       for (const id of ids) parent.wait(id);
       parent.collect(...ids);
@@ -304,7 +304,7 @@ export const architectFamily: Family = {
       parent.write(rationale, `${DESIGN_A(SHAPE_1).replace('Filled in by arena.', 'Base candidate-1, grafted the typed parse boundary idea from candidate-2, rejected the branded type everywhere because it widens the interface.')}`);
       markPhase(parent, ARCHITECT_PHASES[2] as string);
       parent.spawn('implement', { role: 'poteto', model: model('feature, refactoring'), workspace: parent.worktree() }, `Implement the sketch in ${rationale}: src/coupon.js with clampPercent, replacing not implemented bodies. Commit.`);
-      workers['implement'] = writer(parent, 'implement', { files: { 'src/coupon.js': COUPON_A, 'test/coupon.test.js': COUPON_A_TEST }, commit: 'implement clampPercent against the sketch', test: 'node --test', report: 'Implemented the sketch without deviation.' });
+      workers['implement'] = writer(parent, 'implement', { units: [{ files: { 'src/coupon.js': COUPON_A, 'test/coupon.test.js': COUPON_A_TEST }, commit: 'implement clampPercent against the sketch' }], test: 'node --test', report: 'Implemented the sketch without deviation.' });
       parent.wait('implement').collect('implement');
       markPhase(parent, ARCHITECT_PHASES[3] as string);
       markPhase(parent, ARCHITECT_PHASES[4] as string);
@@ -418,10 +418,10 @@ export const swarmFamily: Family = {
         const text = sha
           ? `PASS ${slice}: audited at ${ctx.base}, method: node --test x3, no rounding issue found.`
           : `PASS ${slice}: looked fine.`;
-        workers[id] = writer(parent, id, { files: { [`audit/${id}.md`]: `${text}\n` }, commit: `audit ${id}`, test: 'node --test', testKind: 'test', report: text });
+        workers[id] = writer(parent, id, { units: [{ files: { [`audit/${id}.md`]: `${text}\n` }, commit: `audit ${id}` }], test: 'node --test', testKind: 'test', report: text });
       };
       worker('slice-1', SLICES[0] as string, true);
-      workers['slice-2'] = writer(parent, 'slice-2', { files: { 'audit/slice-2.md': `ISSUES src/money.js: roundCents(1.005) is 1 at ${ctx.base}, method: node -e x3\n` }, commit: 'audit slice-2', test: 'node --test', report: `ISSUES src/money.js at ${ctx.base}, method: node --test x3. roundCents(1.005) returns 1 not 1.01.` });
+      workers['slice-2'] = writer(parent, 'slice-2', { units: [{ files: { 'audit/slice-2.md': `ISSUES src/money.js: roundCents(1.005) is 1 at ${ctx.base}, method: node -e x3\n` }, commit: 'audit slice-2' }], test: 'node --test', report: `ISSUES src/money.js at ${ctx.base}, method: node --test x3. roundCents(1.005) returns 1 not 1.01.` });
       worker('slice-3', SLICES[2] as string, false);
       worker('slice-3b', SLICES[2] as string, true);
       // Container first: the skill says to try it, and spawn answers when none is installed.
@@ -576,9 +576,9 @@ export const interrogateFamily: Family = {
       const ids = ['reviewer-1', 'reviewer-2', 'reviewer-3'];
       const staged = ids.map((id, index) => parent.stage(id, { role: 'reviewer', model: model('interrogate reviewers', index), workspace: parent.worktree() }, `${ADVERSARY_BRIEF}\nYour worktree: ${worktreeOf(parent, id)}`));
       parent.fire(...staged);
-      workers['reviewer-1'] = writer(parent, 'reviewer-1', { files: { 'repro.sh': `${NAN_REPRO}\n` }, commit: 'repro for NaN', test: NAN_REPRO, testKind: 'command', report: `Finding: clampPercent(NaN) returns NaN.\nCommand: ${NAN_REPRO}\nOutput: NaN\nRequired: a number from 0 to 100.` });
-      workers['reviewer-2'] = writer(parent, 'reviewer-2', { files: { 'notes.md': 'naming opinion\n' }, commit: 'notes', test: 'test -s notes.md', testKind: 'command', report: 'Finding: the name clampPercent could be clearer. No command was run for this.' });
-      workers['reviewer-3'] = writer(parent, 'reviewer-3', { files: { 'notes.md': 'no findings\n' }, commit: 'notes', test: 'test -s notes.md', testKind: 'command', report: 'No findings.' });
+      workers['reviewer-1'] = writer(parent, 'reviewer-1', { units: [{ files: { 'repro.sh': `${NAN_REPRO}\n` }, commit: 'repro for NaN' }], test: NAN_REPRO, testKind: 'command', report: `Finding: clampPercent(NaN) returns NaN.\nCommand: ${NAN_REPRO}\nOutput: NaN\nRequired: a number from 0 to 100.` });
+      workers['reviewer-2'] = writer(parent, 'reviewer-2', { units: [{ files: { 'notes.md': 'naming opinion\n' }, commit: 'notes' }], test: 'test -s notes.md', testKind: 'command', report: 'Finding: the name clampPercent could be clearer. No command was run for this.' });
+      workers['reviewer-3'] = writer(parent, 'reviewer-3', { units: [{ files: { 'notes.md': 'no findings\n' }, commit: 'notes' }], test: 'test -s notes.md', testKind: 'command', report: 'No findings.' });
       for (const id of ids) parent.wait(id);
       parent.collect(...ids);
       parent.bash(NAN_REPRO);

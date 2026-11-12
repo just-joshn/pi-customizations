@@ -1,5 +1,6 @@
 // Mutations of a finished run's artifacts. Each one models a way a run can break its contract, so a checker that
 // passes the mutated run is not a checker.
+import { spawnSync } from 'node:child_process';
 import { appendFileSync, cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -21,7 +22,7 @@ function relocate(dir: string, from: string, to: string): void {
     if (name === '.git' || name === 'node_modules') continue;
     const stat = lstatSync(path);
     if (stat.isDirectory()) relocate(path, from, to);
-    else if (stat.isFile() && stat.size < 5_000_000) {
+    else if (stat.isFile() && stat.size < 5_000_000 && !name.endsWith('.txt')) {
       const bytes = readFileSync(path);
       if (bytes.includes(0)) continue;
       const text = bytes.toString('utf8');
@@ -184,4 +185,23 @@ export function rewriteFinalReply(sandbox: string, from: string | RegExp, to: st
   for (const part of entry.message.content) if (part.type === 'text' && part.text !== undefined) part.text = part.text.replaceAll(from as string, to);
   lines[index] = JSON.stringify(entry);
   writeFileSync(file, lines.join('\n'));
+}
+
+/** Collapses a worker branch into one commit on the base, so the test no longer lands before the fix. */
+export function squashBranch(sandbox: string, branch: string): void {
+  const repo = join(sandbox, 'repo');
+  const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { base: string };
+  const run = (command: string) => spawnSync('sh', ['-c', command], { cwd: repo, encoding: 'utf8' }).stdout.trim();
+  const tree = run(`git rev-parse ${JSON.stringify(`${branch}^{tree}`)}`);
+  const squashed = run(`git -c user.name=m -c user.email=m@x commit-tree ${tree} -p ${meta.base} -m squashed`);
+  run(`git update-ref ${JSON.stringify(`refs/heads/${branch}`)} ${squashed}`);
+  refreshGit(sandbox);
+}
+
+/** Collapses the main checkout's commits since the base into one. */
+export function squashMain(sandbox: string): void {
+  const repo = join(sandbox, 'repo');
+  const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { base: string };
+  spawnSync('sh', ['-c', `git reset --soft ${meta.base} && git -c user.name=m -c user.email=m@x commit -q -m squashed`], { cwd: repo });
+  refreshGit(sandbox);
 }

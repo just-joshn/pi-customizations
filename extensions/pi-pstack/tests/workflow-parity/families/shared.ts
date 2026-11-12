@@ -4,32 +4,46 @@ import { join } from 'node:path';
 import { proofSteps, type Parent, Worker } from '../fixtures/dsl.ts';
 import { type Check, check, fail, pass, src, when, type Src } from '../lib/check.ts';
 import { finalReply, FAMILY_OF } from '../lib/checks.ts';
+import { corruptArtifact, deleteReceipt, deleteStep, type Negative, reorderHistory, setStep, stripEvidence } from '../lib/mutate.ts';
 import type { RunDir, RunView } from '../lib/view.ts';
 
 export const worktreeOf = (parent: Parent, id: string) => join(parent.workerDir(id), 'worktree');
 
-export interface WriterOptions {
+export interface Unit {
   files: Record<string, string>;
   commit: string;
-  /** Shell command run in the worktree after the commit; its output and exit status become the worker's receipt. */
+}
+
+export interface WriterOptions {
+  /** One commit per unit, in order. */
+  units: Unit[];
+  /** Shell command run in the worktree after the last commit; its output and exit status become the worker's receipt. */
   test?: string;
   report: string;
   /** Shell commands run in the worktree before the files are written. */
   before?: string[];
   testKind?: 'test' | 'command' | 'measurement';
+  receiptId?: string;
 }
 
-/** A writable worker: files in its own worktree, one commit, a receipt for its check, report.md, and a final reply. */
+const COMMIT = (message: string) => `git add -A && git -c user.name=worker -c user.email=w@example.com commit -q -m ${JSON.stringify(message)}`;
+
+/** A writable worker: units of files in its own worktree, one commit each, a receipt for its check, report.md, and a final reply. */
 export function writer(parent: Parent, id: string, options: WriterOptions): Worker {
   const worker = new Worker();
   const tree = worktreeOf(parent, id);
   for (const command of options.before ?? []) worker.bash(`cd ${JSON.stringify(tree)} && ${command}`);
-  for (const [path, content] of Object.entries(options.files)) worker.write(join(tree, path), content);
-  worker.bash(`cd ${JSON.stringify(tree)} && git add -A && git -c user.name=worker -c user.email=w@example.com commit -q -m ${JSON.stringify(options.commit)}`);
-  if (options.test !== undefined) proofSteps(worker, parent.ctx, { id: `${id}-check`, target: id, command: options.test, cwd: tree, kind: options.testKind ?? 'test', gitDir: tree, dir: join(parent.workerDir(id), 'evidence') }, join(parent.workerDir(id), 'evidence'));
+  for (const unit of options.units) {
+    for (const [path, content] of Object.entries(unit.files)) worker.write(join(tree, path), content);
+    worker.bash(`cd ${JSON.stringify(tree)} && ${COMMIT(unit.commit)}`);
+  }
+  if (options.test !== undefined) proofSteps(worker, parent.ctx, { id: options.receiptId ?? `${id}-check`, target: id, command: options.test, cwd: tree, kind: options.testKind ?? 'test', gitDir: tree, dir: join(parent.workerDir(id), 'evidence') }, join(parent.workerDir(id), 'evidence'));
   worker.write(join(parent.workerDir(id), 'report.md'), options.report);
   return worker.text(options.report);
 }
+
+/** The one-commit writer most families use. */
+export const writes = (parent: Parent, id: string, files: Record<string, string>, commit: string, rest: Omit<WriterOptions, 'units'>): Worker => writer(parent, id, { units: [{ files, commit }], ...rest });
 
 /** Task-specific TODO items, one per phase, appended before anything launches. */
 export function phaseItems(parent: Parent, phases: string[]): Parent {
@@ -87,3 +101,19 @@ export function replyHas(id: string, title: string, source: Src | Src[], pattern
 }
 
 export { src };
+
+/** The generic ways a run can break the TODO.md contract, for a run whose steps `done` ended done with the receipts `receipts` cite. */
+export function todoNegatives(runId: string, playbook: string, options: { done: number[]; receipts: Record<number, string>; evidenceOf?: (n: number) => string }): Negative[] {
+  const [first = 1, second = 2] = options.done;
+  const last = options.done.at(-1) as number;
+  const prefix = `todo.${playbook}`;
+  return [
+    { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, first, ' ', stripEvidence), fails: [`${prefix}.every-step-resolved`] },
+    { name: 'a step is done with no receipt id', mutate: (sandbox) => setStep(sandbox, runId, second, 'x', stripEvidence), fails: [`${prefix}.done-steps-proven`] },
+    { name: 'a step cites a receipt that was never recorded', mutate: (sandbox) => deleteReceipt(sandbox, runId, options.receipts[last] as string), fails: [`${prefix}.done-steps-proven`] },
+    { name: 'the artifact changed after the receipt hashed it', mutate: (sandbox) => corruptArtifact(sandbox, runId, options.receipts[second] as string), fails: [`${prefix}.done-steps-proven`] },
+    { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, first, '~', stripEvidence), fails: [`${prefix}.skips-explained`] },
+    { name: 'steps were resolved out of order', mutate: (sandbox) => reorderHistory(sandbox, runId, last), fails: [`${prefix}.resolved-in-order`] },
+    { name: 'a playbook step was deleted from TODO.md', mutate: (sandbox) => deleteStep(sandbox, runId, second), fails: [`${prefix}.steps-verbatim-in-order`] },
+  ];
+}

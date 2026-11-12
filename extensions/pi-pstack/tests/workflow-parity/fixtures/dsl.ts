@@ -53,6 +53,9 @@ export interface AssignmentFields {
 export interface ProofOptions {
   /** Takes the receipt's commit from this checkout's HEAD when the command has run. */
   gitDir?: string;
+  /** Overrides the verdict the exit status implies, for a check whose pass means a defect reproduced. */
+  verdict?: 'pass' | 'fail' | 'inconclusive';
+  reason?: string;
   id: string;
   target: string;
   /** Shell command run in `cwd`; its output is the artifact and its exit status the verdict. */
@@ -167,7 +170,7 @@ export function proofSteps<T extends Actor>(actor: T, ctx: Ctx, options: ProofOp
     `mkdir -p ${JSON.stringify(dir)}`,
     `cd ${JSON.stringify(options.cwd ?? ctx.repo)}`,
     `( ${options.command} ) > ${JSON.stringify(artifact)} 2>&1; code=$?`,
-    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} --exit $code --cmd ${JSON.stringify(options.command)} --artifact ${JSON.stringify(artifact)}`,
+    `node ${JSON.stringify(helper)} --out ${JSON.stringify(receipt)} --run-id ${ctx.runId} --id ${options.id} --target ${JSON.stringify(options.target)} --kind ${options.kind ?? 'command'} ${options.commit === undefined ? '' : `--commit ${options.commit}`} ${options.gitDir === undefined ? '' : `--git ${JSON.stringify(options.gitDir)}`} ${options.verdict === undefined ? '' : `--verdict ${options.verdict}`} ${options.reason === undefined ? '' : `--reason ${JSON.stringify(options.reason)}`} --exit $code --cmd ${JSON.stringify(options.command)} --artifact ${JSON.stringify(artifact)}`,
     'exit 0',
   ].join('\n');
   actor.bash(script);
