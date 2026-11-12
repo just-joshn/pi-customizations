@@ -319,6 +319,38 @@ describe('pstack_worker on real tmux and Pi', () => {
     }
   });
 
+  test('abort with a stale claim whose host pid now belongs to another process kills nothing', async () => {
+    const spawned = await spawn('w16', '@@say UP');
+    await until(
+      () => settleCount('w16'),
+      (count) => count === 1,
+    );
+    const { hostPid, childPid } = (await inspect('w16')).state;
+    process.kill(hostPid, 'SIGKILL');
+    await until(
+      () => liveTmuxSessions(),
+      (sessions) => !sessions.includes(spawned.details.tmuxSession),
+      5_000,
+      'host session gone',
+    );
+    // The pid the claim names is reused by a foreign session's pane under the worker's own session name.
+    await tmux('new-session', '-d', '-s', spawned.details.tmuxSession, '--', 'sleep', '60');
+    const foreignPid = Number((await tmux('list-panes', '-t', `=${spawned.details.tmuxSession}`, '-F', '#{pane_pid}')).trim());
+    const identity = join(workerDir(project, 'run1', 'w16'), 'claim', 'identity.json');
+    const claimed = JSON.parse(readFileSync(identity, 'utf8'));
+    rmSync(identity);
+    writeFileSync(identity, JSON.stringify({ ...claimed, hostPid: foreignPid }));
+
+    const receipt = await parent.call('pstack_worker', { action: 'abort', runId: 'run1', workerId: 'w16' });
+    expect(receipt.details.disposition).toBe('refused');
+    expect(await liveTmuxSessions()).toContain(spawned.details.tmuxSession);
+    try {
+      process.kill(-childPid, 'SIGKILL');
+    } catch {
+      // Pi usually exits on its own once the host's pipe closes.
+    }
+  });
+
   test('two workers whose ids join to the same text get distinct tmux sessions', async () => {
     makeRun(project, 'run1-a');
     const first = await spawn('a-b', '@@say ONE');

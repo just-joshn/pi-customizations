@@ -321,6 +321,36 @@ export interface ClaimIdentity {
  */
 export const launchEnvPath = (workerDir: string): string => join(workerDir, 'claim', 'launch-env.json');
 
+/**
+ * The tmux session the parent created for the host, as `new-session -P -F TMUX_IDENTITY_FORMAT` reported it. A
+ * session id and creation second repeat when the server exits with its last session and restarts within the second,
+ * so the server's pid and start time are part of the identity.
+ */
+export interface TmuxIdentity {
+  serverPid: string;
+  serverStarted: string;
+  sessionId: string;
+  created: string;
+}
+
+export const TMUX_IDENTITY_FORMAT = '#{pid} #{start_time} #{session_id} #{session_created}';
+export const tmuxIdentityPath = (workerDir: string): string => join(workerDir, 'claim', 'tmux.json');
+export const formatTmuxIdentity = (identity: TmuxIdentity): string => `${identity.serverPid} ${identity.serverStarted} ${identity.sessionId} ${identity.created}`;
+
+export function parseTmuxIdentity(text: string): TmuxIdentity | undefined {
+  const match = /^(\d+) (\d+) (\$\d+) (\d+)\n?$/.exec(text);
+  return match === null ? undefined : { serverPid: match[1] as string, serverStarted: match[2] as string, sessionId: match[3] as string, created: match[4] as string };
+}
+
+export function readTmuxIdentity(workerDir: string): TmuxIdentity | undefined {
+  const path = tmuxIdentityPath(workerDir);
+  if (!existsSync(path)) return undefined;
+  const raw = readJson(path);
+  const identity = isRecord(raw) && ['serverPid', 'serverStarted', 'sessionId', 'created'].every((key) => typeof raw[key] === 'string') ? parseTmuxIdentity(formatTmuxIdentity(raw as unknown as TmuxIdentity)) : undefined;
+  if (identity === undefined) throw new Error(`${path}: malformed tmux identity`);
+  return identity;
+}
+
 export function readClaim(workerDir: string): ClaimIdentity | undefined {
   const path = join(workerDir, 'claim', 'identity.json');
   if (!existsSync(path)) return undefined;

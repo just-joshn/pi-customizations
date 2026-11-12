@@ -29,7 +29,7 @@ New tests live under `tests/`. Run them with `npx vitest run tests/<area>` from 
 
 `RunId` and `WorkerId` match `^[a-z0-9][a-z0-9-]{0,39}$`. Validate at every boundary.
 
-tmux uses its own server: always `tmux -L pstack`. Session name `pstack_<runId>_<workerId>_<hash>`, where `<hash>` is the first 8 hex digits of sha256 of `<project>\0<runId>\0<workerId>`. Ids never contain `_`, so the parts cannot run together, and the hash keeps two projects apart on the one server. When the host does not answer, abort ends the session only after `#{pane_pid}` of its single pane equals the `hostPid` in the worker's `claim/identity.json`; otherwise it reports `refused` and leaves the session running. Never call `kill-server` outside tests. Tests use `-L pstack-test-<random>` and may kill only that server.
+tmux uses its own server: always `tmux -L pstack`. Session name `pstack_<runId>_<workerId>_<hash>`, where `<hash>` is the first 8 hex digits of sha256 of `<project>\0<runId>\0<workerId>`. Ids never contain `_`, so the parts cannot run together, and the hash keeps two projects apart on the one server. When the host does not answer, abort ends the session only when the identity recorded in `claim/tmux.json` still matches (see Runtime invariants); otherwise it reports `refused` and leaves the session running. Never call `kill-server` outside tests. Tests use `-L pstack-test-<random>` and may kill only that server.
 
 ## Run files (spec 7)
 
@@ -46,6 +46,7 @@ workers/<workerId>/
   claim/            created exclusively (mkdir) by the parent at spawn; its presence forbids a second spawn
     identity.json   created exclusively by the host; a second host for the assignment fails here
     launch-env.json written 0600 and exclusively by the parent; read once and unlinked by the host before Pi starts
+    tmux.json       written exclusively by the parent from `new-session -P`; the session identity abort's fallback checks
   control.sock      host control socket, mode 0600 (if the path exceeds 100 bytes, the host uses /tmp/pstack-<uid>/<sha256(runDir)[0..16]>-<workerId>.sock and records it in state.json)
   state.json        host-written snapshot; never a liveness oracle
   report.md         written by the worker
@@ -163,7 +164,7 @@ The same-uid limit is stated, not hidden. A worker process running as the operat
 ## Runtime invariants (third design, after two rejected rounds)
 
 - Settle coverage: after `agent_settled`, the host sends RPC `get_state`. A settle covers exactly the generations acknowledged before that `get_state` response, and only when the response shows `isStreaming: false` and `pendingMessageCount: 0`. Otherwise the settle covers nothing and the host waits for the next one. Acknowledgement bookkeeping happens synchronously in the response handler.
-- tmux identity: `new-session -P -F '#{session_id} #{session_created}'` is recorded in the claim. Abort's fallback lists `#{session_id} #{session_created}`, matches both, and kills `-t <session_id>`. Otherwise it refuses.
+- tmux identity: `new-session -P -F '#{pid} #{start_time} #{session_id} #{session_created}'` is recorded in `claim/tmux.json`. Abort's fallback lists the same format, matches all four, and kills `-t <session_id>` inside `if-shell -F` on the same condition, so the check and the kill are one server command. Otherwise it refuses. The server pid and start time are needed because tmux 3.8 exits with its last session and a restarted server hands out `$0` again: a foreign session created in the same second gets the same `#{session_id} #{session_created}` pair (observed 2026-11-11: `$0 1794450293` before and after a restart, server pids 12102 and 12107).
 - Launch secrets: credential values and any extra env go in `<workerDir>/claim/launch-env.json` (0600, created exclusively), which the host reads once and unlinks before spawning Pi. Never argv, never logs.
 - Worktrees: the host creates `worktree/` under its claim. A pre-existing path is refused; there is no reuse.
 - Wake delivery after compaction: the delivery record is the active branch from `getBranch()`, compacted entries included, so a wake summarized by compaction counts as delivered. Each branch change increments a branch version. A poll started under an older version discards its result and reruns.

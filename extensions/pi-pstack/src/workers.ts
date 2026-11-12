@@ -16,8 +16,10 @@ import {
   type ClaimIdentity,
   type HostState,
   isTerminal,
+  formatTmuxIdentity,
   launchEnvPath,
   type LoadedAssignment,
+  parseTmuxIdentity,
   loadAssignment,
   parseRunId,
   parseWorkerId,
@@ -27,10 +29,13 @@ import {
   readClaim,
   readHostState,
   readRun,
+  readTmuxIdentity,
   runRootOf,
   runsDir,
   type Settle,
+  TMUX_IDENTITY_FORMAT,
   type ThinkingLevel,
+  tmuxIdentityPath,
   tmuxSessionName,
   type WakePhase,
   type WorkerId,
@@ -398,15 +403,23 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       throw error;
     }
     const secrets = launchEnvPath(loaded.workerDir);
+    let started: Awaited<ReturnType<ExtensionAPI['exec']>>;
     try {
       writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
-      const started = await pi.exec('tmux', ['-L', socket, 'new-session', '-d', '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], { timeout: 10_000 });
+      started = await pi.exec(
+        'tmux',
+        ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)],
+        { timeout: 10_000 },
+      );
       if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
     } catch (error) {
       // No host started, so nothing holds the claim.
       rmSync(claimDir, { recursive: true, force: true });
       throw error;
     }
+    const tmuxIdentity = parseTmuxIdentity(started.stdout);
+    if (tmuxIdentity === undefined) throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
+    writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
     appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
     watch(ctx);
 
@@ -435,17 +448,21 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
 
   /**
    * The host does not answer. Ending its tmux session sends it SIGHUP, which runs the same orderly shutdown, but only
-   * when the session's one pane is this assignment's claimed host; anything else is left running.
+   * when the claimed session id still names the session created then, on the same server; anything else is left running.
    */
-  const endHostSession = async (loaded: LoadedAssignment, session: string, reason: string) => {
-    const claim = readClaim(loaded.workerDir);
-    const panes = await pi.exec('tmux', ['-L', socket, 'list-panes', '-s', '-t', `=${session}`, '-F', '#{pane_pid}'], { timeout: 5_000 });
-    if (panes.code !== 0) return { disposition: 'unavailable', reason };
-    const pids = panes.stdout.split('\n').filter((line) => line !== '');
-    if (claim === undefined || pids.length !== 1 || Number(pids[0]) !== claim.hostPid)
-      return { disposition: 'refused', reason: `${reason}; tmux session ${session} runs pid ${pids.join(',')}, not this worker's claimed host ${claim?.hostPid ?? '(no claim)'}, so it was left running` };
-    const killed = await pi.exec('tmux', ['-L', socket, 'kill-session', '-t', `=${session}`], { timeout: 10_000 });
-    return { disposition: killed.code === 0 ? 'session-ended' : 'unavailable', reason };
+  const endHostSession = async (loaded: LoadedAssignment, reason: string) => {
+    const owned = readTmuxIdentity(loaded.workerDir);
+    const sessions = async () => {
+      const listed = await pi.exec('tmux', ['-L', socket, 'list-sessions', '-F', TMUX_IDENTITY_FORMAT], { timeout: 5_000 });
+      return listed.code === 0 ? listed.stdout.split('\n') : [];
+    };
+    if (owned === undefined) return { disposition: 'refused', reason: `${reason}; the claim records no tmux session, so nothing was ended` };
+    const line = formatTmuxIdentity(owned);
+    if (!(await sessions()).includes(line)) return { disposition: 'refused', reason: `${reason}; tmux session ${line} no longer exists, so nothing was ended` };
+    // tmux checks the identity and kills in one server command, so the session cannot change in between.
+    const same = `#{&&:#{==:#{pid},${owned.serverPid}},#{&&:#{==:#{start_time},${owned.serverStarted}},#{==:#{session_created},${owned.created}}}}`;
+    await pi.exec('tmux', ['-L', socket, 'if-shell', '-F', '-t', owned.sessionId, same, `kill-session -t ${owned.sessionId}`], { timeout: 10_000 });
+    return (await sessions()).includes(line) ? { disposition: 'refused', reason: `${reason}; tmux session ${line} did not end` } : { disposition: 'session-ended', reason };
   };
 
   const inspectWorker = async (loaded: LoadedAssignment): Promise<{ available: true; state: HostState } | { available: false; phase: 'unavailable'; reason: string; lastState: HostState | null }> => {
@@ -472,7 +489,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
           result,
         );
       }
-      const { runId, project, runRoot, run } = runOf(ctx, params.runId);
+      const { runId, runRoot, run } = runOf(ctx, params.runId);
       const loaded = workerOf(runRoot, params.workerId);
       const { workerId } = loaded.assignment;
       if (params.action === 'inspect') {
@@ -488,13 +505,12 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       }
       if (params.action === 'abort') {
         requireOwner(ctx, run, runId);
-        const session = tmuxSessionName(project, runId, workerId);
         let receipt: unknown;
         try {
           receipt = await controlHost(hostTarget(loaded), 'shutdown');
         } catch (error) {
           if (!(error instanceof HostUnavailableError)) throw error;
-          receipt = await endHostSession(loaded, session, error.message);
+          receipt = await endHostSession(loaded, error.message);
         }
         appendEvent(runRoot, { runId, workerId, kind: 'abort', data: receipt });
         return text(`Aborted worker ${workerId}.`, receipt);
