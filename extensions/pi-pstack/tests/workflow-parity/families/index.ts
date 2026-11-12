@@ -8,9 +8,10 @@ import { verificationFamilies } from './verification.ts';
 import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
 import { babysitFamilies } from './pr-babysit.ts';
+import { shippingFamilies } from './pr-shipping.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...babysitFamilies];
+export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...babysitFamilies, ...shippingFamilies];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);

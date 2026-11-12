@@ -206,6 +206,7 @@ function runEvents(state, op, pr, text) {
   for (const event of state.events ?? []) {
     if (event.done || event.when.op !== op || (event.when.pr !== undefined && event.when.pr !== pr)) continue;
     if (event.when.match !== undefined && !new RegExp(event.when.match).test(text ?? '')) continue;
+    if (event.when.verdictsFor !== undefined && !event.when.verdictsFor.every((n) => state.prs[String(n)].comments.some((entry) => /PSTACK-VERDICT/.test(entry.body)))) continue;
     event.done = true;
     for (const step of event.do) chaos(step);
   }
@@ -310,7 +311,10 @@ function gh(state) {
   const [group, verb, ...rest] = argv;
   void rest;
   if (group === 'auth') {
-    if (verb === 'token') return out('ghs_fake_forge_token\n');
+    if (verb === 'token') {
+      if (state.noToken) die(1, 'no oauth token found for github.com');
+      return out('ghs_fake_forge_token\n');
+    }
     return out('Logged in to github.com (fake forge)\n');
   }
   if (group === 'api') {
@@ -432,7 +436,7 @@ function gh(state) {
 
 function newPr(state, fields) {
   const waves = fields.waves ?? [[{ name: 'build', workflow: 'CI', runId: 9000 + fields.number, state: 'SUCCESS' }]];
-  return { repo: state.repo, state: 'OPEN', mergedAt: null, isDraft: false, reviewDecision: '', comments: [], threads: [], checks: [], ci: { waves, wave: 0, sha: null, history: [] }, ...fields };
+  return { repo: state.repo, baseAtStart: fields.base, state: 'OPEN', mergedAt: null, isDraft: false, reviewDecision: '', comments: [], threads: [], checks: [], ci: { waves, wave: 0, sha: null, history: [] }, ...fields };
 }
 
 // ---- origin

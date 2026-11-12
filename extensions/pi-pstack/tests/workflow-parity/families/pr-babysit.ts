@@ -519,7 +519,7 @@ export const babysitQueuedFamily: Family = {
       const order: number[] = [];
       let base = state.repo.trunk;
       for (;;) {
-        const next = prs.find((pr) => pr.base === base && !order.includes(pr.number));
+        const next = prs.find((pr) => (pr.baseAtStart ?? pr.base) === base && !order.includes(pr.number));
         if (next === undefined) break;
         order.push(next.number);
         base = next.head;

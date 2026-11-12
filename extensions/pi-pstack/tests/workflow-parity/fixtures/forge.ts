@@ -59,7 +59,7 @@ export type ChaosStep =
   | { type: 'rebase'; onto: string; branches: string[]; edits?: Record<string, { file: string; content: string }>; resolve?: Record<string, { file: string; content: string }> };
 
 export interface ForgeEvent {
-  when: { op: 'comment'; pr?: number; match?: string };
+  when: { op: 'comment'; pr?: number; match?: string; /** Fire only once each of these PRs has a verdict comment. */ verdictsFor?: number[] };
   do: ChaosStep[];
 }
 
@@ -75,6 +75,8 @@ export interface ForgeDef {
   events?: ForgeEvent[];
   /** Put an `origin` executable on PATH. Absent, `command -v origin` fails and a run stays on `gh`. */
   originCli?: boolean;
+  /** `gh auth token` fails, so a container worker cannot be given a forge token. */
+  noToken?: boolean;
 }
 
 export interface ForgeHandle {
@@ -138,8 +140,9 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
   const state = {
     repo: { owner: def.owner, name: def.name, trunk: 'main' },
     queue: def.queue === true,
+    noToken: def.noToken === true,
     events: def.events ?? [],
-    prs: Object.fromEntries(def.prs.map((pr) => [String(pr.number), { repo: { owner: def.owner, name: def.name }, state: 'OPEN', mergedAt: null, isDraft: pr.isDraft === true, reviewDecision: pr.reviewDecision ?? '', comments: [], threads: (pr.threads ?? []).map((thread) => ({ resolved: false, ...thread })), checks: [], ci: { waves: pr.waves ?? [[{ name: 'build', workflow: 'CI', runId: 9000 + pr.number, state: 'SUCCESS' }]], wave: 0, sha: null, history: [] }, number: pr.number, title: pr.title, body: pr.body ?? '', base: pr.base, head: pr.head, author: pr.author }])),
+    prs: Object.fromEntries(def.prs.map((pr) => [String(pr.number), { repo: { owner: def.owner, name: def.name }, state: 'OPEN', mergedAt: null, isDraft: pr.isDraft === true, reviewDecision: pr.reviewDecision ?? '', comments: [], threads: (pr.threads ?? []).map((thread) => ({ resolved: false, ...thread })), checks: [], ci: { waves: pr.waves ?? [[{ name: 'build', workflow: 'CI', runId: 9000 + pr.number, state: 'SUCCESS' }]], wave: 0, sha: null, history: [] }, number: pr.number, title: pr.title, body: pr.body ?? '', base: pr.base, baseAtStart: pr.base, head: pr.head, author: pr.author }])),
   };
   writeFileSync(join(dir, 'state.json'), JSON.stringify(state, null, 2));
   mkdirSync(join(bare, 'hooks'), { recursive: true });
@@ -166,6 +169,8 @@ export interface ForgePrState {
   title: string;
   body: string;
   base: string;
+  /** The base the PR was opened with: a retarget changes `base`, never this. */
+  baseAtStart?: string;
   head: string;
   state: 'OPEN' | 'MERGED' | 'CLOSED';
   author: string;
@@ -227,12 +232,13 @@ export function patchIdOf(bare: string, sha: string): string {
 export const revParse = (bare: string, ref: string): string => spawnSync('git', ['--git-dir', bare, 'rev-parse', ref], { encoding: 'utf8' }).stdout.trim();
 
 /** The environment a PR workflow's Pi gets: the fake `gh` first on PATH, a pinned container engine, and the scripted model for container workers. */
-export function forgeEnv(ctx: Ctx, handle: ForgeHandle, options: { container?: boolean; scripted?: boolean } = {}): Record<string, string> {
+export function forgeEnv(ctx: Ctx, handle: ForgeHandle, options: { container?: boolean; scripted?: boolean; token?: boolean; engine?: boolean } = {}): Record<string, string> {
   const env: Record<string, string> = { PATH: `${handle.bin}:${process.env['PATH'] ?? ''}`, FORGE_GIT_DIR: handle.bare };
   if (options.container === true) {
     const engine = process.env['DOCKER_HOST'] ?? spawnSync('docker', ['context', 'inspect', '--format', '{{.Endpoints.docker.Host}}'], { encoding: 'utf8' }).stdout.trim();
     if (engine !== '') env['DOCKER_HOST'] = engine;
-    env['PSTACK_CONTAINER_FORGE_TOKEN'] = FORGE_TOKEN;
+    if (options.engine === false) env['DOCKER_HOST'] = 'unix:///nonexistent/pstack-docker.sock';
+    if (options.token !== false) env['PSTACK_CONTAINER_FORGE_TOKEN'] = FORGE_TOKEN;
   }
   if (options.container === true && options.scripted === true) {
     env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [join(PKG, 'tests/workflow-parity/fixtures/sim-provider'), join(ctx.sandbox, 'sim-scenario')].join(':');
