@@ -1,0 +1,57 @@
+name: linux-tests
+on:
+  push:
+    branches: ['ci/**']
+permissions:
+  contents: read
+concurrency:
+  group: linux-tests-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.0'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.4.4'
+      - name: System packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bubblewrap python3 tmux git
+          # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          bwrap --version
+      - run: bun install
+      - name: Linux security tests
+        id: security
+        run: |
+          mkdir -p out
+          npx vitest run tests/security --reporter=json --outputFile=out/linux-security.json
+      - name: Whole suite
+        id: full
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: npx vitest run --reporter=json --outputFile=out/linux-full.json
+      - name: Identify the results
+        if: ${{ !cancelled() }}
+        run: |
+          node -e '
+          import("./scripts/parity-lib.mjs").then(({ sourceDigest }) => {
+            const fs = require("node:fs");
+            const snap = JSON.parse(fs.readFileSync("ci-snapshot.json", "utf8"));
+            const identity = { platform: process.platform, commit: snap.commit, sourceDigest: sourceDigest("."), runUrl: `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`, nodeVersion: process.version };
+            for (const name of ["linux-security", "linux-full"]) if (fs.existsSync(`out/${name}.json`)) fs.writeFileSync(`out/${name}.identity.json`, JSON.stringify(identity, null, 2));
+          });
+          '
+          cp ci-snapshot.json out/
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: linux-results
+          path: out/
+          retention-days: 14
