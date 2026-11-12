@@ -70,6 +70,16 @@ describe('pstack_evidence', () => {
     expect((await evidence({ action: 'verify', target: 'a'.repeat(40) })).details.kind).toBe('fail');
   });
 
+  test('a fail receipt with an empty defect list verifies as fail', async () => {
+    await evidence({ action: 'record', receiptPath: receipt('r1', { verdict: 'fail', defects: [] }) });
+    expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', receipts: ['r1'] });
+  });
+
+  test('a pass whose command exited non-zero verifies as fail', async () => {
+    await evidence({ action: 'record', receiptPath: receipt('r1', { exitCode: 1 }) });
+    expect((await evidence({ action: 'verify', target: 'step-3' })).details).toMatchObject({ kind: 'fail', receipts: ['r1'] });
+  });
+
   test('a pass with no artifacts is inconclusive', async () => {
     await evidence({ action: 'record', receiptPath: receipt('r1', { artifacts: [] }) });
     expect((await evidence({ action: 'verify', target: 'step-3' })).details.kind).toBe('inconclusive');

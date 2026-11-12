@@ -137,8 +137,10 @@ export function verifyTarget(runRoot: string, target: string): EvidenceVerdict {
       else if (!existsSync(path)) defects.push(`${receipt.id}: artifact ${artifact.path} is missing`);
       else if (sha256(path) !== artifact.sha256) defects.push(`${receipt.id}: artifact ${artifact.path} does not match its sha256`);
     }
-    if (receipt.verdict === 'fail')
-      defects.push(...(receipt.defects ?? [`${receipt.id}: recorded verdict fail${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`]).map((defect) => (defect.startsWith(`${receipt.id}:`) ? defect : `${receipt.id}: ${defect}`)));
+    if (receipt.verdict === 'fail') {
+      const listed = receipt.defects ?? [];
+      defects.push(...(listed.length > 0 ? listed : [`recorded verdict fail${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`]).map((defect) => (defect.startsWith(`${receipt.id}:`) ? defect : `${receipt.id}: ${defect}`)));
+    } else if (receipt.verdict === 'pass' && receipt.exitCode !== undefined && receipt.exitCode !== 0) defects.push(`${receipt.id}: a pass whose command exited ${receipt.exitCode} contradicts itself`);
     else if (receipt.verdict === 'inconclusive') unverifiable.push(`${receipt.id}: recorded verdict inconclusive${receipt.reason === undefined ? '' : ` (${receipt.reason})`}`);
     else if (receipt.artifacts.length === 0) unverifiable.push(`${receipt.id}: a pass with no artifacts is an assertion, not evidence`);
   }
