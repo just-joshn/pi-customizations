@@ -443,6 +443,15 @@ async function checkStart(exec: Exec, socket: string, session: string, workerDir
   }
 }
 
+/** Whether the brief names report.md; a worker whose brief never does is not missing a report it was never asked for. */
+function briefAsksForReport(workerDir: string): boolean {
+  try {
+    return /report\.md/i.test(readBrief(workerDir).toString('utf8'));
+  } catch {
+    return false;
+  }
+}
+
 const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel | null => {
   if (model === 'inherit-parent') return null;
   const slash = model.indexOf('/');
@@ -986,7 +995,7 @@ export function registerWorkerTools(pi: ExtensionAPI, options: WorkerToolOptions
       const settledLine = `Worker ${workerId} settled (${lastSettle.phase}${inspected.available ? '' : ', host gone'}).`;
       if (loaded.assignment.workspace.mode === 'readonly') return text(`${settledLine}\n\nReport (a readonly worker's final reply, since it cannot write report.md):\n${result.finalText ?? '(none)'}${rejected}`, result);
       return text(
-        `${settledLine}\n\nreport.md:\n${result.report ?? '(missing)'}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
+        `${settledLine}\n\nreport.md:\n${result.report ?? (briefAsksForReport(loaded.workerDir) ? '(missing: the brief asked for it and the worker did not write it)' : '(none requested: the brief never names report.md; the final assistant text below is the report)')}\n\nFinal assistant text:\n${result.finalText ?? '(none)'}\n\nEvidence files: ${result.evidence.join(', ') || '(none)'}${rejected}`,
         result,
       );
     },
