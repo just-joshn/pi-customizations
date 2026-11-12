@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { Automation } from '../../adapters/automation-events.ts';
 import { hostTarget, inspectHost } from '../rpc-client.ts';
 import { type HostState, isTerminal, loadAssignment, readHostState } from '../run-files.ts';
+import { abortRun, type AbortRun } from './abort.ts';
 import { workerDir } from './dispatch.ts';
 import { failureReply, type RunId, type TrackerIntent, type WorkerResult } from './model.ts';
 import { appendLog } from './store.ts';
@@ -90,14 +91,31 @@ export function parseWorkerResult(finalText: string): string | WorkerResult {
   return finalText;
 }
 
+export interface SettleOptions {
+  collect?: (runId: RunId) => Promise<CollectedRun>;
+  abort?: AbortRun;
+}
+
 /**
  * Completes every dispatched run that has settled. A tracker request the parent refuses still leaves the worker's
- * verdict to post without it, and a verdict the parent refuses (no single marker) becomes the failure reply.
+ * verdict to post without it, and a verdict the parent refuses (no single marker) becomes the failure reply. A run still
+ * unsettled when its budget (triage_total_minutes or repro_minutes) has passed is aborted through the same shutdown
+ * `pstack_worker abort` uses, whatever its host is doing or whether it left a state file, and completes as a failure.
  */
-export async function completeSettledRuns(automation: Automation, collect: (runId: RunId) => Promise<CollectedRun> = (runId) => collectRun(automation.config.projectRoot, runId)): Promise<number> {
+export async function completeSettledRuns(automation: Automation, options: SettleOptions = {}): Promise<number> {
+  const { projectRoot } = automation.config;
+  const collect = options.collect ?? ((runId: RunId) => collectRun(projectRoot, runId));
+  const abort = options.abort ?? abortRun;
+  const minutes = automation.config.budgets?.totalMinutes;
   let completed = 0;
   for (const runId of automation.pendingRuns()) {
-    const run = await collect(runId);
+    let run = await collect(runId);
+    const started = automation.dispatchedAt(runId);
+    if (!run.settled && minutes !== undefined && started !== undefined && automation.now().getTime() - started.getTime() > minutes * 60_000) {
+      const outcome = await abort(projectRoot, runId).catch((error: unknown) => `abort failed: ${error instanceof Error ? error.message : String(error)}`);
+      appendLog(automation.store, { ts: automation.now().toISOString(), kind: 'deadline', runId, minutes, abort: outcome });
+      run = { settled: true, failure: `the worker exceeded its ${minutes}-minute budget`, finalText: null };
+    }
     if (!run.settled) continue;
     const failure = failureReply(automation.config.kind, run.failure ?? 'its reply was not a verdict this automation may post');
     const result = run.failure === null && run.finalText !== null ? parseWorkerResult(run.finalText) : failure;
@@ -114,12 +132,12 @@ export async function completeSettledRuns(automation: Automation, collect: (runI
   return completed;
 }
 
-export function startSettler(automation: Automation, options: { intervalMs: number; collect?: (runId: RunId) => Promise<CollectedRun> }): { stop(): Promise<void> } {
+export function startSettler(automation: Automation, options: SettleOptions & { intervalMs: number }): { stop(): Promise<void> } {
   let stopped = false;
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> = Promise.resolve();
   const tick = async (): Promise<void> => {
-    await completeSettledRuns(automation, options.collect)
+    await completeSettledRuns(automation, options)
       .then(() => automation.advanceFollowUps())
       .catch((error: unknown) => appendLog(automation.store, { ts: new Date().toISOString(), kind: 'source-error', reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped) return;

@@ -14885,10 +14885,20 @@ function parseWorkerResult(finalText) {
   } catch {}
   return finalText;
 }
-async function completeSettledRuns(automation, collect = (runId) => collectRun(automation.config.projectRoot, runId)) {
+async function completeSettledRuns(automation, options = {}) {
+  const { projectRoot } = automation.config;
+  const collect = options.collect ?? ((runId) => collectRun(projectRoot, runId));
+  const abort = options.abort ?? abortRun;
+  const minutes = automation.config.budgets?.totalMinutes;
   let completed = 0;
   for (const runId of automation.pendingRuns()) {
-    const run = await collect(runId);
+    let run = await collect(runId);
+    const started = automation.dispatchedAt(runId);
+    if (!run.settled && minutes !== undefined && started !== undefined && automation.now().getTime() - started.getTime() > minutes * 60000) {
+      const outcome = await abort(projectRoot, runId).catch((error) => `abort failed: ${error instanceof Error ? error.message : String(error)}`);
+      appendLog(automation.store, { ts: automation.now().toISOString(), kind: "deadline", runId, minutes, abort: outcome });
+      run = { settled: true, failure: `the worker exceeded its ${minutes}-minute budget`, finalText: null };
+    }
     if (!run.settled)
       continue;
     const failure = failureReply(automation.config.kind, run.failure ?? "its reply was not a verdict this automation may post");
@@ -14911,7 +14921,7 @@ function startSettler(automation, options) {
   let timer;
   let running = Promise.resolve();
   const tick = async () => {
-    await completeSettledRuns(automation, options.collect).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
+    await completeSettledRuns(automation, options).then(() => automation.advanceFollowUps()).catch((error) => appendLog(automation.store, { ts: new Date().toISOString(), kind: "source-error", reason: `settle: ${error instanceof Error ? error.message : String(error)}` }));
     if (stopped)
       return;
     timer = setTimeout(() => {
@@ -15367,6 +15377,11 @@ function createAutomation(config, deps) {
     }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
+    dispatchedAt: (runId) => {
+      const entry = readLog(store).find((candidate) => candidate.kind === "dispatched" && candidate.runId === runId);
+      return entry === undefined ? undefined : new Date(entry.ts);
+    },
+    now,
     pendingRuns: () => {
       const log = readLog(store);
       const completed = new Set(log.flatMap((entry) => entry.kind === "completed" ? [entry.runId] : []));

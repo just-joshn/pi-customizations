@@ -15,6 +15,7 @@ export type LogEntry =
   | { ts: string; kind: 'follow-up-dispatched'; key: EventKey; runId: RunId; round: number; seenTs: string }
   | { ts: string; kind: 'follow-up-completed'; key: EventKey; runId: RunId; round: number }
   | { ts: string; kind: 'follow-up-closed'; key: EventKey; reason: string }
+  | { ts: string; kind: 'deadline'; runId: RunId; minutes: number; abort: string }
   | { ts: string; kind: 'compensated'; key: EventKey; issue: string; verified: boolean; reason?: string }
   | { ts: string; kind: 'outbox-failed'; actionId: ActionId; attempts: number; error: string; final: boolean }
   | { ts: string; kind: 'source-error'; reason: string };

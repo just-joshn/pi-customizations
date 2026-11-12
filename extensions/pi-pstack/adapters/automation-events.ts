@@ -60,6 +60,10 @@ export interface Automation {
   flush(): Promise<void>;
   /** Moves each open follow-up window one step: closes an ended one, collects a settled round, starts a round for new human messages. */
   advanceFollowUps(): Promise<void>;
+  /** When the run was dispatched, from the event log. */
+  dispatchedAt(runId: RunId): Date | undefined;
+  /** The clock this automation uses. */
+  now(): Date;
   /** Dispatched runs whose case has no `completed` entry in the event log, oldest first. Derived from the log alone. */
   pendingRuns(): RunId[];
 }
@@ -211,6 +215,11 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       }),
     flush: () => serial(flush),
     advanceFollowUps: () => serial(() => followUps.advance()),
+    dispatchedAt: (runId) => {
+      const entry = readLog(store).find((candidate) => candidate.kind === 'dispatched' && candidate.runId === runId);
+      return entry === undefined ? undefined : new Date(entry.ts);
+    },
+    now,
     pendingRuns: () => {
       const log = readLog(store);
       const completed = new Set(log.flatMap((entry) => (entry.kind === 'completed' ? [entry.runId] : [])));
