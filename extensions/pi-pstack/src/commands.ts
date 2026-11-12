@@ -7,7 +7,6 @@ import { dirname, join } from 'node:path';
 
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from '@earendil-works/pi-coding-agent';
 import { VERSION } from '@earendil-works/pi-coding-agent';
-import { loadBennyConfig } from './automation/configuration.ts';
 import type { BennyAutomationKind } from './automation/model.ts';
 import { listReceipts, verifyTarget } from './evidence.ts';
 import { loadModelsConfig, type ResolvedModel, ROLE_NAMES, resolveRole } from './models.ts';
@@ -320,12 +319,16 @@ export const automationRunId = (name: string): RunId => parseRunId(`serve-${crea
 
 export type AutomationSource = { kind: 'routine' } | { kind: 'benny'; bennyKind: BennyAutomationKind };
 
-/** A routine made by routine-setup, or the Benny automation whose configured name this is. */
-export function automationSource(project: string, name: string): AutomationSource {
+/**
+ * A routine made by routine-setup, or the Benny automation whose configured name this is. The Benny loader needs the
+ * yaml dependency, so it loads only here: a local install without node_modules still loads the extension.
+ */
+export async function automationSource(project: string, name: string): Promise<AutomationSource> {
   const routine = join(project, '.pi', 'pstack', 'automation', name, 'config.json');
   if (existsSync(routine) && (JSON.parse(readFileSync(routine, 'utf8')) as { kind?: unknown }).kind === 'routine') return { kind: 'routine' };
   const problems: string[] = [];
   if (existsSync(join(project, '.pi', 'benny', 'configuration.yaml'))) {
+    const { loadBennyConfig } = await import('./automation/configuration.ts');
     for (const bennyKind of ['triage', 'reproduce'] as const) {
       try {
         if (loadBennyConfig(project, bennyKind).name === name) return { kind: 'benny', bennyKind };
@@ -357,7 +360,7 @@ async function liveSources(run: RunView): Promise<WorkerId[]> {
 
 async function startAutomation(ctx: ExtensionContext, name: string, spawnOptions: SpawnOptions): Promise<string> {
   const project = projectRoot(ctx.cwd);
-  const source = automationSource(project, name);
+  const source = await automationSource(project, name);
   const runId = automationRunId(name);
   const runRoot = runRootOf(project, runId);
   if (!existsSync(join(runRoot, 'run.json'))) {
@@ -410,7 +413,7 @@ async function automationStatus(exec: Exec, socket: string, ctx: ExtensionContex
   const project = projectRoot(ctx.cwd);
   let kind: string;
   try {
-    const source = automationSource(project, name);
+    const source = await automationSource(project, name);
     kind = source.kind === 'routine' ? 'webhook routine' : `Benny ${source.bennyKind}`;
   } catch (error) {
     kind = `unconfigured (${(error as Error).message})`;
