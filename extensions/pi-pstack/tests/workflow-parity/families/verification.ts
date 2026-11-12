@@ -74,7 +74,7 @@ export const verifyThisFamily: Family = {
     }),
     check('verify-this.raw-artifacts-compared', 'raw output exists for both sides and the diff holds their difference', src('verify-this/SKILL.md', 'Compare raw artifacts'), (view) => {
       const dir = verifyDir(view);
-      const [a, b] = ['baseline', 'treatment'].map((name) => read(join(dir, name, 'output.txt')));
+      const [a = '', b = ''] = ['baseline', 'treatment'].map((name) => read(join(dir, name, 'output.txt')));
       const diff = read(join(dir, 'diff', 'output.diff'));
       return when(/total=/.test(a) && /total=/.test(b) && a !== b && diff.includes('-total=') && diff.includes('+total='), `baseline ${a.split('\n')[0]}, treatment ${b.split('\n')[0]}, diff ${diff.split('\n').length} lines`, `baseline ${JSON.stringify(a)}, treatment ${JSON.stringify(b)}, diff ${JSON.stringify(diff.slice(0, 80))}`);
     }),
