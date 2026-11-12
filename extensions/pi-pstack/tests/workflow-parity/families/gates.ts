@@ -3,14 +3,14 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
+import { Parent, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, collectOrder, finalReply, openedAt, settledAndCollected, skillFile, spawnOrder, workersCheck } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, branchCommits, collectOrder, finalReply, openedAt, panelCheck, primaryRun, settledAndCollected, skillFile, spawnOrder, todoChecks, workersCheck } from '../lib/checks.ts';
 import { SCRIPTED_ROLES } from '../lib/driver.ts';
-import { dirtyRepo, parentSession, patchAssignment, rewriteFinalReply, rewriteSession, workerSessionFile } from '../lib/mutate.ts';
+import { dirtyRepo, parentSession, patchAssignment, rewriteFinalReply, rewriteSession, setStep, stripEvidence, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
-import { worktreeOf } from './shared.ts';
+import { todoNegatives, worktreeOf, writer } from './shared.ts';
 import type { Family } from './types.ts';
 
 const RUN = 'commit-review-gates';
@@ -129,3 +129,99 @@ export const gatesFamily: Family = {
 function writeBrief(sandbox: string, workerId: string, text: string): void {
   writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers', workerId, 'brief.md'), text);
 }
+
+// ---- Feature step 7: interrogate when the design is contested
+
+const FI_RUN = 'feature-contested';
+const NAN_REPRO = `node --input-type=module -e "import('./src/coupon.js').then((m)=>console.log(String(m.clampPercent(NaN))))"`;
+const FI_INTENT = 'clampPercent(percent) returns a number from 0 to 100 for any input, so a coupon can never apply more than the whole cart.';
+const COUPON_JS = 'export function clampPercent(percent) {\n  return Math.min(100, Math.max(0, percent));\n}\n';
+const COUPON_TEST = "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\nimport { clampPercent } from '../src/coupon.js';\n\ntest('caps at 100', () => assert.equal(clampPercent(150), 100));\ntest('floors at 0', () => assert.equal(clampPercent(-5), 0));\n";
+const FI_BRIEF = (head: string) => `Scope: the committed change at ${head}.\nIntent: ${FI_INTENT}\n\nBreak this change. Prove each finding with a run against the real code, such as a failing test, a repro script, or command output that shows the wrong behavior. Keep repros in your own worktree. Report each finding with a title, the exact command, the output it printed, and the output the intent requires. Leave out anything you did not run. No findings is a valid result.`;
+const FI_REPORT = `Built clampPercent in src/coupon.js on a COUPON_BOUNDS table shape. The design was contested (clamp in the function or reject out of range input), so interrogate ran before shipping.
+Intent
+${FI_INTENT}
+Findings
+- clampPercent(NaN) returns NaN. Command: ${NAN_REPRO}. Output: NaN. The intent requires a number from 0 to 100. Found by reviewer-1.
+Dropped
+- reviewer-1: 0 dropped.
+- reviewer-2: 0 dropped, no findings.
+Open decisions: whether NaN should clamp to 0 or be rejected. Not fixed here, interrogate reports and does not apply fixes.`;
+
+export const featureContestedFamily: Family = {
+  id: 'feature-contested',
+  title: 'Feature step 7: a contested design is interrogated before shipping, by two families, from the delivered commit, with no fix applied (feature.md step 7)',
+  spec: {
+    family: 'feature-contested',
+    runId: FI_RUN,
+    history: cartHistory,
+    prompt: () => '/poteto-mode add clampPercent to src/coupon.js. Two designs are on the table, clamp or reject, and I am not sure which is right.',
+    scenario: (ctx) => {
+      const parent = new Parent(ctx);
+      const workers: Record<string, Worker> = {};
+      parent.beginPlaybook('feature', 'Feature: clampPercent (contested)').bash('sleep 0.5');
+      parent.skip('feature', 1, 'the subsystem is one new file, so how has nothing to explain');
+      parent.skip('feature', 2, 'the two candidate shapes are already named in the request, so no design sketch is needed');
+      for (const item of ['Blocking first steps. none.', 'Independent workstreams. n/a: one file.', 'Shared mutable state. n/a: none.', 'Smallest safe decomposition. One worker, one unit.']) parent.task(item);
+      parent.proof({ id: 'fc-checkpoint', target: 'step-3', command: `grep -c -E '^- \\[ \\] (Blocking|Independent|Shared|Smallest)' ${join(parent.runDir, 'TODO.md')} | grep -qx 4`, kind: 'review' }).done('feature', 3, 'fc-checkpoint');
+      parent.spawn('impl', { role: 'poteto', model: model('feature, refactoring'), workspace: parent.worktree(), skills: ['poteto-mode'] }, 'Build clampPercent in src/coupon.js.\nFile paths: src/coupon.js, test/coupon.test.js.\nData shape: a COUPON_BOUNDS table of min and max.\nSuccess criteria: node --test passes.');
+      workers['impl'] = writer(parent, 'impl', { units: [{ files: { 'src/coupon.js': COUPON_JS, 'test/coupon.test.js': COUPON_TEST }, commit: 'feat: clampPercent' }], test: 'node --test', report: 'clampPercent committed, tests green.' });
+      parent.wait('impl').collect('impl').done('feature', 4, 'impl-check');
+      const tree = worktreeOf(parent, 'impl');
+      parent.proof({ id: 'fc-surface', target: 'step-5', command: `node --input-type=module -e "import('./src/coupon.js').then((m)=>process.stdout.write(String(m.clampPercent(150))))" | grep -qx 100`, cwd: tree, gitDir: tree }).done('feature', 5, 'fc-surface');
+      parent.proof({ id: 'fc-units', target: 'step-6', command: `test $(git rev-list --count ${ctx.base}..HEAD) -ge 1`, cwd: tree, gitDir: tree }).done('feature', 6, 'fc-units');
+      parent.readSkill('interrogate').readSkill('in-your-own-words').readSkill('arena');
+      const head = `$(git -C ${JSON.stringify(tree)} rev-parse HEAD)`;
+      const ids = ['reviewer-1', 'reviewer-2'];
+      for (const [index, id] of ids.entries()) {
+        const dir = parent.workerDir(id);
+        const fields = { role: 'reviewer', model: String((SCRIPTED_ROLES['interrogate reviewers'] as string[])[index]), workspace: { mode: 'worktree', inputCommit: '__HEAD__' } };
+        parent.bash([`mkdir -p ${JSON.stringify(dir)}`, `head=${head}`, `printf '%s\\n' ${shQuote(FI_BRIEF('__HEAD__'))} | sed "s/__HEAD__/$head/" > ${JSON.stringify(join(dir, 'brief.md'))}`, `printf '%s\\n' ${shQuote(JSON.stringify({ schemaVersion: 1, runId: ctx.runId, workerId: id, kind: 'pi', role: 'reviewer', brief: 'brief.md', model: fields.model, thinkingLevel: null, skills: [], workspace: fields.workspace }, null, 2))} | sed "s/__HEAD__/$head/" > ${JSON.stringify(join(dir, 'assignment.json'))}`].join('\n'));
+      }
+      parent.fire(...ids.map((id) => ({ tool: 'pstack_worker', args: { action: 'spawn', runId: ctx.runId, assignmentPath: join(parent.workerDir(id), 'assignment.json') } })));
+      for (const id of ids) parent.wait(id);
+      parent.collect(...ids).bash(`cd ${tree} && ${NAN_REPRO}`);
+      parent.proof({ id: 'fc-interrogate', target: 'step-7', command: `${NAN_REPRO} | grep -qx NaN`, cwd: tree, kind: 'review', gitDir: tree }).done('feature', 7, 'fc-interrogate');
+      parent.skip('feature', 8, 'this repository has no remote, so no PR is opened here');
+      parent.text(FI_REPORT);
+      workers['reviewer-1'] = writer(parent, 'reviewer-1', { units: [{ files: { 'repro.sh': `${NAN_REPRO}\n` }, commit: 'repro for NaN' }], test: NAN_REPRO, testKind: 'command', report: `Finding: clampPercent(NaN) returns NaN.\nCommand: ${NAN_REPRO}\nOutput: NaN\nRequired: a number from 0 to 100.` });
+      workers['reviewer-2'] = writer(parent, 'reviewer-2', { units: [{ files: { 'notes.md': 'no findings\n' }, commit: 'notes' }], test: 'test -s notes.md', testKind: 'command', report: 'No findings.' });
+      return scenario(parent, workers);
+    },
+  },
+  checks: [
+    ...todoChecks({ playbook: 'feature', mandatory: [4, 7], skipReason: { 8: /PR|remote/i } }),
+    check('feature-contested.interrogate-step-is-done-not-skipped', 'step 7 ends done with a receipt, after the interrogate skill and its two companion skills were opened', src('poteto-mode/playbooks/feature.md', 'If the design is contested, `interrogate` before shipping.'), (view) => {
+      const step = primaryRun(view, 'feature')?.steps.find((entry) => entry.n === 7);
+      const opened = ['interrogate', 'in-your-own-words', 'arena'].map((name) => openedAt(view.parent, skillFile(name)));
+      return when(step?.state === 'done' && step.evidence.length > 0 && !opened.includes(-1), `step 7 done with ${step?.evidence.join(', ')}; skills opened at ${opened.join(', ')}`, `step 7 is ${step?.state}; skills opened at ${opened.join(', ')}`);
+    }),
+    panelCheck('feature-contested.reviewers-from-two-families', 'the adversaries are role reviewer, each in its own worktree, on the "interrogate reviewers" line, from at least two families', src('interrogate/SKILL.md', 'Read the `interrogate reviewers` line in place of `arena runners`'), { role: 'reviewer', line: 'interrogate reviewers', mode: 'worktree' }),
+    check('feature-contested.adversaries-start-from-the-delivered-commit', 'the reviewers were spawned after the implementation was collected, and each starts at the implementation head', src('interrogate/SKILL.md', 'Copy the scope\'s uncommitted changes into each worktree'), (view) => {
+      const head = branchCommits(view, FI_RUN, 'impl').at(-1);
+      const collected = collectOrder(view, 'impl');
+      const problems = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'reviewer').flatMap((worker) => [...(assignmentOf(worker).workspace?.inputCommit === head ? [] : [`${worker.id} starts at ${assignmentOf(worker).workspace?.inputCommit}, not ${head}`]), ...(spawnOrder(view, worker.id) > collected ? [] : [`${worker.id} spawned before impl was collected`])]);
+      return when(head !== undefined && problems.length === 0, `both reviewers start at ${head?.slice(0, 10)} after the implementation`, problems.join('; ') || 'no implementation head');
+    }),
+    check('feature-contested.finding-was-rerun-and-reported', 'the finding in the reply was rerun by the parent with the reported output, and it is left as an open decision', src('interrogate/SKILL.md', 'Verify each finding per arena Phase F by rerunning its command'), (view) => {
+      const rerun = view.parent.toolCalls.find((call) => call.name === 'bash' && String(call.args['command']).includes(NAN_REPRO));
+      const reply = finalReply(view);
+      return when(rerun?.resultText.includes('NaN') === true && reply.includes('Output: NaN') && /Open decisions?/i.test(reply), 'the parent reran the command and saw NaN; the reply lists it', `rerun ${rerun?.resultText.slice(0, 40)}; reply has output ${reply.includes('Output: NaN')}`);
+    }),
+    check('feature-contested.no-fix-was-applied', 'interrogate reported without fixing: the implementation branch holds only its own commit and the main checkout is untouched', src('interrogate/SKILL.md', 'Report the findings. Do not apply fixes.'), (view) => {
+      const commits = branchCommits(view, FI_RUN, 'impl');
+      return when(commits.length === 1 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, '1 commit on the branch, main clean', `${commits.length} commits on the impl branch; dirty ${view.git.dirty.join(',')}`);
+    }),
+    settledAndCollected('feature-contested.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
+  ],
+  negatives: [
+    ...todoNegatives(FI_RUN, 'feature', { done: [3, 4, 5, 6, 7], receipts: { 3: 'fc-checkpoint', 4: 'impl-check', 5: 'fc-surface', 6: 'fc-units', 7: 'fc-interrogate' } }),
+    { name: 'the interrogate step was skipped as not contested', mutate: (sandbox) => setStep(sandbox, FI_RUN, 7, '~', (line) => `${stripEvidence(line)} (skip: not contested)`), fails: ['feature-contested.interrogate-step-is-done-not-skipped', 'todo.feature.skips-explained'] },
+    { name: 'the reviewers were one model family', mutate: (sandbox) => patchAssignment(sandbox, FI_RUN, 'reviewer-2', (assignment) => (assignment['model'] = (SCRIPTED_ROLES['interrogate reviewers'] as string[])[0])), fails: ['feature-contested.reviewers-from-two-families'] },
+    { name: 'a reviewer started from the base, not the delivered commit', mutate: (sandbox) => patchAssignment(sandbox, FI_RUN, 'reviewer-1', (assignment) => ((assignment['workspace'] as { inputCommit: string }).inputCommit = 'deadbeef')), fails: ['feature-contested.adversaries-start-from-the-delivered-commit'] },
+    { name: 'a fix was applied while interrogating', mutate: (sandbox) => dirtyRepo(sandbox, 'src/cart.js'), fails: ['feature-contested.no-fix-was-applied'] },
+    { name: 'the reply reports output the rerun did not show', mutate: (sandbox) => rewriteFinalReply(sandbox, 'Output: NaN.', 'Output: 100.'), fails: ['feature-contested.finding-was-rerun-and-reported'] },
+  ],
+};
+
+export const gateFamilies: Family[] = [gatesFamily, featureContestedFamily];

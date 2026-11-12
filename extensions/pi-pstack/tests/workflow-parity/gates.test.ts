@@ -1,4 +1,4 @@
-import { gatesFamily } from './families/gates.ts';
+import { gateFamilies } from './families/gates.ts';
 import { defineFamilyTests } from './lib/define.ts';
 
-defineFamilyTests([gatesFamily]);
+defineFamilyTests(gateFamilies);
