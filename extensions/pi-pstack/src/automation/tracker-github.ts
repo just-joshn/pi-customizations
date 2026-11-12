@@ -3,7 +3,7 @@
 // `searchByMarker` finds it by listing recent issues and comments instead of the search index, which lags writes.
 import { execFile } from 'node:child_process';
 
-import type { TrackerAction } from './model.ts';
+import { type TrackerAction, untrustedText } from './model.ts';
 import type { TrackerDestination } from './outbox.ts';
 
 /** Runs `gh <args>` and returns stdout; rejects when gh exits nonzero. */
@@ -33,16 +33,6 @@ const MARKER_PREFIX = 'pstack-action:';
 export const markerComment = (id: string) => `<!-- ${MARKER_PREFIX}${id} -->`;
 const footerOf = (sourceUrl: string, marker: string) => `Source: ${sourceUrl}\n\n${marker}`;
 
-/**
- * A worker-written body cannot carry an action marker or a `Source:` line of its own, so it cannot make a search match
- * an issue it chose or make another report look already linked. The parent adds the one footer the searches trust.
- */
-const untrusted = (text: string) =>
-  text
-    .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
-    .split('\n')
-    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
-    .join('\n');
 const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const lines = (output: string) => output.split('\n').filter((line) => line.trim() !== '');
@@ -90,7 +80,7 @@ export function githubTracker(options: { exec: GhExec; repo: string; now?: () =>
     return [...found];
   };
   const number = (output: string) => ({ id: issueId(output.trim()) });
-  const footer = (action: TrackerAction) => `${untrusted(action.body).trimEnd()}\n\n${footerOf(action.sourceUrl, markerComment(action.id))}`;
+  const footer = (action: TrackerAction) => `${untrustedText(action.body).trimEnd()}\n\n${footerOf(action.sourceUrl, markerComment(action.id))}`;
 
   return {
     async searchByMarker(marker) {

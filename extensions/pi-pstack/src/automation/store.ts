@@ -2,10 +2,11 @@ import { appendFileSync, existsSync, linkSync, mkdirSync, readdirSync, readFileS
 import { dirname, join } from 'node:path';
 
 import type { ActionId, AutomationEvent, EventKey, OutboxAction, Prerequisite, RunId } from './model.ts';
+import type { TrackerWork } from './outbox.ts';
 
 export type LogEntry =
   | { ts: string; kind: 'received'; key: EventKey; event: AutomationEvent }
-  | { ts: string; kind: 'blocked'; key: EventKey; missing: Prerequisite[] }
+  | { ts: string; kind: 'blocked'; key: EventKey; missing: Prerequisite[]; problems?: string[] }
   | { ts: string; kind: 'dispatched'; key: EventKey; runId: RunId }
   | { ts: string; kind: 'rejected'; reason: string }
   | { ts: string; kind: 'reply-refused'; key: EventKey; reason: string }
@@ -15,7 +16,7 @@ export type LogEntry =
   | { ts: string; kind: 'source-error'; reason: string };
 
 export type OutboxEntry =
-  | { action: OutboxAction; state: 'pending'; attempts?: number; retryAt?: string }
+  | { action: OutboxAction; state: 'pending'; attempts?: number; retryAt?: string; work?: TrackerWork }
   | { action: OutboxAction; state: 'done'; destinationTs: string; reconciled: boolean }
   | { action: OutboxAction; state: 'failed'; attempts: number; reason: string };
 

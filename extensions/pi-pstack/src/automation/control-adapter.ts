@@ -46,7 +46,7 @@ export function controlSkillProblem(skillName: string, locations: SkillLocations
 
 export function controlProbes(projectRoot: string, control: ControlConfig, locations: Omit<SkillLocations, 'projectRoot'> = {}): { controlAdapter: Probe; featureMap: Probe } {
   return {
-    controlAdapter: async () => controlSkillProblem(control.skillName, { projectRoot, ...locations }) === undefined,
-    featureMap: async () => featureMapProblem(projectRoot, control.featureMapPath) === undefined,
+    controlAdapter: async () => controlSkillProblem(control.skillName, { projectRoot, ...locations }) ?? true,
+    featureMap: async () => featureMapProblem(projectRoot, control.featureMapPath) ?? true,
   };
 }

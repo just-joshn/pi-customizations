@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker, spawnInTmux } from '../src/automation/dispatch.ts';
 import { type ActionId, AUTOMATION_KINDS, classificationOf, eligibleTrackerAction, failureReply, sourceUrlOf, type TrackerConfig, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
-import { enqueue, flushOutbox, type ThreadDestination, type TrackerDestination } from '../src/automation/outbox.ts';
+import { directLander, enqueue, flushOutbox, type ThreadDestination, type TrackerDestination, type TrackerLander } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, outboxEntries, readLog } from '../src/automation/store.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -22,7 +22,8 @@ export interface AutomationConfig extends DispatchConfig {
 export interface AutomationDeps {
   /** Defaults to a tmux worker started as pstack_worker starts one. */
   spawnWorker?: SpawnWorker;
-  tracker?: TrackerDestination;
+  /** A synchronous tracker the parent writes itself, or a lander that hands each write to a worker. */
+  tracker?: TrackerDestination | TrackerLander;
   /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
   trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent, reply: string) => Promise<TrackerEligibility>;
   destination: ThreadDestination;
@@ -34,7 +35,7 @@ export interface AutomationDeps {
 
 export type HandleOutcome =
   | { status: 'rejected'; reason: string }
-  | { status: 'blocked'; key: EventKey; missing: Prerequisite[] }
+  | { status: 'blocked'; key: EventKey; missing: Prerequisite[]; problems?: string[] }
   | { status: 'dispatched'; key: EventKey; runId: RunId }
   | { status: 'duplicate'; key: EventKey; runId: RunId };
 
@@ -94,10 +95,10 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     const state = caseState(readLog(store), key);
     if (state.phase === 'dispatched') return { status: 'duplicate', key, runId: state.runId };
     if (state.phase === 'unknown') throw new Error(`no received event for ${key}`);
-    const missing = await missingPrerequisites(config.kind, deps.prerequisites);
+    const { missing, problems } = await missingPrerequisites(config.kind, deps.prerequisites);
     if (missing.length > 0) {
-      appendLog(store, { ts: stamp(), kind: 'blocked', key, missing });
-      return { status: 'blocked', key, missing };
+      appendLog(store, { ts: stamp(), kind: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) });
+      return { status: 'blocked', key, missing, ...(problems.length > 0 ? { problems } : {}) };
     }
     if (config.kind === 'reproduce') {
       const messages = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
@@ -116,7 +117,8 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return { status: 'rejected', reason };
   };
 
-  const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, deps.tracker, { now, ...options });
+  const lander = deps.tracker === undefined ? undefined : 'land' in deps.tracker ? deps.tracker : directLander(deps.tracker);
+  const flush = (options: { ignoreBackoff?: boolean } = {}) => flushOutbox(store, deps.destination, lander, { now, ...options });
   const entryOf = (id: ActionId) => outboxEntries(store).find((entry) => entry.action.id === id);
 
   return {

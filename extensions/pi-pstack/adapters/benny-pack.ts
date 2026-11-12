@@ -231,7 +231,7 @@ export const BENNY_RULES: readonly Rule[] = [
       "- Required control skill name",
     ]), L([
       "- Issue tracker type, team, project, labels, and intake status. `tracker.type: \"github\"` with `tracker.repo: \"owner/name\"` is the one tracker this package ships. It talks to GitHub through the `gh` CLI and has no team, project, or status, so those keys are not needed. The four labels must already exist in the repository, because the adapter applies them and never creates one.",
-      "- Tracker adapter skill or MCP actions",
+      "- Tracker adapter skill or MCP actions. For a tracker other than GitHub this is `tracker.adapter_skill_name`, a skill the project owns. It uses whatever MCP tools this workspace has, and the worker that writes each issue loads it.",
       "- Optional routing map path",
       "- Required control skill name. It is any skill Pi can load for the project: one in `.pi/skills/`, in a `.agents/skills/` directory from the project up to the repository root, in `~/.pi/agent/skills/` or `~/.agents/skills/`, or one this package ships, such as `control-ui` or `control-cli`.",
     ])),
@@ -261,7 +261,7 @@ export const BENNY_RULES: readonly Rule[] = [
       "Check, in this order:",
       "",
       "1. The Slack connector. `~/.pi/agent/pstack/credentials/slack.json` must hold `{ \"token\": \"xoxb-...\" }` with mode 0600. The bot needs `conversations.replies` read access and `chat.postMessage` in the source channel. Without the file, the automation does not start. Never put the token in YAML or in any committed file.",
-      "2. The tracker. With `tracker.type: \"github\"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing.",
+      "2. The tracker. With `tracker.type: \"github\"`, run `gh auth status` as the user that will run the automation and confirm `gh api repos/<owner>/<name>` succeeds. The automation treats an unreachable repository as a missing prerequisite and logs each case `blocked` instead of guessing. With any other tracker type, the skill named by `tracker.adapter_skill_name` must be one Pi can load for the project, by the locations section 3 lists, and the MCP servers it uses must be configured for the project (`pi mcp list`). The automation starts one worker per tracker write. That worker has Pi's MCP, loads the skill, searches for the action marker before any write, writes only when the marker is absent, and returns a JSON result. A missing or unresolvable skill logs the case `blocked` with the skill name, and nothing is written.",
       "3. The webhook secret. `benny-setup.mjs` creates `~/.pi/agent/pstack/credentials/<automation name>.json`. The event sender presents its `key` as `Authorization: Bearer <key>` on `POST /events`.",
       "4. For repro and fix, a draft pull request needs `gh` access to the repository. A worker cannot post or open one itself.",
       "",

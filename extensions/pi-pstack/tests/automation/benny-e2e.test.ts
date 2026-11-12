@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
@@ -8,7 +8,7 @@ import type { RunId } from '../../src/automation/model.ts';
 import { completeSettledRuns, startSettler } from '../../src/automation/settle.ts';
 import { readLog } from '../../src/automation/store.ts';
 import { wireBenny } from '../../src/automation/wiring.ts';
-import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, wiringDeps } from './benny-fakes.ts';
+import { type BennyProject, bennyProject, fakeGh, fakeSlack, REPORT, ROOT_TS, settleWorker, wiringDeps } from './benny-fakes.ts';
 
 const projects: BennyProject[] = [];
 afterEach(() => {
@@ -17,17 +17,6 @@ afterEach(() => {
 
 const VERDICT = 'Reproducible export failure in the Safari download path.\n[benny:bug]';
 const CREATE = { text: VERDICT, tracker: { operation: 'create', title: 'Export button does nothing on Safari', body: 'Expected a download. Observed nothing.' } };
-
-/** Writes what a settled host leaves behind: its state file and the native session file with the worker's final message. */
-function settleWorker(dir: string, runId: RunId, outcome: { phase: 'idle' | 'failed' | 'aborted'; reason?: string; finalText?: string }) {
-  const worker = workerDir(dir, runId);
-  const sessionFile = join(worker, 'session', 'fake.jsonl');
-  mkdirSync(join(worker, 'session'), { recursive: true });
-  const message = outcome.finalText === undefined ? '' : `${JSON.stringify({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: outcome.finalText }] } })}\n`;
-  writeFileSync(sessionFile, message);
-  const state = { schemaVersion: 1, runId, workerId: 'owner', kind: 'pi', digest: 'x', instance: 'i1', hostPid: 2 ** 22 - 1, childPid: null, tmuxSession: 's', socketPath: '/nonexistent', phase: 'idle', reason: null, model: null, sessionFile, briefSent: true, generation: 1, settles: [{ sequence: 1, generation: 1, phase: outcome.phase, reason: outcome.reason ?? null, at: new Date().toISOString() }], exit: null, updatedAt: new Date().toISOString() };
-  writeFileSync(join(worker, 'state.json'), JSON.stringify(state));
-}
 
 function triage(options: { gh?: ReturnType<typeof fakeGh>; slack?: ReturnType<typeof fakeSlack>; project?: BennyProject } = {}) {
   const project = options.project ?? bennyProject();

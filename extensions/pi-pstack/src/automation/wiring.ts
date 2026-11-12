@@ -3,10 +3,11 @@
 import { type Automation, type AutomationConfig, createAutomation } from '../../adapters/automation-events.ts';
 import { controlProbes } from './control-adapter.ts';
 import type { BennyConfig } from './configuration.ts';
-import type { SpawnWorker } from './dispatch.ts';
+import { type SpawnWorker, spawnInTmux } from './dispatch.ts';
 import type { Prerequisite, Probe } from './model.ts';
-import type { TrackerDestination } from './outbox.ts';
+import type { TrackerDestination, TrackerLander } from './outbox.ts';
 import { slackDestination } from './slack.ts';
+import { adapterSkillProblem, adapterTracker } from './tracker-adapter.ts';
 import { type GhExec, githubTracker } from './tracker-github.ts';
 import { createTrackerPolicy } from './tracker-policy.ts';
 
@@ -25,10 +26,15 @@ export interface WiringDeps {
 export function wireBenny(config: BennyConfig, deps: WiringDeps): Automation {
   const destination = slackDestination({ fetch: deps.fetch, token: deps.slackToken });
   const probes: Partial<Record<Prerequisite, Probe>> = controlProbes(config.projectRoot, config.control, { ...(deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }), ...(deps.home === undefined ? {} : { home: deps.home }) });
-  let tracker: TrackerDestination | undefined;
+  let tracker: TrackerDestination | TrackerLander | undefined;
   let policy: ReturnType<typeof createTrackerPolicy> | undefined;
-  // Only the GitHub adapter ships. Any other tracker type has no probe, so cases needing a tracker are logged blocked.
-  if (config.tracker.type === 'github' && config.tracker.repo !== undefined) {
+  const locations = { ...(deps.packageRoot === undefined ? {} : { packageRoot: deps.packageRoot }), ...(deps.home === undefined ? {} : { home: deps.home }) };
+  // GitHub is the one tracker the package ships. Any other type is a project-owned adapter skill, run by a worker.
+  if (config.tracker.type !== 'github') {
+    tracker = adapterTracker({ projectRoot: config.projectRoot, automation: config.name, tracker: config.tracker, locations, spawnWorker: deps.spawnWorker ?? spawnInTmux(config.projectRoot), ...(config.model === undefined ? {} : { model: config.model }), ...(deps.now === undefined ? {} : { now: deps.now }) });
+    probes.tracker = async () => adapterSkillProblem(config.tracker, config.projectRoot, locations) ?? true;
+    policy = createTrackerPolicy({ tracker: config.tracker, destination, canCompensate: true });
+  } else if (config.tracker.repo !== undefined) {
     const github = githubTracker({ exec: deps.exec, repo: config.tracker.repo, ...(deps.now === undefined ? {} : { now: deps.now }) });
     tracker = github;
     probes.tracker = () => github.reachable();

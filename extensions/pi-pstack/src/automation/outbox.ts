@@ -22,6 +22,40 @@ export interface TrackerDestination {
   create(action: TrackerAction): Promise<{ id: string }>;
   update(action: TrackerAction): Promise<{ id: string }>;
   comment(action: TrackerAction): Promise<{ id: string }>;
+  /** Closes the issue `action.targetId`, which the parent created, and confirms it is closed. */
+  compensate?(action: TrackerAction): Promise<{ id: string }>;
+}
+
+/** A tracker write handed to a worker, recorded in the entry so a restart adopts that worker instead of starting another. */
+export interface TrackerWork {
+  runId: string;
+  startedAt: string;
+}
+
+export type TrackerLanding = { status: 'landed'; id: string; reconciled: boolean } | { status: 'working'; work: TrackerWork };
+
+/**
+ * One step toward landing a tracker action. It either finishes (marker search before any write, so a second step after a
+ * crash finds the first write), hands the write to a worker and says so, or throws, which counts as a failed attempt.
+ * `attempt` counts from 1 and names the worker a failed attempt is replaced by.
+ */
+export interface TrackerLander {
+  land(action: TrackerAction, progress: { attempt: number; work?: TrackerWork }): Promise<TrackerLanding>;
+}
+
+/** The synchronous tracker: the parent searches by marker and writes in its own process. */
+export function directLander(tracker: TrackerDestination): TrackerLander {
+  return {
+    async land(action) {
+      const matches = await tracker.searchByMarker(action.id);
+      if (matches.length > 1) throw new Error('ambiguous tracker action marker');
+      const landed = matches[0];
+      if (landed !== undefined) return { status: 'landed', id: landed.id, reconciled: true };
+      const write = action.operation === 'close' ? tracker.compensate : tracker[action.operation];
+      if (write === undefined) throw new Error(`the tracker cannot ${action.operation}`);
+      return { status: 'landed', id: (await write.call(tracker, action)).id, reconciled: false };
+    },
+  };
 }
 
 /** Queues an action once. A second enqueue of the same id keeps the first, so one purpose yields one external action. */
@@ -47,7 +81,7 @@ const messageOf = (error: unknown) => (error instanceof Error ? error.message : 
  * before a crash, with no acknowledgement written, is acknowledged instead of repeated. An action that fails
  * `OUTBOX_RETRY_LIMIT` times becomes `failed`, which its owner reads as the cue to take the failure path.
  */
-export async function flushOutbox(store: AutomationStore, destination: ThreadDestination, tracker?: TrackerDestination, options: FlushOptions = {}): Promise<void> {
+export async function flushOutbox(store: AutomationStore, destination: ThreadDestination, tracker?: TrackerLander, options: FlushOptions = {}): Promise<void> {
   const now = options.now ?? (() => new Date());
   for (const entry of outboxEntries(store)) {
     if (entry.state !== 'pending') continue;
@@ -56,11 +90,8 @@ export async function flushOutbox(store: AutomationStore, destination: ThreadDes
     try {
       if (action.kind === 'tracker') {
         if (!tracker) throw new Error('tracker destination unavailable');
-        const matches = await tracker.searchByMarker(action.id);
-        if (matches.length > 1) throw new Error('ambiguous tracker action marker');
-        const landed = matches[0];
-        const written = landed ?? (await tracker[action.operation](action));
-        writeAtomic(outboxFile(store, action.id), json({ action, state: 'done', destinationTs: written.id, reconciled: landed !== undefined }));
+        const landing = await tracker.land(action, { attempt: (entry.attempts ?? 0) + 1, ...(entry.work === undefined ? {} : { work: entry.work }) });
+        writeAtomic(outboxFile(store, action.id), json(landing.status === 'landed' ? { action, state: 'done', destinationTs: landing.id, reconciled: landing.reconciled } : { action, state: 'pending', ...(entry.attempts === undefined ? {} : { attempts: entry.attempts }), work: landing.work }));
         continue;
       }
       const landed = (await destination.readThread(action.channel, action.threadTs)).find((message) => message.marker === action.id);

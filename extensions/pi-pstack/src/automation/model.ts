@@ -65,7 +65,8 @@ export function parseEvent(raw: unknown): ParsedEvent {
 export type Prerequisite = 'tracker' | 'controlAdapter' | 'featureMap';
 export type BennyAutomationKind = 'triage' | 'reproduce';
 export type AutomationKind = BennyAutomationKind | 'routine';
-export type Probe = () => Promise<boolean>;
+/** `true`: holds. `false`: could not be established. A string: it does not hold, and why. */
+export type Probe = () => Promise<boolean | string>;
 
 const BENNY_MARKERS = ['[benny:bug]', '[benny:performance]', '[benny:other]'] as const;
 
@@ -115,9 +116,11 @@ export interface TrackerIntent {
   title?: string;
   body: string;
 }
-export interface TrackerAction extends TrackerIntent {
+export interface TrackerAction extends Omit<TrackerIntent, 'operation'> {
   id: ActionId;
   kind: 'tracker';
+  /** `close` is the parent's compensation for an issue it created and could not announce. A worker's intent never carries it. */
+  operation: TrackerIntent['operation'] | 'close';
   sourceUrl: string;
   /** Set by the parent from the verdict marker and configuration, never taken from the worker. Create only. */
   labels?: string[];
@@ -136,6 +139,17 @@ export interface TrackerConfig {
   sourceLinkTitle?: string;
   labels: { bug: string; performance: string; intake: string; needsRepro: string };
 }
+
+/**
+ * Worker-supplied text a parent copies into an external system. It cannot carry an action marker or a `Source:` line,
+ * because the parent writes the one footer that later searches trust.
+ */
+export const untrustedText = (text: string) =>
+  text
+    .replace(/<!--\s*pstack-action:[^>]*-->/g, '')
+    .split('\n')
+    .filter((line) => !/^[\s>*_-]*source\s*:/i.test(line))
+    .join('\n');
 
 /** The Slack permalink the parent computes from the immutable source coordinates. */
 export const sourceUrlOf = (event: Pick<AutomationEvent, 'channel' | 'rootTs'>) => `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}`;

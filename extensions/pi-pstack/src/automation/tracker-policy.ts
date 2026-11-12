@@ -10,6 +10,10 @@
 //   - this source permalink is not already linked to an issue: no second ticket, no repeated recurrence note
 //   - a create finds no open issue with the same title; a duplicate update names an open issue the worker chose
 //   - the adapter offers a compensation action (rule 7): `close`
+// A tracker reached through a project-owned adapter skill has no reader here, because the parent cannot search it. Its
+// tracker-side checks (source already linked, same-title issue, target open) are the first step of that worker's brief,
+// which searches before it writes. The Slack-side checks above still hold, and the worker may only name the target the
+// worker that triaged chose.
 // Judged by the worker, accepted when it asks for the write (the parent cannot read the product):
 //   - clearly broken rather than a feature request, and not known to be fixed (rules 2 and 3)
 //   - whether two reports share a signature, area, trigger, and symptom; the parent only verifies the target it names
@@ -23,7 +27,8 @@ import type { TrackerReader } from './tracker-github.ts';
 
 export interface TrackerPolicyOptions {
   tracker: TrackerConfig;
-  reader: TrackerReader;
+  /** Absent for a tracker the parent cannot read itself. */
+  reader?: TrackerReader;
   destination: ThreadDestination;
   canCompensate: boolean;
 }
@@ -33,13 +38,14 @@ export function createTrackerPolicy(options: TrackerPolicyOptions): (event: Auto
   return async (event, intent, reply) => {
     const classification = classificationOf(reply);
     const sourceVerified = (await destination.readThread(event.channel, event.rootTs).catch(() => [])).some((message) => message.ts === event.rootTs);
-    const linked = await reader.findBySource(sourceUrlOf(event));
+    const linked = reader === undefined ? [] : await reader.findBySource(sourceUrlOf(event));
     const labelsResolved = classification !== 'other' && tracker.labels[classification].trim() !== '' && tracker.labels.intake.trim() !== '';
     const base = { classification, sourceVerified, canCompensate: options.canCompensate };
     if (intent.operation === 'create') {
-      const duplicate = linked.length > 0 ? 'already-linked' : (await reader.findOpenByTitle(intent.title ?? '')).length > 0 ? 'possible' : 'none';
+      const duplicate = linked.length > 0 ? 'already-linked' : reader === undefined ? 'none' : (await reader.findOpenByTitle(intent.title ?? '')).length > 0 ? 'possible' : 'none';
       return { ...base, clearlyBroken: true, live: true, duplicate, targetResolved: labelsResolved };
     }
+    if (reader === undefined) return { ...base, clearlyBroken: true, live: true, duplicate: intent.targetId === undefined ? 'none' : 'confident', ...(intent.targetId === undefined ? {} : { duplicateId: intent.targetId }), targetResolved: intent.targetId !== undefined };
     const target = intent.targetId === undefined ? undefined : await reader.read(intent.targetId);
     const duplicate = linked.length > 0 ? 'already-linked' : target === undefined ? 'none' : target.state === 'open' ? 'confident' : 'weak';
     return { ...base, clearlyBroken: true, live: target?.state === 'open', duplicate, ...(duplicate === 'confident' && target !== undefined ? { duplicateId: target.id } : {}), targetResolved: target !== undefined };

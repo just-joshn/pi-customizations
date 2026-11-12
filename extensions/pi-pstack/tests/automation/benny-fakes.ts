@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import type { BennyConfig } from '../../src/automation/configuration.ts';
+import { workerDir } from '../../src/automation/dispatch.ts';
+import type { RunId } from '../../src/automation/model.ts';
 import { loadBennyConfig } from '../../src/automation/configuration.ts';
 import type { GhExec } from '../../src/automation/tracker-github.ts';
 import type { WiringDeps } from '../../src/automation/wiring.ts';
@@ -105,23 +107,38 @@ Lets a user export a report.
 - click Export should download a file.
 `;
 
+/** Writes what a settled host leaves behind: its state file and the native session file with the worker's final message. */
+export function settleWorker(dir: string, runId: RunId, outcome: { phase: 'idle' | 'failed' | 'aborted'; reason?: string; finalText?: string }, workerId = 'owner') {
+  const worker = workerDir(dir, runId);
+  const sessionFile = join(worker, 'session', 'fake.jsonl');
+  mkdirSync(join(worker, 'session'), { recursive: true });
+  const message = outcome.finalText === undefined ? '' : `${JSON.stringify({ type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: outcome.finalText }] } })}\n`;
+  writeFileSync(sessionFile, message);
+  const state = { schemaVersion: 1, runId, workerId, kind: 'pi', digest: 'x', instance: 'i1', hostPid: 2 ** 22 - 1, childPid: null, tmuxSession: 's', socketPath: '/nonexistent', phase: 'idle', reason: null, model: null, sessionFile, briefSent: true, generation: 1, settles: [{ sequence: 1, generation: 1, phase: outcome.phase, reason: outcome.reason ?? null, at: new Date().toISOString() }], exit: null, updatedAt: new Date().toISOString() };
+  writeFileSync(join(worker, 'state.json'), JSON.stringify(state));
+}
+
 export interface BennyProject {
   dir: string;
   config: (kind: 'triage' | 'reproduce') => BennyConfig;
 }
 
 /** A project with a loadable Benny configuration, a valid feature map, and the GitHub tracker selected. */
-export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string } = {}): BennyProject {
+export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string; adapterSkill?: string | null } = {}): BennyProject {
   const dir = options.root ?? realpathSync(mkdtempSync(join(tmpdir(), 'benny-e2e-')));
   const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
     .replace('TRIAGE_IDENTITY_USER_ID', TRIAGE_USER)
-    .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n`)
+    .replace(/  type: "linear"[\s\S]*?  status: "intake-status-placeholder"\n/, (block) => (options.adapterSkill === undefined ? `  type: "github"\n  repo: "${REPO}"\n  labels:\n    bug: "bug"\n    performance: "performance"\n    intake: "intake"\n    needs_repro: "needs-repro"\n` : block.replace('issue-tracker-adapter-placeholder', options.adapterSkill ?? 'issue-tracker-adapter-placeholder')))
     .replaceAll('choose-an-available-public-model-slug', 'inherit-parent')
-    .replace(/skill_name: ".*"/, `skill_name: "${options.controlSkill ?? 'control-ui'}"`);
+    .replace(/^  skill_name: ".*"/m, `  skill_name: "${options.controlSkill ?? 'control-ui'}"`);
   const file = join(dir, '.pi/benny/configuration.yaml');
   mkdirSync(dirname(file), { recursive: true });
   writeFileSync(file, template);
+  if (typeof options.adapterSkill === 'string') {
+    mkdirSync(join(dir, '.pi/skills', options.adapterSkill), { recursive: true });
+    writeFileSync(join(dir, '.pi/skills', options.adapterSkill, 'SKILL.md'), `---\nname: ${options.adapterSkill}\ndescription: Reads and writes the team's Linear issues through the Linear MCP tools.\n---\n\nUse the Linear MCP tools. Search issues by text, create, update, comment, and cancel.\n`);
+  }
   if (options.featureMap !== null) writeFileSync(join(dir, '.pi/benny/feature-map.md'), options.featureMap ?? FEATURE_MAP);
   return { dir, config: (kind) => loadBennyConfig(dir, kind, file) };
 }

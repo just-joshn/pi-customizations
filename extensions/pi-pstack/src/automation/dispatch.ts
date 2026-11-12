@@ -28,15 +28,21 @@ export const spawnInTmux =
     await spawnAssignment(projectRoot, runId, assignmentPath, { piCommand: ['pi'], ...options });
   };
 
-/** A prerequisite is missing when no probe is configured, and uncertain when its probe throws or says no. */
-export async function missingPrerequisites(kind: BennyAutomationKind, probes: Partial<Record<Prerequisite, Probe>>): Promise<Prerequisite[]> {
+/**
+ * A prerequisite is missing when no probe is configured, and uncertain when its probe throws or says no. A probe that
+ * says why gives the reason, so a blocked case names what to fix.
+ */
+export async function missingPrerequisites(kind: BennyAutomationKind, probes: Partial<Record<Prerequisite, Probe>>): Promise<{ missing: Prerequisite[]; problems: string[] }> {
   const missing: Prerequisite[] = [];
+  const problems: string[] = [];
   for (const prerequisite of AUTOMATION_KINDS[kind].requires) {
     const probe = probes[prerequisite];
-    const ok = probe === undefined ? false : await probe().catch(() => false);
-    if (!ok) missing.push(prerequisite);
+    const result = probe === undefined ? false : await probe().catch(() => false);
+    if (result === true) continue;
+    missing.push(prerequisite);
+    if (typeof result === 'string') problems.push(result);
   }
-  return missing;
+  return { missing, problems };
 }
 
 export const runDir = (projectRoot: string, runId: RunId) => join(projectRoot, '.pi', 'pstack', 'runs', runId);
@@ -96,30 +102,33 @@ export function buildAssignment(config: DispatchConfig, runId: RunId, inputCommi
   };
 }
 
+export interface RunFiles {
+  runId: RunId;
+  title: string;
+  playbook: string;
+  inputCommit: string | null;
+  brief: string;
+  assignment: object;
+}
+
 /**
- * Writes the run's files once and spawns its worker once. Every file is created exclusively, so a rerun keeps what an
- * earlier run wrote. A `claim/` directory means a host already took the worker, so the spawn is not repeated.
+ * Writes an automation run's files once and spawns its worker once. Every file is created exclusively, so a rerun keeps
+ * what an earlier run wrote. A `claim/` directory means a host already took the worker, so the spawn is not repeated.
  */
-export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date }): Promise<void> {
-  const root = runDir(config.projectRoot, runId);
-  const worker = workerDir(config.projectRoot, runId);
-  const assignment = buildAssignment(config, runId, deps.inputCommit);
+export async function launchRun(projectRoot: string, run: RunFiles, deps: { spawnWorker: SpawnWorker; now: () => Date }): Promise<void> {
+  const worker = workerDir(projectRoot, run.runId);
   createExclusive(
-    join(root, 'run.json'),
-    json({
-      schemaVersion: 1,
-      runId,
-      title: `Benny ${config.kind} ${event.key}`,
-      playbook: `benny-${config.kind}`,
-      upstreamRevision: UPSTREAM_REVISION,
-      createdAt: deps.now().toISOString(),
-      parentSessionFile: null,
-      inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null,
-    }),
+    join(runDir(projectRoot, run.runId), 'run.json'),
+    json({ schemaVersion: 1, runId: run.runId, title: run.title, playbook: run.playbook, upstreamRevision: UPSTREAM_REVISION, createdAt: deps.now().toISOString(), parentSessionFile: null, inputCommit: run.inputCommit }),
   );
-  createExclusive(join(worker, 'brief.md'), buildBrief(config, event));
+  createExclusive(join(worker, 'brief.md'), run.brief);
   const assignmentPath = join(worker, 'assignment.json');
-  createExclusive(assignmentPath, json(assignment));
+  createExclusive(assignmentPath, json(run.assignment));
   if (existsSync(join(worker, 'claim'))) return;
-  await deps.spawnWorker(runId, assignmentPath);
+  await deps.spawnWorker(run.runId, assignmentPath);
+}
+
+export async function dispatchRun(config: DispatchConfig, event: AutomationEvent, runId: RunId, deps: { spawnWorker: SpawnWorker; inputCommit: () => string; now: () => Date }): Promise<void> {
+  const assignment = buildAssignment(config, runId, deps.inputCommit);
+  await launchRun(config.projectRoot, { runId, title: `Benny ${config.kind} ${event.key}`, playbook: `benny-${config.kind}`, inputCommit: assignment.workspace.mode === 'worktree' ? assignment.workspace.inputCommit : null, brief: buildBrief(config, event), assignment }, deps);
 }
