@@ -2,7 +2,7 @@
 
 **You run the program, never the code. Decide which agent does each piece of work, then check what each one produces.** For a standing project handed to one coordinator chat: multi-day, many stacked PRs, dozens to hundreds of subagents, few human turns. One task driven to a predicate is Autonomous run. One ambitious run that needs a bespoke workflow is figure-it-out. Work that one agent could finish inside the session's budget is not a program.
 
-Run it with your own tools. Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you. Call no scripts, run no polling loops, and never relay messages or status between agents.
+Run it with your own tools. Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you. That watch is the harness event, not one of your scripts or polling loops. Call no scripts, run no polling loops, and never relay messages or status between agents.
 
 #### Topology
 

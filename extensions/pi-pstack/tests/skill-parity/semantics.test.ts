@@ -129,3 +129,21 @@ describe('recurring watch loops (defect 5)', () => {
     expect(text).toMatch(/After a parent restart, re-arm each open watch loop from the run's `TODO.md` or plan/);
   });
 });
+
+describe('self-audit fixes', () => {
+  test('autopilot-full keeps its decision trail in the worker directory, not a Cursor agent store', () => {
+    const text = line('skills/poteto-mode/playbooks/autopilot-full.md', 12);
+    expect(text).not.toMatch(/agent's store|system prompt|that store/);
+    expect(text).toContain('start a decision trail in your worker directory under the root\'s run (`.pi/pstack/runs/<runId>/workers/<workerId>/`');
+  });
+
+  test('worktree-cleanup runs the slow scan as a one-shot watch that writes a file, and names no Cursor sidebar', () => {
+    const text = gen('skills/poteto-mode/playbooks/worktree-cleanup.md');
+    expect(text).not.toMatch(/sidebar|watch loop/);
+    expect(line('skills/poteto-mode/playbooks/worktree-cleanup.md', 3)).toMatch(/run it as a watch \(`kind: "watch"`, `watch\.argv: \["sh", "-c", "scripts\/worktree-audit\.sh <args> > <file>"\]`\)/);
+  });
+
+  test('orchestrate separates its PR watch from the scripts and polling loops it forbids', () => {
+    expect(line('skills/poteto-mode/playbooks/orchestrate.md', 5)).toContain('That watch is the harness event, not one of your scripts or polling loops.');
+  });
+});

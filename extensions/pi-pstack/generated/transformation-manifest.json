@@ -8,8 +8,8 @@
     "skills": 62,
     "agents": 3,
     "prompts": 62,
-    "rules": 159,
-    "spans": 223
+    "rules": 163,
+    "spans": 227
   },
   "skills": [
     "architect",
@@ -416,6 +416,24 @@
       }
     },
     {
+      "id": "autopilot-full.trail",
+      "primitives": [
+        "project-tracker"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
+      "id": "autopilot-full.trail-records",
+      "primitives": [
+        "project-tracker"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md": 1
+      }
+    },
+    {
       "id": "autopilot-full.vm-dies",
       "primitives": [
         "cloud-environment"
@@ -738,6 +756,24 @@
       "id": "worktree-cleanup.background",
       "primitives": [
         "await-shell"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
+      }
+    },
+    {
+      "id": "worktree-cleanup.pinned-set",
+      "primitives": [
+        "cursor-ui"
+      ],
+      "files": {
+        "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
+      }
+    },
+    {
+      "id": "worktree-cleanup.session-list",
+      "primitives": [
+        "cursor-ui"
       ],
       "files": {
         "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md": 1
@@ -3323,6 +3359,36 @@
     },
     {
       "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.trail",
+      "offset": [
+        2023,
+        2103
+      ],
+      "lines": [
+        12,
+        12
+      ],
+      "original": "start a decision trail in the root agent's store (path in the system prompt) per",
+      "replacement": "start a decision trail in your worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names) per",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
+      "rule": "autopilot-full.trail-records",
+      "offset": [
+        2295,
+        2334
+      ],
+      "lines": [
+        12,
+        12
+      ],
+      "original": "in that store, so the root can probe it",
+      "replacement": "in that worker directory, so the root can probe it",
+      "output": "generated/skills/poteto-mode/playbooks/autopilot-full.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/autopilot-full.md",
       "rule": "shared.control-skill-plugin",
       "offset": [
         3078,
@@ -3903,7 +3969,7 @@
         5
       ],
       "original": "Spawn workers with `Task`. Keep the program's state in the Project tracker (`notes.md`) and the Project store. Watch each PR with PR and CI event subscriptions when your harness has them.",
-      "replacement": "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you.",
+      "replacement": "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you. That watch is the harness event, not one of your scripts or polling loops.",
       "output": "generated/skills/poteto-mode/playbooks/orchestrate.md"
     },
     {
@@ -4098,7 +4164,37 @@
         3
       ],
       "original": "The transcript scan is slow, so background it.",
-      "replacement": "The transcript scan is slow, so run it in a watch loop (`kind: \"watch\"`) and keep working.",
+      "replacement": "The transcript scan is slow, so run it as a watch (`kind: \"watch\"`, `watch.argv: [\"sh\", \"-c\", \"scripts/worktree-audit.sh <args> > <file>\"]`), keep working, and read `<file>` when its exit wakes you.",
+      "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "rule": "worktree-cleanup.pinned-set",
+      "offset": [
+        794,
+        835
+      ],
+      "lines": [
+        4,
+        4
+      ],
+      "original": "Get that set from the user or sidebar and",
+      "replacement": "Get that set from the user and",
+      "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
+    },
+    {
+      "file": "vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md",
+      "rule": "worktree-cleanup.session-list",
+      "offset": [
+        1336,
+        1380
+      ],
+      "lines": [
+        5,
+        5
+      ],
+      "original": "even when their names never hit the sidebar.",
+      "replacement": "even when their names never appear in `/resume`'s session list.",
       "output": "generated/skills/poteto-mode/playbooks/worktree-cleanup.md"
     },
     {

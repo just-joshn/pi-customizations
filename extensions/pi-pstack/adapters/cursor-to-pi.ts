@@ -88,10 +88,10 @@ export const PRIMITIVES: readonly Primitive[] = [
     label: 'Cursor UI affordances',
     pi: 'Pi commands and package install',
     disposition: 'map',
-    detect: /Cmd\+Shift|computer preview|chat header|Customize in the sidebar|\/add-plugin|`\/plugin (?:marketplace add|install) [^`]+`|`\/pstack:[a-z-]+`/g,
+    detect: /Cmd\+Shift|computer preview|chat header|Customize in the sidebar|\bsidebar\b|\/add-plugin|`\/plugin (?:marketplace add|install) [^`]+`|`\/pstack:[a-z-]+`/g,
   },
   { id: 'cursor-builtin-babysit', label: "Cursor's built-in babysit skill", pi: 'none (pstack Babysit playbook only)', disposition: 'map', detect: /Cursor's (?:built-in babysit|own) skill/g },
-  { id: 'project-tracker', label: 'Cursor Project tracker, store, and event subscriptions', pi: 'run root files and `pstack-worker` wakes', disposition: 'map', detect: /Project tracker|Project store|event subscriptions|agent store/g },
+  { id: 'project-tracker', label: 'Cursor Project tracker, store, and event subscriptions', pi: 'run root files and `pstack-worker` wakes', disposition: 'map', detect: /Project tracker|Project store|event subscriptions|agent'?s? store/g },
   { id: 'host-tool-names', label: 'Cursor tool names (Read, Grep, Glob, Shell)', pi: 'Pi tools read, grep, find, bash', disposition: 'map', detect: /`(?:Read|Grep|Glob|Shell)`|\bRead, Grep, and Glob\b|\(Shell, Grep, MCP/g },
   { id: 'visualize', label: 'Cursor /visualize', pi: 'Mermaid chart blocks', disposition: 'map', detect: /\/visualize\b/g },
   { id: 'cursor-team-kit', label: 'cursor-team-kit plugin', pi: 'team-kit skills shipped in pi-pstack', disposition: 'map', detect: /cursor-team-kit/g },
@@ -379,6 +379,14 @@ export const RULES: readonly Rule[] = [
     'Each owner is a Cursor cloud agent that builds, opens its PR per `playbooks/opening-a-pr.md`, proves the change on the real artifact, babysits to green per `playbooks/babysit.md`, and merges once steps 4 and 5 clear it.',
     'Each owner is a container worker (`role: "owner"`, `workspace: { mode: "container", inputCommit }` at trunk) that builds, opens its PR per `playbooks/opening-a-pr.md`, proves the change on the real artifact, babysits to green per `playbooks/babysit.md`, and merges once steps 4 and 5 clear it. When spawn returns `ContainerUnavailable`, this step is blocked. Report it blocked and spawn no owner.',
   ),
+  rule(
+    'autopilot-full.trail',
+    'project-tracker',
+    PB('autopilot-full'),
+    "start a decision trail in the root agent's store (path in the system prompt) per",
+    "start a decision trail in your worker directory under the root's run (`.pi/pstack/runs/<runId>/workers/<workerId>/`, which your brief names) per",
+  ),
+  rule('autopilot-full.trail-records', 'project-tracker', PB('autopilot-full'), 'in that store, so the root can probe it', 'in that worker directory, so the root can probe it'),
   rule('autopilot-full.vm-dies', 'cloud-environment', PB('autopilot-full'), 'Assume the VM dies.', 'Assume the container dies.'),
   rule(
     'autopilot-full.loop',
@@ -462,7 +470,7 @@ export const RULES: readonly Rule[] = [
     ['task-tool', 'project-tracker'],
     PB('orchestrate'),
     "Spawn workers with `Task`. Keep the program's state in the Project tracker (`notes.md`) and the Project store. Watch each PR with PR and CI event subscriptions when your harness has them.",
-    "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you.",
+    "Spawn workers with `pstack_worker`. Keep the program's state in the run root (`.pi/pstack/runs/<runId>/`): `TODO.md`, `decisions.tsv`, and a `notes.md` beside them. Watch each PR with a watch loop that runs the PR watcher, whose exit wakes you. That watch is the harness event, not one of your scripts or polling loops.",
   ),
   rule(
     'orchestrate.cloud-workers',
@@ -516,7 +524,15 @@ export const RULES: readonly Rule[] = [
   rule('shipping.loop', 'loop', PB('shipping'), 'under `/loop` until it reports', 'under a watch loop until it reports'),
   rule('visual-parity.loop', 'loop', PB('visual-parity'), '`/loop` per component until the diff is zero.', 'Loop per component until the diff is zero.'),
   rule('worktree-cleanup.worktree-path', 'cursor-path', PB('worktree-cleanup'), 'misses one that lives at `.cursor/worktrees/myrepo/x`', 'misses one that lives at `.pi/pstack/runs/<runId>/workers/<workerId>/worktree`'),
-  rule('worktree-cleanup.background', 'await-shell', PB('worktree-cleanup'), 'The transcript scan is slow, so background it.', 'The transcript scan is slow, so run it in a watch loop (`kind: "watch"`) and keep working.'),
+  rule(
+    'worktree-cleanup.background',
+    'await-shell',
+    PB('worktree-cleanup'),
+    'The transcript scan is slow, so background it.',
+    'The transcript scan is slow, so run it as a watch (`kind: "watch"`, `watch.argv: ["sh", "-c", "scripts/worktree-audit.sh <args> > <file>"]`), keep working, and read `<file>` when its exit wakes you.',
+  ),
+  rule('worktree-cleanup.pinned-set', 'cursor-ui', PB('worktree-cleanup'), 'Get that set from the user or sidebar and', 'Get that set from the user and'),
+  rule('worktree-cleanup.session-list', 'cursor-ui', PB('worktree-cleanup'), 'even when their names never hit the sidebar.', "even when their names never appear in `/resume`'s session list."),
 
   // poteto-mode scripts
   rule(
