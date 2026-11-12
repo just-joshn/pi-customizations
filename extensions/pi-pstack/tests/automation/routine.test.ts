@@ -50,6 +50,8 @@ test('a verified POST dispatches one prompt-bearing worker and event ids dedupli
 test('setup keeps its key out of stdout and serves the reported URL', async () => {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'routine-cli-')));
   roots.push(root);
+  execFileSync('git', ['init', '-q'], { cwd: root });
+  execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'base'], { cwd: root });
   const pkg = resolve(import.meta.dirname, '../..');
   const installed = join(root, 'node_modules/pi-pstack');
   for (const folder of ['scripts', 'dist', 'generated/agents']) mkdirSync(join(installed, folder), { recursive: true });

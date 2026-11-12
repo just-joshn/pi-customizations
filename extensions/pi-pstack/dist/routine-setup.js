@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/automation/routine-cli.mjs
-import { execFileSync as execFileSync2 } from "node:child_process";
+import { execFileSync as execFileSync3 } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { chmodSync as chmodSync2, existsSync as existsSync5, mkdirSync as mkdirSync3, readFileSync as readFileSync4, realpathSync as realpathSync2, writeFileSync as writeFileSync4 } from "node:fs";
 import { dirname as dirname4, join as join7, resolve as resolve3 } from "node:path";
@@ -10,6 +10,7 @@ import { parseArgs } from "node:util";
 import { findEnvKeys } from "@earendil-works/pi-ai/compat";
 
 // src/automation/routine.ts
+import { execFileSync } from "node:child_process";
 import { createHash as createHash3 } from "node:crypto";
 import { existsSync as existsSync2, readdirSync as readdirSync2 } from "node:fs";
 import { join as join4 } from "node:path";
@@ -227,7 +228,7 @@ ${JSON.stringify(payload, null, 2).replace(/</g, "\\u003c")}
 </webhook_event>
 `);
     const assignmentPath = join4(worker, "assignment.json");
-    createExclusive(assignmentPath, json({ schemaVersion: 1, runId, workerId: "general", kind: "pi", role: "general", brief: "brief.md", model: config.model ?? "inherit-parent", thinkingLevel: config.thinkingLevel ?? null, workspace: { mode: "readonly", path: config.projectRoot }, skills: [], capabilities: config.capabilities ?? { mcp: "inherit", env: "minimal", externalWrite: false } }));
+    createExclusive(assignmentPath, json({ schemaVersion: 1, runId, workerId: "general", kind: "pi", role: "general", brief: "brief.md", model: config.model ?? "inherit-parent", thinkingLevel: config.thinkingLevel ?? null, workspace: config.workspace === "readonly" ? { mode: "readonly", path: config.projectRoot } : { mode: "worktree", inputCommit: execFileSync("git", ["rev-parse", "HEAD"], { cwd: config.projectRoot, encoding: "utf8" }).trim() }, skills: [], capabilities: config.capabilities ?? { mcp: "inherit", env: "minimal", externalWrite: false } }));
     if (!existsSync2(join4(worker, "claim")))
       await deps.spawnWorker(runId, assignmentPath);
     createExclusive(done, json({ runId }));
@@ -450,7 +451,7 @@ import { randomUUID as randomUUID2 } from "node:crypto";
 import { connect } from "node:net";
 
 // src/worker-host.ts
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync as execFileSync2, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { chmodSync, existsSync as existsSync4, lstatSync as lstatSync2, mkdirSync as mkdirSync2, unlinkSync as unlinkSync2, writeFileSync as writeFileSync3 } from "node:fs";
 import { createServer as createServer2 } from "node:net";
@@ -571,7 +572,7 @@ function prepareWorktree(loaded, inputCommit) {
     throw new Error(`${loaded.runRoot} is not <project>/.pi/pstack/runs/${runId}`);
   const path = join6(loaded.workerDir, "worktree");
   const branch = `pstack-run/${runId}/${workerId}`;
-  const git = (...args) => execFileSync("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
+  const git = (...args) => execFileSync2("git", ["-C", project, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 120000 }).trim();
   const existing = lstatSync2(path, { throwIfNoEntry: false });
   if (existing !== undefined) {
     const registered = git("worktree", "list", "--porcelain").split(`
@@ -1157,9 +1158,9 @@ async function controlHost(target, operation, text) {
 }
 
 // src/automation/routine-cli.mjs
-var { values } = parseArgs({ options: { project: { type: "string" }, name: { type: "string" }, "prompt-file": { type: "string" }, model: { type: "string" }, serve: { type: "boolean" }, port: { type: "string", default: "47913" } } });
+var { values } = parseArgs({ options: { project: { type: "string" }, name: { type: "string" }, "prompt-file": { type: "string" }, model: { type: "string" }, serve: { type: "boolean" }, readonly: { type: "boolean" }, port: { type: "string", default: "47913" } } });
 if (!values.project || !values.name || !/^[a-z0-9][a-z0-9-]{0,39}$/.test(values.name))
-  throw new Error("usage: routine-setup.mjs --project <root> --name <slug> --prompt-file <file> [--serve] [--port <port>] [--model <provider/id>]");
+  throw new Error("usage: routine-setup.mjs --project <root> --name <slug> --prompt-file <file> [--serve] [--port <port>] [--model <provider/id>] [--readonly]");
 var projectRoot = realpathSync2(resolve3(values.project));
 var dir = join7(projectRoot, ".pi/pstack/automation", values.name);
 var configFile = join7(dir, "config.json");
@@ -1167,7 +1168,7 @@ if (values["prompt-file"]) {
   const prompt = readFileSync4(values["prompt-file"], "utf8");
   if (!prompt.trim())
     throw new Error("routine prompt must not be empty");
-  const config = { kind: "routine", name: values.name, prompt, projectRoot, ...values.model ? { model: values.model } : {} };
+  const config = { kind: "routine", name: values.name, prompt, projectRoot, ...values.model ? { model: values.model } : {}, ...values.readonly ? { workspace: "readonly" } : {} };
   if (!createExclusive(configFile, json(config)) && JSON.stringify(readJson(configFile)) !== JSON.stringify(config))
     throw new Error("routine already exists with different configuration");
 }
@@ -1194,13 +1195,13 @@ if (values.serve) {
   const routine = createRoutine(config, { spawnWorker: async (runId, assignmentPath) => {
     const loaded = loadAssignment(assignmentPath);
     const session = tmuxSessionName(projectRoot, runId, loaded.assignment.workerId);
-    const executable = execFileSync2("which", ["pi"], { encoding: "utf8" }).trim();
+    const executable = execFileSync3("which", ["pi"], { encoding: "utf8" }).trim();
     const model = config.model?.split("/");
     const provider = model?.[0];
     const credentialEnv = provider ? (findEnvKeys(provider) ?? []).filter((name) => process.env[name] !== undefined) : [];
     const launch = { piCommand: [executable], model: model ? { provider: model.shift(), id: model.join("/") } : null, thinkingLevel: config.thinkingLevel ?? null, appendSystemPrompt: join7(pkg, "generated/agents/general.md"), tools: ["read", "grep", "find", "ls"], tmuxSession: session, extraArgs: [], env: {}, credentialEnv };
     const host = existsSync5(join7(pkg, "dist/worker-host.js")) ? join7(pkg, "dist/worker-host.js") : join7(pkg, "src/worker-host.ts");
-    execFileSync2("tmux", ["-L", "pstack", "new-session", "-d", "-s", session, "-c", loaded.workerDir, "--", process.execPath, host, assignmentPath, JSON.stringify(launch)], { stdio: "pipe" });
+    execFileSync3("tmux", ["-L", "pstack", "new-session", "-d", "-s", session, "-c", loaded.workerDir, "--", process.execPath, host, assignmentPath, JSON.stringify(launch)], { stdio: "pipe" });
     const target = hostTarget(loaded);
     for (let attempt = 0;attempt < 150; attempt++) {
       const state = await inspectHost(target).catch(() => {
