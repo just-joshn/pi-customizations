@@ -36,7 +36,7 @@ test('setup preserves existing local config and pack edits and reports them as c
   expect(report.pack.conflicts).toEqual(['skills/setup-benny/SKILL.md']);
   expect(report.pack.added).toContain('FOR_AGENTS.md');
   expect(report.sameUidLimit).toMatch(/uid/);
-  expect(report.connector).toEqual({ webhookSecret: 'missing' });
+  expect(report.connector).toEqual({ webhookSecret: 'present, 0600' });
   expect(report.testEvent).toEqual({ ok: true, spawns: 1, replies: 1 });
 });
 

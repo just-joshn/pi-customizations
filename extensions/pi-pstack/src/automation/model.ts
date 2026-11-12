@@ -99,11 +99,43 @@ export function actionIdFor(automation: string, key: EventKey, purpose: string):
   return `act-${shortHash(automation, key, purpose)}` as ActionId;
 }
 
-export interface OutboxAction {
+export interface ThreadReplyAction {
   id: ActionId;
   kind: 'thread-reply';
   channel: string;
   /** Always the root ts: a reply never becomes a root message. */
   threadTs: string;
   text: string;
+}
+
+export interface TrackerIntent {
+  operation: 'create' | 'update' | 'comment';
+  targetId?: string;
+  title?: string;
+  body: string;
+}
+export interface TrackerAction extends TrackerIntent {
+  id: ActionId;
+  kind: 'tracker';
+  sourceUrl: string;
+}
+export type OutboxAction = ThreadReplyAction | TrackerAction;
+export interface WorkerResult {
+  text: string;
+  tracker?: TrackerIntent;
+}
+export interface TrackerEligibility {
+  classification: 'bug' | 'performance' | 'other';
+  clearlyBroken: boolean;
+  live: boolean;
+  duplicate: 'none' | 'confident' | 'possible' | 'weak' | 'already-linked';
+  duplicateId?: string;
+  sourceVerified: boolean;
+  targetResolved: boolean;
+  canCompensate: boolean;
+}
+export function eligibleTrackerAction(intent: TrackerIntent, policy: TrackerEligibility): boolean {
+  if (!['bug', 'performance'].includes(policy.classification) || !policy.live || !policy.sourceVerified || !policy.targetResolved || !intent.body?.trim()) return false;
+  if (intent.operation === 'create') return policy.clearlyBroken && policy.duplicate === 'none' && policy.canCompensate && !!intent.title?.trim() && intent.targetId === undefined;
+  return ['update', 'comment'].includes(intent.operation) && intent.title === undefined && policy.duplicate === 'confident' && !!policy.duplicateId && intent.targetId === policy.duplicateId;
 }

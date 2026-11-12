@@ -4,8 +4,8 @@
 import { execFileSync } from 'node:child_process';
 
 import { type DispatchConfig, dispatchRun, missingPrerequisites, type SpawnWorker } from '../src/automation/dispatch.ts';
-import { AUTOMATION_KINDS, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
-import { enqueue, flushOutbox, type ThreadDestination } from '../src/automation/outbox.ts';
+import { AUTOMATION_KINDS, eligibleTrackerAction, type TrackerEligibility, type TrackerIntent, type WorkerResult, type AutomationEvent, actionIdFor, type EventKey, isIdentifier, type Prerequisite, type Probe, parseEvent, type RunId, runIdFor } from '../src/automation/model.ts';
+import { enqueue, flushOutbox, type ThreadDestination, type TrackerDestination } from '../src/automation/outbox.ts';
 import { pollSlackOnce, type SlackApi } from '../src/automation/slack.ts';
 import { type AutomationStore, acquireSourceLock, appendLog, automationStore, type LogEntry, readLog } from '../src/automation/store.ts';
 import { startWebhookReceiver } from '../src/automation/webhook.ts';
@@ -13,10 +13,14 @@ import { startWebhookReceiver } from '../src/automation/webhook.ts';
 export interface AutomationConfig extends DispatchConfig {
   /** The only channel this automation accepts events from. */
   sourceChannelId: string;
+  triageIdentityUserId?: string;
 }
 
 export interface AutomationDeps {
   spawnWorker: SpawnWorker;
+  tracker?: TrackerDestination;
+  /** Trusted parent reads source and tracker state independently. Never take eligibility from the worker result. */
+  trackerPolicy?: (event: AutomationEvent, intent: TrackerIntent) => Promise<TrackerEligibility>;
   destination: ThreadDestination;
   /** A required prerequisite with no probe counts as missing. */
   prerequisites: Partial<Record<Prerequisite, Probe>>;
@@ -40,7 +44,7 @@ export interface Automation {
   /** Retries every received case that has not been dispatched, then flushes the outbox. Run on start. */
   reconcile(): Promise<void>;
   /** Queues the settled worker's result as the case's single thread reply and flushes the outbox. */
-  complete(runId: RunId, result: string): Promise<CompleteOutcome>;
+  complete(runId: RunId, result: string | WorkerResult): Promise<CompleteOutcome>;
   flush(): Promise<void>;
 }
 
@@ -87,6 +91,12 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       appendLog(store, { ts: stamp(), kind: 'blocked', key, missing });
       return { status: 'blocked', key, missing };
     }
+    if (config.kind === 'reproduce') {
+      const messages = await deps.destination.readThread(state.entry.event.channel, state.entry.event.rootTs).catch(() => []);
+      const marked = messages.filter(message => /\[benny:(bug|performance|other)\]/.test(message.text ?? ''));
+      const verdict = marked[0];
+      if (!config.triageIdentityUserId || marked.length !== 1 || verdict?.user !== config.triageIdentityUserId || markerProblem(verdict.text ?? '', AUTOMATION_KINDS.triage.replyMarkers!) || !/\[benny:(bug|performance)\]/.test(verdict.text ?? '')) return reject('missing, untrusted or ambiguous triage marker');
+    }
     const runId = runIdFor(config.name, key);
     await dispatchRun(config, state.entry.event, runId, { spawnWorker: deps.spawnWorker, inputCommit, now });
     appendLog(store, { ts: stamp(), kind: 'dispatched', key, runId });
@@ -98,7 +108,7 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
     return { status: 'rejected', reason };
   };
 
-  const flush = () => flushOutbox(store, deps.destination);
+  const flush = () => flushOutbox(store, deps.destination, deps.tracker);
 
   return {
     config,
@@ -121,19 +131,27 @@ export function createAutomation(config: AutomationConfig, deps: AutomationDeps)
       }),
     complete: (runId, result) =>
       serial(async (): Promise<CompleteOutcome> => {
+        const text = typeof result === 'string' ? result : result.text;
+        const intent = typeof result === 'string' ? undefined : result.tracker;
         const log = readLog(store);
         const dispatched = log.find((entry): entry is Extract<LogEntry, { kind: 'dispatched' }> => entry.kind === 'dispatched' && entry.runId === runId);
         if (dispatched === undefined) return { status: 'refused', reason: `no dispatched case for run ${runId}` };
         const state = caseState(log, dispatched.key);
         if (state.phase !== 'dispatched') throw new Error(`event log has a dispatch for ${dispatched.key} without its receipt`);
         const markers = AUTOMATION_KINDS[config.kind].replyMarkers;
-        const problem = markers === null ? undefined : markerProblem(result, markers);
+        const problem = markers === null ? undefined : markerProblem(text, markers);
         if (problem !== undefined) {
           appendLog(store, { ts: stamp(), kind: 'reply-refused', key: dispatched.key, reason: problem });
           return { status: 'refused', reason: problem };
         }
         const { event } = state.entry;
-        const queued = enqueue(store, { id: actionIdFor(config.name, event.key, 'result'), kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text: result });
+        if (intent !== undefined) {
+          const policy = await deps.trackerPolicy?.(event, intent);
+          if (config.kind !== 'triage' || !deps.tracker || !policy || !eligibleTrackerAction(intent, policy)) return { status: 'refused', reason: 'ineligible tracker action' };
+          enqueue(store, { ...intent, id: actionIdFor(config.name, event.key, 'tracker'), kind: 'tracker', sourceUrl: `https://slack.com/archives/${event.channel}/p${event.rootTs.replace('.', '')}` });
+          await flush();
+        }
+        const queued = enqueue(store, { id: actionIdFor(config.name, event.key, 'result'), kind: 'thread-reply', channel: event.channel, threadTs: event.rootTs, text });
         await flush();
         return { status: queued ? 'queued' : 'already-queued', key: event.key };
       }),
