@@ -1,4 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,21 +15,42 @@ const helpers = [
 ];
 const check = process.argv.slice(2).includes('--check');
 
-if (Bun.version !== '1.4.4') throw new Error('Helper builds require Bun 1.4.4 to reproduce the committed outputs.');
 process.chdir(root);
+const receiptPath = join(root, 'dist/helpers.json');
+const inputs = createHash('sha256');
+for (const directory of ['src', 'generated']) {
+  for (const file of readdirSync(directory, { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile() && !entry.parentPath.split('/').includes('node_modules'))
+    .map((entry) => join(entry.parentPath, entry.name)).sort()) {
+    inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
+  }
+}
+for (const file of ['package.json', 'scripts/build-helpers.mjs']) inputs.update(file).update('\0').update(readFileSync(file)).update('\0');
+const inputHash = inputs.digest('hex');
+const receipt = { inputs: inputHash, outputs: {} };
+if (check) {
+  const built = existsSync(receiptPath) ? JSON.parse(readFileSync(receiptPath, 'utf8')) : undefined;
+  for (const [, output] of helpers) {
+    const path = join(root, output);
+    const hash = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : undefined;
+    if (built?.inputs !== inputHash || hash === undefined || built?.outputs[output] !== hash) {
+      console.error(`Stale helper ${output}. Run bun run build:helpers with Bun 1.4.4.`);
+      process.exitCode = 1;
+    } else {
+      console.log(`Checked ${output}`);
+    }
+  }
+  process.exit(process.exitCode ?? 0);
+}
+if (Bun.version !== '1.4.4') throw new Error('Helper builds require Bun 1.4.4 to reproduce the committed outputs.');
 for (const [entry, output] of helpers) {
   const result = await Bun.build({ entrypoints: [entry], target: 'node', format: 'esm', external: Object.keys(manifest.peerDependencies), write: false });
   if (!result.success) throw new AggregateError(result.logs, `Could not build ${entry}`);
   const generated = await result.outputs[0].text();
   const path = join(root, output);
-  if (check) {
-    if (!existsSync(path) || readFileSync(path, 'utf8') !== generated) {
-      console.error(`Stale helper ${output}. Run bun run build:helpers with Bun 1.4.4.`);
-      process.exitCode = 1;
-    }
-  } else {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, generated);
-  }
-  console.log(`${check ? 'Checked' : 'Built'} ${output}`);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, generated);
+  receipt.outputs[output] = createHash('sha256').update(generated).digest('hex');
+  console.log(`Built ${output}`);
 }
+writeFileSync(receiptPath, `${JSON.stringify(receipt, null, 2)}\n`);

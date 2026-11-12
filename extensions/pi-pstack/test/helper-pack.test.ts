@@ -16,8 +16,10 @@ const manifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as
 const helpers = [
   { source: 'src/subscriptions/supervisor-main.ts', output: 'dist/supervisor-main.js', before: 'Usage: pstack-routines-supervisor', after: 'Usage: PACK-STALE pstack-routines-supervisor' },
   { source: 'src/cloud/release-main.ts', output: 'dist/release-machine.js', before: 'is not set.', after: 'is PACK-STALE not set.' },
-  { source: 'skills/statechart/scripts/statechart.ts', output: 'skills/statechart/scripts/statechart.js', before: 'Usage: statechart SPEC.tla', after: 'Usage: PACK-STALE statechart SPEC.tla' },
-  { source: 'skills/statechart/scripts/worker.ts', output: 'skills/statechart/scripts/worker.js', before: 'console.error(messageOf(error));', after: 'console.error("PACK-STALE", messageOf(error));' },
+  { source: 'generated/skills/statechart/scripts/statechart.ts', output: 'skills/statechart/scripts/statechart.js', before: 'Usage: statechart SPEC.tla', after: 'Usage: PACK-STALE statechart SPEC.tla' },
+  { source: 'generated/skills/statechart/scripts/worker.ts', output: 'skills/statechart/scripts/worker.js', before: 'console.error(messageOf(error));', after: 'console.error("PACK-STALE", messageOf(error));' },
+  { source: 'generated/skills/poteto-mode/scripts/watch-pr/cli.ts', output: 'dist/watch-pr.js', before: '.description(', after: '.description("PACK-STALE" + ' },
+  { source: 'src/worker-host.ts', output: 'dist/worker-host.js', before: '[host failure]', after: '[PACK-STALE host failure]' },
 ];
 
 function pack(name: string, mutation?: { path: string; before?: string; after: string }, withBun = true) {

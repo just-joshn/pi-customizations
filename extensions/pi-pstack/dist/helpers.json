@@ -1,0 +1,11 @@
+{
+  "inputs": "6bc6ccc0fe694a618c73107b5dd2c66be61a78ba56378afeaf8a4b3d23b1eaf0",
+  "outputs": {
+    "dist/supervisor-main.js": "11dbd8b59631ef4f3b0e3f899c031d358dff15dba25da9085bb6407afdbda0dc",
+    "dist/release-machine.js": "a60b21419591abb447c20ef474965167c2415b5362e322f38ecee827a4a0e35d",
+    "skills/statechart/scripts/statechart.js": "3b180b5ebabac82256f6538844fc6b5d1798e0bf406f875fc27032a633b38d4a",
+    "skills/statechart/scripts/worker.js": "df24c4d87f25024c57c3a2b8a0f36894f8aa5eaae51078402d1d6d37427c6fc7",
+    "dist/watch-pr.js": "ca1d324bd0a86455dea16781d5b9ef48d1de31229edf49080f077d6b71667fa6",
+    "dist/worker-host.js": "3a1631cdad1afc5de550818cea6df19c47bc47828ef1306b5e56ad7d00f2ddbe"
+  }
+}
