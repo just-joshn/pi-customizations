@@ -37,6 +37,7 @@ import {
   type Settle,
   type ThinkingLevel,
   TMUX_IDENTITY_FORMAT,
+  type TmuxIdentity,
   tmuxIdentityPath,
   tmuxSessionName,
   type WakePhase,
@@ -286,6 +287,44 @@ export interface SpawnOptions {
   /** Folder with the role instruction documents (`<role>.md`, `general.md`). */
   agentsDir?: string;
   startupMs?: number;
+  /** How long a lost tmux answer is reconciled before a worker with no host and no session counts as never started. */
+  startCheckMs?: number;
+}
+
+type StartCheck = { outcome: 'started'; identity: TmuxIdentity | undefined } | { outcome: 'not-started' } | { outcome: 'unknown' };
+
+/**
+ * Whether a host for the worker started, decided from what exists when tmux's own answer is lost. The host's
+ * claim/identity.json proves it started, and the session whose pane is that host gives the tmux identity. No claim and
+ * no session by the worker's name when the wait ends establishes that nothing started; a session by that name with no
+ * claim leaves it unknown.
+ */
+async function checkStart(exec: Exec, socket: string, session: string, workerDir: string, waitMs: number): Promise<StartCheck> {
+  const deadline = Date.now() + waitMs;
+  for (;;) {
+    const listed = await exec('tmux', ['-L', socket, 'list-panes', '-a', '-F', `#{session_name} #{pane_pid} ${TMUX_IDENTITY_FORMAT}`], { timeout: 5_000 });
+    const noServer = listed.code !== 0 && /no server running|error connecting|No such file/.test(listed.stderr);
+    const rows =
+      listed.code === 0
+        ? listed.stdout
+            .split('\n')
+            .map((line) => line.split(' '))
+            .filter(([name]) => name === session)
+        : [];
+    let claim: ClaimIdentity | undefined;
+    try {
+      claim = readClaim(workerDir);
+    } catch {
+      // The host is still writing it.
+    }
+    if (claim !== undefined) {
+      const row = rows.find(([, panePid]) => panePid === String(claim.hostPid));
+      return { outcome: 'started', identity: row === undefined ? undefined : parseTmuxIdentity(row.slice(2).join(' ')) };
+    }
+    const sessionPresent = rows.length > 0 || (listed.code !== 0 && !noServer) || existsSync(join(workerDir, 'claim', 'identity.json'));
+    if (Date.now() >= deadline) return sessionPresent ? { outcome: 'unknown' } : { outcome: 'not-started' };
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 }
 
 const parentlessModel = ({ model, thinkingLevel }: ModelRequest): ResolvedModel | null => {
@@ -339,21 +378,33 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     throw error;
   }
   const secrets = launchEnvPath(loaded.workerDir);
-  let started: Awaited<ReturnType<Exec>>;
+  const release = (error: Error) => {
+    rmSync(claimDir, { recursive: true, force: true });
+    return error;
+  };
   try {
     writeFileSync(secrets, JSON.stringify(launchEnv), { mode: 0o600, flag: 'wx' });
-    started = await exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
-      timeout: 10_000,
-    });
-    if (started.code !== 0) throw new Error(`tmux could not start ${session}: ${started.stderr.trim()}`);
   } catch (error) {
-    // No host started, so nothing holds the claim.
-    rmSync(claimDir, { recursive: true, force: true });
-    throw error;
+    throw release(error as Error);
   }
-  const tmuxIdentity = parseTmuxIdentity(started.stdout);
-  if (tmuxIdentity === undefined) throw new Error(`tmux started ${session} but reported no session identity (${started.stdout.trim()}); abort cannot end it without the host. Attach: ${attach(session)}`);
-  writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
+  const started = await exec('tmux', ['-L', socket, 'new-session', '-d', '-P', '-F', TMUX_IDENTITY_FORMAT, '-s', session, '-c', loaded.workerDir, '--', nodeExecutable(), hostEntry(), loaded.file, JSON.stringify(launch)], {
+    timeout: 10_000,
+  }).catch((error: unknown): Awaited<ReturnType<Exec>> => ({ stdout: '', stderr: error instanceof Error ? error.message : String(error), code: 1, killed: true }));
+  // tmux exits with an error only when it created nothing. A killed or timed-out client says nothing about what the
+  // server did, so the claim stays until the evidence settles it.
+  if (started.code !== 0 && !started.killed) throw release(new Error(`tmux could not start ${session}: ${started.stderr.trim()}`));
+  let tmuxIdentity = started.code === 0 ? parseTmuxIdentity(started.stdout) : undefined;
+  if (tmuxIdentity === undefined) {
+    const check = await checkStart(exec, socket, session, loaded.workerDir, options.startCheckMs ?? 10_000);
+    const lost = `tmux gave no session identity for ${session} (${(started.stderr || started.stdout).trim()})`;
+    if (check.outcome === 'not-started') throw release(new Error(`${lost}, and no host started or claimed it within the wait: the worker did not start and its claim is released`));
+    if (check.outcome === 'unknown') {
+      rmSync(secrets, { force: true });
+      throw new Error(`${lost}; a session by that name exists but no host claimed the worker, so whether it started is unknown. The claim stays: abort it, or spawn a fresh worker id. Attach: ${attach(session)}`);
+    }
+    tmuxIdentity = check.identity;
+  }
+  if (tmuxIdentity !== undefined) writeFileSync(tmuxIdentityPath(loaded.workerDir), JSON.stringify(tmuxIdentity), { mode: 0o600, flag: 'wx' });
   appendEvent(runRoot, { runId, workerId: assignment.workerId, kind: 'spawn', data: { tmuxSession: session, model: launch.model } });
 
   const target = hostTarget(loaded);
