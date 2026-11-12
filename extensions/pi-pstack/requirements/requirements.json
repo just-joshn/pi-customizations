@@ -3006,6 +3006,50 @@
     "wf.babysit-restart.restart.live": {
       "file": "tests/workflow-parity/pr-babysit.test.ts",
       "name": "babysit-restart negative: the replaced Pi was still running"
+    },
+    "wf.autopilot-lanes": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes scripted run: every check passes"
+    },
+    "wf.autopilot-lanes.lanes.nosign": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the root never countersigned the loosened gate"
+    },
+    "wf.autopilot-lanes.lanes.stale": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the countersign was for a stale head"
+    },
+    "wf.autopilot-lanes.lanes.self": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner countersigned its own gate change"
+    },
+    "wf.autopilot-lanes.lanes.early": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner merged before the countersign"
+    },
+    "wf.autopilot-lanes.lanes.noproof": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the verifier proof of the raise failed"
+    },
+    "wf.autopilot-lanes.lanes.notrail": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the owner's trail never recorded the countersign"
+    },
+    "wf.autopilot-lanes.lanes.approve": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the root approved on the forge"
+    },
+    "wf.autopilot-lanes.lanes.nolive": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: the live lane never posted a verdict"
+    },
+    "wf.autopilot-lanes.lanes.family": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: a lane ran on the owner's model family"
+    },
+    "wf.autopilot-lanes.lanes.onefam": {
+      "file": "tests/workflow-parity/pr-autopilot.test.ts",
+      "name": "autopilot-lanes negative: every lane ran on one family"
     }
   },
   "structural": [
@@ -4631,7 +4675,7 @@
       "applicability": {
         "mandatory": true
       },
-      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full)",
+      "verification": "tests/forge/forge.test.ts and tests/workflow-parity/pr-autopilot.test.ts (autopilot-full, and autopilot-lanes for the three-lane swarm and the root countersign of a loosened gate)",
       "tests": [
         "forge.merge-auth",
         "forge.stale",
@@ -4641,9 +4685,19 @@
         "wf.autopilot-full.full.pin",
         "wf.autopilot-full.full.root",
         "wf.autopilot-full.full.worktree",
-        "wf.autopilot-full.full.family"
-      ],
-      "coverageGap": "Verification is one container verifier lane per PR, started by the root. No test fans out the multi-lane swarm, and none loosens a gate, so the root countersign of autopilot-full step 6 is not exercised."
+        "wf.autopilot-full.full.family",
+        "wf.autopilot-lanes",
+        "wf.autopilot-lanes.lanes.nosign",
+        "wf.autopilot-lanes.lanes.stale",
+        "wf.autopilot-lanes.lanes.self",
+        "wf.autopilot-lanes.lanes.early",
+        "wf.autopilot-lanes.lanes.noproof",
+        "wf.autopilot-lanes.lanes.notrail",
+        "wf.autopilot-lanes.lanes.approve",
+        "wf.autopilot-lanes.lanes.nolive",
+        "wf.autopilot-lanes.lanes.family",
+        "wf.autopilot-lanes.lanes.onefam"
+      ]
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",

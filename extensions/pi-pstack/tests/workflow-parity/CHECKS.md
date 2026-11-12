@@ -2527,6 +2527,41 @@ Negative cases, each of which must FAIL the named checks:
 - the reply says the stack was merged → `autopilot.stack.reply-lists-each-pr-with-its-verdict`
 - the parent collected with no wake from its workers → `autopilot.stack.independent-verifier-per-pr-at-the-head`
 
+## autopilot-lanes
+
+autopilot-full root layer: three independent verifier lanes fan out at the code-ready head, and a loosened gate needs the verifier's proof and the root's fresh countersign before the owner merges (spec 13.4)
+
+Needs container; its absence is reported, never passed.
+
+| Check | Contract | Source |
+| --- | --- | --- |
+| `slash.poteto-mode` | /poteto-mode reaches Pi as the pstack poteto-mode skill prompt with the request | `generated/skills/poteto-mode/SKILL.md:10` |
+| `reads.autopilot-full.poteto-mode-and-playbook` | the parent opens poteto-mode SKILL.md and playbooks/autopilot-full.md | `generated/skills/poteto-mode/SKILL.md:127` |
+| `reads.autopilot-full.named-skills` | the parent opens each skill the playbook steps name (deslop, show-me-your-work, swarm, control-ui, control-cli, ketchup) | `generated/skills/poteto-mode/playbooks/autopilot-full.md:7` |
+| `autopilot.lanes.one-container-owner-for-the-pr` | one container owner per PR, each with the forge capability, a distinct id, workspace at its own start commit, and the PR it opened carries that owner as its author | `generated/skills/poteto-mode/playbooks/autopilot-full.md:8` |
+| `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head` | one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each at exactly the code-ready head, on another model family than the owner with at least two families across the lanes, and each posted its own PASS verdict at that head | `generated/skills/poteto-mode/playbooks/autopilot-full.md:14` |
+| `autopilot.lanes.the-root-audited-every-lane-before-the-countersign` | the root collected all three lanes, then audited their receipts through pstack_evidence, then read the PR comments, and only then countersigned | `generated/skills/poteto-mode/playbooks/autopilot-full.md:14` |
+| `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign` | the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces | `generated/skills/poteto-mode/playbooks/autopilot-full.md:20` |
+| `autopilot.lanes.no-merge-without-a-verdict-at-that-head` | every merge has the operator's explicit request, a PASS or PASS+NOTES verdict at exactly the merged head from a worker that did not write the PR, and was requested with --match-head-commit | `generated/skills/poteto-mode/playbooks/autopilot-full.md:17` |
+| `autopilot.lanes.reply-names-the-lanes-and-the-countersign` | the reply catches the operator up on the PR, the three lanes, the gate that was loosened and why it was countersigned, open gates and follow-ups | `generated/skills/poteto-mode/playbooks/autopilot-full.md:25` |
+| `autopilot.lanes.no-tool-errors` | no parent tool call failed unexpectedly: a bash command that ran and exited non-zero is an answer, not a failure | `generated/skills/poteto-mode/playbooks/autopilot-full.md:20` |
+
+Negative cases, each of which must FAIL the named checks:
+
+- the root never countersigned the loosened gate → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the countersign was for a stale head → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner countersigned its own gate change → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner merged before the countersign → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the countersign came before the audit lane spoke → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the verifier proof of the raise failed → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the owner's trail never recorded the countersign → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the root approved on the forge → `autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign`
+- the live lane never posted a verdict → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- a lane ran on the owner's model family → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- every lane ran on one family → `autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head`
+- the root audited nothing before the countersign → `autopilot.lanes.the-root-audited-every-lane-before-the-countersign`
+- the reply left out the countersign → `autopilot.lanes.reply-names-the-lanes-and-the-countersign`
+
 ## orchestrate
 
 orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)
