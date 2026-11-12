@@ -17,9 +17,14 @@ import { opsFamilies } from './ops.ts';
 import { verificationFamilies } from './verification.ts';
 import { designFamilies } from './design.ts';
 import { investigationFamilies } from './investigation.ts';
+import { babysitFamilies } from './pr-babysit.ts';
+import { autopilotFamilies } from './pr-autopilot.ts';
+import { orchestrateFamilies } from './pr-orchestrate.ts';
+import { reviewFamilies } from './pr-review.ts';
+import { shippingFamilies } from './pr-shipping.ts';
 import type { Family } from './types.ts';
 
-export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...headlessFamilies, ...mcpFamilies, codemodeFamily, concurrencyFamily, interactionFamily, ...gateFamilies, ...swarmRuleFamilies, ...skillsFamilies, ...maintainFamilies, ...videoFamilies];
+export const families: Family[] = [...investigationFamilies, ...designFamilies, ...buildFamilies, ...measuredFamilies, ...verificationFamilies, ...historyFamilies, ...opsFamilies, ...metaFamilies, ...forensicsFamilies, ...headlessFamilies, ...mcpFamilies, codemodeFamily, concurrencyFamily, interactionFamily, ...gateFamilies, ...swarmRuleFamilies, ...skillsFamilies, ...maintainFamilies, ...videoFamilies, ...babysitFamilies, ...shippingFamilies, ...autopilotFamilies, ...orchestrateFamilies, ...reviewFamilies];
 
 export function familyById(id: string): Family {
   const found = families.find((family) => family.id === id);

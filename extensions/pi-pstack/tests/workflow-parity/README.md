@@ -39,6 +39,16 @@ The driver reports a pi that crashed, hung, or left no session as that, with pi'
 
 A negative case copies the finished sandbox, breaks one thing in it (skips a TODO step, writes during a read-only run, forges a receipt, lets two writers share a worktree), and requires the named checks to FAIL.
 
+## PR workflows and the fake forge (spec phase 07)
+
+`fixtures/forge.ts` and `fixtures/forge-cli.mjs` give the PR families a stateful forge. `setupForge` builds a local bare `origin`, pushes the fixture branches, and puts a fake `gh` (and, with `originCli`, a fake `origin`) first on the run's PATH through `RunSpec.env`. Every PR, check wave, review thread, comment, merge-queue and merge fact lives in `<origin.git>/forge/state.json`. Every CLI call and every ref update (a pre-receive hook in the bare repository, which records the pushing worker, container flag and simulated operator) is appended to `forge/actions.jsonl`, so a checker asserts "no unauthorized merge", "no rebase" or "no force-push" from the artifact. Real git decides head SHAs, conflicts (`git merge-tree`) and merges. A scripted `events` rule makes the simulated operator rebase a stack or advance trunk at a chosen moment. The real `watch-pr` runs against it unchanged.
+
+Container workers (verifiers, owners) run in real containers on the local engine: `forgeEnv` pins the engine, hands them the forge token through `PSTACK_CONTAINER_FORGE_TOKEN`, and loads the scripted model through `PSTACK_CONTAINER_PROVIDER_PACKAGES` (`fixtures/sim-provider`) with the scenario beside it. They reach the forge through `node forge-cli.mjs gh ...` by absolute path, because the container's PATH is the image's. Commits made by a scripted owner are reproducible (`COMMIT_PREFIX`), so `predictCommits` names a head SHA before the owner exists.
+
+Families: `pr-babysit.ts` (drive, check, docs-only, threads-only, queued, origin, background, single-watcher), `pr-shipping.ts` (shipping, shipping-freshness, shipping-no-engine, shipping-no-forge-token), `pr-autopilot.ts` (autopilot-full, autopilot-hold, autopilot-stack), `pr-orchestrate.ts`, and `pr-review.ts` (opening-a-pr, pr-review-triage, worktree-cleanup-authorize).
+
+Real model for one family, for example `PSTACK_E2E_REAL_MODEL=deepseek/deepseek-flash node --disable-warning=ExperimentalWarning tests/workflow-parity/run-family.ts babysit-drive --real`. The container families need a container engine and a real provider Pi can load inside the container, so run them on a model with a stored credential and a package the container can mount (`PSTACK_CONTAINER_PROVIDER_PACKAGES`).
+
 ## Known product defects, asserted with `test.fails`
 
 See `knownDefects` in `families/design.ts` (swarm) and `families/meta.ts` (eval).

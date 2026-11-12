@@ -32,7 +32,7 @@ export const concurrencyFamily: Family = {
   spec: {
     family: 'worker-concurrency',
     runId: RUN,
-    env: { TMUX_PANE: '%77' },
+    env: () => ({ TMUX_PANE: '%77' }),
     history: cartHistory,
     prompt: () => '/swarm Add one small helper file each in four workers at the same time.',
     scenario: (ctx) => {

@@ -72,13 +72,15 @@ export interface RunSpec {
   prepare?: (ctx: Ctx) => void;
   /** Removes anything the run left outside the sandbox. */
   cleanup?: (ctx: Ctx) => void;
+  /** Extra environment for the Pi process, applied last: a fake forge on PATH, a container engine, a scenario a container can read. */
+  env?: (ctx: Ctx, driver: 'scripted' | 'real') => Record<string, string>;
   timeoutMs?: number;
   /** rpc (default) drives Pi over its RPC protocol. print and json run `pi -p` and `pi --mode json` once, with the prompt as an argument and no stdin. */
   mode?: Mode;
-  /** Extra environment for the parent Pi process. */
-  env?: Record<string, string>;
   /** An operator acting on the live run, after the first prompt is accepted and before the driver waits for quiet. RPC mode only. */
   drive?: (api: DriveApi) => Promise<void>;
+  /** Watch workers whose id matches hold the run open while they run, because the scenario waits for their exit. Other watches never do. */
+  holdWatchers?: RegExp;
 }
 
 export const SCRIPTED_ROLES: ModelRoles = {
@@ -261,7 +263,7 @@ function isWatch(assignment: string): boolean {
   }
 }
 
-function workerPhases(repo: string): string[] {
+function workerPhases(repo: string, hold?: RegExp): string[] {
   const runs = join(repo, '.pi', 'pstack', 'runs');
   if (!existsSync(runs)) return [];
   return readdirSync(runs).flatMap((runId) => {
@@ -270,7 +272,7 @@ function workerPhases(repo: string): string[] {
     return readdirSync(workers).flatMap((id) => {
       const assignment = join(workers, id, 'assignment.json');
       // A watch is a timer the run arms and the parent steps away from: it never holds the run open.
-      if (isWatch(assignment)) return [];
+      if (isWatch(assignment) && !hold?.test(id)) return [];
       const claim = join(workers, id, 'claim');
       const statePath = join(workers, id, 'state.json');
       if (!existsSync(statePath)) return [existsSync(claim) ? 'starting' : 'unspawned'];
@@ -299,6 +301,8 @@ function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: 
       const path = join(runs, id, 'TODO.md');
       if (existsSync(path)) {
         const text = readFileSync(path, 'utf8');
+        // start-run.mjs writes the file in one go, but a read can land mid-write; a half-written TODO.md is not a snapshot.
+        if (!text.includes('## Task-specific work')) continue;
         const seen = (history[id] ??= []);
         if (seen.at(-1)?.text !== text) seen.push({ t: Date.now(), seq: seq++, text });
       }
@@ -355,8 +359,8 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   const env: Record<string, string> = { ...(process.env as Record<string, string>), HOME: join(ctx.sandbox, 'home'), PI_CODING_AGENT_DIR: ctx.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', PSTACK_TMUX_SOCKET: socket };
   for (const name of Object.keys(env).filter((key) => key.startsWith('PSTACK_') && key !== 'PSTACK_TMUX_SOCKET')) delete env[name];
   for (const name of ['PI_CODING_AGENT_SESSION_DIR', 'PI_SESSION_FILE', 'TMUX']) delete env[name];
-  Object.assign(env, spec.env);
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
+  Object.assign(env, spec.env?.(ctx, driver));
   const model = driver === 'scripted' ? 'sim/claude-sim' : REAL_MODEL;
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
@@ -395,7 +399,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       let workerSignature = '';
       while (true) {
         await sleep(300);
-        const signature = JSON.stringify(workerPhases(ctx.repo));
+        const signature = JSON.stringify(workerPhases(ctx.repo, spec.holdWatchers));
         if (rpc.events.length !== seen || signature !== workerSignature) {
           seen = rpc.events.length;
           workerSignature = signature;
@@ -405,7 +409,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
         if (Date.now() - quietSince < 2_500) continue;
         const parent = ((await rpc.request({ type: 'get_state' }, options.rpcTimeoutMs))['data'] ?? {}) as Json;
         const idle = parent['isStreaming'] === false && parent['pendingMessageCount'] === 0;
-        if (idle && !workerPhases(ctx.repo).some((phase) => WORKING.has(phase))) return true;
+        if (idle && !workerPhases(ctx.repo, spec.holdWatchers).some((phase) => WORKING.has(phase))) return true;
       }
     };
     for (const message of [prompt, ...(spec.followUps?.(ctx) ?? [])]) {
