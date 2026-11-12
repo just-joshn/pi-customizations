@@ -3,8 +3,9 @@ import { join } from 'node:path';
 
 import { parse } from 'yaml';
 import { AGENT_OUTPUTS, BUILTIN_COMMANDS, GENERAL_ROLE, KEEPS, type Keep, PRIMITIVES, type PrimitiveId, promptTemplate, RULES, type Rule, WORKER_ASSIGNMENT_PATH, WORKER_ASSIGNMENT_REFERENCE } from './cursor-to-pi.ts';
-import { buildDependencyManifest, detectPrimitives, type Hit, lineAt } from './dependencies.ts';
-import { UPSTREAM, VENDOR_ROOTS } from './provenance.ts';
+import { BENNY_PACK_OUTPUT, BENNY_PACK_SOURCE, BENNY_RULES } from './benny-pack.ts';
+import { buildDependencyManifest, detectPrimitives, type Hit, lineAt, sweepUnknown } from './dependencies.ts';
+import { listFiles, UPSTREAM, VENDOR_ROOTS } from './provenance.ts';
 
 export interface Span {
   readonly file: string;
@@ -80,6 +81,7 @@ export interface TransformationManifest {
   readonly upstream: typeof UPSTREAM;
   readonly counts: { skills: number; agents: number; prompts: number; rules: number; spans: number };
   readonly skills: readonly string[];
+  readonly automations: readonly string[];
   readonly rules: readonly { id: string; primitives: readonly string[]; files: Readonly<Record<string, number>> }[];
   readonly keeps: readonly Keep[];
   readonly spans: readonly (Span & { output: string })[];
@@ -130,7 +132,7 @@ function frontmatter(text: string): Record<string, unknown> {
   return match ? (parse(match[1] ?? '') as Record<string, unknown>) : {};
 }
 
-export function compile(root: string, rules: readonly Rule[] = RULES, keeps: readonly Keep[] = KEEPS): { outputs: Output[]; manifest: TransformationManifest } {
+export function compile(root: string, rules: readonly Rule[] = [...RULES, ...BENNY_RULES], keeps: readonly Keep[] = KEEPS): { outputs: Output[]; manifest: TransformationManifest } {
   const deps = buildDependencyManifest(root);
   const problems: string[] = [
     ...deps.unknown.map((h) => `${h.file}:${h.line}: unknown Cursor dependency or primitive "${h.text}"`),
@@ -140,14 +142,19 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
   const spans: (Span & { output: string })[] = [];
   const residuals: Hit[] = [];
   const touched = new Set<string>();
-  const transform = (source: string, output: string, extra: Span[] = []) => {
+  const transform = (source: string, output: string, extra: Span[] = [], sweep?: ReadonlySet<string>) => {
     const original = readFileSync(join(root, source), 'utf8');
     try {
       const applied = applyRules(original, source, rules);
       const all = [...extra, ...applied.spans].sort((a, b) => a.offset[0] - b.offset[0]);
       const text = applySpans(original, all);
       spans.push(...all.map((s) => ({ ...s, output })));
-      residuals.push(...residualHits(text, source, output, replacedRanges(all)));
+      const replaced = replacedRanges(all);
+      residuals.push(...residualHits(text, source, output, replaced));
+      if (sweep) {
+        const stray = sweepUnknown(text, source, sweep).filter((hit) => !replaced.some(([a, b]) => (hit.offset ?? -1) >= a && (hit.offset ?? -1) + hit.text.length <= b));
+        problems.push(...stray.map((hit) => `${output}:${hit.line}: unmapped Cursor primitive "${hit.text}" remains after the rules`));
+      }
       return text;
     } catch (error) {
       problems.push((error as Error).message);
@@ -169,6 +176,14 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
     const output = `generated/agents/${name}`;
     const text = readFileSync(join(root, source), 'utf8');
     outputs.push({ path: output, source, text: transform(source, output, [stripFrontmatter(text, source)]) });
+  }
+  const known = new Set(deps.skills.map((skill) => skill.name));
+  const pack = listFiles(join(root, BENNY_PACK_SOURCE));
+  for (const file of pack) {
+    const source = `${BENNY_PACK_SOURCE}/${file}`;
+    const output = `${BENNY_PACK_OUTPUT}/${file}`;
+    touched.add(source);
+    outputs.push({ path: output, source, text: transform(source, output, [], file.endsWith('.md') ? known : undefined) });
   }
   outputs.push({ path: 'generated/agents/general.md', source: null, text: GENERAL_ROLE });
   outputs.push({ path: WORKER_ASSIGNMENT_PATH, source: null, text: WORKER_ASSIGNMENT_REFERENCE });
@@ -194,6 +209,7 @@ export function compile(root: string, rules: readonly Rule[] = RULES, keeps: rea
       upstream: UPSTREAM,
       counts: { skills: required.length, agents: Object.keys(AGENT_OUTPUTS).length + 1, prompts, rules: rules.length, spans: spans.length },
       skills: required.map((s) => s.name),
+      automations: pack.map((file) => `${BENNY_PACK_OUTPUT}/${file}`),
       rules: rules.map((r) => ({ id: r.id, primitives: r.primitives, files: r.files })),
       keeps,
       spans,

@@ -84,7 +84,7 @@ test.for([
 test('loader accepts the real template and rejects malformed input', () => {
   const p = project();
   const path = join(p, 'configuration.yaml');
-  writeFileSync(path, readFileSync(resolve('automations/benny/templates/configuration.example.yaml')));
+  writeFileSync(path, readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml')));
   expect(configuration.loadBennyConfig(p, 'triage', path)).toMatchObject({ name: 'benny-triage', kind: 'triage', sourceChannelId: 'SOURCE_CHANNEL_ID' });
   writeFileSync(path, 'schema_version: 1\nslack: []');
   expect(() => configuration.loadBennyConfig(p, 'triage', path)).toThrow();

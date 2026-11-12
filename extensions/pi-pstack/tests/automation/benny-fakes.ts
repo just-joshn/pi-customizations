@@ -113,7 +113,7 @@ export interface BennyProject {
 /** A project with a loadable Benny configuration, a valid feature map, and the GitHub tracker selected. */
 export function bennyProject(options: { featureMap?: string | null; controlSkill?: string; root?: string } = {}): BennyProject {
   const dir = options.root ?? realpathSync(mkdtempSync(join(tmpdir(), 'benny-e2e-')));
-  const template = readFileSync(resolve('automations/benny/templates/configuration.example.yaml'), 'utf8')
+  const template = readFileSync(resolve('generated/automations/benny/templates/configuration.example.yaml'), 'utf8')
     .replace('SOURCE_CHANNEL_ID', CHANNEL)
     .replace('TRIAGE_IDENTITY_USER_ID', TRIAGE_USER)
     .replace('example-org/example-repo"\n  labels', `${REPO}"\n  labels`)

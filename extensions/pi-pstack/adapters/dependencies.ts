@@ -143,7 +143,7 @@ export function sweepUnknown(text: string, file: string, known: ReadonlySet<stri
       const end = start + m.text.length;
       if (covered.some(([a, b]) => start < b && end > a)) continue;
       if (m.text.startsWith('/') && known.has(m.text.slice(1))) continue;
-      unknown.push({ file, line: lineAt(text, start), id: 'unknown', text: m.text });
+      unknown.push({ file, line: lineAt(text, start), offset: start, id: 'unknown', text: m.text });
     }
   }
   return unknown;

@@ -17,7 +17,7 @@ import { createAutomation } from '../adapters/automation-events.ts';
 import { credentialsDir, defaultCredentialFile, readCredential, SAME_UID_LIMIT } from '../src/automation/credentials.ts';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const pack = join(packageRoot, 'automations', 'benny');
+const pack = join(packageRoot, 'generated', 'automations', 'benny');
 
 const LOCAL_CONFIG = [
   ['templates/configuration.example.yaml', 'configuration.yaml'],

@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { expect, test } from 'vitest';
 import { parsePstackArgs } from '../../src/commands.ts';
 
-const PACK = resolve('automations/benny');
+const PACK = resolve('generated/automations/benny');
 const files = readdirSync(PACK, { recursive: true })
   .map(String)
   .filter((file) => statSync(join(PACK, file)).isFile())

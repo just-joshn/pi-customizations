@@ -217,7 +217,7 @@ describe('reproduce prerequisites', () => {
 
   test.for([
     ['no feature map file', { featureMap: null }, ['featureMap']],
-    ['the unedited example feature map', { featureMap: readFileSync('automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md', 'utf8') }, ['featureMap']],
+    ['the unedited example feature map', { featureMap: readFileSync('generated/automations/benny/skills/reproduce-and-fix-issues/references/feature-map.example.md', 'utf8') }, ['featureMap']],
     ['a control skill that is not shipped', { controlSkill: 'control-target-app' }, ['controlAdapter']],
     ['a control skill name that climbs out of generated/skills', { controlSkill: '../../README' }, ['controlAdapter']],
   ] as const)('blocks with %s', async ([, options, missing]) => {
