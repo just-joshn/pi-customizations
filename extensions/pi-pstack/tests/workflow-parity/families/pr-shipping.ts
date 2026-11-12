@@ -449,7 +449,7 @@ export const shippingFreshnessFamily: Family = {
     }),
     check('ship.fresh.only-the-next-pr-moves-and-it-is-pushed-with-force-with-lease', 'after PR 21 merged, the shipper retargeted PR 22 to trunk and pushed its moved patch with --force-with-lease pinned to the SHA it fetched, and changed no other branch or base', SH('After a merge lands, retarget the PR whose base was the merged branch to trunk'), (view) => {
       const { actions } = readForge(view);
-      const parentRefs = actions.filter((action) => ['push', 'force-push', 'create', 'delete'].includes(action.kind) && action.worker === '' && action.actor === '');
+      const parentRefs = actions.filter((action) => ['push', 'force-push', 'ref-create', 'ref-delete'].includes(action.kind) && action.worker === '' && action.actor === '');
       const edits = actions.filter((action) => action.kind === 'edit-base');
       const merge21 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 21);
       const merge22 = actions.findIndex((action) => action.kind === 'merge' && action.pr === 22);

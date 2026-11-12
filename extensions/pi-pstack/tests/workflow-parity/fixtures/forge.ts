@@ -75,6 +75,8 @@ export interface ForgeDef {
   events?: ForgeEvent[];
   /** Put an `origin` executable on PATH. Absent, `command -v origin` fails and a run stays on `gh`. */
   originCli?: boolean;
+  /** PR numbers a head branch gets when it is opened, so a scripted run can name a PR before it exists. */
+  reserve?: Record<string, number>;
   /** `gh auth token` fails, so a container worker cannot be given a forge token. */
   noToken?: boolean;
 }
@@ -91,8 +93,8 @@ const HOOK = `#!/bin/sh
 # Logs every ref update with who pushed it: the environment of the pushing git reaches this hook.
 zero=0000000000000000000000000000000000000000
 while read old new ref; do
-  if [ "$old" = "$zero" ]; then kind=create
-  elif [ "$new" = "$zero" ]; then kind=delete
+  if [ "$old" = "$zero" ]; then kind=ref-create
+  elif [ "$new" = "$zero" ]; then kind=ref-delete
   elif git merge-base --is-ancestor "$old" "$new" 2>/dev/null; then kind=push
   else kind=force-push; fi
   printf '{"kind":"%s","ref":"%s","old":"%s","new":"%s","worker":"%s","run":"%s","actor":"%s","container":%s}\\n' "$kind" "$ref" "$old" "$new" "\${PSTACK_WORKER_ID:-}" "\${PSTACK_RUN_ID:-}" "\${FORGE_ACTOR:-}" "$([ "\${PSTACK_CONTAINER:-}" = 1 ] && echo true || echo false)" >> "$(pwd)/forge/actions.jsonl"
@@ -141,6 +143,7 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
     repo: { owner: def.owner, name: def.name, trunk: 'main' },
     queue: def.queue === true,
     noToken: def.noToken === true,
+    reserve: def.reserve ?? {},
     events: def.events ?? [],
     prs: Object.fromEntries(def.prs.map((pr) => [String(pr.number), { repo: { owner: def.owner, name: def.name }, state: 'OPEN', mergedAt: null, isDraft: pr.isDraft === true, reviewDecision: pr.reviewDecision ?? '', comments: [], threads: (pr.threads ?? []).map((thread) => ({ resolved: false, ...thread })), checks: [], ci: { waves: pr.waves ?? [[{ name: 'build', workflow: 'CI', runId: 9000 + pr.number, state: 'SUCCESS' }]], wave: 0, sha: null, history: [] }, number: pr.number, title: pr.title, body: pr.body ?? '', base: pr.base, baseAtStart: pr.base, head: pr.head, author: pr.author }])),
   };
@@ -212,7 +215,7 @@ export function readForge(view: Pick<RunView, 'sandbox'>): { state: ForgeState; 
 
 /** The parent's own forge calls and pushes: no worker id and no simulated operator. */
 export const byParent = (action: ForgeAction): boolean => action.worker === '' && action.actor === '';
-export const isRefUpdate = (action: ForgeAction): boolean => ['push', 'force-push', 'create', 'delete'].includes(action.kind);
+export const isRefUpdate = (action: ForgeAction): boolean => ['push', 'force-push', 'ref-create', 'ref-delete'].includes(action.kind);
 export const WRITES = ['merge', 'merge-queued', 'auto-merge', 'create', 'edit-base', 'ready', 'comment', 'reply', 'resolve', 'rerun'];
 
 export function editForge(sandbox: string, change: (actions: ForgeAction[], state: ForgeState) => void): void {
@@ -272,3 +275,30 @@ export function watchVerdict(view: Pick<RunView, 'sandbox'>, args: string[], tim
     rmSync(scratch, { recursive: true, force: true });
   }
 }
+
+export const COMMIT_ENV = { GIT_AUTHOR_NAME: 'owner', GIT_AUTHOR_EMAIL: 'owner@example.com', GIT_COMMITTER_NAME: 'owner', GIT_COMMITTER_EMAIL: 'owner@example.com', GIT_AUTHOR_DATE: '2026-11-12T08:00:00+0000', GIT_COMMITTER_DATE: '2026-11-12T08:00:00+0000' };
+/** The shell prefix that makes a commit reproducible: the same tree, parent and message give the same SHA. */
+export const COMMIT_PREFIX = Object.entries(COMMIT_ENV).map(([key, value]) => `${key}=${value}`).join(' ');
+
+/** The SHAs a chain of worker commits will have, computed by making the same commits in a scratch clone, so a scripted run can name them before the workers exist. */
+export function predictCommits(handle: ForgeHandle, options: { from: string; steps: { files: Record<string, string>; message: string }[] }): string[] {
+  const scratch = mkdtempSync(join(tmpdir(), 'forge-predict-'));
+  try {
+    const run = (...args: string[]) => execFileSync('git', ['-C', scratch, ...args], { encoding: 'utf8', env: { ...process.env, ...COMMIT_ENV } }).trim();
+    run('clone', '-q', handle.bare, '.');
+    run('checkout', '-q', '--detach', `origin/${options.from}`);
+    return options.steps.map((step) => {
+      for (const [path, content] of Object.entries(step.files)) {
+        mkdirSync(join(scratch, path, '..'), { recursive: true });
+        writeFileSync(join(scratch, path), content);
+      }
+      run('add', '-A');
+      run('-c', 'commit.gpgsign=false', 'commit', '-q', '-m', step.message);
+      return run('rev-parse', 'HEAD');
+    });
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
+}
+
+export const predictCommit = (handle: ForgeHandle, options: { from: string; files: Record<string, string>; message: string }): string => predictCommits(handle, { from: options.from, steps: [options] })[0] as string;

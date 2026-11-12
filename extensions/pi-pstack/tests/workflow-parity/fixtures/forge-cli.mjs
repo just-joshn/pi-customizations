@@ -367,7 +367,7 @@ function gh(state) {
   if (verb === 'create') {
     needToken(true);
     const head = value('--head', '-H') ?? currentBranch();
-    const number = Math.max(0, ...Object.keys(state.prs).map(Number)) + 1;
+    const number = state.reserve?.[head] ?? Math.max(0, ...Object.keys(state.prs).map(Number)) + 1;
     const body = bodyOf();
     state.prs[String(number)] = newPr(state, { number, title: value('--title', '-t') ?? head, body, base: value('--base', '-B') ?? state.repo.trunk, head, author: WHO.worker || 'operator', isDraft: flag('--draft') });
     log({ kind: 'create', pr: number, base: value('--base', '-B') ?? state.repo.trunk, head, draft: flag('--draft'), body });
@@ -449,7 +449,7 @@ function origin(state) {
   if (verb === 'create') {
     needToken(true);
     const head = value('--head') ?? currentBranch();
-    const number = Math.max(0, ...Object.keys(state.prs).map(Number)) + 1;
+    const number = state.reserve?.[head] ?? Math.max(0, ...Object.keys(state.prs).map(Number)) + 1;
     state.prs[String(number)] = newPr(state, { number, title: value('--title') ?? head, body: bodyOf(), base: value('--base') ?? state.repo.trunk, head, author: WHO.worker || 'operator', isDraft: value('--status') === 'draft' });
     log({ kind: 'create', pr: number, base: value('--base') ?? state.repo.trunk, head, draft: value('--status') === 'draft', body: bodyOf() });
     return out(`opened PR ${number}\n`);
