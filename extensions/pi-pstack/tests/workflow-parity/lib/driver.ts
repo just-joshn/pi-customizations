@@ -22,12 +22,15 @@ export const REAL_MODEL = process.env['PSTACK_E2E_REAL_MODEL'] ?? '';
  */
 /**
  * The run's environment without the operator's live forge credentials, so a fake-forge run cannot reach GitHub as the operator:
- * no token, no ssh agent, no askpass, no terminal prompt, and no system git config (where the osxkeychain helper is set). The
- * sandbox HOME already hides the operator's gh login and keychain. A real-forge family puts its token back through `spec.env`.
+ * no token, no ssh agent, no askpass, no terminal prompt, no system git config (where the osxkeychain helper is set), and none of
+ * the variables that redirect gh or git to the operator's config (GH_CONFIG_DIR, XDG_CONFIG_HOME, GIT_CONFIG_*, GIT_SSH*). The
+ * sandbox HOME already hides the operator's gh login and keychain. This is environment hygiene for the Pi process, not OS or
+ * network isolation. A real-forge family puts its token back through `spec.env`.
  */
 export function withoutForgeCredentials(env: Record<string, string>): Record<string, string> {
   const kept = { ...env };
-  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'SSH_AUTH_SOCK', 'GIT_ASKPASS', 'SSH_ASKPASS']) delete kept[name];
+  for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'SSH_AUTH_SOCK', 'GIT_ASKPASS', 'SSH_ASKPASS', 'GH_CONFIG_DIR', 'XDG_CONFIG_HOME', 'GIT_CONFIG_GLOBAL', 'GIT_CONFIG_COUNT', 'GIT_CONFIG_PARAMETERS', 'GIT_SSH_COMMAND', 'GIT_SSH']) delete kept[name];
+  for (const name of Object.keys(kept)) if (/^GIT_CONFIG_(KEY|VALUE)_\d+$/.test(name)) delete kept[name];
   return { ...kept, GIT_TERMINAL_PROMPT: '0', GIT_CONFIG_NOSYSTEM: '1' };
 }
 

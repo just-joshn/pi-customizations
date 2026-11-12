@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -9,6 +10,8 @@ let mini: MiniRoot;
 afterEach(() => mini?.cleanup());
 
 const build = (tests: Record<string, string>) => {
+  execFileSync('git', ['init', '-q'], { cwd: mini.root });
+  execFileSync('git', ['add', '-A'], { cwd: mini.root });
   const r = script('build-parity-manifest.mjs', ['--root', mini.root, '--results', mini.report(tests), '--no-docs']);
   expect(r.status, r.stderr).toBe(0);
 };

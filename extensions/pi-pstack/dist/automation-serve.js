@@ -15077,6 +15077,8 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     throw new Error(`Assignment must be ${join6(runRoot, "workers", "<workerId>", "assignment.json")}`);
   if (assignment.capabilities.externalWrite && options.allowExternalWrite !== true)
     throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only the parent or a trusted adapter writes to external systems, never a worker`);
+  if (assignment.capabilities.externalWrite && !(assignment.kind === "pi" && assignment.workspace.mode === "readonly"))
+    throw new Error(`Worker ${assignment.workerId} asks for externalWrite; only a readonly Pi worker can hold it, never a worktree, container, or watch worker`);
   const depth = spawnDepth(process.env) + 1;
   const spawns = assignment.capabilities.spawn === true;
   if (depth > MAX_DEPTH)

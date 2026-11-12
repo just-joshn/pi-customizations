@@ -191,7 +191,7 @@ The host runs `pi --mode rpc` in the worker's workspace with `--model`, `--think
 capabilities: {
   mcp: 'inherit' | 'none',          // 'none' launches pi with --no-mcp
   env: 'inherit' | 'minimal',       // 'minimal': only PATH, HOME, LANG, TERM, TMPDIR, PI_CODING_AGENT_DIR, PSTACK_* and the provider credential variables the resolved model needs
-  externalWrite: false | true,      // true only for the parent or a trusted adapter; workers default false. It never widens MCP access: a readonly worker reaches only the operator's authorized MCP tools, and with true those include the tools in `tracker-mcp.json` too
+  externalWrite: false | true,      // true only for the parent or a trusted adapter, and only on a readonly Pi worker (spawn refuses it for a worktree, container, or watch assignment); workers default false. It never widens MCP access: a readonly worker reaches only the operator's authorized MCP tools, and with true those include the tools in `tracker-mcp.json` too
   spawn?: boolean                   // default false. true registers pstack_worker in that worker, for Orchestrate's sub-coordinators
   forge?: boolean                   // default false. container workspaces only: true gives the worker a forge token (see Container workers, Forge access)
 }

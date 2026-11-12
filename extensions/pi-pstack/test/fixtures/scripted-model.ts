@@ -15,6 +15,8 @@
 //                                after the last step, reply "RESULTS:" plus every tool result text since the user message;
 //                                an argument written "@@shell-id" becomes the Shell ID of the latest bash_background or bash result,
 //                                and one written "@@agent-id" the last Agent ID in the latest Task result
+// A message with no directive line gets the directive of the first PSTACK_SCRIPTED_DIRECTIVES entry, a JSON array of
+// {"when": <text the message contains>, "directive": "@@..."}, for a worker whose brief the test cannot write.
 // Anything else is echoed as "ECHO: <text>".
 // A compaction request, which carries the transcript and so its directives, gets the reply SUMMARY.
 import type { AssistantMessage, Message, TextContent, ToolCall, ToolResultMessage } from '@earendil-works/pi-ai';
@@ -118,13 +120,18 @@ function directiveReply(directive: string, argument: string, messages: readonly 
   }
 }
 
+function configuredDirective(text: string): string | undefined {
+  const entries: { when: string; directive: string }[] = JSON.parse(process.env['PSTACK_SCRIPTED_DIRECTIVES'] ?? '[]');
+  return entries.find((entry) => text.includes(entry.when))?.directive;
+}
+
 export function respond(messages: readonly Message[]): AssistantMessage | Promise<AssistantMessage> {
   if (getCurrentSystemPrompt(messages)?.startsWith('You are a context summarization assistant')) return fauxAssistantMessage('SUMMARY');
   const userIndex = lastUserIndex(messages);
   const user = messages[userIndex];
   const text = user === undefined ? '' : textOf(user.content);
   const after = messages.slice(userIndex + 1);
-  const line = text.split('\n').find((candidate) => candidate.startsWith('@@'));
+  const line = text.split('\n').find((candidate) => candidate.startsWith('@@')) ?? configuredDirective(text);
   if (line !== undefined) {
     const [, directive = '', argument = ''] = /^@@([a-z-]+)\s?([\s\S]*)$/.exec(line) ?? [];
     const reply = directiveReply(directive, argument, messages, after);

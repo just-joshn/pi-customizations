@@ -1,6 +1,6 @@
 // The release gate trusts a recorded run only for the code it ran against, and a failed test in the run closes it whether or not a requirement links the test.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
@@ -60,7 +60,7 @@ describe('evidence is bound to every input the tests ran against', () => {
     builtRoot({ 'suite passes': 'skipped' });
     const ci = join(mini.root, 'ci.json');
     writeFileSync(ci, JSON.stringify({ numTotalTests: 1, testResults: [{ name: '/runner/pkg/tests/t.test.ts', status: 'passed', assertionResults: [{ fullName: 'suite passes', status: 'passed' }] }] }));
-    const digest = JSON.parse(readFileSync(join(mini.root, 'generated/parity-manifest.json'), 'utf8')).run.sourceDigest;
+    const digest = JSON.parse(readFileSync(join(mini.root, 'generated/parity-manifest.json'), 'utf8')).run['sourceDigest'];
     writeFileSync(join(mini.root, 'ci.identity.json'), JSON.stringify({ platform: 'linux', commit: 'c'.repeat(40), sourceDigest: digest, runUrl: 'https://github.com/o/r/actions/runs/1', root: '/runner/pkg' }));
     expect(build(ci, '--no-docs').status).toBe(0);
     expect(gate().status).toBe(0);
@@ -81,6 +81,55 @@ describe('evidence is bound to every input the tests ran against', () => {
     gitAdd();
     const r = gate();
     expect(r.status, r.stderr).toBe(0);
+  });
+});
+
+describe('the release gate fails closed without a fingerprint', () => {
+  const editRun = (edit: (run: Record<string, unknown>) => void): void => {
+    const path = join(mini.root, 'generated/parity-manifest.json');
+    const manifest = JSON.parse(readFileSync(path, 'utf8'));
+    edit(manifest.runs[0]);
+    writeFileSync(path, JSON.stringify(manifest));
+  };
+
+  test('a local result with no recorded source digest closes the gate', () => {
+    builtRoot();
+    editRun((run) => {
+      expect(run['resultsSource']).not.toBe('ci');
+      delete run['sourceDigest'];
+    });
+    const r = gate();
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('no source digest recorded');
+  });
+
+  test('a local result whose digest is not a sha256 closes the gate', () => {
+    builtRoot();
+    editRun((run) => {
+      run['sourceDigest'] = 'not-a-digest';
+    });
+    const r = gate();
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('no source digest recorded');
+  });
+
+  test('a digest-less result stays closed when the current tree cannot be hashed', () => {
+    builtRoot();
+    editRun((run) => {
+      delete run['sourceDigest'];
+    });
+    rmSync(join(mini.root, '.git'), { recursive: true });
+    const r = gate();
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('cannot be hashed now');
+  });
+
+  test('a result with a digest stays closed when the current tree cannot be hashed', () => {
+    builtRoot();
+    rmSync(join(mini.root, '.git'), { recursive: true });
+    const r = gate();
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain('cannot be hashed now');
   });
 });
 
