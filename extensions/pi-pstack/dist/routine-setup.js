@@ -795,7 +795,7 @@ async function runHost(assignmentFile, launchText) {
         quiescenceChecks.delete(id);
         const quiescent = success && isRecord2(data) && data["isStreaming"] === false && data["pendingMessageCount"] === 0;
         const current = runs === check.runs && phase !== "running";
-        const uncovered = check.acknowledged > (settles.at(-1)?.generation ?? 0);
+        const uncovered = runs > recordedRuns && check.acknowledged > 0 || check.acknowledged > (settles.at(-1)?.generation ?? 0);
         const outcome = runs > recordedRuns && lastRun !== undefined ? lastRun : check.otherwise;
         if (quiescent && current && uncovered && phase !== "stopping" && !isTerminal(phase))
           settle(outcome.phase, outcome.reason, check.acknowledged);

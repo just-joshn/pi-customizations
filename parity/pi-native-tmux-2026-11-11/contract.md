@@ -231,6 +231,6 @@ Host identity for secret cleanup: `identity.json` records the host pid and its p
 
 Ambient Bedrock configuration: `AWS_REGION` and `AWS_DEFAULT_REGION` are kept under `env: minimal` with the Bedrock credential variables. They are not secrets, and pi-ai's credential check does not read them, but the Bedrock client needs a region to make any request. Dropping them would break a minimal Bedrock worker without hiding anything.
 
-A settle must cover a new generation (judge U04a7 B). A run that settles before its prompt's acknowledgement is recorded by that acknowledgement's check, with that run's outcome, so every wake is collectable.
+A settle needs something collectable (judge U04a7 B, corrected). A new run counts once any prompt has been acknowledged, because an extension can start a turn with no RPC prompt: a child's wake to a sub-coordinator triggers one through `sendMessage`. A run that settles before the first prompt's acknowledgement records nothing, and the acknowledgement's own check records it with that run's outcome. The judge's premise, that every run follows an acknowledged prompt, was false for extension-triggered turns. tests/worker-lifecycle/nested-spawn.test.ts caught it.
 
 Host liveness for secret cleanup needs positive evidence (judge U04a7 D). A dead pid, or a live pid with a different start time, is gone. A live pid whose start time cannot be read is treated as the host, and its `launch-env.json` stays.

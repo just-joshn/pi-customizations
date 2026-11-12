@@ -528,9 +528,10 @@ export async function runHost(assignmentFile: string, launchText: string | undef
         // A run that started or settled after the request went out may hold work this snapshot already counts as done,
         // with an outcome the snapshot cannot know; that run's own check decides.
         const current = runs === check.runs && phase !== 'running';
-        // A settle must cover a new generation, so every wake it causes is collectable. A run that settles before its
-        // prompt's acknowledgement is recorded by the acknowledgement's own check, which takes that run's outcome.
-        const uncovered = check.acknowledged > (settles.at(-1)?.generation ?? 0);
+        // A new run counts even without a new generation: an extension can start a turn with no RPC prompt (a child's
+        // wake to a sub-coordinator). Before any acknowledgement there is nothing collectable, so a run that settles
+        // ahead of the first prompt's acknowledgement is left to that acknowledgement's own check.
+        const uncovered = (runs > recordedRuns && check.acknowledged > 0) || check.acknowledged > (settles.at(-1)?.generation ?? 0);
         const outcome = runs > recordedRuns && lastRun !== undefined ? lastRun : check.otherwise;
         if (quiescent && current && uncovered && phase !== 'stopping' && !isTerminal(phase)) settle(outcome.phase, outcome.reason, check.acknowledged);
       }
