@@ -4,6 +4,7 @@
 //   @@chunk <text>   run: the prompt response, the run, and agent_settled in one stdout write
 //   @@hold <text>    start a run that replies <text> and stays open until the next prompt arrives
 //   @@env <name>     run: reply with the value of environment variable <name>, or (unset)
+//   @@env-json <names...>  run: reply with a JSON object of each named variable's value, null when unset
 // A prompt that arrives while a held run is open is acknowledged as queued, then the held run settles. The queued
 // prompt stays pending (`@@say`) or starts streaming at once (`@@stream`) until <session-dir>/release exists, then runs.
 import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
@@ -27,7 +28,7 @@ const run = (text) => {
 };
 const settled = (aborted = false) => line({ type: 'agent_settled', aborted });
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const textOf = (message) => message.replace(/^@@\w+ /, '');
+const textOf = (message) => message.replace(/^@@[\w-]+ /, '');
 
 createInterface({ input: process.stdin }).on('line', async (input) => {
   const command = JSON.parse(input);
@@ -55,7 +56,17 @@ createInterface({ input: process.stdin }).on('line', async (input) => {
     streaming = false;
     process.stdout.write(settled());
   } else if (type === 'prompt') {
-    const text = command.message.startsWith('@@env ') ? (process.env[textOf(command.message)] ?? '(unset)') : textOf(command.message);
+    const text = command.message.startsWith('@@env ')
+      ? (process.env[textOf(command.message)] ?? '(unset)')
+      : command.message.startsWith('@@env-json ')
+        ? JSON.stringify(
+            Object.fromEntries(
+              textOf(command.message)
+                .split(' ')
+                .map((name) => [name, process.env[name] ?? null]),
+            ),
+          )
+        : textOf(command.message);
     if (command.message.startsWith('@@chunk ')) {
       process.stdout.write(response(id, type, { disposition: 'started' }) + run(text) + settled());
     } else if (command.message.startsWith('@@hold ')) {

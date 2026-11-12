@@ -355,6 +355,12 @@ function parseLaunch(text) {
     credentialEnv
   };
 }
+function launchEnvironment(mode, credentialEnv, source) {
+  if (mode === "inherit")
+    return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined));
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
+  return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
+}
 function takeLaunchEnv(workerDir) {
   const path = launchEnvPath(workerDir);
   const fd = openSync2(path, constants2.O_RDONLY | constants2.O_NOFOLLOW);
@@ -368,16 +374,16 @@ function takeLaunchEnv(workerDir) {
     closeSync2(fd);
     unlinkSync(path);
   }
-  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== "string"))
-    throw new Error(`${path} must map variable names to strings`);
+  if (!isRecord2(raw) || Object.entries(raw).some(([name, value]) => !/^[^=\0]+$/.test(name) || typeof value !== "string" && value !== null))
+    throw new Error(`${path} must map variable names to strings or null`);
   return raw;
 }
-function workerEnv(loaded, launch, launchEnv, inherited) {
-  const all = { ...inherited, ...launchEnv };
+function workerEnv(loaded, launch, launchEnv) {
+  const present = Object.entries(launchEnv).filter((entry) => entry[1] !== null);
   if (loaded.assignment.capabilities.env === "inherit")
-    return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined));
+    return Object.fromEntries(present);
   const allowed = new Set([...MINIMAL_ENV, ...launch.credentialEnv]);
-  return Object.fromEntries(Object.entries(all).filter((entry) => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith("PSTACK_"))));
+  return Object.fromEntries(present.filter(([name]) => allowed.has(name) || name.startsWith("PSTACK_")));
 }
 function validateControl(value, loaded, instance) {
   if (!isRecord2(value))
@@ -542,7 +548,7 @@ async function runHost(assignmentFile, launchText) {
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: "1", PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command = assignment.kind === "watch" ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child = spawn(command[0], command.slice(1), {
     cwd: workspaceDir(loaded),
@@ -1138,7 +1144,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     extraArgs: options.extraPiArgs ?? [],
     credentialEnv: model === null ? [] : credentialEnv(model.provider)
   };
-  const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => process.env[name] === undefined ? [] : [[name, process.env[name]]])), ...options.extraEnv };
+  const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
   const claimDir = join4(loaded.workerDir, "claim");
   try {
     mkdirSync2(claimDir, { mode: 448 });

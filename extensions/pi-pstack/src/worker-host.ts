@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import {
   appendEvent,
+  type Capabilities,
   controlSocketPath,
   type HostPhase,
   type HostState,
@@ -94,8 +95,20 @@ export function parseLaunch(text: string | undefined): HostLaunch {
   };
 }
 
+/**
+ * The worker's whole environment before the PSTACK_* identity variables, as the parent writes it to launch-env.json:
+ * everything the parent has for env 'inherit', and for 'minimal' every allowed name, null where the parent has none.
+ * The host builds the child's environment from this alone, never from its own, which tmux gave it from whatever
+ * environment the tmux server started with.
+ */
+export function launchEnvironment(mode: Capabilities['env'], credentialEnv: readonly string[], source: Record<string, string | undefined>): Record<string, string | null> {
+  if (mode === 'inherit') return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined));
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith('PSTACK_'))]);
+  return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
+}
+
 /** Reads the parent's launch-env.json once and unlinks it, so the values exist only in this process from here on. */
-function takeLaunchEnv(workerDir: string): Record<string, string> {
+function takeLaunchEnv(workerDir: string): Record<string, string | null> {
   const path = launchEnvPath(workerDir);
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW);
   let raw: unknown;
@@ -107,16 +120,16 @@ function takeLaunchEnv(workerDir: string): Record<string, string> {
     closeSync(fd);
     unlinkSync(path);
   }
-  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name) || typeof value !== 'string')) throw new Error(`${path} must map variable names to strings`);
-  return raw as Record<string, string>;
+  if (!isRecord(raw) || Object.entries(raw).some(([name, value]) => !/^[^=\0]+$/.test(name) || (typeof value !== 'string' && value !== null))) throw new Error(`${path} must map variable names to strings or null`);
+  return raw as Record<string, string | null>;
 }
 
-/** The worker's environment before the PSTACK_* identity variables: everything, or only what env 'minimal' allows. */
-function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string>, inherited: NodeJS.ProcessEnv): Record<string, string> {
-  const all = { ...inherited, ...launchEnv };
-  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined));
+/** The worker's environment before the PSTACK_* identity variables: the parent's snapshot, narrowed again for env 'minimal'. */
+function workerEnv(loaded: LoadedAssignment, launch: HostLaunch, launchEnv: Record<string, string | null>): Record<string, string> {
+  const present = Object.entries(launchEnv).filter((entry): entry is [string, string] => entry[1] !== null);
+  if (loaded.assignment.capabilities.env === 'inherit') return Object.fromEntries(present);
   const allowed = new Set<string>([...MINIMAL_ENV, ...launch.credentialEnv]);
-  return Object.fromEntries(Object.entries(all).filter((entry): entry is [string, string] => entry[1] !== undefined && (allowed.has(entry[0]) || entry[0].startsWith('PSTACK_'))));
+  return Object.fromEntries(present.filter(([name]) => allowed.has(name) || name.startsWith('PSTACK_')));
 }
 
 export function validateControl(value: unknown, loaded: LoadedAssignment, instance: string): ControlRequest {
@@ -292,7 +305,7 @@ export async function runHost(assignmentFile: string, launchText: string | undef
       return;
     }
   }
-  const env = { ...workerEnv(loaded, launch, launchEnv, process.env), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
+  const env = { ...workerEnv(loaded, launch, launchEnv), PSTACK_WORKER: '1', PSTACK_RUN_ID: assignment.runId, PSTACK_WORKER_ID: assignment.workerId, PSTACK_RUN_ROOT: runRoot };
   const command: string[] = assignment.kind === 'watch' ? assignment.watch.argv : [...launch.piCommand, ...piArgs(loaded, launch)];
   const child: ChildProcess = spawn(command[0] as string, command.slice(1), {
     cwd: workspaceDir(loaded),

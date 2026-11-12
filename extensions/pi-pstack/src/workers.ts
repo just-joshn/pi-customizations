@@ -45,7 +45,7 @@ import {
   type WorkerRole,
   workerDirOf,
 } from './run-files.ts';
-import type { HostLaunch } from './worker-host.ts';
+import { type HostLaunch, launchEnvironment } from './worker-host.ts';
 
 export const WAKE_TYPE = 'pstack-worker';
 export const READONLY_TOOLS = ['read', 'grep', 'find', 'ls'] as const;
@@ -368,8 +368,8 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
     extraArgs: options.extraPiArgs ?? [],
     credentialEnv: model === null ? [] : credentialEnv(model.provider),
   };
-  // Values come from this process now, not from the tmux server, whose environment dates from when it started.
-  const launchEnv = { ...Object.fromEntries(launch.credentialEnv.flatMap((name) => (process.env[name] === undefined ? [] : [[name, process.env[name]]]))), ...options.extraEnv };
+  // This process's environment now, not the tmux server's, which dates from when the server started.
+  const launchEnv = launchEnvironment(assignment.capabilities.env, launch.credentialEnv, { ...process.env, ...options.extraEnv });
   const claimDir = join(loaded.workerDir, 'claim');
   try {
     mkdirSync(claimDir, { mode: 0o700 });
