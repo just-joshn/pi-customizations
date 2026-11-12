@@ -94,3 +94,18 @@ describe('container workers (defect 3)', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('no-comments scope transfer (defect 4)', () => {
+  test('moves the scoped diff into the comment-sicko worktree and back as patches without committing caller work', () => {
+    const step = line('skills/no-comments/SKILL.md', 19);
+    expect(step).toMatch(/^1\. /);
+    expect(step).toContain('`role: "comment-sicko"`');
+    expect(step).not.toMatch(/commit or copy|git commit/i);
+    expect(step).toContain('without committing');
+    expect(step).toContain('`git diff <inputCommit> -- <scoped paths>`');
+    expect(step).toContain('`git diff --no-index /dev/null <file>`');
+    expect(step).toContain('`git apply --index');
+    expect(step).toContain('`git apply`');
+    expect(step).toContain('unrelated and uncommitted caller state untouched');
+  });
+});

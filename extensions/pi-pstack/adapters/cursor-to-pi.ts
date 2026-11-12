@@ -649,7 +649,7 @@ export const RULES: readonly Rule[] = [
     ['task-tool', 'subagent-type'],
     SK('no-comments/SKILL.md'),
     '1. Spawn `Task` with `subagent_type: "comment-sicko"`. Pass the scope.',
-    '1. Spawn a `pstack_worker` worker with `role: "comment-sicko"` in its own worktree. Commit or copy the scope\'s uncommitted changes into that worktree first, and apply its diff back after `collect`. Pass the scope.',
+    '1. Write the scope as a patch without committing anything. `<inputCommit>` is the commit the scope\'s diff starts from, the merge base with the base branch or `HEAD` for the caller\'s files. Save `git diff <inputCommit> -- <scoped paths>`, followed by `git diff --no-index /dev/null <file>` for each untracked file in scope, as `scope.patch` in the worker directory. Spawn a `pstack_worker` worker with `role: "comment-sicko"` and `workspace: { mode: "worktree", inputCommit }`. Pass the scope in its brief, which first has it run `git apply --index <worker dir>/scope.patch` in its worktree. After `collect`, `git -C <its worktree> diff` holds its comment changes alone. Review them per step 2, then apply the accepted patch in the caller\'s checkout with `git apply`, which leaves unrelated and uncommitted caller state untouched.',
   ),
   rule('poteto-help.custom-mode-mention', 'custom-modes', SK('poteto-help/SKILL.md'), 'mention once that a Custom Mode keeps it on.', 'mention once that `/pstack on` keeps it on.'),
   rule('poteto-help.installed-plugin', 'cursor-host', SK('poteto-help/SKILL.md'), 'point into the installed plugin,', 'point into the installed pi-pstack package,'),
