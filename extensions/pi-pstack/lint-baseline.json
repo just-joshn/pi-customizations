@@ -2091,14 +2091,6 @@
       "count": 1
     },
     {
-      "file": "extensions/pi-pstack/tests/workflow-parity/budget.test.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "b0c9861688e319fe",
-      "preview": "import { join } from 'node:path'; import { describe, expect, test } from 'vitest",
-      "count": 1
-    },
-    {
       "file": "extensions/pi-pstack/tests/workflow-parity/checks.test.ts",
       "category": "assist/source/organizeImports",
       "message": "Some imports or exports are not organized.",
@@ -2444,42 +2436,10 @@
     },
     {
       "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
-      "category": "lint/style/noNonNullAssertion",
-      "message": "Forbidden non-null assertion.",
-      "hash": "2f6d36c6e93a1899",
-      "preview": "spawns[0]!",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
-      "category": "lint/style/noNonNullAssertion",
-      "message": "Forbidden non-null assertion.",
-      "hash": "60ef267d587d19b6",
-      "preview": "collect[0]!",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
-      "category": "lint/style/noNonNullAssertion",
-      "message": "Forbidden non-null assertion.",
-      "hash": "fa745ff08b7a61bb",
-      "preview": "wakes[0]!",
-      "count": 5
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit-restart.ts",
       "category": "lint/suspicious/noThenProperty",
       "message": "This object defines a then property.",
       "hash": "21af6f1260f927f5",
       "preview": "then",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-babysit.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "d9fd0d035fd06397",
-      "preview": "import { join } from 'node:path'; import { Parent, scenario } from '../fixtures/",
       "count": 1
     },
     {
@@ -2576,14 +2536,6 @@
       "message": "Unexpected template string placeholder.",
       "hash": "6d20d61554cd67b2",
       "preview": "${name}",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-real-forge.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Some imports or exports are not organized.",
-      "hash": "1f994a9354202577",
-      "preview": "import { existsSync, readFileSync, writeFileSync } from 'node:fs'; import { join",
       "count": 1
     },
     {
@@ -2864,14 +2816,6 @@
       "message": "This object defines a then property.",
       "hash": "379f6ea4448cdd42",
       "preview": "check.then",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/fixtures/forge.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "3635da741d62bb5a",
-      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { chmodSync",
       "count": 1
     },
     {
