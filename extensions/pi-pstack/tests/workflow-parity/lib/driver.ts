@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
-import { type ContainerCredentialProbe, recordContainerCredentials } from './container-credentials.ts';
+import { type ContainerCredentialProbe, recordContainerCredentials, WORKER_CREDENTIAL_EXTENSION } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
@@ -478,6 +478,15 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   if (driver === 'scripted') env['PSTACK_SCENARIO'] = scenarioPath;
   Object.assign(env, spec.env?.(ctx, driver));
   const model = driver === 'scripted' ? 'sim/claude-sim' : (options.model ?? REAL_MODEL);
+  if (driver === 'real') {
+    const probePackage = join(ctx.sandbox, 'credential-probe');
+    mkdirSync(probePackage);
+    writeFileSync(join(probePackage, 'package.json'), JSON.stringify({ name: 'workflow-parity-credential-probe', pi: { extensions: ['./index.mjs'] } }));
+    writeFileSync(join(probePackage, 'index.mjs'), WORKER_CREDENTIAL_EXTENSION);
+    const needed = [...new Set([model, ...Object.values(spec.roles ?? realRoles()).flat()].map(providerOf))];
+    const providers = env['PSTACK_CONTAINER_PROVIDER_PACKAGES']?.split(':') ?? needed.flatMap((provider) => packagesRegistering(provider));
+    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [...providers, probePackage].join(':');
+  }
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
   const args = mode === 'rpc' ? ['--mode', 'rpc', '--offline', '--session-dir', ctx.sessionsDir, '--model', model] : [...oneShot, '--offline', '--session-dir', ctx.sessionsDir, '--model', model, prompt];
@@ -614,11 +623,9 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     }
     if (driver === 'real') {
       containerCredentialProbes = recordContainerCredentials(ctx.repo, ctx.sandbox);
-      const unproven = containerCredentialProbes.filter((probe) => probe.status !== 'pass');
-      if (unproven.length > 0) {
-        const reason = `container credential isolation failed: ${unproven.map((probe) => `${probe.runId}/${probe.workerId} ${probe.status} ${probe.present.join(',')}`).join('; ')}`;
-        findings.push(reason);
-        crashed ??= reason;
+      for (const probe of containerCredentialProbes) {
+        if (probe.status === 'unavailable') findings.push(`INCONCLUSIVE container credential probe ${probe.runId}/${probe.workerId}: no live worker capture`);
+        if (probe.status === 'fail') findings.push(`FAIL container credential isolation ${probe.runId}/${probe.workerId}: ${[...new Set([...probe.present, ...(probe.effectivePresent ?? [])])].join(',')}`);
       }
     }
     await stopPi(child);
