@@ -19,4 +19,4 @@ export function parseFamilyDefault(spec: string): FamilyDefault | undefined {
   return match === null ? undefined : { id: match[1]!, level: match[2] as FamilyDefaultLevel, fast: match[3] !== undefined };
 }
 
-export const MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";
+export const MODEL_SPEC_FORMS = "'inherit-parent', '<provider>/<id>[:<level>]', or a family default '<model>-<level>[-fast]' such as 'claude-opus-5-5-xhigh' or 'grok-4.7-xhigh-fast'";

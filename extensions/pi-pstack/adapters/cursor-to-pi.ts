@@ -1083,7 +1083,7 @@ export const WORKER_ASSIGNMENT_REFERENCE = `# Worker assignment examples
 
 Each block below is a complete \`assignment.json\` for one workspace mode or kind. Write the file to \`.pi/pstack/runs/<runId>/workers/<workerId>/assignment.json\`, where \`runId\` and \`workerId\` name those two directories, then call \`pstack_worker\` with \`{ action: "spawn", runId, assignmentPath }\`. Start from the closest example and change only the values.
 
-Every assignment has every field these examples show. \`skills\` is \`[]\` when the brief names no skill. \`thinkingLevel\` is \`null\` when the model runs at its default level, or one of \`off\`, \`minimal\`, \`low\`, \`medium\`, \`high\`, \`xhigh\`, \`max\`. \`model\` is \`inherit-parent\` or \`<provider>/<id>\`. A \`readonly\` path and a \`watch.cwd\` are absolute, and so is every script path in \`watch.argv\`. \`capabilities\` is optional. Leave it out to keep the role's default, as these examples do.
+Every assignment has every field these examples show. \`skills\` is \`[]\` when the brief names no skill. \`thinkingLevel\` is \`null\` when the model runs at its default level, or one of \`off\`, \`minimal\`, \`low\`, \`medium\`, \`high\`, \`xhigh\`, \`max\`. \`model\` is \`inherit-parent\`, \`<provider>/<id>\`, \`<provider>/<id>:<level>\`, or a family default such as \`grok-4.7-xhigh-fast\`. A suffix sets the thinking level. A non-null \`thinkingLevel\` that conflicts with the suffix is rejected. A \`readonly\` path and a \`watch.cwd\` are absolute, and so is every script path in \`watch.argv\`. \`capabilities\` is optional. Leave it out to keep the role's default, as these examples do.
 
 ## Writable worker (\`worktree\`)
 

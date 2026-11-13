@@ -159,6 +159,16 @@ describe('roleModelResolver', () => {
     expect(() => resolve({ model: 'missing/model', thinkingLevel: null, role: 'general' }, ctx())).toThrow('Model missing/model is not available');
   });
 
+  test('Pi model suffix selects the exact canary model and level, without a fallback note', async () => {
+    const listed = [model('claude-subscription', 'claude-haiku-4-5'), model('claude-subscription', 'claude-haiku-5-5')];
+    const c = { ...ctx(), modelRegistry: { getAvailable: () => listed } } as unknown as ExtensionContext;
+    for (const thinkingLevel of [null, 'high'] as const) {
+      expect(await resolve({ model: 'claude-subscription/claude-haiku-5-5:high', thinkingLevel, role: 'general' }, c)).toEqual({ provider: 'claude-subscription', id: 'claude-haiku-5-5', thinkingLevel: 'high' });
+    }
+    expect(() => resolve({ model: 'claude-subscription/claude-haiku-5-5:high', thinkingLevel: 'low', role: 'general' }, c)).toThrow(/conflicting thinking levels/i);
+    expect(await resolve({ model: 'claude-subscription/claude-haiku-absent:high', thinkingLevel: null, role: 'general' }, c)).toMatchObject({ id: 'claude-haiku-4-5', thinkingLevel: 'high', note: expect.stringContaining('not available') });
+  });
+
   test('a changed level or model is reported with its reason; an exact match carries no note', async () => {
     expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'max', role: 'general' }, ctx())).toMatchObject({ note: expect.stringMatching(/requested openai\/gpt-6\.1-sol:max, running openai\/gpt-6\.1-sol:high; .*not max/) });
     expect(await resolve({ model: 'openai/gpt-6.1-sol', thinkingLevel: 'high', role: 'general' }, ctx())).not.toHaveProperty('note');

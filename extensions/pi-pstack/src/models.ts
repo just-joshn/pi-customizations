@@ -31,6 +31,11 @@ export type Registry = Pick<ModelRegistry, 'getAvailable'>;
 export interface ResolvedModel { provider: string; id: string; thinkingLevel: ModelThinkingLevel }
 export interface RoleResolution { models: ResolvedModel[]; limitations: string[] }
 
+export function splitModelLevel(spec: string): { model: string; thinkingLevel: ModelThinkingLevel | null } {
+  const match = /:(off|minimal|low|medium|high|xhigh|max)$/.exec(spec);
+  return { model: match ? spec.slice(0, -match[0].length) : spec, thinkingLevel: match ? match[1] as ModelThinkingLevel : null };
+}
+
 export function parseModelsConfig(input: unknown): ModelsConfig {
   const value: unknown = typeof input === 'string' ? JSON.parse(input) : input;
   if (!Value.Check(ModelsSchema, value)) throw new Error('Invalid pstack models.json configuration');
@@ -105,12 +110,12 @@ export function resolveRole(role: string, registry: Registry, parent: ResolvedMo
   for (const choice of choices) {
     const inherited = choice === 'inherit-parent' || choice === 'auto';
     if (role === 'arena cross-judge pool' && inherited) continue;
-    const levelMatch = /:(off|minimal|low|medium|high|xhigh|max)$/.exec(choice);
-    const reference = inherited ? `${parent.provider}/${parent.id}` : levelMatch ? choice.slice(0, -levelMatch[0].length) : choice;
+    const parsed = splitModelLevel(choice);
+    const reference = inherited ? `${parent.provider}/${parent.id}` : parsed.model;
     const slash = reference.indexOf('/');
     const provider = reference.slice(0, slash);
     const id = reference.slice(slash + 1);
-    const target = inherited ? parent.thinkingLevel : (levelMatch?.[1] as ModelThinkingLevel | undefined) ?? BUDGET_EFFORT[config.budget];
+    const target = inherited ? parent.thinkingLevel : parsed.thinkingLevel ?? BUDGET_EFFORT[config.budget];
     const candidates = available.filter((model) => model.provider === provider && (inherited ? model.id === id : modelFamily(model.id) === modelFamily(id)));
     const preferred = [id, modelFamily(id) === 'claude' ? 'claude-opus-5-5' : 'grok-4.7-fast', 'grok-4.7'];
     const rank = (candidate: string) => {
