@@ -287,7 +287,7 @@ const hourlyWatch = (id: string, source: Src | Src[], options: { aborted: boolea
 
 const FULL_RUN = 'autopilot-full-queue';
 const FULL_STORE: Store = { units: [] };
-const PROMPT_FULL = '/poteto-mode autopilot this queue, full autopilot, go: PR 31 adds greet, PR 32 adds shout. Merge each once it is verified.';
+const PROMPT_FULL = "/poteto-mode autopilot this queue, full autopilot, go. Build two independent queue items and merge each once verified. PR numbers 31 and 32 are reserved, not existing PRs. PR 31 uses branch feat-greet and adds the named export greet(name) in src/greet.js. It returns 'hello ' followed by the name, so greet('ada') === 'hello ada'. PR 32 uses branch feat-shout and adds the named export shout(name) in src/shout.js. It returns 'HELLO ' followed by name.toUpperCase(), so shout('ada') === 'HELLO ADA'. Inputs are strings. Each item includes behavior tests under test/ and leaves existing cart behavior unchanged.";
 
 function rootBegin(parent: Parent, playbook: string, title: string): { pr: string } {
   parent.beginPlaybook(playbook, title);
