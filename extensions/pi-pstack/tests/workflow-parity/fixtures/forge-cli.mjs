@@ -9,6 +9,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const [tool, ...argv] = process.argv.slice(2);
+if (argv.includes('--help') || argv.includes('-h')) {
+  process.stdout.write(`Usage: ${tool} <command> [flags]\nUse --help for command help.\n`);
+  process.exit(0);
+}
 const sh = (cmd, args, options = {}) => spawnSync(cmd, args, { encoding: 'utf8', ...options });
 
 function bareDir() {
@@ -185,7 +189,7 @@ function threadsOf(pr) {
 function replyTo(pr, commentId, body) {
   const thread = pr.threads.find((item) => item.comments.some((entry) => String(entry.id) === String(commentId)) || item.id === commentId);
   if (thread === undefined) die(1, `gh: no review comment ${commentId}`);
-  thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
+  thread.comments.push({ id: `${thread.id}-r${thread.comments.length}`, in_reply_to_id: thread.comments[0].id, body, author: WHO.worker || 'operator', path: null, line: null, createdAt: new Date().toISOString() });
   return thread;
 }
 
@@ -292,7 +296,7 @@ function graphql(state) {
   if (pr === undefined) die(1, 'gh: unknown pull request');
   if (/ReviewThreads/.test(query)) {
     log({ kind: 'read', what: 'threads', pr: pr.number });
-    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, comments: { nodes: thread.comments.map((entry) => ({ body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
+    const nodes = pr.threads.map((thread) => ({ id: thread.id, isResolved: thread.resolved, comments: { nodes: thread.comments.map((entry) => ({ id: entry.id, body: entry.body, createdAt: entry.createdAt, path: entry.path ?? null, line: entry.line ?? null, author: { login: entry.author } })) } }));
     return out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
   }
   if (/PrCheckRollup/.test(query)) {
@@ -321,14 +325,22 @@ function gh(state) {
   if (group === 'api') {
     const target = argv.find((arg) => /^repos\//.test(arg) || arg === 'graphql');
     if (target === 'graphql') return graphql(state);
+    const comments = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments$/.exec(target ?? '');
+    if (comments !== null && (value('--method', '-X') ?? 'GET').toUpperCase() === 'GET') {
+      const pr = state.prs[comments[1]];
+      if (pr === undefined) die(1, 'gh: unknown pull request');
+      log({ kind: 'read', what: 'review-comments', pr: pr.number });
+      return out(pr.threads.flatMap((thread) => thread.comments.map((entry) => ({ id: entry.id, body: entry.body, user: { login: entry.author }, path: entry.path ?? null, line: entry.line ?? null, created_at: entry.createdAt, ...(entry.in_reply_to_id === undefined ? {} : { in_reply_to_id: entry.in_reply_to_id }) }))));
+    }
     const reply = /^repos\/[^/]+\/[^/]+\/pulls\/(\d+)\/comments\/([^/]+)\/replies$/.exec(target ?? '');
     if (reply !== null && String(value('--method', '-X')).toUpperCase() === 'POST') {
       needToken(true);
       const pr = state.prs[reply[1]];
+      if (pr === undefined) die(1, 'gh: unknown pull request');
       const payload = JSON.parse(readFileSync(value('--input') === '-' ? 0 : value('--input'), 'utf8'));
       const thread = replyTo(pr, reply[2], String(payload.body));
       log({ kind: 'reply', pr: pr.number, thread: thread.id, body: String(payload.body) });
-      return out({ id: `${thread.id}-r`, body: payload.body });
+      return out({ id: thread.comments.at(-1).id, body: payload.body });
     }
     die(1, `gh: unsupported api call ${target}`);
   }

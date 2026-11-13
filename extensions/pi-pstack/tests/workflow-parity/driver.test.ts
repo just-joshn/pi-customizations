@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test } from 'vitest';
+import { writeContainerScenario as writeFakeForgeScenario } from './fixtures/forge.ts';
+import { writeContainerScenario as writeRealForgeScenario } from './fixtures/real-forge.ts';
 import type { RunSpec } from './lib/driver.ts';
 import { runWorkflow, withoutForgeCredentials } from './lib/driver.ts';
 
@@ -13,6 +15,28 @@ const withPi = (mode: string) => {
   process.env['FAKE_PI_MODE'] = mode;
   return runWorkflow(spec, 'scripted', { pi: FAKE_PI, rpcTimeoutMs: 1_500 });
 };
+
+test.for(['scripted', 'real'] as const)('%s sandboxes expose scripted scenarios only to the scripted driver', async (driver) => {
+  const seen: { container: boolean; parent: boolean }[] = [];
+  process.env['FAKE_PI_MODE'] = 'crash';
+  for (const writeScenario of [writeFakeForgeScenario, writeRealForgeScenario]) {
+    await expect(
+      runWorkflow(
+        {
+          ...spec,
+          prepare: (ctx) => writeScenario(ctx, { actors: { parent: ['scripted secret'] } }),
+          env: (ctx) => {
+            seen.push({ container: existsSync(join(ctx.sandbox, 'sim-scenario/scenario.json')), parent: existsSync(join(ctx.sandbox, 'scenario.json')) });
+            return {};
+          },
+        },
+        driver,
+        { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 },
+      ),
+    ).rejects.toThrow(/pi exited/);
+  }
+  expect(seen).toEqual(Array.from({ length: 2 }, () => ({ container: driver === 'scripted', parent: driver === 'scripted' })));
+});
 
 test('a pi that crashes at start is reported with its exit and stderr', async () => {
   await expect(withPi('crash')).rejects.toThrow(/pi exited \(code 3[^)]*\) before.*fatal: provider auth missing/s);

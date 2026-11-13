@@ -10,6 +10,7 @@ import { type Ctx, PKG } from './lib/driver.ts';
 test('only a fake-forge scenario asks its scripted verifier to run credential isolation', () => {
   const sandbox = mkdtempSync(join(tmpdir(), 'forge-scope-'));
   const ctx: Ctx = {
+    driver: 'scripted',
     sandbox,
     repo: join(sandbox, 'repo'),
     pkg: PKG,

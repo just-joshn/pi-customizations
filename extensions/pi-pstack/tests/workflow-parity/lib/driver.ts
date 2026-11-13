@@ -43,6 +43,7 @@ export interface Commit {
 }
 
 export interface Ctx {
+  driver: 'scripted' | 'real';
   sandbox: string;
   repo: string;
   pkg: string;
@@ -175,6 +176,7 @@ function buildSandbox(spec: RunSpec, driver: 'scripted' | 'real', realModel: str
     commits.push(git(repo, 'rev-parse', 'HEAD'));
   }
   const ctx: Ctx = {
+    driver,
     sandbox,
     repo,
     pkg: PKG,

@@ -4,7 +4,7 @@ import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { MODELS_PATH, registerPstackCommand } from './commands.ts';
 import { registerEvidenceTool } from './evidence.ts';
 import { parseFamilyDefault } from './model-spec.ts';
-import { loadModelsConfig, type ModelsConfig, type ResolvedModel, type RoleResolution, resolveFamilyDefault, resolveRole } from './models.ts';
+import { loadModelsConfig, type ModelsConfig, type ResolvedModel, type RoleResolution, resolveFamilyDefault, resolveRole, splitModelLevel } from './models.ts';
 import { PACKAGE_ROOT } from './paths.ts';
 import { registerSkillRouting } from './skill-routing.ts';
 import { registerStyle } from './style.ts';
@@ -28,8 +28,10 @@ export const roleModelResolver =
     // A family default names a model and a level; the registry says which provider lists it.
     const family = assigned.includes('/') || assigned === 'inherit-parent' ? undefined : parseFamilyDefault(assigned);
     const named = family === undefined ? undefined : resolveFamilyDefault(assigned, family, ctx.modelRegistry, parent);
-    const model = named?.spec ?? assigned;
-    const thinkingLevel = assignedLevel ?? named?.level ?? null;
+    const parsed = splitModelLevel(named?.spec ?? assigned);
+    if (assignedLevel !== null && parsed.thinkingLevel !== null && assignedLevel !== parsed.thinkingLevel) throw new Error(`Model ${assigned} has conflicting thinking levels: suffix ${parsed.thinkingLevel}, thinkingLevel ${assignedLevel}`);
+    const model = parsed.model;
+    const thinkingLevel = assignedLevel ?? parsed.thinkingLevel ?? named?.level ?? null;
     const attempt = (spec: string) => resolveRole(SPEC_ROLE, ctx.modelRegistry, parent ?? { provider: '', id: '', thinkingLevel: 'off' }, { ...loaded, roles: { [SPEC_ROLE]: spec } });
     let result: RoleResolution;
     if (model === 'inherit-parent') result = attempt(thinkingLevel === null ? 'inherit-parent' : `${parent?.provider}/${parent?.id}:${thinkingLevel}`);
