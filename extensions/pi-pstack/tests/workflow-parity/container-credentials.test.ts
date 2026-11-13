@@ -1,10 +1,11 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
-import { DEFAULT_IMAGE } from '../../src/container.ts';
-import { engineAvailable } from './lib/container-lock.ts';
+import { once } from 'node:events';
+
 import { expect, test } from 'vitest';
+import { DEFAULT_IMAGE } from '../../src/container.ts';
 import { CREDENTIAL_PROBE, probeContainerCredentials } from './lib/container-credentials.ts';
+import { engineAvailable } from './lib/container-lock.ts';
 
 test.skipIf(!engineAvailable())('a host probe fails when a live container has a credential variable', async () => {
   for (const contaminated of [false, true]) {

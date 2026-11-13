@@ -14,10 +14,15 @@ test('several refused container attempts are not a local verification fallback',
 });
 test('a forge refusal after a model error is still a refusal, but the model error alone is not', () => {
   const entry = shippingNoForgeTokenFamily.checks.find((check) => check.id === 'ship.blocked.spawn-is-refused-with-ForgeUnavailable');
-  const value = { runs: [{ workers: [] }], parent: { toolCalls: [
-    { name: 'pstack_worker', args: { action: 'spawn' }, isError: true, resultText: 'Model unavailable' },
-    { name: 'pstack_worker', args: { action: 'spawn' }, isError: true, resultText: 'ForgeUnavailable: no token' },
-  ] } } as unknown as RunView;
+  const value = {
+    runs: [{ workers: [] }],
+    parent: {
+      toolCalls: [
+        { name: 'pstack_worker', args: { action: 'spawn' }, isError: true, resultText: 'Model unavailable' },
+        { name: 'pstack_worker', args: { action: 'spawn' }, isError: true, resultText: 'ForgeUnavailable: no token' },
+      ],
+    },
+  } as unknown as RunView;
   expect(entry?.run(value)).toMatchObject({ ok: true });
   value.parent.toolCalls.pop();
   expect(entry?.run(value)).toMatchObject({ ok: false });

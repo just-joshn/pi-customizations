@@ -36,7 +36,7 @@ export function recordContainerCredentials(repo: string, sandbox: string): Conta
       const container = event.kind === 'spawn' ? event.data?.container?.name : undefined;
       if (container === undefined) continue;
       const enginePath = join(root, runId, 'workers', event.workerId, 'claim/engine.json');
-      const engine = existsSync(enginePath) ? JSON.parse(readFileSync(enginePath, 'utf8')) as { docker: string; env: NodeJS.ProcessEnv } : undefined;
+      const engine = existsSync(enginePath) ? (JSON.parse(readFileSync(enginePath, 'utf8')) as { docker: string; env: NodeJS.ProcessEnv }) : undefined;
       const result = engine === undefined ? { status: 'unavailable' as const, present: [] } : probeContainerCredentials(engine.docker, engine.env, container);
       probes.push({ runId, workerId: event.workerId, container, ...result });
     }

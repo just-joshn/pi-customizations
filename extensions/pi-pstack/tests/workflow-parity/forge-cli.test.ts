@@ -56,7 +56,23 @@ test.skipIf(!engineAvailable())('a container reads every host forge comment in f
   const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',[${JSON.stringify(FORGE_CLI)},'gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
   const child = spawn(
     'docker',
-    ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, '--mount', `type=bind,src=${FORGE_CLI},dst=${FORGE_CLI},readonly`, DEFAULT_IMAGE, 'node', '-e', reader],
+    [
+      'run',
+      '--rm',
+      '-i',
+      '--name',
+      basename(ctx.sandbox),
+      '--user',
+      `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`,
+      '--mount',
+      `type=bind,src=${ctx.sandbox},dst=/sandbox`,
+      '--mount',
+      `type=bind,src=${FORGE_CLI},dst=${FORGE_CLI},readonly`,
+      DEFAULT_IMAGE,
+      'node',
+      '-e',
+      reader,
+    ],
     { stdio: 'pipe' },
   );
   const exited = once(child, 'exit');

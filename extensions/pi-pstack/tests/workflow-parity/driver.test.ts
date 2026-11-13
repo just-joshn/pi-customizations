@@ -41,10 +41,19 @@ test.for(['scripted', 'real'] as const)('%s sandboxes expose scripted scenarios 
 test('real-driver teardown records container credential probe coverage without asking the model', async () => {
   process.env['FAKE_PI_MODE'] = 'crash';
   let probes: unknown;
-  await expect(runWorkflow({ ...spec, cleanup: (ctx) => {
-    const file = join(ctx.sandbox, 'container-credential-probes.json');
-    probes = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
-  } }, 'real', { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 })).rejects.toThrow(/pi exited/);
+  await expect(
+    runWorkflow(
+      {
+        ...spec,
+        cleanup: (ctx) => {
+          const file = join(ctx.sandbox, 'container-credential-probes.json');
+          probes = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : undefined;
+        },
+      },
+      'real',
+      { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 },
+    ),
+  ).rejects.toThrow(/pi exited/);
   expect(probes).toEqual([]);
 });
 
