@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
-import { assess, type Inconclusive } from './integrity.ts';
+import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
 
@@ -97,7 +97,7 @@ export interface RunSpec {
   cleanup?: (ctx: Ctx) => void;
   /** Extra environment for the Pi process, applied last: a fake forge on PATH, a container engine, a scenario a container can read. */
   env?: (ctx: Ctx, driver: 'scripted' | 'real') => Record<string, string>;
-  /** Overrides both limits of the run budget: the run is stopped at this age, or when it has been quiet this long. */
+  /** Overrides both limits for scripted fixtures only. Real models use budgetFor(family). */
   timeoutMs?: number;
   /** rpc (default) drives Pi over its RPC protocol. print and json run `pi -p` and `pi --mode json` once, with the prompt as an argument and no stdin. */
   mode?: Mode;
@@ -109,8 +109,9 @@ export interface RunSpec {
 
 /** A scripted run is fast and deterministic, so one limit serves; a real model gets its family's idle and ceiling limits (budget.ts). */
 export function budgetOf(spec: RunSpec, driver: 'scripted' | 'real'): Budget {
-  if (spec.timeoutMs !== undefined) return { idleMs: spec.timeoutMs, ceilingMs: spec.timeoutMs };
-  return driver === 'scripted' ? { idleMs: 120_000, ceilingMs: 120_000 } : budgetFor(spec.family);
+  if (driver === 'real') return budgetFor(spec.family);
+  const limit = spec.timeoutMs ?? 120_000;
+  return { idleMs: limit, ceilingMs: limit };
 }
 
 export const SCRIPTED_ROLES: ModelRoles = {
@@ -416,6 +417,8 @@ export interface Meta {
   parentSessionFile: string | null;
   prompt: string;
   timedOut: boolean;
+  /** Effective limits, so a stopped run can be distinguished from an older fixture-budget abort. */
+  budget?: Budget;
   /** Why the run was stopped, when it was: it went quiet (idle), or it reached its ceiling. */
   stopReason?: StopReason;
   tmuxSocket: string;
@@ -600,13 +603,13 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
+  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
   writeFileSync(join(ctx.sandbox, 'git.json'), JSON.stringify(loadGit(ctx.repo, ctx.base), null, 2));
   const view = loadView(ctx.sandbox);
-  const inconclusive = assess(view, crashed);
+  const inconclusive = assessHarnessStop(meta, spec) ?? assess(view, crashed);
   if (inconclusive !== undefined) {
     meta.inconclusive = inconclusive;
     writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));

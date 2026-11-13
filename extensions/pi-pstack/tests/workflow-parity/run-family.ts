@@ -10,8 +10,8 @@ import { join } from 'node:path';
 
 import { families, familyById } from './families/index.ts';
 import { evaluate, table } from './lib/check.ts';
-import { loadView, REAL_MODEL } from './lib/driver.ts';
-import { EXIT_INCONCLUSIVE } from './lib/integrity.ts';
+import { loadView, type Meta, REAL_MODEL } from './lib/driver.ts';
+import { assess, assessHarnessStop, describe, EXIT_INCONCLUSIVE } from './lib/integrity.ts';
 import { checkModel, modelsInUse } from './lib/preflight.ts';
 import { report, runFamily, unexpectedFailures, writeEvidence } from './lib/run.ts';
 
@@ -26,7 +26,14 @@ if (rescoreAt !== -1) {
   const named = argv[argv.indexOf('--family') + 1];
   const id = argv.includes('--family') && named !== undefined ? named : (JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as { family: string }).family;
   const family = familyById(id);
-  const results = evaluate(family.checks, loadView(sandbox));
+  const meta = JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as Meta;
+  const view = loadView(sandbox);
+  const inconclusive = assessHarnessStop(meta, family.spec) ?? assess(view, meta.crashed);
+  if (inconclusive !== undefined) {
+    console.log(argv.includes('--json') ? JSON.stringify({ family: id, sandbox, results: [], inconclusive }) : `== ${id} (rescore): ${describe(inconclusive)} ==`);
+    process.exit(EXIT_INCONCLUSIVE);
+  }
+  const results = evaluate(family.checks, view);
   console.log(argv.includes('--json') ? JSON.stringify({ family: id, sandbox, results }) : table(id, 'rescore', results, (family.knownDefects ?? []).map((entry) => entry.checkId)));
   process.exit(0);
 }
