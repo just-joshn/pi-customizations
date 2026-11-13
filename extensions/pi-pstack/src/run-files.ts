@@ -305,7 +305,12 @@ export function loadAssignment(path: string): LoadedAssignment {
   if (!isAbsolute(path)) throw new Error('Assignment path must be absolute');
   const file = resolve(path);
   if (basename(file) !== 'assignment.json') throw new Error('Assignment file must be named assignment.json');
-  ownedEntry(file, false);
+  try {
+    ownedEntry(file, false);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error(`Assignment file not found. Write assignment.json at ${file} before spawning the worker`);
+    throw error;
+  }
   if (realpathSync(file) !== file) throw new Error('Assignment path must be canonical (no symlinks)');
   const workerDir = dirname(file);
   ownedEntry(workerDir, true);

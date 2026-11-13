@@ -24,6 +24,19 @@ const spawn = (workerId: string, exec: Exec) => spawnAssignment(project.dir, 'ru
 const isNewSession = (args: string[]) => args.includes('new-session');
 const claim = (workerId: string, file = '') => join(workerDir(project, 'run1', workerId), 'claim', file);
 
+test('spawn names the missing assignment file and its expected path without claiming the worker', async () => {
+  const assignmentPath = join(workerDir(project, 'run1', 'missing'), 'assignment.json');
+  await expect(spawnAssignment(project.dir, 'run1' as RunId, assignmentPath, options(nodeExec))).rejects.toThrow(`Assignment file not found. Write assignment.json at ${assignmentPath} before spawning the worker`);
+  expect(existsSync(claim('missing'))).toBe(false);
+});
+
+test('spawn still refuses a directory in place of assignment.json', async () => {
+  const assignmentPath = join(workerDir(project, 'run1', 'directory'), 'assignment.json');
+  mkdirSync(assignmentPath, { recursive: true });
+  await expect(spawnAssignment(project.dir, 'run1' as RunId, assignmentPath, options(nodeExec))).rejects.toThrow(`${assignmentPath} must be a real file`);
+  expect(existsSync(claim('directory'))).toBe(false);
+});
+
 test('a tmux start whose answer is lost after the session started keeps the claim and finishes the spawn', async () => {
   const timedOut: Exec = async (command, args, execOptions) => {
     if (!isNewSession(args)) return nodeExec(command, args, execOptions);
