@@ -24,7 +24,7 @@ This directory is the maintained source for verifying the user-facing behavior o
 
 ## Not drivable locally (report as unverified)
 
-- **Token refresh and 401 recovery.** The token endpoint is hard-coded to `https://platform.claude.com/v1/oauth/token`, and `CLAUDE_CODE_CUSTOM_OAUTH_URL` accepts only Anthropic staging hosts, so no local peer can answer a refresh. Use the package's vitest suites (`auth-401-refresh`, `refresh-*`) and the `verify-oauth-refresh-lock` skill instead, and say so in the report.
+- **Token refresh and 401 recovery.** The token endpoint is hard-coded to `https://platform.claude.com/v1/oauth/token`, and `CLAUDE_CODE_CUSTOM_OAUTH_URL` accepts only Anthropic staging hosts, so no local peer can answer a refresh. Use the package's vitest suites (`auth-401-refresh`, `refresh-*`) instead, and say so in the report.
 - **Successful paste-code or browser-callback exchange** and **live subscription acceptance.** These need a real Anthropic account. `bun run live:exchange` is gated by `parity/oauth-rea-2026-10-31/claude/gates.md`.
 - **`/logout` and token revocation.** No drive covers them yet.
 

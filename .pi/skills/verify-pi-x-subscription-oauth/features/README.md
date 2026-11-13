@@ -2,10 +2,6 @@
 
 This directory is the maintained source for verifying the user-facing behavior of the `pi-x-subscription-oauth` extension. The extension provides the `grok-build` provider, the `cursor` provider, and the `/usage` command. Read this index before driving, then use the matching feature file as the recipe.
 
-## Related maps
-
-`.pi/skills/verify-pi-customizations/features/oauth-providers.md` also lists `grok-build`, `cursor`, `cursor-ask`, and `/usage` as part of the repo-wide OAuth check, which proves only model visibility from fixture credentials. This map holds the full journeys. When the extension changes a user-facing string, id, or path, update both.
-
 ## Baseline preconditions
 
 - Run `bun install --frozen-lockfile` at the repo root once.
