@@ -1,6 +1,6 @@
 import { existsSync, linkSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, isAbsolute, join, relative } from 'node:path';
+import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 
 import { stripFrontmatter } from '@earendil-works/pi-coding-agent';
 
@@ -20,7 +20,7 @@ export type SessionRule = { inScope: true; text: string | undefined } | { inScop
 
 export function sessionRule(cwd: string, path: string, home: string = homedir()): SessionRule {
   const below = relative(home, cwd);
-  const inScope = below === '' || (!below.startsWith('..') && !isAbsolute(below));
+  const inScope = below === '' || (below !== '..' && !below.startsWith(`..${sep}`) && !isAbsolute(below));
   return inScope ? { inScope, text: readRule(path) } : { inScope };
 }
 
