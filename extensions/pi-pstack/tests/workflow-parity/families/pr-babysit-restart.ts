@@ -12,14 +12,13 @@ import type { Meta } from '../lib/driver.ts';
 import { sleep } from '../lib/driver.ts';
 import { persistedWorkers } from '../lib/live-workers.ts';
 import { parentSession, rewriteFinalReply } from '../lib/mutate.ts';
+import type { RunView } from '../lib/view.ts';
 import { exitCodeOf, forgeResolvedOnce, neverMerges, REPO_FLAGS, replyMentions, watchers } from './pr-shared.ts';
 import type { Family } from './types.ts';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
 
-const RUN = 'babysit-restart-71';
 const STORE: { handle?: ForgeHandle } = {};
-const WATCHER = 'watch-restart';
 const PROMPT = '/poteto-mode babysit PR 71 until it is merge-ready';
 const PROMPT_AFTER_RESTART = '/poteto-mode babysit PR 71 until it is merge-ready (you were restarted, carry on)';
 const ARGS = ['--owner', 'acme', '--repo', 'widgets', '--pr', '71', '--interval', '0.3'];
@@ -54,15 +53,22 @@ const alive = (pid: number | undefined): boolean => {
   }
 };
 
-const wakesOf = (view: { parent: { messages: { order: number; customType?: string; text: string; details?: Record<string, unknown> }[] } }, workerId: string) => view.parent.messages.filter((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === workerId);
+const wakesOf = (view: { parent: { messages: { order: number; customType?: string; text: string; details?: Record<string, unknown> }[] } }, runId: string, workerId: string) => view.parent.messages.filter((message) => message.customType === 'pstack-worker' && message.details?.['runId'] === runId && message.details?.['workerId'] === workerId);
+
+const restartWatcher = (view: RunView) => {
+  const candidates = view.runs.flatMap((run) => run.workers.map((worker) => ({ ...worker, runId: run.id }))).filter((worker) => (worker.state?.['kind'] ?? worker.assignment['kind']) === 'watch');
+  const selected = candidates[0];
+  if (candidates.length !== 1 || selected === undefined) throw new Error(`expected exactly one watcher; candidates: ${candidates.map((worker) => `${worker.runId}/${worker.id}`).join(', ') || 'none'}`);
+  return selected;
+};
 
 export const babysitRestartFamily: Family = {
   id: 'babysit-restart',
   title: 'babysit across a parent restart: the live watcher is adopted through pstack_worker inspect, no second watcher is armed, and its one wake reaches the restarted parent once (spec 13.2)',
   spec: {
     family: 'babysit-restart',
-    holdWatchers: new RegExp(`^${WATCHER}$`),
-    runId: RUN,
+    holdWatchers: /.*/,
+    runId: 'babysit-restart-71',
     history: cartHistory,
     timeoutMs: 240_000,
     prepare: (ctx) => {
@@ -76,6 +82,7 @@ export const babysitRestartFamily: Family = {
     env: (ctx, driver) => forgeEnv(ctx, STORE.handle as ForgeHandle, { scripted: driver === 'scripted' }),
     prompt: () => PROMPT,
     scenario: (ctx) => {
+      const WATCHER = 'watch-restart';
       const first = new Parent(ctx);
       const pr = REPO_FLAGS;
       first.beginPlaybook('babysit', 'Babysit PR 71');
@@ -100,10 +107,11 @@ export const babysitRestartFamily: Family = {
     },
     drive: async (api) => {
       const { ctx } = api;
-      const watcher = await poll(() => persistedWorkers(ctx.repo).find((worker) => {
-        const kind = worker.state['kind'] ?? worker.assignment['kind'];
-        return kind === 'watch' && LIVE_PHASES.has(String(worker.state['phase'])) && /"kind"/.test(String(worker.state['output'] ?? ''));
-      }), 'a live watcher with printed output in state.json');
+      const watcher = await poll(() => {
+        const candidates = persistedWorkers(ctx.repo).filter((worker) => (worker.state['kind'] ?? worker.assignment['kind']) === 'watch');
+        if (candidates.length > 1) throw new Error(`ambiguous watchers: ${candidates.map((worker) => `${worker.runId}/${worker.id}`).join(', ')}`);
+        return candidates.find((worker) => LIVE_PHASES.has(String(worker.state['phase'])) && /"kind"/.test(String(worker.state['output'] ?? '')));
+      }, 'a live watcher with printed output in state.json');
       await api.restart();
       const beforeInspect = sessionText(ctx.sessionsDir).length;
       await api.prompt(PROMPT_AFTER_RESTART);
@@ -126,25 +134,27 @@ export const babysitRestartFamily: Family = {
       const spawns = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
       const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.order > second);
       const all = allWorkers(view);
-      const watcher = watchers(view)[0];
-      const claims = view.claims.filter((claim) => claim.workerId === watcher?.id);
+      const watcher = restartWatcher(view);
+      const claims = view.claims.filter((claim) => claim.workerId === watcher.id && claim.runId === watcher.runId);
       const armed = (view.runs[0]?.events ?? []).filter((event) => event['kind'] === 'spawn' || event['kind'] === 'claimed').length;
       return when(
-        spawns.length === 1 && spawns[0]!.order < second && watcher !== undefined && watcher.state !== null && inspect !== undefined && inspect.args['workerId'] === watcher?.id && !inspect.isError && /running/.test(inspect.resultText) && /"kind"/.test(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
+        spawns.length === 1 && (spawns[0]?.order ?? Number.POSITIVE_INFINITY) < second && watcher !== undefined && watcher.state !== null && inspect !== undefined && inspect.args['workerId'] === watcher.id && inspect.args['runId'] === watcher.runId && !inspect.isError && /running/.test(inspect.resultText) && /"kind"/.test(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
         `one spawn before the restart (${spawns[0]?.order}), the restarted parent's inspect at ${inspect?.order} read the running watcher's output, one watcher, one claim (host events ${armed})`,
         `spawns ${spawns.length}; inspect ${inspect?.resultText.slice(0, 100)}; workers ${all.map((worker) => worker.id).join(', ')}; claims ${claims.length}`,
       );
     }),
     check('babysit.restart.the-watcher-exit-woke-the-restarted-parent-once', 'the watcher exited READY (0) after the restart, and the restarted parent got exactly one pstack-worker wake for it, the host transition 1 of that instance, carrying the READY verdict', BS('**One babysitter per stack.**'), (view) => {
       const second = view.parent.messages.filter((message) => message.role === 'user')[1]?.order ?? Number.POSITIVE_INFINITY;
-      const watcher = watchers(view)[0];
+      const watcher = restartWatcher(view);
       const watcherId = watcher?.id ?? '';
-      const wakes = wakesOf(view, watcherId);
+      const wakes = wakesOf(view, watcher.runId, watcherId);
       const instance = String(watcher?.state?.['instance']);
       const settles = (watcher?.state?.['settles'] as unknown[] | undefined) ?? [];
-      const collect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === watcherId);
+      const collect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === watcherId && call.args['runId'] === watcher.runId);
+      const wake = wakes[0];
+      const collected = collect[0];
       return when(
-        watcher !== undefined && exitCodeOf(watcher) === 0 && settles.length === 1 && wakes.length === 1 && wakes[0]!.order > second && wakes[0]!.details?.['transitionId'] === `${watcherId}:${instance}:1` && wakes[0]!.details?.['phase'] === 'exited' && /READY/.test(wakes[0]!.text) && collect.length === 1 && collect[0]!.order > wakes[0]!.order,
+        watchers(view).length === 1 && exitCodeOf(watcher) === 0 && settles.length === 1 && wakes.length === 1 && wake !== undefined && wake.order > second && wake.details?.['transitionId'] === `${watcherId}:${instance}:1` && wake.details?.['phase'] === 'exited' && /READY/.test(wake.text) && collect.length === 1 && collected !== undefined && collected.order > wake.order,
         `one wake ${String(wakes[0]?.details?.['transitionId'])} at ${wakes[0]?.order}, after the restart (${second}), with the READY output; collected once after it`,
         `exit ${watcher === undefined ? 'none' : exitCodeOf(watcher)}; settles ${settles.length}; wakes ${wakes.length} ${JSON.stringify(wakes.map((wake) => [wake.order, wake.details?.['transitionId']]))}; collects ${collect.length}`,
       );
@@ -156,7 +166,7 @@ export const babysitRestartFamily: Family = {
   negatives: [
     { name: 'the restarted parent armed a second watcher', mutate: (sandbox) => appendSpawn(sandbox), fails: ['babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed'] },
     { name: 'the restarted parent never looked at the watcher', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"collect"'), fails: ['babysit.restart.the-live-watcher-was-adopted-and-no-second-one-armed'] },
-    { name: 'the exit wake was delivered twice', mutate: (sandbox) => duplicateWake(sandbox), fails: ['babysit.restart.the-watcher-exit-woke-the-restarted-parent-once'] },
+    { name: 'the exit wake was delivered twice', mutate: (sandbox, view) => { const watcher = restartWatcher(view); duplicateWake(sandbox, watcher.runId, watcher.id); }, fails: ['babysit.restart.the-watcher-exit-woke-the-restarted-parent-once'] },
     { name: 'the exit wake carried no verdict', mutate: (sandbox) => rewriteSession(sandbox, 'READY', 'DONE'), fails: ['babysit.restart.the-watcher-exit-woke-the-restarted-parent-once'] },
     { name: 'the first parent was never stopped', mutate: (sandbox) => writeMeta(sandbox, (meta) => (meta.restarts = [])), fails: ['babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session'] },
     { name: 'the replaced Pi was still running', mutate: (sandbox) => writeMeta(sandbox, (meta) => (meta.restarts = [{ stoppedPid: process.pid, startedPid: 1 }])), fails: ['babysit.restart.the-parent-pi-was-stopped-and-a-new-one-resumed-the-session'] },
@@ -180,16 +190,19 @@ function appendSpawn(sandbox: string): void {
   const id = `forged-${Math.random().toString(36).slice(2, 8)}`;
   const stamp = new Date().toISOString();
   const lines = [
-    { type: 'message', id: `${id}a`, parentId: null, timestamp: stamp, message: { role: 'assistant', content: [{ type: 'toolCall', id, name: 'pstack_worker', arguments: { action: 'spawn', runId: RUN, assignmentPath: '/x/watch-second/assignment.json' } }], provider: 'sim', model: 'forged', stopReason: 'toolUse', timestamp: Date.now() } },
+    { type: 'message', id: `${id}a`, parentId: null, timestamp: stamp, message: { role: 'assistant', content: [{ type: 'toolCall', id, name: 'pstack_worker', arguments: { action: 'spawn', runId: 'extra-run', assignmentPath: '/x/extra/assignment.json' } }], provider: 'sim', model: 'forged', stopReason: 'toolUse', timestamp: Date.now() } },
     { type: 'message', id: `${id}b`, parentId: `${id}a`, timestamp: stamp, message: { role: 'toolResult', toolCallId: id, toolName: 'pstack_worker', content: [{ type: 'text', text: 'Spawned' }], isError: false, timestamp: Date.now() } },
   ];
   appendFileSync(file, `${lines.map((line) => JSON.stringify(line)).join('\n')}\n`);
 }
 
-function duplicateWake(sandbox: string): void {
+function duplicateWake(sandbox: string, runId: string, workerId: string): void {
   const file = parentSession(sandbox);
   const lines = readFileSync(file, 'utf8').split('\n').filter(Boolean);
-  const wake = lines.find((line) => line.includes('"customType":"pstack-worker"') && line.includes(WATCHER));
+  const wake = lines.find((line) => {
+    const entry = JSON.parse(line) as { customType?: string; details?: { runId?: string; workerId?: string } };
+    return entry.customType === 'pstack-worker' && entry.details?.runId === runId && entry.details.workerId === workerId;
+  });
   if (wake === undefined) throw new Error('no wake to duplicate');
   appendFileSync(file, `${wake.replace(/"id":"[^"]+"/, '"id":"dup00001"')}\n`);
 }

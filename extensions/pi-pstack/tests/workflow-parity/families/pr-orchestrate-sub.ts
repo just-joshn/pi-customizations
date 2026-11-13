@@ -203,7 +203,7 @@ export const orchestrateSubFamily: Family = {
   title: 'orchestrate with a sub-coordinator: the root spawns one coordinator, the coordinator spawns the owners and verifiers into its own run, one owner per PR, independent verifier families, a failed owner replaced, depth read from real nested spawns (spec 13.4)',
   spec: {
     family: 'orchestrate-sub',
-    holdWatchers: new RegExp(`^${WATCHER}$`),
+    holdWatchers: /.*/,
     runId: RUN,
     history: cartHistory,
     timeoutMs: 480_000,

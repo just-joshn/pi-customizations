@@ -163,7 +163,7 @@ export const babysitDriveRealFamily: RealFamily = {
     runId: DRIVE_RUN,
     history,
     timeoutMs: 1_200_000,
-    holdWatchers: /^watch-[1-4]$/,
+    holdWatchers: /.*/,
     prepare: (ctx) => {
       driveForge.setup(ctx, {
         branches: [{ name: DRIVE_BRANCH, files: { 'src/cart.js': CAPPED_CART, 'test/cap.test.js': CAP_TEST, '.ci-mode': 'flaky\n' }, message: 'fix(cart): cap a coupon at 100 percent', author: 'owner-12' }],
@@ -423,7 +423,7 @@ export const shippingRealFamily: RealFamily = {
     runId: SHIP_RUN,
     history,
     timeoutMs: 1_200_000,
-    holdWatchers: /^watch-ceiling$/,
+    holdWatchers: /.*/,
     prepare: (ctx) => {
       shipForge.setup(ctx, {
         branches: [
