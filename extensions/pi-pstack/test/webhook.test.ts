@@ -1,10 +1,29 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { connect } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { expect, test, vi } from 'vitest';
 import { acceptEvent, createDesired, MAX_PENDING_PER_SUBSCRIPTION, readRegistry } from '../src/subscriptions/durable-store.ts';
 import { ensureCredentials, RoutineServer } from '../src/subscriptions/webhook.ts';
+
+test('a malformed request target gets 404 and the listener keeps serving', async ({ signal }) => {
+  const server = new RoutineServer(0);
+  try {
+    const port = await server.start();
+    const raw = await new Promise<string>((resolve) => {
+      let received = '';
+      const socket = connect(port, '127.0.0.1', () => socket.write('POST http://[ HTTP/1.1\r\nHost: localhost\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}'));
+      socket.setTimeout(2_000, () => socket.destroy());
+      socket.on('data', (chunk) => (received += chunk.toString()));
+      socket.on('close', () => resolve(received));
+    });
+    expect(raw.split('\r\n')[0]).toBe('HTTP/1.1 404 Not Found');
+    expect((await fetch(`http://127.0.0.1:${port}/routines/missing`, { method: 'POST', signal })).status).toBe(404);
+  } finally {
+    server.close();
+  }
+});
 
 test('an offline routine answers 200 for accepted events and 503 with Retry-After when its delivery queue is full', async ({ signal }) => {
   const root = mkdtempSync(join(tmpdir(), 'pstack-webhook-'));
