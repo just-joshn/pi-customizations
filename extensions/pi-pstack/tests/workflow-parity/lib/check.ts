@@ -1,4 +1,4 @@
-// A contract checker is a list of checks. Each check reads a RunView, cites the upstream source span it enforces,
+// A contract checker is a list of checks. Each check reads a RunView, cites the contract source span it enforces,
 // and returns PASS, FAIL, or SKIP with the evidence it looked at.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -16,7 +16,10 @@ export interface Src {
 
 export type Outcome = { ok: true; evidence: string } | { ok: false; evidence: string } | { skip: string } | { inconclusive: string };
 
+export type ContractScope = 'upstream' | 'adaptation';
+
 export interface Check {
+  scope?: ContractScope;
   id: string;
   title: string;
   src: Src[];
@@ -26,6 +29,7 @@ export interface Check {
 }
 
 export interface CheckResult {
+  scope: ContractScope;
   id: string;
   title: string;
   verdict: 'PASS' | 'FAIL' | 'SKIP' | 'INCONCLUSIVE';
@@ -37,8 +41,8 @@ export const pass = (evidence: string): Outcome => ({ ok: true, evidence });
 export const fail = (evidence: string): Outcome => ({ ok: false, evidence });
 export const when = (condition: boolean, good: string, bad: string): Outcome => (condition ? pass(good) : fail(bad));
 
-export function check(id: string, title: string, src: Src | Src[], run: Check['run']): Check {
-  return { id, title, src: Array.isArray(src) ? src : [src], run };
+export function check(id: string, title: string, src: Src | Src[], run: Check['run'], scope: ContractScope = 'upstream'): Check {
+  return { id, title, src: Array.isArray(src) ? src : [src], run, scope };
 }
 
 /** Marks a check whose PASS rests on the absence of an action. Applied here once, so no family re-implements the guard. */
@@ -74,6 +78,7 @@ export function resolveSource(source: Src): string {
 export function evaluate(checks: Check[], view: RunView): CheckResult[] {
   return checks.map((entry) => {
     const source = entry.src.map(resolveSource).join(', ');
+    const scope = entry.scope ?? 'upstream';
     let outcome: Outcome;
     try {
       outcome = entry.run(view);
@@ -84,19 +89,36 @@ export function evaluate(checks: Check[], view: RunView): CheckResult[] {
       const unproven = parentRan(view);
       if (unproven !== undefined) outcome = { inconclusive: `${unproven}; would have passed: ${outcome.evidence}` };
     }
-    if ('inconclusive' in outcome) return { id: entry.id, title: entry.title, verdict: 'INCONCLUSIVE', source, evidence: outcome.inconclusive };
-    if ('skip' in outcome) return { id: entry.id, title: entry.title, verdict: 'SKIP', source, evidence: outcome.skip };
-    return { id: entry.id, title: entry.title, verdict: outcome.ok ? 'PASS' : 'FAIL', source, evidence: outcome.evidence };
+    if ('inconclusive' in outcome) return { id: entry.id, title: entry.title, scope, verdict: 'INCONCLUSIVE', source, evidence: outcome.inconclusive };
+    if ('skip' in outcome) return { id: entry.id, title: entry.title, scope, verdict: 'SKIP', source, evidence: outcome.skip };
+    return { id: entry.id, title: entry.title, scope, verdict: outcome.ok ? 'PASS' : 'FAIL', source, evidence: outcome.evidence };
   });
 }
 
 /** The checker table. A check listed as a known product defect prints DEFECT instead of FAIL, and only real FAILs are counted as failures. */
 export function table(family: string, driver: string, results: CheckResult[], known: string[] = []): string {
   const shown = results.map((result) => ({ ...result, shown: result.verdict === 'FAIL' && known.includes(result.id) ? 'DEFECT' : result.verdict }));
-  const rows = shown.map((result) => `${result.shown.padEnd(6)} ${result.id}\n       ${result.title}\n       source: ${result.source}\n       evidence: ${result.evidence.replace(/\n/g, ' ').slice(0, 300)}`);
-  const count = (verdict: string) => shown.filter((result) => result.shown === verdict).length;
-  const summary = ['PASS', 'FAIL', 'DEFECT', 'INCONCLUSIVE', 'SKIP'].map((verdict) => [verdict, count(verdict)] as const).filter(([verdict, n]) => n > 0 || verdict === 'PASS').map(([verdict, n]) => `${n} ${verdict}`).join(', ');
+  const rows = shown.map((result) => `${result.shown.padEnd(6)} [${result.scope}] ${result.id}\n       ${result.title}\n       source: ${result.source}\n       evidence: ${result.evidence.replace(/\n/g, ' ').slice(0, 300)}`);
+  const scopes = summarize(results, known);
+  const summary = (['upstream', 'adaptation'] as const).map((scope) => `${(['PASS', 'FAIL', 'DEFECT', 'INCONCLUSIVE', 'SKIP'] as const).filter((verdict) => scopes[scope][verdict] > 0 || verdict === 'PASS').map((verdict) => `${scopes[scope][verdict]} ${verdict}`).join(', ')} ${scope}`).join('; ');
   return `== ${family} (${driver} driver): ${summary} ==\n${rows.join('\n')}`;
+}
+
+export function summarize(results: CheckResult[], known: string[] = []) {
+  const summaryFor = (scope: ContractScope) => {
+    const scoped = results.filter((result) => result.scope === scope);
+    const count = (verdict: CheckResult['verdict']) => scoped.filter((result) => result.verdict === verdict && !(verdict === 'FAIL' && known.includes(result.id))).length;
+    const counts = { PASS: count('PASS'), FAIL: count('FAIL'), DEFECT: scoped.filter((result) => result.verdict === 'FAIL' && known.includes(result.id)).length, INCONCLUSIVE: count('INCONCLUSIVE'), SKIP: count('SKIP') };
+    return { ...counts, verdict: counts.FAIL > 0 ? 'FAIL' : counts.INCONCLUSIVE > 0 ? 'INCONCLUSIVE' : 'PASS' };
+  };
+  return { upstream: summaryFor('upstream'), adaptation: summaryFor('adaptation') };
+}
+
+export function resultExitCode(results: CheckResult[], driver: 'scripted' | 'real', known: string[] = []): number {
+  const summary = summarize(results, known);
+  if (summary.upstream.FAIL > 0) return 1;
+  if (summary.adaptation.FAIL > 0) return driver === 'scripted' ? 1 : 4;
+  return summary.upstream.INCONCLUSIVE + summary.adaptation.INCONCLUSIVE > 0 ? 3 : 0;
 }
 
 export const failed = (results: CheckResult[]): string[] => results.filter((result) => result.verdict === 'FAIL').map((result) => result.id);

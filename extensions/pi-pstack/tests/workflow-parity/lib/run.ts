@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import type { Family } from '../families/types.ts';
-import { type CheckResult, evaluate, failed, table, validateSources } from './check.ts';
+import { type CheckResult, evaluate, failed, summarize, table, validateSources } from './check.ts';
 import type { ContainerCredentialProbe } from './container-credentials.ts';
 import { REAL_MODEL, runWorkflow } from './driver.ts';
 import { describe, type Inconclusive } from './integrity.ts';
@@ -74,7 +74,7 @@ export function writeEvidence(run: FamilyRun): string {
   const dir = process.env['PSTACK_E2E_EVIDENCE_DIR'] ?? join(tmpdir(), 'pstack-workflow-parity');
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${run.family}-${run.driver}${run.driver === 'real' ? `-${REAL_MODEL.replace(/[^\w.-]/g, '_')}` : ''}.json`);
-  writeFileSync(path, JSON.stringify({ ...(run.containerCredentialProbes === undefined ? {} : { containerCredentialProbes: run.containerCredentialProbes }), family: run.family, driver: run.driver, at: new Date().toISOString(), timedOut: run.timedOut, stopReason: run.stopReason, ...(run.inconclusive === undefined ? {} : { inconclusive: run.inconclusive }), findings: run.findings, runMs: run.runMs, negativesMs: run.negativesMs, sandbox: run.sandbox, results: run.results, negatives: run.negatives }, null, 2));
+  writeFileSync(path, JSON.stringify({ ...(run.containerCredentialProbes === undefined ? {} : { containerCredentialProbes: run.containerCredentialProbes }), family: run.family, driver: run.driver, at: new Date().toISOString(), timedOut: run.timedOut, stopReason: run.stopReason, ...(run.inconclusive === undefined ? {} : { inconclusive: run.inconclusive }), findings: run.findings, runMs: run.runMs, negativesMs: run.negativesMs, sandbox: run.sandbox, summary: summarize(run.results, run.known), results: run.results, negatives: run.negatives }, null, 2));
   return path;
 }
 
