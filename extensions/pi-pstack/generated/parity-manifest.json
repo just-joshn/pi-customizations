@@ -4,21 +4,21 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "28b2b8e005662b6b51ee38a832e6340438ef417b6deb620e0cbc762baca1db9b",
+  "requirementsDigest": "58fc245f56f339ab8a7b48e696457536e6058bedb598555a1028e9f8554df961",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-13T05:59:40.952Z",
-    "generatedAt": "2026-11-13T06:18:03.128Z",
-    "commit": "6075831296e52e18de02891dba99803201fb47f0",
+    "startedAt": "2026-11-13T09:32:54.265Z",
+    "generatedAt": "2026-11-13T09:37:51.471Z",
+    "commit": "ae43be9922ba939d68e91033bdb174fce3539e3d",
     "dirty": false,
     "changes": [],
-    "sourceDigest": "65bbf8951314c1dbdc251d1ad29d7fac497c3b1b88844e9090678a8c879287d4",
+    "sourceDigest": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
     "resultsSource": "local",
-    "totalTests": 2678,
-    "passedTests": 2585,
+    "totalTests": 2803,
+    "passedTests": 2701,
     "failedTests": 0,
     "failures": [],
-    "skippedTests": 93,
+    "skippedTests": 102,
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
     "piVersion": "1.5.2",
     "nodeVersion": "v26.13.0"
@@ -26,37 +26,37 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-13T05:59:40.952Z",
-      "generatedAt": "2026-11-13T06:18:03.128Z",
-      "commit": "6075831296e52e18de02891dba99803201fb47f0",
+      "startedAt": "2026-11-13T09:32:54.265Z",
+      "generatedAt": "2026-11-13T09:37:51.471Z",
+      "commit": "ae43be9922ba939d68e91033bdb174fce3539e3d",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "65bbf8951314c1dbdc251d1ad29d7fac497c3b1b88844e9090678a8c879287d4",
+      "sourceDigest": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
       "resultsSource": "local",
-      "totalTests": 2678,
-      "passedTests": 2585,
+      "totalTests": 2803,
+      "passedTests": 2701,
       "failedTests": 0,
       "failures": [],
-      "skippedTests": 93,
+      "skippedTests": 102,
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
       "piVersion": "1.5.2",
       "nodeVersion": "v26.13.0"
     },
     {
       "platform": "linux",
-      "startedAt": "2026-11-13T06:05:44.076Z",
-      "generatedAt": "2026-11-13T06:18:03.309Z",
-      "commit": "b1137d8e6a40a509a08eb9bca2f75730346c186a",
+      "startedAt": "2026-11-13T08:46:43.834Z",
+      "generatedAt": "2026-11-13T09:37:51.556Z",
+      "commit": "56a4f1e14b52f9295fbd16521779fbdc19bda6ab",
       "dirty": false,
       "changes": [],
-      "sourceDigest": "65bbf8951314c1dbdc251d1ad29d7fac497c3b1b88844e9090678a8c879287d4",
+      "sourceDigest": "aa73855e07d1cb5871dd42b017ad47722421720f0a5d1dafdffc7f8eaaa09960",
       "resultsSource": "ci",
-      "totalTests": 2664,
-      "passedTests": 2543,
+      "totalTests": 2789,
+      "passedTests": 2660,
       "failedTests": 0,
       "failures": [],
-      "skippedTests": 121,
-      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43376251681",
+      "skippedTests": 129,
+      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43395800916",
       "root": "/home/runner/work/pstack-parity-sandbox/pstack-parity-sandbox/extensions/pi-pstack",
       "piPath": "/home/runner/pi-e2e/agent/bin/pi",
       "piVersion": "1.5.0",
@@ -26809,7 +26809,7 @@
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "passed"
+              "outcome": "skipped"
             },
             {
               "platform": "linux",
@@ -32929,7 +32929,7 @@
         },
         {
           "file": "tests/skill-parity/mid-message.test.ts",
-          "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own"
+          "name": "a leading package prompt uses native skill expansion even without a later reference"
         },
         {
           "file": "tests/skill-parity/mid-message.test.ts",
@@ -33099,7 +33099,7 @@
         },
         {
           "file": "tests/skill-parity/mid-message.test.ts",
-          "name": "a message that names no further skill is left to Pi: the prompt template and /skill: expand on their own",
+          "name": "a leading package prompt uses native skill expansion even without a later reference",
           "outcome": "passed",
           "byRun": [
             {
@@ -36471,7 +36471,7 @@
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "passed"
+              "outcome": "skipped"
             },
             {
               "platform": "linux",

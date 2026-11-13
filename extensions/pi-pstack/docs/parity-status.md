@@ -43,8 +43,8 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `6075831296e5` | 1.5.2 | v26.13.0 | 2585 passed, 0 failed, 93 skipped | local at 2026-11-13T06:18:03.128Z |
-| 2 | linux | `b1137d8e6a40` | 1.5.0 | v22.21.0 | 2543 passed, 0 failed, 121 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43376251681 |
+| 1 | darwin | `ae43be9922ba` | 1.5.2 | v26.13.0 | 2701 passed, 0 failed, 102 skipped | local at 2026-11-13T09:37:51.471Z |
+| 2 | linux | `56a4f1e14b52` | 1.5.0 | v22.21.0 | 2660 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43395800916 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
