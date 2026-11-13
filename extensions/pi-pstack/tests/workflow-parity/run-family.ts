@@ -67,10 +67,12 @@ if (driver === 'real') {
 }
 let bad = 0;
 let inconclusive = 0;
+let credentialLeak = false;
 for (const family of target === 'all' ? families : [familyById(target)]) {
   const run = await runFamily(family, driver);
   console.log(report(run));
   console.log(`evidence record: ${writeEvidence(run)}`);
+  credentialLeak ||= run.containerCredentialProbes?.some((probe) => probe.status === 'fail') === true;
   if (run.inconclusive !== undefined) {
     inconclusive += 1;
     if (run.inconclusive.kind === 'crash') {
@@ -88,4 +90,4 @@ for (const family of target === 'all' ? families : [familyById(target)]) {
   if (!flags.includes('--keep')) run.cleanup();
   else console.log(`sandbox kept: ${run.sandbox}`);
 }
-process.exit(inconclusive > 0 ? EXIT_INCONCLUSIVE : bad === 0 ? 0 : 1);
+process.exit(credentialLeak ? 1 : inconclusive > 0 ? EXIT_INCONCLUSIVE : bad === 0 ? 0 : 1);

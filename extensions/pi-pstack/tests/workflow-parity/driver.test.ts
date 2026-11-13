@@ -63,17 +63,23 @@ test('an already removed worker makes only its credential measurement inconclusi
   process.env['FAKE_PI_BUSY_MS'] = '0';
   const container = `pstack-removed-${Date.now()}`;
   expect(spawnSync('docker', ['run', '--rm', '--name', container, 'node:24-bookworm', 'true']).status).toBe(0);
-  const outcome = await runWorkflow({
-    ...spec,
-    prepare: (ctx) => {
-      const run = join(ctx.repo, '.pi/pstack/runs/removed');
-      mkdirSync(run, { recursive: true });
-      writeFileSync(join(run, 'events.jsonl'), JSON.stringify({ kind: 'spawn', workerId: 'gone', data: { container: { name: container } } }) + '\n');
+  const outcome = await runWorkflow(
+    {
+      ...spec,
+      env: () => ({ FAKE_PI_SESSION: join(import.meta.dirname, 'fixtures/sessions/parent-healthy.jsonl') }),
+      prepare: (ctx) => {
+        const run = join(ctx.repo, '.pi/pstack/runs/removed');
+        mkdirSync(run, { recursive: true });
+        writeFileSync(join(run, 'events.jsonl'), `${JSON.stringify({ kind: 'spawn', workerId: 'gone', data: { container: { name: container } } })}\n`);
+      },
     },
-  }, 'real', { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 });
+    'real',
+    { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 },
+  );
   try {
     expect(outcome.meta.containerCredentialProbes).toMatchObject([{ status: 'unavailable', present: [] }]);
     expect(outcome.meta.crashed).toBeUndefined();
+    expect(outcome.meta.inconclusive).toBeUndefined();
     expect(outcome.meta.findings?.join('\n')).toContain('INCONCLUSIVE');
   } finally {
     outcome.cleanup();

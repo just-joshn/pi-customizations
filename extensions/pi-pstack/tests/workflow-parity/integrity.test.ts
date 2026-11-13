@@ -9,7 +9,7 @@ import { absence, check, evaluate, pass } from './lib/check.ts';
 import { type RunOutcome, type RunSpec, runWorkflow } from './lib/driver.ts';
 import type { Inconclusive } from './lib/integrity.ts';
 import { assess } from './lib/integrity.ts';
-import { report } from './lib/run.ts';
+import { type FamilyRun, report, unexpectedFailures } from './lib/run.ts';
 import { loadRun, type RunView } from './lib/view.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
@@ -60,6 +60,33 @@ test('a real-driver parent with no tool call and no reply is INCONCLUSIVE no-act
   const outcome = await run('parent-silent.jsonl');
   expect(outcome.meta.inconclusive).toBeUndefined();
   expect(assess({ ...outcome.view, driver: 'real' })?.kind).toBe('no-activity');
+});
+
+test('credential leaks fail closed while unavailable probes leave family scoring intact', () => {
+  const family = { id: 'integrity-test', title: 'integrity', spec: base, checks: [], negatives: [] };
+  const run: FamilyRun = {
+    family: family.id,
+    driver: 'real',
+    results: [],
+    negatives: [],
+    sandbox: '',
+    tmuxSocket: '',
+    timedOut: false,
+    stopReason: undefined,
+    piStderr: '',
+    findings: ['INCONCLUSIVE container credential probe run/worker'],
+    runMs: 0,
+    negativesMs: 0,
+    cleanup: () => {},
+    known: [],
+    containerCredentialProbes: [{ runId: 'run', workerId: 'worker', container: 'removed', status: 'unavailable', present: [] }],
+  };
+  expect(unexpectedFailures(run, family)).toEqual([]);
+  expect(report(run)).toContain('INCONCLUSIVE container credential probe run/worker');
+  run.containerCredentialProbes = [{ runId: 'run', workerId: 'worker', container: 'removed', status: 'fail', present: ['GH_TOKEN'] }];
+  expect(unexpectedFailures(run, family)).toEqual(['container-credentials.run.worker']);
+  run.inconclusive = { kind: 'provider-error', message: 'provider failed later' };
+  expect(unexpectedFailures(run, family)).toEqual(['container-credentials.run.worker']);
 });
 
 test('a healthy parent is scored', async () => {

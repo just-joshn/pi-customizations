@@ -74,13 +74,14 @@ export function writeEvidence(run: FamilyRun): string {
   const dir = process.env['PSTACK_E2E_EVIDENCE_DIR'] ?? join(tmpdir(), 'pstack-workflow-parity');
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${run.family}-${run.driver}${run.driver === 'real' ? `-${REAL_MODEL.replace(/[^\w.-]/g, '_')}` : ''}.json`);
-  writeFileSync(path, JSON.stringify({ family: run.family, driver: run.driver, at: new Date().toISOString(), timedOut: run.timedOut, stopReason: run.stopReason, ...(run.inconclusive === undefined ? {} : { inconclusive: run.inconclusive }), findings: run.findings, runMs: run.runMs, negativesMs: run.negativesMs, sandbox: run.sandbox, results: run.results, negatives: run.negatives }, null, 2));
+  writeFileSync(path, JSON.stringify({ ...(run.containerCredentialProbes === undefined ? {} : { containerCredentialProbes: run.containerCredentialProbes }), family: run.family, driver: run.driver, at: new Date().toISOString(), timedOut: run.timedOut, stopReason: run.stopReason, ...(run.inconclusive === undefined ? {} : { inconclusive: run.inconclusive }), findings: run.findings, runMs: run.runMs, negativesMs: run.negativesMs, sandbox: run.sandbox, results: run.results, negatives: run.negatives }, null, 2));
   return path;
 }
 
 /** Failing checks that the family does not list as a known product defect. */
 export function unexpectedFailures(run: FamilyRun, family: Family): string[] {
   const known = new Set((family.knownDefects ?? []).map((entry) => entry.checkId));
-  if (run.inconclusive !== undefined) return [];
-  return run.results.filter((result) => result.verdict === 'FAIL' && !known.has(result.id)).map((result) => result.id);
+  const credentialFailures = (run.containerCredentialProbes ?? []).filter((probe) => probe.status === 'fail').map((probe) => `container-credentials.${probe.runId}.${probe.workerId}`);
+  if (run.inconclusive !== undefined) return credentialFailures;
+  return [...credentialFailures, ...run.results.filter((result) => result.verdict === 'FAIL' && !known.has(result.id)).map((result) => result.id)];
 }

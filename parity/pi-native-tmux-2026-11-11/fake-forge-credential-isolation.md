@@ -22,6 +22,16 @@ A separate recorded container probe ran `git ls-remote https://github.com/just-j
 
 Evidence is under `/Users/josh-desktop/src/personal/pi-native-pstack/real/u39-evidence/followups/item2/`. Initial sessions retain the red findings. `family-green.log` records the permanent probe, and `network/probe-result.txt` records the separate network probe. `network/family.log` records 23 passing shipping checks and detected negative cases. `family-no-forge.log` records 16 passing no-token checks.
 
+## Real-driver worker measurements
+
+The real driver adds a measurement-only Pi extension through its container provider-package list. The scripted driver and product container code are unchanged. The extension captures the live Pi process at `session_start`, after fixture initialization and before model work. It writes an atomic `credential-probe.json` through the worker's existing output mount. Teardown collects that file even after `docker run --rm` removes the container.
+
+The capture compares the startup environment from `/proc/self/environ` with Pi's effective `process.env`. Linux retains the startup bytes after JavaScript deletes a variable, so these measurements answer different questions. `present` lists forbidden startup variables except the exact synthetic fixture `GH_TOKEN`. `fixturePresent` lists that synthetic token's variable name. `effectivePresent` lists forbidden variables still available to Pi after initialization. A non-fixture startup token or any effective token fails isolation. The fixture token is supplied by `forgeEnv` as `PSTACK_CONTAINER_FORGE_TOKEN`, resolved by product `forgeToken`, delivered as `GH_TOKEN` through the stdin preamble, and removed by the fake-forge extension. Token classification uses its exact fixture-defined value, never its prefix or name alone.
+
+Evidence contains credential names, the Pi PID, the capture stage, and a verdict. It contains no credential values. The live-container regressions run real Pi and check clean startup, stdin-injected contamination, fixture-token removal, retained fixture tokens, and unavailable capture. The host diagnostic locates the worker's Node executable through `/proc/<pid>/exe`, since Pi changes its process title.
+
+A missing or invalid capture is an INCONCLUSIVE credential measurement only. It does not mark the run as crashed, invalidate other checks, or claim a leak. A measured leak is a failing family result and forces CLI exit 1, even if another check is inconclusive.
+
 ## Limits
 
-The fixture capability is test state, not a security credential. These checks do not establish a security boundary against a malicious worker. The network probe remains recorded evidence rather than an external-network dependency in the permanent scripted suite.
+The capture establishes the environment at startup, not every later tool invocation. Its output mount is writable by the worker, so it is not tamper-proof evidence against a malicious worker. The fixture capability is test state, not a security credential. These checks do not establish a security boundary against a malicious worker. The network probe remains recorded evidence rather than an external-network dependency in the permanent scripted suite.
