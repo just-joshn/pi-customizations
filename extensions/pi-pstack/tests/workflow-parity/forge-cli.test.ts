@@ -200,6 +200,29 @@ test('generic review-thread reads expose the REST comment identifier', () => {
   expect(String(thread.comments.nodes[0].databaseId)).toBe('901');
 });
 
+test.each(['id', 'arbitrary_name'])('resolveReviewThread uses the input argument with variable %s', (name) => {
+  const { ctx, forge } = fixture();
+  const query = `mutation($${name}:ID!){resolveReviewThread(input:{threadId:$${name}}){thread{id}}}`;
+  const missing = call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${query}`, '-F', `${name}=absent`);
+  expect(missing.status).not.toBe(0);
+  const result = call(ctx, forge, 'gh', 'api', 'graphql', '-f', `query=${query}`, '-F', `${name}=thread-1`);
+  expect(result.status, result.stderr).toBe(0);
+  expect(JSON.parse(readFileSync(join(forge.dir, 'state.json'), 'utf8')).prs['71'].threads[0].resolved).toBe(true);
+});
+
+test.each(['--jq', '-q'])('forge applies %s and rejects invalid queries', (flag) => {
+  const { ctx, forge } = fixture();
+  expect(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'number', flag, '.number').stdout.trim()).toBe('71');
+  expect(call(ctx, forge, 'gh', 'pr', 'view', '71', '--json', 'number', flag, '[').status).not.toBe(0);
+});
+
+test('forge version and PR diff are read-only supported commands', () => {
+  const { ctx, forge } = fixture();
+  expect(call(ctx, forge, 'gh', '--version').stdout).toMatch(/^gh version /);
+  expect(call(ctx, forge, 'gh', 'pr', 'diff', '71').status).toBe(0);
+  expect(call(ctx, forge, 'gh', 'pr', 'diff', '999').status).not.toBe(0);
+});
+
 test('forge implementation source is not staged in the sandbox', () => {
   const { forge } = fixture();
   expect(existsSync(join(forge.bin, 'forge-cli.mjs'))).toBe(false);
