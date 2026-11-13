@@ -127,7 +127,15 @@ export const runtimeForensicsFamily: Family = {
       const line = cited === null ? '' : (read(join(view.repo, cited[1] as string)).split('\n')[Number(cited[2]) - 1] ?? '');
       return when(top !== undefined && reply.includes(`hotLoop`) && top.fn === 'hotLoop' && cited !== null && line.includes(top.fn) && top.url.endsWith(String(cited[1])), `hottest ${top?.fn} (${top?.url.split('/').slice(-2).join('/')}:${top?.line}); the reply cites ${cited?.[1]}:${cited?.[2]}, which reads: ${line.trim()}`, `hottest ${JSON.stringify(top)}; cited ${cited?.[0]}; line "${line.trim()}"`);
     }),
-    workersCheck('rt.reduction-in-a-subagent', 'step 2: the profile is parsed by a readonly worker that ran a command on it', src('poteto-mode/playbooks/runtime-forensics.md', 'Parse large artifacts in a subagent'), { role: 'general', min: 1, mode: 'readonly', rootPath: true, modelLine: 'how explorer', id: /reducer/ }),
+    check('rt.reduction-in-a-subagent', 'step 2: the profile is parsed by a readonly worker that ran a command on it', src('poteto-mode/playbooks/runtime-forensics.md', 'Parse large artifacts in a subagent'), (view) => {
+      const profiles = primaryRun(view, 'runtime-forensics')?.receipts.flatMap((receipt) => receipt.artifacts.filter((artifact) => artifact.path.endsWith('.cpuprofile')).map((artifact) => artifact.path)) ?? [];
+      const candidates = allWorkers(view).filter((worker) => worker.session?.toolCalls.some((call) => {
+        const command = String(call.args['command'] ?? '');
+        return ['bash_readonly', 'bash'].includes(call.name) && !call.isError && profiles.some((profile) => command.includes(profile)) && /JSON\.parse|json\.load|jq\b/.test(command) && /samples|nodes|timeDeltas/.test(command);
+      }));
+      if (candidates.length !== 1) return fail(`profile reduction candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
+      return workersCheck('', '', [], { role: 'general', min: 1, max: 1, mode: 'readonly', rootPath: true, modelLine: 'how explorer' }).run({ ...view, runs: view.runs.map((run) => ({ ...run, workers: run.workers.filter((worker) => candidates.includes(worker)) })) });
+    }),
     readonlyEnforced('rt.reducer-readonly', src('poteto-mode/playbooks/runtime-forensics.md', 'Parse large artifacts in a subagent'), ['general']),
     check('rt.mechanism-proven-by-instrumentation', 'step 3: the hypothesis is confirmed by instrumentation the parent ran on the code, with a passing receipt', src('poteto-mode/playbooks/runtime-forensics.md', 'Prove the mechanism before believing it'), (view) => {
       const receipt = primaryRun(view, 'runtime-forensics')?.receipts.find((entry) => entry.id === 'rt-mechanism');
