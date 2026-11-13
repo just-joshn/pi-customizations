@@ -1,13 +1,13 @@
 import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { expect, test } from 'vitest';
 import { CONTAINER_PI_ROOT, containerPreamble, DEFAULT_IMAGE, resolvePiInstall } from '../../src/container.ts';
-import { CREDENTIAL_PROBE, FORGE_TOKEN, probeContainerCredentials, recordContainerCredentials, WORKER_CREDENTIAL_EXTENSION } from './lib/container-credentials.ts';
+import { CREDENTIAL_PROBE, FORGE_TOKEN, probeContainerCredentials, recordContainerCredentials, startCredentialCapture } from './lib/container-credentials.ts';
 import { engineAvailable } from './lib/container-lock.ts';
 import { PI } from './lib/driver.ts';
 
@@ -78,29 +78,43 @@ test.skipIf(!engineAvailable())('a host probe fails when the live Pi process rec
   }
 });
 
-test.skipIf(!engineAvailable())('live worker capture distinguishes startup provenance and effective token removal', () => {
+test.skipIf(!engineAvailable())('live worker capture distinguishes startup provenance and effective token removal', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'worker-credential-capture-'));
   const pi = piInstall();
-  writeFileSync(join(dir, 'probe.mjs'), WORKER_CREDENTIAL_EXTENSION);
+  const capture = await startCredentialCapture();
+  expect(capture).toBeDefined();
+  if (capture === undefined) throw new Error('Credential receiver did not start');
+  expect(capture.captureDir.startsWith(dir)).toBe(false);
+  writeFileSync(join(dir, 'exit.mjs'), `export default pi => pi.on('session_start', () => process.exit(0));`);
   try {
-    for (const kind of ['clean', 'fake', 'real', 'fake-retained', 'unavailable']) {
-      rmSync(join(dir, 'credential-probe.json'), { force: true });
-      const token = kind === 'real' ? 'operator-sentinel-must-not-appear' : FORGE_TOKEN;
+    for (const kind of ['clean', 'fake', 'real', 'fake-source', 'real-source', 'fake-retained', 'unavailable']) {
+      const repo = join(dir, kind, 'repo');
+      const run = join(repo, '.pi/pstack/runs', kind);
+      const out = join(run, 'workers/capture/out');
+      mkdirSync(out, { recursive: true });
+      const name = `pstack-capture-${randomUUID()}`;
+      const token = kind === 'real' || kind === 'real-source' ? 'operator-sentinel-must-not-appear' : FORGE_TOKEN;
       writeFileSync(
         join(dir, 'fixture.mjs'),
         `export default function(pi) {
-        if(${JSON.stringify(kind)}==='fake') { delete process.env.GH_TOKEN; process.env.PSTACK_FAKE_FORGE_CAPABILITY='1'; }
-        pi.on('session_start', () => { setTimeout(() => process.exit(0), 0); });
+        if(['fake','fake-source'].includes(${JSON.stringify(kind)})) { delete process.env.GH_TOKEN; delete process.env.PSTACK_CONTAINER_FORGE_TOKEN; process.env.PSTACK_FAKE_FORGE_CAPABILITY='1'; }
+        if(${JSON.stringify(kind)}==='unavailable') globalThis.fetch=async () => { throw new Error('receiver unavailable'); };
       }`,
       );
-      const result = spawnSync(
+      const child = spawn(
         'docker',
         [
           'run',
           '--rm',
+          '--name',
+          name,
           '-i',
           '--mount',
-          `type=bind,src=${dir},dst=/workers/capture`,
+          `type=bind,src=${out},dst=/workers/capture`,
+          '--mount',
+          `type=bind,src=${dir},dst=/fixture,readonly`,
+          '--mount',
+          `type=bind,src=${capture.packageDir},dst=/measurement,readonly`,
           '--mount',
           `type=bind,src=${pi.root},dst=${CONTAINER_PI_ROOT},readonly`,
           DEFAULT_IMAGE,
@@ -112,49 +126,61 @@ test.skipIf(!engineAvailable())('live worker capture distinguishes startup prove
           pi.script,
           ...PI_FLAGS,
           '--extension',
-          '/workers/capture/fixture.mjs',
+          '/fixture/fixture.mjs',
           '--extension',
-          '/workers/capture/probe.mjs',
+          '/measurement/index.mjs',
+          '--extension',
+          '/fixture/exit.mjs',
         ],
-        {
-          input: containerPreamble({
-            HOME: '/home/worker',
-            PI_CODING_AGENT_DIR: '/home/worker/.pi/agent',
-            PSTACK_CONTAINER: '1',
-            PSTACK_WORKER: '1',
-            PSTACK_RUN_ROOT: kind === 'unavailable' ? '/missing' : '/',
-            PSTACK_WORKER_ID: 'capture',
-            ...(kind === 'clean' ? {} : { GH_TOKEN: token }),
-          }),
-          encoding: 'utf8',
-        },
+        { stdio: 'pipe' },
       );
-      expect(result.status, result.stderr).toBe(0);
+      let stderr = '';
+      child.stderr.on('data', (chunk) => {
+        stderr += String(chunk);
+      });
+      const exited = once(child, 'close');
+      child.stdin.end(
+        containerPreamble({
+          HOME: '/home/worker',
+          PI_CODING_AGENT_DIR: '/home/worker/.pi/agent',
+          PSTACK_CONTAINER: '1',
+          PSTACK_WORKER: '1',
+          PSTACK_RUN_ROOT: '/',
+          PSTACK_RUN_ID: kind,
+          PSTACK_WORKER_ID: 'capture',
+          ...(kind === 'clean' ? {} : kind.endsWith('-source') ? { PSTACK_CONTAINER_FORGE_TOKEN: token } : { GH_TOKEN: token }),
+        }),
+      );
+      const [code] = await exited;
+      expect(code, stderr).toBe(0);
+      expect(spawnSync('docker', ['inspect', name], { stdio: 'ignore' }).status).not.toBe(0);
+      expect(readdirSync(out)).toEqual([]);
+      expect(readdirSync(run, { recursive: true }).some((path) => String(path).includes('credential-probe'))).toBe(false);
+      expect(existsSync(join(dir, 'credential-probe.json'))).toBe(false);
+      writeFileSync(join(run, 'events.jsonl'), `${JSON.stringify({ kind: 'spawn', workerId: 'capture', data: { container: { name } } })}\n`);
+      const recorded = recordContainerCredentials(repo, dir, capture.captureDir);
       if (kind === 'unavailable') {
-        expect(existsSync(join(dir, 'credential-probe.json'))).toBe(false);
+        expect(recorded).toMatchObject([{ status: 'unavailable', present: [] }]);
         continue;
       }
-      const evidence = readFileSync(join(dir, 'credential-probe.json'), 'utf8');
-      const captured = JSON.parse(evidence);
+      const evidence = readFileSync(join(dir, 'container-credential-probes.json'), 'utf8');
+      const captured = recorded[0];
       expect(captured).toMatchObject({
         status: kind === 'clean' || kind === 'fake' ? 'pass' : 'fail',
         stage: 'session_start',
-        present: kind === 'real' ? ['GH_TOKEN'] : [],
+        present: kind === 'real' ? ['GH_TOKEN'] : kind.endsWith('-source') ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : [],
+        fixtureMatches: kind === 'fake-source' ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : ['fake', 'fake-retained'].includes(kind) ? ['GH_TOKEN'] : [],
         fixturePresent: kind === 'fake' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
-        effectivePresent: kind === 'real' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
+        effectivePresent: kind === 'real-source' ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : kind === 'real' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
       });
       expect(evidence).not.toContain(token);
       expect(evidence).not.toContain('operator-sentinel-must-not-appear');
-      const run = join(dir, 'repo/.pi/pstack/runs/live');
-      const out = join(run, 'workers/capture/out');
-      mkdirSync(out, { recursive: true });
-      copyFileSync(join(dir, 'credential-probe.json'), join(out, 'credential-probe.json'));
-      writeFileSync(join(run, 'events.jsonl'), `${JSON.stringify({ kind: 'spawn', workerId: 'capture', data: { container: { name: 'already-removed' } } })}\n`);
-      const recorded = recordContainerCredentials(join(dir, 'repo'), dir);
-      expect(recorded).toMatchObject([{ ...captured, runId: 'live', workerId: 'capture', container: 'already-removed' }]);
+      expect(recorded).toMatchObject([{ runId: kind, workerId: 'capture', container: name }]);
       expect(readFileSync(join(dir, 'container-credential-probes.json'), 'utf8')).not.toContain(token);
     }
   } finally {
+    await capture.close();
+    expect(existsSync(capture.captureDir)).toBe(false);
     rmSync(dir, { recursive: true, force: true });
   }
 });

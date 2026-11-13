@@ -104,6 +104,23 @@ function trustTestCertificate(): void {
   writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ build: { dockerfile: 'Dockerfile' } }));
 }
 
+test.each([false, true])('minimal container drops ambient credentials with forge=%s', async (forge) => {
+  trustTestCertificate();
+  const names = ['PSTACK_CONTAINER_FORGE_TOKEN', 'PSTACK_OTHER_SECRET', 'PSTACK_OPAQUE', 'ANTHROPIC_API_KEY', 'OPENAI_API_KEY', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_SESSION_TOKEN', 'GOOGLE_APPLICATION_CREDENTIALS', 'SSH_AUTH_SOCK', 'GITHUB_TOKEN'];
+  const owner = makeContainerParent(Object.fromEntries(names.filter((name) => name !== 'PSTACK_CONTAINER_FORGE_TOKEN').map((name) => [name, 'host-only-sentinel'])));
+  const workerId = forge ? 'scoped-forge' : 'scoped-plain';
+  await owner.start();
+  try {
+    const script = `const fs=require('node:fs'); const workers=fs.readdirSync('/proc').filter(pid=>/^\\d+$/.test(pid)&&Number(pid)!==process.pid).flatMap(pid=>{try{if(!/(^|\\/)node$/.test(fs.readlinkSync('/proc/'+pid+'/exe')))return []; const initial=Object.fromEntries(fs.readFileSync('/proc/'+pid+'/environ','utf8').split('\\0').filter(Boolean).map(entry=>{const i=entry.indexOf('=');return [entry.slice(0,i),entry.slice(i+1)];}));return initial.PSTACK_WORKER==='1'?[initial]:[];}catch{return [];}}); if(workers.length!==1)process.exit(2); const initial=workers[0]; console.log(JSON.stringify({present:${JSON.stringify(names)}.filter(name=>Object.hasOwn(initial,name)),forge:!!initial.GH_TOKEN,worker:initial.PSTACK_WORKER,depth:initial.PSTACK_DEPTH}));`;
+    await spawn(workerId, `node -e ${JSON.stringify(script)}`, { capabilities: { mcp: 'none', env: 'minimal', externalWrite: false, forge } }, owner);
+    await until(async () => (await owner.call('pstack_worker', { action: 'collect', runId: RUN_ID, workerId })).details.settled, (done) => done === true, 120_000, `${workerId} to settle`);
+    expect(printed(workerId)).toContain(JSON.stringify({ present: [], forge, worker: '1', depth: '2' }));
+  } finally {
+    await owner.call('pstack_worker', { action: 'abort', runId: RUN_ID, workerId });
+    await owner.stop();
+  }
+}, 240_000);
+
 describe('the default environment', () => {
   test('ships gh, and holds no forge token when the assignment does not ask for one', async () => {
     git(project.dir, 'remote', 'set-url', 'origin', bare);

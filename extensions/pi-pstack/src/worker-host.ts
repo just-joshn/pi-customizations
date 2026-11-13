@@ -147,12 +147,13 @@ export function parseLaunch(text: string | undefined): HostLaunch {
 /**
  * The worker's whole environment before the PSTACK_* identity variables, as the parent writes it to launch-env.json:
  * everything the parent has for env 'inherit', and for 'minimal' every allowed name, null where the parent has none.
+ * Minimal containers exclude ambient PSTACK_*; their launch controls and capabilities are added explicitly by the parent.
  * The host builds the child's environment from this alone, never from its own, which tmux gave it from whatever
  * environment the tmux server started with.
  */
-export function launchEnvironment(mode: Capabilities['env'], credentialEnv: readonly string[], source: Record<string, string | undefined>): Record<string, string | null> {
+export function launchEnvironment(mode: Capabilities['env'], credentialEnv: readonly string[], source: Record<string, string | undefined>, inheritPstack = true): Record<string, string | null> {
   if (mode === 'inherit') return Object.fromEntries(Object.entries(source).filter((entry): entry is [string, string] => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
-  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith('PSTACK_'))]);
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => inheritPstack && name.startsWith('PSTACK_'))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
 

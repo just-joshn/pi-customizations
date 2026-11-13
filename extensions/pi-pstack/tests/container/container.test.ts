@@ -252,7 +252,7 @@ describe('a container worker that fails while it starts', () => {
   test('shows its error without the credentials it held: not in the spawn error, state.json, or events.jsonl', async () => {
     writeFileSync(join(project.dir, '.pi', 'environment.json'), JSON.stringify({ install: 'echo "leaking $PSTACK_TEST_CREDENTIAL from the install" >&2; exit 7' }));
 
-    const failure = await spawn('leaky', '@@say NEVER').then(
+    const failure = await spawn('leaky', '@@say NEVER', { capabilities: { mcp: 'none', env: 'inherit', externalWrite: false } }).then(
       () => undefined,
       (error: unknown) => error as Error,
     );
@@ -273,12 +273,13 @@ describe('the environment a container worker holds', () => {
       .join('\n');
   const printEnv = `printf 'SENTINEL=%s CREDENTIAL=%s\\n' "$HOST_ONLY_SENTINEL" "$PSTACK_TEST_CREDENTIAL"`;
 
-  test('is minimal by default: the host environment stays out, the PSTACK_ variables stay in', async () => {
+  test('is minimal by default: host variables and ambient PSTACK_ variables stay out', async () => {
     writeFileSync(join(project.dir, '.pi', 'environment.json'), '{}');
     await spawn('minimal', `@@script ${JSON.stringify([{ tool: 'bash', args: { command: printEnv } }])}`);
     await settled('minimal');
 
-    expect(printed('minimal')).toContain(`SENTINEL= CREDENTIAL=${SECRET}`);
+    expect(printed('minimal')).toContain('SENTINEL= CREDENTIAL=');
+    expect(printed('minimal').includes(SECRET)).toBe(false);
     await abort('minimal');
   }, 180_000);
 
