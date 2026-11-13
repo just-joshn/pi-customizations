@@ -151,12 +151,12 @@ function observedUnits(view: RunView, units: Unit[]): Unit[] {
   });
 }
 
-export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier' && assignmentOf(worker).workspace?.inputCommit === head);
+export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => (assignmentOf(worker).role === 'verifier' || (assignmentOf(worker).role === 'general' && /\b(?:verifier|verify|audit)\b/i.test(worker.brief ?? ''))) && assignmentOf(worker).workspace?.inputCommit === head);
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
   const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
-  if (/VERDICT\s+(?:FAIL|blocked)/i.test(report)) return false;
-  if (new RegExp(`VERDICT\\s+(?:clean|PASS(?:\\+NOTES)?)[\\s\\S]*${head}`, 'i').test(report)) return true;
+  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s+)?(?:FAIL|ISSUES|BLOCKED)\b/i.test(report)) return false;
+  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
   const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.verifier === worker.id && verdict.head === head).at(-1);
   return posted !== undefined && posted.author === worker.id && posted.verdict !== 'FAIL';
