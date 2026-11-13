@@ -6,6 +6,7 @@ import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { delimiter, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { redactUserinfo, stripUserinfo } from './redact.ts';
@@ -433,11 +434,19 @@ export function containerPreamble(env: Record<string, string>): string {
 export async function removeWorkerContainers(docker: string, env: NodeJS.ProcessEnv, name: string): Promise<string[]> {
   const listed = await dockerCli(docker, ['ps', '--all', '--quiet', '--no-trunc', '--filter', `label=${CONTAINER_LABEL}=${name}`], env, 30_000);
   const ids = listed.split('\n').filter(Boolean);
-  for (const id of ids)
+  for (const id of ids) {
+    const deadline = Date.now() + 60_000;
     await dockerCli(docker, ['rm', '--force', id], env, 60_000).catch((error: unknown) => {
-      // --rm may be removing it already.
+      // --rm may be removing it already, but that does not mean it is gone.
       if (!/No such container|already in progress/i.test(error instanceof Error ? error.message : String(error))) throw error;
     });
+    for (;;) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw new Error(`Container ${id} was not removed within 60000ms`);
+      if ((await dockerCli(docker, ['ps', '--all', '--quiet', '--no-trunc', '--filter', `id=${id}`], env, remaining)).trim() === '') break;
+      await setTimeout(50);
+    }
+  }
   return ids;
 }
 

@@ -11027,6 +11027,7 @@ import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync as existsSync2, readFileSync as readFileSync2, realpathSync as realpathSync2, writeFileSync } from "node:fs";
 import { delimiter as delimiter2, isAbsolute as isAbsolute2, join as join2, relative as relative2, resolve as resolve2, sep } from "node:path";
+import { setTimeout as setTimeout2 } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 // src/redact.ts
@@ -11314,11 +11315,21 @@ async function removeWorkerContainers(docker, env, name) {
   const listed = await dockerCli(docker, ["ps", "--all", "--quiet", "--no-trunc", "--filter", `label=${CONTAINER_LABEL}=${name}`], env, 30000);
   const ids = listed.split(`
 `).filter(Boolean);
-  for (const id of ids)
+  for (const id of ids) {
+    const deadline = Date.now() + 60000;
     await dockerCli(docker, ["rm", "--force", id], env, 60000).catch((error) => {
       if (!/No such container|already in progress/i.test(error instanceof Error ? error.message : String(error)))
         throw error;
     });
+    for (;; ) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0)
+        throw new Error(`Container ${id} was not removed within 60000ms`);
+      if ((await dockerCli(docker, ["ps", "--all", "--quiet", "--no-trunc", "--filter", `id=${id}`], env, remaining)).trim() === "")
+        break;
+      await setTimeout2(50);
+    }
+  }
   return ids;
 }
 var engineRecordPath = (workerDir) => join2(workerDir, "claim", "engine.json");
