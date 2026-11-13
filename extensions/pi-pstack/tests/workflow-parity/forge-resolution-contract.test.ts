@@ -26,6 +26,14 @@ test('a compound lookup and a decision-trail fallback record satisfy the forge c
   expect(result(['cd /repo && command -v origin; gh pr view 1'])).toMatchObject({ ok: true });
   expect(result(['cd /repo && command -v gh origin; gh pr view 1'])).toMatchObject({ ok: true });
 });
+test('command substitution and a plain-language fallback record satisfy the contract', () => {
+  expect(result(['echo "origin cli: $(command -v origin || echo absent)"; gh pr view 1'], 'The Origin CLI is absent, so I used `gh` throughout.')).toMatchObject({ ok: true });
+});
+
+test('rechecking CLI availability does not change the resolved forge choice', () => {
+  expect(result(['command -v origin; gh pr view 1', 'command -v origin; gh pr view 2'])).toMatchObject({ ok: true });
+});
+
 test('an unresolved forge, a late lookup, or an unrecorded fallback still fails', () => {
   expect(result(['gh pr view 1'])).toMatchObject({ ok: false });
   expect(result(['cd /repo && gh pr view 1', 'command -v origin'])).toMatchObject({ ok: false });

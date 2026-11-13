@@ -30,6 +30,7 @@ function result(text: string) {
 }
 test('shipping accepts the required facts in ordinary prose', () => {
   expect(result(reply)).toMatchObject({ ok: true });
+  expect(result(reply.replace('I confirmed the merge by reading the PR back.', 'The PR now reads MERGED with base main.'))).toMatchObject({ ok: true });
 });
 test('omitting a producer or the next gap is still a failure', () => {
   expect(result(reply.replace('from v22', ''))).toMatchObject({ ok: false });

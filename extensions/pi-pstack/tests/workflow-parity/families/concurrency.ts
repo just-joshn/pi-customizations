@@ -66,7 +66,7 @@ export const concurrencyFamily: Family = {
       const problems = states.flatMap(({ id, state }) => {
         const worker = allWorkers(view).find((entry) => entry.id === id);
         if (worker === undefined) return [`${id}: worker state has no assignment`];
-        const want = String(assignmentOf(worker).model);
+        const want = String(assignmentOf(worker).model).replace(/:(?:off|minimal|low|medium|high|xhigh|max)$/, '');
         const got = state.model === undefined ? '' : `${state.model.provider}/${state.model.id}`;
         const sessionModels = allWorkers(view).find((worker) => worker.id === id)?.session?.models ?? [];
         return [...(got === want ? [] : [`${id}: host recorded ${got}, assignment says ${want}`]), ...(sessionModels.length === 1 && sessionModels[0] === want ? [] : [`${id}: session answered with ${sessionModels.join() || 'nothing'}`])];

@@ -41,6 +41,8 @@ const sessionText = (sessionsDir: string): string =>
 
 const LIVE_PHASES = new Set(['starting', 'running']);
 
+export const watcherHasOutput = (output: string): boolean => /"kind"\s*:|\b(?:WAITING|READY|COMPLETE|BLOCKED):/.test(output);
+
 const metaOf = (sandbox: string): Meta => JSON.parse(readFileSync(join(sandbox, 'meta.json'), 'utf8')) as Meta;
 
 const alive = (pid: number | undefined): boolean => {
@@ -110,7 +112,7 @@ export const babysitRestartFamily: Family = {
       const watcher = await poll(() => {
         const candidates = persistedWorkers(ctx.repo).filter((worker) => (worker.state['kind'] ?? worker.assignment['kind']) === 'watch');
         if (candidates.length > 1) throw new Error(`ambiguous watchers: ${candidates.map((worker) => `${worker.runId}/${worker.id}`).join(', ')}`);
-        return candidates.find((worker) => LIVE_PHASES.has(String(worker.state['phase'])) && /"kind"/.test(String(worker.state['output'] ?? '')));
+        return candidates.find((worker) => LIVE_PHASES.has(String(worker.state['phase'])) && watcherHasOutput(String(worker.state['output'] ?? '')));
       }, 'a live watcher with printed output in state.json');
       await api.restart();
       const beforeInspect = sessionText(ctx.sessionsDir).length;
@@ -138,7 +140,7 @@ export const babysitRestartFamily: Family = {
       const claims = view.claims.filter((claim) => claim.workerId === watcher.id && claim.runId === watcher.runId);
       const armed = (view.runs[0]?.events ?? []).filter((event) => event['kind'] === 'spawn' || event['kind'] === 'claimed').length;
       return when(
-        spawns.length === 1 && (spawns[0]?.order ?? Number.POSITIVE_INFINITY) < second && watcher !== undefined && watcher.state !== null && inspect !== undefined && inspect.args['workerId'] === watcher.id && inspect.args['runId'] === watcher.runId && !inspect.isError && /running/.test(inspect.resultText) && /"kind"/.test(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
+        spawns.length === 1 && (spawns[0]?.order ?? Number.POSITIVE_INFINITY) < second && watcher !== undefined && watcher.state !== null && inspect !== undefined && inspect.args['workerId'] === watcher.id && inspect.args['runId'] === watcher.runId && !inspect.isError && /running/.test(inspect.resultText) && watcherHasOutput(inspect.resultText) && watchers(view).length === 1 && all.length === 1 && claims.length === 1,
         `one spawn before the restart (${spawns[0]?.order}), the restarted parent's inspect at ${inspect?.order} read the running watcher's output, one watcher, one claim (host events ${armed})`,
         `spawns ${spawns.length}; inspect ${inspect?.resultText.slice(0, 100)}; workers ${all.map((worker) => worker.id).join(', ')}; claims ${claims.length}`,
       );

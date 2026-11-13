@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
+import { type ContainerCredentialProbe, recordContainerCredentials } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
@@ -413,6 +414,7 @@ function observeRuns(repo: string, history: Record<string, Snapshot[]>, claims: 
 }
 
 export interface Meta {
+  containerCredentialProbes?: ContainerCredentialProbe[];
   family: string;
   driver: 'scripted' | 'real';
   base: string;
@@ -524,6 +526,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   };
   let timedOut = false;
   let crashed: string | undefined;
+  let containerCredentialProbes: ContainerCredentialProbe[] | undefined;
   const findings: string[] = [];
   let parentSessionFile: string | null = null;
   try {
@@ -609,6 +612,15 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       });
       writeFileSync(join(ctx.sandbox, 'worker-states-before-stop.json'), JSON.stringify(states, null, 2));
     }
+    if (driver === 'real') {
+      containerCredentialProbes = recordContainerCredentials(ctx.repo, ctx.sandbox);
+      const unproven = containerCredentialProbes.filter((probe) => probe.status !== 'pass');
+      if (unproven.length > 0) {
+        const reason = `container credential isolation failed: ${unproven.map((probe) => `${probe.runId}/${probe.workerId} ${probe.status} ${probe.present.join(',')}`).join('; ')}`;
+        findings.push(reason);
+        crashed ??= reason;
+      }
+    }
     await stopPi(child);
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
@@ -616,7 +628,7 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
-  const meta: Meta = { family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
+  const meta: Meta = { ...(containerCredentialProbes === undefined ? {} : { containerCredentialProbes }), family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
   writeFileSync(join(ctx.sandbox, 'meta.json'), JSON.stringify(meta, null, 2));
   writeFileSync(join(ctx.sandbox, 'todo-history.json'), JSON.stringify(history, null, 2));
   writeFileSync(join(ctx.sandbox, 'claims.json'), JSON.stringify(claims, null, 2));
