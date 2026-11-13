@@ -293,6 +293,7 @@ export function forgeEnv(ctx: Ctx, handle: ForgeHandle, options: { container?: b
 
 /** Writes the scenario where a container worker can read it, as a package directory with no extensions of its own. */
 export function writeContainerScenario(ctx: Ctx, scenario: unknown): void {
+  if (ctx.driver !== 'scripted') return;
   const dir = join(ctx.sandbox, 'sim-scenario');
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'sim-scenario', private: true, pi: { extensions: [] } }));

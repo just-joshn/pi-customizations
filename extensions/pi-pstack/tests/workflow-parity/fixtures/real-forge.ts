@@ -359,6 +359,7 @@ export const readFacts = (sandbox: string): Facts => JSON.parse(readFileSync(joi
 export const WORKFLOW_COMMIT = { message: 'ci: parity sandbox workflow', files: { [WORKFLOW_PATH]: WORKFLOW } };
 
 export function writeContainerScenario(ctx: Ctx, scenario: unknown): void {
+  if (ctx.driver !== 'scripted') return;
   const dir = join(ctx.sandbox, 'sim-scenario');
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'sim-scenario', private: true, pi: { extensions: [] } }));
