@@ -66,16 +66,38 @@ export const isTopLevel = (message: Pick<SlackMessage, 'ts' | 'thread_ts'>): boo
 const HOUSEKEEPING = new Set(['channel_join', 'channel_leave', 'channel_topic', 'channel_purpose', 'channel_name', 'channel_archive', 'channel_unarchive', 'pinned_item', 'unpinned_item']);
 export const isReport = (message: SlackMessage): boolean => message.subtype === undefined || !HOUSEKEEPING.has(message.subtype);
 
-/** Messages newer than `oldest`, oldest first (Slack returns newest first). */
-export async function channelHistory(channel: string, oldest: string | undefined, limit = 100): Promise<SlackMessage[]> {
-  const result = await slackCall<{ messages?: SlackMessage[] }>('conversations.history', { channel, limit, ...(oldest === undefined ? {} : { oldest, inclusive: false }) });
-  return (result.messages ?? []).toSorted((left, right) => Number(left.ts) - Number(right.ts));
+type Page = { messages?: SlackMessage[]; response_metadata?: { next_cursor?: string } };
+
+const oldestFirst = (messages: SlackMessage[]) => messages.toSorted((left, right) => Number(left.ts) - Number(right.ts));
+
+async function allPages(method: string, body: Record<string, unknown>): Promise<SlackMessage[]> {
+  const messages: SlackMessage[] = [];
+  const seen = new Set<string>();
+  for (let cursor: string | undefined; ; ) {
+    const page = await slackCall<Page>(method, { ...body, limit: 200, inclusive: false, ...(cursor === undefined ? {} : { cursor }) });
+    messages.push(...(page.messages ?? []));
+    cursor = page.response_metadata?.next_cursor || undefined;
+    if (cursor === undefined) return messages;
+    if (seen.has(cursor)) throw new SlackError(method, 'repeated page cursor');
+    seen.add(cursor);
+  }
+}
+
+export async function recentMessages(channel: string, limit: number): Promise<SlackMessage[]> {
+  return oldestFirst((await slackCall<Page>('conversations.history', { channel, limit })).messages ?? []);
+}
+
+export async function messagesSince(channel: string, oldest: string): Promise<SlackMessage[]> {
+  return oldestFirst(await allPages('conversations.history', { channel, oldest }));
 }
 
 /** A thread's messages, parent first. */
-export async function threadReplies(channel: string, ts: string, oldest?: string): Promise<SlackMessage[]> {
-  const result = await slackCall<{ messages?: SlackMessage[] }>('conversations.replies', { channel, ts, limit: 200, ...(oldest === undefined ? {} : { oldest, inclusive: false }) });
-  return result.messages ?? [];
+export async function thread(channel: string, ts: string): Promise<SlackMessage[]> {
+  return (await slackCall<Page>('conversations.replies', { channel, ts, limit: 200 })).messages ?? [];
+}
+
+export async function repliesSince(channel: string, ts: string, oldest: string): Promise<SlackMessage[]> {
+  return allPages('conversations.replies', { channel, ts, oldest });
 }
 
 export function messageLine(message: SlackMessage): string {

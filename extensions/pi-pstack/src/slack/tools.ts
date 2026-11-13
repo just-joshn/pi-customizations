@@ -2,7 +2,7 @@
 // top-level agent gets them: subagents never post to Slack or hold its token, the rule benny's operational files keep.
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { channelHistory, messageLine, slackCall, slackToken, threadReplies } from './client.ts';
+import { messageLine, recentMessages, slackCall, slackToken, thread } from './client.ts';
 
 export const SLACK_TOOLS = ['slack_read_channel', 'slack_read_thread', 'slack_send', 'slack_react', 'slack_update'] as const;
 
@@ -29,7 +29,7 @@ export function registerSlackTools(pi: ExtensionAPI): void {
     annotations: { readOnlyHint: true, openWorldHint: true },
     defaultActive: connected,
     async execute(_id, params) {
-      const messages = (await channelHistory(params.channel, undefined, params.limit ?? 20)).map((message) => `${messageLine(message)}${message.reply_count ? ` (${message.reply_count} replies)` : ''}`);
+      const messages = (await recentMessages(params.channel, params.limit ?? 20)).map((message) => `${messageLine(message)}${message.reply_count ? ` (${message.reply_count} replies)` : ''}`);
       return text(messages.length === 0 ? 'No messages.' : messages.join('\n'), { count: messages.length });
     },
   });
@@ -42,7 +42,7 @@ export function registerSlackTools(pi: ExtensionAPI): void {
     annotations: { readOnlyHint: true, openWorldHint: true },
     defaultActive: connected,
     async execute(_id, params) {
-      const messages = await threadReplies(params.channel, params.thread_ts);
+      const messages = await thread(params.channel, params.thread_ts);
       return text(messages.length === 0 ? 'No such thread.' : messages.map(messageLine).join('\n'), { count: messages.length });
     },
   });
