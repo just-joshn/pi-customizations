@@ -14821,10 +14821,10 @@ var MAX_RPC_RECORD = 8 * 1024 * 1024;
 var MAX_BRIEF_BYTES = 1024 * 1024;
 var CONTAINER_START_MS = 30 * 60000;
 var MINIMAL_ENV = ["PATH", "HOME", "LANG", "TERM", "TMPDIR", "PI_CODING_AGENT_DIR"];
-function launchEnvironment(mode, credentialEnv, source) {
+function launchEnvironment(mode, credentialEnv, source, inheritPstack = true) {
   if (mode === "inherit")
     return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
-  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => inheritPstack && name.startsWith("PSTACK_"))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
 if (false) {}
@@ -15161,7 +15161,7 @@ async function spawnAssignment(project, runId, assignmentPath, options = {}) {
     container: container?.plan ?? null
   };
   const launchEnv = {
-    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source),
+    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source, container === null),
     ...container?.env,
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? "1" : null,

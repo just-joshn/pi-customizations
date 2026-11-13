@@ -487,10 +487,10 @@ function parseLaunch(text) {
     container
   };
 }
-function launchEnvironment(mode, credentialEnv, source) {
+function launchEnvironment(mode, credentialEnv, source, inheritPstack = true) {
   if (mode === "inherit")
     return Object.fromEntries(Object.entries(source).filter((entry) => entry[1] !== undefined && !isTmuxIdentityEnv(entry[0])));
-  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => name.startsWith("PSTACK_"))]);
+  const names = new Set([...MINIMAL_ENV, ...credentialEnv, ...Object.keys(source).filter((name) => inheritPstack && name.startsWith("PSTACK_"))]);
   return Object.fromEntries([...names].map((name) => [name, source[name] ?? null]));
 }
 function takeLaunchEnv(workerDir) {

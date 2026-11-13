@@ -635,7 +635,7 @@ export async function spawnAssignment(project: string, runId: RunId, assignmentP
   // A sub-coordinator's workers share its tmux server and never inherit its PSTACK_SPAWN.
   const launchEnv = {
     // The docker client's own configuration travels with the snapshot, and the host keeps it out of the container.
-    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source),
+    ...launchEnvironment(assignment.capabilities.env, container === null ? launch.credentialEnv : [...launch.credentialEnv, ...ENGINE_ENV], source, container === null),
     ...container?.env,
     PSTACK_DEPTH: String(depth),
     PSTACK_SPAWN: spawns ? '1' : null,

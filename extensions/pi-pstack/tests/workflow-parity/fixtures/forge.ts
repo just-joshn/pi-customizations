@@ -290,12 +290,13 @@ export function forgeEnv(ctx: Ctx, handle: ForgeHandle, options: { container?: b
   return env;
 }
 
-/** Writes the scenario where a container worker can read it, as a package directory with no extensions of its own. */
+/** The mounted fixture package supplies its own scenario path without inheriting host environment variables. */
 export function writeContainerScenario(ctx: Ctx, scenario: unknown): void {
   if (ctx.driver !== 'scripted') return;
   const dir = join(ctx.sandbox, 'sim-scenario');
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'sim-scenario', private: true, pi: { extensions: [] } }));
+  writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'sim-scenario', private: true, pi: { extensions: ['./index.mjs'] } }));
+  writeFileSync(join(dir, 'index.mjs'), `import { fileURLToPath } from 'node:url'; export default function() { process.env.PSTACK_SCENARIO = fileURLToPath(new URL('./scenario.json', import.meta.url)); }`);
   writeFileSync(join(dir, 'scenario.json'), JSON.stringify(scenario));
 }
 
