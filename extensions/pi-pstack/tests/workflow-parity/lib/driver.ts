@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
 import { type Budget, budgetFor, type StopReason, stopReason } from './budget.ts';
-import { type ContainerCredentialProbe, recordContainerCredentials, WORKER_CREDENTIAL_EXTENSION } from './container-credentials.ts';
+import { type ContainerCredentialProbe, type CredentialCapture, recordContainerCredentials, startCredentialCapture } from './container-credentials.ts';
 import { assess, assessHarnessStop, type Inconclusive } from './integrity.ts';
 import { packagesRegistering, providerOf, withoutOauthRefresh } from './providers.ts';
 import { type Claim, type GitState, type Json, loadGit, loadPlans, loadRun, loadSession, type RunView, type Session, type Snapshot } from './view.ts';
@@ -459,16 +459,20 @@ export interface DriverOptions {
 export async function runWorkflow(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions = {}): Promise<RunOutcome> {
   if (driver === 'real' && (options.model ?? REAL_MODEL) === '') throw new Error('PSTACK_E2E_REAL_MODEL is not set');
   const built = buildSandbox(spec, driver, options.model ?? REAL_MODEL);
+  let capture: CredentialCapture | undefined;
   try {
-    return await execute(spec, driver, options, built);
+    if (driver === 'real') capture = await startCredentialCapture();
+    return await execute(spec, driver, options, built, capture);
   } catch (error) {
     spec.cleanup?.(built.ctx);
     removeSandbox(built.ctx.sandbox);
     throw error;
+  } finally {
+    await capture?.close();
   }
 }
 
-async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions, { ctx, socket }: { ctx: Ctx; socket: string }): Promise<RunOutcome> {
+async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: DriverOptions, { ctx, socket }: { ctx: Ctx; socket: string }, capture?: CredentialCapture): Promise<RunOutcome> {
   const scenarioPath = join(ctx.sandbox, 'scenario.json');
   if (driver === 'scripted') writeFileSync(scenarioPath, JSON.stringify(spec.scenario(ctx), null, 2));
   const prompt = spec.prompt(ctx);
@@ -479,13 +483,9 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
   Object.assign(env, spec.env?.(ctx, driver));
   const model = driver === 'scripted' ? 'sim/claude-sim' : (options.model ?? REAL_MODEL);
   if (driver === 'real') {
-    const probePackage = join(ctx.sandbox, 'credential-probe');
-    mkdirSync(probePackage);
-    writeFileSync(join(probePackage, 'package.json'), JSON.stringify({ name: 'workflow-parity-credential-probe', pi: { extensions: ['./index.mjs'] } }));
-    writeFileSync(join(probePackage, 'index.mjs'), WORKER_CREDENTIAL_EXTENSION);
     const needed = [...new Set([model, ...Object.values(spec.roles ?? realRoles()).flat()].map(providerOf))];
     const providers = env['PSTACK_CONTAINER_PROVIDER_PACKAGES']?.split(':') ?? needed.flatMap((provider) => packagesRegistering(provider));
-    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [...providers, probePackage].join(':');
+    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [...providers, ...(capture === undefined ? [] : [capture.packageDir])].join(':');
   }
   const mode = spec.mode ?? 'rpc';
   const oneShot = mode === 'rpc' ? [] : mode === 'print' ? ['-p'] : ['--mode', 'json'];
@@ -621,18 +621,19 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
       });
       writeFileSync(join(ctx.sandbox, 'worker-states-before-stop.json'), JSON.stringify(states, null, 2));
     }
+    await stopPi(child);
+    spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
+    rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
     if (driver === 'real') {
-      containerCredentialProbes = recordContainerCredentials(ctx.repo, ctx.sandbox);
+      await untilWorkersExit(ctx.repo);
+      containerCredentialProbes = recordContainerCredentials(ctx.repo, ctx.sandbox, capture?.captureDir);
       for (const probe of containerCredentialProbes) {
         if (probe.status === 'unavailable') findings.push(`INCONCLUSIVE container credential probe ${probe.runId}/${probe.workerId}: no live worker capture`);
         if (probe.status === 'fail') findings.push(`FAIL container credential isolation ${probe.runId}/${probe.workerId}: ${[...new Set([...probe.present, ...(probe.effectivePresent ?? [])])].join(',')}`);
       }
     }
-    await stopPi(child);
-    spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
-    rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
   }
-  await untilWorkersExit(ctx.repo);
+  if (driver !== 'real') await untilWorkersExit(ctx.repo);
   requireSandbox(ctx.sandbox, 'after pi stopped', rpc.stderr);
   if (mode === 'rpc' && !timedOut && (parentSessionFile === null || !existsSync(parentSessionFile))) throw rpc.failure(`pi ${rpc.exit ?? 'ran'} but left no session file${parentSessionFile === null ? '' : ` at ${parentSessionFile}`}`);
   const meta: Meta = { ...(containerCredentialProbes === undefined ? {} : { containerCredentialProbes }), family: spec.family, driver, base: ctx.base, parentSessionFile, prompt, timedOut, budget, ...(stopWhy === null ? {} : { stopReason: stopWhy }), tmuxSocket: socket, piStderr: rpc.stderr.slice(-4000), ...(restarts.length === 0 ? {} : { restarts }), ...(crashed === undefined ? {} : { crashed }), ...(findings.length === 0 ? {} : { findings }) };
