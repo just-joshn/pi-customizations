@@ -28,13 +28,13 @@ describe('entry', () => {
     expect([...fake.commands.keys()]).toEqual(['pstack']);
   });
 
-  test('a worker (PSTACK_WORKER=1) gets only pstack_evidence and no command, style, or routing', () => {
+  test('a worker (PSTACK_WORKER=1) gets only pstack_evidence and package paths, with no command, style, or routing', async () => {
     process.env['PSTACK_WORKER'] = '1';
     const fake = fakePi({ cwd });
     pstack(fake.pi);
     expect([...fake.tools.keys()]).toEqual(['pstack_evidence']);
     expect(fake.commands.size).toBe(0);
-    expect(fake.handlers.has('before_agent_start')).toBe(false);
+    expect(await fake.fire('before_agent_start', { messageType: 'user', prompt: 'task', systemPrompt: 'base' })).toEqual([{ systemPrompt: expect.stringContaining('The installed pi-pstack package root (<pi-pstack>) is ') }]);
     expect(fake.handlers.has('input')).toBe(false);
   });
 });
@@ -42,11 +42,11 @@ describe('entry', () => {
 describe('persistent style', () => {
   /** One user task: Pi runs before_agent_start, persists the returned message, then the prompt and a reply. */
   async function userTask(fake: FakePi, prompt: string, messageType: 'user' | 'custom' = 'user'): Promise<string | undefined> {
-    const [result] = (await fake.fire('before_agent_start', { messageType, prompt, systemPrompt: '', systemPromptOptions: { sections: {} } })) as (
+    const results = (await fake.fire('before_agent_start', { messageType, prompt, systemPrompt: '', systemPromptOptions: { sections: {} } })) as (
       | { message?: { customType: string; content: string; display: boolean; details: unknown } }
       | undefined
     )[];
-    const message = result?.message;
+    const message = results.find((result) => result?.message !== undefined)?.message;
     if (message !== undefined) fake.session.appendCustomMessageEntry(message.customType, message.content, message.display, message.details);
     fake.session.appendMessage({ role: 'user', content: prompt, timestamp: Date.now() });
     fake.session.appendMessage({

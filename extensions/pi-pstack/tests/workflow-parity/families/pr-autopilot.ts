@@ -5,10 +5,10 @@ import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:f
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
-import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, forgeEnv, type ForgeAction, type ForgeHandle, predictCommit, predictCommits, readForge, revParse, setupForge, writeContainerScenario } from '../fixtures/forge.ts';
+import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, type ForgeAction, type ForgeHandle, forgeEnv, predictCommit, predictCommits, readForge, revParse, setupForge, writeContainerScenario } from '../fixtures/forge.ts';
 import { cartHistory } from '../fixtures/repos.ts';
-import { check, src, type Src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, noToolErrors, openedAt, playbookFile, playbookReads, promptRoutes, todoChecks } from '../lib/checks.ts';
+import { check, type Src, src, when } from '../lib/check.ts';
+import { allWorkers, assignmentOf, finalReply, noToolErrors, openedAt, playbookFile, playbookReads, promptRoutes, skillRequest, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
 import { dropWakes, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
@@ -373,7 +373,7 @@ export const autopilotHoldFamily: Family = {
       const steers = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.order > holdTurn);
       const owners = ownerWorkers(view).map((worker) => worker.id).sort();
       const targets = steers.map((call) => String(call.args['workerId'])).sort();
-      return when(/hold/i.test(turns[1]?.text ?? '') && JSON.stringify(targets) === JSON.stringify(owners) && new Set(steers.map((call) => call.order)).size === 1 && steers.every((call) => /zero writes/i.test(String(call.args['message']))), `owners ${owners.join(', ')} all steered at message ${steers[0]?.order} with a zero-writes order`, `owners ${owners.join(', ')}; steered ${targets.join(', ')} at messages ${steers.map((call) => call.order).join(', ')}`);
+      return when(/hold/i.test(skillRequest(turns[1]?.text ?? '')) && JSON.stringify(targets) === JSON.stringify(owners) && new Set(steers.map((call) => call.order)).size === 1 && steers.every((call) => /zero writes/i.test(String(call.args['message']))), `owners ${owners.join(', ')} all steered at message ${steers[0]?.order} with a zero-writes order`, `owners ${owners.join(', ')}; steered ${targets.join(', ')} at messages ${steers.map((call) => call.order).join(', ')}`);
     }),
     check('autopilot.hold.each-owner-reports-where-it-stands-and-wrote-nothing-more', 'after the hold each owner ran no tool, reported standing down at its head, and kept its brief', AF('Each reports where it stands and keeps its brief until the operator releases it'), (view) => {
       const problems = ownerWorkers(view).flatMap((worker) => {
@@ -717,6 +717,6 @@ function failReceipt(sandbox: string, runId: string, id: string): void {
   writeFileSync(file, JSON.stringify(raw, null, 2));
 }
 
-export { stageOwner, ownerBrief, OWNER_FAMILY, ownerWorkers, rootBegin };
+export { OWNER_FAMILY, ownerBrief, ownerWorkers, rootBegin, stageOwner };
 
 export const autopilotFamilies: Family[] = [autopilotFullFamily, autopilotHoldFamily, autopilotStackFamily, autopilotLanesFamily];
