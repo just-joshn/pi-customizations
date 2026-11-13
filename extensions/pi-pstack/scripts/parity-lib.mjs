@@ -223,6 +223,21 @@ export function mergeOutcomes(record, byRun) {
   return eligible.find((r) => r.outcome !== 'missing')?.outcome ?? 'missing';
 }
 
+/**
+ * A linked test whose file ran but whose name is in no report is a defect in the requirements (usually a rename that left the link
+ * behind), not a test that has yet to run. A file absent from every report, or one that failed before reporting tests, is not judged here.
+ */
+export function absentLinkedTests(records, input, root) {
+  const runs = asRuns(input).map((run) => indexResults(run.report, run.identity.root ?? root));
+  const reportedFiles = new Set();
+  for (const run of runs) for (const k of run.byTest.keys()) reportedFiles.add(k.slice(0, k.indexOf('::')));
+  const problems = [];
+  for (const record of records)
+    for (const t of record.tests)
+      if (reportedFiles.has(t.file) && !runs.some((run) => run.byTest.has(key(t.file, t.name)))) problems.push(`${record.id}: links "${t.name}" in ${t.file}, which no test of that file is named; relink it to the current test name`);
+  return problems;
+}
+
 /** FAIL beats INCONCLUSIVE beats PASS. Only a linked test that ran and passed counts toward PASS. */
 export function deriveStatus(record, outcomes) {
   if (record.applicability.mandatory === false) return { status: STATUS.NA, reason: record.applicability.justification };
@@ -249,8 +264,8 @@ export function evaluate(records, input, root) {
   });
 }
 
-/** Results the gate reads, which cannot bind themselves: the manifest, the result files, and the status section generated from them. */
-const SELF_REFERENTIAL = [/^generated\/parity-manifest\.json$/, /^parity-results\//];
+/** Results the gate reads, which cannot bind themselves: the manifest, the result files, the status section generated from them, and the runner's snapshot record. */
+const SELF_REFERENTIAL = [/^generated\/parity-manifest\.json$/, /^parity-results\//, /^ci-snapshot\.json$/];
 const STATUS_DOC = 'docs/parity-status.md';
 /** The lockfile and the workspace configuration above the package decide which dependencies the tests ran against. */
 const WORKSPACE_INPUTS = ['bun.lock', 'package.json', 'tsconfig.json'];

@@ -29,7 +29,9 @@ jobs:
           # Ubuntu 24.04 blocks unprivileged user namespaces, which bubblewrap needs.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           bwrap --version
-      - run: bun install
+      - name: Install the locked dependencies
+        # The snapshot carries the workspace bun.lock, so this resolves exactly what the local run installed and fails if the lock is out of date.
+        run: bun install --frozen-lockfile --filter '@justjoshn/pi-pstack'
       - name: No new lint diagnostics
         run: |
           # Biome is pinned to the version lint-baseline.json was recorded with; the script refuses any other.
@@ -40,13 +42,30 @@ jobs:
           # The worker, container, and Pi-load tests drive a managed Pi install laid out as <agent>/{bin/pi,install/releases/<v>/...}.
           # It lives outside ~/.pi/agent so the standalone-shim test, which compares against the newest Pi installed there, skips.
           agent="$HOME/pi-e2e/agent"
-          version=$(node -p "JSON.parse(require('node:fs').readFileSync('node_modules/@earendil-works/pi-coding-agent/package.json','utf8')).version")
+          # A container mounts Pi's whole node_modules directory, so Pi needs a flat install, not the isolated linker's symlinks into a store.
+          # The same lockfile, installed hoisted from the manifests alone, gives the same versions in that layout.
+          ws="$HOME/pi-e2e/ws"
+          mkdir -p "$ws"
+          (cd ../.. && git ls-files -z package.json bun.lock ':(glob)extensions/*/package.json' ':(glob)skills/*/package.json' | xargs -0 tar -cf -) | tar -xf - -C "$ws"
+          (cd "$ws/extensions/pi-pstack" && bun install --frozen-lockfile --linker hoisted --filter '@justjoshn/pi-pstack')
+          modules="$ws/node_modules"
+          version=$(node -p "JSON.parse(require('node:fs').readFileSync('$modules/@earendil-works/pi-coding-agent/package.json','utf8')).version")
           mkdir -p "$agent/bin" "$agent/install/releases/$version"
-          ln -s "$PWD/node_modules/.bin/pi" "$agent/bin/pi"
-          ln -s "$PWD/node_modules" "$agent/install/releases/$version/node_modules"
+          ln -s "$modules/.bin/pi" "$agent/bin/pi"
+          ln -s "$modules" "$agent/install/releases/$version/node_modules"
           echo "$version" > "$agent/install/current-version"
           echo "PSTACK_E2E_PI=$agent/bin/pi" >> "$GITHUB_ENV"
           "$agent/bin/pi" --version
+      - name: TLC for the statechart tests
+        run: |
+          # The same jar the statechart skill pins (v1.7.4); the download is refused unless its sha256 matches.
+          jar="$HOME/tlc/tla2tools.jar"
+          mkdir -p "$HOME/tlc"
+          curl -fsSL -o "$jar" https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar
+          echo "936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88  $jar" | sha256sum -c -
+          echo "TLA2TOOLS=$jar" >> "$GITHUB_ENV"
+          echo "JAVA=$JAVA_HOME_17_X64/bin/java" >> "$GITHUB_ENV"
+          "$JAVA_HOME_17_X64/bin/java" -version
       - name: Whole suite
         timeout-minutes: 28
         run: |

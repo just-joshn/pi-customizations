@@ -2,21 +2,21 @@
 // Runs the test suite on a GitHub Actions Linux runner and downloads the Vitest JSON results, so the tests that skip off Linux
 // (bubblewrap, seccomp) can feed the parity manifest.
 //   node scripts/ci-linux.mjs [--repo owner/name] [--out parity-results/ci] [--no-wait]
-// It pushes a snapshot of the git-tracked package files (never the working tree, never anything outside this package) to a
+// It pushes a snapshot (scripts/ci-linux/snapshot.mjs) of the git-tracked package files and the workspace lock (never the working tree) to a
 // ci/<commit>-<time> branch of the sandbox repo, authenticated by `gh auth git-credential` for that one command.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
+import { buildSnapshot } from './ci-linux/snapshot.mjs';
+
 const { values } = parseArgs({ options: { repo: { type: 'string' }, out: { type: 'string' }, root: { type: 'string' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
 const repo = values.repo ?? 'just-joshn/pstack-parity-sandbox';
 const out = resolve(root, values.out ?? 'parity-results/ci');
-const PACKAGE_DIR = 'extensions/pi-pstack';
-const EXCLUDE = /^(parity-results\/|node_modules\/)/;
 
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'], ...options }).trim();
 const repoRoot = run('git', ['-C', root, 'rev-parse', '--show-toplevel']);
@@ -31,22 +31,13 @@ const branch = `ci/${commit.slice(0, 12)}-${Math.floor(Date.now() / 1000)}`;
 
 const snapshot = mkdtempSync(join(tmpdir(), 'pstack-ci-'));
 try {
-  const files = run('git', ['-C', root, 'ls-files', '-z'], { maxBuffer: 1 << 28 }).split('\0').filter((f) => f && !EXCLUDE.test(f));
-  const place = (from, to) => {
-    mkdirSync(dirname(join(snapshot, to)), { recursive: true });
-    cpSync(from, join(snapshot, to));
-  };
-  for (const f of files) place(join(root, f), `${PACKAGE_DIR}/${f}`);
-  place(join(repoRoot, 'tsconfig.json'), 'tsconfig.json');
-  place(join(repoRoot, 'biome.json'), 'biome.json');
-  place(join(root, 'scripts/ci-linux/workflow.yml'), '.github/workflows/linux-tests.yml');
-  writeFileSync(join(snapshot, PACKAGE_DIR, 'ci-snapshot.json'), `${JSON.stringify({ commit, files: files.length })}\n`);
+  const fileCount = buildSnapshot({ root, repoRoot, dest: snapshot, commit });
   const git = (...args) => run('git', ['-C', snapshot, ...args]);
   git('init', '-q', '-b', branch);
   git('add', '-A');
   git('-c', 'user.name=pstack-ci', '-c', 'user.email=pstack-ci@users.noreply.github.com', 'commit', '-q', '-m', `snapshot of ${commit}`);
   git('-c', 'credential.helper=', '-c', 'credential.helper=!gh auth git-credential', 'push', '-q', `https://github.com/${repo}.git`, `${branch}:${branch}`);
-  console.log(`pushed ${files.length} files as ${branch}`);
+  console.log(`pushed ${fileCount} files as ${branch}`);
 } finally {
   rmSync(snapshot, { recursive: true, force: true });
 }

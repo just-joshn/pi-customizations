@@ -57,3 +57,5 @@ export function mergeOutcomes(record: Pick<Requirement, 'platforms'>, byRun: Run
 export function sourceDigest(root: string): string | null;
 export function sidecarIdentity(sidecar: unknown): { identity?: { platform: string; commit: string; sourceDigest: string; runUrl: string; root: string }; problem?: string };
 export function checkRuns(manifest: { runs?: Record<string, unknown>[] }, currentDigest: string | null): string[];
+
+export function absentLinkedTests(records: { id: string; tests: { file: string; name: string }[] }[], input: unknown, root: string): string[];

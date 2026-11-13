@@ -17,7 +17,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { buildRecords, evaluate, loadInputs, renderStatusSection, requirementsDigest, runIdentity, sidecarIdentity, sourceState, spliceStatusSection, tally, UNATTRIBUTED, vitestRunOutcome } from './parity-lib.mjs';
+import { absentLinkedTests, buildRecords, evaluate, loadInputs, renderStatusSection, requirementsDigest, runIdentity, sidecarIdentity, sourceState, spliceStatusSection, tally, UNATTRIBUTED, vitestRunOutcome } from './parity-lib.mjs';
 
 const { values } = parseArgs({ options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, save: { type: 'string' }, out: { type: 'string' }, docs: { type: 'string' }, 'no-docs': { type: 'boolean' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -83,6 +83,12 @@ for (const path of resultFiles) {
   loaded.push({ report, identity: runIdentity(root, report, identity.resultsSource ?? 'ci', { dirty: false, ...identity }) });
 }
 
+const stale = absentLinkedTests(records, loaded, root);
+if (stale.length) {
+  for (const p of stale) console.error(p);
+  console.error(`parity manifest: ${stale.length} linked test(s) are not in the suite; nothing written`);
+  process.exit(1);
+}
 const requirements = evaluate(records, loaded, root);
 const manifest = {
   schemaVersion: 1,
