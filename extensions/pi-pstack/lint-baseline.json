@@ -2260,14 +2260,6 @@
     },
     {
       "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "4652401ec96a384b",
-      "preview": "import { execFileSync, spawnSync } from 'node:child_process'; import { existsSyn",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/history.ts",
       "category": "format",
       "message": "File content differs from formatting output",
       "hash": "e3b0c44298fc1c14",
@@ -2676,14 +2668,6 @@
     },
     {
       "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shipping.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "6642fcce42a70184",
-      "preview": "import { spawnSync } from 'node:child_process'; import { join } from 'node:path'",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/families/pr-shipping.ts",
       "category": "format",
       "message": "File content differs from formatting output",
       "hash": "e3b0c44298fc1c14",
@@ -3000,14 +2984,6 @@
       "message": "File content differs from formatting output",
       "hash": "e3b0c44298fc1c14",
       "preview": "",
-      "count": 1
-    },
-    {
-      "file": "extensions/pi-pstack/tests/workflow-parity/lib/checks.ts",
-      "category": "assist/source/organizeImports",
-      "message": "Sort these imports.",
-      "hash": "5d8309a13acb20a4",
-      "preview": "import { createHash } from 'node:crypto'; import { existsSync, readdirSync, read",
       "count": 1
     },
     {

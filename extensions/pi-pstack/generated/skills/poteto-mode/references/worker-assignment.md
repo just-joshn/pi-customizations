@@ -105,7 +105,7 @@ A watch runs `watch.argv` in tmux in `watch.cwd` and wakes the parent once when 
 
 ## Watch on an event (`watch`)
 
-An event watch runs the watcher's command by absolute path. Here `<pi-pstack>`, the pi-pstack package root that `pi list` names, is `/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack`.
+An event watch runs the watcher's command by absolute path. Here `<pi-pstack>`, the absolute pi-pstack package root supplied by the extension in the system prompt, is `/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack`.
 
 ```json
 {

@@ -185,7 +185,7 @@ const WORKERS = `**Workers.** A subagent here is a pstack worker: an independent
 
 **Defaults for every \`pstack_worker\` spawn.** Keep working after the spawn returns (a \`steer\` of a live worker too), because waiting on one worker holds your turn while other reports wait. Use \`workspace.mode: "worktree"\` unless the step asks for a readonly worker, file pointers not inlined context,`;
 
-const TODO = `Start the run with \`node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>\`, where \`<pi-pstack>\` is the pi-pstack package root (\`pi list\` names it). It writes the run's \`TODO.md\` under \`.pi/pstack/runs/<runId>/\`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under \`## Task-specific work\`. You are its only writer. Check a step as \`- [x] N. <text> (evidence: <receipt id>)\` once \`pstack_evidence\` \`verify\` passes for it. The receipt's fields and \`kind\` values are in the \`pstack_evidence\` tool description and in the "Evidence receipt" section of \`references/worker-assignment.md\`. A failing-before proof is a receipt with \`expectedFail: true\` under its own target. A step you choose not to do stays in the list as \`- [~] N. <text> (skip: <reason>)\`. A skill outside a playbook keeps its list under \`## Task-specific work\` in the active run's \`TODO.md\`. With no active run, it keeps the list in its reply and updates it at each phase.`;
+const TODO = `Start the run with \`node <pi-pstack>/scripts/start-run.mjs --playbook <name> --title <text>\`, where \`<pi-pstack>\` is the absolute pi-pstack package root supplied by the extension in the system prompt. It writes the run's \`TODO.md\` under \`.pi/pstack/runs/<runId>/\`, whose first items are the matched playbook's steps, copied in verbatim, before any task-specific todos under \`## Task-specific work\`. You are its only writer. Check a step as \`- [x] N. <text> (evidence: <receipt id>)\` once \`pstack_evidence\` \`verify\` passes for it. The receipt's fields and \`kind\` values are in the \`pstack_evidence\` tool description and in the "Evidence receipt" section of \`references/worker-assignment.md\`. A failing-before proof is a receipt with \`expectedFail: true\` under its own target. A step you choose not to do stays in the list as \`- [~] N. <text> (skip: <reason>)\`. A skill outside a playbook keeps its list under \`## Task-specific work\` in the active run's \`TODO.md\`. With no active run, it keeps the list in its reply and updates it at each phase.`;
 
 const MODELS_JSON = `{
   "schemaVersion": 1,
@@ -675,7 +675,7 @@ export const RULES: readonly Rule[] = [
     'cursor-path',
     AG('poteto-agent'),
     'search `~/.cursor/plugins/` for a file whose path ends in `skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose `.cursor-plugin/plugin.json` has the highest `version`.',
-    'search the installed Pi packages (`pi list` names them) for a file whose path ends in `generated/skills/poteto-mode/SKILL.md`. If more than one file matches, use the copy whose package `package.json` has the highest `version`.',
+    'read `generated/skills/poteto-mode/SKILL.md` under the absolute pi-pstack package root supplied by the extension in the system prompt. Do not search for the package.',
   ),
   rule(
     'poteto-agent.worker-contract',
@@ -1111,7 +1111,7 @@ ${assignmentExample({ workerId: 'audit-tick-1', kind: 'watch', role: 'watcher', 
 
 ## Watch on an event (\`watch\`)
 
-An event watch runs the watcher's command by absolute path. Here \`<pi-pstack>\`, the pi-pstack package root that \`pi list\` names, is \`/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack\`.
+An event watch runs the watcher's command by absolute path. Here \`<pi-pstack>\`, the absolute pi-pstack package root supplied by the extension in the system prompt, is \`/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack\`.
 
 ${assignmentExample({ workerId: 'pr-1234-watch', kind: 'watch', role: 'watcher', model: 'inherit-parent', thinkingLevel: null, workspace: { mode: 'readonly', path: EXAMPLE_ROOT }, skills: [], watch: { argv: ['/Users/you/.pi/agent/npm/node_modules/@justjoshn/pi-pstack/generated/skills/poteto-mode/scripts/watch-pr/watch-pr', '--pr', '1234'], cwd: EXAMPLE_ROOT } })}
 
@@ -1158,7 +1158,7 @@ export function promptTemplate(name: string, description: string): string {
 description: ${JSON.stringify(description.replace(/\s+/g, ' ').trim())}
 argument-hint: "[request]"
 ---
-Use the pstack \`${name}\` skill for this request. Read its \`SKILL.md\` in full before anything else: \`generated/skills/${name}/SKILL.md\` under the pi-pstack package root (\`pi list\` names the package). Then follow it.
+Use the pstack \`${name}\` skill for this request. Read its \`SKILL.md\` in full before anything else: \`generated/skills/${name}/SKILL.md\` under the absolute pi-pstack package root supplied by the extension in the system prompt. Then follow it.
 
 Request: $@
 `;

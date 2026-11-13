@@ -242,7 +242,7 @@ describe('a writable worker\'s recorded receipts', () => {
 });
 
 describe('a shell loop that opens skill files', () => {
-  const session = (command: string) => ({ toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] }) as unknown as Session;
+  const session = (command: string) => ({ messages: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] }) as unknown as Session;
   const loop = 'for s in how why tdd; do cat "generated/skills/$s/SKILL.md"; done';
   test.for(['how', 'why', 'tdd'])('opens %s', (name) => {
     expect(openedAt(session(loop), `generated/skills/${name}/SKILL.md`)).toBe(3);

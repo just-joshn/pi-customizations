@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { Parent, shQuote } from '../fixtures/dsl.ts';
 import { byParent, type ForgeAction, isRefUpdate, readForge, WRITES } from '../fixtures/forge.ts';
 import { type Check, check, checkAbsence, fail, pass, src, type Src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, noToolErrors } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, finalReply, noToolErrors, skillRequest } from '../lib/checks.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 
 export const REPO_SLUG = 'acme/widgets';
@@ -78,7 +78,7 @@ export function replyMentions(id: string, title: string, source: Src | Src[], pa
 
 /** The Mode the playbook's request-to-mode table gives a request: step 1 of babysit.md. */
 export function modeFor(request: string): 'check' | 'threads-only' | 'drive' | 'background' {
-  const text = request.toLowerCase();
+  const text = skillRequest(request).toLowerCase();
   if (/\bbackground\b|plan (is )?(still )?executing/.test(text)) return 'background';
   if (/address (the )?(bugbot|review|comments)|threads.only/.test(text)) return 'threads-only';
   if (/check on|is it green/.test(text)) return 'check';
