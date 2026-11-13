@@ -1,6 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
@@ -51,11 +51,9 @@ function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
 }
 
-test.skipIf(!engineAvailable())('a container reads the complete latest forge state after host replacement', async () => {
+test.skipIf(!engineAvailable())('a container reads every host forge comment in full', async () => {
   const { ctx, forge } = fixture();
-  const file = join(forge.dir, 'state.json');
-  const state = JSON.parse(readFileSync(file, 'utf8'));
-  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',['/sandbox/forge/bin/forge-cli.mjs','gh','pr','view','71','--json','title'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
+  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',['/sandbox/forge/bin/forge-cli.mjs','gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
   const child = spawn(
     'docker',
     ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, DEFAULT_IMAGE, 'node', '-e', reader],
@@ -67,19 +65,19 @@ test.skipIf(!engineAvailable())('a container reads the complete latest forge sta
     stderr += data.toString();
   });
   const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+  const bodies: string[] = [];
   try {
     for (let index = 0; index < 16; index += 1) {
-      for (const title of [`old-${index}`, `new-${index}-${'x'.repeat(512)}`]) {
-        state.prs['71'].title = title;
-        const tmp = join(forge.dir, `host-state-${index}.tmp`);
-        writeFileSync(tmp, JSON.stringify(state, null, 2));
-        renameSync(tmp, file);
+      for (const body of [`short-${index}`, `long-${index}-${'x'.repeat(512)}`]) {
+        const posted = call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', body);
+        expect(posted.status, posted.stderr).toBe(0);
+        bodies.push(body);
         child.stdin.write('\n');
         const line = await lines.next();
         expect(line.done, stderr).toBe(false);
         const result = JSON.parse(line.value ?? '{}') as { status: number | null; stdout: string; stderr: string };
         expect(result.status, result.stderr).toBe(0);
-        expect(JSON.parse(result.stdout).title).toBe(title);
+        expect(JSON.parse(result.stdout).comments.map((comment: { body: string }) => comment.body)).toEqual(bodies);
       }
     }
   } finally {
