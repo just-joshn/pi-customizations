@@ -1,0 +1,910 @@
+{
+  "verdict": "INCONCLUSIVE for the reported autopilot flake. No product, scenario, checker, or driver change is justified.",
+  "sourceCommit": "0f465a5037c9ef07f7f236b16455eb49db843562",
+  "reproduction": {
+    "command": "TMPDIR=/Users/josh-desktop/pstack-runs/u40 node tests/workflow-parity/run-family.ts autopilot-lanes --keep",
+    "runs": 40,
+    "failures": 0,
+    "load": "Six node:worker_threads workers each execute while(Date.now()<end){Math.sqrt(Math.random())} for up to one hour. The process was explicitly stopped after the 40 runs.",
+    "loadCommand": "node -e 'const {Worker}=require(\"node:worker_threads\"); for(let i=0;i<6;i++) new Worker(\"const end=Date.now()+60*60*1000;while(Date.now()<end){Math.sqrt(Math.random())}\",{eval:true})'",
+    "loadStartedAt": "2026-11-13T09:03:29.033Z",
+    "loadStoppedAfterRuns": true,
+    "loadCaveat": "Run 1 began five seconds before load startup. Runs 2 through 40 ran entirely while load was active.",
+    "hostLogicalCpus": 10,
+    "observedLoadProcessCpuPercent": [
+      588.8,
+      527.2
+    ],
+    "observedHostLoadAverages": [
+      [
+        10.07,
+        5.46,
+        4.96
+      ],
+      [
+        15.3,
+        12.54,
+        8.85
+      ]
+    ],
+    "directForgeCheck": "All 40 sandboxes have exactly one owner-c merge after exactly one root countersign.",
+    "afterFailureRate": null,
+    "afterFailureRateReason": "No flake fix was made, so there is no treatment sample."
+  },
+  "diagnosis": {
+    "observed": "pr-autopilot.ts emits the owner-merged-before-countersign message when merge is undefined as well as when merge order or owner is wrong. The two original failure messages can both describe a missing merge.",
+    "unresolved": "No failing sandbox was reproduced. The first causal difference between failing and passing runs remains unknown.",
+    "speculativeChanges": false
+  },
+  "runs": [
+    {
+      "run": 1,
+      "log": "before-1.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-ItLwGn",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:03:31.487Z",
+      "countersignTime": "2026-11-13T09:03:31.314Z",
+      "sha256": {
+        "log": "de90a931e91f0a7149178d3b0abe35c17f37740525b6e7f30c574bbc158aca7e",
+        "forgeActions": "6e2e8fa152ef61f1eb6154c48183bc57ad5201e8ed9a05154ce656be2decc54b",
+        "ownerState": "a1842bab13e55850f5ece758bb8679c8d30130c82e998cb6cb239facbff73293"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:03:27.227Z",
+        "2026-11-13T09:03:31.543Z"
+      ]
+    },
+    {
+      "run": 2,
+      "log": "before-2.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-BtXQ3J",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:03:47.126Z",
+      "countersignTime": "2026-11-13T09:03:46.930Z",
+      "sha256": {
+        "log": "c52c8c18efc5056962c135d6701d4620631f4b2c62c366827cf3d23547b7547e",
+        "forgeActions": "61d708d5d8c13fa62740d755be769d541829658887811d4af41848d8ba9635eb",
+        "ownerState": "f7bf14195ab64e4fa586d1610a967a6fd2c2ded678fb28529f8f15571e7fdfdd"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:03:41.727Z",
+        "2026-11-13T09:03:47.177Z"
+      ]
+    },
+    {
+      "run": 3,
+      "log": "before-3.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-TTR78M",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:04:02.499Z",
+      "countersignTime": "2026-11-13T09:04:02.330Z",
+      "sha256": {
+        "log": "7ff1aff12cff01bf2ca1299b4928524841a66ecc710ce716610667207a41b697",
+        "forgeActions": "33d9430d70cf6d99041b63ab6275b2669e55d0cc141b96127ce9ec71ec9d0e07",
+        "ownerState": "5ba88c653ae16dbea069315b80fdb1483f4d6ed5d707ee68fc689083e6faef60"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:03:57.728Z",
+        "2026-11-13T09:04:02.546Z"
+      ]
+    },
+    {
+      "run": 4,
+      "log": "before-4.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-ducXcz",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:04:18.021Z",
+      "countersignTime": "2026-11-13T09:04:17.864Z",
+      "sha256": {
+        "log": "91be434a1353f82aa02ab23789dd148a84db5cae357577ebc657147a4176cedc",
+        "forgeActions": "9b7fdf19279dc4ea821db65ec68cacae4e9e20f85a901df9f8bf4be21f4d9f95",
+        "ownerState": "91204360003de4cc762d0624ced76a9b38cf789d1cc1ec6e59b103ede5d93229"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:04:12.778Z",
+        "2026-11-13T09:04:18.072Z"
+      ]
+    },
+    {
+      "run": 5,
+      "log": "before-5.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-xvYSdP",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:04:33.035Z",
+      "countersignTime": "2026-11-13T09:04:32.870Z",
+      "sha256": {
+        "log": "18a99c42fda51e5e7bbae4cbc0c62e485b9b35508dd700d50caa311eb56e1ddd",
+        "forgeActions": "b9730f00e2de40f38c6d1c987caebc921301238cf10700f91cd8e2e5eb580481",
+        "ownerState": "300904ce01b65a11e4ec2c07fabb2a07c97f16409a2326f699400241b149a93a"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:04:27.796Z",
+        "2026-11-13T09:04:33.083Z"
+      ]
+    },
+    {
+      "run": 6,
+      "log": "before-6.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-LpDwTd",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:04:48.257Z",
+      "countersignTime": "2026-11-13T09:04:48.089Z",
+      "sha256": {
+        "log": "d5e0381408ccf6dbca465c6727eb42f4570f1eab89a53249bf62495440f9db14",
+        "forgeActions": "c8f6b35b45f474865b851265fb5d72a96cb78a14ee8e1b6742791a31bbe73d02",
+        "ownerState": "27c4f443bda32a669c57faa0ff4f1c533f882b4bfa30ef42b098cc4b466752c2"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:04:42.923Z",
+        "2026-11-13T09:04:48.298Z"
+      ]
+    },
+    {
+      "run": 7,
+      "log": "before-7.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-KO0trd",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:05:03.621Z",
+      "countersignTime": "2026-11-13T09:05:03.463Z",
+      "sha256": {
+        "log": "58fe67b84d43d4c235a881a5c5b591ff65f667729f9adc0e0322d91b43534583",
+        "forgeActions": "85bba768357f0e4c538b885d4fba5550aea92ff7ff72c5bdd6d3a7ebc4f5521b",
+        "ownerState": "8bf3adc8c1aa877445dde1c5e9bb4e99710024858994092ce2e40cfbbe06c93f"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:04:58.425Z",
+        "2026-11-13T09:05:03.683Z"
+      ]
+    },
+    {
+      "run": 8,
+      "log": "before-8.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-jB9kHx",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:05:18.899Z",
+      "countersignTime": "2026-11-13T09:05:18.713Z",
+      "sha256": {
+        "log": "a067f3c926a52ffa4f2881a1365c1d0c3cbe9a1c2053293a7ec39eb2176d9cad",
+        "forgeActions": "e19dcb92538c14187e588a332d267590296f0ecd8801b334bd33d696fe07a758",
+        "ownerState": "62b287e8afee49a3b43cf96202a52a6f078d6e84c88fbcc8468a11ced7de5343"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:05:13.675Z",
+        "2026-11-13T09:05:18.950Z"
+      ]
+    },
+    {
+      "run": 9,
+      "log": "before-9.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-drZs3l",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:05:34.241Z",
+      "countersignTime": "2026-11-13T09:05:34.069Z",
+      "sha256": {
+        "log": "aabefe8a75ad2dc6885c60a8e2dbc018fca853ca38fe20ef4cb5a579a3e72b26",
+        "forgeActions": "c123b4227083ef4327f55e35f4fb146e0f26758540d9dd60e0f258d4952d4b75",
+        "ownerState": "59f4e5616de4e279f65bc131fec7c215e199973d50ecd2ec075bda9f4eeb188a"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:05:29.022Z",
+        "2026-11-13T09:05:34.302Z"
+      ]
+    },
+    {
+      "run": 10,
+      "log": "before-10.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-z9Xh60",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:05:49.426Z",
+      "countersignTime": "2026-11-13T09:05:49.271Z",
+      "sha256": {
+        "log": "da90acb914a46c7023b110c6c8de18e0ce9a80c4f484a4cdfe3aa09d891cdaed",
+        "forgeActions": "7e5e8fc53a7965025e5384697d06e8a021a28a12fe873c1efdc2572f7a8a4e9e",
+        "ownerState": "1a2e41c6bce1da08bc4bb1759c27bf6f62f7e99d36374526c080bebedc229c63"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:05:44.330Z",
+        "2026-11-13T09:05:49.465Z"
+      ]
+    },
+    {
+      "run": 11,
+      "log": "before-11.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-Zg9TxU",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:06:04.660Z",
+      "countersignTime": "2026-11-13T09:06:04.507Z",
+      "sha256": {
+        "log": "dda2ab724d821d5b988339adb34c8758e9a82e4ec0a4c95ae158fe5b8e544df5",
+        "forgeActions": "5fb7a4fed96131406aece34b2a0bebd264421d48ebffb0d00c882816ed772ecd",
+        "ownerState": "63ab30c9c7039110d6a0473c52c8d91b1e7a8becea6bc93c9b363a5763b207dd"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:05:59.352Z",
+        "2026-11-13T09:06:04.702Z"
+      ]
+    },
+    {
+      "run": 12,
+      "log": "before-12.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-Bxo1gT",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:06:19.972Z",
+      "countersignTime": "2026-11-13T09:06:19.792Z",
+      "sha256": {
+        "log": "6eae1725bade8a700b50f15c2b3e009db5f468e9d8a8cc47d75e219be4e5a7c1",
+        "forgeActions": "96d25f378f5fdb8c1adade6c8e767c8bcd246029b116fb58ea6529b9758b4f2d",
+        "ownerState": "25a960cd13db8be06f6f062f9755fa2751cee5f0ee6c690f1387d6ed078ccdd0"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:06:14.679Z",
+        "2026-11-13T09:06:20.019Z"
+      ]
+    },
+    {
+      "run": 13,
+      "log": "before-13.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-9bFBqE",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:06:35.306Z",
+      "countersignTime": "2026-11-13T09:06:35.117Z",
+      "sha256": {
+        "log": "24d5dceb7441592c0cca41065304af6607ca6255707dea5941bccde3ed222b1b",
+        "forgeActions": "35961fb9e17871655fde50f61ab0c5772e113c3cd24fee623ce2598dcca94475",
+        "ownerState": "86ee46612d3352b46922e346256c556b7c1a3ecd135fd1d843af03d63246da27"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:06:30.273Z",
+        "2026-11-13T09:06:35.346Z"
+      ]
+    },
+    {
+      "run": 14,
+      "log": "before-14.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-IbEmi4",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:06:50.521Z",
+      "countersignTime": "2026-11-13T09:06:50.328Z",
+      "sha256": {
+        "log": "4e914227ea98994ee4a9e05be94272199dec927bfa67b56e897d35cbf3f4437f",
+        "forgeActions": "0242f27b2b7eb266e64b55e049fab541e2d3dbe3390af7b207517b47ac4ef365",
+        "ownerState": "cbff7554ba9a64e80be0eab918762bf357d8b372597319175a9e2c4fd2b4a7a0"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:06:45.336Z",
+        "2026-11-13T09:06:50.588Z"
+      ]
+    },
+    {
+      "run": 15,
+      "log": "before-15.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-SvG2Bj",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:07:05.586Z",
+      "countersignTime": "2026-11-13T09:07:05.428Z",
+      "sha256": {
+        "log": "67e6f09ba56eaa2a3438b30452c3b01fbf641f7f5cfa4fa38839c2fdb0b5ee48",
+        "forgeActions": "aedf872485bbe761c20c03dbf675ec36525f6199453845707cb3fdc04c710d46",
+        "ownerState": "a17d914ccd2a3a13dabcb88646cd712ab4384be5b213ae3a238597d0f0843bcc"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:07:00.421Z",
+        "2026-11-13T09:07:05.638Z"
+      ]
+    },
+    {
+      "run": 16,
+      "log": "before-16.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-874OLC",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:07:20.869Z",
+      "countersignTime": "2026-11-13T09:07:20.687Z",
+      "sha256": {
+        "log": "6b0bde4a9338af54965ef3bba92f80f4fc885e7a2384b4513b11ab497e9bd89b",
+        "forgeActions": "3ce4f0ae55ee97063491daad129730f81b605507bf860848a5312bb87fa75dfd",
+        "ownerState": "85d7fab6b9c0c200bb71c4b040a11259ffe8ab9f40f0980e90cdc0f143e2e4d8"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:07:15.788Z",
+        "2026-11-13T09:07:20.930Z"
+      ]
+    },
+    {
+      "run": 17,
+      "log": "before-17.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-ywH4i6",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:07:36.055Z",
+      "countersignTime": "2026-11-13T09:07:35.909Z",
+      "sha256": {
+        "log": "41479fed1ce7f48ef680c2018a8ea979214eb31f787e6bcd812fdc8425b3859d",
+        "forgeActions": "73e50caf729f1fde5e106db9b11ee2db6eab449ff31a33b7375886d1e27ef9e2",
+        "ownerState": "4c2454de674b6888d215a8bcdd40a676b0a615be33ce9de5be30b861bb908fbd"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:07:30.882Z",
+        "2026-11-13T09:07:36.112Z"
+      ]
+    },
+    {
+      "run": 18,
+      "log": "before-18.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-I9XOxU",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:07:51.590Z",
+      "countersignTime": "2026-11-13T09:07:51.416Z",
+      "sha256": {
+        "log": "ddab8d760fe729ad377e9a07043c2f2d40d4bf8040072819cf1da77eb94a917d",
+        "forgeActions": "35c598681b5dcf08abd4d5822ef48a65821886685e510a4c0ada7edae024d9ec",
+        "ownerState": "5cab9b81d1cc32e89d8bf128a3e57fd4e77c0e14f21e62e01cf3a3d95b2b03e4"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:07:46.331Z",
+        "2026-11-13T09:07:51.659Z"
+      ]
+    },
+    {
+      "run": 19,
+      "log": "before-19.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-hVEIsO",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:08:06.681Z",
+      "countersignTime": "2026-11-13T09:08:06.501Z",
+      "sha256": {
+        "log": "c220c0d062b352e8e814c2d858b23c7700b021f1902acaa876ff036828f1d5ef",
+        "forgeActions": "ca4b546d8387999a233a7458d016bd67c1a38f1b58cf1a10d4cbf5f61906a480",
+        "ownerState": "fd8ef8529139f19b0d43639319d6e048b86d1020921457fbe8f6262957ccf87d"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:08:01.470Z",
+        "2026-11-13T09:08:06.732Z"
+      ]
+    },
+    {
+      "run": 20,
+      "log": "before-20.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-u4QLWd",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:08:21.981Z",
+      "countersignTime": "2026-11-13T09:08:21.794Z",
+      "sha256": {
+        "log": "4ef64d6618631999bfb24d99dc578ff1842e6493813e423456835b9bcb94b409",
+        "forgeActions": "8961289c6895ef1008e029a7ca9067bdf2866ddea97991533492c2883a0abaf8",
+        "ownerState": "ef9a0557191c3e52197fd92d8f306f4f9eaa76877927e8675b620e55205a0ca4"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:08:16.725Z",
+        "2026-11-13T09:08:22.023Z"
+      ]
+    },
+    {
+      "run": 21,
+      "log": "before-21.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-ulVlI3",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:08:37.214Z",
+      "countersignTime": "2026-11-13T09:08:37.057Z",
+      "sha256": {
+        "log": "a7383e03e7967953eb40ea3e327e6e859dbbee065df49b264ad148453fcacc24",
+        "forgeActions": "49ea5c74be26bf9962ed78b88b868193edcac79950de4c6689dba2745b288703",
+        "ownerState": "b9f804ce2d638bd565c8112181f3c4bf92202f472a3886ad2917487aeba3dcbb"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:08:31.860Z",
+        "2026-11-13T09:08:37.258Z"
+      ]
+    },
+    {
+      "run": 22,
+      "log": "before-22.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-sHNFve",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:08:52.832Z",
+      "countersignTime": "2026-11-13T09:08:52.666Z",
+      "sha256": {
+        "log": "635eb5a8c3e438de0739a8b239510462c269f0b04a5badba8e5100f1b22b6e54",
+        "forgeActions": "525d1512e4409015cabe8c7043e15e9909d207235062c40432f41f0babe68c8a",
+        "ownerState": "3a50cc17e0e17cd68b0f757015d3d0a306832b193481759b928e9621440e175d"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:08:47.608Z",
+        "2026-11-13T09:08:52.875Z"
+      ]
+    },
+    {
+      "run": 23,
+      "log": "before-23.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-uMPB4Y",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:09:07.982Z",
+      "countersignTime": "2026-11-13T09:09:07.838Z",
+      "sha256": {
+        "log": "822d7cb2a6b1467a197eb93c6c4d00a37c8b36a04e729c8d87174879dddc6637",
+        "forgeActions": "61880b75313e40dc9864df60ef89006f3b256801279ac8e5a5aebd7f689fe84a",
+        "ownerState": "86b2ae23806f4232f47d2400e54f045bbe2a564b7b6247552b29f554483896ae"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:09:03.095Z",
+        "2026-11-13T09:09:08.022Z"
+      ]
+    },
+    {
+      "run": 24,
+      "log": "before-24.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-Y9RaFi",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:09:23.290Z",
+      "countersignTime": "2026-11-13T09:09:23.132Z",
+      "sha256": {
+        "log": "32e7ae997c77d9761b09c7ef633126d7d3519bfff3e4fcbbd046b10ef197feaf",
+        "forgeActions": "ee7c4843f99b1fe6a3a2242745436f57c7ab961cd09e3ebb76989e0895afc9fb",
+        "ownerState": "29c5eed4ed41ca281e551419929694f2509ac6027a1e6d542d34aeb3d6dc6c71"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:09:18.074Z",
+        "2026-11-13T09:09:23.330Z"
+      ]
+    },
+    {
+      "run": 25,
+      "log": "before-25.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-BHzF3V",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:09:38.497Z",
+      "countersignTime": "2026-11-13T09:09:38.333Z",
+      "sha256": {
+        "log": "3df7484126e9e11203c4c6bf5fc8f1488fe7f00e531bd7e87446a963ed700c59",
+        "forgeActions": "93d746c7c4f7d41b3cc9a8c524c3ef4bd230676d35f7c735c734cc2dbde0d82b",
+        "ownerState": "78c4ba332e3a2ce1ebe35a0b1b2b6e84d9b8b8803c8facf5743363d39905083d"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:09:33.197Z",
+        "2026-11-13T09:09:38.545Z"
+      ]
+    },
+    {
+      "run": 26,
+      "log": "before-26.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-rQfs3Q",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:09:54.065Z",
+      "countersignTime": "2026-11-13T09:09:53.885Z",
+      "sha256": {
+        "log": "fbe0115063337180843f7f2cde3e72cc8c258b22c69cc633bdd9110f639d4ab1",
+        "forgeActions": "fc26e19dab7ed39f85ebc20a36e96fb0358b0bf20ecd06a7bcf5188d67a9504c",
+        "ownerState": "aea9afe566123f907f03713103b162161886de84e099c28e3b9a1fac043a0859"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:09:48.722Z",
+        "2026-11-13T09:09:54.116Z"
+      ]
+    },
+    {
+      "run": 27,
+      "log": "before-27.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-JHJTEN",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:10:09.273Z",
+      "countersignTime": "2026-11-13T09:10:09.087Z",
+      "sha256": {
+        "log": "59551aec639e249afe25c35896e0e29f332eb26d63d9dec41171900d2c3e9f6f",
+        "forgeActions": "f6217f2257263692870f0367669bb27b5df46fec12994fa9924de1bc0479ad3d",
+        "ownerState": "70d24c56e7f4abc1895a43c46ec0ad738dd7a81822f9d7900dc42c706dbbf8f5"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:10:04.051Z",
+        "2026-11-13T09:10:09.321Z"
+      ]
+    },
+    {
+      "run": 28,
+      "log": "before-28.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-AEA4In",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:10:24.467Z",
+      "countersignTime": "2026-11-13T09:10:24.292Z",
+      "sha256": {
+        "log": "3b70d0fd18db5cd47bc12b53781a47b89d83a88798dc53d0a2ccec404fb31cb3",
+        "forgeActions": "ae3ec9f11d43cf25a7f14376c40f037b6c39b0d98da897cdc71e8b089e318afa",
+        "ownerState": "82bdeae6f75de474d1d3261e86fa95f730216ce3cde95d641bb498d33dc2717a"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:10:19.252Z",
+        "2026-11-13T09:10:24.519Z"
+      ]
+    },
+    {
+      "run": 29,
+      "log": "before-29.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-rVqg0L",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:10:39.701Z",
+      "countersignTime": "2026-11-13T09:10:39.511Z",
+      "sha256": {
+        "log": "1d058a0b537d245ea405e2fae7269791b2b4cf354e595d4204615fefdb1d2af3",
+        "forgeActions": "c1fadce9b359cc184f797ebd4cb0d73986c5cd46e943baa5964d5459eb817d15",
+        "ownerState": "b065f993e9e71c2afdf01ddf2e4efe762e84ce695057031b4000f023a1fd916f"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:10:34.456Z",
+        "2026-11-13T09:10:39.748Z"
+      ]
+    },
+    {
+      "run": 30,
+      "log": "before-30.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-IGL0eP",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:10:55.217Z",
+      "countersignTime": "2026-11-13T09:10:55.028Z",
+      "sha256": {
+        "log": "1290d0587429440555fd0721a5cc57be08b01478651b18a74dc273e2522db2aa",
+        "forgeActions": "06e2b4f304db09f7712dbf6f5febef6d0874547e151ea933a1dbc00ac30f45ec",
+        "ownerState": "efc160ae788003352441d6b9abfafb936ed88550200e19233f474e92a46a1e23"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:10:49.861Z",
+        "2026-11-13T09:10:55.259Z"
+      ]
+    },
+    {
+      "run": 31,
+      "log": "before-31.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-eHrKdi",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:11:10.389Z",
+      "countersignTime": "2026-11-13T09:11:10.217Z",
+      "sha256": {
+        "log": "a1d2639b9e67d53af98f82f765bcd20c6b5074db1676a14091a4a8d1fe62733d",
+        "forgeActions": "3cbf21166d1b85e70f00ca91138498dcc5b3e39acfdb1f1b2c5cccb14a799fe9",
+        "ownerState": "b40ccfd848510f2a6a94831f2d277f65a67dc49ac1efd76ddb7890cdda0b7983"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:11:05.212Z",
+        "2026-11-13T09:11:10.440Z"
+      ]
+    },
+    {
+      "run": 32,
+      "log": "before-32.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-PdKl3Q",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:11:25.603Z",
+      "countersignTime": "2026-11-13T09:11:25.424Z",
+      "sha256": {
+        "log": "290516fe069a74799ad7833276dcd3e8a135330586777e0c49b2af4e4331eb95",
+        "forgeActions": "ab2d80d3f26dae4d46c6e8e42b7794bb1df4baee3ebdfe9d9ba2f11e5025a321",
+        "ownerState": "c1dc90212363d0b004afb62a9f809b4a74bc6b2ec2626f9b254acdcf1e5af1b4"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:11:20.471Z",
+        "2026-11-13T09:11:25.668Z"
+      ]
+    },
+    {
+      "run": 33,
+      "log": "before-33.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-pKBphK",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:11:41.186Z",
+      "countersignTime": "2026-11-13T09:11:41.015Z",
+      "sha256": {
+        "log": "a6edd4609d66d957db6a2ed87caab2ef5cc287bf61f9afcd22654dce37b91e13",
+        "forgeActions": "0e5a9c72a069790eb50a45066215b119274ff6c22684d27156505332b25c8e72",
+        "ownerState": "530427534f9ef538eca7de90529f3f925b00847f86452566db5dd3d9a525791a"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:11:35.985Z",
+        "2026-11-13T09:11:41.231Z"
+      ]
+    },
+    {
+      "run": 34,
+      "log": "before-34.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-mCjaVQ",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:11:56.567Z",
+      "countersignTime": "2026-11-13T09:11:56.350Z",
+      "sha256": {
+        "log": "9661cf5c1342d28cfb9a64c02a0c6206aec0b0540919d2f42b89af8b150a97e6",
+        "forgeActions": "6906824f7ddaf0803b72fc70c9d809af21b87b17bd8640cd6e99e296f67899fd",
+        "ownerState": "577f37ed98049e399c0bc784a1b33bef8959f945a8cd782c2f58874a87a531a4"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:11:51.216Z",
+        "2026-11-13T09:11:56.627Z"
+      ]
+    },
+    {
+      "run": 35,
+      "log": "before-35.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-seFcgY",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:12:11.900Z",
+      "countersignTime": "2026-11-13T09:12:11.720Z",
+      "sha256": {
+        "log": "3da3c5d2d28791d8667e36fd5c76dd663c5fe0acde75ef92336203686c653243",
+        "forgeActions": "2898313a27c79ae5a0bc3c4b8e95fcc0994573255c289fc8a658ccd7d755ef4b",
+        "ownerState": "a90dd04a487a2e66ac474d776bb1498660578d2dac547cf76d481ba5f4f3ea33"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:12:06.843Z",
+        "2026-11-13T09:12:11.948Z"
+      ]
+    },
+    {
+      "run": 36,
+      "log": "before-36.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-Spi0jx",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:12:27.186Z",
+      "countersignTime": "2026-11-13T09:12:27.045Z",
+      "sha256": {
+        "log": "90e05b0c9d3f6fb8cc5103cc9fb74efb02b581113c93307d24bc6f0793e9c046",
+        "forgeActions": "6d9dcd5d127c31a8df94d9376db1ef1c0ee0ad591da6f8db2a956b3a9732378e",
+        "ownerState": "45d06c3faf61cf0ee45feea8ed0289035e3a49047037418fa3185f10ebe74189"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:12:22.008Z",
+        "2026-11-13T09:12:27.223Z"
+      ]
+    },
+    {
+      "run": 37,
+      "log": "before-37.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-F1U9Y5",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:12:42.591Z",
+      "countersignTime": "2026-11-13T09:12:42.408Z",
+      "sha256": {
+        "log": "91677bbe9964ff663672f62fa58e5e249a80bd6022a3cdc23fb69d4a0f7bcd88",
+        "forgeActions": "0d456c150aa2582888ceb9f922bfa2b0bcc9e698224562724f1b4560f779833a",
+        "ownerState": "895263a0d194af70a748f0ca2759ccc68f264099a589d2d359ef58f66a0763bf"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:12:37.447Z",
+        "2026-11-13T09:12:42.647Z"
+      ]
+    },
+    {
+      "run": 38,
+      "log": "before-38.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-L4lgcI",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:12:57.880Z",
+      "countersignTime": "2026-11-13T09:12:57.681Z",
+      "sha256": {
+        "log": "44c7d5c35b51dc6844030b446ba13f4b56017dc8f93a7590949fec681ffd3374",
+        "forgeActions": "7a61ae22bf94438b31993b78431967b1c9ace8998af5d2e5bd69c5c70020db85",
+        "ownerState": "ac77f768065f0ef01a05aa9cbfdb925f11c54c58edb68dd69f14b0873432cc7f"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:12:52.669Z",
+        "2026-11-13T09:12:57.937Z"
+      ]
+    },
+    {
+      "run": 39,
+      "log": "before-39.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-1muGwy",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:13:13.045Z",
+      "countersignTime": "2026-11-13T09:13:12.879Z",
+      "sha256": {
+        "log": "9886cc58057e7e0c4dfc72ce8c82b91c27c14feb35aed34f184e945ec47f4697",
+        "forgeActions": "3d067ec293c02e8ad5074b7fa877d755fbf251c31223134fffb5e935ee986170",
+        "ownerState": "cc7161d70de13b5470e6bffc9100e70cdfc62d48aa49a3a18d54fadd9791041b"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:13:07.868Z",
+        "2026-11-13T09:13:13.088Z"
+      ]
+    },
+    {
+      "run": 40,
+      "log": "before-40.log",
+      "sandbox": "pstack-parity-e28f6d3c/wf-rNi7jU",
+      "passes": "== autopilot-lanes (scripted driver): 10 PASS ==",
+      "mergeIndex": 10,
+      "countersignIndex": 8,
+      "mergeTime": "2026-11-13T09:13:28.291Z",
+      "countersignTime": "2026-11-13T09:13:28.101Z",
+      "sha256": {
+        "log": "8b103252459c9866892ea54407cd8c5e20b02140404bf7b90816789511649846",
+        "forgeActions": "20de5bfd3678d28f610cb602ae4c6d1b8c0f956529f6e0893f9c2b52f70f213e",
+        "ownerState": "be9477cbbcd08c554f21726a2804e629731a64699971e6b909797adc74a8cc58"
+      },
+      "ownerIdleSettles": [
+        "2026-11-13T09:13:23.040Z",
+        "2026-11-13T09:13:28.358Z"
+      ]
+    }
+  ],
+  "artifactRoot": "/Users/josh-desktop/pstack-runs/u40",
+  "verification": [
+    {
+      "log": "targeted.log",
+      "exit": 0,
+      "command": "npx vitest run tests/workflow-parity/pr-autopilot.test.ts tests/workflow-parity/pr-identities.test.ts --reporter=dot",
+      "result": "95 passed; 10 skipped",
+      "sha256": "5ad8912e021bdf77c33a5e0e52823291313ce090c6be90ec0101785eed97a73d"
+    },
+    {
+      "log": "lint.log",
+      "exit": 0,
+      "command": "node scripts/lint-baseline.mjs --check",
+      "result": "No new diagnostics",
+      "sha256": "f41b4ad4a8af9d9c045bba18ef9dc87275f6b6f89049028cda8ef922c752c6b4"
+    },
+    {
+      "log": "types.log",
+      "exit": 0,
+      "command": "npx tsc --noEmit -p .",
+      "result": "No diagnostics",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "log": "regen.log",
+      "exit": 0,
+      "command": "sh parity/pi-native-tmux-2026-11-11/regen.sh",
+      "result": "Clean git status after regeneration",
+      "sha256": "31e70a755aaf4e9d1f44d335b89e01e7be7a08e79f6ba2443154044d6a87774d"
+    },
+    {
+      "log": "gate1-full.log",
+      "exit": 1,
+      "command": "sh parity/pi-native-tmux-2026-11-11/merge-gate.sh",
+      "result": "2700 passed; 1 failed; committed parity manifest stale",
+      "sha256": "6b2a578371f2ae5c63776cf4e353e90caa1c2d4498f7d4b865d52314c7380d48"
+    },
+    {
+      "log": "gate2-full.log",
+      "exit": 1,
+      "command": "sh parity/pi-native-tmux-2026-11-11/merge-gate.sh",
+      "result": "2700 passed; 1 failed; committed parity manifest stale",
+      "sha256": "18191a0bd7c4305a72a71651e1a1135a32ff59298f01965a0ab9a17cab4fdae9"
+    },
+    {
+      "log": "manifest-regen.log",
+      "exit": 1,
+      "command": "node scripts/build-parity-manifest.mjs --results parity-results/local/vitest-darwin.json --results parity-results/ci/linux-all.json",
+      "result": "Old local report does not contain the renamed ketchup-video linked test; nothing written",
+      "sha256": "523d99f262ff0e4daeebabd51fd596397cc8fafdc951630ae1d089af53246182"
+    },
+    {
+      "log": "fresh-manifest.log",
+      "exit": 0,
+      "command": "node scripts/build-parity-manifest.mjs --save /Users/josh-desktop/pstack-runs/u40/vitest-darwin.json --results parity-results/ci/linux-all.json",
+      "result": "Complete fresh report includes stale-manifest failure; regenerated derived manifest and docs",
+      "sha256": "845ff712620887717d6ad557ed1b4a4836fa86f5781c0c224619a897a22366b2"
+    },
+    {
+      "log": "final-manifest.log",
+      "exit": 0,
+      "command": "node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json --results parity-results/ci/linux-all.json",
+      "result": "2701 passed; 0 failed; 102 skipped; clean-tree local identity at ae43be99",
+      "sha256": "845ff712620887717d6ad557ed1b4a4836fa86f5781c0c224619a897a22366b2"
+    },
+    {
+      "log": "final-regen.log",
+      "exit": 0,
+      "command": "sh parity/pi-native-tmux-2026-11-11/regen.sh",
+      "result": "Clean git status after regeneration at f8f7df75",
+      "sha256": "31e70a755aaf4e9d1f44d335b89e01e7be7a08e79f6ba2443154044d6a87774d"
+    },
+    {
+      "log": "final-gate1-full.log",
+      "exit": 1,
+      "command": "sh parity/pi-native-tmux-2026-11-11/merge-gate.sh",
+      "result": "2700 passed; 1 failed; abort returned stopped but its labelled container still existed",
+      "sha256": "5c51685e7c6a2fc604d9ab075e391b595b7726c920a487fc79d5657cee6904ea"
+    },
+    {
+      "log": "final-gate2-full.log",
+      "exit": 0,
+      "command": "sh parity/pi-native-tmux-2026-11-11/merge-gate.sh",
+      "result": "2701 passed; 0 failed; 102 skipped",
+      "sha256": "ead5816ae24bf2b1080d1e28bed120f1fc536a1f2cf1143cb2e5a3d8c793eab4"
+    },
+    {
+      "log": "release-status.log",
+      "exit": 1,
+      "command": "node scripts/check-release.mjs",
+      "result": "CLOSED; Linux source digest stale; 4 declared mandatory coverage gaps remain",
+      "sha256": "2f9bcbe84b42620ec2741b3edf9d0e9dbb19b0b84cb7831f81c60c406a0213db"
+    }
+  ],
+  "manifestCorrection": {
+    "cause": "0f465a50 changed requirements/requirements.json without rebuilding the derived parity manifest. Both initial full gates failed the stale-manifest assertion.",
+    "commits": [
+      "ae43be99",
+      "f8f7df75"
+    ],
+    "sourceDigestUnchanged": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
+    "linuxRerun": false
+  },
+  "remainingBlockers": [
+    "The reported autopilot missing-merge failure did not reproduce and its cause remains unknown.",
+    "Two consecutive green merge gates were not achieved. The first post-correction gate failed tests/container/container.test.ts:209. The next passed. No retry or timeout change was added.",
+    "The release gate remains closed. Linux results are stale and four mandatory requirements remain INCONCLUSIVE."
+  ],
+  "otherObservedLoad": "During the first post-correction full gate, another u41 Vitest process was running on the host. This agent did not start or stop it. The measured host load average was 25.65, 26.04, 20.50."
+}
