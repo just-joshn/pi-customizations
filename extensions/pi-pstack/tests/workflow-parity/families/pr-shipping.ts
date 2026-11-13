@@ -552,11 +552,13 @@ function blockedFamily(kind: BlockedKind): Family {
       forgeResolvedOnce('ship.blocked.forge-resolved-once-gh-fallback-recorded', SH('GitHub CLI (`gh`) is the default'), 'gh'),
       check('ship.blocked.reply-reports-blocked', `the reply says shipping is blocked by ${kind} and that nothing landed`, SH('Report it blocked and land nothing'), (view) => {
         const reply = finalReply(view);
-        return when(new RegExp(`blocked: ${kind}`).test(reply) && /landed nothing/.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
+        return when(/\b(?:blocked|blocker)\b/i.test(reply) && reply.includes(kind) && /\b(?:landed nothing|nothing landed)\b/i.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
       }),
       noToolErrors('ship.blocked.no-other-tool-errors', SH('Stop at the ceiling'), [new RegExp(kind)]),
     ],
     negatives: [
+      ...(kind === 'ForgeUnavailable' ? [{ name: 'the kept no-token reply reports the blocker and no landing in different words', mutate: (sandbox: string) => rewriteFinalReply(sandbox, /^.*$/s, readFileSync(new URL('../fixtures/shipping-no-forge-token-reply.txt', import.meta.url), 'utf8')), fails: [], passes: ['ship.blocked.reply-reports-blocked'] }] : []),
+      { name: 'the reply omits the blocker', mutate: (sandbox) => rewriteFinalReply(sandbox, /^.*$/s, `Nothing landed. ${kind}. Every PR is still open and unchanged.`), fails: ['ship.blocked.reply-reports-blocked'] },
       { name: 'a step was left open', mutate: (sandbox) => setStep(sandbox, runId, 1, ' '), fails: ['todo.shipping.every-step-resolved'] },
       { name: 'a step was skipped with no reason', mutate: (sandbox) => setStep(sandbox, runId, 2, '~', (line) => line.replace(/ \(skip: [^)]*\)/, '')), fails: ['todo.shipping.skips-explained'] },
       { name: 'a playbook step was deleted from TODO.md', mutate: (sandbox) => deleteStep(sandbox, runId, 3), fails: ['todo.shipping.steps-verbatim-in-order'] },

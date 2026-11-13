@@ -1,0 +1,16 @@
+
+Nothing landed. PRs 21, 22, and 23 are all still open, and no merges, retargets, or pushes happened.
+
+**Goal.** Get the three-PR cart stack onto `main`, bottom to top: #21 (`s-1`), then #22 (`s-2`), then #23 (`s-3`).
+
+**Smallest change expected.** Verify #21, merge it, retarget #22 to `main`, verify it, merge it, then do the same for #23. Your request asks for all three, but #22 is red, so I stopped before that.
+
+**Blocker 1: no independent verifier.** The Shipping playbook needs a verdict from a separate agent per PR. The verifier spawn failed with `ForgeUnavailable`: `gh auth token` returns nothing for github.com, even though `gh auth status` says logged in. `gh pr list` works, so the forge CLI and the token helper disagree. Fix with `gh auth login` or set `PSTACK_CONTAINER_FORGE_TOKEN`. The project also has no `.pi/environment.json`, so `ContainerUnavailable` would follow once the token is fixed.
+
+**Blocker 2: PR #22 fails its own test.** At `s-2` (`0578ee5`), `src/s2.js` returns `3` and `test/s2.test.js` expects `2`. #23 inherits that failure, since `s-3` builds on `s-2`. I did not push a fix. Changing `two()` to return `2` is the likely intent, but that is the author's call. Your decision decides it: say so and I'll push that one-line change, then rerun the verdicts.
+
+**Verified locally (not a verdict).** `node --test` at `s-1` passes 4 of 4. At `s-2` and `s-3` it fails on the `two()` assertion.
+
+**Run state.** The shipping run is at `.pi/pstack/runs/75f45056-64cb-47f6-9d17-1be861212f9c/`. No step has a receipt yet, so `TODO.md` has no checked steps. The temporary worktrees are removed.
+
+**Next:** fix the `gh` token, then choose how to handle #22's failing test. I'll run the verdicts on #21 first, then #22 and #23 after the fix.
