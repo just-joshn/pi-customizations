@@ -47,8 +47,9 @@ describe('stopped-run provenance', () => {
   const stopped: Meta = { family: spec.family, driver: 'real', base: 'base', parentSessionFile: null, prompt: '/noop', timedOut: true, stopReason: 'ceiling', tmuxSocket: 'socket', piStderr: '' };
   const fixture = { ...spec, timeoutMs: 120_000 };
 
-  test('a legacy real run cut short by its fixture budget is a harness failure', () => {
-    expect(assessHarnessStop(stopped, fixture)).toMatchObject({ kind: 'harness-budget' });
+  test('only a recorded fixture budget can establish a real run was cut short by the harness', () => {
+    expect(assessHarnessStop({ ...stopped, budget: { idleMs: 120_000, ceilingMs: 120_000 } }, fixture)).toMatchObject({ kind: 'harness-budget' });
+    expect(assessHarnessStop(stopped, fixture)).toBeUndefined();
   });
 
   test('a real run that exhausts the product budget remains a timeout', () => {
@@ -56,8 +57,15 @@ describe('stopped-run provenance', () => {
     expect(assessHarnessStop(stopped, spec)).toBeUndefined();
   });
 
-  test('a shorter recorded test override cannot be mistaken for product budget exhaustion', () => {
-    expect(assessHarnessStop({ ...stopped, budget: { idleMs: 100, ceilingMs: 100 } }, spec)).toMatchObject({ kind: 'harness-budget' });
+  test('an unrelated recorded override does not establish a fixture timeout', () => {
+    const overridden = { ...stopped, budget: { idleMs: 100, ceilingMs: 100 } };
+    expect(assessHarnessStop(overridden, fixture)).toBeUndefined();
+    expect(assessHarnessStop(overridden, spec)).toBeUndefined();
+  });
+
+  test('an idle stop is reclassified only when its recorded limits match the fixture', () => {
+    expect(assessHarnessStop({ ...stopped, stopReason: 'idle', budget: { idleMs: 120_000, ceilingMs: 120_000 } }, fixture)).toMatchObject({ kind: 'harness-budget' });
+    expect(assessHarnessStop({ ...stopped, stopReason: 'idle', budget: budgetFor(spec.family) }, fixture)).toBeUndefined();
   });
 
   test('scripted stops and completed real runs are not reclassified', () => {

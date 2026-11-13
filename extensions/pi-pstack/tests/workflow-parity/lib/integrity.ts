@@ -27,14 +27,15 @@ export function assess(view: RunView, crashed?: string): Inconclusive | undefine
   return undefined;
 }
 
-/** Old real runs inherited scripted fixture limits. Such a stop is not product budget exhaustion. */
+/** Only recorded effective fixture limits establish that a real run stopped below its product budget. */
 export function assessHarnessStop(meta: Meta, spec: Pick<RunSpec, 'family' | 'timeoutMs'>): Inconclusive | undefined {
-  if (meta.driver !== 'real' || !meta.timedOut || meta.stopReason === undefined) return undefined;
+  if (meta.driver !== 'real' || !meta.timedOut || meta.stopReason === undefined || meta.budget === undefined || spec.timeoutMs === undefined) return undefined;
   const expected = budgetFor(spec.family);
-  const actual = meta.budget ?? (spec.timeoutMs === undefined ? expected : { idleMs: spec.timeoutMs, ceilingMs: spec.timeoutMs });
+  const actual = meta.budget;
+  if (actual.idleMs !== spec.timeoutMs || actual.ceilingMs !== spec.timeoutMs) return undefined;
   const bound = meta.stopReason === 'ceiling' ? 'ceilingMs' : 'idleMs';
   if (actual[bound] >= expected[bound]) return undefined;
-  return { kind: 'harness-budget', message: `the harness stopped at its ${actual[bound]} ms ${meta.stopReason} limit, below the real-model ${expected[bound]} ms limit` };
+  return { kind: 'harness-budget', message: `the harness stopped at its recorded fixture ${actual[bound]} ms ${meta.stopReason} limit, below the real-model ${expected[bound]} ms limit` };
 }
 
 /** A check that passes on the absence of an action proves nothing unless the parent ran: it completed without error and made at least one tool call. */
