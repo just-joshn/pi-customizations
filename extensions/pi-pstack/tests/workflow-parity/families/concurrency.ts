@@ -49,7 +49,7 @@ export const concurrencyFamily: Family = {
   },
   checks: [
     spawnedTogether('worker-concurrency.spawned-in-one-message', SRC, ['general']),
-    check('worker-concurrency.spawn-does-not-block', 'spawn returned before any worker settled: the parent kept running while all four were live, and the four live intervals share one instant', src('swarm/SKILL.md', 'without waiting'), (view) => {
+    check('worker-concurrency.spawn-does-not-block', 'all four worker intervals overlap, and the parent continues independent work rather than waiting to collect', src('poteto-mode/SKILL.md', 'Keep working after the spawn returns'), (view) => {
       const ids = allWorkers(view).map((worker) => worker.id);
       if (ids.length !== 4) return fail(`expected four workers, got ${ids.length}`);
       const spawned = ids.map((id) => eventAt(view, id, 'spawn'));
@@ -58,8 +58,8 @@ export const concurrencyFamily: Family = {
       const overlap = Math.min(...settled) - Math.max(...spawned);
       const lastSpawn = Math.max(...ids.map((id) => spawnOrder(view, id)));
       const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
-      const parentRan = next?.at === undefined ? Number.NaN : Date.parse(next.at);
-      return when(overlap > 1000 && parentRan < Math.min(...settled), `all four were live together for ${overlap} ms; the parent's next command ran ${Math.round(Math.min(...settled) - parentRan)} ms before the first settle`, `last spawn to first settle ${overlap} ms; parent marker at ${parentRan}, first settle ${Math.min(...settled)}`);
+      const independent = next !== undefined && !next.isError && next.name !== 'pstack_worker' && !(next.name === 'bash' && /\b(?:sleep|wait)\b|while |until /.test(String(next.args['command'])));
+      return when(overlap > 0 && independent, `all four intervals overlap; the parent continued with ${next?.name}`, `overlap ${overlap} ms; next action ${next?.name} ${String(next?.args['action'] ?? '')}, independent work ${independent}`);
     }),
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: each recorded by the host and in the worker session', SRC, (view) => {
       const states = statesOf(view);

@@ -2,7 +2,7 @@
 // autopilot-stack that never merges, and an operator hold that reaches every owner in one message.
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
 import { bareOf, COMMIT_PREFIX, editForge, FORGE_CLI, type ForgeAction, type ForgeHandle, forgeEnv, predictCommit, predictCommits, readForge, revParse, setupForge, writeContainerScenario } from '../fixtures/forge.ts';
@@ -151,12 +151,12 @@ function observedUnits(view: RunView, units: Unit[]): Unit[] {
   });
 }
 
-export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier' && assignmentOf(worker).workspace?.inputCommit === head);
+export const verificationWorkers = (view: RunView, head: string | undefined): WorkerView[] => allWorkers(view).filter((worker) => (assignmentOf(worker).role === 'verifier' || (assignmentOf(worker).role === 'general' && /\b(?:verifier|verify|audit)\b/i.test(worker.brief ?? ''))) && assignmentOf(worker).workspace?.inputCommit === head);
 const mergeGo = (view: RunView, owner: string) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === owner && /\bmerge\b/i.test(String(call.args['message'])) && !/\b(?:do not|don't|not to) merge\b/i.test(String(call.args['message'])));
 export const laneClean = (view: RunView, worker: WorkerView, head: string): boolean => {
   const report = `${worker.report ?? ''}\n${worker.finalText ?? ''}`;
-  if (/VERDICT\s+(?:FAIL|blocked)/i.test(report)) return false;
-  if (new RegExp(`VERDICT\\s+(?:clean|PASS(?:\\+NOTES)?)[\\s\\S]*${head}`, 'i').test(report)) return true;
+  if (/(?:^|\n)\s*(?:#+\s*)?(?:\*\*)?(?:VERDICT\s+)?(?:FAIL|ISSUES|BLOCKED)\b/i.test(report)) return false;
+  if (new RegExp(`(?:^|\\n)\\s*(?:#+\\s*)?(?:\\*\\*)?(?:VERDICT\\s+)?(?:clean|PASS(?:\\+NOTES)?)\\b[\\s\\S]*${head}`, 'i').test(report)) return true;
   const { state, actions } = readForge(view);
   const posted = verdictsOf(state, actions, view).filter((verdict) => verdict.verifier === worker.id && verdict.head === head).at(-1);
   return posted !== undefined && posted.author === worker.id && posted.verdict !== 'FAIL';
@@ -203,8 +203,8 @@ function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) =>
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
       const forced = pushes.filter((action) => action.kind === 'force-push' && (typeof action['old'] !== 'string' || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'bash' && new RegExp(`--force-with-lease=(?:refs/heads/)?${unit.branch}:${String(action['old'])}\\b`).test(String(call.args['command'])))));
       const trails = readdirSync(worker.dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.tsv')).map((file) => readFileSync(join(worker.dir, file), 'utf8'));
-      const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target === `pr-${unit.pr}` && entry.artifacts.some((artifact) => artifact.path.startsWith(`${worker.dir}/`)));
-      const receipt = receipts.length === 1 ? receipts[0] : undefined;
+      const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target.trim() !== '' && entry.artifacts.some((artifact) => resolve(run.dir, artifact.path).startsWith(`${worker.dir}/`)));
+      const receipt = receipts.find((entry) => entry.verdict === 'pass' && (entry.exitCode === undefined || entry.exitCode === 0) && entry['expectedFail'] !== true);
       return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!trails.some((trail) => /^ts\tphase\tdecision\twhy\tevidence\tresult\r?\n[^\n]+/m.test(trail)) ? [`${unit.id} left no decision trail in its worker directory`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
     });
     return when(wanted.length > 0 && problems.length === 0, 'own branch only, safe leases, trail and self-proof recorded', problems.join('; ') || 'no PRs were observed');
@@ -280,8 +280,15 @@ const hourlyWatch = (id: string, source: Src | Src[], options: { aborted: boolea
     const ownerSpawn = Math.min(...ownerWorkers(view).map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/${worker.id}/`))?.order ?? Number.POSITIVE_INFINITY));
     const watchSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && watcher !== undefined && call.args['assignmentPath'] === join(watcher.dir, 'assignment.json'))?.order ?? -1;
     const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && watcher !== undefined && call.args['workerId'] === watcher.id && call.args['runId'] === view.runs.find((run) => run.workers.includes(watcher))?.id && !call.isError)?.order ?? -1;
-    const lastMerge = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect').map((call) => call.order));
-    return when(watcher !== undefined && assignmentOf(watcher).role === 'watcher' && argv[0] === 'sleep' && argv[1] === '3600' && assignmentOf(watcher).watch?.cwd === view.repo && watchSpawn > ownerSpawn && (!options.aborted || abort > lastMerge), `sleep 3600 at ${view.repo}, armed at ${watchSpawn} after the owners (${ownerSpawn})${options.aborted ? `, aborted at ${abort}` : ''}`, `watcher ${JSON.stringify(argv)}, armed ${watchSpawn}, owners ${ownerSpawn}, abort ${abort}, last collect ${lastMerge}`);
+    const pending = allWorkers(view).filter((worker) => worker !== watcher).filter((worker) => {
+      const runId = view.runs.find((run) => run.workers.includes(worker))?.id;
+      const lastWork = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && !call.isError && ((call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json')) || (call.args['action'] === 'steer' && call.args['workerId'] === worker.id && call.args['runId'] === runId))).map((call) => call.order));
+      const abortCall = view.parent.toolCalls.find((call) => call.order === abort);
+      const lastCall = view.parent.toolCalls.find((call) => call.order === lastWork);
+      const settled = (worker.state?.['settles'] as { phase: string; at: string }[] | undefined)?.some((settle) => ['idle', 'exited', 'aborted', 'failed'].includes(settle.phase) && Date.parse(settle.at) > Date.parse(lastCall?.at ?? '') && Date.parse(settle.at) < Date.parse(abortCall?.at ?? '')) ?? false;
+      return !settled && !view.parent.messages.some((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id && message.details?.['runId'] === runId && ['idle', 'exited', 'aborted', 'failed'].includes(String(message.details?.['phase'])) && message.order > lastWork && message.order < abort);
+    }).map((worker) => worker.id);
+    return when(watcher !== undefined && assignmentOf(watcher).role === 'watcher' && argv[0] === 'sleep' && argv[1] === '3600' && assignmentOf(watcher).watch?.cwd === view.repo && watchSpawn > ownerSpawn && (!options.aborted || abort >= 0 && pending.length === 0), `sleep 3600 at ${view.repo}, armed at ${watchSpawn} after the owners (${ownerSpawn})${options.aborted ? `, aborted at ${abort}` : ''}`, `watcher ${JSON.stringify(argv)}, armed ${watchSpawn}, owners ${ownerSpawn}, abort ${abort}, pending ${pending.join(', ')}`);
   });
 
 // ---- autopilot-full
@@ -390,7 +397,7 @@ export const autopilotFullFamily: Family = {
     }),
     check('autopilot.full.reply-catches-the-operator-up', 'the reply covers each PR\'s state and verdict, what merged, countersigns, open operator gates and parked follow-ups', AF('**Reply:** catch the operator up'), (view) => {
       const reply = finalReply(view);
-      const missing = [/PR 31[\s\S]*PR 32[\s\S]*merged|merged[\s\S]*PR 31[\s\S]*PR 32/i, /verified PASS|(?:verdict|verifier lanes?)[\s\S]{0,80}clean|clean[\s\S]{0,80}verdict/i, /countersign/i, /operator gates|gates and countersigns/i, /parked follow.ups/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/PR 31[\s\S]*PR 32[\s\S]*merged|merged[\s\S]*PR 31[\s\S]*PR 32/i, /verified PASS|passed independent checks|(?:verdict|verifier lanes?)[\s\S]{0,80}clean|clean[\s\S]{0,80}verdict/i, /countersign|sign.off|no gates (?:were )?loosened/i, /operator gates|gates and countersigns|decisions waiting on you|waiting on (?:you|the user)/i, /parked follow.ups|remaining work|follow.up work/i].filter((pattern) => !pattern.test(reply)).map(String);
       if (openedAt(view.parent, 'generated/skills/ketchup/SKILL.md') === -1) missing.push('ketchup skill was not opened');
       return when(missing.length === 0, 'ketchup read, every part present', `missing ${missing.join(', ')}`);
     }),

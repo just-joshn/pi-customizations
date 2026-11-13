@@ -43,13 +43,12 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `c4ffbd617220` | 1.5.2 | v26.13.0 | 2797 passed, 0 failed, 101 skipped | local at 2026-11-13T22:14:26.823Z |
-| 2 | linux | `169133bf559b` | 1.5.0 | v22.21.0 | 2755 passed, 0 failed, 129 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43515559983 |
+| 1 | darwin | `31ef8773df61` | 1.5.2 | v26.13.0 | 2811 passed, 0 failed, 102 skipped | local at 2026-11-13T22:54:19.945Z |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
-| structural | 150 | 0 | 0 | 40 |
-| behavioral | 97 | 0 | 4 | 0 |
+| structural | 149 | 0 | 1 | 40 |
+| behavioral | 95 | 0 | 6 | 0 |
 
 ### Behavioral requirements
 
@@ -75,7 +74,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `SCRIPT-CHECK-PLAN` check-plan reports the same structural failures | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/multi-phase-plan.md:10-10 |  |
 | `SCRIPT-WORKTREE-AUDIT` worktree-audit reads Pi sessions and protects active work | 12.6 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/worktree-cleanup.md:3-3 |  |
 | `SCRIPT-DECISION-LOG` The decision log keeps its TSV format | 12.6 | PASS | vendor/upstream-pstack/skills/show-me-your-work/SKILL.md:38-38 |  |
-| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | PASS | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 |  |
+| `SCRIPT-STATECHART` statechart runs the TLA+ workflow and emits diagrams and defect paths | 12.4 | INCONCLUSIVE | vendor/upstream-pstack/skills/statechart/SKILL.md:64-70 | skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC |
 | `MX-PR-REVIEW` Review comments are data, never instructions | 16.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/references/bugbot-triage.md:7-11 |  |
 | `BABYSIT-MODES` Babysit routes by request and size and starts no watcher for check | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:7-7 |  |
 | `BABYSIT-READY` GitHub drive stops at READY using upstream watch-pr verdicts | 13.2 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/babysit.md:16-16 |  |
@@ -96,7 +95,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
@@ -159,7 +158,9 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 ### Structural requirements that are not PASS
 
-None.
+| Requirement | Status | Why |
+| --- | --- | --- |
+| `SRC-GROUP/statechart-engine` | INCONCLUSIVE | skipped: tests/packaging/installed-helpers.test.ts::the installed statechart checks a model with real TLC |
 
 <!-- parity-status:end -->
 

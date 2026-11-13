@@ -17,7 +17,7 @@ function view(): RunView {
     parent: {
       toolCalls: [
         ...workers.map((worker) => ({ name: 'pstack_worker', order: 1, args: { action: 'spawn', assignmentPath: `/missing/workers/${worker.id}/assignment.json` } })),
-        { name: 'pstack_worker', order: 2, at: '2026-01-01T00:00:01Z', args: { action: 'inspect' } },
+        { name: 'read', order: 2, at: '2026-01-01T00:00:01Z', args: { path: '/repo/src/cart.js' } },
       ],
     },
     git: { branchCommits: Object.fromEntries(workers.map((worker) => [`pstack-run/chosen-run/${worker.id}`, ['commit']])), worktrees: workers.map((worker) => ({ branch: `pstack-run/chosen-run/${worker.id}` })) },
@@ -31,6 +31,18 @@ test.each(['spawn-does-not-block', 'distinct-resolved-models', 'distinct-session
     expect(run(suffix)).toMatchObject({ ok: true });
   },
 );
+test('keep-working is behavioral rather than a race with worker completion', () => {
+  const value = view();
+  const next = value.parent.toolCalls.at(-1);
+  if (next === undefined) throw new Error('Missing parent work');
+  next.at = '2026-01-01T00:00:10Z';
+  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: true });
+  next.name = 'pstack_worker';
+  next.args = { action: 'collect', workerId: 'a' };
+  next.at = '2026-01-01T00:00:01Z';
+  expect(run('spawn-does-not-block', value)).toMatchObject({ ok: false });
+});
+
 test('assignment reasoning suffixes do not change model identity', () => {
   const value = view();
   for (const worker of value.runs[0]?.workers ?? []) worker.assignment['model'] = 'sim/one:low';

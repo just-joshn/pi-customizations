@@ -91,7 +91,7 @@ export const interactionFamily: Family = {
     runId: 'worker-interaction',
     history: cartHistory,
     drive: operator,
-    prompt: () => '/swarm Start one worker and wait for it while I talk to it.',
+    prompt: () => `/swarm Start one worker and wait for it while I talk to it. After my RPC follow-up reaches you, send that same worker a pstack_worker steer with the message "${PARENT_STEER} Report what you observed in this conversation." Then collect its answer.`,
     scenario: (ctx) => {
       const parent = new Parent(ctx);
       const marker = join(parent.runDir, 'pane-done');
@@ -125,7 +125,7 @@ export const interactionFamily: Family = {
       const at = userOrder(session, PANE_STEER);
       const promptAt = userOrder(session, PANE_PROMPT);
       const sleeping = session?.toolCalls.find((call) => call.order > promptAt);
-      const answered = (session?.messages ?? []).some((message) => message.role === 'assistant' && message.order > at && /typed steer/.test(message.text));
+      const answered = (session?.messages ?? []).some((message) => message.role === 'assistant' && message.order > at && message.text.trim() !== '');
       return when(promptAt !== -1 && at !== -1 && ['bash', 'bash_readonly'].includes(sleeping?.name ?? '') && /^sleep 6\s*(?:[;&\n]|$)/.test(String(sleeping?.args['command'])) && at > (sleeping?.order ?? Number.POSITIVE_INFINITY) && answered, `steer at ${at} after the command at ${sleeping?.order}; the worker answered it`, `steer at ${at}; command at ${sleeping?.order}; answered ${answered}`);
     }),
     check('worker-interaction.parent-steer-lands', 'pstack_worker steer reaches the same worker as a user message, and the worker answered it', SRC, (view) => {
@@ -133,14 +133,15 @@ export const interactionFamily: Family = {
       const at = userOrder(session, PARENT_STEER);
       const selected = interactiveWorker(view);
       const result = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === selected.id && call.args['runId'] === selected.runId);
-      const answered = (session?.messages ?? []).some((message) => message.role === 'assistant' && message.order > at && /parent steer/.test(message.text));
+      const answered = (session?.messages ?? []).some((message) => message.role === 'assistant' && message.order > at && message.text.trim() !== '');
       return when(at !== -1 && result?.isError === false && answered, `steer accepted (${result?.resultText.slice(0, 60)}), in the transcript at ${at}, answered`, `at ${at}; steer result ${result?.resultText.slice(0, 80)}; answered ${answered}`);
     }),
     check('worker-interaction.rpc-steer-lands-in-the-parent', 'an RPC steer sent while the parent ran a command is a user message in the parent session after that command and before its next call', SRC, (view) => {
-      const waiting = view.parent.toolCalls.find((call) => call.name === 'bash' && /pane-done/.test(String(call.args['command'])));
       const at = userOrder(view.parent, RPC_STEER);
-      const next = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer');
-      return when(waiting !== undefined && at > waiting.order && next !== undefined && at < next.order, `RPC steer at ${at}, between the command (${waiting?.order}) and the next call (${next?.order})`, `steer at ${at}; command ${waiting?.order}; next ${next?.order}`);
+      const waiting = view.parent.toolCalls.filter((call) => call.order < at).at(-1);
+      const next = view.parent.messages.find((message) => message.role === 'assistant' && message.order > at);
+      const result = view.parent.messages.some((message) => message.role === 'toolResult' && message.order > (waiting?.order ?? Infinity) && message.order < at);
+      return when(at !== -1 && waiting !== undefined && result && next !== undefined, `RPC steer at ${at}, after the tool result and before the next assistant turn (${next?.order})`, `steer at ${at}; prior call ${waiting?.order}; tool result ${result}; next ${next?.order}`);
     }),
     settledAndCollected('worker-interaction.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],

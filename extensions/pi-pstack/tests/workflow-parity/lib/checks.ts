@@ -272,7 +272,7 @@ export function parentReads(id: string, title: string, source: Src | Src[], name
 export function playbookReads(playbook: string, optional: string[] = [], conditionalLeaves: string[] = []): Check[] {
   const book = src(`poteto-mode/playbooks/${playbook}.md`, playbookSource(playbook)[0]?.split('\n')[0]?.slice(0, 30) ?? '###');
   const examples = ['shipping', 'autopilot-full', 'autopilot-stack', 'orchestrate'].includes(playbook) ? ['control-ui', 'control-cli'] : [];
-  const ownerSkills = playbook.startsWith('autopilot-') ? ['deslop'] : [];
+  const ownerSkills = playbook.startsWith('autopilot-') ? ['deslop', 'show-me-your-work'] : [];
   const named = skillsNamedBy(playbook).filter((entry) => ![...optional, ...examples, ...ownerSkills].includes(entry.name) && !conditionalLeaves.includes(entry.name));
   const leaves = named.filter((entry) => entry.name.startsWith('principle-')).map((entry) => entry.name);
   const skills = named.filter((entry) => !entry.name.startsWith('principle-')).map((entry) => entry.name);

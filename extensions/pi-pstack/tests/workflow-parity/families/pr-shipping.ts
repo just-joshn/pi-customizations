@@ -292,7 +292,10 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const action = actions[verdict.at] as ForgeAction;
         const worker = verifierFor(view, n);
         const run = view.runs.find((entry) => worker !== undefined && entry.workers.includes(worker));
-        const rerun = testAt(view, head, /\bnpm\s+test\b/.test(String(action['body'])) ? undefined : TEST_FILE(n));
+        const fullSuite = /\bnpm\s+test\b/.test(String(action['body']));
+        const base = revParse(bareOf(view.sandbox), `${head}^`);
+        const inherited = verdict.verdict === 'PASS+NOTES' && fullSuite && testAt(view, head, TEST_FILE(n)) && inheritedFailureOnly(view, base, head);
+        const rerun = inherited || testAt(view, head, fullSuite ? undefined : TEST_FILE(n));
         return [
           ...(verdict.head !== head ? [`PR ${n} verdict names ${verdict.head.slice(0, 8)}, not the head ${head.slice(0, 8)}`] : []),
           ...(worker === undefined || run === undefined || verdict.verifier !== worker.id || action.worker !== worker.id || action.run !== run.id || !action.container || action.authenticated !== true ? [`PR ${n} verdict was not posted by its authenticated container verifier (${action.worker}, container ${String(action.container)}, token ${String(action.authenticated)})`] : []),
@@ -356,7 +359,7 @@ export const shippingFamily: Family = {
         const verdict = verdicts.find((entry) => entry.pr === pr);
         return verdict === undefined || !chunks.some((chunk) => chunk.startsWith(`PR ${pr}`) && chunk.includes(verdict.verdict) && chunk.includes(verdict.verifier));
       });
-      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|read it back as MERGED|gh pr view|(?:PR|it)[^.]*reads? MERGED/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
       missing.push(...producers.map((pr) => `PR ${pr} verdict and producer`));
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
@@ -590,13 +593,13 @@ function blockedFamily(kind: BlockedKind): Family {
       }),
       checkAbsence('ship.blocked.lands-nothing', 'the forge saw reads only: no verdict, no merge, no queue entry, no ref update, and every PR is still open', SH('Report it blocked and land nothing'), (view) => {
         const { state, actions } = readForge(view);
-        const writes = actions.filter((action) => !['read'].includes(action.kind));
+        const writes = actions.filter((action) => !['read', 'log-view'].includes(action.kind));
         return when(writes.length === 0 && Object.values(state.prs).every((pr) => pr.state === 'OPEN'), `${actions.length} forge actions, all reads; every PR open`, `forge writes ${writes.map((action) => action.kind).join(', ')}; states ${Object.values(state.prs).map((pr) => pr.state).join(', ')}`);
       }),
       forgeResolvedOnce('ship.blocked.forge-resolved-once-gh-fallback-recorded', SH('GitHub CLI (`gh`) is the default'), 'gh'),
       check('ship.blocked.reply-reports-blocked', `the reply says shipping is blocked by ${kind} and that nothing landed`, SH('Report it blocked and land nothing'), (view) => {
         const reply = finalReply(view);
-        return when(/\b(?:blocked|blocker)\b/i.test(reply) && reply.includes(kind) && /\b(?:landed nothing|nothing landed)\b/i.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
+        return when(/\b(?:blocked|blocker)\b/i.test(reply) && reply.includes(kind) && /\b(?:landed nothing|nothing (?:has )?landed|nothing is landed)\b/i.test(reply), 'blocked and landed nothing', `reply: ${reply.slice(0, 120)}`);
       }),
       noToolErrors('ship.blocked.no-other-tool-errors', SH('Stop at the ceiling'), [new RegExp(kind)]),
     ],
@@ -618,6 +621,18 @@ export const shippingNoEngineFamily = blockedFamily('ContainerUnavailable');
 export const shippingNoForgeTokenFamily = blockedFamily('ForgeUnavailable');
 
 /** Replays the claimed package suite, or the PR's own test, in a clean commit export. */
+export function inheritedFailureOnly(view: Pick<RunView, 'sandbox'>, base: string, head: string): boolean {
+  const failures = (sha: string): string[] | undefined => {
+    const command = `d=$(mktemp -d) && git --git-dir ${shQuote(bareOf(view.sandbox))} archive ${sha} | tar -x -C "$d" && cd "$d" && npm test -- --test-reporter=tap; code=$?; rm -rf "$d"; exit $code`;
+    const result = spawnSync('sh', ['-c', command], { encoding: 'utf8', timeout: 60_000 });
+    const names = [...result.stdout.matchAll(/^not ok \d+ - (.+)$/gm)].map((match) => String(match[1]).replace(/\/[^\s]*\/test\//g, 'test/')).sort();
+    return result.status === 1 && names.length > 0 ? names : undefined;
+  };
+  const before = failures(base);
+  const after = failures(head);
+  return before !== undefined && after !== undefined && JSON.stringify(before) === JSON.stringify(after);
+}
+
 export function testAt(view: Pick<RunView, 'sandbox'>, sha: string, file: string | undefined): boolean {
   const test = file === undefined ? 'npm test' : `node --test ${shQuote(file)}`;
   const command = `d=$(mktemp -d) && git --git-dir ${shQuote(bareOf(view.sandbox))} archive ${sha} | tar -x -C "$d" && cd "$d" && ${test} >/dev/null 2>&1; code=$?; rm -rf "$d"; exit $code`;

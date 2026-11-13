@@ -13,6 +13,10 @@ if (argv.includes('--help') || argv.includes('-h')) {
   process.stdout.write(`Usage: ${tool} <command> [flags]\nUse --help for command help.\n`);
   process.exit(0);
 }
+if (tool === 'gh' && argv.includes('--version')) {
+  process.stdout.write('gh version 2.0.0 (pstack fixture)\n');
+  process.exit(0);
+}
 const sh = (cmd, args, options = {}) => spawnSync(cmd, args, { encoding: 'utf8', ...options });
 
 function bareDir() {
@@ -31,7 +35,16 @@ function die(code, message) {
   process.stderr.write(`${message}\n`);
   process.exit(code);
 }
-const out = (value) => process.stdout.write(typeof value === 'string' ? value : `${JSON.stringify(value)}\n`);
+const out = (value) => {
+  const query = tool === 'gh' ? argv.findIndex((arg) => arg === '--jq' || arg === '-q') : -1;
+  if (query !== -1) {
+    const result = sh('jq', ['-r', argv[query + 1]], { input: JSON.stringify(value) });
+    if (result.status !== 0) die(1, result.stderr || 'gh: jq failed');
+    process.stdout.write(result.stdout);
+    return;
+  }
+  process.stdout.write(typeof value === 'string' ? value : `${JSON.stringify(value)}\n`);
+};
 
 function log(entry) {
   appendFileSync(join(DIR, 'actions.jsonl'), `${JSON.stringify({ ts: new Date().toISOString(), tool, argv: redact(argv), ...WHO, ...entry })}\n`);
@@ -168,7 +181,7 @@ const positionals = (skip) => {
   }
   return found;
 };
-const WITH_VALUE = ['--json', '--repo', '--state', '--limit', '--title', '--body', '--body-file', '-F', '--base', '--head', '--match-head-commit', '--method', '--input', '-f', '-X', '--status', '--job', '-R', '-b', '-t', '-B', '-H'];
+const WITH_VALUE = ['--jq', '-q', '--json', '--repo', '--state', '--limit', '--title', '--body', '--body-file', '-F', '--base', '--head', '--match-head-commit', '--method', '--input', '-f', '-X', '--status', '--job', '-R', '-b', '-t', '-B', '-H'];
 const bodyOf = () => {
   const inline = value('--body', '-b');
   if (inline !== undefined) return inline;
@@ -288,11 +301,14 @@ function graphql(state) {
   const pr = state.prs[String(number ?? '')];
   if (/resolveReviewThread/.test(query)) {
     needToken(true);
-    const found = Object.values(state.prs).find((item) => item.threads.some((thread) => thread.id === (variables.thread ?? variables.t ?? variables.threadId)));
+    const argument = /\bresolveReviewThread\s*\(\s*input\s*:\s*(\$[A-Za-z_]\w*|\{[^}]*\})/.exec(query)?.[1];
+    const field = argument?.startsWith('$') ? variables[argument.slice(1)]?.threadId : /\bthreadId\s*:\s*(\$[A-Za-z_]\w*|"[^"]*")/.exec(argument ?? '')?.[1];
+    const threadId = typeof field === 'string' && field.startsWith('$') ? variables[field.slice(1)] : typeof field === 'string' && field.startsWith('"') ? JSON.parse(field) : field;
+    const found = Object.values(state.prs).find((item) => item.threads.some((thread) => thread.id === threadId));
     if (found === undefined) die(1, 'gh: thread not found');
-    found.threads.find((thread) => thread.id === (variables.thread ?? variables.t ?? variables.threadId)).resolved = true;
-    log({ kind: 'resolve', pr: found.number, thread: variables.thread ?? variables.t ?? variables.threadId });
-    return out({ data: { resolveReviewThread: { thread: { id: variables.thread ?? variables.t ?? variables.threadId } } } });
+    found.threads.find((thread) => thread.id === threadId).resolved = true;
+    log({ kind: 'resolve', pr: found.number, thread: threadId });
+    return out({ data: { resolveReviewThread: { thread: { id: threadId } } } });
   }
   if (/addPullRequestReviewThreadReply/.test(query)) {
     needToken(true);
@@ -323,6 +339,12 @@ function graphql(state) {
 function gh(state) {
   const [group, verb, ...rest] = argv;
   void rest;
+  if (group === 'repo' && verb === 'view') {
+    const repo = { name: state.repo.name, owner: { login: state.repo.owner }, nameWithOwner: repoName(state.repo), url: `https://github.com/${repoName(state.repo)}`, defaultBranchRef: { name: state.repo.trunk } };
+    log({ kind: 'read', what: 'repo' });
+    const fields = (value('--json') ?? '').split(',').filter(Boolean);
+    return out(fields.length === 0 ? `${repo.nameWithOwner}\n` : pick(repo, fields));
+  }
   if (group === 'auth') {
     if (WHO.container && value('--hostname') === 'github.com') die(1, 'fake forge has no github.com credentials');
     if (verb === 'token') {
@@ -397,6 +419,12 @@ function gh(state) {
   }
   const pr = find();
   if (pr === undefined) die(1, `gh: no pull request found`);
+  if (verb === 'diff') {
+    const result = git('diff', ...(flag('--name-only') ? ['--name-only'] : flag('--stat') ? ['--stat'] : []), `${tipOf(pr.base)}...${headOf(pr)}`);
+    if (result.status !== 0) die(1, result.stderr);
+    log({ kind: 'read', what: 'diff', pr: pr.number });
+    return out(result.stdout);
+  }
   if (verb === 'view') {
     const all = facts(state, pr);
     log({ kind: 'read', what: 'view', pr: pr.number });
