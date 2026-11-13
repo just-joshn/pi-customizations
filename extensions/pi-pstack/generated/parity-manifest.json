@@ -4,20 +4,27 @@
     "repository": "https://github.com/cursor/plugins.git",
     "revision": "a5539b15a3d56e04992565aafee2b37051329ce3"
   },
-  "requirementsDigest": "58fc245f56f339ab8a7b48e696457536e6058bedb598555a1028e9f8554df961",
+  "requirementsDigest": "bf979771a0e3dc146edb9454a7e2f2dbfb7d60638f657e5583c07b98f5229ad6",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-13T09:32:54.265Z",
-    "generatedAt": "2026-11-13T09:37:51.471Z",
-    "commit": "ae43be9922ba939d68e91033bdb174fce3539e3d",
-    "dirty": false,
-    "changes": [],
-    "sourceDigest": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
+    "startedAt": "2026-11-13T18:22:16.936Z",
+    "generatedAt": "2026-11-13T18:28:17.373Z",
+    "commit": "c2ccc278fbf2c435e4e9a0c10652146734c02309",
+    "dirty": true,
+    "changes": [
+      "xtensions/pi-pstack/docs/parity-status.md",
+      "extensions/pi-pstack/generated/parity-manifest.json",
+      "extensions/pi-pstack/requirements/requirements.json",
+      "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts"
+    ],
+    "sourceDigest": "cc1c7c88f3dbe2224cad5aa1f528b16a74a3efed9bc9923d3437593b6795321f",
     "resultsSource": "local",
-    "totalTests": 2803,
-    "passedTests": 2701,
-    "failedTests": 0,
-    "failures": [],
+    "totalTests": 2865,
+    "passedTests": 2762,
+    "failedTests": 1,
+    "failures": [
+      "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock"
+    ],
     "skippedTests": 102,
     "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
     "piVersion": "1.5.2",
@@ -26,17 +33,24 @@
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-13T09:32:54.265Z",
-      "generatedAt": "2026-11-13T09:37:51.471Z",
-      "commit": "ae43be9922ba939d68e91033bdb174fce3539e3d",
-      "dirty": false,
-      "changes": [],
-      "sourceDigest": "e14eed3ce11e45c4f0c1a26f79a21166bb5858df637c4a45394cf7714c8aa0c4",
+      "startedAt": "2026-11-13T18:22:16.936Z",
+      "generatedAt": "2026-11-13T18:28:17.373Z",
+      "commit": "c2ccc278fbf2c435e4e9a0c10652146734c02309",
+      "dirty": true,
+      "changes": [
+        "xtensions/pi-pstack/docs/parity-status.md",
+        "extensions/pi-pstack/generated/parity-manifest.json",
+        "extensions/pi-pstack/requirements/requirements.json",
+        "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts"
+      ],
+      "sourceDigest": "cc1c7c88f3dbe2224cad5aa1f528b16a74a3efed9bc9923d3437593b6795321f",
       "resultsSource": "local",
-      "totalTests": 2803,
-      "passedTests": 2701,
-      "failedTests": 0,
-      "failures": [],
+      "totalTests": 2865,
+      "passedTests": 2762,
+      "failedTests": 1,
+      "failures": [
+        "tests/parity-manifest/release-gate.test.ts::the committed manifest was built from the current requirements and upstream lock"
+      ],
       "skippedTests": 102,
       "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
       "piVersion": "1.5.2",
@@ -44,19 +58,24 @@
     },
     {
       "platform": "linux",
-      "startedAt": "2026-11-13T08:46:43.834Z",
-      "generatedAt": "2026-11-13T09:37:51.556Z",
-      "commit": "56a4f1e14b52f9295fbd16521779fbdc19bda6ab",
+      "startedAt": "2026-11-13T11:14:55.900Z",
+      "generatedAt": "2026-11-13T18:28:17.468Z",
+      "commit": "ebc2f5e9578186ad1ee82d145350ca54b0e3a88f",
       "dirty": false,
-      "changes": [],
-      "sourceDigest": "aa73855e07d1cb5871dd42b017ad47722421720f0a5d1dafdffc7f8eaaa09960",
+      "changes": [
+        "xtensions/pi-pstack/docs/parity-status.md",
+        "extensions/pi-pstack/generated/parity-manifest.json",
+        "extensions/pi-pstack/requirements/requirements.json",
+        "extensions/pi-pstack/tests/workflow-parity/families/pr-autopilot.ts"
+      ],
+      "sourceDigest": "b8a5624a040cbf07b4ce0ec18401de09c07297f125466a6cbf6be778f9e94f16",
       "resultsSource": "ci",
-      "totalTests": 2789,
-      "passedTests": 2660,
+      "totalTests": 2850,
+      "passedTests": 2721,
       "failedTests": 0,
       "failures": [],
       "skippedTests": 129,
-      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43395800916",
+      "runUrl": "https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43415469156",
       "root": "/home/runner/work/pstack-parity-sandbox/pstack-parity-sandbox/extensions/pi-pstack",
       "piPath": "/home/runner/pi-e2e/agent/bin/pi",
       "piVersion": "1.5.0",
@@ -40118,7 +40137,7 @@
         },
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-full negative: a merge was not pinned to the verified head"
+          "name": "autopilot-full negative: a merge landed a head the lanes never verified"
         },
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
@@ -40127,10 +40146,6 @@
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
           "name": "autopilot-full negative: an owner ran in a worktree"
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-full negative: a verifier ran on the owner's model family"
         },
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
@@ -40167,14 +40182,6 @@
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
           "name": "autopilot-lanes negative: the live lane never posted a verdict"
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-lanes negative: a lane ran on the owner's model family"
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-lanes negative: every lane ran on one family"
         }
       ],
       "results": [
@@ -40255,7 +40262,7 @@
         },
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-full negative: a merge was not pinned to the verified head",
+          "name": "autopilot-full negative: a merge landed a head the lanes never verified",
           "outcome": "passed",
           "byRun": [
             {
@@ -40286,21 +40293,6 @@
         {
           "file": "tests/workflow-parity/pr-autopilot.test.ts",
           "name": "autopilot-full negative: an owner ran in a worktree",
-          "outcome": "passed",
-          "byRun": [
-            {
-              "platform": "darwin",
-              "outcome": "passed"
-            },
-            {
-              "platform": "linux",
-              "outcome": "passed"
-            }
-          ]
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-full negative: a verifier ran on the owner's model family",
           "outcome": "passed",
           "byRun": [
             {
@@ -40447,40 +40439,10 @@
               "outcome": "passed"
             }
           ]
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-lanes negative: a lane ran on the owner's model family",
-          "outcome": "passed",
-          "byRun": [
-            {
-              "platform": "darwin",
-              "outcome": "passed"
-            },
-            {
-              "platform": "linux",
-              "outcome": "passed"
-            }
-          ]
-        },
-        {
-          "file": "tests/workflow-parity/pr-autopilot.test.ts",
-          "name": "autopilot-lanes negative: every lane ran on one family",
-          "outcome": "passed",
-          "byRun": [
-            {
-              "platform": "darwin",
-              "outcome": "passed"
-            },
-            {
-              "platform": "linux",
-              "outcome": "passed"
-            }
-          ]
         }
       ],
       "status": "PASS",
-      "reason": "20 linked test(s) ran and passed"
+      "reason": "17 linked test(s) ran and passed"
     },
     {
       "id": "AUTOPILOT-STACK-NO-MERGE",
