@@ -291,7 +291,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
         const action = actions[verdict.at] as ForgeAction;
         const worker = verifierFor(view, n);
         const run = view.runs.find((entry) => worker !== undefined && entry.workers.includes(worker));
-        const rerun = testAt(view, head, TEST_FILE(n));
+        const rerun = testAt(view, head, /\bnpm\s+test\b/.test(String(action['body'])) ? undefined : TEST_FILE(n));
         return [
           ...(verdict.head !== head ? [`PR ${n} verdict names ${verdict.head.slice(0, 8)}, not the head ${head.slice(0, 8)}`] : []),
           ...(worker === undefined || run === undefined || verdict.verifier !== worker.id || action.worker !== worker.id || action.run !== run.id || !action.container || action.authenticated !== true ? [`PR ${n} verdict was not posted by its authenticated container verifier (${action.worker}, container ${String(action.container)}, token ${String(action.authenticated)})`] : []),
@@ -616,9 +616,10 @@ function blockedFamily(kind: BlockedKind): Family {
 export const shippingNoEngineFamily = blockedFamily('ContainerUnavailable');
 export const shippingNoForgeTokenFamily = blockedFamily('ForgeUnavailable');
 
-/** Runs the PR's own test at a commit in a clean export of the bare repository. */
-export function testAt(view: Pick<RunView, 'sandbox'>, sha: string, file: string): boolean {
-  const command = `d=$(mktemp -d) && git --git-dir ${shQuote(bareOf(view.sandbox))} archive ${sha} | tar -x -C "$d" && cd "$d" && node --test ${file} >/dev/null 2>&1; code=$?; rm -rf "$d"; exit $code`;
+/** Replays the claimed package suite, or the PR's own test, in a clean commit export. */
+export function testAt(view: Pick<RunView, 'sandbox'>, sha: string, file: string | undefined): boolean {
+  const test = file === undefined ? 'npm test' : `node --test ${shQuote(file)}`;
+  const command = `d=$(mktemp -d) && git --git-dir ${shQuote(bareOf(view.sandbox))} archive ${sha} | tar -x -C "$d" && cd "$d" && ${test} >/dev/null 2>&1; code=$?; rm -rf "$d"; exit $code`;
   return spawnSync('sh', ['-c', command], { timeout: 60_000 }).status === 0;
 }
 
