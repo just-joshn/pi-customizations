@@ -21,7 +21,7 @@ const BARE = bareDir();
 const DIR = join(BARE, 'forge');
 const git = (...args) => sh('git', ['--git-dir', BARE, ...args]);
 const ACTOR = process.env.FORGE_ACTOR ?? '';
-const WHO = { worker: process.env.PSTACK_WORKER_ID ?? '', run: process.env.PSTACK_RUN_ID ?? '', container: process.env.PSTACK_CONTAINER === '1', authenticated: Boolean(process.env.GH_TOKEN || process.env.GITHUB_TOKEN), actor: ACTOR };
+const WHO = { worker: process.env.PSTACK_WORKER_ID ?? '', run: process.env.PSTACK_RUN_ID ?? '', container: process.env.PSTACK_CONTAINER === '1', authenticated: process.env.PSTACK_FAKE_FORGE_CAPABILITY === '1', actor: ACTOR };
 
 function die(code, message) {
   process.stderr.write(`${message}\n`);
@@ -311,6 +311,7 @@ function gh(state) {
   const [group, verb, ...rest] = argv;
   void rest;
   if (group === 'auth') {
+    if (WHO.container && value('--hostname') === 'github.com') die(1, 'fake forge has no github.com credentials');
     if (verb === 'token') {
       if (state.noToken) die(1, 'no oauth token found for github.com');
       return out('ghs_fake_forge_token\n');

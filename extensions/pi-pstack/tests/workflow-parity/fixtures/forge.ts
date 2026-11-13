@@ -154,7 +154,19 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
   chmodSync(join(bare, 'hooks', 'pre-receive'), 0o755);
   copyFileSync(FORGE_CLI, join(bin, 'forge-cli.mjs'));
   writeFileSync(join(bin, 'package.json'), JSON.stringify({ name: 'workflow-parity-forge', private: true, pi: { extensions: ['./index.mjs'] } }));
-  writeFileSync(join(bin, 'index.mjs'), `export default function () { process.env.PATH = ${JSON.stringify(bin)} + ':' + process.env.PATH; process.env.FORGE_GIT_DIR = ${JSON.stringify(bare)}; }\n`);
+  writeFileSync(join(bin, 'index.mjs'), `import { execFileSync } from 'node:child_process';
+export default function () {
+  process.env.PATH = ${JSON.stringify(bin)} + ':' + process.env.PATH;
+  process.env.FORGE_GIT_DIR = ${JSON.stringify(bare)};
+  if (process.env.PSTACK_CONTAINER === '1') {
+    delete process.env.PSTACK_FAKE_FORGE_CAPABILITY;
+    if (process.env.GH_TOKEN === ${JSON.stringify(FORGE_TOKEN)}) {
+      process.env.PSTACK_FAKE_FORGE_CAPABILITY = '1';
+      execFileSync('git', ['config', '--global', '--unset-all', 'credential.https://github.com.helper']);
+    }
+    for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'PSTACK_CONTAINER_FORGE_TOKEN']) delete process.env[name];
+  }
+}\n`);
   for (const name of def.originCli === true ? ['gh', 'origin'] : ['gh']) {
     writeFileSync(join(bin, name), `#!/bin/sh\nexport FORGE_GIT_DIR='${bare}'\nexec node '${join(bin, 'forge-cli.mjs')}' ${name} "$@"\n`);
     chmodSync(join(bin, name), 0o755);

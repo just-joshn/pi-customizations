@@ -1,7 +1,7 @@
 // Shipping families (spec 13.3): one container verifier per PR with the forge capability, a verdict that covers the head and
 // the patch it examined, only the contiguous verified run from the root landing, bottom-up, never a merge from green CI.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
@@ -84,6 +84,7 @@ export function verifierScript(ctx: Ctx, parent: Parent, options: { id: string; 
   const workerDir = parent.workerDir(options.id);
   const ws = '/tmp/workspace';
   const forgeCli = 'gh';
+  worker.bash(`node ${ctx.pkg}/tests/workflow-parity/fixtures/credential-isolation.mjs`);
   worker.bash(`cd ${ws} && test "$(git rev-parse HEAD)" = ${options.head}`);
   worker.bash(`cd ${ws} && node --test ${options.testFile}; true`);
   proofSteps(worker, ctx, { id: `${options.id}-run`, target: `pr-${options.pr}`, command: `node --test ${options.testFile}`, cwd: ws, kind: 'test', gitDir: ws, dir: join(workerDir, 'evidence') }, join(workerDir, 'evidence'));
@@ -248,6 +249,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
           ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false || caps['mcp'] !== 'inherit' ? [`${worker.id} capabilities ${JSON.stringify(caps)}`] : []),
           ...(worker.id === state.prs[String(n)]?.author ? [`${worker.id} is the author`] : []),
           ...(worker.session?.cwd !== '/tmp/workspace' ? [`${worker.id} session ran in ${String(worker.session?.cwd)}, not the container clone`] : []),
+          ...(!worker.session?.toolCalls.some((call) => call.name === 'bash' && String(call.args['command']).endsWith('/fixtures/credential-isolation.mjs') && call.resultText.includes('CREDENTIAL-ISOLATION PASS:')) ? [`${worker.id} has no passing credential isolation probe`] : []),
           ...(view.runs.flatMap((run) => run.events).find((event) => event['workerId'] === worker.id && event['kind'] === 'spawn' && ((event['data'] as { container?: { image?: { id?: string } } }).container?.image?.id ?? '') !== '') === undefined ? [`${worker.id} has no container spawn event with an image id`] : []),
         ];
       });
@@ -344,6 +346,17 @@ export const shippingFamily: Family = {
     { name: 'the root was never read back as merged into trunk', mutate: (sandbox) => rewriteSessionSafe(sandbox, '--json state,mergedAt,baseRefName', '--json state'), fails: ['ship.only-the-contiguous-verified-prefix-from-the-root-merged'] },
     { name: 'the stack was rebased while it landed', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'force-push', ref: 'refs/heads/s-2', worker: '', run: '', actor: '', container: false } as ForgeAction)), fails: ['ship.stack-left-alone-above-the-ceiling'] },
     { name: 'a verifier ran in a worktree instead of a container', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'verifier-22', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: (assignment['workspace'] as { inputCommit: string }).inputCommit })), fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'] },
+    {
+      name: 'a verifier omitted the credential isolation probe',
+      mutate: (sandbox) => {
+        const dir = join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers/verifier-21');
+        for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.jsonl'))) {
+          const path = join(dir, file);
+          writeFileSync(path, readFileSync(path, 'utf8').replaceAll('CREDENTIAL-ISOLATION PASS:', 'CREDENTIAL-ISOLATION OMITTED:'));
+        }
+      },
+      fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'],
+    },
     { name: 'a verifier had no forge capability', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'verifier-23', (assignment) => ((assignment['capabilities'] as Record<string, unknown>)['forge'] = false)), fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'] },
     { name: 'a verifier receipt was forged away', mutate: (sandbox) => rmSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'verification/receipts/verifier-22-run.json'), { force: true }), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
     { name: 'a verifier receipt artifact was altered', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers/verifier-21/evidence/verifier-21-run.txt'), 'tampered\n'), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
