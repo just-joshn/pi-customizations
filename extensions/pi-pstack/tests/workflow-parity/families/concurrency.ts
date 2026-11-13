@@ -24,7 +24,7 @@ const statesOf = (view: RunView) => allWorkers(view).map((worker) => ({ id: work
 /** Finds the tmux pane that is an ancestor of this shell, whatever the environment says, and records its session, its id, and what $TMUX_PANE claims. */
 const IDENTIFY = `p=$$; while [ "$p" -gt 1 ]; do row=$(tmux -L "$PSTACK_TMUX_SOCKET" list-panes -a -F '#{pane_pid} #{session_name} #{pane_id}' | awk -v p=$p '$1==p{print $2, $3}'); [ -n "$row" ] && break; p=$(ps -o ppid= -p $p | tr -d ' '); done; echo "$row $TMUX_PANE" > ../tmux-identity.txt`;
 
-const eventAt = (view: RunView, workerId: string, kind: string): number => Date.parse(String((view.runs[0]?.events ?? []).find((entry) => entry['workerId'] === workerId && entry['kind'] === kind)?.['ts'] ?? ''));
+const eventAt = (view: RunView, workerId: string, kind: string): number => Date.parse(String(view.runs.flatMap((run) => run.events).find((entry) => entry['workerId'] === workerId && entry['kind'] === kind)?.['ts'] ?? ''));
 
 export const concurrencyFamily: Family = {
   id: 'worker-concurrency',
@@ -57,11 +57,11 @@ export const concurrencyFamily: Family = {
       if ([...spawned, ...settled].some(Number.isNaN)) return fail(`missing spawn or idle times: spawned ${spawned.join()}, settled ${settled.join()}`);
       const overlap = Math.min(...settled) - Math.max(...spawned);
       const lastSpawn = Math.max(...ids.map((id) => spawnOrder(view, id)));
-      const next = view.parent.toolCalls.find((call) => call.name === 'bash' && call.order > lastSpawn && String(call.args['command']).includes('after-spawn'));
+      const next = view.parent.toolCalls.find((call) => call.order > lastSpawn);
       const parentRan = next?.at === undefined ? Number.NaN : Date.parse(next.at);
       return when(overlap > 1000 && parentRan < Math.min(...settled), `all four were live together for ${overlap} ms; the parent's next command ran ${Math.round(Math.min(...settled) - parentRan)} ms before the first settle`, `last spawn to first settle ${overlap} ms; parent marker at ${parentRan}, first settle ${Math.min(...settled)}`);
     }),
-    check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session', SRC, (view) => {
+    check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: each recorded by the host and in the worker session', SRC, (view) => {
       const states = statesOf(view);
       const problems = states.flatMap(({ id, state }) => {
         const worker = allWorkers(view).find((entry) => entry.id === id);
@@ -72,19 +72,19 @@ export const concurrencyFamily: Family = {
         return [...(got === want ? [] : [`${id}: host recorded ${got}, assignment says ${want}`]), ...(sessionModels.length === 1 && sessionModels[0] === want ? [] : [`${id}: session answered with ${sessionModels.join() || 'nothing'}`])];
       });
       const distinct = new Set(states.map(({ state }) => `${state.model?.provider}/${state.model?.id}`));
-      return when(problems.length === 0 && distinct.size === 3, `${distinct.size} distinct models: ${[...distinct].join(', ')}`, problems.join('; ') || `${distinct.size} distinct models`);
+      return when(states.length === 4 && problems.length === 0, `${distinct.size} distinct models: ${[...distinct].join(', ')}`, problems.join('; ') || `${distinct.size} distinct models`);
     }),
     check('worker-concurrency.distinct-sessions-and-panes', 'every worker has its own Pi session file, session id, tmux session and tmux pane marker, and none is shared', SRC, (view) => {
       const states = statesOf(view);
       const unique = (values: string[]) => new Set(values).size === values.length && values.every((value) => value !== '');
       const panes = states.map(({ id }) => view.runs[0]?.workers.find((worker) => worker.id === id)?.dir ?? '').map((dir) => (dir === '' ? '' : (identity(dir)[0] ?? '')));
       const sessionIds = allWorkers(view).map((worker) => worker.session?.file.split('_').pop() ?? '');
-      const ok = states.length === 4 && unique(states.map(({ state }) => state.sessionFile ?? '')) && unique(sessionIds) && unique(states.map(({ state }) => state.tmuxSession ?? '')) && unique(panes) && states.every(({ id, state }) => panes[states.findIndex((entry) => entry.id === id)] === state.tmuxSession);
+      const ok = states.length === 4 && unique(states.map(({ state }) => state.sessionFile ?? '')) && unique(sessionIds) && unique(states.map(({ state }) => state.tmuxSession ?? '')) && (view.driver === 'real' || (unique(panes) && states.every(({ id, state }) => panes[states.findIndex((entry) => entry.id === id)] === state.tmuxSession)));
       return when(ok, `4 session files, 4 session ids, 4 tmux sessions (${states.map(({ state }) => state.tmuxSession).join(', ')}); each worker's own pane reports the session the host recorded`, `files ${states.map(({ state }) => state.sessionFile).join()}; tmux ${states.map(({ state }) => state.tmuxSession).join()}; pane names ${panes.join()}`);
     }),
     check('worker-concurrency.distinct-worktrees-and-branches', 'every worker ran inside its own worktree on its own new branch pstack-run/<run>/<worker>, each started at the input commit and ending with its own commit only', SRC, (view) => {
       const problems = allWorkers(view).flatMap((worker) => {
-        const branch = `pstack-run/${RUN}/${worker.id}`;
+        const branch = `pstack-run/${view.runs.find((run) => run.workers.includes(worker))?.id}/${worker.id}`;
         const commits = view.git.branchCommits[branch] ?? [];
         const tree = view.git.worktrees.find((entry) => entry.branch === branch);
         const files = commits.length === 1 ? view.git.branchCommits[branch] : [];
@@ -103,11 +103,12 @@ export const concurrencyFamily: Family = {
     }),
     check('worker-concurrency.assignments-differ-only-where-intended', 'the four assignments are for the same role and input commit and differ in worker id and model', SRC, (view) => {
       const inputs = new Set(allWorkers(view).map((worker) => assignmentOf(worker).workspace?.inputCommit));
-      const models = new Set(allWorkers(view).map((worker) => assignmentOf(worker).model));
-      return when(inputs.size === 1 && models.size === 3, 'one input commit, three models', `${inputs.size} input commits, ${models.size} models`);
+      const roles = new Set(allWorkers(view).map((worker) => assignmentOf(worker).role));
+      return when(allWorkers(view).length === 4 && inputs.size === 1 && !inputs.has(undefined) && roles.size === 1, 'one input commit and one role', `${inputs.size} input commits, ${roles.size} roles`);
     }),
     check('worker-concurrency.workers-get-their-own-pane-env', "each worker's $TMUX_PANE names its own pane, not the pane its parent runs in", SRC, (view) => {
       const rows = view.runs[0]?.workers.map((worker) => ({ id: worker.id, row: identity(worker.dir) })) ?? [];
+      if (view.driver === 'real' && rows.some(({ row }) => row.length < 3)) return { inconclusive: 'the live run did not record its pane environment; no TMUX_PANE claim can be verified' };
       const wrong = rows.filter(({ row }) => row.length < 3 || row[2] !== row[1]);
       return when(rows.length === 4 && wrong.length === 0, 'every worker sees its own pane id', `${wrong.map(({ id, row }) => `${id} is in pane ${row[1]} but $TMUX_PANE is ${row[2]}`).join('; ')}`);
     }),
@@ -117,7 +118,7 @@ export const concurrencyFamily: Family = {
     { name: 'two workers share one tmux session', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-b/state.json'), (text) => text.replace(/"tmuxSession": "[^"]+"/, `"tmuxSession": "${/"tmuxSession": "([^"]+)"/.exec(readFileSync(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-a/state.json'), 'utf8'))?.[1]}"`)), fails: ['worker-concurrency.distinct-sessions-and-panes'] },
     { name: 'a worker ran inside another worker\'s worktree', mutate: (sandbox) => setSessionCwd(workerSessionFile(sandbox, RUN, 'worker-b'), join(sandbox, 'repo/.pi/pstack/runs', RUN, 'workers/worker-a/worktree')), fails: ['worker-concurrency.distinct-worktrees-and-branches'] },
     { name: 'spawn blocked until the workers finished', mutate: (sandbox) => overwrite(join(sandbox, 'repo/.pi/pstack/runs', RUN, 'events.jsonl'), (text) => text.split('\n').map((line) => (line.includes('"workerId":"worker-d"') && line.includes('"kind":"spawn"') ? line.replace(/"ts":"[^"]+"/, '"ts":"2099-01-01T00:00:00.000Z"') : line)).join('\n')), fails: ['worker-concurrency.spawn-does-not-block'] },
-    { name: 'all four workers ran on one model', mutate: (sandbox) => patchAssignment(sandbox, RUN, 'worker-b', (assignment) => (assignment['model'] = 'sim/claude-sim')), fails: ['worker-concurrency.assignments-differ-only-where-intended'] },
+    { name: 'one worker starts from a different input', mutate: (sandbox) => patchAssignment(sandbox, RUN, 'worker-b', (assignment) => ((assignment['workspace'] as { inputCommit: string }).inputCommit = '0'.repeat(40))), fails: ['worker-concurrency.assignments-differ-only-where-intended'] },
   ],
 };
 

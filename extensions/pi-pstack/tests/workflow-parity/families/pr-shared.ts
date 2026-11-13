@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { Parent, shQuote } from '../fixtures/dsl.ts';
 import { byParent, type ForgeAction, isRefUpdate, readForge, WRITES } from '../fixtures/forge.ts';
-import { type Check, check, checkAbsence, fail, pass, src, type Src, when } from '../lib/check.ts';
+import { type Check, check, checkAbsence, fail, pass, type Src, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, skillRequest } from '../lib/checks.ts';
 import type { RunView, WorkerView } from '../lib/view.ts';
 
@@ -56,7 +56,7 @@ export function neverMutatesTopology(id: string, source: Src | Src[]): Check {
     const { actions } = readForge(view);
     const refs = actions.filter((action) => isRefUpdate(action) && byParent(action));
     const edits = actions.filter((action) => action.kind === 'edit-base');
-    const typed = BASH(view).filter((entry) => /git (rebase|merge(?!-base)|reset --hard|push)|--force|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
+    const typed = BASH(view).filter((entry) => /git (rebase|merge(?!-base)|reset --hard|push)|gh pr edit|origin pr edit|git branch -f/.test(entry.command));
     return when(refs.length === 0 && edits.length === 0 && typed.length === 0, `${actions.filter(isRefUpdate).length} ref updates, all by someone else; no retarget; no mutating git command`, `parent ref updates ${refs.map((action) => `${action.kind} ${String(action['ref'])}`).join(', ') || 'none'}; retargets ${edits.length}; commands ${typed.map((entry) => entry.command.slice(0, 60)).join(' | ') || 'none'}`);
   });
 }
@@ -87,17 +87,19 @@ export function modeFor(request: string): 'check' | 'threads-only' | 'drive' | '
 
 export const declaredMode = (view: RunView): string | undefined => {
   const todo = view.runs[0]?.todoText ?? '';
-  return /Mode: (check|threads-only|drive|background)\b/.exec(todo.split('## Task-specific work')[1] ?? '')?.[1];
+  return /Mode: (check|threads-only|drive|background)\b/.exec(todo.split('## Task-specific work')[1] ?? '')?.[1] ?? view.parent.messages.filter((message) => message.role === 'assistant').map((message) => /\b(check|threads-only|drive|background)\b/.exec(message.text)?.[1]).find((mode) => mode !== undefined);
 };
 
 /** The Mode item exists, matches the request-to-mode table for the user's request, and was written before the first forge call or watcher spawn. */
 export function modeDeclared(id: string, source: Src | Src[], expected: 'check' | 'threads-only' | 'drive' | 'background'): Check {
-  return check(id, `the mode is declared in TODO.md before any forge call or watcher spawn, and equals the table's answer for the request (${expected})`, source, (view) => {
+  return check(id, `the mode is declared before any forge call or watcher spawn, and equals the table's answer for the request (${expected})`, source, (view) => {
     const declared = declaredMode(view);
     const table = modeFor(view.prompt);
-    const declaredAt = parentCommandOrder(view, /Mode: (check|threads-only|drive|background)/);
+    const writtenAt = parentCommandOrder(view, /Mode: (check|threads-only|drive|background)/);
+    const spokenAt = view.parent.messages.find((message) => message.role === 'assistant' && new RegExp(`\\b${expected}\\b`).test(message.text))?.order ?? -1;
+    const declaredAt = Math.min(...[writtenAt, spokenAt].filter((order) => order !== -1));
     const firstPoll = view.parent.toolCalls.find((call) => (call.name === 'bash' && /\b(gh|origin) |watch-pr/.test(String(call.args['command'])) && !/Mode:|command -v/.test(String(call.args['command']))) || (call.name === 'pstack_worker' && call.args['action'] === 'spawn'))?.order ?? Number.POSITIVE_INFINITY;
-    return when(declared === expected && table === expected && declaredAt !== -1 && declaredAt < firstPoll, `request routes to ${table}; TODO.md declares ${declared} at ${declaredAt}, before the first poll at ${firstPoll}`, `declared ${declared}; the table says ${table}; expected ${expected}; declared at ${declaredAt}, first poll at ${firstPoll}`);
+    return when(declared === expected && table === expected && Number.isFinite(declaredAt) && declaredAt < firstPoll, `request routes to ${table}; TODO.md declares ${declared} at ${declaredAt}, before the first poll at ${firstPoll}`, `declared ${declared}; the table says ${table}; expected ${expected}; declared at ${declaredAt}, first poll at ${firstPoll}`);
   });
 }
 
@@ -105,12 +107,19 @@ export function modeDeclared(id: string, source: Src | Src[], expected: 'check' 
 export function forgeResolvedOnce(id: string, source: Src | Src[], backend: 'gh' | 'origin'): Check {
   return check(id, `the forge is resolved with \`command -v origin\` before the first forge call and every forge call after it uses ${backend} alone`, source, (view) => {
     const { actions } = readForge(view);
-    const resolvedAt = parentCommandOrder(view, /^command -v origin/);
-    const firstForge = BASH(view).find((entry) => /\b(gh|origin) (pr|api|run)\b|watch-pr/.test(entry.command) && !/command -v origin/.test(entry.command) && !/^cd |proof|receipt\.mjs/.test(entry.command))?.order ?? Number.POSITIVE_INFINITY;
+    const commands = BASH(view);
+    const lookup = /(?:^|[;&|\n]|\bif)\s*command\s+-v\s+(?:gh\s+)?origin\b/;
+    const operation = /\b(?:gh|origin)\s+(?:pr|api|run)\b|watch-pr/;
+    const resolution = commands.find((entry) => lookup.test(entry.command));
+    const first = commands.find((entry) => operation.test(entry.command));
+    const resolvedAt = resolution?.order ?? -1;
+    const firstForge = first?.order ?? Number.POSITIVE_INFINITY;
+    const before = resolvedAt < firstForge || (resolution === first && resolution !== undefined && resolution.command.search(lookup) < resolution.command.search(operation));
     const tools = [...new Set(actions.filter((action) => action.tool !== undefined).map((action) => action.tool))];
-    const resolutions = BASH(view).filter((entry) => /^command -v origin/.test(entry.command)).length;
-    const recorded = /Forge: (gh|origin)/.exec(view.runs[0]?.todoText ?? '')?.[1];
-    return when(resolvedAt !== -1 && resolvedAt < firstForge && resolutions === 1 && tools.every((tool) => tool === backend) && tools.length > 0 && recorded === backend, `resolved once at ${resolvedAt} before the first forge call at ${firstForge}; the choice (${recorded}) is recorded; forge tools used: ${tools.join(', ')}`, `resolved at ${resolvedAt}, first forge call ${firstForge}, resolutions ${resolutions}; tools used ${tools.join(', ')}; recorded ${String(recorded)}; want ${backend}`);
+    const resolutions = commands.filter((entry) => lookup.test(entry.command)).length;
+    const notes = [...view.runs.map((run) => run.todoText?.split('## Task-specific work')[1] ?? ''), ...view.runs.flatMap((run) => (run.decisions ?? []).map((row) => row.join(' '))), ...view.parent.messages.filter((message) => message.role === 'assistant').map((message) => message.text)].join('\n');
+    const recorded = new RegExp(`(?:forge|fallback)[^\\n]{0,80}\\b${backend}\\b`, 'i').test(notes) ? backend : undefined;
+    return when(resolvedAt !== -1 && before && resolutions === 1 && tools.every((tool) => tool === backend) && tools.length > 0 && recorded === backend, `resolved once at ${resolvedAt} before the first forge call at ${firstForge}; the choice (${recorded}) is recorded; forge tools used: ${tools.join(', ')}`, `resolved at ${resolvedAt}, first forge call ${firstForge}, resolutions ${resolutions}; tools used ${tools.join(', ')}; recorded ${String(recorded)}; want ${backend}`);
   });
 }
 

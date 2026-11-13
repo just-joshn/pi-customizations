@@ -50,9 +50,13 @@ function whyMcp(withServer: boolean): Family {
   const finding = withServer ? FOUND : MISSING;
   const synthesis = `### The Question\n${QUESTION}\n### What We Found\nCoupons arrived as a percent in #118.\n${withServer ? 'The decision record DEC-142 says percent coupons fit every cart size. Source: https://wiki.example/decisions/142.' : 'No product decision record was available, so the reason is not recorded in the sources searched.'}\n### Sources Consulted\n- Source control: found #118.\n- ${finding}\n- Issue / ticket tracker: skipped, no matching MCP available.\n### Confidence Summary\n${withServer ? 'Medium: one decision record plus history.' : 'Low confidence on the motive.'}`;
   const checks: Check[] = [
-    check(`${id}.parent-discovers-mcp`, 'the parent runs pi mcp list before spawning, and it names the server only when one is configured', src('why/SKILL.md', 'Otherwise run `pi mcp list`'), (view) => {
+    check(`${id}.parent-discovers-mcp`, 'the parent identifies available MCP servers from the supplied tools map or pi mcp list', src('why/SKILL.md', 'Otherwise run `pi mcp list`'), (view) => {
       const listed = view.parent.toolCalls.find((call) => call.name === 'bash' && /\bmcp list\b/.test(String(call.args['command'])));
-      if (listed === undefined) return fail('no pi mcp list');
+      if (listed === undefined) {
+        const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn')?.order ?? Number.POSITIVE_INFINITY;
+        const identified = view.parent.messages.some((message) => message.role === 'assistant' && message.order < spawn && /\bmcp__decisions\b/.test(message.text)) || view.parent.toolCalls.some((call) => call.order < spawn && (call.name.startsWith('mcp__decisions__') || (call.name === 'codemode' && /(?:describeNamespace|searchTools)[\s\S]*mcp__decisions/.test(JSON.stringify(call.args)))));
+        return when(withServer && identified, 'the parent identified mcp__decisions from the session tools map', 'no server identification from the tools map or pi mcp list');
+      }
       const names = /decisions/.test(listed.resultText);
       return when(names === withServer, `pi mcp list ${names ? 'shows' : 'does not show'} the decisions server`, `pi mcp list said: ${listed.resultText.slice(0, 160)}`);
     }),

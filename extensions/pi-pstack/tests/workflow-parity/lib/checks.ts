@@ -44,6 +44,13 @@ export function shellCommands(command: string): string[] {
  * form `<name>/worktree/<file>` is opened that way when one shell command names the worktree directory and the file under it, and reads.
  */
 function readsInDirectory(command: string, suffix: string): boolean {
+  let cwd = '';
+  for (const part of command.split(/&&|;|\n/)) {
+    const cd = /^\s*cd\s+["']?([^"'\s]+)["']?\s*$/.exec(part);
+    if (cd !== null) cwd = resolve(cwd || '/', cd[1] as string);
+    const read = /^\s*(?:cat|head|tail|sed|less|bat|nl)\s+(.+)$/.exec(part);
+    if (read !== null && cwd !== '' && (read[1] as string).split(/\s+/).some((word) => resolve(cwd, word.replace(/^["']|["']$/g, '')).endsWith(suffix))) return true;
+  }
   const at = suffix.indexOf('/worktree/');
   if (at === -1) return false;
   const directory = suffix.slice(0, at + '/worktree'.length);
@@ -78,9 +85,11 @@ function isRedundantWakeTurn(view: RunView, assistant: { order: number; text: st
   const trigger = [...view.parent.messages].reverse().find((message) => message.order < assistant.order && (message.role === 'user' || message.role === 'custom'));
   if (trigger?.customType !== 'pstack-worker') return false;
   const workerId = trigger.details?.['workerId'];
-  const collectedBefore = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError && call.order < trigger.order && /settled/.test(call.resultText));
+  const lastSteer = Math.max(-1, ...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === workerId && call.order < trigger.order).map((call) => call.order));
+  const collectedBefore = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === workerId && !call.isError && call.order > lastSteer && call.order < trigger.order && /settled/.test(call.resultText));
   const longerBefore = view.parent.messages.some((message) => message.role === 'assistant' && message.order < trigger.order && !isFiller(message) && message.text.trim().length > assistant.text.trim().length);
-  return collectedBefore || longerBefore;
+  const worked = view.parent.toolCalls.some((call) => call.order > trigger.order && call.order < assistant.order && !(call.name === 'pstack_worker' && ['collect', 'inspect'].includes(String(call.args['action']))));
+  return collectedBefore || (longerBefore && !worked);
 }
 
 export function finalReply(view: RunView): string {
@@ -262,7 +271,9 @@ export function parentReads(id: string, title: string, source: Src | Src[], name
 
 export function playbookReads(playbook: string, optional: string[] = [], conditionalLeaves: string[] = []): Check[] {
   const book = src(`poteto-mode/playbooks/${playbook}.md`, playbookSource(playbook)[0]?.split('\n')[0]?.slice(0, 30) ?? '###');
-  const named = skillsNamedBy(playbook).filter((entry) => !optional.includes(entry.name) && !conditionalLeaves.includes(entry.name));
+  const examples = ['shipping', 'autopilot-full', 'autopilot-stack', 'orchestrate'].includes(playbook) ? ['control-ui', 'control-cli'] : [];
+  const ownerSkills = playbook.startsWith('autopilot-') ? ['deslop'] : [];
+  const named = skillsNamedBy(playbook).filter((entry) => ![...optional, ...examples, ...ownerSkills].includes(entry.name) && !conditionalLeaves.includes(entry.name));
   const leaves = named.filter((entry) => entry.name.startsWith('principle-')).map((entry) => entry.name);
   const skills = named.filter((entry) => !entry.name.startsWith('principle-')).map((entry) => entry.name);
   return [

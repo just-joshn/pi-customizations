@@ -111,6 +111,10 @@ describe('the reply the user reads', () => {
     const view = run([message(1, 'user', '/why'), message(5, 'assistant', 'The answer.'), message(6, 'user', 'thanks'), message(8, 'assistant', 'Welcome.')], [collectOf(4, 'w')]);
     expect(finalReply(view)).toBe('Welcome.');
   });
+  test('a shorter closing report after a new owner turn is not an old wake acknowledgement', () => {
+    const view = run([message(1, 'user', '/poteto-mode'), message(3, 'assistant', 'The initial queue plan is much longer than the eventual closing report.'), woken(6, 'w'), message(10, 'assistant', 'Both PRs merged.')], [collectOf(2, 'w'), { order: 4, name: 'pstack_worker', args: { action: 'steer', workerId: 'w' } }, collectOf(7, 'w'), { order: 8, name: 'bash', args: { command: 'gh pr view 1' } }]);
+    expect(finalReply(view)).toBe('Both PRs merged.');
+  });
   test('with only acknowledgements to choose from, the last one is the reply', () => {
     const view = run([woken(6, 'w'), message(8, 'assistant', 'Collected.')], [collectOf(4, 'w')]);
     expect(finalReply(view)).toBe('Collected.');
@@ -139,6 +143,12 @@ describe('opening a file through a worktree directory', () => {
   const bash = (command: string): Session => ({ file: '', cwd: null, messages: [], models: [], errors: [], errorTimes: [], toolCalls: [{ order: 3, name: 'bash', args: { command }, resultText: '', isError: false }] });
   const suffix = 'candidate-1/worktree/src/coupon.js';
 
+  test('cd into the skill and cat its relative playbook opens it', () => {
+    const suffix = 'generated/skills/poteto-mode/playbooks/babysit.md';
+    expect(openedAt(bash('cd /p/generated/skills/poteto-mode && ls -R && cat playbooks/babysit.md'), suffix)).toBe(3);
+    expect(openedAt(bash('cd /p/generated/skills/poteto-mode && cat playbooks/shipping.md'), suffix)).toBe(-1);
+    expect(openedAt(bash('cd /p/generated/skills/other && cat playbooks/babysit.md'), suffix)).toBe(-1);
+  });
   test('cd into the worktree and cat the file opens it', () => {
     expect(openedAt(bash('cd /r/workers/candidate-1/worktree && cat src/coupon.js'), suffix)).toBe(3);
   });
