@@ -230,8 +230,9 @@ export { stepDone };
 
 // ---- family: shipping
 
-function verifierFor(view: RunView, pr: number): WorkerView | undefined {
-  const candidates = containerWorkers(view, 'verifier').filter((worker) => new RegExp(`\\bPR\\s+#?${pr}\\b`, 'i').test(worker.brief ?? ''));
+export function verifierFor(view: RunView, pr: number): WorkerView | undefined {
+  const { actions } = readForge(view);
+  const candidates = containerWorkers(view, 'verifier').filter((worker) => actions.some((action) => action.kind === 'comment' && action.pr === pr && action.worker === (worker.assignment['workerId'] ?? worker.id)));
   return candidates.length === 1 ? candidates[0] : undefined;
 }
 

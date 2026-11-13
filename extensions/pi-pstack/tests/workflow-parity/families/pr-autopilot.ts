@@ -132,8 +132,14 @@ const OWNER_FAMILY = (model: string): string => model.slice(model.indexOf('/') +
 
 const ownerWorkers = (view: RunView): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'owner');
 
-function responsibleWorker(view: RunView, role: string, pr: number, lane?: string): WorkerView | undefined {
-  const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === role && new RegExp(`\\bPR\\s+#?${pr}\\b`, 'i').test(worker.brief ?? '') && (lane === undefined || new RegExp(`\\b${lane}\\b`, 'i').test(worker.brief ?? '')));
+export function responsibleWorker(view: RunView, role: string, pr: number, lane?: string): WorkerView | undefined {
+  const { state, actions } = readForge(view);
+  const candidates = allWorkers(view).filter((worker) => {
+    if (assignmentOf(worker).role !== role) return false;
+    const identity = String(worker.assignment['workerId'] ?? worker.id);
+    const responsible = role === 'owner' ? state.prs[String(pr)]?.author === identity : actions.some((action) => action.pr === pr && action.worker === identity && action.kind === 'comment');
+    return responsible && (lane === undefined || new RegExp(`\\b${lane}\\b`, 'i').test(worker.brief ?? ''));
+  });
   return candidates.length === 1 ? candidates[0] : undefined;
 }
 
