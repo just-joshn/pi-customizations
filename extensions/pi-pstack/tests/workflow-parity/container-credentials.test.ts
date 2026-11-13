@@ -83,13 +83,13 @@ test.skipIf(!engineAvailable())('live worker capture distinguishes startup prove
   const pi = piInstall();
   writeFileSync(join(dir, 'probe.mjs'), WORKER_CREDENTIAL_EXTENSION);
   try {
-    for (const kind of ['clean', 'fake', 'real', 'fake-retained', 'unavailable']) {
+    for (const kind of ['clean', 'fake', 'real', 'fake-source', 'real-source', 'fake-retained', 'unavailable']) {
       rmSync(join(dir, 'credential-probe.json'), { force: true });
-      const token = kind === 'real' ? 'operator-sentinel-must-not-appear' : FORGE_TOKEN;
+      const token = kind === 'real' || kind === 'real-source' ? 'operator-sentinel-must-not-appear' : FORGE_TOKEN;
       writeFileSync(
         join(dir, 'fixture.mjs'),
         `export default function(pi) {
-        if(${JSON.stringify(kind)}==='fake') { delete process.env.GH_TOKEN; process.env.PSTACK_FAKE_FORGE_CAPABILITY='1'; }
+        if(['fake','fake-source'].includes(${JSON.stringify(kind)})) { delete process.env.GH_TOKEN; delete process.env.PSTACK_CONTAINER_FORGE_TOKEN; process.env.PSTACK_FAKE_FORGE_CAPABILITY='1'; }
         pi.on('session_start', () => { setTimeout(() => process.exit(0), 0); });
       }`,
       );
@@ -124,7 +124,7 @@ test.skipIf(!engineAvailable())('live worker capture distinguishes startup prove
             PSTACK_WORKER: '1',
             PSTACK_RUN_ROOT: kind === 'unavailable' ? '/missing' : '/',
             PSTACK_WORKER_ID: 'capture',
-            ...(kind === 'clean' ? {} : { GH_TOKEN: token }),
+            ...(kind === 'clean' ? {} : kind.endsWith('-source') ? { PSTACK_CONTAINER_FORGE_TOKEN: token } : { GH_TOKEN: token }),
           }),
           encoding: 'utf8',
         },
@@ -139,9 +139,10 @@ test.skipIf(!engineAvailable())('live worker capture distinguishes startup prove
       expect(captured).toMatchObject({
         status: kind === 'clean' || kind === 'fake' ? 'pass' : 'fail',
         stage: 'session_start',
-        present: kind === 'real' ? ['GH_TOKEN'] : [],
+        present: kind === 'real' ? ['GH_TOKEN'] : kind.endsWith('-source') ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : [],
+        fixtureMatches: kind === 'fake-source' ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : ['fake', 'fake-retained'].includes(kind) ? ['GH_TOKEN'] : [],
         fixturePresent: kind === 'fake' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
-        effectivePresent: kind === 'real' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
+        effectivePresent: kind === 'real-source' ? ['PSTACK_CONTAINER_FORGE_TOKEN'] : kind === 'real' || kind === 'fake-retained' ? ['GH_TOKEN'] : [],
       });
       expect(evidence).not.toContain(token);
       expect(evidence).not.toContain('operator-sentinel-must-not-appear');
