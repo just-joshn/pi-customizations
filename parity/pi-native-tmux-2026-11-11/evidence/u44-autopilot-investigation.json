@@ -1,0 +1,988 @@
+{
+  "verdict": "The missing-merge mechanism is reproduced and the final coherence treatment passes the matched trials and final full-suite regression. NOT MERGE-READY: the required two consecutive green merge gates were not achieved.",
+  "sourceCommit": "8e8d5d0bd738477dcb21d507660dec6e72b2836a",
+  "rootCause": {
+    "classification": "Harness defect, not a worker completion/durability defect",
+    "causalFork": "The owner merge command executed and failed before mergeInto appended any merge action. It was neither a late write after scoring nor a logged merge erased only from state.json.",
+    "failureSandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-aj7wP2",
+    "ownerErrors": [
+      {
+        "command": "gh pr view 33 --repo acme/widgets --json comments | grep PSTACK-COUNTERSIGN",
+        "error": [
+          {
+            "type": "text",
+            "text": "<anonymous_script>:78\n      \"body\": \"## Why\\nadd the lookup table is needed by the queue, so each PR lands on its own.\\n\\n## What changed\\n- Adds add the lookup table.\\n\\n## Scope\\n- Covers add the lookup table only.\\n- Leaves every caller as is.\\n\\\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at load (file:///Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-aj7wP2/forge/bin/forge-cli.mjs:55:25)\n    at file:///Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-aj7wP2/forge/bin/forge-cli.mjs:553:17\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.2\n\n\nCommand exited with code 1"
+          }
+        ]
+      },
+      {
+        "command": "cd /tmp/workspace && node /Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs gh pr merge 33 --repo acme/widgets --squash --match-head-commit 2872ecfc4ef867d7a08fdd0f5d6a702dd4e46298",
+        "error": [
+          {
+            "type": "text",
+            "text": "<anonymous_script>:78\n      \"body\": \"## Why\\nadd the lookup table is needed by the queue, so each PR lands on its own.\\n\\n## What changed\\n- Adds add the lookup table.\\n\\n## Scope\\n- Covers add the lookup table only.\\n- Leaves every caller as is.\\n\\\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at load (file:///Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs:55:25)\n    at file:///Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs:553:17\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.2\n\n\nCommand exited with code 1"
+          }
+        ]
+      },
+      {
+        "command": "cd /tmp/workspace && node /Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs gh pr view 33 --repo acme/widgets --json state,baseRefName",
+        "error": [
+          {
+            "type": "text",
+            "text": "<anonymous_script>:78\n      \"body\": \"## Why\\nadd the lookup table is needed by the queue, so each PR lands on its own.\\n\\n## What changed\\n- Adds add the lookup table.\\n\\n## Scope\\n- Covers add the lookup table only.\\n- Leaves every caller as is.\\n\\\n\nSyntaxError: Unexpected end of JSON input\n    at JSON.parse (<anonymous>)\n    at load (file:///Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs:55:25)\n    at file:///Users/josh-desktop/src/personal/pi-native-pstack/u44/extensions/pi-pstack/tests/workflow-parity/fixtures/forge-cli.mjs:553:17\n    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)\n    at async node:internal/modules/esm/loader:647:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.22.2\n\n\nCommand exited with code 1"
+          }
+        ]
+      }
+    ],
+    "ownerBeforeTeardown": {
+      "phase": "idle",
+      "generation": 2,
+      "lastSettle": {
+        "sequence": 2,
+        "generation": 2,
+        "phase": "idle",
+        "reason": null,
+        "at": "2026-11-13T12:05:36.342Z"
+      },
+      "exit": null
+    },
+    "timeout": false,
+    "mergeActions": 0,
+    "hostStateBytes": 2906,
+    "previousStateBytesDerivedByRemovingCountersign": 2645,
+    "guestReadEndDerivedFromSourceExcerpt": 2645,
+    "evidenceNote": "The error source excerpt ends at the same byte offset as the previous serialized state. Independent bind-mount probes directly measured reads truncated to cached old sizes. The host state remained valid JSON.",
+    "mechanism": "Linux bind-mount stale file-size metadata after a host write, plus stale directory entries after atomic host replacement.",
+    "ownerSession": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-aj7wP2/repo/.pi/pstack/runs/u44-observed-11/workers/observed-447255344902/session/2026-11-13T12-05-31-693Z_01a1d4cc-75ac-73b6-aa9f-7ef5f4c6e19f.jsonl",
+    "ownerSessionSha256": "8ae3d5bb77834760585278426cbe5edf29d1b1bcf0931d7f1b31901e14a2bebe",
+    "beforeStopSha256": "d9c858ea24f616749ae3b6093698be39d70bfe4e2f0ff382fa446fdf552e22f4",
+    "actionsSha256": "ee61e079ebbeb2b0e0f0a9a88c65f6c533f73103d21d6367df199f240bae522f"
+  },
+  "fix": {
+    "read": "In a Linux container, force fresh directory and state-file metadata with one stat --cached=never call before parsing; fail loudly if refresh fails.",
+    "write": "Both live forge writers update the locked state file in place, preserving its inode instead of atomically replacing the shared path.",
+    "retriesAdded": false,
+    "timeoutsIncreased": false,
+    "assertionsWeakened": false,
+    "regression": "The test uses real host forge comment commands and a real container CLI, and asserts the exact complete accumulated body list after all 32 writes. It failed with the original CLI, then passed with the final write protocol.",
+    "rejectedCandidate": "Metadata refresh alone passed 20/20 lanes trials and 1000 micro reads, but the full gate exposed ENOENT in the new regression. It is not counted as a successful fix."
+  },
+  "contention": {
+    "loadCommands": [
+      "node scripts/build-parity-manifest.mjs --save parity-results/local/vitest-darwin.json",
+      "sh parity/pi-native-tmux-2026-11-11/merge-gate.sh"
+    ],
+    "load": "The same two full-suite invocations ran concurrently during each observed-identity probe cohort. Each trial is a fresh native Pi scripted run with the existing 10 positive checks unchanged. The diagnostic probes omit mutant evaluations, equally on both sides.",
+    "before": {
+      "runs": 11,
+      "failures": 1,
+      "timeouts": 0,
+      "observations": [
+        {
+          "index": 1,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-EP949O",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "7bb045f09a1d5f65f3f00122bc63443fc1a2ad52faff9bbf2cd7c52d1dfe8a56"
+        },
+        {
+          "index": 2,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-gzEY4b",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "109c144e0351581df73d51349779372dfbfa62985cd8d6b18fe88d8a704a5148"
+        },
+        {
+          "index": 3,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-Z78MSb",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9f0c51f8602bd397bee97d5a6b4dfeadd0eb2a3644737bfe725870b6a861eacc"
+        },
+        {
+          "index": 4,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-Q7fH0b",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "33de6d6169a879fbaadfd458f9144b723c04867ff7ff6e27ca551f8cb81566ed"
+        },
+        {
+          "index": 5,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-wMCrj2",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "8cf1239ae9e0c31f2a0e7acfab4211888e026296914b8a5077738851d95e3496"
+        },
+        {
+          "index": 6,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-lwydsI",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "e1a0c986f9deaeb82805bfbd0d204a6a25da5969fdc6efe950b91574fb56bfbd"
+        },
+        {
+          "index": 7,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-LsYZMN",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "322108abfa72f7df4f27750f5a35c43859deb03d1007ae35a7ca1af782cc4555"
+        },
+        {
+          "index": 8,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-MstCPt",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "f7fee6a165a6405bfce99e5dc7163dc2e0c1896a210dcc4638ef21c52d9d2963"
+        },
+        {
+          "index": 9,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-m99i1y",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            9
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "8517faf993ee9f209944de776deeded91756928d6beebb6c8422ac4dca3b2b1f"
+        },
+        {
+          "index": 10,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-xUc7HP",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "dce8282f5f606eba95104cfceac4786e2947c39b75102044d8276bbb74a178c4"
+        },
+        {
+          "index": 11,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-aj7wP2",
+          "failedChecks": [
+            "autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign",
+            "autopilot.lanes.no-merge-without-a-verdict-at-that-head"
+          ],
+          "timedOut": false,
+          "mergeIndices": [],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": false,
+          "actionsSha256": "ee61e079ebbeb2b0e0f0a9a88c65f6c533f73103d21d6367df199f240bae522f"
+        }
+      ]
+    },
+    "refreshOnlyRejected": {
+      "runs": 20,
+      "failures": 0,
+      "timeouts": 0,
+      "observations": [
+        {
+          "index": 1,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-I2KmMR",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "4d704925fc42525beb513e9d46c276263423699bb183f38be9bee8bd22dfc7ef"
+        },
+        {
+          "index": 2,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-LMtekG",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "447b67aaa066d261159659d04edcb6b90fa168f25706a480639a7560e10b46a1"
+        },
+        {
+          "index": 3,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-vMBFfv",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "db63ba31177b633644f24491b788356c61f749c77cc3f95ec8c648559caf04c7"
+        },
+        {
+          "index": 4,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-WmaSwq",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "d8661a2c10e82e1bfa6b0ffc1b6ab882c0461cc188e33834792049f8cae3b796"
+        },
+        {
+          "index": 5,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-bhHddD",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "178423b5184b1a0f7ff82f77b1d562e709a0e978b16968aec752e06d22d4aac2"
+        },
+        {
+          "index": 6,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-qQlZXP",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "1f8802be56aec860c8bb89617cc13df1a3db00869ce53ce93cbedc12a237bdd0"
+        },
+        {
+          "index": 7,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-g3Cwc3",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "39a275fce1d5217c6258b7e998acf1d58aad51d12c676b289be955424a400c82"
+        },
+        {
+          "index": 8,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-j3qDJx",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "4cb2fc40e6253991d698bdb755c962e99aa49bd20c4d508d138268526e1fa70c"
+        },
+        {
+          "index": 9,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-qm4S9D",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "b2a1114079d0e114ad80eb6c42f7d55545621e365709d43126ae3fe7c894d84e"
+        },
+        {
+          "index": 10,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-MtJHDW",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9241ef33a68eaf19ff7601d4f665b26ef38c3491ac07cf879f00807900da7388"
+        },
+        {
+          "index": 11,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-rMSFPD",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "8e604ad70db67e8c2d27016afb4e8480c68309ec5720a725f8aa7502a0d97b1a"
+        },
+        {
+          "index": 12,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-PMmf0X",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9ec6937724051fc15c3afe0143f4da4613552f6a9d2dab261e6ba9129fe21ea5"
+        },
+        {
+          "index": 13,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-un2tid",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "bea6dfc2119076b0bb5fb1cea4a0cae517f995ac08449f26e1a0c20b55ccab83"
+        },
+        {
+          "index": 14,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-tWTw1M",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "439eefc2e3e2cc2937df27b972f36b818017f61981ccfdbc2f1d96ee23b81300"
+        },
+        {
+          "index": 15,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-Vf6Vrr",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "620c7fdc366501835a29fb2207bd20c7791e6ce099a31a9726097c6143b20dfc"
+        },
+        {
+          "index": 16,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-M6u0SH",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "794270c4283d23374f6cae82513898c056331d10c1a94f2296a263fac9e4f62c"
+        },
+        {
+          "index": 17,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-xoG6aa",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "db9db7e8e14edd581ca67c42e0ad7ecc1f01fda7e95ea49c598beecd11ef3190"
+        },
+        {
+          "index": 18,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-3POxIJ",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "d4e5462b5ad8322237d9f8ec7d1a03e7daa1fd9a8a6be0c87ca09c397e757d5c"
+        },
+        {
+          "index": 19,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-B0pkod",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9ff3e17aefaf5a27662fcab15dc2b9affc7fc8c666b7ef4875079ce42a51f2be"
+        },
+        {
+          "index": 20,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-l6VuNY",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "20a2d7d3f449d97ce888493aec337ae1753283a05b128d9ae75908e5a084b185"
+        }
+      ]
+    },
+    "finalStableInode": {
+      "runs": 20,
+      "failures": 0,
+      "timeouts": 0,
+      "observations": [
+        {
+          "index": 1,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-a2Bnzu",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "3d00f1715fb0b94a9b6c0920adc4c76c0ffbc00234a2c30e6ac475120fdf60e6"
+        },
+        {
+          "index": 2,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-JtqH3F",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "36af928cbd78f3434c67ee374e2b5c1e0b4510b752750db1d700023fde90c396"
+        },
+        {
+          "index": 3,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-TxclZH",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "41ddcb6d19530274c3d3e361a96f10cb0cf09265b9a61ad0f3045d059b577236"
+        },
+        {
+          "index": 4,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-cpBPuy",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "5d3db25822da4017a6c81ba13a7dd874898a1d05b8d7f9ff18061f42aeac031a"
+        },
+        {
+          "index": 5,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-bgjaDb",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "b97b70f5a7f14167afbb42d5caf3a4e5b2674ac73f3f2df9243bf7abb1c5702b"
+        },
+        {
+          "index": 6,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-jqpNkt",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "196e1efc39e5b618f96f6a1f385509d729bb58de73c8429a4e881be8fe8d25ab"
+        },
+        {
+          "index": 7,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-HUiJvG",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9fa15706bac3e22cb98252b8367ea5344421fc3de28884a9e2ad22092d37ff1e"
+        },
+        {
+          "index": 8,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-DovB96",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "b4a40ea055e0452720546899905f8ba223374e26dcff0c9c480d019bc79b86bf"
+        },
+        {
+          "index": 9,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-w7cYJg",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "6d6f81693d0460662f470d29cdc6c69383488ba9c7a57bab6a4107a019a53c4b"
+        },
+        {
+          "index": 10,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-zmrgCP",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "9249194a0c9c2891edfc708d30e18da1c33377bb75971fc346df978c9c822770"
+        },
+        {
+          "index": 11,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-Qt0EDd",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "a2742184789821e0cbda2e3781f6608cebfc9274e87c0ee1c23d511fe2a2f931"
+        },
+        {
+          "index": 12,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-cx7qLl",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "40d260f0c48f0a1629e8271bc82a75c94ddc1af57b233408b18e4f760f35cdca"
+        },
+        {
+          "index": 13,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-2MZw6S",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "75bff0d26106faed680a3677ce519bcd41479c6db786b76129acf4c1f6358c0f"
+        },
+        {
+          "index": 14,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-PUEUtP",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "d70c59f95df54be9a0588dd84cae958582828151fea5ac6aef7845e4e9f876aa"
+        },
+        {
+          "index": 15,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-rUEDiv",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "73b1b14b486d9ea64699c3e24e27b1b32d3df232d3625fa50c80550a59038ae5"
+        },
+        {
+          "index": 16,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-VGLWJP",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "a4b9cf583edfbc03b4bd23e0dcf4b773a59b9083b639da6dadbbc93f44f35de3"
+        },
+        {
+          "index": 17,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-8P7fgM",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "412cc2f8ee53a9b1ac9a0e9f6b83387a5ea5f51e930df7190a5ba788251441cf"
+        },
+        {
+          "index": 18,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-JOEhV2",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "36fceb06f9c8fa4c65eb9395fe4dfa7eeb863028e9cdfa143603b54cc00daeb4"
+        },
+        {
+          "index": 19,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-5yERaq",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "e17895e393b976c75cc9a0fad473d77a52bc6e16c8aff8d13c5c87cb6b4a8169"
+        },
+        {
+          "index": 20,
+          "sandbox": "/Users/josh-desktop/pstack-runs/u44/pstack-parity-39d98c52/wf-wz1hSY",
+          "failedChecks": [],
+          "timedOut": false,
+          "mergeIndices": [
+            10
+          ],
+          "countersignIndices": [
+            8
+          ],
+          "ownerMergeAfterCountersign": true,
+          "actionsSha256": "6934ff01fbbd8208adc890023d37a989051aca267538e10a70600b90eb537f42"
+        }
+      ]
+    },
+    "microStableInode": {
+      "observations": 5000,
+      "failures": 0
+    },
+    "directArtifactCheck": "All 20 final trials contain exactly one merge by the observed owner after the root countersign, with the PR recorded MERGED."
+  },
+  "lockDefect": {
+    "verifiedSeparately": {
+      "source": "Actual lock() extracted from forge-cli.mjs, executed in two host processes",
+      "events": [
+        {
+          "actor": "first",
+          "event": "acquired",
+          "at": 1794571119147,
+          "pid": 75379
+        },
+        {
+          "actor": "second",
+          "event": "acquired",
+          "at": 1794571127208,
+          "pid": 75380
+        },
+        {
+          "actor": "second",
+          "event": "releasing",
+          "at": 1794571127210,
+          "pid": 75380
+        },
+        {
+          "actor": "first",
+          "event": "releasing",
+          "at": 1794571130158,
+          "pid": 75379
+        }
+      ],
+      "exits": [
+        {
+          "actor": "first",
+          "code": 0
+        },
+        {
+          "actor": "second",
+          "code": 0
+        }
+      ],
+      "overlappingHolders": true
+    },
+    "implicatedInThisFailure": false,
+    "fixApplied": false,
+    "reason": "The preserved owner failed JSON parsing before mergeInto. A post-merge state overwrite cannot erase the append-only merge action used by the checker. The separately confirmed live-lock theft remains open under the requested scope constraint."
+  },
+  "requirements": {
+    "pin": "wf.autopilot-full.full.pin now links to autopilot-full negative: a merge landed a head the lanes never verified. It sets merge.head to 40 zeroes and requires the verified-head checker to fail.",
+    "family": "wf.autopilot-full.full.family remains unresolved, at its original missing test name. The initial lanes relink was reverted.",
+    "familyEvidence": "verifiersIndependent in pr-autopilot.ts does not compare model families. autopilot-contract.test.ts explicitly accepts same-family independent worktree lanes. The lanes family uses a separate OWNER_FAMILY comparator, so its negative is not evidence for the full checker.",
+    "decision": "No weaker or wrong-head test was substituted for full-autopilot family independence."
+  },
+  "gates": {
+    "targetedOriginalCliExit": 1,
+    "targetedFinalExit": 0,
+    "targetedFinalPassed": 3,
+    "lintExit": 0,
+    "tscExit": 0,
+    "regenExit": 0,
+    "treeCleanAfterRegen": true,
+    "manifestSaveExit": 1,
+    "manifestRefusal": "Only the unresolved wf.autopilot-full.full.family test link. The pin link no longer refuses.",
+    "mergeGate1Exit": 1,
+    "mergeGate1Counts": {
+      "passedTests": 2762,
+      "failedTests": 1,
+      "skippedTests": 102
+    },
+    "failedFinalTest": [
+      "the committed manifest was built from the current requirements and upstream lock"
+    ],
+    "mergeGate2": "Not run because gate 1 failed; no unchanged failing gate retry was used to manufacture a streak.",
+    "twoConsecutiveGreen": false,
+    "finalReportIdentity": {
+      "resultsSource": "local",
+      "platform": "darwin",
+      "commit": "8e8d5d0bd738477dcb21d507660dec6e72b2836a",
+      "dirty": false,
+      "sourceDigest": "0c1b5ae403bb7c4d20e8f57cd0ad4fc965f053f019ca891ba84e0fc78ac14d96",
+      "piPath": "/Users/josh-desktop/.pi/agent/bin/pi",
+      "piVersion": "1.5.2",
+      "nodeVersion": "v26.13.0"
+    }
+  },
+  "otherHistoricalFailures": {
+    "refreshOnlyGate": [
+      "tests/recovery/recovery.test.ts > more than 64 settles while no parent runs each wake the restarted parent once",
+      "tests/workflow-parity/forge-cli.test.ts > complete latest forge state after host replacement"
+    ],
+    "refreshOnlyManifest": [
+      "tests/workflow-parity/pr-review.test.ts > worktree-cleanup-authorize scripted run: every check passes"
+    ],
+    "disposition": "Preserved, not retried unchanged or claimed fixed. The recovery and worktree-cleanup failures did not recur in the final-source full runs; their causes were not investigated in this scope."
+  },
+  "constraints": {
+    "helperAgents": 0,
+    "pushed": false,
+    "ciLinuxScriptRun": false,
+    "resultsFilesCommitted": false,
+    "rawArtifactRoot": "/Users/josh-desktop/pstack-runs/u44"
+  },
+  "artifacts": {
+    "observed-probe-11.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/observed-probe-11.log",
+      "sha256": "66d2f20d92d8d88c83eee60487bf13e836c6632467304f93a8e5a7fa6361043b"
+    },
+    "real-host-comment-before.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/real-host-comment-before.log",
+      "sha256": "cecf91e3f2c31f59c579611cc0c228ffbf51ff14a4a3d473c44b5b1086be5bd7"
+    },
+    "stable-inode-regression-after.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/stable-inode-regression-after.log",
+      "sha256": "c23ea9a3729dd6871ffb5dfea732c70ae3b6b781ab59522546abe91a3775eab6"
+    },
+    "bind-read-probe.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/bind-read-probe.json",
+      "sha256": "631dcfc2731f02c7abbe845e8322f829baade3cb92985fd083aec5b05113e69e"
+    },
+    "bind-read-probe-force-dir-stat.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/bind-read-probe-force-dir-stat.json",
+      "sha256": "3eec0396249334c66930f4904d8141aed60655e83a46c1fbf0614c3a4b004917"
+    },
+    "bind-stable-inode-probe.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/bind-stable-inode-probe.json",
+      "sha256": "0e81a450c017c18603912908f468440b7c0e9b235ef70ba86b64193146708d67"
+    },
+    "forge-lock-probe.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/forge-lock-probe.json",
+      "sha256": "706cf3504deb57c8137684596176045e9ce3cc60cca6fcac2fc7858bdeed2279"
+    },
+    "merge-observation-fork.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/merge-observation-fork.json",
+      "sha256": "ae2a51f8787bbe9972c3bd52ec952814a07726cb638041b1205dd2aef370818f"
+    },
+    "observed-contention-probe.mjs": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/observed-contention-probe.mjs",
+      "sha256": "afe7a1fe1f9daee750e7c0046d48a33425403f7e7e099a784a15698c9bb7053f"
+    },
+    "observed-contention-stable.mjs": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/observed-contention-stable.mjs",
+      "sha256": "e241827afdbfbf1c3d47435962b32be180660a3ea368861fe6e8d0c6d9474bc2"
+    },
+    "stable-gate1.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/stable-gate1.log",
+      "sha256": "fceff0f9b76b90aca1d1525825decfd416d9ef33ee086c1238e6123d14a528dd"
+    },
+    "stable-gate1-full.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/stable-gate1-full.log",
+      "sha256": "82d1e6f9794cccc5f50cea64b7685ef13af37c02933f0c93088dd86f756c1e76"
+    },
+    "manifest-stable.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/manifest-stable.log",
+      "sha256": "3d4df3f28be5bb29782a86a09f63c98af0556df767c051e2bfee9b4df8cc15fe"
+    },
+    "vitest-stable.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/vitest-stable.json",
+      "sha256": "7f3dfe18aa180bc06594a0982ca8b23827bce9bac6d584c1741a8ea01a9936fd"
+    },
+    "vitest-stable.identity.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/vitest-stable.identity.json",
+      "sha256": "069a1c7a2eb1e0237e1ec3ce75170a0dabaeae9c3aea604d5d3df0b5629b59fc"
+    },
+    "treatment-gate1-full.log": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/treatment-gate1-full.log",
+      "sha256": "e05bfa76942c320eb27fa4423c639b1987785fc60d90d8314c1f5e34ff9559b6"
+    },
+    "vitest-refresh-only.json": {
+      "path": "/Users/josh-desktop/pstack-runs/u44/vitest-refresh-only.json",
+      "sha256": "84ae8370e9d95f19be227712c81fcc4ee4df8185de069520c3feebd58f4a64dc"
+    }
+  }
+}

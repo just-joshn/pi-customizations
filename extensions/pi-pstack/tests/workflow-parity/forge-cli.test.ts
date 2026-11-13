@@ -1,10 +1,14 @@
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
+import { createInterface } from 'node:readline';
 
 import { afterEach, expect, test } from 'vitest';
+import { DEFAULT_IMAGE } from '../../src/container.ts';
 import { type ForgeHandle, setupForge } from './fixtures/forge.ts';
+import { engineAvailable } from './lib/container-lock.ts';
 import type { Ctx } from './lib/driver.ts';
 
 const roots: string[] = [];
@@ -46,6 +50,42 @@ function fixture(): { ctx: Ctx; forge: ForgeHandle } {
 function call(ctx: Ctx, forge: ForgeHandle, tool: string, ...args: string[]) {
   return spawnSync(join(forge.bin, tool), args, { cwd: ctx.repo, encoding: 'utf8', env: { ...process.env, FORGE_GIT_DIR: forge.bare } });
 }
+
+test.skipIf(!engineAvailable())('a container reads every host forge comment in full', async () => {
+  const { ctx, forge } = fixture();
+  const reader = `const {spawnSync}=require('node:child_process');require('node:readline').createInterface({input:process.stdin}).on('line',()=>{const result=spawnSync('node',['/sandbox/forge/bin/forge-cli.mjs','gh','pr','view','71','--json','comments'],{encoding:'utf8',env:{...process.env,FORGE_GIT_DIR:'/sandbox/forge/origin.git',PSTACK_CONTAINER:'1'}});console.log(JSON.stringify({status:result.status,stdout:result.stdout,stderr:result.stderr}))});`;
+  const child = spawn(
+    'docker',
+    ['run', '--rm', '-i', '--name', basename(ctx.sandbox), '--user', `${process.getuid?.() ?? 0}:${process.getgid?.() ?? 0}`, '--mount', `type=bind,src=${ctx.sandbox},dst=/sandbox`, DEFAULT_IMAGE, 'node', '-e', reader],
+    { stdio: 'pipe' },
+  );
+  const exited = once(child, 'exit');
+  let stderr = '';
+  child.stderr.on('data', (data: Buffer) => {
+    stderr += data.toString();
+  });
+  const lines = createInterface({ input: child.stdout })[Symbol.asyncIterator]();
+  const bodies: string[] = [];
+  try {
+    for (let index = 0; index < 16; index += 1) {
+      for (const body of [`short-${index}`, `long-${index}-${'x'.repeat(512)}`]) {
+        const posted = call(ctx, forge, 'gh', 'pr', 'comment', '71', '--body', body);
+        expect(posted.status, posted.stderr).toBe(0);
+        bodies.push(body);
+        child.stdin.write('\n');
+        const line = await lines.next();
+        expect(line.done, stderr).toBe(false);
+        const result = JSON.parse(line.value ?? '{}') as { status: number | null; stdout: string; stderr: string };
+        expect(result.status, result.stderr).toBe(0);
+        expect(JSON.parse(result.stdout).comments.map((comment: { body: string }) => comment.body)).toEqual(bodies);
+      }
+    }
+  } finally {
+    child.stdin.end();
+    const [code] = await exited;
+    expect(code, stderr).toBe(0);
+  }
+});
 
 test('help at any command depth leaves forge state and actions unchanged', () => {
   const { ctx, forge } = fixture();

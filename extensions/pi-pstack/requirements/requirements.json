@@ -2885,7 +2885,7 @@
     },
     "wf.autopilot-full.full.pin": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",
-      "name": "autopilot-full negative: a merge was not pinned to the verified head"
+      "name": "autopilot-full negative: a merge landed a head the lanes never verified"
     },
     "wf.autopilot-full.full.root": {
       "file": "tests/workflow-parity/pr-autopilot.test.ts",

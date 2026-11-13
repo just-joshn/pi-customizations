@@ -598,6 +598,17 @@ async function execute(spec: RunSpec, driver: 'scripted' | 'real', options: Driv
     }
   } finally {
     stopObserving();
+    const runs = join(ctx.repo, '.pi', 'pstack', 'runs');
+    if (existsSync(runs)) {
+      const states = readdirSync(runs, { recursive: true, encoding: 'utf8' }).filter((path) => path.endsWith('/state.json')).map((path) => {
+        try {
+          return { path, state: JSON.parse(readFileSync(join(runs, path), 'utf8')) as Json };
+        } catch (error) {
+          return { path, error: String(error) };
+        }
+      });
+      writeFileSync(join(ctx.sandbox, 'worker-states-before-stop.json'), JSON.stringify(states, null, 2));
+    }
     await stopPi(child);
     spawnSync('tmux', ['-L', socket, 'kill-server'], { stdio: 'ignore' });
     rmSync(join(process.env['TMUX_TMPDIR'] || '/tmp', `tmux-${process.getuid?.()}`, socket), { force: true });
