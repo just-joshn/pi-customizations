@@ -41,10 +41,10 @@ Every row below is computed. `requirements/requirements.json` holds the requirem
 
 Computed from the Vitest result files below, by `node scripts/build-parity-manifest.mjs`. A requirement is PASS only when every linked test ran and passed on a platform it targets, and a failure on any platform is FAIL. A skipped, missing, or unlinked test is INCONCLUSIVE. `node scripts/check-release.mjs` exits non-zero until every mandatory requirement is PASS.
 
-| Result | Platform | Commit | Tests | Run |
-| --- | --- | --- | --- | --- |
-| 1 | darwin | `305584fc4f88` | 2573 passed, 0 failed, 93 skipped | local at 2026-11-13T03:18:31.301Z |
-| 2 | linux | `9f8165f173a2` | 2531 passed, 0 failed, 121 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43356789068 |
+| Result | Platform | Commit | Pi | Node | Tests | Run |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | darwin | `305584fc4f88` | unknown | unknown | 2573 passed, 0 failed, 93 skipped | local at 2026-11-13T03:18:31.301Z |
+| 2 | linux | `9f8165f173a2` | unknown | unknown | 2531 passed, 0 failed, 121 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43356789068 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |

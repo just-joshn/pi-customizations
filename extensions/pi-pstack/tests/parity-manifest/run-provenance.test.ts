@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
+import { toolchain, toolchainNotes } from '../../scripts/parity-lib.mjs';
 import { type MiniRoot, miniRoot, PKG } from './helpers.ts';
 
 let mini: MiniRoot;
@@ -41,6 +42,7 @@ interface Fake {
   exit?: number;
   signal?: boolean;
   touchWhileRunning?: string;
+  pi?: string;
 }
 
 /** `npx vitest run --reporter=json --outputFile=<path>` replaced by a script that writes the given report and exits as told. */
@@ -61,7 +63,10 @@ exit ${fake.exit ?? 0}
 `,
   );
   chmodSync(join(fakeBin, 'npx'), 0o755);
-  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', ...extra], { encoding: 'utf8', env: { ...process.env, PATH: `${fakeBin}:${process.env['PATH']}` } });
+  const r = spawnSync(process.execPath, [join(PKG, 'scripts/build-parity-manifest.mjs'), '--root', mini.root, '--no-docs', ...extra], {
+    encoding: 'utf8',
+    env: { ...process.env, ...(fake.pi === undefined ? {} : { PSTACK_E2E_PI: fake.pi }), PATH: `${fakeBin}:${process.env['PATH']}` },
+  });
   return { status: r.status, stderr: r.stderr };
 }
 const gate = () => {
@@ -200,5 +205,69 @@ describe('a Vitest run is accepted only when it finished and reported completely
     const g = gate();
     expect(g.status).toBe(1);
     expect(g.stderr).toContain('failed in the recorded run');
+  });
+});
+
+describe('each run records the Pi binary and the Node it executed against', () => {
+  const fakePi = (version: string) => {
+    fakeBin ||= mkdtempSync(join(tmpdir(), 'pstack-fake-npx-'));
+    const path = join(fakeBin, `pi-${version}`);
+    writeFileSync(path, `#!/bin/sh\necho ${version}\n`);
+    chmodSync(path, 0o755);
+    return path;
+  };
+
+  test('toolchain reads the version from the binary PSTACK_E2E_PI names, and null when it will not run', () => {
+    const pi = fakePi('7.8.9');
+    expect(toolchain({ PSTACK_E2E_PI: pi })).toMatchObject({ piPath: pi, piVersion: '7.8.9', nodeVersion: process.version });
+    expect(toolchain({ PSTACK_E2E_PI: join(fakeBin, 'missing') })).toMatchObject({ piVersion: null });
+  });
+
+  test('the local sidecar and the manifest name the binary, its version and Node', () => {
+    repo();
+    const pi = fakePi('7.8.9');
+    expect(build({ report: complete(passing), pi }, '--save', saved()).status).toBe(0);
+    const sidecar = JSON.parse(readFileSync(saved().replace(/\.json$/, '.identity.json'), 'utf8'));
+    expect(sidecar).toMatchObject({ piPath: pi, piVersion: '7.8.9', nodeVersion: process.version });
+    expect(manifest().runs[0]).toMatchObject({ piPath: pi, piVersion: '7.8.9', nodeVersion: process.version });
+    rmSync(manifestPath());
+    expect(importReport().status).toBe(0);
+    expect(manifest().runs[0]).toMatchObject({ piVersion: '7.8.9', nodeVersion: process.version });
+  });
+
+  test('the Linux identity step records the toolchain through the same function', () => {
+    expect(readFileSync(join(PKG, 'scripts/ci-linux/workflow.yml'), 'utf8')).toMatch(/\.\.\.toolchain\(\)/);
+  });
+
+  test('the default binary is the one the worker and driver tests default to', () => {
+    for (const file of ['tests/workflow-parity/lib/driver.ts', 'tests/worker-lifecycle/harness.ts', 'tests/integration/pi-load.test.ts']) {
+      expect(readFileSync(join(PKG, file), 'utf8')).toContain(`process.env['PSTACK_E2E_PI'] || '${toolchain({ PSTACK_E2E_PI: '' }).piPath}'`);
+    }
+  });
+
+  test('local and CI runs on different Pi versions are reported by check-release, not failed', () => {
+    repo();
+    build({ report: complete(passing), pi: fakePi('7.8.9') }, '--save', saved());
+    const before = gate();
+    expect(before.status, before.stderr).toBe(0);
+    expect(before.stderr).not.toContain('Pi versions differ');
+    const m = manifest();
+    m.runs.push({ ...m.runs[0], platform: 'linux', resultsSource: 'ci', runUrl: 'https://example.test/run/1', piVersion: '1.2.3' });
+    writeFileSync(manifestPath(), JSON.stringify(m));
+    const after = gate();
+    expect(after.status, after.stderr).toBe(0);
+    expect(after.stderr).toContain('Pi versions differ');
+    expect(after.stderr).toContain('7.8.9');
+    expect(after.stderr).toContain('1.2.3');
+  });
+
+  test('runs with the same version, or one whose version is unknown, produce no note', () => {
+    expect(
+      toolchainNotes([
+        { platform: 'darwin', piVersion: '1.5.2' },
+        { platform: 'linux', piVersion: '1.5.2' },
+      ]),
+    ).toEqual([]);
+    expect(toolchainNotes([{ platform: 'darwin', piVersion: '1.5.2' }, { platform: 'linux' }])).toEqual([]);
   });
 });

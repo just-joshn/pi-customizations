@@ -17,7 +17,22 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { absentLinkedTests, buildRecords, evaluate, loadInputs, renderStatusSection, requirementsDigest, runIdentity, sidecarIdentity, sourceState, spliceStatusSection, tally, UNATTRIBUTED, vitestRunOutcome } from './parity-lib.mjs';
+import {
+  absentLinkedTests,
+  buildRecords,
+  evaluate,
+  loadInputs,
+  renderStatusSection,
+  requirementsDigest,
+  runIdentity,
+  sidecarIdentity,
+  sourceState,
+  spliceStatusSection,
+  tally,
+  toolchain,
+  UNATTRIBUTED,
+  vitestRunOutcome,
+} from './parity-lib.mjs';
 
 const { values } = parseArgs({ options: { root: { type: 'string' }, results: { type: 'string', multiple: true }, save: { type: 'string' }, out: { type: 'string' }, docs: { type: 'string' }, 'no-docs': { type: 'boolean' } } });
 const root = resolve(values.root ?? join(dirname(fileURLToPath(import.meta.url)), '..'));
@@ -54,13 +69,13 @@ if (!resultFiles.length || values.save) {
     console.error(`parity manifest: ${appeared.length ? `files changed while Vitest ran (${appeared.join(', ')})` : 'git status failed'}, so the report cannot be attributed to the committed tree; nothing written`);
     process.exit(1);
   }
-  const identity = runIdentity(root, report, 'local', { commit: before.commit, dirty: before.dirty, sourceDigest: before.sourceDigest });
+  const identity = runIdentity(root, report, 'local', { commit: before.commit, dirty: before.dirty, sourceDigest: before.sourceDigest, ...toolchain() });
   if (values.save) {
     const target = resolve(values.save);
     mkdirSync(dirname(target), { recursive: true });
     writeFileSync(target, reportText);
-    const { platform, commit, dirty, sourceDigest } = identity;
-    writeFileSync(target.replace(/\.json$/, '.identity.json'), `${JSON.stringify({ resultsSource: 'local', platform, commit, dirty, sourceDigest }, null, 2)}\n`);
+    const { platform, commit, dirty, sourceDigest, piPath, piVersion, nodeVersion } = identity;
+    writeFileSync(target.replace(/\.json$/, '.identity.json'), `${JSON.stringify({ resultsSource: 'local', platform, commit, dirty, sourceDigest, piPath, piVersion, nodeVersion }, null, 2)}\n`);
   }
   loaded.push({ report, identity });
 }
