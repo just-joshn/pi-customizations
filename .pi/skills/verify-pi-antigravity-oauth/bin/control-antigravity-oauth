@@ -1,0 +1,774 @@
+#!/usr/bin/env node
+// Drives the pi-antigravity-oauth extension (google-antigravity provider) through the installed
+// `pi` CLI (print, RPC, and the interactive TUI in a private tmux server) against a local Cloud
+// Code Assist peer reached through CLOUD_CODE_URL, the same override `agy` honors. Every Pi
+// process gets a disposable agent dir, synthetic tokens, PATH stubs for `open`/`xdg-open` and
+// macOS `security`, and HTTP(S)_PROXY pointed at a local egress sink that refuses and records
+// every tunnel, so no run reaches Google, a real browser, or the real keychain.
+import assert from 'node:assert/strict';
+import { execFile, execFileSync, spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { existsSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { chmod, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { createServer } from 'node:http';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(HERE, '../../../..');
+const EXTENSION = join(REPO_ROOT, 'extensions/pi-antigravity-oauth');
+const EVIDENCE_ROOT = join(REPO_ROOT, 'artifacts/verify-pi-antigravity-oauth');
+const SCRATCH_PREFIX = 'verify-agy-oauth-';
+const PROVIDER = 'google-antigravity';
+const PI_BASE_ARGS = ['--no-session', '-ne', '-ns', '-np', '-nc', '-e', EXTENSION];
+const SCRUBBED_ENV = ['CLOUD_CODE_URL', 'HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'all_proxy', 'no_proxy', 'PI_CODING_AGENT_DIR', 'PI_OFFLINE'];
+const TIMEOUT_MS = 60_000;
+const FAR_FUTURE = 4102444800000;
+const IS_MAC = process.platform === 'darwin';
+// agy's user agent with Go's OS and arch spelling (src/cloudcode.ts).
+const GO_ARCH = { x64: 'amd64', ia32: '386' };
+const USER_AGENT = `antigravity/cli/1.4.12 (aidev_client; os_type=${process.platform === 'win32' ? 'windows' : process.platform}; arch=${GO_ARCH[process.arch] ?? process.arch}; cl=1010700967; auth_method=consumer)`;
+const SNAPSHOT_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'gemini-3.1-pro', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash', 'gpt-oss-120b'];
+
+const accessToken = (label) => `ya29.verify-${label}-${randomUUID().slice(0, 8)}`;
+const mask = (value) => (typeof value === 'string' && value.length > 12 ? `${value.slice(0, 12)}…${value.slice(-6)}` : value);
+const log = (line) => process.stdout.write(`${line}\n`);
+const sleep = (ms) => new Promise((done) => setTimeout(done, ms));
+
+function credential(label, extra = {}) {
+  return { type: 'oauth', access: accessToken(label), refresh: `1//verify-refresh-${randomUUID()}`, expires: FAR_FUTURE, projectId: `verify-project-${label}`, email: 'verify@example.test', ...extra };
+}
+
+// ---------- scratch run ----------
+
+async function createRun(feature) {
+  const root = await mkdtemp(join(tmpdir(), SCRATCH_PREFIX));
+  const run = { root, feature, agentDir: join(root, 'agent'), cwd: join(root, 'cwd'), binDir: join(root, 'bin'), openLog: join(root, 'open.log'), securityLog: join(root, 'security.log'), keychainFile: join(root, 'keychain-password.txt'), tmuxSocket: `${SCRATCH_PREFIX}${root.split('-').at(-1)}`, pids: [] };
+  await Promise.all([mkdir(run.agentDir), mkdir(run.cwd), mkdir(run.binDir), writeFile(run.openLog, ''), writeFile(run.securityLog, '')]);
+  for (const name of ['open', 'xdg-open']) await writeStub(join(run.binDir, name), `printf '%s\\n' "$*" >> '${run.openLog}'`);
+  // macOS keychain boundary: the extension spawns `security find-generic-password ... -w`.
+  // The stub logs its argv and prints the scratch password file, or fails like a missing item.
+  await writeStub(join(run.binDir, 'security'), `printf '%s\\n' "$*" >> '${run.securityLog}'\n[ -f '${run.keychainFile}' ] || { echo 'security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.' >&2; exit 44; }\ncat '${run.keychainFile}'`);
+  await saveRun(run);
+  return run;
+}
+
+async function writeStub(path, body) {
+  await writeFile(path, `#!/bin/sh\n${body}\n`);
+  await chmod(path, 0o755);
+}
+
+const saveRun = (run) => writeFile(join(run.root, 'run.json'), JSON.stringify(run, null, 2));
+
+function killRun(run) {
+  try {
+    execFileSync('tmux', ['-L', run.tmuxSocket, 'kill-server'], { stdio: 'ignore' });
+  } catch {
+    // No server on this socket.
+  }
+  rmSync(join(process.env.TMUX_TMPDIR ?? '/tmp', `tmux-${process.getuid()}`, run.tmuxSocket), { force: true });
+  for (const pid of run.pids ?? []) {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {
+      // Already gone.
+    }
+  }
+}
+
+async function destroyRun(run) {
+  killRun(run);
+  await rm(run.root, { recursive: true, force: true });
+}
+
+function piEnv(run, extra = {}) {
+  const env = { ...process.env };
+  for (const name of SCRUBBED_ENV) delete env[name];
+  return {
+    ...env,
+    PATH: `${run.binDir}:${process.env.PATH}`,
+    PI_CODING_AGENT_DIR: run.agentDir,
+    PI_SKIP_VERSION_CHECK: '1',
+    PI_TELEMETRY: '0',
+    CLOUD_CODE_URL: run.cloudCodeUrl,
+    HTTP_PROXY: run.egressUrl,
+    HTTPS_PROXY: run.egressUrl,
+    NO_PROXY: '127.0.0.1,localhost',
+    ...extra,
+  };
+}
+
+async function writeCredential(run, value) {
+  await writeFile(join(run.agentDir, 'auth.json'), JSON.stringify({ [PROVIDER]: value }, null, 2), { mode: 0o600 });
+}
+
+async function readAuth(run) {
+  const path = join(run.agentDir, 'auth.json');
+  return existsSync(path) ? JSON.parse((await readFile(path, 'utf8')) || '{}') : {};
+}
+
+// ---------- local Cloud Code peer and egress sink ----------
+
+const textChunks = (text) => [{ response: { responseId: `resp-${randomUUID().slice(0, 8)}`, candidates: [{ content: { role: 'model', parts: [{ text }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 2, totalTokenCount: 12 } } }];
+const callChunks = (id, name, args) => [{ response: { responseId: `resp-${randomUUID().slice(0, 8)}`, candidates: [{ content: { role: 'model', parts: [{ functionCall: { id, name, args } }] }, finishReason: 'STOP' }], usageMetadata: { promptTokenCount: 10, candidatesTokenCount: 2, totalTokenCount: 12 } } }];
+
+// One peer per drive. `routes` maps a v1internal method to a reply function or a queue of replies.
+async function startCloudCodePeer(run, routes = {}) {
+  const requests = [];
+  const streams = [];
+  const server = createServer((req, res) => {
+    const chunks = [];
+    req.on('data', (chunk) => chunks.push(chunk));
+    req.on('end', () => {
+      const text = Buffer.concat(chunks).toString('utf8');
+      let body = null;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // Recorded as null.
+      }
+      const method = /v1internal:([A-Za-z]+)/.exec(req.url)?.[1] ?? null;
+      requests.push({ method, url: req.url, headers: req.headers, body });
+      if (method === 'streamGenerateContent') {
+        res.writeHead(200, { 'content-type': 'text/event-stream' });
+        res.end((streams.shift() ?? textChunks('LOCAL_OK')).map((chunk) => `data: ${JSON.stringify(chunk)}\n\n`).join(''));
+        return;
+      }
+      const route = routes[method];
+      const reply = Array.isArray(route) ? (route.length > 1 ? route.shift() : route[0]) : route;
+      const [status, payload] = typeof reply === 'function' ? reply(body) : (reply ?? [404, { error: { message: `verify peer has no ${method}` } }]);
+      res.writeHead(status, { 'content-type': 'application/json' });
+      res.end(JSON.stringify(payload));
+    });
+  });
+  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  run.cloudCodeUrl = `http://127.0.0.1:${server.address().port}`;
+  return {
+    requests,
+    enqueue: (...replies) => streams.push(...replies),
+    close: () =>
+      new Promise((done) => {
+        server.close(() => done());
+        server.closeAllConnections();
+      }),
+  };
+}
+
+// Pi installs undici's EnvHttpProxyAgent with proxyTunnel, so every non-NO_PROXY request opens a
+// CONNECT here. The sink refuses it and records the target: a Google host in this log is a call
+// the extension tried to make, and none of them can succeed.
+async function startEgressSink(run) {
+  const attempts = [];
+  const server = createServer((req, res) => {
+    attempts.push({ kind: 'http', target: req.url });
+    res.writeHead(403).end();
+  });
+  server.on('connect', (req, socket) => {
+    attempts.push({ kind: 'connect', target: req.url });
+    socket.end('HTTP/1.1 403 Forbidden\r\n\r\n');
+  });
+  await new Promise((done) => server.listen(0, '127.0.0.1', done));
+  run.egressUrl = `http://127.0.0.1:${server.address().port}`;
+  return {
+    attempts,
+    hosts: () => attempts.map((a) => a.target),
+    close: () =>
+      new Promise((done) => {
+        server.close(() => done());
+        server.closeAllConnections();
+      }),
+  };
+}
+
+function describeRequest(request) {
+  const h = request.headers;
+  const inner = request.body?.request;
+  return {
+    method: request.method,
+    url: request.url,
+    authorization: h.authorization ? `${h.authorization.split(' ')[0]} ${mask(h.authorization.split(' ')[1])}` : null,
+    'user-agent': h['user-agent'],
+    ...(request.method === 'streamGenerateContent'
+      ? {
+          project: request.body?.project,
+          model: request.body?.model,
+          userAgent: request.body?.userAgent,
+          requestType: request.body?.requestType,
+          requestId: request.body?.requestId,
+          sessionId: inner?.sessionId ?? null,
+          thinkingConfig: inner?.generationConfig?.thinkingConfig ?? null,
+          maxOutputTokens: inner?.generationConfig?.maxOutputTokens ?? null,
+          systemInstruction: inner?.systemInstruction?.parts?.[0]?.text?.slice(0, 80) ?? null,
+          contents: (inner?.contents ?? []).map((content) => ({ role: content.role, parts: (content.parts ?? []).map((part) => Object.keys(part).join('+')) })),
+          tools: (inner?.tools ?? []).flatMap((tool) => (tool.functionDeclarations ?? []).map((fn) => fn.name)),
+        }
+      : { body: request.body }),
+  };
+}
+
+// ---------- Pi process drivers ----------
+
+function runPi(run, args, extraEnv = {}) {
+  return new Promise((done) => {
+    const child = execFile('pi', [...PI_BASE_ARGS, ...args], { cwd: run.cwd, env: piEnv(run, extraEnv), timeout: TIMEOUT_MS }, (error, stdout, stderr) => {
+      done({ args: ['pi', ...PI_BASE_ARGS, ...args].join(' '), exitCode: error ? (error.code ?? 1) : 0, stdout, stderr });
+    });
+    child.stdin.end();
+  });
+}
+
+function startRpc(run, args = []) {
+  const child = spawn('pi', [...PI_BASE_ARGS, '--offline', '--mode', 'rpc', ...args], { cwd: run.cwd, env: piEnv(run), stdio: ['pipe', 'pipe', 'pipe'] });
+  run.pids.push(child.pid);
+  const pending = new Map();
+  const waiters = [];
+  let stderr = '';
+  let seq = 0;
+  let buffer = '';
+  child.stdout.setEncoding('utf8');
+  child.stdout.on('data', (chunk) => {
+    buffer += chunk;
+    for (let at = buffer.indexOf('\n'); at >= 0; at = buffer.indexOf('\n')) {
+      const line = buffer.slice(0, at).trim();
+      buffer = buffer.slice(at + 1);
+      if (!line) continue;
+      let record;
+      try {
+        record = JSON.parse(line);
+      } catch {
+        continue;
+      }
+      if (record.type === 'response' && pending.has(record.id)) {
+        const { resolve: ok, reject: fail } = pending.get(record.id);
+        pending.delete(record.id);
+        record.success ? ok(record.data) : fail(new Error(record.error ?? `${record.command} failed`));
+        continue;
+      }
+      for (const waiter of [...waiters]) {
+        if (waiter.match(record)) {
+          waiters.splice(waiters.indexOf(waiter), 1);
+          waiter.done(record);
+        }
+      }
+    }
+  });
+  child.stderr.on('data', (chunk) => {
+    stderr += chunk;
+  });
+  const exited = new Promise((done) => child.once('close', done));
+  const rpc = {
+    send(command) {
+      seq += 1;
+      const id = `req-${seq}`;
+      return new Promise((ok, fail) => {
+        const timer = setTimeout(() => fail(new Error(`RPC ${command.type} timed out. stderr:\n${stderr}`)), TIMEOUT_MS);
+        pending.set(id, { resolve: (v) => (clearTimeout(timer), ok(v)), reject: (e) => (clearTimeout(timer), fail(e)) });
+        child.stdin.write(`${JSON.stringify({ id, ...command })}\n`);
+      });
+    },
+    waitFor(match) {
+      return new Promise((ok, fail) => {
+        const timer = setTimeout(() => fail(new Error(`RPC event wait timed out. stderr:\n${stderr}`)), TIMEOUT_MS);
+        waiters.push({ match, done: (record) => (clearTimeout(timer), ok(record)) });
+      });
+    },
+    async prompt(message) {
+      const settled = rpc.waitFor((record) => record.type === 'agent_settled');
+      const response = await rpc.send({ type: 'prompt', message });
+      if (response?.disposition !== 'handled') await settled;
+      return response;
+    },
+    async stop() {
+      child.stdin.end();
+      const timer = setTimeout(() => child.kill('SIGKILL'), 5000);
+      await exited;
+      clearTimeout(timer);
+    },
+  };
+  return rpc;
+}
+
+// tmux on a private socket: kill-server only ever touches the server this run started.
+function tmux(run, ...args) {
+  return execFileSync('tmux', ['-L', run.tmuxSocket, ...args], { encoding: 'utf8' });
+}
+
+async function startTui(run, { offline = true } = {}) {
+  const env = piEnv(run);
+  const exports = Object.entries(env)
+    .filter(([name]) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(name))
+    .map(([name, value]) => `export ${name}='${String(value).replaceAll("'", "'\\''")}'`);
+  const unsets = SCRUBBED_ENV.filter((name) => !(name in env)).map((name) => `unset ${name}`);
+  const args = [...(offline ? ['--offline'] : []), ...PI_BASE_ARGS];
+  const script = join(run.root, 'tui.sh');
+  await writeFile(script, ['#!/bin/sh', ...unsets, ...exports, `cd '${run.cwd}'`, `exec pi ${args.map((arg) => `'${arg}'`).join(' ')}`, ''].join('\n'));
+  await chmod(script, 0o755);
+  tmux(run, 'new-session', '-d', '-s', 'pi', '-x', '220', '-y', '60', script);
+  run.pids.push(Number(tmux(run, 'display-message', '-p', '-t', 'pi', '#{pane_pid}').trim()));
+  await saveRun(run);
+  await waitForPane(run, 'v1.');
+}
+
+async function stopTui(run) {
+  killRun(run);
+  run.pids = [];
+  await saveRun(run);
+}
+
+const pane = (run) => tmux(run, 'capture-pane', '-p', '-J', '-S', '-300', '-t', 'pi');
+
+async function waitForPane(run, needle, timeoutMs = 20_000) {
+  const deadline = Date.now() + timeoutMs;
+  for (;;) {
+    const text = pane(run);
+    if (needle instanceof RegExp ? needle.test(text) : text.includes(needle)) return text;
+    if (Date.now() > deadline) throw new Error(`TUI never showed ${needle}. Last pane:\n${text}`);
+    await sleep(200);
+  }
+}
+
+async function waitUntil(label, test, timeoutMs = 20_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (!(await test())) {
+    if (Date.now() > deadline) throw new Error(`Timed out waiting for ${label}`);
+    await sleep(100);
+  }
+}
+
+const keys = (run, ...names) => tmux(run, 'send-keys', '-t', 'pi', ...names);
+const type = (run, text) => tmux(run, 'send-keys', '-t', 'pi', '-l', text);
+
+// /login → Sign in with an account → Google Antigravity. Returns the pane after the provider is chosen.
+async function openAntigravityLogin(run) {
+  type(run, '/login');
+  keys(run, 'Enter');
+  await waitForPane(run, 'Select authentication method');
+  keys(run, 'Enter');
+  await waitForPane(run, 'Select provider to configure');
+  type(run, 'Antigravity');
+  await waitForPane(run, '→ Google Antigravity');
+  keys(run, 'Enter');
+}
+
+// ---------- evidence ----------
+
+async function evidenceDir(feature, out) {
+  const dir = resolve(out ?? join(EVIDENCE_ROOT, feature));
+  await rm(dir, { recursive: true, force: true });
+  await mkdir(dir, { recursive: true });
+  return {
+    dir,
+    json: (name, value) => writeFile(join(dir, name), `${JSON.stringify(value, null, 2)}\n`),
+    text: (name, value) => writeFile(join(dir, name), value),
+  };
+}
+
+const maskCredential = (value) => (value ? { ...value, access: mask(value.access), refresh: mask(value.refresh) } : value);
+
+// ---------- drives ----------
+
+const PROJECT_REPLY = (project) => [200, { cloudaicompanionProject: project, currentTier: { id: 'standard-tier', name: 'Standard' } }];
+
+const drives = {
+  async login(run, evidence) {
+    const egress = await startEgressSink(run);
+    const results = {};
+    try {
+      // Keychain import (macOS only): direct project, then a project that needs onboardUser.
+      for (const scenario of [
+        { name: 'keychain-import', routes: { loadCodeAssist: [PROJECT_REPLY('verify-project-keychain')] }, expectMethods: ['loadCodeAssist'], project: 'verify-project-keychain' },
+        { name: 'keychain-onboard', routes: { loadCodeAssist: [[200, { allowedTiers: [{ id: 'free-tier' }] }], PROJECT_REPLY('verify-project-onboarded')], onboardUser: [[200, { done: true }]] }, expectMethods: ['loadCodeAssist', 'onboardUser', 'loadCodeAssist'], project: 'verify-project-onboarded' },
+      ]) {
+        if (!IS_MAC) {
+          results[scenario.name] = `not offered on ${process.platform}: keychainImportAvailable() is darwin-only`;
+          continue;
+        }
+        const peer = await startCloudCodePeer(run, scenario.routes);
+        try {
+          const access = accessToken(scenario.name);
+          const refresh = `1//verify-refresh-${randomUUID()}`;
+          const expiry = '2099-12-31T00:00:00Z';
+          const payload = { token: { access_token: access, refresh_token: refresh, token_type: 'Bearer', expiry }, auth_method: 'consumer', id_token_email: 'verify@example.test' };
+          await writeFile(run.keychainFile, `go-keyring-base64:${Buffer.from(JSON.stringify(payload)).toString('base64')}\n`);
+          await writeFile(run.securityLog, '');
+          await rm(join(run.agentDir, 'auth.json'), { force: true });
+          const egressBefore = egress.attempts.length;
+          await startTui(run);
+          await openAntigravityLogin(run);
+          await evidence.text(`${scenario.name}-methods.txt`, await waitForPane(run, 'Import from the Antigravity CLI keychain'));
+          keys(run, 'Down', 'Enter');
+          await evidence.text(`${scenario.name}-result.txt`, await waitForPane(run, 'Logged in to Google Antigravity. Credentials saved'));
+          const auth = await readAuth(run);
+          const mode = (statSync(join(run.agentDir, 'auth.json')).mode & 0o777).toString(8);
+          const requests = peer.requests.map(describeRequest);
+          const securityArgv = (await readFile(run.securityLog, 'utf8')).trim();
+          results[scenario.name] = { authJsonMode: mode, credential: maskCredential(auth[PROVIDER]), securityArgv, requests, egress: egress.hosts().slice(egressBefore) };
+          assert.equal(securityArgv, 'find-generic-password -s gemini -a antigravity -w', 'keychain lookup argv');
+          assert.deepEqual(auth[PROVIDER], { type: 'oauth', access, refresh, expires: Date.parse(expiry) - 10_000, projectId: scenario.project, email: 'verify@example.test' });
+          assert.equal(mode, '600');
+          assert.deepEqual(requests.map((r) => r.method), scenario.expectMethods);
+          for (const request of requests) {
+            assert.equal(request['user-agent'], USER_AGENT);
+            assert.equal(request.authorization, `Bearer ${mask(access)}`);
+          }
+          assert.deepEqual(requests[0].body, { metadata: { ideType: 'ANTIGRAVITY' } });
+          if (scenario.expectMethods.includes('onboardUser')) assert.deepEqual(requests[1].body, { tierId: 'free-tier', metadata: { ideType: 'ANTIGRAVITY' } });
+          assert.deepEqual(egress.hosts().slice(egressBefore), [], 'Keychain import must not contact Google when Cloud Code names a project.');
+        } finally {
+          await stopTui(run);
+          await peer.close();
+        }
+      }
+
+      // Browser sign-in: the authorize URL reaches the (stubbed) browser and the pane; the pasted
+      // code goes to Google's token endpoint, which the egress sink refuses, so nothing is stored.
+      const peer = await startCloudCodePeer(run);
+      try {
+        await rm(join(run.agentDir, 'auth.json'), { force: true });
+        const egressBefore = egress.attempts.length;
+        await startTui(run);
+        await openAntigravityLogin(run);
+        if (IS_MAC) {
+          await waitForPane(run, 'Sign in with Google in the browser');
+          keys(run, 'Enter');
+        }
+        await evidence.text('browser-authorize.txt', await waitForPane(run, 'Paste the authorization code here:'));
+        await waitUntil('browser opener', async () => (await readFile(run.openLog, 'utf8')).trim());
+        const opened = (await readFile(run.openLog, 'utf8')).trim().split('\n').filter(Boolean);
+        assert.equal(opened.length, 1, 'Browser sign-in should open exactly one URL.');
+        const url = new URL(opened[0]);
+        const params = Object.fromEntries(url.searchParams);
+        assert.equal(`${url.origin}${url.pathname}`, 'https://accounts.google.com/o/oauth2/auth');
+        assert.equal(params.client_id, '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com');
+        assert.equal(params.redirect_uri, 'https://antigravity.google/oauth-callback');
+        assert.equal(params.response_type, 'code');
+        assert.equal(params.access_type, 'offline');
+        assert.equal(params.prompt, 'consent');
+        assert.equal(params.code_challenge_method, 'S256');
+        for (const scope of ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/cclog', 'https://www.googleapis.com/auth/experimentsandconfigs', 'https://www.googleapis.com/auth/aicode', 'openid']) {
+          assert.ok(params.scope.split(' ').includes(scope), `scope ${scope} missing`);
+        }
+        assert.ok(params.state && params.code_challenge);
+        type(run, 'verify-code-not-real');
+        keys(run, 'Enter');
+        const failed = await waitForPane(run, 'Failed to login to Google Antigravity: fetch failed');
+        await evidence.text('browser-paste-result.txt', failed);
+        const egressHosts = egress.hosts().slice(egressBefore);
+        results.browser = { authorizeUrl: { origin: url.origin, path: url.pathname, params: { ...params, state: mask(params.state), code_challenge: mask(params.code_challenge) } }, egress: egressHosts, cloudCodeRequests: peer.requests.length };
+        assert.deepEqual(egressHosts, ['oauth2.googleapis.com:443'], 'The pasted code must go only to Google’s token endpoint.');
+        assert.equal(peer.requests.length, 0, 'No project lookup may happen without a token.');
+        assert.equal((await readAuth(run))[PROVIDER], undefined, 'A failed exchange must not store a credential.');
+      } finally {
+        await stopTui(run);
+        await peer.close();
+      }
+      await evidence.json('login.json', results);
+      return Object.fromEntries(Object.entries(results).map(([k, v]) => [k, typeof v === 'string' ? v : v.credential ? `stored projectId ${v.credential.projectId} via ${v.requests.map((r) => r.method).join(' → ')}` : `authorize URL opened; paste reached ${v.egress.join(', ')} and stored nothing`]));
+    } finally {
+      await egress.close();
+    }
+  },
+
+  async chat(run, evidence) {
+    const egress = await startEgressSink(run);
+    const peer = await startCloudCodePeer(run);
+    try {
+      const cred = credential('chat');
+      const cases = [];
+      const attempt = async (name, args, expectModel, expectThinking) => {
+        const before = peer.requests.length;
+        const result = await runPi(run, ['--offline', '-p', 'Reply LOCAL_OK.', ...args]);
+        const sent = peer.requests.slice(before).map(describeRequest);
+        cases.push({ name, ...result, requests: sent });
+        if (!expectModel) {
+          assert.notEqual(result.exitCode, 0, `${name} should fail`);
+          assert.equal(sent.length, 0, `${name} must not reach Cloud Code`);
+          assert.match(`${result.stdout}${result.stderr}`, /No API key found for google-antigravity/, name);
+          return;
+        }
+        assert.equal(result.exitCode, 0, `${name}: ${result.stderr}`);
+        assert.equal(result.stdout.trim(), 'LOCAL_OK', name);
+        assert.equal(sent.length, 1, name);
+        const [request] = sent;
+        assert.equal(request.url, '/v1internal:streamGenerateContent?alt=sse', name);
+        assert.equal(request['user-agent'], USER_AGENT, name);
+        assert.equal(request.authorization, `Bearer ${mask(cred.access)}`, name);
+        assert.equal(request.project, cred.projectId, name);
+        assert.equal(request.userAgent, 'antigravity', name);
+        assert.equal(request.requestType, 'agent', name);
+        assert.ok(request.requestId.startsWith(`agent/${request.sessionId}/`), `${name}: requestId names Pi's session`);
+        assert.match(request.requestId, /^agent\/[^/]+\/\d+\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/1$/, name);
+        assert.equal(request.model, expectModel, name);
+        assert.deepEqual(request.thinkingConfig, expectThinking, name);
+        assert.ok(request.systemInstruction, `${name}: Pi's system prompt should be the systemInstruction`);
+        assert.deepEqual(request.contents, [{ role: 'user', parts: ['text'] }], name);
+      };
+      await attempt('no credential', ['--provider', PROVIDER, '--model', 'claude-sonnet-5-5'], null);
+      await writeCredential(run, cred);
+      const claude = ['--provider', PROVIDER, '--model', 'claude-sonnet-5-5'];
+      await attempt('claude low', [...claude, '--thinking', 'low'], 'claude-sonnet-5-5-low', { includeThoughts: true, thinkingBudget: 0, thinkingLevel: 'LOW' });
+      await attempt('claude high', [...claude, '--thinking', 'high'], 'claude-sonnet-5-5-high', { includeThoughts: true, thinkingBudget: 0, thinkingLevel: 'HIGH' });
+      await attempt('claude off → lowest effort', [...claude, '--thinking', 'off'], 'claude-sonnet-5-5-low', { includeThoughts: true, thinkingBudget: 0, thinkingLevel: 'LOW' });
+      const gemini = ['--provider', PROVIDER, '--model', 'gemini-3.1-pro'];
+      await attempt('gemini-3.1-pro high → deprecated alias gemini-pro-agent', [...gemini, '--thinking', 'high'], 'gemini-pro-agent', { includeThoughts: true, thinkingBudget: 10001 });
+      await attempt('gemini-3.1-pro low', [...gemini, '--thinking', 'low'], 'gemini-3.1-pro-low', { includeThoughts: true, thinkingBudget: 1001 });
+      // gemini-3.1-pro has no medium effort; Pi's clampThinkingLevel breaks the low/high tie upward.
+      await attempt('gemini-3.1-pro medium → high (no medium effort)', [...gemini, '--thinking', 'medium'], 'gemini-pro-agent', { includeThoughts: true, thinkingBudget: 10001 });
+      assert.deepEqual(egress.hosts(), [], 'Chat must not contact any host but Cloud Code.');
+      await evidence.json('cases.json', { userAgent: USER_AGENT, egress: egress.attempts, cases });
+      return cases.map((c) => `${c.name}: exit ${c.exitCode}${c.requests[0] ? `, ${c.requests[0].model} ${JSON.stringify(c.requests[0].thinkingConfig)}` : ', 0 requests'}`);
+    } finally {
+      await peer.close();
+      await egress.close();
+    }
+  },
+
+  async 'tool-calls'(run, evidence) {
+    const egress = await startEgressSink(run);
+    const peer = await startCloudCodePeer(run);
+    await writeCredential(run, credential('tools'));
+    await writeFile(join(run.cwd, 'probe.txt'), 'LOCAL_FILE\n');
+    const results = {};
+    try {
+      for (const { model, tool, args, expectText, resultRole } of [
+        { model: 'gemini-3.8-flash', tool: 'read', args: { path: 'probe.txt' }, expectText: 'LOCAL_FILE', resultRole: 'model' },
+        { model: 'claude-sonnet-5-5', tool: 'bash', args: { command: 'printf BASH_OK' }, expectText: 'BASH_OK', resultRole: 'user' },
+      ]) {
+        const before = peer.requests.length;
+        const rpc = startRpc(run, ['--provider', PROVIDER, '--model', model, '--thinking', 'low']);
+        try {
+          peer.enqueue(callChunks(`call_${tool}_probe`, tool, args), textChunks('LOCAL_OK'));
+          await rpc.prompt(`Use the ${tool} probe.`);
+          const messages = await rpc.send({ type: 'get_messages' });
+          const toolResults = (messages.messages ?? messages).filter((m) => m.role === 'toolResult').map((m) => ({ toolName: m.toolName, isError: m.isError, text: m.content.filter((b) => b.type === 'text').map((b) => b.text).join('') }));
+          const raw = peer.requests.slice(before);
+          const declarations = raw[0].body.request.tools.flatMap((t) => t.functionDeclarations);
+          const declared = declarations.find((fn) => fn.name === tool);
+          const followUp = raw[1].body.request.contents.at(-1);
+          results[model] = { requests: raw.map(describeRequest), toolResults, declaration: declared, followUpTurn: followUp };
+          assert.equal(raw.length, 2, model);
+          assert.ok(declared, `${model}: ${tool} not declared`);
+          assert.equal(declared.parameters?.type, 'OBJECT', `${model}: OpenAPI parameters with upper-case types`);
+          assert.ok(Object.values(declared.parameters.properties).every((p) => typeof p.type !== 'string' || p.type === p.type.toUpperCase()));
+          assert.deepEqual(toolResults.map((r) => [r.toolName, r.isError]), [[tool, false]], model);
+          assert.ok(toolResults[0].text.includes(expectText), model);
+          assert.equal(followUp.role, resultRole, `${model}: tool result turn role`);
+          assert.equal(followUp.parts[0].functionResponse?.name, tool, model);
+          assert.equal(followUp.parts[0].functionResponse?.id, `call_${tool}_probe`, model);
+          assert.match(raw[1].body.requestId, /\/3$/, `${model}: the follow-up is step 3 of the turn`);
+        } finally {
+          await rpc.stop();
+        }
+      }
+      assert.deepEqual(egress.hosts(), []);
+      await evidence.json('tool-calls.json', results);
+      return Object.fromEntries(Object.entries(results).map(([model, r]) => [model, `${r.toolResults[0].toolName}: ${r.toolResults[0].text.trim()} (result in ${r.followUpTurn.role} turn)`]));
+    } finally {
+      await peer.close();
+      await egress.close();
+    }
+  },
+
+  async 'model-catalog'(run, evidence) {
+    const egress = await startEgressSink(run);
+    // The account's live catalog: two Sonnet efforts and one Flash effort, nothing else.
+    const live = {
+      models: {
+        'claude-sonnet-5-5-low': { displayName: 'Claude Sonnet 5.5 (Low)', supportsImages: true, supportsThinking: true, thinkingBudget: 1024, thinkingLevel: 1, maxTokens: 1000000, maxOutputTokens: 128000 },
+        'claude-sonnet-5-5-high': { displayName: 'Claude Sonnet 5.5 (High)', supportsImages: true, supportsThinking: true, thinkingBudget: 32000, thinkingLevel: 3, maxTokens: 1000000, maxOutputTokens: 128000 },
+        'gemini-9-flash-medium': { displayName: 'Gemini 9 Flash (Medium)', supportsImages: true, supportsThinking: true, thinkingBudget: 4000, maxTokens: 1048576, maxOutputTokens: 65536 },
+      },
+      agentModelSorts: [{ groups: [{ modelIds: ['claude-sonnet-5-5-low', 'claude-sonnet-5-5-high', 'gemini-9-flash-medium'] }] }],
+    };
+    const peer = await startCloudCodePeer(run, { fetchAvailableModels: [[200, live]] });
+    const cred = credential('catalog');
+    try {
+      await writeCredential(run, cred);
+      const listed = await runPi(run, ['--offline', '--list-models', PROVIDER]);
+      const offlineIds = listed.stdout.split('\n').filter((line) => line.startsWith(PROVIDER)).map((line) => line.split(/\s+/)[1]);
+      await evidence.text('list-models-offline.txt', `${listed.args}\nexit ${listed.exitCode}\n\n${listed.stdout}\n--- stderr ---\n${listed.stderr}`);
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      assert.deepEqual(offlineIds, SNAPSHOT_MODELS, 'Offline listing is the bundled snapshot.');
+      assert.equal(peer.requests.length, 0, 'Offline listing must not call Cloud Code.');
+
+      // The TUI model selector refreshes catalogs over the network (Pi without --offline).
+      await startTui(run, { offline: false });
+      type(run, '/model');
+      keys(run, 'Enter');
+      await waitUntil('fetchAvailableModels', () => peer.requests.some((r) => r.method === 'fetchAvailableModels'));
+      const selector = await waitForPane(run, 'Model catalogs refreshed.');
+      await evidence.text('model-selector.txt', selector);
+      keys(run, 'Escape');
+      const fetches = peer.requests.filter((r) => r.method === 'fetchAvailableModels').map(describeRequest);
+      await evidence.json('catalog.json', { offlineIds, fetches, egress: egress.attempts });
+      assert.deepEqual(fetches[0].body, { project: cred.projectId });
+      assert.equal(fetches[0]['user-agent'], USER_AGENT);
+      assert.equal(fetches[0].authorization, `Bearer ${mask(cred.access)}`);
+      assert.match(selector, /claude-sonnet-5-5 \(Claude Sonnet 5\.5 \(Antigravity\)\) \[google-antigravity\]/);
+      assert.match(selector, /gemini-9-flash \(Gemini 9 Flash \(Antigravity\)\) \[google-antigravity\]/);
+      assert.doesNotMatch(selector, /claude-opus-5-5|gemini-3\.1-pro|gpt-oss-120b/, 'Snapshot models the account lacks must disappear.');
+      assert.ok(!egress.hosts().some((host) => /google/.test(host)), 'The catalog refresh must not contact Google directly.');
+
+      // Pi saves the last live list and uses it offline and in print/RPC mode (docs/providers.md).
+      await stopTui(run);
+      const fetchesBefore = peer.requests.length;
+      const relisted = await runPi(run, ['--offline', '--list-models', PROVIDER]);
+      const savedIds = relisted.stdout.split('\n').filter((line) => line.startsWith(PROVIDER)).map((line) => line.split(/\s+/)[1]);
+      await evidence.text('list-models-after-refresh.txt', `${relisted.args}\nexit ${relisted.exitCode}\n\n${relisted.stdout}\n--- stderr ---\n${relisted.stderr}`);
+      assert.equal(relisted.exitCode, 0, relisted.stderr);
+      assert.deepEqual(savedIds, ['claude-sonnet-5-5', 'gemini-9-flash'], 'Offline listing after a live refresh shows the saved live catalog.');
+      assert.equal(peer.requests.length, fetchesBefore, 'The saved catalog is used without a new fetch.');
+      return { offline: offlineIds, live: ['claude-sonnet-5-5', 'gemini-9-flash'], savedOffline: savedIds, otherEgress: [...new Set(egress.hosts())] };
+    } finally {
+      await stopTui(run);
+      await peer.close();
+      await egress.close();
+    }
+  },
+
+  async 'account-command'(run, evidence) {
+    const egress = await startEgressSink(run);
+    const quota = { groups: [{ displayName: 'Claude', buckets: [{ displayName: 'Daily', remainingFraction: 0.42, resetTime: new Date(Date.now() + 90 * 60_000).toISOString() }] }] };
+    const peer = await startCloudCodePeer(run, {
+      loadCodeAssist: [PROJECT_REPLY('ignored-by-command')],
+      retrieveUserQuotaSummary: [[200, quota], [500, { error: { message: 'verify quota outage' } }], [200, quota]],
+    });
+    const cases = {};
+    try {
+      const notLoggedIn = await runPi(run, ['--offline', '-p', '/antigravity']);
+      cases.notLoggedIn = { ...notLoggedIn, requests: peer.requests.length };
+      assert.match(`${notLoggedIn.stdout}${notLoggedIn.stderr}`, /Google Antigravity is not logged in\. Run \/login/);
+      assert.equal(peer.requests.length, 0);
+
+      const cred = credential('account');
+      await writeCredential(run, cred);
+      const egressBefore = egress.attempts.length;
+      const summary = await runPi(run, ['--offline', '-p', '/antigravity']);
+      const out = `${summary.stdout}${summary.stderr}`;
+      const requests = peer.requests.map(describeRequest);
+      cases.summary = { ...summary, requests, egress: egress.hosts().slice(egressBefore) };
+      assert.match(out, /Account: unknown/, 'userinfo is refused at the egress sink, so the email is unknown');
+      assert.match(out, new RegExp(`Project: ${cred.projectId}`));
+      assert.match(out, /Tier: Standard \(standard-tier\)/);
+      assert.match(out, /Claude:\n\s+Daily: 42% left, resets in 1h (29|30)m/);
+      assert.deepEqual(requests.map((r) => r.method).sort(), ['loadCodeAssist', 'retrieveUserQuotaSummary']);
+      assert.deepEqual(requests.find((r) => r.method === 'retrieveUserQuotaSummary').body, { project: cred.projectId });
+      assert.deepEqual(cases.summary.egress, ['www.googleapis.com:443'], 'Only the userinfo email lookup leaves for Google.');
+
+      const failed = await runPi(run, ['--offline', '-p', '/antigravity']);
+      cases.quotaError = failed;
+      assert.match(`${failed.stdout}${failed.stderr}`, /Quota:\n\s+unavailable: retrieveUserQuotaSummary failed \(500\): verify quota outage/);
+
+      await startTui(run);
+      type(run, '/antigravity');
+      keys(run, 'Enter');
+      const tui = await waitForPane(run, `Project: ${cred.projectId}`);
+      await evidence.text('tui-antigravity.txt', tui);
+      assert.match(tui, /Daily: 42% left/);
+      await evidence.json('cases.json', cases);
+      return { printMode: out.trim().split('\n'), quotaError: 'unavailable: retrieveUserQuotaSummary failed (500)', tui: 'notification shows Project and quota' };
+    } finally {
+      await stopTui(run);
+      await peer.close();
+      await egress.close();
+    }
+  },
+};
+
+// ---------- commands ----------
+
+async function doctor() {
+  const checks = [];
+  const check = async (name, fn) => {
+    try {
+      checks.push({ name, ok: true, detail: await fn() });
+    } catch (error) {
+      checks.push({ name, ok: false, detail: error.message.split('\n')[0] });
+    }
+  };
+  await check('node >= 22.19.0', () => {
+    const [major, minor] = process.versions.node.split('.').map(Number);
+    assert.ok(major > 22 || (major === 22 && minor >= 19), process.version);
+    return process.version;
+  });
+  await check('pi on PATH', () => execFileSync('pi', ['--version'], { encoding: 'utf8' }).trim());
+  await check('tmux on PATH (login, model-catalog, account-command drives)', () => execFileSync('tmux', ['-V'], { encoding: 'utf8' }).trim());
+  await check('extension source present', () => {
+    assert.ok(existsSync(join(EXTENSION, 'src/index.ts')));
+    assert.ok(existsSync(join(EXTENSION, 'node_modules')), 'run `bun install --frozen-lockfile` at the repo root');
+    return EXTENSION;
+  });
+  await check('extension registers google-antigravity', async () => {
+    const run = await createRun('doctor');
+    try {
+      await writeCredential(run, credential('doctor'));
+      const result = await runPi(run, ['--offline', '--list-models', PROVIDER]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.match(result.stdout, new RegExp(`${PROVIDER}\\s+claude-sonnet-5-5`), result.stdout);
+      return `${result.stdout.trim().split('\n').length - 1} models listed`;
+    } finally {
+      await destroyRun(run);
+    }
+  });
+  checks.push({ name: 'keychain import offered', ok: true, detail: IS_MAC ? 'yes (darwin)' : `no (${process.platform}); login drive covers browser only` });
+  const leftovers = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  checks.push({ name: 'no leftover scratch runs', ok: leftovers.length === 0, detail: leftovers.length ? `${leftovers.length} found; run \`control-antigravity-oauth cleanup\`` : 'none' });
+  const ambient = SCRUBBED_ENV.filter((name) => process.env[name]);
+  checks.push({ name: 'ambient proxy/Cloud Code/Pi env (scrubbed from drives)', ok: true, detail: ambient.length ? ambient.join(', ') : 'none' });
+  for (const { name, ok, detail } of checks) log(`${ok ? 'ok  ' : 'FAIL'} ${name}: ${detail}`);
+  if (checks.some((c) => !c.ok)) process.exitCode = 1;
+}
+
+async function drive(feature, out, keep) {
+  const fn = drives[feature];
+  if (!fn) throw new Error(`Unknown feature ${feature}. Known: ${Object.keys(drives).join(', ')}`);
+  const evidence = await evidenceDir(feature, out);
+  const run = await createRun(feature);
+  const startedAt = new Date().toISOString();
+  let summary;
+  let failure;
+  try {
+    summary = await fn(run, evidence);
+  } catch (error) {
+    failure = error;
+    try {
+      if (existsSync(join(run.root, 'tui.sh'))) await evidence.text('failure-pane.txt', pane(run));
+    } catch {
+      // No pane to capture.
+    }
+  } finally {
+    const piVersion = execFileSync('pi', ['--version'], { encoding: 'utf8' }).trim();
+    await evidence.json('run.json', { feature, startedAt, finishedAt: new Date().toISOString(), piVersion, platform: `${process.platform}/${process.arch}`, extension: EXTENSION, status: failure ? 'FAIL' : 'PASS', error: failure?.message, summary, scratch: keep ? run.root : '(removed)' });
+    if (keep) killRun(run);
+    else await destroyRun(run);
+  }
+  log(JSON.stringify({ feature, status: failure ? 'FAIL' : 'PASS', evidence: evidence.dir, summary, error: failure?.message }, null, 2));
+  if (failure) process.exitCode = 1;
+}
+
+async function cleanup() {
+  const runs = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  for (const name of runs) {
+    const root = join(tmpdir(), name);
+    const file = join(root, 'run.json');
+    if (existsSync(file)) killRun(JSON.parse(readFileSync(file, 'utf8')));
+    await rm(root, { recursive: true, force: true });
+    log(`removed ${root}`);
+  }
+  if (runs.length === 0) log('nothing to clean');
+}
+
+const [command, feature, ...rest] = process.argv.slice(2);
+const flag = (name) => {
+  const at = rest.indexOf(`--${name}`);
+  const value = rest[at + 1];
+  return at < 0 ? undefined : value && !value.startsWith('--') ? value : true;
+};
+if (command === 'doctor') await doctor();
+else if (command === 'drive') await drive(feature, flag('out'), rest.includes('--keep'));
+else if (command === 'cleanup') await cleanup();
+else {
+  log(`usage: control-antigravity-oauth doctor | drive <${Object.keys(drives).join('|')}> [--out <dir>] [--keep] | cleanup`);
+  process.exitCode = command ? 1 : 0;
+}
