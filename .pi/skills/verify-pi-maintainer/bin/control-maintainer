@@ -1,0 +1,489 @@
+#!/usr/bin/env node
+// Drives the pi-maintainer extension through the installed `pi` CLI (print and RPC modes) the way a user does:
+// the package loads from settings.json `packages` (what `pi install ./extensions/pi-maintainer` writes), and the
+// only fake is the model, bin/scripted-coder.ts (`scripted/coder`), which replies with the `@@reply <json>` line
+// of the prompt and a fixed commit subject. Each run gets a disposable HOME, agent dir, and a git repo as cwd,
+// so no run touches ~/.pi/agent, a real model, or the network.
+import assert from 'node:assert/strict';
+import { execFileSync, spawn } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = resolve(HERE, '../../../..');
+const PACKAGE = join(REPO_ROOT, 'extensions/pi-maintainer');
+const MODEL_EXT = join(HERE, 'scripted-coder.ts');
+const EVIDENCE_ROOT = join(REPO_ROOT, 'artifacts/verify-pi-maintainer');
+const SCRATCH_PREFIX = 'verify-pi-maintainer-';
+const FEATURES = ['edit', 'chat-files', 'git', 'repo-map', 'lint-test'];
+const COMMANDS = ['add', 'drop', 'read-only', 'reset', 'undo', 'git', 'commit', 'diff', 'map', 'map-refresh', 'lint', 'test'];
+const COMMIT_SUBJECT = 'feat: scripted edit';
+const TRAILER = /Co-authored-by: pi \(coder\) <noreply@pi\.dev>/;
+const TIMEOUT_MS = 60_000;
+// Variables that would point a child at the user's real session or model, or change maintainer settings.
+const SCRUB = /^(PI_CODING_AGENT|PI_SESSION|PI_PSTACK_|PI_MODEL$|PI_PROVIDER$|PI_REASONING_LEVEL$|PI_OFFLINE$|PSTACK_|PI_MAINTAINER_|AIDER_|GIT_)/;
+
+const APP_PY = 'def greet():\n    return "hi"\n\n\nclass Store:\n    def get(self, key):\n        return key\n';
+const NOTES_MD = 'Style: greet() returns a short word.\n';
+
+const log = (line) => process.stdout.write(`${line}\n`);
+/** A prompt whose model reply is exactly `reply`. The directive goes on line 2: Pi reads a first-line `@x` as a file. */
+const withReply = (ask, reply) => `${ask}\n@@reply ${JSON.stringify(reply)}`;
+const editBlock = (file, search, replace) => `${file}\n<<<<<<< SEARCH\n${search}=======\n${replace}>>>>>>> REPLACE\n`;
+const wholeFile = (file, content) => `${file}\n\`\`\`\n${content}\`\`\`\n`;
+
+// ---------- scratch run ----------
+
+function createRun(feature, config) {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), SCRATCH_PREFIX)));
+  const run = { root, feature, agentDir: join(root, 'agent'), work: join(root, 'work'), home: join(root, 'home'), logDir: join(root, 'log'), pids: [] };
+  for (const dir of [run.agentDir, run.work, run.home, run.logDir]) mkdirSync(dir);
+  writeFileSync(join(run.agentDir, 'settings.json'), JSON.stringify({ packages: [PACKAGE], extensions: [MODEL_EXT], quietStartup: true }, null, 2));
+  writeFileSync(join(run.home, '.gitconfig'), '[user]\n\tname = Verify Maintainer\n\temail = verify@example.invalid\n[init]\n\tdefaultBranch = main\n');
+  saveRun(run);
+  // A user's existing repo: one commit, `.pi-maintainer*` already ignored, so startup asks nothing.
+  writeFileSync(join(run.work, 'app.py'), APP_PY);
+  writeFileSync(join(run.work, 'NOTES.md'), NOTES_MD);
+  writeFileSync(join(run.work, '.gitignore'), '.pi-maintainer*\n');
+  git(run, ['init', '-q']);
+  git(run, ['add', '-A']);
+  git(run, ['commit', '-qm', 'init']);
+  writeFileSync(join(run.work, '.pi-maintainer.conf.yml'), config);
+  return run;
+}
+
+const saveRun = (run) => writeFileSync(join(run.root, 'run.json'), JSON.stringify(run, null, 2));
+const git = (run, args) => execFileSync('git', args, { cwd: run.work, env: childEnv(run), encoding: 'utf8' });
+const headSubject = (run) => git(run, ['log', '-1', '--format=%s']).trim();
+const readWork = (run, file) => readFileSync(join(run.work, file), 'utf8');
+
+function childEnv(run) {
+  const env = Object.fromEntries(Object.entries(process.env).filter(([name]) => !SCRUB.test(name)));
+  return { ...env, HOME: run.home, PI_CODING_AGENT_DIR: run.agentDir, PI_OFFLINE: '1', PI_SKIP_VERSION_CHECK: '1', VERIFY_MAINTAINER_LOG: run.logDir };
+}
+
+function killRun(run) {
+  for (const pid of run.pids ?? [])
+    for (const target of [-pid, pid])
+      try {
+        process.kill(target, 'SIGKILL');
+      } catch {
+        // Already gone, or not a group leader.
+      }
+}
+
+function destroyRun(run, keep) {
+  killRun(run);
+  if (!keep) rmSync(run.root, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+}
+
+function requests(run) {
+  const path = join(run.logDir, 'requests.jsonl');
+  return existsSync(path) ? readFileSync(path, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line)) : [];
+}
+const contextText = (request) => request.messages.map((message) => `[${message.role}] ${message.text}`).join('\n');
+
+// ---------- Pi processes ----------
+
+function spawnPi(run, args) {
+  // detached: Pi leads its own process group, so cleanup kills it and anything it spawned (git, lint, test).
+  const child = spawn('pi', ['--offline', '--provider', 'scripted', '--model', 'coder', ...args], { cwd: run.work, env: childEnv(run), stdio: ['pipe', 'pipe', 'pipe'], detached: true });
+  run.pids.push(child.pid);
+  saveRun(run);
+  return child;
+}
+
+function onLines(stream, handle) {
+  let buffer = '';
+  stream.on('data', (chunk) => {
+    buffer += chunk.toString('utf8');
+    for (let index = buffer.indexOf('\n'); index !== -1; index = buffer.indexOf('\n')) {
+      const line = buffer.slice(0, index).trim();
+      buffer = buffer.slice(index + 1);
+      if (line !== '') handle(line);
+    }
+  });
+}
+
+/** `pi --print --no-session <prompt>`: one turn; maintainer notices go to stderr. */
+function runPrint(run, prompt) {
+  return new Promise((done, fail) => {
+    const child = spawnPi(run, ['--print', '--no-session', prompt]);
+    child.stdin.end();
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => (stdout += chunk));
+    child.stderr.on('data', (chunk) => (stderr += chunk));
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      fail(new Error(`pi --print timed out after ${TIMEOUT_MS}ms\n${stderr.slice(-2000)}`));
+    }, TIMEOUT_MS);
+    child.on('close', (exitCode) => {
+      clearTimeout(timer);
+      done({ exitCode, stdout, stderr });
+    });
+  });
+}
+
+/** `pi --mode rpc --no-session`. Commands and prompts run one at a time, as a user types them. */
+function startRpc(run, answers = []) {
+  const child = spawnPi(run, ['--mode', 'rpc', '--no-session']);
+  const events = [];
+  const waiters = [];
+  let stderr = '';
+  let sequence = 0;
+  const send = (command) => child.stdin.write(`${JSON.stringify(command)}\n`);
+  onLines(child.stdout, (line) => {
+    const event = JSON.parse(line);
+    events.push(event);
+    if (event.type === 'extension_ui_request' && (event.method === 'select' || event.method === 'confirm')) {
+      const answer = answers.shift();
+      send({ type: 'extension_ui_response', id: event.id, ...(answer === undefined ? { cancelled: true } : typeof answer === 'boolean' ? { confirmed: answer } : { value: answer }) });
+    }
+    for (const waiter of waiters.filter((candidate) => candidate.predicate(event))) {
+      waiters.splice(waiters.indexOf(waiter), 1);
+      waiter.done(event);
+    }
+  });
+  child.stderr.on('data', (chunk) => (stderr += chunk.toString('utf8')));
+  const waitFor = (predicate, label, from = 0) =>
+    new Promise((done, fail) => {
+      const seen = events.slice(from).find(predicate);
+      if (seen !== undefined) return done(seen);
+      const timer = setTimeout(() => fail(new Error(`timed out waiting for ${label}\n${stderr.slice(-2000)}`)), TIMEOUT_MS);
+      waiters.push({ predicate, done: (event) => (clearTimeout(timer), done(event)) });
+    });
+  const request = async (command) => {
+    const id = `r-${++sequence}`;
+    const mark = events.length;
+    send({ id, ...command });
+    const response = await waitFor((event) => event.type === 'response' && event.id === id, `the response to ${command.type}`, mark);
+    if (response.success === false) throw new Error(`${command.type} rejected: ${JSON.stringify(response)}`);
+    return response.data;
+  };
+  /**
+   * Types `message` (a prompt or a slash command) and returns the notices it produced. A model turn, or a command
+   * that starts one (`/test` with failing output), is awaited to `agent_settled`.
+   */
+  const type = async (message, { turn } = {}) => {
+    const mark = events.length;
+    const data = await request({ type: 'prompt', message });
+    const startsTurn = turn ?? data?.disposition !== 'handled';
+    if (startsTurn) await waitFor((event) => event.type === 'agent_settled', `agent_settled after ${message.slice(0, 40)}`, mark);
+    const slice = events.slice(mark);
+    return { disposition: data?.disposition, events: slice, notices: notices(slice) };
+  };
+  const close = () =>
+    new Promise((done) => {
+      if (child.exitCode !== null) return done();
+      const force = setTimeout(() => child.kill('SIGKILL'), 5_000);
+      child.once('close', () => (clearTimeout(force), done()));
+      child.stdin.end();
+    });
+  return { events, request, type, close, stderr: () => stderr };
+}
+
+const notices = (events) => events.filter((event) => event.type === 'extension_ui_request' && event.method === 'notify').map((event) => String(event.message));
+const hasNotice = (list, pattern) => list.some((text) => (typeof pattern === 'string' ? text === pattern : pattern.test(text)));
+
+const writeJsonl = (path, events) => writeFileSync(path, `${events.map((event) => JSON.stringify(event)).join('\n')}\n`);
+const writeJson = (path, value) => writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
+
+/** Common RPC opening: the maintainer router must own the session before anything is typed. */
+async function openRpc(run) {
+  const rpc = startRpc(run);
+  const state = await rpc.request({ type: 'get_state' });
+  assert.equal(`${state.model?.provider}/${state.model?.id}`, 'pi-maintainer/coder', 'session_start should select the pi-maintainer/coder router');
+  return rpc;
+}
+
+function saveRpcEvidence(run, out, rpc) {
+  writeJsonl(join(out, 'rpc.events.jsonl'), rpc.events);
+  writeJsonl(join(out, 'requests.jsonl'), requests(run));
+  writeFileSync(join(out, 'git-log.txt'), git(run, ['log', '--format=%h %s%n%b', '--stat']));
+  writeFileSync(join(out, 'stderr.txt'), rpc.stderr());
+}
+
+// ---------- drives ----------
+
+async function driveEdit(run, out) {
+  // Print mode, whole-file format, file preloaded by config `file:`.
+  writeFileSync(join(run.work, '.pi-maintainer.conf.yml'), 'yes-always: true\nedit-format: whole\nfile: [app.py]\n');
+  const printed = APP_PY.replace('"hi"', '"hey"');
+  const print = await runPrint(run, withReply('make greet say hey', wholeFile('app.py', printed)));
+  writeFileSync(join(out, 'print.stderr.txt'), print.stderr);
+  writeFileSync(join(out, 'print.stdout.txt'), print.stdout);
+  assert.equal(print.exitCode, 0, `print exit ${print.exitCode}\n${print.stderr.slice(-1500)}`);
+  assert.equal(readWork(run, 'app.py'), printed, 'print: whole-file reply should replace app.py');
+  assert.equal(headSubject(run), COMMIT_SUBJECT, 'print: the edit should be auto-committed with the model-written subject');
+  assert.match(git(run, ['log', '-1', '--format=%B']), TRAILER, 'print: commit body should carry the selected-model trailer');
+  assert.match(print.stderr, new RegExp(`Commit [0-9a-f]+ ${COMMIT_SUBJECT}`), 'print: stderr should report the commit');
+  const printCommit = git(run, ['rev-parse', 'HEAD']).trim();
+
+  // RPC, SEARCH/REPLACE format, file added with /add.
+  writeFileSync(join(run.work, '.pi-maintainer.conf.yml'), 'yes-always: true\nedit-format: diff\n');
+  const rpc = await openRpc(run);
+  try {
+    const add = await rpc.type('/add app.py');
+    assert.ok(hasNotice(add.notices, 'Added app.py to the chat'), `/add notices: ${JSON.stringify(add.notices)}`);
+    const turn = await rpc.type(withReply('make greet say hello', editBlock('app.py', '    return "hey"\n', '    return "hello"\n')));
+    assert.equal(readWork(run, 'app.py'), APP_PY.replace('"hi"', '"hello"'), 'rpc: SEARCH/REPLACE block should apply');
+    assert.ok(hasNotice(turn.notices, new RegExp(`^Commit [0-9a-f]+ ${COMMIT_SUBJECT}$`)), `rpc notices: ${JSON.stringify(turn.notices)}`);
+    assert.equal(git(run, ['rev-parse', 'HEAD~1']).trim(), printCommit, 'rpc: the edit commit should sit on top of the print commit');
+    assert.match(git(run, ['log', '-1', '--format=%B']), TRAILER);
+    const reqs = requests(run);
+    assert.ok(reqs.every((req) => req.tools.length === 0), 'maintainer turns must send the model no tools');
+    assert.ok(reqs.some((req) => req.kind === 'commit'), 'a commit-message request should reach the model');
+    assert.equal(git(run, ['status', '--porcelain']).trim(), '', 'nothing should be left uncommitted');
+    writeJson(join(out, 'results.json'), { printStderr: print.stderr, rpcNotices: turn.notices, appPy: readWork(run, 'app.py') });
+    return `print: whole-file edit applied + committed "${COMMIT_SUBJECT}" with trailer; rpc: /add + SEARCH/REPLACE applied + committed on top; model saw 0 tools`;
+  } finally {
+    await rpc.close();
+    saveRpcEvidence(run, out, rpc);
+  }
+}
+
+async function driveChatFiles(run, out) {
+  const rpc = await openRpc(run);
+  try {
+    const add = await rpc.type('/add app.py');
+    const ro = await rpc.type('/read-only NOTES.md');
+    assert.ok(hasNotice(add.notices, 'Added app.py to the chat'), JSON.stringify(add.notices));
+    assert.ok(hasNotice(ro.notices, `Added ${join(run.work, 'NOTES.md')} to read-only files.`), JSON.stringify(ro.notices));
+    await rpc.type('what do these files do?');
+    const first = contextText(requests(run).at(-1));
+    assert.ok(first.includes('class Store:'), 'editable app.py contents should be in the model context');
+    assert.ok(first.includes('Style: greet() returns a short word.'), 'read-only NOTES.md contents should be in the model context');
+    const drop = await rpc.type('/drop app.py');
+    assert.ok(hasNotice(drop.notices, 'Removed app.py from the chat'), JSON.stringify(drop.notices));
+    await rpc.type('and now?');
+    const second = contextText(requests(run).at(-1));
+    assert.ok(!second.includes('class Store:'), 'dropped app.py contents should leave the model context');
+    assert.ok(second.includes('Style: greet() returns a short word.'), 'NOTES.md should still be in context');
+    const results = { addNotices: add.notices, readOnlyNotices: ro.notices, dropNotices: drop.notices };
+    writeJson(join(out, 'results.json'), results);
+    const reset = await rpc.type('/reset');
+    writeJson(join(out, 'results.json'), { ...results, resetNotices: reset.notices });
+    assert.ok(hasNotice(reset.notices, 'All files dropped and chat history cleared.'), JSON.stringify(reset.notices));
+    await rpc.type('anything?');
+    const third = contextText(requests(run).at(-1));
+    assert.ok(!third.includes('Style: greet()'), '/reset should drop NOTES.md too');
+    // Aider's cmd_reset empties done_messages and cur_messages; see features/chat-files.md Gotchas.
+    assert.ok(!third.includes('what do these files do?'), '/reset should clear earlier chat history from the context');
+    return '/add and /read-only put file contents in the model context; /drop removed app.py only; /reset dropped all files and history';
+  } finally {
+    await rpc.close();
+    saveRpcEvidence(run, out, rpc);
+  }
+}
+
+async function driveGit(run, out) {
+  const rpc = await openRpc(run);
+  try {
+    await rpc.type('/add app.py');
+    await rpc.type(withReply('say hello', editBlock('app.py', '    return "hi"\n', '    return "hello"\n')));
+    assert.equal(headSubject(run), COMMIT_SUBJECT, 'the assistant edit should be committed');
+    const diff = await rpc.type('/diff');
+    const diffText = diff.notices.join('\n');
+    assert.match(diffText, /^Diff since [0-9a-f]{7}\.\.\./m, JSON.stringify(diff.notices));
+    assert.match(diffText, /^-    return "hi"$/m, 'diff should show the removed line');
+    assert.match(diffText, /^\+    return "hello"$/m, 'diff should show the added line');
+    const undo = await rpc.type('/undo');
+    assert.ok(hasNotice(undo.notices, new RegExp(`^Removed: [0-9a-f]+ ${COMMIT_SUBJECT}$`)), `undo notices: ${JSON.stringify(undo.notices)}`);
+    assert.equal(headSubject(run), 'init', '/undo should reset HEAD to the pre-edit commit');
+    assert.equal(readWork(run, 'app.py'), APP_PY, '/undo should restore app.py');
+    writeFileSync(join(run.work, 'app.py'), `${APP_PY}\nVERSION = 2\n`);
+    const commit = await rpc.type('/commit bump version');
+    assert.ok(hasNotice(commit.notices, /^Commit [0-9a-f]+ bump version$/), `commit notices: ${JSON.stringify(commit.notices)}`);
+    assert.equal(headSubject(run), 'bump version');
+    assert.equal(git(run, ['status', '--porcelain']).trim(), '', '/commit should leave a clean tree');
+    const raw = await rpc.type('/git log --oneline -3');
+    assert.match(raw.notices.join('\n'), /bump version\n[0-9a-f]+ init/, `/git notices: ${JSON.stringify(raw.notices)}`);
+    writeJson(join(out, 'results.json'), { diff: diff.notices, undo: undo.notices, commit: commit.notices, git: raw.notices });
+    return 'assistant edit committed; /diff showed -hi/+hello; /undo removed the commit and restored app.py; /commit committed an outside edit; /git ran argv git';
+  } finally {
+    await rpc.close();
+    saveRpcEvidence(run, out, rpc);
+  }
+}
+
+async function driveRepoMap(run, out) {
+  writeFileSync(join(run.work, 'util.py'), 'def helper():\n    return 1\n');
+  git(run, ['add', 'util.py']);
+  git(run, ['commit', '-qm', 'add util']);
+  const rpc = await openRpc(run);
+  try {
+    const before = (await rpc.type('/map')).notices.join('\n');
+    assert.match(before, /^Here are summaries of some files present in my git repository\./, before);
+    for (const file of ['app.py', 'util.py', 'NOTES.md']) assert.match(before, new RegExp(`^${file.replace('.', '\\.')}$`, 'm'), `${file} should be in the map`);
+    await rpc.type('/add app.py');
+    const after = (await rpc.type('/map')).notices.join('\n');
+    assert.doesNotMatch(after, /^app\.py$/m, 'a chat file should leave the repo map');
+    assert.match(after, /^util\.py$/m);
+    const refresh = await rpc.type('/map-refresh');
+    assert.ok(hasNotice(refresh.notices, 'The repo map has been refreshed, use /map to view it.'), JSON.stringify(refresh.notices));
+    await rpc.type('where is helper?');
+    const context = contextText(requests(run).at(-1));
+    assert.ok(context.includes('util.py'), 'the repo map should reach the model context');
+    writeJson(join(out, 'results.json'), { mapBefore: before, mapAfterAdd: after, refresh: refresh.notices });
+    return '/map listed tracked files; app.py left the map after /add; /map-refresh confirmed; the map reached the model context';
+  } finally {
+    await rpc.close();
+    saveRpcEvidence(run, out, rpc);
+  }
+}
+
+async function driveLintTest(run, out) {
+  // Commands are argv-split and run through Pi's executor; `sh -c` gives them deterministic output and status.
+  writeFileSync(
+    join(run.work, '.pi-maintainer.conf.yml'),
+    'yes-always: true\nedit-format: diff\ntest-cmd: "sh -c \'echo TESTFAIL-42; exit 3\'"\nlint-cmd: ["python: sh -c \'echo LINTERR-7 in $0; exit 1\'"]\nauto-lint: false\n',
+  );
+  const rpc = await openRpc(run);
+  try {
+    const pass = await rpc.type('/test true');
+    assert.ok(!pass.events.some((event) => event.type === 'agent_start'), 'a passing /test should not start a turn');
+    const fail = await rpc.type('/test', { turn: true });
+    assert.ok(hasNotice(fail.notices, /^TESTFAIL-42$/m) || fail.notices.join('\n').includes('TESTFAIL-42'), `test notices: ${JSON.stringify(fail.notices)}`);
+    assert.ok(hasNotice(fail.notices, /^Added \d+ lines? of output to the chat\.$/), `test notices: ${JSON.stringify(fail.notices)}`);
+    assert.ok(contextText(requests(run).at(-1)).includes('TESTFAIL-42'), 'failing test output should be sent to the model');
+    const lint = await rpc.type('/lint app.py');
+    const lintText = lint.notices.join('\n');
+    assert.match(lintText, /LINTERR-7/, `lint notices: ${JSON.stringify(lint.notices)}`);
+    writeJson(join(out, 'results.json'), { testPass: pass.notices, testFail: fail.notices, lint: lint.notices });
+    return '/test true stayed quiet; failing /test output went to the model as a turn; /lint app.py ran the configured python lint-cmd';
+  } finally {
+    await rpc.close();
+    saveRpcEvidence(run, out, rpc);
+  }
+}
+
+const DRIVES = { edit: driveEdit, 'chat-files': driveChatFiles, git: driveGit, 'repo-map': driveRepoMap, 'lint-test': driveLintTest };
+const DEFAULT_CONFIG = 'yes-always: true\nedit-format: diff\nmap-tokens: 1024\n';
+
+// ---------- commands ----------
+
+function piVersion() {
+  return execFileSync('pi', ['--version'], { encoding: 'utf8', env: { ...process.env, PI_SKIP_VERSION_CHECK: '1' } }).trim();
+}
+
+async function drive(feature, flags) {
+  if (!DRIVES[feature]) throw new Error(`unknown feature ${feature}; one of ${FEATURES.join(', ')}`);
+  const out = resolve(flags.out ?? join(EVIDENCE_ROOT, feature));
+  rmSync(out, { recursive: true, force: true });
+  mkdirSync(out, { recursive: true });
+  const run = createRun(feature, DEFAULT_CONFIG);
+  const report = { feature, status: 'FAIL', piVersion: piVersion(), platform: `${process.platform}-${process.arch}`, evidence: out, summary: null, error: null, ...(flags.keep ? { scratch: run.root } : {}) };
+  try {
+    report.summary = await DRIVES[feature](run, out);
+    report.status = 'PASS';
+  } catch (error) {
+    report.error = error instanceof Error ? (error.stack ?? error.message) : String(error);
+  } finally {
+    try {
+      writeFileSync(join(out, 'app.py.final'), readWork(run, 'app.py'));
+    } catch {
+      // Scratch already gone.
+    }
+    destroyRun(run, flags.keep);
+    writeJson(join(out, 'run.json'), report);
+  }
+  log(JSON.stringify(report, null, 2));
+  return report.status === 'PASS';
+}
+
+async function doctor() {
+  const checks = [];
+  const check = (name, ok, detail = '') => checks.push({ name, ok, detail });
+  const [major, minor] = process.versions.node.split('.').map(Number);
+  check('node >= 22.19.0 (package engines)', major > 22 || (major === 22 && minor >= 19), process.versions.node);
+  let version = '';
+  try {
+    version = piVersion();
+    check('pi on PATH', true, `${version} (proven on 1.5.2)`);
+  } catch (error) {
+    check('pi on PATH', false, String(error));
+  }
+  try {
+    check('git on PATH', true, execFileSync('git', ['--version'], { encoding: 'utf8' }).trim());
+  } catch (error) {
+    check('git on PATH', false, String(error));
+  }
+  check('extension entry', existsSync(join(PACKAGE, 'src/index.ts')), join(PACKAGE, 'src/index.ts'));
+  for (const dep of ['yaml', 'ignore', 'diff-match-patch']) {
+    const found = existsSync(join(PACKAGE, 'node_modules', dep));
+    check(`runtime dep ${dep}`, found, found ? '' : 'missing => run `bun install` at the repo root');
+  }
+  check('scripted model', existsSync(MODEL_EXT), MODEL_EXT);
+  if (checks.every((entry) => entry.ok)) {
+    const run = createRun('doctor', DEFAULT_CONFIG);
+    try {
+      const rpc = startRpc(run);
+      try {
+        const state = await rpc.request({ type: 'get_state' });
+        const route = `${state.model?.provider}/${state.model?.id}`;
+        check('session model is the maintainer router', route === 'pi-maintainer/coder', route);
+        const { commands } = await rpc.request({ type: 'get_commands' });
+        const names = new Set(commands.filter((command) => command.source === 'extension').map((command) => command.name));
+        const missing = COMMANDS.filter((name) => !names.has(name));
+        check('maintainer slash commands registered', missing.length === 0, missing.length ? `missing ${missing.join(', ')}` : COMMANDS.join(' '));
+        const errors = rpc.events.filter((event) => event.type === 'extension_error');
+        check('no extension_error at startup', errors.length === 0, errors.map((event) => event.error).join('; '));
+      } finally {
+        await rpc.close();
+      }
+    } catch (error) {
+      check('scratch rpc session', false, String(error));
+    } finally {
+      destroyRun(run, false);
+    }
+  }
+  const leftovers = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  check('no leftover scratch runs', leftovers.length === 0, leftovers.length ? `${leftovers.length} found => run cleanup` : '');
+  const scrubbed = Object.keys(process.env).filter((name) => SCRUB.test(name));
+  for (const entry of checks) log(`${entry.ok ? 'ok  ' : 'FAIL'} ${entry.name}${entry.detail ? `: ${entry.detail}` : ''}`);
+  if (scrubbed.length) log(`note: drives remove inherited ${scrubbed.join(', ')}`);
+  return checks.every((entry) => entry.ok);
+}
+
+function cleanup() {
+  const dirs = readdirSync(tmpdir()).filter((name) => name.startsWith(SCRATCH_PREFIX));
+  for (const name of dirs) {
+    const root = join(tmpdir(), name);
+    try {
+      destroyRun(JSON.parse(readFileSync(join(root, 'run.json'), 'utf8')), false);
+    } catch {
+      rmSync(root, { recursive: true, force: true });
+    }
+    log(`removed ${root}`);
+  }
+  log(`cleanup done (${dirs.length} scratch runs); evidence in ${EVIDENCE_ROOT} kept`);
+  return true;
+}
+
+function parseFlags(args) {
+  const flags = {};
+  for (let index = 0; index < args.length; index++) {
+    if (args[index] === '--keep') flags.keep = true;
+    else if (args[index] === '--out') flags.out = args[++index];
+    else throw new Error(`unknown flag ${args[index]}`);
+  }
+  return flags;
+}
+
+const [command, ...rest] = process.argv.slice(2);
+let ok;
+if (command === 'doctor') ok = await doctor();
+else if (command === 'drive' && rest[0] === 'all') {
+  const flags = parseFlags(rest.slice(1));
+  ok = true;
+  for (const feature of FEATURES) ok = (await drive(feature, { ...flags, out: flags.out && join(flags.out, feature) })) && ok;
+} else if (command === 'drive' && rest[0]) ok = await drive(rest[0], parseFlags(rest.slice(1)));
+else if (command === 'cleanup') ok = cleanup();
+else {
+  log(`usage: control-maintainer doctor | drive <${FEATURES.join('|')}|all> [--out <dir>] [--keep] | cleanup`);
+  ok = command === undefined;
+}
+process.exit(ok ? 0 : 1);
