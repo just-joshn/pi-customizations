@@ -61,7 +61,7 @@ async function operator(api: DriveApi): Promise<void> {
       const session = loadSession(join(sessions, file));
       const at = userOrder(session, PANE_PROMPT);
       const next = session.toolCalls.find((call) => call.order > at);
-      return at !== -1 && next?.name === 'bash' && next.args['command'] === LONG_COMMAND && readState(dir)['phase'] === 'running';
+      return at !== -1 && next?.name === 'bash' && /^sleep 6\s*(?:[;&\n]|$)/.test(String(next.args['command'])) && readState(dir)['phase'] === 'running';
     });
   });
   type(`steer ${PANE_STEER}`);
@@ -117,7 +117,7 @@ export const interactionFamily: Family = {
       const session = worker(view);
       const at = userOrder(session, PANE_PROMPT);
       const acted = session?.toolCalls.find((call) => call.order > at);
-      const longCommand = acted?.name === 'bash' && acted.args['command'] === LONG_COMMAND;
+      const longCommand = acted?.name === 'bash' && /^sleep 6\s*(?:[;&\n]|$)/.test(String(acted.args['command']));
       return when(at !== -1 && acted !== undefined && longCommand && acted.order > at, `user message at ${at}, the worker ran its command at ${acted?.order}`, `typed prompt at ${at}; command at ${acted?.order}`);
     }),
     check('worker-interaction.typed-steer-lands-mid-run', 'the line typed as `steer <text>` while the worker ran is a user message that follows the command it interrupted, and the worker answered it', SRC, (view) => {
@@ -126,7 +126,7 @@ export const interactionFamily: Family = {
       const promptAt = userOrder(session, PANE_PROMPT);
       const sleeping = session?.toolCalls.find((call) => call.order > promptAt);
       const answered = (session?.messages ?? []).some((message) => message.role === 'assistant' && message.order > at && /typed steer/.test(message.text));
-      return when(promptAt !== -1 && at !== -1 && sleeping?.name === 'bash' && sleeping.args['command'] === LONG_COMMAND && at > sleeping.order && answered, `steer at ${at} after the command at ${sleeping?.order}; the worker answered it`, `steer at ${at}; command at ${sleeping?.order}; answered ${answered}`);
+      return when(promptAt !== -1 && at !== -1 && sleeping?.name === 'bash' && /^sleep 6\s*(?:[;&\n]|$)/.test(String(sleeping.args['command'])) && at > sleeping.order && answered, `steer at ${at} after the command at ${sleeping?.order}; the worker answered it`, `steer at ${at}; command at ${sleeping?.order}; answered ${answered}`);
     }),
     check('worker-interaction.parent-steer-lands', 'pstack_worker steer reaches the same worker as a user message, and the worker answered it', SRC, (view) => {
       const session = worker(view);
