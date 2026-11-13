@@ -2,12 +2,13 @@
 // reads and writes <origin.git>/forge/state.json, and an append-only action log the checkers read. Real git decides head
 // SHAs, conflicts and merges, so a rebase, a force-push or a merge is a fact in the bare repository, not a claim.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { PKG } from '../lib/driver.ts';
 import type { Ctx } from '../lib/driver.ts';
+import { PKG, REAL_MODEL, REAL_MODEL_B } from '../lib/driver.ts';
+import { packagesRegistering, providerOf } from '../lib/providers.ts';
 import type { RunView } from '../lib/view.ts';
 
 export const FORGE_CLI = join(PKG, 'tests/workflow-parity/fixtures/forge-cli.mjs');
@@ -151,8 +152,23 @@ export function setupForge(ctx: Ctx, def: ForgeDef): ForgeHandle {
   mkdirSync(join(bare, 'hooks'), { recursive: true });
   writeFileSync(join(bare, 'hooks', 'pre-receive'), HOOK);
   chmodSync(join(bare, 'hooks', 'pre-receive'), 0o755);
+  copyFileSync(FORGE_CLI, join(bin, 'forge-cli.mjs'));
+  writeFileSync(join(bin, 'package.json'), JSON.stringify({ name: 'workflow-parity-forge', private: true, pi: { extensions: ['./index.mjs'] } }));
+  writeFileSync(join(bin, 'index.mjs'), `import { execFileSync } from 'node:child_process';
+export default function () {
+  process.env.PATH = ${JSON.stringify(bin)} + ':' + process.env.PATH;
+  process.env.FORGE_GIT_DIR = ${JSON.stringify(bare)};
+  if (process.env.PSTACK_CONTAINER === '1') {
+    delete process.env.PSTACK_FAKE_FORGE_CAPABILITY;
+    if (process.env.GH_TOKEN === ${JSON.stringify(FORGE_TOKEN)}) {
+      process.env.PSTACK_FAKE_FORGE_CAPABILITY = '1';
+      execFileSync('git', ['config', '--global', '--unset-all', 'credential.https://github.com.helper']);
+    }
+    for (const name of ['GH_TOKEN', 'GITHUB_TOKEN', 'GH_ENTERPRISE_TOKEN', 'GITHUB_ENTERPRISE_TOKEN', 'PSTACK_CONTAINER_FORGE_TOKEN']) delete process.env[name];
+  }
+}\n`);
   for (const name of def.originCli === true ? ['gh', 'origin'] : ['gh']) {
-    writeFileSync(join(bin, name), `#!/bin/sh\nexport FORGE_GIT_DIR='${bare}'\nexec node '${FORGE_CLI}' ${name} "$@"\n`);
+    writeFileSync(join(bin, name), `#!/bin/sh\nexport FORGE_GIT_DIR='${bare}'\nexec node '${join(bin, 'forge-cli.mjs')}' ${name} "$@"\n`);
     chmodSync(join(bin, name), 0o755);
   }
   return { bare, dir, bin, tip: (branch) => git(bare, 'rev-parse', `refs/heads/${branch}`) };
@@ -265,9 +281,11 @@ export function forgeEnv(ctx: Ctx, handle: ForgeHandle, options: { container?: b
     if (engine !== '') env['DOCKER_HOST'] = engine;
     if (options.engine === false) env['DOCKER_HOST'] = 'unix:///nonexistent/pstack-docker.sock';
     if (options.token !== false) env['PSTACK_CONTAINER_FORGE_TOKEN'] = FORGE_TOKEN;
+    const providers = options.scripted === true ? [] : [...new Set([REAL_MODEL, REAL_MODEL_B].filter(Boolean).flatMap((model) => packagesRegistering(providerOf(model))))];
+    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [handle.bin, ...providers].join(':');
   }
   if (options.container === true && options.scripted === true) {
-    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [join(PKG, 'tests/workflow-parity/fixtures/sim-provider'), join(ctx.sandbox, 'sim-scenario')].join(':');
+    env['PSTACK_CONTAINER_PROVIDER_PACKAGES'] = [handle.bin, join(PKG, 'tests/workflow-parity/fixtures/sim-provider'), join(ctx.sandbox, 'sim-scenario')].join(':');
     env['PSTACK_SCENARIO'] = join(ctx.sandbox, 'sim-scenario', 'scenario.json');
   }
   return env;

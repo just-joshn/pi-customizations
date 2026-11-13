@@ -7,12 +7,13 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, proofSteps, scenario, Worker } from '../fixtures/dsl.ts';
+import { type FactPr, type Facts, REPO_FLAG, RealForge, readFacts, realForgeEnv, SANDBOX_NAME, SANDBOX_OWNER, SANDBOX_REPO, WATCH_PR, WORKFLOW_COMMIT, writeContainerScenario } from '../fixtures/real-forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
-import { type Facts, type FactPr, readFacts, REPO_FLAG, RealForge, realForgeEnv, SANDBOX_NAME, SANDBOX_OWNER, SANDBOX_REPO, WATCH_PR, WORKFLOW_COMMIT, writeContainerScenario } from '../fixtures/real-forge.ts';
-import { check, type Check, type Outcome, src, type Src, when } from '../lib/check.ts';
+import { type Check, check, type Outcome, type Src, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks, verifyReceipt } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
-import { appendToolCall, parentSession, type Negative, rewriteFinalReply } from '../lib/mutate.ts';
+import { appendToolCall, type Negative, parentSession, rewriteFinalReply } from '../lib/mutate.ts';
+import type { RunView, WorkerView } from '../lib/view.ts';
 import { bodyHasSections } from './pr-autopilot.ts';
 import { BASH, declaredMode, exitCodeOf, lifeOf, modeDeclared, stepDone, watchers } from './pr-shared.ts';
 import { removeRunContainers } from './pr-shipping.ts';
@@ -163,7 +164,7 @@ export const babysitDriveRealFamily: RealFamily = {
     runId: DRIVE_RUN,
     history,
     timeoutMs: 1_200_000,
-    holdWatchers: /^watch-[1-4]$/,
+    holdWatchers: /.*/,
     prepare: (ctx) => {
       driveForge.setup(ctx, {
         branches: [{ name: DRIVE_BRANCH, files: { 'src/cart.js': CAPPED_CART, 'test/cap.test.js': CAP_TEST, '.ci-mode': 'flaky\n' }, message: 'fix(cart): cap a coupon at 100 percent', author: 'owner-12' }],
@@ -358,16 +359,21 @@ function verifierScript(ctx: Ctx, parent: Parent, options: { id: string; pr: num
 const verifierBrief = (pr: number, head: string, testFile: string): string =>
   `You are the independent verifier for PR ${pr} at head ${head}. You did not write it. Your container clone is at that head. Run the change the way a user would: node --test ${testFile}, against the head and its parent. Record a receipt for the run with pstack_evidence. Then post exactly one verdict on the PR through the forge CLI, gh pr comment ${pr} ${REPO_FLAG} --body "PSTACK-VERDICT: <PASS|PASS+NOTES|FAIL> head=<full sha> verifier=<your worker id> patch=<git show --format= -p HEAD | git patch-id --stable>". Green CI is not a verdict.`;
 
+function verifierFor(view: RunView, pr: number): WorkerView | undefined {
+  const candidates = containerWorkers(view, 'verifier').filter((worker) => new RegExp(`\\bPR\\s+#?${pr}\\b`, 'i').test(worker.brief ?? ''));
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
 const shipFacts: FactCheck[] = [
   fact('real.ship.verdicts-match-what-the-code-does-and-cover-the-head', 'one verdict per PR, from a verifier that did not write it, naming the PR head and its patch-id, and the PR test run at that head by the checker agrees with it', SH('and posts `PASS`, `PASS+NOTES`, or `FAIL` on that PR'), (facts) => {
     const verdicts = verdictsOf(facts);
-    const problems = facts.prs.flatMap((pr, index) => {
+    const problems = facts.prs.flatMap((pr) => {
       const own = verdicts.filter((verdict) => verdict.pr === pr.number);
       const verdict = own[0];
       if (own.length !== 1 || verdict === undefined) return [`PR ${pr.number} has ${own.length} verdicts`];
       return [
         ...(verdict.head !== pr.headSha ? [`PR ${pr.number} verdict names ${short(verdict.head)}, not the head ${short(pr.headSha)}`] : []),
-        ...(verdict.verifier !== `verifier-${index + 1}` || verdict.verifier === pr.owner ? [`PR ${pr.number} verdict by ${verdict.verifier}, owner ${pr.owner}`] : []),
+        ...(verdict.verifier === pr.owner || verdicts.some((entry) => entry.pr !== pr.number && entry.verifier === verdict.verifier) ? [`PR ${pr.number} verdict by ${verdict.verifier}, owner ${pr.owner}`] : []),
         ...((verdict.verdict === 'FAIL') === (pr.testPassesAtHead === true) ? [`PR ${pr.number} verdict ${verdict.verdict} disagrees with the test at its head (${String(pr.testPassesAtHead)})`] : []),
         ...(verdict.patch !== pr.patchId ? [`PR ${pr.number} verdict patch-id is not the head's`] : []),
       ];
@@ -423,7 +429,7 @@ export const shippingRealFamily: RealFamily = {
     runId: SHIP_RUN,
     history,
     timeoutMs: 1_200_000,
-    holdWatchers: /^watch-ceiling$/,
+    holdWatchers: /.*/,
     prepare: (ctx) => {
       shipForge.setup(ctx, {
         branches: [
@@ -457,12 +463,13 @@ export const shippingRealFamily: RealFamily = {
     check('real.ship.one-container-verifier-per-pr-with-a-real-forge-token', 'three verifiers, one per PR, each a container worker at its PR head with capabilities mcp inherit, env minimal, externalWrite false, forge true, none the PR owner, each ran in a container clone of the real repository, and each posted its verdict with its own gh call', SH('One verifier per PR, each a container worker'), (view) => {
       const facts = readFacts(view.sandbox);
       const workers = containerWorkers(view, 'verifier');
-      const problems = facts.prs.flatMap((pr, index) => {
-        const worker = workers.find((entry) => entry.id === `verifier-${index + 1}`);
+      const problems = facts.prs.flatMap((pr) => {
+        const worker = verifierFor(view, pr.number);
         if (worker === undefined) return [`no verifier for PR ${pr.number}`];
         const assignment = assignmentOf(worker) as { workspace?: { mode?: string; inputCommit?: string }; capabilities?: Record<string, unknown> };
         const caps = assignment.capabilities ?? {};
-        const posted = worker.session?.toolCalls.some((call) => call.name === 'bash' && new RegExp(`gh pr comment ${pr.number} ${REPO_FLAG}`).test(String(call.args['command'])) && !call.isError) === true;
+        const verdict = verdictsOf(facts).find((entry) => entry.pr === pr.number);
+        const posted = verdict?.verifier === worker.id && worker.session?.toolCalls.some((call) => call.name === 'bash' && new RegExp(`gh pr comment ${pr.number} ${REPO_FLAG}`).test(String(call.args['command'])) && String(call.args['command']).includes(`verifier=${worker.id}`) && !call.isError) === true;
         return [
           ...(assignment.workspace?.mode !== 'container' ? [`${worker.id} workspace ${String(assignment.workspace?.mode)}`] : []),
           ...(assignment.workspace?.inputCommit !== pr.headSha ? [`${worker.id} inputCommit is not the PR head`] : []),
@@ -473,31 +480,37 @@ export const shippingRealFamily: RealFamily = {
           ...(view.runs.flatMap((run) => run.events).find((event) => event['workerId'] === worker.id && event['kind'] === 'spawn' && ((event['data'] as { container?: { image?: { id?: string } } }).container?.image?.id ?? '') !== '') === undefined ? [`${worker.id} has no container spawn event with an image id`] : []),
         ];
       });
-      return when(workers.length === 3 && problems.length === 0, `${workers.map((worker) => worker.id).join(', ')}: container, forge capability, ran in /tmp/workspace, posted with gh`, `${workers.length} verifiers; ${problems.join('; ')}`);
+      return when(workers.length === 3 && facts.prs.length === 3 && new Set(facts.prs.map((pr) => verifierFor(view, pr.number))).size === 3 && problems.length === 0, `${workers.map((worker) => worker.id).join(', ')}: container, forge capability, ran in /tmp/workspace, posted with gh`, `${workers.length} verifiers; ${problems.join('; ')}`);
     }),
     check('real.ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes', 'the three verifiers were spawned in one message, and each was collected after its own pstack-worker wake', SH('One verifier per PR'), (view) => {
-      const spawns = [1, 2, 3].map((n) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/verifier-${n}/`))?.order ?? -1);
-      const problems = [1, 2, 3].flatMap((n) => {
-        const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === `verifier-${n}`)?.order ?? -1;
-        const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === `verifier-${n}`)?.order ?? -1;
-        return wake !== -1 && collect > wake ? [] : [`verifier-${n}: wake ${wake}, collect ${collect}`];
+      const selected = readFacts(view.sandbox).prs.map((pr) => verifierFor(view, pr.number));
+      const spawns = selected.map((worker) => worker === undefined ? -1 : view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json'))?.order ?? -1);
+      const problems = selected.flatMap((worker) => {
+        const run = view.runs.find((entry) => worker !== undefined && entry.workers.includes(worker));
+        if (worker === undefined || run === undefined) return ['no unique verifier'];
+        const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === worker.id && message.details?.['runId'] === run.id)?.order ?? -1;
+        const collect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === run.id)?.order ?? -1;
+        return wake !== -1 && collect > wake ? [] : [`${worker.id}: wake ${wake}, collect ${collect}`];
       });
       return when(new Set(spawns).size === 1 && !spawns.includes(-1) && problems.length === 0, `spawned together at ${spawns[0]}; each collected after its wake`, `spawn orders ${spawns.join(', ')}; ${problems.join('; ')}`);
     }),
     check('real.ship.each-verifier-recorded-its-own-receipt', 'each verifier left a receipt in its own evidence folder that the host ingested, the artifact hashes re-verify, and the receipt verdict matches the verdict on the PR', SH('so it can read the PR and post its verdict'), (view) => {
-      const run = view.runs[0];
-      const verdicts = verdictsOf(readFacts(view.sandbox));
-      const problems = [1, 2, 3].flatMap((n) => {
-        const worker = `verifier-${n}`;
-        const receipt = run?.receipts.find((entry) => entry.id === `${worker}-run`);
+      const facts = readFacts(view.sandbox);
+      const verdicts = verdictsOf(facts);
+      const problems = facts.prs.flatMap((pr) => {
+        const selected = verifierFor(view, pr.number);
+        const worker = selected?.id;
+        const run = view.runs.find((entry) => selected !== undefined && entry.workers.includes(selected));
+        const receipts = run?.receipts.filter((entry) => entry.runId === run?.id && entry.target === `pr-${pr.number}` && entry.artifacts.some((artifact) => artifact.path.startsWith(`${selected?.dir}/`))) ?? [];
+        const receipt = receipts.length === 1 ? receipts[0] : undefined;
         if (receipt === undefined || run === undefined) return [`${worker} has no recorded receipt`];
         const posted = verdicts.find((verdict) => verdict.verifier === worker)?.verdict;
-        const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(artifact.path) && artifact.path.includes(`/workers/${worker}/`));
-        const hashes = receipt.verdict === 'pass' ? verifyReceipt(run, receipt) : null;
-        const raw = JSON.parse(readFileSync(join(run.dir, 'verification', 'receipts', `${worker}-run.json`), 'utf8')) as { receiptPath?: string };
-        return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : []), ...(!String(raw.receiptPath).includes(`/workers/${worker}/out/receipts/`) ? [`${worker} receipt was not ingested from the worker inbox`] : [])];
+        const artifactsOk = receipt.artifacts.length > 0 && receipt.artifacts.every((artifact) => existsSync(artifact.path) && artifact.path.startsWith(`${selected?.dir}/`));
+        const hashes = verifyReceipt(run, { ...receipt, verdict: 'pass' });
+        const raw = JSON.parse(readFileSync(join(run.dir, 'verification', 'receipts', `${receipt.id}.json`), 'utf8')) as { receiptPath?: string };
+        return [...(!artifactsOk ? [`${worker} receipt artifacts are not in its own evidence`] : []), ...(hashes !== null ? [hashes] : []), ...((receipt.verdict === 'pass') === (posted === 'FAIL') ? [`${worker} receipt verdict ${receipt.verdict} contradicts the posted ${String(posted)}`] : []), ...(!String(raw.receiptPath).startsWith(`${selected?.dir}/out/receipts/`) ? [`${worker} receipt was not ingested from the worker inbox`] : [])];
       });
-      return when(problems.length === 0, "three ingested receipts, artifacts inside each verifier's folder, verdicts consistent", problems.join('; '));
+      return when(facts.prs.length === 3 && problems.length === 0, "three ingested receipts, artifacts inside each verifier's folder, verdicts consistent", problems.join('; '));
     }),
     check('real.ship.the-parent-merged-only-the-root-pinned-to-the-verified-head-and-read-it-back', 'the parent typed exactly one `gh pr merge`, for the root PR, with --match-head-commit equal to the head the verdict covers, and read it back with state,mergedAt,baseRefName', SH('Land only the contiguous verified run rooted at the bottom'), (view) => {
       const merges = typedMerges(view);
@@ -518,7 +531,7 @@ export const shippingRealFamily: RealFamily = {
     check('real.ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap', 'the reply gives the verified run and ceiling, each verdict with its producer, what landed and how it was confirmed, and what the next gap needs', SH('**Reply:** the verified run and its ceiling'), (view) => {
       const reply = finalReply(view);
       const [a, b, c] = ship.numbers;
-      const missing = [new RegExp(`Verified run: PR ${a}, the ceiling`), new RegExp(`PR ${a} PASS by verifier-1`), new RegExp(`PR ${b} FAIL by verifier-2`), new RegExp(`PR ${c} PASS by verifier-3`), new RegExp(`Landed: PR ${a}, confirmed with gh pr view`), /next gap/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [new RegExp(`Verified run: PR ${a}, the ceiling`), ...([a, b, c].map((pr) => { const verdict = verdictsOf(readFacts(view.sandbox)).find((entry) => entry.pr === pr); return verdict === undefined ? /(?!) / : new RegExp(`PR ${pr} ${verdict.verdict} by ${verdict.verifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`); })), new RegExp(`Landed: PR ${a}, confirmed with gh pr view`), /next gap/i].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('real.ship.no-tool-errors', SH('Stop at the ceiling')),

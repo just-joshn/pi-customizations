@@ -85,7 +85,7 @@ export const orchestrateFamily: Family = {
   title: 'orchestrate: one owner per PR within three levels, the first unit taken all the way before the fan-out, verifiers on another model family, a stalled owner judged by its side effects and replaced (spec 13.4)',
   spec: {
     family: 'orchestrate',
-    holdWatchers: /^watch-52$/,
+    holdWatchers: /.*/,
     runId: RUN,
     history: cartHistory,
     timeoutMs: 480_000,
@@ -115,11 +115,15 @@ export const orchestrateFamily: Family = {
       const { state, actions } = readForge(view);
       const refs = (branch: string) => [...new Set(actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${branch}`).map((action) => action.worker))];
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
-      const stalled = actions.filter((action) => action.worker === 'owner-52a' && !['read', 'log-view'].includes(action.kind));
-      return when(state.prs['51']?.author === 'owner-51' && state.prs['52']?.author === 'owner-52b' && JSON.stringify(refs('feat-greet-orch')) === '["owner-51"]' && JSON.stringify(refs('feat-shout-orch')) === '["owner-52b"]' && creates.length === 2 && stalled.length === 0, 'PR 51 by owner-51 alone, PR 52 by owner-52b alone, two PRs opened, the stalled owner wrote nothing', `authors ${state.prs['51']?.author}, ${state.prs['52']?.author}; branch writers ${JSON.stringify(refs('feat-greet-orch'))}, ${JSON.stringify(refs('feat-shout-orch'))}; creates ${creates.length}; stalled owner writes ${stalled.length}`);
+      const owners = [state.prs['51']?.author, state.prs['52']?.author];
+      const candidates = ownerWorkers(view).filter((worker) => !owners.includes(worker.id));
+      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      const old = candidates[0];
+      const stalled = actions.filter((action) => action.worker === old?.id && !['read', 'log-view'].includes(action.kind));
+      return when(old !== undefined && new Set(owners).size === 2 && owners.every((id) => typeof id === 'string' && ownerWorkers(view).some((worker) => worker.id === id)) && JSON.stringify(refs('feat-greet-orch')) === JSON.stringify([owners[0]]) && JSON.stringify(refs('feat-shout-orch')) === JSON.stringify([owners[1]]) && creates.length === 2 && stalled.length === 0, `PR 51 by ${owners[0]} alone, PR 52 by ${owners[1]} alone, two PRs opened, ${old?.id} wrote nothing`, `authors ${state.prs['51']?.author}, ${state.prs['52']?.author}; branch writers ${JSON.stringify(refs('feat-greet-orch'))}, ${JSON.stringify(refs('feat-shout-orch'))}; creates ${creates.length}; stalled owner writes ${stalled.length}`);
     }),
     check('orchestrate.owners-sit-two-levels-down-and-cannot-spawn', 'every worker ran at level 2 (its own report records PSTACK_DEPTH=2) under the root at level 1, and none holds the spawn capability, so the tree stays within three levels', OR('Stop at three levels'), (view) => {
-      const owners = ownerWorkers(view).filter((worker) => worker.id !== 'owner-52a');
+      const owners = ownerWorkers(view).filter((worker) => Object.values(readForge(view).state.prs).some((pr) => pr.author === worker.id));
       const depths = owners.map((worker) => /depth=(\d)/.exec(worker.report ?? '')?.[1]);
       const spawners = allWorkers(view).filter((worker) => (assignmentOf(worker) as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true);
       return when(owners.length === 2 && depths.every((depth) => depth === '2') && spawners.length === 0, `owners report depth ${depths.join(', ')}; no worker can spawn`, `depths ${JSON.stringify(depths)}; spawners ${spawners.map((worker) => worker.id).join(', ') || 'none'}`);
@@ -127,8 +131,11 @@ export const orchestrateFamily: Family = {
     check('orchestrate.first-unit-goes-all-the-way-before-the-fan-out', 'PR 51 was owned, verified and merged before the second unit\'s first owner was spawned', OR('**Start with one unit.**'), (view) => {
       const { actions } = readForge(view);
       const merge = actions.findIndex((action) => action.kind === 'merge' && action.pr === 51);
-      const secondOwner = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/owner-52a/'))?.order ?? -1;
-      const mergeCollect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === 'owner-51').at(-1)?.order ?? -1;
+      const authors = Object.values(readForge(view).state.prs).map((pr) => pr.author);
+      const candidates = ownerWorkers(view).filter((worker) => !authors.includes(worker.id));
+      const old = candidates.length === 1 ? candidates[0]?.id : undefined;
+      const secondOwner = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && old !== undefined && String(call.args['assignmentPath']).includes(`/workers/${old}/`))?.order ?? -1;
+      const mergeCollect = view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === readForge(view).state.prs['51']?.author).at(-1)?.order ?? -1;
       return when(merge !== -1 && secondOwner > mergeCollect && mergeCollect !== -1, `PR 51 merged (action ${merge}) and collected at ${mergeCollect}, before the second unit at ${secondOwner}`, `merge ${merge}, collect ${mergeCollect}, second unit spawn ${secondOwner}`);
     }),
     check('orchestrate.kickoffs-name-evidence-paths-and-forbidden-actions', 'each owner kickoff names the goal, the evidence that proves it done, the files it may write, and the actions it must not take', OR('**Each kickoff names the evidence that proves the work is done,**'), (view) => {
@@ -139,14 +146,15 @@ export const orchestrateFamily: Family = {
     check('orchestrate.each-pr-has-a-verifier-on-another-family-and-merges-follow-the-verdict', 'each PR has a container verifier on a different model family than its owner whose verdict names the head, and each owner merged only after that verdict, pinned to the head', OR('**Each PR gets a verifier that isn\'t its author,** on a different model family'), (view) => {
       const { state, actions } = readForge(view);
       const verdicts = verdictsOf(state, actions);
-      const problems = [[51, 'owner-51', STORE.first], [52, 'owner-52b', STORE.second]].flatMap(([pr, ownerId, unit]) => {
-        const verifier = allWorkers(view).find((worker) => worker.id === `verifier-${String(pr)}`);
+      const problems = [[51, state.prs['51']?.author, STORE.first], [52, state.prs['52']?.author, STORE.second]].flatMap(([pr, ownerId, unit]) => {
+        const verifierId = verdicts.find((entry) => entry.pr === pr)?.verifier;
+        const verifier = allWorkers(view).find((worker) => worker.id === verifierId);
         const owner = allWorkers(view).find((worker) => worker.id === ownerId);
         const verdict = verdicts.find((entry) => entry.pr === pr);
         const merge = mergesIn(actions).find((entry) => entry.pr === pr);
         return [
           ...(verifier === undefined || owner === undefined || OWNER_FAMILY(String(assignmentOf(verifier).model)) === OWNER_FAMILY(String(assignmentOf(owner).model)) ? [`PR ${String(pr)} verifier family is not independent`] : []),
-          ...(verdict === undefined || verdict.head !== (unit as Unit).sha || verdict.verdict === 'FAIL' ? [`PR ${String(pr)} has no PASS at its head`] : []),
+          ...(verdict === undefined || verdict.head !== (unit as Unit).sha || verdict.verdict === 'FAIL' || actions[verdict.at]?.worker !== verifierId ? [`PR ${String(pr)} has no PASS at its head`] : []),
           ...(merge === undefined || actions.indexOf(merge) < (verdict?.at ?? Number.POSITIVE_INFINITY) || merge.worker !== ownerId ? [`PR ${String(pr)} merge is not the owner's after the verdict`] : []),
         ];
       });
@@ -154,13 +162,16 @@ export const orchestrateFamily: Family = {
     }),
     mergesAreAuthorizedAndVerified('orchestrate.no-merge-without-the-operators-request-and-a-verdict-at-that-head', OR('A verdict covers one head SHA, so a new push needs a new verdict')),
     check('orchestrate.a-stalled-worker-is-judged-by-its-side-effects-aborted-and-replaced-with-a-consolidated-kickoff', 'the stalled owner was probed for pushes before it was aborted, its abort is recorded, and its replacement was spawned after it with the original kickoff plus the reason', OR('**Stop or replace a worker that stalls or loops.**'), (view) => {
-      const stalled = allWorkers(view).find((worker) => worker.id === 'owner-52a');
-      const replacement = allWorkers(view).find((worker) => worker.id === 'owner-52b');
+      const authors = Object.values(readForge(view).state.prs).map((pr) => pr.author);
+      const candidates = ownerWorkers(view).filter((worker) => !authors.includes(worker.id));
+      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      const stalled = candidates[0];
+      const replacement = allWorkers(view).find((worker) => worker.id === readForge(view).state.prs['52']?.author);
       const probe = BASH(view).find((entry) => /git ls-remote --heads origin feat-shout-orch/.test(entry.command))?.order ?? -1;
-      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'owner-52a' && !call.isError)?.order ?? -1;
-      const respawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/owner-52b/'))?.order ?? -1;
+      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && stalled !== undefined && call.args['workerId'] === stalled.id && !call.isError)?.order ?? -1;
+      const respawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && replacement !== undefined && String(call.args['assignmentPath']).includes(`/workers/${replacement.id}/`))?.order ?? -1;
       const settles = (stalled?.state?.['settles'] as { phase: string }[] | undefined) ?? [];
-      return when(probe !== -1 && abort > probe && respawn > abort && settles.some((settle) => settle.phase === 'aborted') && /owner-52a, was aborted/.test(replacement?.brief ?? '') && /Evidence that proves it done/.test(replacement?.brief ?? ''), `probe at ${probe}, abort at ${abort} (phase ${String(stalled?.state?.['phase'])}), replacement at ${respawn} with the kickoff and the reason`, `probe ${probe}, abort ${abort}, respawn ${respawn}, settles ${JSON.stringify(settles.map((settle) => settle.phase))}`);
+      return when(probe !== -1 && abort > probe && respawn > abort && settles.some((settle) => settle.phase === 'aborted') && stalled !== undefined && (replacement?.brief ?? '').includes(`${stalled.id}, was aborted`) && /Evidence that proves it done/.test(replacement?.brief ?? ''), `probe at ${probe}, abort at ${abort} (phase ${String(stalled?.state?.['phase'])}), replacement at ${respawn} with the kickoff and the reason`, `probe ${probe}, abort ${abort}, respawn ${respawn}, settles ${JSON.stringify(settles.map((settle) => settle.phase))}`);
     }),
     check('orchestrate.live-state-is-read-and-every-worker-is-accounted-for', 'before the reply the parent read both PRs live, a notes file and a decisions log exist in the run root, and the reply accounts for every worker as done or replaced without asking the user', OR('**Check a PR\'s live state before you report on it,**'), (view) => {
       const lastCollect = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect').map((call) => call.order));
@@ -171,8 +182,10 @@ export const orchestrateFamily: Family = {
       return when(live !== undefined && (run?.decisions?.length ?? 0) >= 3 && readFileSync(join(run?.dir ?? '', 'notes.md'), 'utf8').includes('Program notes') && missing.length === 0 && !reply.trim().endsWith('?'), 'live read after the last collect; notes and decisions present; every worker named in the reply; no question', `live read ${live?.order}; decisions ${run?.decisions?.length}; unaccounted workers ${missing.join(', ') || 'none'}`);
     }),
     check('orchestrate.a-watch-loop-follows-the-pr', 'the PR was watched with a watch-pr watcher in a watcher worker, not a script or sleep loop in the parent', OR('Watch each PR with a watch loop'), (view) => {
-      const watcher = allWorkers(view).find((worker) => worker.id === 'watch-52');
-      const argv = assignmentOf(watcher as never).watch?.argv ?? [];
+      const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).watch?.argv?.[0] === WATCH_PR);
+      if (candidates.length !== 1) throw new Error(`Expected one PR watcher, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      const watcher = candidates[0];
+      const argv = watcher ? assignmentOf(watcher).watch?.argv ?? [] : [];
       const loops = BASH(view).filter((entry) => /while true|until |for i in/.test(entry.command));
       return when(argv[0] === WATCH_PR && (watcher?.state?.['exit'] as { code: number } | undefined)?.code === 0 && loops.length === 0, 'watch-pr watcher exited COMPLETE, no loop in the parent', `argv ${JSON.stringify(argv)}; loops ${loops.length}`);
     }),

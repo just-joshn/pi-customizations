@@ -411,8 +411,8 @@ export const autonomousFamily: Family = {
   negatives: [
     ...todoNegatives('auto-dedupe', 'autonomous-run', { done: [1, 2, 3, 5, 6], receipts: { 1: 'auto-predicate', 2: 'auto-wake', 3: 'auto-iterate', 5: 'auto-checkpoints', 6: 'auto-stop' } }),
     { name: 'the predicate was relaxed to declare victory', mutate: (sandbox) => relaxPredicate(sandbox), fails: ['auto.predicate-never-relaxed'] },
-    { name: 'only one watch loop was armed', mutate: (sandbox) => patchAssignment(sandbox, 'auto-dedupe', 'watch-2', (assignment) => (assignment['role'] = 'general')), fails: ['auto.watch-loop-re-arms-after-each-wake'] },
-    { name: 'the watch had a relative working directory', mutate: (sandbox) => patchAssignment(sandbox, 'auto-dedupe', 'watch-1', (assignment) => (assignment['watch'] = { argv: ['sleep', '1'], cwd: 'repo' })), fails: ['auto.watch-loop-re-arms-after-each-wake'] },
+    { name: 'only one watch loop was armed', mutate: (sandbox, view) => { const worker = allWorkers(view).filter((entry) => assignmentOf(entry).kind === 'watch')[1]; if (worker === undefined) throw new Error('missing autonomous watcher'); patchAssignment(sandbox, view.runs.find((run) => run.workers.includes(worker))?.id ?? '', worker.id, (assignment) => (assignment['role'] = 'general')); }, fails: ['auto.watch-loop-re-arms-after-each-wake'] },
+    { name: 'the watch had a relative working directory', mutate: (sandbox, view) => { const worker = allWorkers(view).filter((entry) => assignmentOf(entry).kind === 'watch')[0]; if (worker === undefined) throw new Error('missing autonomous watcher'); patchAssignment(sandbox, view.runs.find((run) => run.workers.includes(worker))?.id ?? '', worker.id, (assignment) => (assignment['watch'] = { argv: ['sleep', '1'], cwd: 'repo' })); }, fails: ['auto.watch-loop-re-arms-after-each-wake'] },
     { name: 'an iteration left no row', mutate: (sandbox) => dropIterationRow(sandbox), fails: ['auto.one-row-per-iteration'] },
     { name: 'the discarded tweak was left in the tree', mutate: (sandbox) => dirtyRepo(sandbox, 'src/dedupe.js', '// tweak\n'), fails: ['auto.discarded-change-is-gone-and-the-win-is-one-small-commit'] },
     { name: 'the run stopped to ask the user', mutate: (sandbox) => rewriteFinalReply(sandbox, /$/, '\nShould I keep going?'), fails: ['auto.stops-when-met-and-does-not-ask'] },
@@ -507,7 +507,9 @@ export const cleanupFamily: Family = {
     check('cleanup.branches-survive', 'no commit is lost: every branch ref still exists after the prune', src('poteto-mode/playbooks/worktree-cleanup.md', 'Branch refs survive, so no commits are lost'), (view) => when(['merged-br', 'wip-br', 'active-br'].every((branch) => view.git.branches.includes(branch)), `branches ${view.git.branches.join(', ')}`, `branches ${view.git.branches.join(', ')}`)),
     check('cleanup.pinned-set-wins-and-usage-was-verified', 'the pinned set the user named is recorded, and a readonly worker read the chat transcript to confirm what it touches', src('poteto-mode/playbooks/worktree-cleanup.md', 'so the pinned set wins'), (view) => {
       const pinned = taskLines(primaryRun(view, 'worktree-cleanup')).some((line) => /Pinned set from the user: .*wt-active/.test(line));
-      const reader = allWorkers(view).find((worker) => worker.id === 'chat-check');
+      const candidates = allWorkers(view).filter((worker) => worker.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command']))));
+      const reader = candidates[0];
+      if (candidates.length !== 1 || reader === undefined) throw new Error(`expected one chat reader; candidates: ${candidates.map((worker) => worker.id).join(', ') || 'none'}`);
       const read = reader?.session?.toolCalls.some((call) => call.name === 'bash_readonly' && /sessions\/--active-chat--/.test(String(call.args['command'])));
       return when(pinned && read === true && assignmentOf(reader as never).workspace?.mode === 'readonly', 'pinned set recorded and the transcript read by a readonly worker', `pinned recorded ${pinned}; transcript read ${String(read)}`);
     }),

@@ -1,8 +1,10 @@
 // Decides whether a finished run is evidence at all. A run whose provider failed, whose parent did nothing, or whose drive hook crashed
 // has no behavior to score: scoring it prints FAILs for things the model never got to do and PASSes for actions it never took.
+import { budgetFor } from './budget.ts';
+import type { Meta, RunSpec } from './driver.ts';
 import type { RunView, Session } from './view.ts';
 
-export type InconclusiveKind = 'provider-error' | 'no-activity' | 'crash';
+export type InconclusiveKind = 'provider-error' | 'no-activity' | 'crash' | 'harness-budget';
 
 export interface Inconclusive {
   kind: InconclusiveKind;
@@ -23,6 +25,17 @@ export function assess(view: RunView, crashed?: string): Inconclusive | undefine
   const replied = view.parent.messages.some((message) => message.role === 'assistant' && message.text.trim() !== '');
   if (view.driver === 'real' && view.parent.toolCalls.length === 0 && !replied) return { kind: 'no-activity', message: 'the parent made no tool call and produced no reply' };
   return undefined;
+}
+
+/** Only recorded effective fixture limits establish that a real run stopped below its product budget. */
+export function assessHarnessStop(meta: Meta, spec: Pick<RunSpec, 'family' | 'timeoutMs'>): Inconclusive | undefined {
+  if (meta.driver !== 'real' || !meta.timedOut || meta.stopReason === undefined || meta.budget === undefined || spec.timeoutMs === undefined) return undefined;
+  const expected = budgetFor(spec.family);
+  const actual = meta.budget;
+  if (actual.idleMs !== spec.timeoutMs || actual.ceilingMs !== spec.timeoutMs) return undefined;
+  const bound = meta.stopReason === 'ceiling' ? 'ceilingMs' : 'idleMs';
+  if (actual[bound] >= expected[bound]) return undefined;
+  return { kind: 'harness-budget', message: `the harness stopped at its recorded fixture ${actual[bound]} ms ${meta.stopReason} limit, below the real-model ${expected[bound]} ms limit` };
 }
 
 /** A check that passes on the absence of an action proves nothing unless the parent ran: it completed without error and made at least one tool call. */

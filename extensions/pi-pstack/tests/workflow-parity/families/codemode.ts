@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, scenario, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
-import { allWorkers, settledAndCollected, workersCheck } from '../lib/checks.ts';
+import { allWorkers, settledAndCollected } from '../lib/checks.ts';
 import { PKG, SCRIPTED_ROLES } from '../lib/driver.ts';
 import { overwrite, parentSession, patchAssignment, rewriteSession, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView, Session } from '../lib/view.ts';
@@ -44,6 +44,12 @@ interface Slot {
   text?: string;
 }
 
+const composerOf = (view: RunView) => {
+  const candidates = allWorkers(view).filter((worker) => codemodeCalls(worker.session).length > 0);
+  const worker = candidates[0];
+  if (candidates.length !== 1 || worker === undefined) throw new Error(`expected one codemode worker; candidates: ${candidates.map((entry) => entry.id).join(', ') || 'none'}`);
+  return worker;
+};
 const codemodeCalls = (session: Session | null) => (session?.toolCalls ?? []).filter((call) => call.name === 'codemode');
 const slotsOf = (text: string): { who: string; wallMs: number; slots: Slot[] } | null => {
   const found = /\{"who":.*"slots":\[.*\]\}/.exec(text.replace(/\\"/g, '"'));
@@ -61,7 +67,7 @@ const calls = (view: RunView): { tool?: string; method?: string; pid: number; at
 const echoesOf = (view: RunView, who: string) => calls(view).filter((entry) => entry.tool === 'slow_echo' && entry.args?.label?.startsWith(`${who}-`));
 
 function composes(who: 'parent' | 'worker'): ReturnType<typeof check>[] {
-  const session = (view: RunView): Session | null => (who === 'parent' ? view.parent : (allWorkers(view).find((worker) => worker.id === 'composer')?.session ?? null));
+  const session = (view: RunView): Session | null => (who === 'parent' ? view.parent : composerOf(view).session);
   const first = (view: RunView) => slotsOf(codemodeCalls(session(view)).find((call) => /slow_echo/.test(JSON.stringify(call.args)))?.resultText ?? '');
   return [
     check(`codemode.${who}-isolated`, `in the ${who}, each concurrent call's result lands in its own slot: three labels in order, the error result flagged only on its own slot, the missing tool rejected only on its own`, SRC, (view) => {
@@ -101,12 +107,15 @@ export const codemodeFamily: Family = {
   checks: [
     ...composes('parent'),
     ...composes('worker'),
-    workersCheck('codemode.worker-ran-codemode', 'the worker is a pstack worker with its own worktree that ran codemode itself', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), { role: 'general', min: 1, mode: 'worktree', id: /composer/ }),
+    check('codemode.worker-ran-codemode', 'the worker is a pstack worker with its own worktree that ran codemode itself', src('swarm/SKILL.md', 'Spawn all N workers one after another without waiting'), (view) => {
+      const worker = composerOf(view);
+      return when(worker.assignment['role'] === 'general' && (worker.assignment['workspace'] as { mode?: string })?.mode === 'worktree', `codemode worker ${worker.id} has its own worktree`, `worker ${worker.id}: ${JSON.stringify(worker.assignment)}`);
+    }),
     check('codemode.sessions-do-not-share', 'the parent and the worker each ran their own MCP server process, and no label crossed from one to the other', SRC, (view) => {
       const parentPids = new Set(echoesOf(view, 'parent').map((entry) => entry.pid));
       const workerPids = new Set(echoesOf(view, 'worker').map((entry) => entry.pid));
       const shared = [...parentPids].filter((pid) => workerPids.has(pid));
-      const crossed = [...codemodeCalls(view.parent), ...codemodeCalls(allWorkers(view).find((worker) => worker.id === 'composer')?.session ?? null)].filter((call, index) => (index < codemodeCalls(view.parent).length ? /worker-[ABC]/.test(call.resultText) : /parent-[ABC]/.test(call.resultText)));
+      const crossed = [...codemodeCalls(view.parent), ...codemodeCalls(composerOf(view).session)].filter((call, index) => (index < codemodeCalls(view.parent).length ? /worker-[ABC]/.test(call.resultText) : /parent-[ABC]/.test(call.resultText)));
       return when(parentPids.size === 1 && workerPids.size === 1 && shared.length === 0 && crossed.length === 0, `parent server pid ${[...parentPids].join()}, worker server pid ${[...workerPids].join()}, no label crossed`, `parent pids ${[...parentPids].join()}, worker pids ${[...workerPids].join()}, shared ${shared.join()}, crossed ${crossed.length}`);
     }),
     check('codemode.large-output-is-bounded', 'a 60000 character tool result with max_output_tokens 200 reaches the model truncated with the full text saved to a file, and a script that reduces it returns only a summary', SRC, (view) => {
@@ -121,8 +130,8 @@ export const codemodeFamily: Family = {
   negatives: [
     { name: 'two parent results swapped slots', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'parent-B', 'parent-C'), fails: ['codemode.parent-isolated'] },
     { name: 'the worker calls ran one after another', mutate: (sandbox) => overwrite(join(sandbox, 'mcp-calls.jsonl'), (text) => text.split('\n').map((line) => (line.includes('worker-B') ? line.replace(/"at":(\d+)/, (_, at: string) => `"at":${Number(at) + 1000}`) : line)).join('\n')), fails: ['codemode.worker-concurrent'] },
-    { name: 'a worker label appeared in the parent', mutate: (sandbox) => rewriteSession(workerSessionFile(sandbox, RUN, 'composer'), 'worker-A', 'parent-A'), fails: ['codemode.worker-isolated', 'codemode.sessions-do-not-share'] },
+    { name: 'a worker label appeared in the parent', mutate: (sandbox, view) => rewriteSession(workerSessionFile(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id), 'worker-A', 'parent-A'), fails: ['codemode.worker-isolated', 'codemode.sessions-do-not-share'] },
     { name: 'the large result reached the model whole', mutate: (sandbox) => rewriteSession(parentSession(sandbox), 'truncated', 'complete'), fails: ['codemode.large-output-is-bounded'] },
-    { name: 'the worker was readonly, with no codemode', mutate: (sandbox) => patchAssignment(sandbox, RUN, 'composer', (assignment) => (assignment['workspace'] = { mode: 'readonly', path: join(sandbox, 'repo') })), fails: ['codemode.worker-ran-codemode'] },
+    { name: 'the worker was readonly, with no codemode', mutate: (sandbox, view) => patchAssignment(sandbox, view.runs.find((run) => run.workers.includes(composerOf(view)))?.id ?? '', composerOf(view).id, (assignment) => (assignment['workspace'] = { mode: 'readonly', path: join(sandbox, 'repo') })), fails: ['codemode.worker-ran-codemode'] },
   ],
 };

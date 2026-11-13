@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { Parent, scenario, shQuote, Worker } from '../fixtures/dsl.ts';
 import { cartHistory } from '../fixtures/repos.ts';
 import { check, fail, src, when } from '../lib/check.ts';
-import { allWorkers, assignmentOf, finalReply, openedAt, promptHasSkill, promptRoutes, repoUntouched, settledAndCollected, skillFile, workersCheck } from '../lib/checks.ts';
+import { allWorkers, assignmentOf, finalReply, openedAt, promptHasSkill, promptRoutes, repoUntouched, settledAndCollected, skillFile } from '../lib/checks.ts';
 import { SCRIPTED_ROLES } from '../lib/driver.ts';
 import { appendToolCall, dirtyRepo, parentSession, patchAssignment, rewriteFinalReply, rewriteSession, workerSessionFile } from '../lib/mutate.ts';
 import type { RunView } from '../lib/view.ts';
@@ -85,6 +85,13 @@ Run the tests before saying done. The **poteto-mode** skill (\`../poteto-mode/SK
 
 const sessionFile = (messages: readonly string[]): string => `${[{ type: 'session', version: 3, id: 'seed', timestamp: '2026-10-01T00:00:00.000Z', cwd: '/work' }, ...messages.map((text, index) => ({ type: 'message', id: `m${index}`, parentId: null, timestamp: '2026-10-01T00:00:00.000Z', message: { role: 'user', content: [{ type: 'text', text }] } }))].map((line) => JSON.stringify(line)).join('\n')}\n`;
 
+const authors = (view: RunView) => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'poteto' && /jay-mode\/SKILL\.md/.test(worker.brief ?? ''));
+const authorOf = (view: RunView) => authors(view).length === 1 ? authors(view)[0] : undefined;
+const authorSpawn = (view: RunView) => {
+  const author = authorOf(view);
+  return author === undefined ? -1 : view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/workers/${author.id}/`))?.order ?? -1;
+};
+
 const toolText = (view: RunView, worker: string) => JSON.stringify(allWorkers(view).find((entry) => entry.id === worker)?.session?.toolCalls ?? []);
 
 export const automateMeFamily: Family = {
@@ -128,11 +135,22 @@ export const automateMeFamily: Family = {
       const firstSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn')?.order ?? Number.POSITIVE_INFINITY;
       return when(find !== undefined && find.order < firstSpawn, `searched at ${find?.order}, first spawn at ${firstSpawn}`, 'no search for an existing mode skill before the first spawn');
     }),
-    workersCheck('automate-me.parallel-slice-miners', 'three miners, one per slice, readonly, spawned in one message', src('automate-me/SKILL.md', 'Run multiple parallel subagents across slices of history'), { role: 'general', min: 3, max: 3, mode: 'readonly', rootPath: true, id: /miner/ }),
+    check('automate-me.parallel-slice-miners', 'three miners, one per slice, readonly, spawned in one message', src('automate-me/SKILL.md', 'Run multiple parallel subagents across slices of history'), (view) => {
+      const miners = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'general');
+      const slices = miners.map((worker) => SLICES.filter(([name]) => (worker.brief ?? '').includes(`00-${name}.jsonl`)));
+      const valid = miners.every((worker) => assignmentOf(worker).workspace?.mode === 'readonly' && assignmentOf(worker).workspace?.path === view.repo);
+      return when(miners.length === 3 && valid && slices.every((slice) => slice.length === 1) && new Set(slices.flat().map(([name]) => name)).size === 3, 'three readonly miners assigned distinct history slices', 'expected three readonly root-scoped miners, each assigned one distinct slice');
+    }),
     check('automate-me.history-is-workspace-scoped', 'every miner read only its own slice under this workspace\'s session folder; nothing touched another workspace\'s sessions', src('automate-me/SKILL.md', 'Don\'t glob across `~/.pi/agent/sessions/*/`'), (view) => {
       const everything = JSON.stringify([view.parent.toolCalls, ...allWorkers(view).map((worker) => worker.session?.toolCalls ?? [])].flat().map((call) => call.args));
-      const miners = allWorkers(view).filter((worker) => /miner/.test(worker.id));
-      const wrong = miners.filter((worker) => !(worker.session?.toolCalls ?? []).some((call) => call.name === 'read' && String(call.args['path']).includes(`00-${worker.id.replace('miner-', '')}.jsonl`)));
+      const miners = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'general');
+      const slices = SLICES.map(([name]) => `00-${name}.jsonl`);
+      const assigned = miners.map((worker) => slices.filter((slice) => (worker.brief ?? '').includes(slice)));
+      const wrong = miners.filter((worker, index) => {
+        const slice = assigned[index]?.[0];
+        return assigned[index]?.length !== 1 || slice === undefined || !(worker.session?.toolCalls ?? []).some((call) => call.name === 'read' && String(call.args['path']).includes(slice));
+      });
+      if (miners.length !== 3 || new Set(assigned.flat()).size !== 3) return fail('expected three miners assigned distinct history slices');
       return when(!everything.includes('--elsewhere--') && !everything.includes(DECOY_MARK) && !/sessions\/\*/.test(everything) && wrong.length === 0, 'no call names the other workspace folder, a glob across sessions, or its content; each miner read its own slice', `touched elsewhere ${everything.includes('--elsewhere--')}; glob ${/sessions\/\*/.test(everything)}; miners without their slice: ${wrong.map((worker) => worker.id).join(',')}`);
     }),
     check('automate-me.asks-a-structured-question', 'before drafting, the parent ended a turn with one numbered multiple-choice question of 4 to 6 options, and drafted only after the user answered', src('automate-me/SKILL.md', 'Ask structured multiple-choice questions in the conversation, with numbered options'), (view) => {
@@ -140,26 +158,29 @@ export const automateMeFamily: Family = {
       const question = view.parent.messages.find((message) => message.role === 'assistant' && /Which areas matter most\?/.test(message.text));
       const options = (question?.text.match(/^\d+\. /gm) ?? []).length;
       const answer = users.find((message) => message.text.trim() === '1 and 3');
-      const author = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/author/'))?.order ?? -1;
+      const author = authorSpawn(view);
       return when(question !== undefined && options >= 4 && options <= 6 && answer !== undefined && answer.order > question.order && author > answer.order, `question with ${options} options, answered at ${answer?.order}, drafting at ${author}`, `question ${question !== undefined}, options ${options}, answer ${answer?.order}, drafting ${author}`);
     }),
     check('automate-me.keeps-only-multi-slice-signals', 'the skill holds each preference seen in two or more slices and none seen once', src('automate-me/SKILL.md', 'Patterns seen in 2+ slices are high-confidence. Lone signals are weak and usually get dropped.'), (view) => {
-      const author = allWorkers(view).find((worker) => worker.id === 'author');
+      const author = authorOf(view);
+      if (author === undefined) return fail('expected one jay-mode author');
       const text = JSON.stringify(author?.session?.toolCalls.find((call) => call.name === 'write')?.args ?? {});
       const kept = [/pnpm/, /Short answers/, /tests before saying done/].filter((pattern) => !pattern.test(text));
       return when(kept.length === 0 && !/Captain/.test(text), 'pnpm, short answers and tests are in; the once-only Captain is out', `missing ${kept.map(String).join(', ')}; lone signal present ${/Captain/.test(text)}`);
     }),
     check('automate-me.skill-shape-and-placement', 'the skill is .pi/skills/jay-mode/SKILL.md with a handle-triggered description and disable-model-invocation true, committed in the author\'s worktree, references not inlined, no long dash', src('automate-me/SKILL.md', 'Frontmatter `disable-model-invocation: true` by default'), (view) => {
-      const text = execFileSync('git', ['-C', view.repo, 'show', `pstack-run/${RUN}/author:.pi/skills/${HANDLE}-mode/SKILL.md`], { encoding: 'utf8' });
+      const author = authorOf(view);
+      if (author === undefined) return fail('expected one jay-mode author');
+      const text = execFileSync('git', ['-C', view.repo, 'show', `pstack-run/${view.runs[0]?.id}/${author.id}:.pi/skills/${HANDLE}-mode/SKILL.md`], { encoding: 'utf8' });
       const problems = [...(/^name: jay-mode$/m.test(text) ? [] : ['name']), ...(/^description: .*\/jay-mode/m.test(text) ? [] : ['description trigger']), ...(/^disable-model-invocation: true$/m.test(text) ? [] : ['disable-model-invocation']), ...(/Non-negotiables|Autopilot-full/.test(text) ? ['inlined poteto-mode content'] : []), ...(/\.\.\/poteto-mode\/SKILL\.md/.test(text) ? [] : ['no path reference']), ...(/[\u2014\u2013]/.test(text) ? ['long dash'] : [])];
       return when(problems.length === 0, 'name, description, disable-model-invocation, a path reference, no inlined content, no long dash', problems.join(', '));
     }),
     check('automate-me.reads-unslop-and-authoring-before-drafting', 'unslop and the authoring playbook were opened before the author was spawned', src('automate-me/SKILL.md', 'Apply the **unslop** skill and the Authoring a skill playbook\'s writing guidance to every line.'), (view) => {
-      const author = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/author/'))?.order ?? -1;
+      const author = authorSpawn(view);
       const opened = [openedAt(view.parent, skillFile('unslop')), openedAt(view.parent, 'generated/skills/poteto-mode/playbooks/authoring-a-skill.md')];
       return when(!opened.includes(-1) && opened.every((at) => at < author), `opened at ${opened.join(', ')}, author spawned at ${author}`, `opened at ${opened.join(', ')}; author at ${author}`);
     }),
-    check('automate-me.lands-in-a-worktree-not-main', 'the skill lives on a worktree branch; main has no new commit and no change', src('automate-me/SKILL.md', 'Work in a worktree off main. Commit and open a PR. Don\'t push to main directly.'), (view) => when((view.git.branchCommits[`pstack-run/${RUN}/author`]?.length ?? 0) === 1 && view.git.commitsSinceBase.length === 0 && view.git.dirty.length === 0, '1 commit on the author branch, main untouched', `author commits ${view.git.branchCommits[`pstack-run/${RUN}/author`]?.length}; main commits ${view.git.commitsSinceBase.length}; dirty ${view.git.dirty.join(',')}`)),
+    check('automate-me.lands-in-a-worktree-not-main', 'the skill lives on a worktree branch; main has no new commit and no change', src('automate-me/SKILL.md', 'Work in a worktree off main. Commit and open a PR. Don\'t push to main directly.'), (view) => when(authorOf(view) !== undefined && (view.git.branchCommits[`pstack-run/${view.runs[0]?.id}/${authorOf(view)?.id}`]?.length ?? 0) === 1 && view.git.commitsSinceBase.length === 0 && view.git.dirty.length === 0, '1 commit on the author branch, main untouched', `author commits ${view.git.branchCommits[`pstack-run/${view.runs[0]?.id}/${authorOf(view)?.id}`]?.length}; main commits ${view.git.commitsSinceBase.length}; dirty ${view.git.dirty.join(',')}`)),
     settledAndCollected('automate-me.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),
   ],
   negatives: [

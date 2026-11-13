@@ -132,28 +132,38 @@ const OWNER_FAMILY = (model: string): string => model.slice(model.indexOf('/') +
 
 const ownerWorkers = (view: RunView): WorkerView[] => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'owner');
 
+function responsibleWorker(view: RunView, role: string, pr: number, lane?: string): WorkerView | undefined {
+  const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === role && new RegExp(`\\bPR\\s+#?${pr}\\b`, 'i').test(worker.brief ?? '') && (lane === undefined || new RegExp(`\\b${lane}\\b`, 'i').test(worker.brief ?? '')));
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+function observedUnits(view: RunView, units: Unit[]): Unit[] {
+  return units.map((unit) => ({ ...unit, id: responsibleWorker(view, 'owner', unit.pr)?.id ?? '' }));
+}
+
 function onePerPrOwners(id: string, source: Src | Src[], units: (view: RunView) => Unit[], options: { from: 'trunk' | 'stack' }): Check {
   return check(id, 'one container owner per PR, each with the forge capability, a distinct id, workspace at its own start commit, and the PR it opened carries that owner as its author', source, (view) => {
     const { state, actions } = readForge(view);
     const owners = ownerWorkers(view);
-    const wanted = units(view);
+    const wanted = observedUnits(view, units(view));
     const problems = wanted.flatMap((unit) => {
-      const worker = owners.find((entry) => entry.id === unit.id);
+      const worker = responsibleWorker(view, 'owner', unit.pr);
       const pr = state.prs[String(unit.pr)];
       if (worker === undefined) return [`no owner ${unit.id}`];
       const assignment = assignmentOf(worker) as { workspace?: { mode?: string; inputCommit?: string }; capabilities?: Record<string, unknown> };
       const caps = assignment.capabilities ?? {};
+      const run = view.runs.find((entry) => entry.workers.includes(worker));
       const create = actions.find((action) => action.kind === 'create' && action.pr === unit.pr);
       return [
         ...(assignment.workspace?.mode !== 'container' ? [`${unit.id} workspace ${String(assignment.workspace?.mode)}`] : []),
         ...(assignment.workspace?.inputCommit !== unit.from ? [`${unit.id} starts at ${String(assignment.workspace?.inputCommit).slice(0, 8)}, not ${unit.from.slice(0, 8)} (${options.from})`] : []),
         ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false ? [`${unit.id} capabilities ${JSON.stringify(caps)}`] : []),
-        ...(pr?.author !== unit.id || create?.worker !== unit.id || create?.container !== true ? [`PR ${unit.pr} was not opened by ${unit.id} from its container`] : []),
+        ...(pr?.author !== unit.id || create?.worker !== unit.id || create?.run !== run?.id || create?.container !== true ? [`PR ${unit.pr} was not opened by ${unit.id} from its container`] : []),
         ...(worker.session?.cwd !== WS ? [`${unit.id} ran in ${String(worker.session?.cwd)}`] : []),
       ];
     });
     const sharedPr = new Set(actions.filter((action) => action.kind === 'create' && action.tool === 'gh').map((action) => action.pr)).size;
-    return when(owners.length === wanted.length && sharedPr === wanted.length && problems.length === 0, `${owners.map((worker) => worker.id).join(', ')}: one container owner per PR, forge capability, own PR`, `${owners.length} owners for ${wanted.length} PRs; ${problems.join('; ')}`);
+    return when(owners.length === wanted.length && new Set(wanted.map((unit) => unit.id)).size === wanted.length && sharedPr === wanted.length && problems.length === 0, `${owners.map((worker) => worker.id).join(', ')}: one container owner per PR, forge capability, own PR`, `${owners.length} owners for ${wanted.length} PRs; ${problems.join('; ')}`);
   });
 }
 
@@ -163,13 +173,16 @@ type Check = ReturnType<typeof check>;
 function ownerHygiene(id: string, source: Src | Src[], units: (view: RunView) => Unit[]): Check {
   return check(id, 'each owner pushed its own branch as a plain push (no force), wrote a decision trail in its worker directory, and recorded its self-proof receipt', source, (view) => {
     const { actions } = readForge(view);
-    const run = view.runs[0];
-    const problems = units(view).flatMap((unit) => {
-      const pushes = actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action.worker === unit.id);
+    const problems = observedUnits(view, units(view)).flatMap((unit) => {
+      const worker = responsibleWorker(view, 'owner', unit.pr);
+      const run = view.runs.find((entry) => worker !== undefined && entry.workers.includes(worker));
+      if (worker === undefined || run === undefined) return [`PR ${unit.pr} has no unique owner`];
+      const pushes = actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action.worker === unit.id && action.run === run.id);
       const foreign = pushes.filter((action) => action['ref'] !== `refs/heads/${unit.branch}`);
       const forced = pushes.filter((action) => action.kind === 'force-push');
       const trail = readFileSync(join(run?.dir ?? '', 'workers', unit.id, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
-      const receipt = run?.receipts.find((entry) => entry.id === `${unit.id}-selfproof`);
+      const receipts = run.receipts.filter((entry) => entry.runId === run.id && entry.target === `pr-${unit.pr}` && entry.artifacts.some((artifact) => artifact.path.startsWith(`${worker.dir}/`)));
+      const receipt = receipts.length === 1 ? receipts[0] : undefined;
       return [...(pushes.length === 0 ? [`${unit.id} pushed nothing`] : []), ...(foreign.length > 0 ? [`${unit.id} pushed ${foreign.map((action) => String(action['ref'])).join(', ')}`] : []), ...(forced.length > 0 ? [`${unit.id} force-pushed`] : []), ...(!/open the PR early/.test(trail) ? [`${unit.id} left no decision trail`] : []), ...(receipt === undefined || receipt.verdict !== 'pass' ? [`${unit.id} has no passing self-proof receipt`] : [])];
     });
     return when(problems.length === 0, 'own branch only, no force-push, trail and self-proof recorded', problems.join('; '));
@@ -191,19 +204,21 @@ function verifiersIndependent(id: string, source: Src | Src[], units: (view: Run
   return check(id, 'each PR has a container verifier on a different model family than its owner, started only after the owner reported code-ready, at exactly the code-ready head, and its verdict was posted by it', source, (view) => {
     const { state, actions } = readForge(view);
     const verdicts = verdictsOf(state, actions);
-    const problems = units(view).flatMap((unit) => {
-      const verifier = allWorkers(view).find((worker) => worker.id === `verifier-${unit.pr}`);
+    const problems = observedUnits(view, units(view)).flatMap((unit) => {
+      const verifier = responsibleWorker(view, 'verifier', unit.pr);
       const owner = ownerWorkers(view).find((worker) => worker.id === unit.id);
       const verdict = verdicts.find((entry) => entry.pr === unit.pr);
       if (verifier === undefined || owner === undefined) return [`PR ${unit.pr} lacks a verifier or an owner`];
-      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/${verifier.id}/`))?.order ?? -1;
-      const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === owner.id)?.order ?? Number.POSITIVE_INFINITY;
+      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(verifier.dir, 'assignment.json'))?.order ?? -1;
+      const ownerRun = view.runs.find((entry) => entry.workers.includes(owner));
+      const verifierRun = view.runs.find((entry) => entry.workers.includes(verifier));
+      const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === owner.id && message.details?.['runId'] === ownerRun?.id)?.order ?? Number.POSITIVE_INFINITY;
       const assignment = assignmentOf(verifier) as { workspace?: { mode?: string; inputCommit?: string }; capabilities?: Record<string, unknown> };
       return [
         ...(OWNER_FAMILY(String(assignmentOf(verifier).model)) === OWNER_FAMILY(String(assignmentOf(owner).model)) ? [`${verifier.id} runs on the owner's model family`] : []),
         ...(spawn < ownerWake ? [`${verifier.id} was spawned (${spawn}) before ${owner.id} reported (${ownerWake})`] : []),
         ...(assignment.workspace?.mode !== 'container' || assignment.workspace.inputCommit !== unit.sha || assignment.capabilities?.['forge'] !== true ? [`${verifier.id} is not a forge container worker at ${unit.sha?.slice(0, 8)}`] : []),
-        ...(verdict === undefined || verdict.head !== unit.sha || verdict.verifier !== verifier.id || actions[verdict.at]?.worker !== verifier.id ? [`PR ${unit.pr} verdict ${JSON.stringify(verdict)}`] : []),
+        ...(verdict === undefined || verdict.head !== unit.sha || verdict.verifier !== verifier.id || actions[verdict.at]?.worker !== verifier.id || actions[verdict.at]?.run !== verifierRun?.id ? [`PR ${unit.pr} verdict ${JSON.stringify(verdict)}`] : []),
       ];
     });
     return when(problems.length === 0, 'verifiers independent, after code-ready, at the head, own verdicts', problems.join('; '));
@@ -213,18 +228,20 @@ function verifiersIndependent(id: string, source: Src | Src[], units: (view: Run
 const rootAudited = (id: string, source: Src | Src[]): Check =>
   check(id, 'the root audited the receipts through pstack_evidence after the verifiers were collected and before any owner was told to merge', source, (view) => {
     const audit = view.parent.toolCalls.find((call) => call.name === 'pstack_evidence' && ['list', 'verify'].includes(String(call.args['action'])) && !call.isError)?.order ?? -1;
-    const lastCollect = Math.max(...[31, 32, 41, 42].map((pr) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === `verifier-${pr}`)?.order ?? -1));
+    const verifiers = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'verifier');
+    const lastCollect = Math.max(...verifiers.map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === worker.id && call.args['runId'] === view.runs.find((run) => run.workers.includes(worker))?.id)?.order ?? Number.POSITIVE_INFINITY));
     const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer')?.order ?? Number.POSITIVE_INFINITY;
-    return when(audit > lastCollect && audit < steer, `receipts audited at ${audit}, after the last verifier collect (${lastCollect}) and before the first go (${steer})`, `audit ${audit}, last collect ${lastCollect}, first steer ${steer}`);
+    return when(verifiers.length > 0 && audit > lastCollect && audit < steer, `receipts audited at ${audit}, after the last verifier collect (${lastCollect}) and before the first go (${steer})`, `audit ${audit}, last collect ${lastCollect}, first steer ${steer}`);
   });
 
 const hourlyWatch = (id: string, source: Src | Src[], options: { aborted: boolean }): Check =>
   check(id, `the root armed an hourly watch loop (watcher, sleep 3600, absolute cwd)${options.aborted ? ' and stopped it once no delegated work was left' : ''}`, source, (view) => {
-    const watcher = allWorkers(view).find((worker) => assignmentOf(worker).kind === 'watch');
-    const argv = assignmentOf(watcher as never).watch?.argv ?? [];
+    const watchers = allWorkers(view).filter((worker) => assignmentOf(worker).kind === 'watch');
+    const watcher = watchers.length === 1 ? watchers[0] : undefined;
+    const argv = watcher === undefined ? [] : assignmentOf(watcher).watch?.argv ?? [];
     const ownerSpawn = Math.min(...ownerWorkers(view).map((worker) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/${worker.id}/`))?.order ?? Number.POSITIVE_INFINITY));
-    const watchSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes('/watch-hourly/'))?.order ?? -1;
-    const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'watch-hourly' && !call.isError)?.order ?? -1;
+    const watchSpawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && watcher !== undefined && call.args['assignmentPath'] === join(watcher.dir, 'assignment.json'))?.order ?? -1;
+    const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && watcher !== undefined && call.args['workerId'] === watcher.id && call.args['runId'] === view.runs.find((run) => run.workers.includes(watcher))?.id && !call.isError)?.order ?? -1;
     const lastMerge = Math.max(...view.parent.toolCalls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect').map((call) => call.order));
     return when(watcher !== undefined && assignmentOf(watcher).role === 'watcher' && argv[0] === 'sleep' && argv[1] === '3600' && assignmentOf(watcher).watch?.cwd === view.repo && watchSpawn > ownerSpawn && (!options.aborted || abort > lastMerge), `sleep 3600 at ${view.repo}, armed at ${watchSpawn} after the owners (${ownerSpawn})${options.aborted ? `, aborted at ${abort}` : ''}`, `watcher ${JSON.stringify(argv)}, armed ${watchSpawn}, owners ${ownerSpawn}, abort ${abort}, last collect ${lastMerge}`);
   });
@@ -389,7 +406,7 @@ export const autopilotHoldFamily: Family = {
     check('autopilot.hold.nothing-merged-and-the-forge-saw-no-write-after-the-owners-reported', 'no merge, queue entry or verdict exists, and the only forge writes are the owners\' own pushes and PR creation', AF('Stand down at once on the operator\'s stop'), (view) => {
       const { actions, state } = readForge(view);
       const kinds = [...new Set(actions.filter((action) => !['read', 'log-view'].includes(action.kind)).map((action) => `${action.kind}:${action.worker}`))].sort();
-      return when(Object.values(state.prs).every((pr) => pr.state === 'OPEN') && kinds.every((kind) => /^(create|push|ref-create):owner-[ab]$/.test(kind)), `writes: ${kinds.join(', ')}; every PR open`, `writes ${kinds.join(', ')}; states ${Object.values(state.prs).map((pr) => pr.state).join(', ')}`);
+      return when(Object.values(state.prs).every((pr) => pr.state === 'OPEN') && kinds.every((kind) => ownerWorkers(view).some((worker) => ['create', 'push', 'ref-create'].some((action) => kind === `${action}:${worker.id}`))), `writes: ${kinds.join(', ')}; every PR open`, `writes ${kinds.join(', ')}; states ${Object.values(state.prs).map((pr) => pr.state).join(', ')}`);
     }),
   ],
   negatives: [
@@ -463,7 +480,7 @@ export const autopilotStackFamily: Family = {
     }),
     check('autopilot.stack.reply-lists-each-pr-with-its-verdict', 'the reply lists each PR with its verdict in place of what merged, says nothing merged, and says nobody pushes without the go', AS('**Reply:** list each PR with its verdict'), (view) => {
       const reply = finalReply(view);
-      const missing = [/PR 41 .*PASS by verifier-41/, /PR 42 .*PASS by verifier-42/, /Nothing merged/, /Nobody pushes until you give the go/].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [...([41, 42].map((pr) => new RegExp(`PR ${pr} .*PASS by ${responsibleWorker(view, 'verifier', pr)?.id ?? '(?!)'}`))), /Nothing merged/, /Nobody pushes until you give the go/].filter((pattern) => !pattern.test(reply)).map(String);
       return when(missing.length === 0, 'every part present', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('autopilot.stack.no-tool-errors', AS('In place of step 5')),
@@ -626,12 +643,12 @@ export const autopilotLanesFamily: Family = {
     onePerPrOwners('autopilot.lanes.one-container-owner-for-the-pr', AF('Spawn one owner per PR'), lanesUnits, { from: 'trunk' }),
     check('autopilot.lanes.three-independent-lanes-fan-out-at-the-code-ready-head', 'one swarm of three container verifier lanes (gates, live, audit) was spawned in one message after the owner reported code-ready, each at exactly the code-ready head, on another model family than the owner with at least two families across the lanes, and each posted its own PASS verdict at that head', AF('Fan out independent verifiers at the code-ready SHA per the **swarm** skill'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = lanesUnits() as [Unit];
+      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
       const verdicts = verdictsOf(state, actions);
-      const owner = ownerWorkers(view)[0];
-      const lanes = LANES.map((lane) => allWorkers(view).find((worker) => worker.id === laneId(lane)));
-      const spawns = LANES.map((lane) => view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && String(call.args['assignmentPath']).includes(`/${laneId(lane)}/`))?.order ?? -1);
-      const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === owner?.id)?.order ?? Number.POSITIVE_INFINITY;
+      const owner = responsibleWorker(view, 'owner', 33);
+      const lanes = LANES.map((lane) => responsibleWorker(view, 'verifier', 33, lane));
+      const spawns = lanes.map((worker) => worker === undefined ? -1 : view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['assignmentPath'] === join(worker.dir, 'assignment.json'))?.order ?? -1);
+      const ownerWake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && owner !== undefined && message.details?.['workerId'] === owner.id && message.details?.['runId'] === view.runs.find((run) => run.workers.includes(owner))?.id)?.order ?? Number.POSITIVE_INFINITY;
       const problems = LANES.flatMap((lane, index) => {
         const worker = lanes[index];
         if (worker === undefined || owner === undefined) return [`no ${lane} lane`];
@@ -644,18 +661,18 @@ export const autopilotLanesFamily: Family = {
         ];
       });
       const families = new Set(lanes.map((worker) => OWNER_FAMILY(String(worker === undefined ? '' : assignmentOf(worker).model))));
-      return when(problems.length === 0 && new Set(spawns).size === 1 && spawns[0]! > ownerWake && families.size >= 2, `lanes ${LANES.join(', ')} spawned together at ${spawns[0]} after code-ready (${ownerWake}), families ${[...families].join(', ')}, each posted PASS at ${unit.sha?.slice(0, 8)}`, `${problems.join('; ')}; spawns ${JSON.stringify(spawns)}, code-ready ${ownerWake}, families ${[...families].join(', ')}`);
+      return when(problems.length === 0 && new Set(lanes).size === LANES.length && new Set(spawns).size === 1 && spawns[0]! > ownerWake && families.size >= 2, `lanes ${LANES.join(', ')} spawned together at ${spawns[0]} after code-ready (${ownerWake}), families ${[...families].join(', ')}, each posted PASS at ${unit.sha?.slice(0, 8)}`, `${problems.join('; ')}; spawns ${JSON.stringify(spawns)}, code-ready ${ownerWake}, families ${[...families].join(', ')}`);
     }),
     check('autopilot.lanes.the-root-audited-every-lane-before-the-countersign', 'the root collected all three lanes, then audited their receipts through pstack_evidence, then read the PR comments, and only then countersigned', AF('The verdict is not clean without the live lane, or before you audit the merge-ready report\'s receipts'), (view) => {
       const calls = view.parent.toolCalls;
-      const collects = LANES.map((lane) => calls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === laneId(lane))?.order ?? Number.POSITIVE_INFINITY);
+      const collects = LANES.map((lane) => calls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect' && call.args['workerId'] === responsibleWorker(view, 'verifier', 33, lane)?.id && call.args['runId'] === view.runs.find((run) => run.workers.some((worker) => worker === responsibleWorker(view, 'verifier', 33, lane)))?.id)?.order ?? Number.POSITIVE_INFINITY);
       const audit = calls.find((call) => call.name === 'pstack_evidence' && ['list', 'verify'].includes(String(call.args['action'])) && !call.isError)?.order ?? -1;
       const sign = calls.find((call) => call.name === 'bash' && /PSTACK-COUNTERSIGN/.test(String(call.args['command'])))?.order ?? -1;
       return when(audit > Math.max(...collects) && sign > audit, `lanes collected by ${Math.max(...collects)}, receipts audited at ${audit}, countersigned at ${sign}`, `collects ${JSON.stringify(collects)}, audit ${audit}, countersign ${sign}`);
     }),
     check('autopilot.lanes.a-loosened-gate-got-the-verifiers-proof-and-the-roots-fresh-countersign', 'the PR raised budget.json, the audit lane proved it needed with a passing receipt, and the root, not the owner or a verifier, countersigned that gate at the verified head after every lane verdict and before the owner merged, without approving anything the forge enforces', AF('Anything that loosens a gate, such as a raised budget or an allowlist entry'), (view) => {
       const { state, actions } = readForge(view);
-      const [unit] = lanesUnits() as [Unit];
+      const [unit] = observedUnits(view, lanesUnits()) as [Unit];
       const bare = bareOf(view.sandbox);
       const verdicts = verdictsOf(state, actions);
       const from = budgetAt(bare, `${unit.sha}^`);
@@ -663,16 +680,19 @@ export const autopilotLanesFamily: Family = {
       const comments = actions.map((action, at) => ({ action, at })).filter(({ action }) => action.kind === 'comment' && action.pr === 33);
       const gate = comments.find(({ action }) => /PSTACK-GATE-LOOSENED/.test(String(action['body'])));
       const gateProof = /proof=(\S+)/.exec(String(gate?.action['body']))?.[1];
-      const receipt = view.runs[0]?.receipts.find((entry) => entry.id === gateProof);
+      const auditWorker = responsibleWorker(view, 'verifier', 33, 'audit');
+      const auditRun = view.runs.find((entry) => auditWorker !== undefined && entry.workers.includes(auditWorker));
+      const receipt = auditRun?.receipts.find((entry) => entry.id === gateProof && entry.runId === auditRun.id && entry.artifacts.every((artifact) => artifact.path.startsWith(`${auditWorker?.dir}/`)));
       const signed = comments.find(({ action }) => COUNTERSIGN.test(String(action['body'])));
       const match = COUNTERSIGN.exec(String(signed?.action['body']));
       const merge = mergesIn(actions).find((entry) => entry.pr === 33);
       const lastLane = Math.max(...verdicts.filter((verdict) => verdict.pr === 33).map((verdict) => verdict.at));
-      const trail = readFileSync(join(view.runs[0]?.dir ?? '', 'workers', unit.id, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
+      const owner = responsibleWorker(view, 'owner', unit.pr);
+      const trail = owner === undefined ? '' : readFileSync(join(owner.dir, 'out', 'decisions.tsv'), { encoding: 'utf8', flag: 'r' });
       const steer = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'steer' && call.args['workerId'] === unit.id);
       const problems = [
         ...(!(to > from) ? [`the PR did not raise the budget (${from} to ${to})`] : []),
-        ...(gate === undefined || actions[gate.at]?.worker !== laneId('audit') || !new RegExp(`head=${unit.sha}`).test(String(gate.action['body'])) || receipt === undefined || receipt.verdict !== 'pass' || receipt.target !== 'pr-33' ? [`no verifier proof of the raise: ${JSON.stringify(gate?.action['body'])} ${receipt?.verdict}`] : []),
+        ...(gate === undefined || responsibleWorker(view, 'verifier', 33, 'audit') === undefined || actions[gate.at]?.worker !== responsibleWorker(view, 'verifier', 33, 'audit')?.id || !new RegExp(`head=${unit.sha}`).test(String(gate.action['body'])) || receipt === undefined || receipt.verdict !== 'pass' || receipt.target !== 'pr-33' ? [`no verifier proof of the raise: ${JSON.stringify(gate?.action['body'])} ${receipt?.verdict}`] : []),
         ...(signed === undefined || match === null ? ['no countersign'] : [
           ...(signed.action.worker !== '' || signed.action.actor !== '' || signed.action.container ? [`countersigned by ${signed.action.worker || signed.action.actor || 'a non-root'}`] : []),
           ...(match[1] !== unit.sha || match[2] !== 'budget.json' || Number(match[3]) !== from || Number(match[4]) !== to || match[5] !== gateProof ? [`countersign ${match.slice(1).join(' ')} is not the verified head, the raise and its proof`] : []),

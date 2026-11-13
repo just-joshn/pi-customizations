@@ -27,7 +27,14 @@ const serverCalls = (view: RunView): { tool?: string; method?: string; pid: numb
     : [];
 };
 
-const worker = (view: RunView, id: string): WorkerView | undefined => allWorkers(view).find((entry) => entry.id === id);
+const worker = (view: RunView, responsibility: string): WorkerView | undefined => {
+  const matches = allWorkers(view).filter((entry) => responsibility === 'docs-investigator'
+    ? assignmentOf(entry).role === 'investigator' && /long-form documents/i.test(entry.brief ?? '')
+    : responsibility === 'mcp-control'
+      ? assignmentOf(entry).role === 'general' && assignmentOf(entry).workspace?.mode === 'worktree' && /decisions MCP server/i.test(entry.brief ?? '')
+      : entry.id === responsibility);
+  return matches.length === 1 ? matches[0] : undefined;
+};
 const codemodeOf = (view: RunView, id: string) => worker(view, id)?.session?.toolCalls.find((call) => call.name === 'codemode');
 const FOUND = 'Long-form documents: found DEC-142, percent coupons chosen so one promotion fits every cart size (https://wiki.example/decisions/142).';
 const MISSING = 'Long-form documents: skipped, the decisions MCP server is not connected, so no decision record was searched.';
@@ -52,7 +59,7 @@ function whyMcp(withServer: boolean): Family {
     workersCheck(`${id}.investigators-readonly-with-mcp`, 'the investigators are readonly on the repository root and keep MCP (capabilities.mcp is not none)', [WHY, src('why/SKILL.md', '**Do not set `capabilities.mcp: "none"`.**')], { role: 'investigator', min: 2, mode: 'readonly', rootPath: true, mcpInherit: true, modelLine: 'why investigators' }),
     check(`${id}.worker-launch-keeps-mcp`, 'no worker host launched Pi with --no-mcp, and each readonly one got a --tools allowlist', WHY, (view) => {
       const launches = (view.runs[0]?.events ?? []).filter((entry) => entry['kind'] === 'launch').map((entry) => ({ id: String(entry['workerId']), command: JSON.stringify((entry['data'] as Record<string, unknown>)['command']) }));
-      const problems = launches.flatMap(({ id: workerId, command }) => [...(/--no-mcp/.test(command) ? [`${workerId} was launched with --no-mcp`] : []), ...(assignmentOf(worker(view, workerId) as WorkerView).workspace?.mode === 'readonly' && !/--tools/.test(command) ? [`${workerId} is readonly with no --tools allowlist`] : [])]);
+      const problems = launches.flatMap(({ id: workerId, command }) => [...(/--no-mcp/.test(command) ? [`${workerId} was launched with --no-mcp`] : []), ...(assignmentOf(allWorkers(view).find((entry) => entry.id === workerId) as WorkerView).workspace?.mode === 'readonly' && !/--tools/.test(command) ? [`${workerId} is readonly with no --tools allowlist`] : [])]);
       return when(launches.length >= 3 && problems.length === 0, `${launches.length} launch commands, none with --no-mcp`, problems.join('; ') || `only ${launches.length} launches recorded`);
     }),
     check(`${id}.worker-discovers-and-calls`, withServer ? 'a worker with default tools discovered the namespace, called the tool through codemode, and the server logged the call' : 'a worker looking for the server could not even start a codemode script or found no namespace, so nothing was called', WHY, (view) => {

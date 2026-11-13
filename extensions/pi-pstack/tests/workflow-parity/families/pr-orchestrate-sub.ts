@@ -181,8 +181,15 @@ interface Tree {
 
 function treeOf(view: RunView): Tree {
   const rootRun = view.runs[0];
-  const subWorker = rootRun?.workers.find((worker) => worker.id === SUB);
-  const subRun = subWorker?.worktree === null || subWorker === undefined ? undefined : existsSync(join(subWorker.worktree, '.pi', 'pstack', 'runs', SUB_RUN)) ? loadRun(subWorker.worktree, SUB_RUN) : undefined;
+  const candidates = rootRun?.workers.filter((worker) => (worker.assignment as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true) ?? [];
+  if (candidates.length !== 1) throw new Error(`Expected one subcoordinator, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+  const subWorker = candidates[0];
+  const worktree = subWorker?.worktree;
+  const runsDir = worktree ? join(worktree, '.pi', 'pstack', 'runs') : '';
+  const runs = worktree && existsSync(runsDir) ? readdirSync(runsDir).filter((id) => existsSync(join(runsDir, id, 'run.json'))).map((id) => loadRun(worktree, id)) : [];
+  const owned = runs.filter((run) => run.runJson?.['parentSessionFile'] === subWorker?.state?.['sessionFile']);
+  if (owned.length !== 1) throw new Error(`Expected one coordinator-owned run, candidates: ${runs.map((run) => run.id).join(', ')}`);
+  const subRun = owned[0];
   return { subWorker, subRun, leaves: (subRun?.workers ?? []).filter((worker) => worker.state !== null), rootSessionFile: view.parent.file };
 }
 
@@ -203,7 +210,7 @@ export const orchestrateSubFamily: Family = {
   title: 'orchestrate with a sub-coordinator: the root spawns one coordinator, the coordinator spawns the owners and verifiers into its own run, one owner per PR, independent verifier families, a failed owner replaced, depth read from real nested spawns (spec 13.4)',
   spec: {
     family: 'orchestrate-sub',
-    holdWatchers: new RegExp(`^${WATCHER}$`),
+    holdWatchers: /.*/,
     runId: RUN,
     history: cartHistory,
     timeoutMs: 480_000,
@@ -231,33 +238,40 @@ export const orchestrateSubFamily: Family = {
       const refused = subSpawns.find((call) => call.isError);
       const levels = levelsOf(view, tree);
       const capable = [...(view.runs[0]?.workers ?? []), ...tree.leaves].filter((worker) => (worker.assignment as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true).map((worker) => worker.id);
-      const c3Claimed = existsSync(join(tree.subRun?.dir ?? '', 'workers', 'c3', 'claim'));
+      const c3Claimed = refused !== undefined && existsSync(join(tree.subRun?.dir ?? '', 'workers', idFromPath(refused), 'claim'));
       const wakes = view.parent.messages.filter((message) => message.customType === 'pstack-worker').map((message) => String(message.details?.['workerId']));
       const leafSessions = tree.leaves.every((worker) => worker.session !== null && worker.session.toolCalls.every((call) => call.name !== 'pstack_worker'));
       return when(
-        JSON.stringify(rootSpawns.sort()) === JSON.stringify([WATCHER, SUB].sort()) && tree.subRun !== undefined && tree.leaves.length === 5 && ['owner-61', 'verifier-61', 'owner-62a', 'owner-62b', 'verifier-62'].every((id) => spawned.includes(id)) && levels.sub === 2 && levels.leaves.every((level) => level === 3) && JSON.stringify(capable) === JSON.stringify([SUB]) && refused !== undefined && /spawn: true at depth 3/.test(refused.resultText) && !c3Claimed && wakes.every((id) => [SUB, WATCHER].includes(id)) && leafSessions,
-        `root spawned ${rootSpawns.join(', ')}; the coordinator (level 2) spawned ${spawned.join(', ')} into run ${SUB_RUN}, owned by its session, so the leaves sit at level 3; only ${capable.join(', ')} can spawn; a fourth level was refused (no claim); the root woke for ${[...new Set(wakes)].join(', ')} only`,
+        rootSpawns.length === 2 && (view.runs[0]?.workers ?? []).filter((worker) => (worker.assignment as { kind?: string; role?: string }).kind === 'watch' && (worker.assignment as { role?: string }).role === 'watcher').length === 1 && JSON.stringify(rootSpawns.sort()) === JSON.stringify((view.runs[0]?.workers ?? []).map((worker) => worker.id).sort()) && tree.subRun !== undefined && tree.leaves.length === 5 && tree.leaves.every((worker) => spawned.includes(worker.id)) && levels.sub === 2 && levels.leaves.every((level) => level === 3) && JSON.stringify(capable) === JSON.stringify([tree.subWorker?.id]) && refused !== undefined && /spawn: true at depth 3/.test(refused.resultText) && !c3Claimed && wakes.every((id) => (view.runs[0]?.workers ?? []).some((worker) => worker.id === id)) && leafSessions,
+        `root spawned ${rootSpawns.join(', ')}; the coordinator (level 2) spawned ${spawned.join(', ')} into run ${tree.subRun?.id}, owned by its session, so the leaves sit at level 3; only ${capable.join(', ')} can spawn; a fourth level was refused (no claim); the root woke for ${[...new Set(wakes)].join(', ')} only`,
         `root spawns ${JSON.stringify(rootSpawns)}; sub run ${tree.subRun?.id}; leaves ${tree.leaves.length}; coordinator spawns ${JSON.stringify(spawned)}; levels ${JSON.stringify(levels)}; capable ${JSON.stringify(capable)}; refused ${refused?.resultText.slice(0, 80)}; c3 claimed ${c3Claimed}; root wakes ${JSON.stringify([...new Set(wakes)])}; leaf sessions without spawn tools ${leafSessions}`,
       );
     }),
     check('orchestrate.sub.each-leaf-ran-at-the-depth-the-spawn-tree-gives-it', 'each leaf\'s own environment agrees with the tree: PSTACK_DEPTH is 3', OR('Stop at three levels: you, sub-coordinators, and workers'), (view) => {
       const tree = treeOf(view);
-      const seen = tree.leaves.filter((worker) => worker.id !== 'owner-62a').map((worker) => ({ id: worker.id, out: worker.session?.toolCalls.find((call) => call.name === 'bash' && /printenv PSTACK_DEPTH/.test(String(call.args['command'])))?.resultText.trim().split('\n') ?? [] }));
+      const seen = tree.leaves.filter((worker) => worker.state?.['phase'] !== 'failed').map((worker) => ({ id: worker.id, out: worker.session?.toolCalls.find((call) => call.name === 'bash' && /printenv PSTACK_DEPTH/.test(String(call.args['command'])))?.resultText.trim().split('\n') ?? [] }));
       return when(seen.length === 4 && seen.every((entry) => entry.out[0] === '3'), `${seen.map((entry) => entry.id).join(', ')} all run with PSTACK_DEPTH 3`, JSON.stringify(seen));
     }),
     check('orchestrate.sub.one-owner-per-pr-the-only-writer-of-its-branch', 'each PR was opened by exactly one live owner that alone pushed its branch, the failed owner wrote nothing, and each PR\'s forge author is its owner', OR('**One owner per PR.**'), (view) => {
       const { state, actions } = readForge(view);
       const writers = (branch: string) => [...new Set(actions.filter((action) => ['push', 'ref-create', 'force-push'].includes(action.kind) && action['ref'] === `refs/heads/${branch}`).map((action) => action.worker))];
-      const failedWrites = actions.filter((action) => action.worker === 'owner-62a' && !['read', 'log-view'].includes(action.kind));
+      const tree = treeOf(view);
+      const authors = [state.prs['61']?.author, state.prs['62']?.author];
+      const candidates = tree.leaves.filter((worker) => (worker.assignment as { role?: string }).role === 'owner' && !authors.includes(worker.id));
+      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      const failed = candidates[0];
+      const failedWrites = actions.filter((action) => action.worker === failed?.id && !['read', 'log-view'].includes(action.kind));
       const creates = actions.filter((action) => action.kind === 'create' && action.tool === 'gh');
-      return when(state.prs['61']?.author === 'owner-61' && state.prs['62']?.author === 'owner-62b' && JSON.stringify(writers('feat-greet-sub')) === '["owner-61"]' && JSON.stringify(writers('feat-shout-sub')) === '["owner-62b"]' && creates.length === 2 && failedWrites.length === 0, 'PR 61 by owner-61 alone, PR 62 by owner-62b alone, two PRs opened, the failed owner wrote nothing', `authors ${state.prs['61']?.author}, ${state.prs['62']?.author}; writers ${JSON.stringify(writers('feat-greet-sub'))}, ${JSON.stringify(writers('feat-shout-sub'))}; creates ${creates.length}; failed owner writes ${failedWrites.length}`);
+      return when(failed !== undefined && new Set(authors).size === 2 && authors.every((id) => typeof id === 'string' && tree.leaves.some((worker) => worker.id === id && (worker.assignment as { role?: string }).role === 'owner')) && JSON.stringify(writers('feat-greet-sub')) === JSON.stringify([authors[0]]) && JSON.stringify(writers('feat-shout-sub')) === JSON.stringify([authors[1]]) && creates.length === 2 && failedWrites.length === 0, `PR 61 by ${authors[0]} alone, PR 62 by ${authors[1]} alone, two PRs opened, ${failed?.id} wrote nothing`, `authors ${state.prs['61']?.author}, ${state.prs['62']?.author}; writers ${JSON.stringify(writers('feat-greet-sub'))}, ${JSON.stringify(writers('feat-shout-sub'))}; creates ${creates.length}; failed owner writes ${failedWrites.length}`);
     }),
     check('orchestrate.sub.verifiers-are-on-another-family-and-owners-merge-after-the-verdict', 'each PR has a verifier on a different model family than its owner whose verdict names the head, and each owner merged only after that verdict, pinned to the head, with the coordinator\'s steer naming it', OR('**Each PR gets a verifier that isn\'t its author,** on a different model family'), (view) => {
       const { state, actions } = readForge(view);
       const tree = treeOf(view);
       const verdicts = verdictsOf(state, actions);
       const steers = spawnsOfSteer(tree);
-      const problems = ([[61, 'owner-61', 'verifier-61'], [62, 'owner-62b', 'verifier-62']] as const).flatMap(([pr, ownerId, verifierId], index) => {
+      const problems = ([61, 62] as const).flatMap((pr, index) => {
+        const ownerId = state.prs[String(pr)]?.author;
+        const verifierId = verdicts.find((entry) => entry.pr === pr)?.verifier;
         const unit = STORE.units[index] as Unit;
         const owner = tree.leaves.find((worker) => worker.id === ownerId);
         const verifier = tree.leaves.find((worker) => worker.id === verifierId);
@@ -276,27 +290,33 @@ export const orchestrateSubFamily: Family = {
     check('orchestrate.sub.a-failed-owner-is-judged-by-its-pushes-and-replaced-with-a-consolidated-kickoff', 'the coordinator got the failed wake, inspected the owner, probed the branch for pushes, then spawned the replacement with the original kickoff plus the reason, and the host recorded the owner as failed', OR('**Stop or replace a worker that stalls or loops.**'), (view) => {
       const tree = treeOf(view);
       const session = tree.subWorker?.session;
-      const failed = tree.leaves.find((worker) => worker.id === 'owner-62a');
-      const replacement = tree.leaves.find((worker) => worker.id === 'owner-62b');
-      const wake = session?.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === 'owner-62a');
-      const inspect = session?.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === 'owner-62a');
+      const authors = Object.values(readForge(view).state.prs).map((pr) => pr.author);
+      const candidates = tree.leaves.filter((worker) => (worker.assignment as { role?: string }).role === 'owner' && !authors.includes(worker.id));
+      if (candidates.length !== 1) throw new Error(`Expected one replaced owner, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
+      const failed = candidates[0];
+      const replacement = tree.leaves.find((worker) => worker.id === readForge(view).state.prs['62']?.author);
+      const wake = session?.messages.find((message) => message.customType === 'pstack-worker' && failed !== undefined && message.details?.['workerId'] === failed.id);
+      const inspect = session?.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && failed !== undefined && call.args['workerId'] === failed.id);
       const probe = session?.toolCalls.find((call) => call.name === 'bash' && /git ls-remote --heads origin feat-shout-sub/.test(String(call.args['command'])));
-      const respawn = spawnsOf(session).find((call) => idFromPath(call) === 'owner-62b');
+      const respawn = spawnsOf(session).find((call) => replacement !== undefined && idFromPath(call) === replacement.id);
       const settles = (failed?.state?.['settles'] as { phase: string }[] | undefined) ?? [];
       return when(
-        wake?.details?.['phase'] === 'failed' && settles.some((settle) => settle.phase === 'failed') && failed?.state?.['phase'] === 'failed' && inspect !== undefined && probe !== undefined && respawn !== undefined && wake.order < inspect.order && inspect.order < probe.order && probe.order < respawn.order && /owner-62a, failed/.test(replacement?.brief ?? '') && /Evidence that proves it done/.test(replacement?.brief ?? ''),
+        wake?.details?.['phase'] === 'failed' && settles.some((settle) => settle.phase === 'failed') && failed?.state?.['phase'] === 'failed' && inspect !== undefined && probe !== undefined && respawn !== undefined && wake.order < inspect.order && inspect.order < probe.order && probe.order < respawn.order && failed !== undefined && (replacement?.brief ?? '').includes(`${failed.id}, failed`) && /Evidence that proves it done/.test(replacement?.brief ?? ''),
         `failed wake at ${wake?.order}, inspected at ${inspect?.order}, probed at ${probe?.order}, replaced at ${respawn?.order} with the kickoff and the reason; host phase ${String(failed?.state?.['phase'])}`,
         `wake ${JSON.stringify(wake?.details)}; settles ${JSON.stringify(settles.map((settle) => settle.phase))}; inspect ${inspect?.order}; probe ${probe?.order}; respawn ${respawn?.order}; replacement brief ${(replacement?.brief ?? '').slice(0, 80)}`,
       );
     }),
     check('orchestrate.sub.the-root-read-one-rollup-and-the-live-state', 'the root read the coordinator\'s one rollup and both PRs live, collected no leaf worker and no raw report, and its reply accounts for the coordinator and the replaced owner without asking', OR('It owns that area\'s workers and kickoffs and sends you one rollup, never raw worker reports'), (view) => {
+      const tree = treeOf(view);
+      const failed = tree.leaves.filter((worker) => worker.state?.['phase'] === 'failed');
+      const watchers = (view.runs[0]?.workers ?? []).filter((worker) => (worker.assignment as { role?: string }).role === 'watcher');
       const calls = view.parent.toolCalls;
       const collects = calls.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'collect').map((call) => String(call.args['workerId']));
       const cat = calls.find((call) => call.name === 'bash' && /cat .*sub-rollup\.md/.test(String(call.args['command'])))?.order ?? -1;
       const live = calls.find((call) => call.name === 'bash' && /^gh pr view 61 .*&& gh pr view 62/.test(String(call.args['command'])))?.order ?? -1;
       const rollup = existsSync(join(view.runs[0]?.dir ?? '', 'sub-rollup.md')) ? readFileSync(join(view.runs[0]?.dir ?? '', 'sub-rollup.md'), 'utf8') : '';
       const reply = finalReply(view);
-      return when(JSON.stringify(collects) === JSON.stringify([WATCHER]) && cat !== -1 && live > cat && /PR 61 and PR 62 are merged/.test(rollup) && /owner-62a/.test(reply) && /sub-greet/.test(reply) && !reply.trim().endsWith('?'), `the watcher woke the root once the rollup existed; rollup read at ${cat}, live state at ${live}; only ${collects.join(', ')} collected; reply names sub-greet and the replaced owner`, `collects ${JSON.stringify(collects)}; rollup read ${cat}; live ${live}; rollup ${rollup.slice(0, 60)}; reply ${reply.slice(0, 80)}`);
+      return when(watchers.length === 1 && JSON.stringify(collects) === JSON.stringify(watchers.map((worker) => worker.id)) && cat !== -1 && live > cat && /PR 61 and PR 62 are merged/.test(rollup) && failed.length === 1 && failed.every((worker) => reply.includes(worker.id)) && tree.subWorker !== undefined && reply.includes(tree.subWorker.id) && !reply.trim().endsWith('?'), `the watcher woke the root once the rollup existed; rollup read at ${cat}, live state at ${live}; only ${collects.join(', ')} collected; reply names ${tree.subWorker?.id} and the replaced owner`, `collects ${JSON.stringify(collects)}; rollup read ${cat}; live ${live}; rollup ${rollup.slice(0, 60)}; reply ${reply.slice(0, 80)}`);
     }),
     noToolErrors('orchestrate.sub.no-tool-errors', OR('**Ask the user only for a real decision or a blocker,**')),
   ],

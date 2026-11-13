@@ -1,21 +1,21 @@
 // Babysit families (spec 13.2): each request-to-mode row, GitHub against Origin, the conflict-threads-CI order, one fresh
 // build for a verified flake, WAITING with merge-queue, one watcher at a time, and no merge because checks are green.
 // Every run drives the real pi binary against the fake forge in fixtures/forge.ts.
+
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
-import { forgeEnv, type ForgeHandle, readForge, setupForge, watchVerdict, WATCH_PR, type ChaosStep } from '../fixtures/forge.ts';
+import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
-import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
-import { editForge, type ForgeAction } from '../fixtures/forge.ts';
-import { todoNegatives } from './shared.ts';
-import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, replyMentions, REPO_FLAGS, REPO_SLUG, stepDone, spawnOrderOf, watchers } from './pr-shared.ts';
+import { appendToolCall, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import { babysitRestartFamilies } from './pr-babysit-restart.ts';
+import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, REPO_FLAGS, REPO_SLUG, replyMentions, stepDone, watchers } from './pr-shared.ts';
+import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
 const TRIAGE = (anchor: string) => src('poteto-mode/references/bugbot-triage.md', anchor);
@@ -27,6 +27,20 @@ const RESOLVED_CART = CART_JS.replace(CLAMP, 'const capped = Math.min(percent, 1
 const CAP_TEST = "import assert from 'node:assert/strict';\nimport { test } from 'node:test';\nimport { applyCoupon } from '../src/cart.js';\n\ntest('a coupon over 100 percent never pays the customer', () => assert.equal(applyCoupon(10, 150), 0));\n";
 
 const watchAssignment = (ctx: Ctx, parent: Parent, args: string[]) => ({ kind: 'watch' as const, role: 'watcher', model: 'inherit-parent', workspace: parent.readonly(), watch: { argv: [WATCH_PR, ...args, '--interval', '0.3'], cwd: ctx.repo } });
+const observedWatcher = (view: Parameters<typeof watchers>[0], pr: string) => {
+  const candidates = view.runs.flatMap((run) => run.workers.map((worker) => ({ ...worker, runId: run.id }))).filter((worker) => {
+    const argv = assignmentOf(worker).watch?.argv ?? [];
+    return (worker.state?.['kind'] ?? worker.assignment['kind']) === 'watch' && (pr === '51,52' ? argv[argv.indexOf('--stack-prs') + 1] === pr : argv[argv.indexOf('--pr') + 1] === pr);
+  });
+  const worker = candidates[0];
+  if (candidates.length !== 1 || worker === undefined) throw new Error(`expected one watcher for ${pr}; candidates: ${candidates.map((entry) => `${entry.runId}/${entry.id}`).join(', ') || 'none'}`);
+  return worker;
+};
+const watcherRun = (view: Parameters<typeof watchers>[0], worker: ReturnType<typeof watchers>[number]) => {
+  const run = view.runs.find((entry) => entry.workers.some((item) => item.dir === worker.dir));
+  if (run === undefined) throw new Error(`missing run for ${worker.id}`);
+  return run.id;
+};
 const BASE_ARGS = (pr: number | string) => ['--owner', 'acme', '--repo', 'widgets', '--pr', String(pr)];
 
 const withForge = (build: (ctx: Ctx) => ForgeHandle, store: { handle?: ForgeHandle }) => ({
@@ -50,7 +64,7 @@ export const babysitDriveFamily: Family = {
   title: 'babysit drive on GitHub: conflict reported not resolved, then threads, then CI, one fresh build for a verified flake, stop at READY, never merge (spec 13.2)',
   spec: {
     family: 'babysit-drive',
-    holdWatchers: /^watch-[1-4]$/,
+    holdWatchers: /.*/,
     runId: DRIVE_RUN,
     history: cartHistory,
     timeoutMs: 240_000,
@@ -221,10 +235,10 @@ export const babysitDriveFamily: Family = {
     { name: 'the build was retried without reading the log', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => action.kind !== 'log-view'))), fails: ['babysit.flake-verified-in-source-then-exactly-one-fresh-build'] },
     { name: 'CI was handled before the review thread', mutate: (sandbox) => editForge(sandbox, (actions) => { const at = actions.findIndex((action) => action.kind === 'rerun'); const [rerun] = actions.splice(at, 1); actions.unshift(rerun as ForgeAction); }), fails: ['babysit.threads-before-ci', 'babysit.conflict-is-reported-before-anything-else'] },
     { name: 'the conflict was never reported to the owner', mutate: (sandbox) => editForge(sandbox, (actions) => actions.splice(0, actions.length, ...actions.filter((action) => action.kind !== 'comment'))), fails: ['babysit.conflict-is-reported-before-anything-else'] },
-    { name: 'the watchers ended in the wrong order', mutate: (sandbox) => ['watch-1', 'watch-2'].forEach((id, index) => patchWatcherExit(sandbox, DRIVE_RUN, id, index === 0 ? 3 : 2)), fails: ['babysit.verdicts-arrive-conflicts-then-threads-then-ci'] },
-    { name: 'a second watcher was armed while the first was still live', mutate: (sandbox) => overlapWatchers(sandbox, DRIVE_RUN, 'watch-1', 'watch-2'), fails: ['babysit.one-watcher-live-at-a-time-rearmed-after-each-verdict'] },
+    { name: 'the watchers ended in the wrong order', mutate: (sandbox, view) => watchers(view).slice(0, 2).forEach((worker, index) => patchWatcherExit(sandbox, watcherRun(view, worker), worker.id, index === 0 ? 3 : 2)), fails: ['babysit.verdicts-arrive-conflicts-then-threads-then-ci'] },
+    { name: 'a second watcher was armed while the first was still live', mutate: (sandbox, view) => { const [first, second] = watchers(view); if (first === undefined || second === undefined) throw new Error('missing sequential watchers'); overlapWatchers(sandbox, watcherRun(view, first), first.id, second.id); }, fails: ['babysit.one-watcher-live-at-a-time-rearmed-after-each-verdict'] },
     { name: 'the parent polled with its own sleep loop', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'while true; do gh pr checks 12; sleep 60; done' }), fails: ['babysit.one-watcher-live-at-a-time-rearmed-after-each-verdict'] },
-    { name: 'a watcher used another program', mutate: (sandbox) => patchAssignment(sandbox, DRIVE_RUN, 'watch-2', (assignment) => (assignment['watch'] = { argv: ['sleep', '60'], cwd: '/tmp' })), fails: ['babysit.watchers-are-watch-pr-workers'] },
+    { name: 'a watcher used another program', mutate: (sandbox, view) => { const worker = watchers(view)[1]; if (worker === undefined) throw new Error('missing second watcher'); patchAssignment(sandbox, watcherRun(view, worker), worker.id, (assignment) => (assignment['watch'] = { argv: ['sleep', '60'], cwd: '/tmp' })); }, fails: ['babysit.watchers-are-watch-pr-workers'] },
     { name: 'the mode was declared as check', mutate: (sandbox) => rewriteTodoTask(sandbox, DRIVE_RUN, 'Mode: drive', 'Mode: check'), fails: ['babysit.mode-declared-from-the-request'] },
     { name: 'comment text was interpolated into a shell command', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: "echo 'Duplicated clamp logic: extract a shared helper' | sh" }), fails: ['babysit.review-text-is-data-and-triage-is-grounded'] },
     { name: 'the thread was dismissed without looking at the code', mutate: (sandbox) => dropCommands(sandbox, /git grep .*Math\.min/), fails: ['babysit.review-text-is-data-and-triage-is-grounded'] },
@@ -536,19 +550,24 @@ export const babysitQueuedFamily: Family = {
       const verdict = watchVerdict(view, [...QUEUED_ARGS, '--interval', '0.3'], { until: 'WAITING' });
       const lines = verdict.stdout.split('\n').filter(Boolean).map((line) => JSON.parse(line) as { kind: string; terminal?: boolean; reason?: { kind: string } });
       const waiting = lines.find((line) => line.kind === 'WAITING');
-      const seen = readFileSyncSafe(join(view.runs[0]?.dir ?? '', 'watch-queued.out'));
+      const worker = observedWatcher(view, '51,52');
+      const capture = BASH(view).find((entry) => /capture-pane/.test(entry.command) && (entry.command.includes(worker.id) || entry.command.includes(String(worker.state?.['tmuxSession'] ?? '\u0000'))));
+      const output = /capture-pane[^;\n]*?\s>\s*(\/\S+)/.exec(capture?.command ?? '')?.[1];
+      const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId && !call.isError);
+      const seen = output === undefined ? inspect?.resultText ?? '' : readFileSyncSafe(output);
       return when(waiting?.terminal === false && waiting.reason?.kind === 'merge-queue' && !lines.some((line) => line.kind === 'READY') && /merge-queue/.test(seen), `WAITING reason ${waiting?.reason?.kind} non-terminal; no READY; verdicts ${lines.map((line) => line.kind).join(', ')}; the live output was captured`, `verdicts ${lines.map((line) => `${line.kind}${line.reason ? `:${line.reason.kind}` : ''}`).join(', ')}; captured output has merge-queue ${/merge-queue/.test(seen)}`);
     }),
     check('babysit.queued.watcher-stopped-after-the-report', 'the watcher was aborted after the parent read WAITING merge-queue, and no watcher is left running', BS('Report that frontier merge-ready and stop the watcher'), (view) => {
-      const worker = watchers(view)[0];
-      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'watch-queue' && !call.isError);
-      const capture = view.parent.toolCalls.find((call) => call.name === 'bash' && /capture-pane/.test(String(call.args['command'])));
+      const worker = observedWatcher(view, '51,52');
+      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId && !call.isError);
+      const capture = view.parent.toolCalls.find((call) => (call.name === 'bash' && /capture-pane/.test(String(call.args['command'])) && String(call.args['command']).includes(worker.id)) || (call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId && !call.isError && /merge-queue/.test(call.resultText)));
       const settles = (worker?.state?.['settles'] as { phase: string }[] | undefined) ?? [];
       return when(abort !== undefined && capture !== undefined && abort.order > capture.order && settles.some((settle) => settle.phase === 'aborted') && exitCodeOf(worker as never) !== 0, `captured output at ${capture?.order}, aborted at ${abort?.order}; phase ${String(worker?.state?.['phase'])}`, `abort ${abort?.order}, capture ${capture?.order}, settles ${JSON.stringify(settles.map((settle) => settle.phase))}`);
     }),
     check('babysit.queued.watcher-verdict-is-readable-through-pstack-worker', 'the non-terminal WAITING merge-queue verdict the watcher printed is readable through the pstack_worker surface the parent already has (inspect), not only from the tmux pane', BS('A blocker-free frontier is a non-terminal `WAITING` with reason `merge-queue`'), (view) => {
-      const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === 'watch-queue');
-      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'watch-queue');
+      const worker = observedWatcher(view, '51,52');
+      const inspect = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
+      const abort = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
       return when(inspect !== undefined && !inspect.isError && /"kind":"WAITING"[^\n]*merge-queue|merge-queue[^\n]*"kind":"WAITING"/.test(inspect.resultText) && (abort === undefined || inspect.order < abort.order), 'inspect, before the abort, carries the WAITING merge-queue verdict', `inspect returned: ${inspect?.resultText.slice(0, 200)}`);
     }),
     neverMerges('babysit.queued.never-merges-or-arms-auto-merge', 'nothing merged, queued by the babysitter, or auto-merged', BS('Babysitting never authorizes merging')),
@@ -557,13 +576,19 @@ export const babysitQueuedFamily: Family = {
   ],
   negatives: [
     ...todoNegatives(QUEUED_RUN, 'babysit', { done: [1, 2, 3, 4, 5, 6, 7, 9], receipts: { 1: 'bq-mode', 2: 'bq-frontier', 3: 'bq-single', 4: 'bq-topology', 5: 'bq-order', 6: 'bq-ready', 7: 'bq-ci', 9: 'bq-human' } }),
-    { name: 'the watcher got the queue top-to-bottom', mutate: (sandbox) => patchAssignment(sandbox, QUEUED_RUN, 'watch-queue', (assignment) => ((assignment['watch'] as { argv: string[] }).argv = (assignment['watch'] as { argv: string[] }).argv.map((arg) => (arg === '51,52' ? '52,51' : arg)))), fails: ['babysit.queued.queue-frozen-bottom-to-top-once'] },
-    { name: 'the watcher was not in queued mode', mutate: (sandbox) => patchAssignment(sandbox, QUEUED_RUN, 'watch-queue', (assignment) => ((assignment['watch'] as { argv: string[] }).argv = (assignment['watch'] as { argv: string[] }).argv.filter((arg) => arg !== '--queued-stack'))), fails: ['babysit.queued.queue-frozen-bottom-to-top-once'] },
+    { name: 'the watcher got the queue top-to-bottom', mutate: (sandbox, view) => patchAssignment(sandbox, observedWatcher(view, '51,52').runId, observedWatcher(view, '51,52').id, (assignment) => ((assignment['watch'] as { argv: string[] }).argv = (assignment['watch'] as { argv: string[] }).argv.map((arg) => (arg === '51,52' ? '52,51' : arg)))), fails: ['babysit.queued.queue-frozen-bottom-to-top-once'] },
+    { name: 'the watcher was not in queued mode', mutate: (sandbox, view) => patchAssignment(sandbox, observedWatcher(view, '51,52').runId, observedWatcher(view, '51,52').id, (assignment) => ((assignment['watch'] as { argv: string[] }).argv = (assignment['watch'] as { argv: string[] }).argv.filter((arg) => arg !== '--queued-stack'))), fails: ['babysit.queued.queue-frozen-bottom-to-top-once'] },
     { name: 'the frontier was merging into the queue', mutate: (sandbox) => editForge(sandbox, (actions, state) => { actions.push({ kind: 'merge-queued', tool: 'gh', pr: 51, worker: '', run: '', actor: '', container: false }); (state.prs['51'] as { queued?: boolean }).queued = true; }), fails: ['babysit.queued.never-merges-or-arms-auto-merge'] },
     { name: 'a check is failing, so the frontier is not merge-ready', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['51'] as { checks: { name: string; runId: number; state: string }[] }).checks = [{ name: 'build', runId: 9051, state: 'FAILURE' }]; }), fails: ['babysit.queued.frontier-is-WAITING-merge-queue-never-READY'] },
     { name: 'the watcher was left running', mutate: (sandbox) => rewriteSession(sandbox, '"action":"abort"', '"action":"inspect"'), fails: ['babysit.queued.watcher-stopped-after-the-report'] },
     { name: 'inspect returned the host state without the watcher output', mutate: (sandbox) => rewriteSession(sandbox, 'merge-queue', 'merge-qXeue'), fails: ['babysit.queued.watcher-verdict-is-readable-through-pstack-worker'] },
-    { name: 'the live output was never read', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', QUEUED_RUN, 'watch-queued.out'), ''), fails: ['babysit.queued.frontier-is-WAITING-merge-queue-never-READY'] },
+    { name: 'the live output was never read', mutate: (sandbox, view) => {
+      const worker = observedWatcher(view, '51,52');
+      const capture = BASH(view).find((entry) => /capture-pane/.test(entry.command) && (entry.command.includes(worker.id) || entry.command.includes(String(worker.state?.['tmuxSession'] ?? '\u0000'))));
+      const output = /capture-pane[^;\n]*?\s>\s*(\/\S+)/.exec(capture?.command ?? '')?.[1];
+      if (output !== undefined) writeFileSync(output.replace(view.sandbox, sandbox), '');
+      rewriteSession(sandbox, 'merge-queue', 'merge-qXeue');
+    }, fails: ['babysit.queued.frontier-is-WAITING-merge-queue-never-READY'] },
     { name: 'the reply claims READY', mutate: (sandbox) => rewriteFinalReply(sandbox, 'is a blocker-free frontier', 'reached READY'), fails: ['babysit.queued.reply-is-merge-ready-and-points-to-shipping'] },
   ],
 };
@@ -588,7 +613,7 @@ export const babysitOriginFamily: Family = {
   title: 'babysit drive on Origin: origin pr commands only, a check watch instead of watch-pr, stops at the Origin merge-ready condition without GitHub verdicts, never merges (spec 13.2)',
   spec: {
     family: 'babysit-origin',
-    holdWatchers: /^watch-origin$/,
+    holdWatchers: /.*/,
     runId: ORIGIN_RUN,
     history: cartHistory,
     timeoutMs: 120_000,
@@ -693,7 +718,7 @@ export const babysitBackgroundFamily: Family = {
   title: 'babysit background: the watcher is armed and the plan keeps executing, the parent is woken by the verdict and stops at READY without merging (spec 13.2)',
   spec: {
     family: 'babysit-background',
-    holdWatchers: /^watch-bg$/,
+    holdWatchers: /.*/,
     runId: BG_RUN,
     history: cartHistory,
     timeoutMs: 120_000,
@@ -739,10 +764,11 @@ export const babysitBackgroundFamily: Family = {
     modeDeclared('babysit.background.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'background'),
     forgeResolvedOnce('babysit.background.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
     check('babysit.background.plan-work-continues-while-the-watcher-runs', 'the parent did other work between arming the watcher and its wake, and was woken by the watcher exit', BS('`background` triages without blocking'), (view) => {
-      const spawn = spawnOrderOf(view, 'watch-bg');
-      const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === 'watch-bg')?.order ?? -1;
+      const selected = observedWatcher(view, '15');
+      const spawn = view.parent.toolCalls.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn' && call.args['runId'] === selected.runId && String(call.args['assignmentPath']).includes(`/workers/${selected.id}/`))?.order ?? -1;
+      const wake = view.parent.messages.find((message) => message.customType === 'pstack-worker' && message.details?.['workerId'] === selected.id && message.details?.['runId'] === selected.runId && message.details?.['phase'] === 'exited')?.order ?? -1;
       const between = view.parent.toolCalls.filter((call) => call.order > spawn && call.order < wake && call.name === 'write');
-      const worker = watchers(view)[0];
+      const worker = selected;
       return when(spawn !== -1 && wake > spawn && between.length >= 2 && worker !== undefined && exitCodeOf(worker) === 0, `${between.length} plan writes between the spawn at ${spawn} and the wake at ${wake}; the watcher exited READY (0)`, `spawn ${spawn}, wake ${wake}, plan writes between ${between.length}; exit ${worker ? String(exitCodeOf(worker)) : 'n/a'}`);
     }),
     check('babysit.background.one-watch-pr-watcher-stopped-at-READY', 'exactly one watch-pr watcher ran, it ended at READY, and the real watch-pr agrees over the final state', BS('stop at `READY` for one PR'), (view) => {
@@ -756,7 +782,7 @@ export const babysitBackgroundFamily: Family = {
   negatives: [
     ...todoNegatives(BG_RUN, 'babysit', { done: [1, 2, 3, 4, 5, 6, 9], receipts: { 1: 'bg-mode', 2: 'bg-frontier', 3: 'bg-single', 4: 'bg-topology', 5: 'bg-order', 6: 'bg-ready', 9: 'bg-human' } }),
     { name: 'the parent blocked on the watcher and did no plan work', mutate: dropWrites, fails: ['babysit.background.plan-work-continues-while-the-watcher-runs'] },
-    { name: 'a second watcher was armed', mutate: (sandbox) => duplicateWorker(sandbox, BG_RUN, 'watch-bg', 'watch-bg-2'), fails: ['babysit.background.one-watch-pr-watcher-stopped-at-READY'] },
+    { name: 'a second watcher was armed', mutate: (sandbox, view) => { const worker = observedWatcher(view, '15'); duplicateWorker(sandbox, worker.runId, worker.id, `${worker.id}-duplicate`); }, fails: ['babysit.background.one-watch-pr-watcher-stopped-at-READY'] },
     { name: 'a check is red at the end', mutate: (sandbox) => editForge(sandbox, (_actions, state) => { (state.prs['15'] as { checks: { state: string }[] }).checks.forEach((entry) => (entry.state = 'FAILURE')); }), fails: ['babysit.background.one-watch-pr-watcher-stopped-at-READY'] },
     { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 15, worker: '', run: '', actor: '', container: false })), fails: ['babysit.background.never-merges'] },
     { name: 'the mode was declared as drive', mutate: (sandbox) => rewriteTodoTask(sandbox, BG_RUN, 'Mode: background', 'Mode: drive'), fails: ['babysit.background.mode-declared-from-the-request'] },
@@ -837,28 +863,29 @@ export const babysitSingleWatcherFamily: Family = {
     ...todoChecks({ playbook: 'babysit', skipReason: { 4: /watcher/, 5: /watcher/, 6: /watcher/, 7: /watcher/, 8: /watcher/, 9: /watcher/ } }),
     modeDeclared('babysit.single.mode-declared-from-the-request', BS('Declare the mode and resolve the forge before any poll'), 'drive'),
     forgeResolvedOnce('babysit.single.forge-resolved-once-gh-fallback-recorded', BS('GitHub CLI (`gh`) is the default'), 'gh'),
-    check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found watch-1 live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
+    check('babysit.single.the-second-request-armed-no-second-watcher', 'two babysit requests arrived, the second found the existing watcher live through the assignments and an inspect, and made no pstack_worker spawn', BS('One babysitter per stack'), (view) => {
       const turns = view.parent.messages.filter((message) => message.role === 'user').length;
       const second = callsInTurn(view, 1);
       const spawns = second.filter((call) => call.name === 'pstack_worker' && call.args['action'] === 'spawn');
       const found = second.find((call) => call.name === 'bash' && /grep -rl watch-pr/.test(String(call.args['command'])));
-      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === 'watch-1');
-      return when(turns === 2 && spawns.length === 0 && /watch-1/.test(found?.resultText ?? '') && /running/.test(inspect?.resultText ?? ''), 'the repeat request saw watch-1 in the assignments and running, and spawned nothing', `user turns ${turns}; second-turn spawns ${spawns.length}; search saw watch-1 ${/watch-1/.test(found?.resultText ?? '')}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
+      const worker = observedWatcher(view, '16');
+      const inspect = second.find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId);
+      return when(turns === 2 && spawns.length === 0 && (found?.resultText ?? '').includes(`/workers/${worker.id}/`) && /running/.test(inspect?.resultText ?? ''), `the repeat request saw ${worker.id} in the assignments and running, and spawned nothing`, `user turns ${turns}; second-turn spawns ${spawns.length}; search saw the watcher ${(found?.resultText ?? '').includes(`/workers/${worker.id}/`)}; inspect said "${inspect?.resultText.slice(0, 60)}"`);
     }),
     check('babysit.single.only-one-watcher-ever-polled-the-pr', 'one watcher worker exists, it was still polling when the second request arrived, and the forge log shows exactly one watcher identity reading PR 16, so no duplicate ran', BS('Never add a second sleep loop'), (view) => {
       const { actions } = readForge(view);
-      const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.worker !== '').map((action) => action.worker))];
-      const life = lifeOf(view, 'watch-1');
-      const worker = watchers(view)[0];
-      const live = callsInTurn(view, 1).find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect')?.resultText ?? '';
-      return when(watchers(view).length === 1 && JSON.stringify(readers) === '["watch-1"]' && life.spawn !== -1 && worker !== undefined && exitCodeOf(worker) === null && /running/.test(live), `one watcher, live at the second request, one polling identity (${readers.join(', ')})`, `watchers ${watchers(view).length}; polling identities ${JSON.stringify(readers)}; inspect "${live.slice(0, 50)}"`);
+      const readers = [...new Set(actions.filter((action) => action.kind === 'read' && action.pr === 16 && action.worker !== '').map((action) => action.worker))];
+      const worker = observedWatcher(view, '16');
+      const life = lifeOf({ ...view, runs: view.runs.filter((run) => run.id === worker.runId) }, worker.id);
+      const live = callsInTurn(view, 1).find((call) => call.name === 'pstack_worker' && call.args['action'] === 'inspect' && call.args['workerId'] === worker.id && call.args['runId'] === worker.runId)?.resultText ?? '';
+      return when(watchers(view).length === 1 && JSON.stringify(readers) === JSON.stringify([worker.id]) && life.spawn !== -1 && worker !== undefined && exitCodeOf(worker) === null && /running/.test(live), `one watcher, live at the second request, one polling identity (${readers.join(', ')})`, `watchers ${watchers(view).length}; polling identities ${JSON.stringify(readers)}; inspect "${live.slice(0, 50)}"`);
     }),
     neverMerges('babysit.single.never-merges', 'nothing merged, queued or auto-merged', BS('Babysitting never authorizes merging')),
     noToolErrors('babysit.single.no-tool-errors', BS('Trust the active forge')),
   ],
   negatives: [
     ...todoNegatives(DUP_RUN, 'babysit', { done: [1, 2, 3], receipts: { 1: 'bd-mode', 2: 'bd-frontier', 3: 'bd-single' } }),
-    { name: 'the second request armed a second watcher', mutate: (sandbox) => { duplicateWorker(sandbox, DUP_RUN, 'watch-1', 'watch-2'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'watch-2', run: DUP_RUN, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
+    { name: 'the second request armed a second watcher', mutate: (sandbox, view) => { const worker = observedWatcher(view, '16'); duplicateWorker(sandbox, worker.runId, worker.id, 'duplicate-watcher'); editForge(sandbox, (actions) => actions.push({ kind: 'read', tool: 'gh', pr: 16, worker: 'duplicate-watcher', run: worker.runId, actor: '', container: false })); }, fails: ['babysit.single.only-one-watcher-ever-polled-the-pr'] },
     { name: 'a second spawn call came with the repeated request', mutate: (sandbox) => rewriteSession(sandbox, '"action":"inspect"', '"action":"spawn"'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the repeated request never looked for the live watcher', mutate: (sandbox) => rewriteSession(sandbox, 'grep -rl watch-pr', 'ls'), fails: ['babysit.single.the-second-request-armed-no-second-watcher'] },
     { name: 'the PR was merged', mutate: (sandbox) => editForge(sandbox, (actions) => actions.push({ kind: 'merge', tool: 'gh', pr: 16, worker: '', run: '', actor: '', container: false })), fails: ['babysit.single.never-merges'] },
@@ -877,7 +904,7 @@ export const babysitFlakeTwiceFamily: Family = {
   title: 'babysit CI: a flake gets one fresh build, an identical second failure is reclassified from the logs, never retried again, and reported to the owner (spec 13.2)',
   spec: {
     family: 'babysit-flake-twice',
-    holdWatchers: /^watch-[12]$/,
+    holdWatchers: /.*/,
     runId: TWICE_RUN,
     history: cartHistory,
     timeoutMs: 120_000,

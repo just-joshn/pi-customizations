@@ -29,6 +29,7 @@ const FEATURE_FILES: Record<string, string> = {
   coupons: '# Coupons\n\nA coupon percent above 100 is capped at 100, so a coupon never pays the customer.\n',
   checkout: '# Checkout\n\ncheckout() returns the amount and a label such as $9.00.\n',
 };
+const featureReaders = (view: RunView, name: string) => allWorkers(view).filter((worker) => worker.session?.toolCalls.some((call) => call.name === 'read' && !call.isError && [join(view.repo, SKILL_DIR, `features/${name}.md`), `${SKILL_DIR}/features/${name}.md`].includes(String(call.args['path']))));
 const README_BEFORE = '# Features\n\n- [totals](totals.md)\n- [coupons](coupons.md)\n- [shipping](shipping.md)\n';
 const README_AFTER = '# Features\n\n- [totals](totals.md)\n- [coupons](coupons.md)\n- [checkout](checkout.md)\n';
 const DRIVES: Record<string, string> = {
@@ -96,14 +97,22 @@ export const maintainVerificationFamily: Family = {
       const files = git(view.repo, 'ls-tree', '--name-only', `${MV_RUN}:${SKILL_DIR}/features/`).split('\n').filter((name) => name.endsWith('.md') && name !== 'README.md').map((name) => name.replace('.md', '')).sort();
       return when(JSON.stringify(listed) === JSON.stringify(files), `index lists ${listed.join(', ')}`, `index ${listed.join(',')} vs files ${files.join(',')}`);
     }),
-    workersCheck('maintain-verification-skill.one-reader-per-feature-file', 'one readonly reader per feature file', src('maintain-verification-skill/SKILL.md', '2. **Source wave.** One read-only subagent per feature file'), { role: 'general', min: 3, max: 3, mode: 'readonly', rootPath: true, id: /^reader-/ }),
+    check('maintain-verification-skill.one-reader-per-feature-file', 'one readonly reader per feature file', src('maintain-verification-skill/SKILL.md', '2. **Source wave.** One read-only subagent per feature file'), (view) => {
+      const readers = FEATURES.map((name) => featureReaders(view, name));
+      if (readers.some((workers) => workers.length !== 1) || new Set(readers.flat()).size !== FEATURES.length) return fail(FEATURES.map((name, i) => `${name}: ${readers[i]?.map((worker) => worker.id).join(', ') || 'none'}`).join('; '));
+      return workersCheck('', '', [], { role: 'general', min: 3, max: 3, mode: 'readonly', rootPath: true }).run({ ...view, runs: view.runs.map((run) => ({ ...run, workers: run.workers.filter((worker) => readers.flat().includes(worker)) })) });
+    }),
     spawnedTogether('maintain-verification-skill.readers-concurrent', src('maintain-verification-skill/SKILL.md', 'launched concurrently'), ['general']),
     check('maintain-verification-skill.children-never-drive-or-edit', 'no reader ran a drive command or called a write tool', src('maintain-verification-skill/SKILL.md', 'Children never drive the app and never edit files.'), (view) => {
       const bad = allWorkers(view).flatMap((worker) => (worker.session?.toolCalls ?? []).filter((call) => !['read', 'grep', 'find', 'ls', 'bash_readonly'].includes(call.name) && !call.isError).map((call) => `${worker.id}:${call.name}`));
       return when(bad.length === 0, 'readers only read', bad.join(', '));
     }),
     check('maintain-verification-skill.live-pass-doctors-first-and-tears-down-last', 'every feature was driven live after the source wave, each drive preceded by a doctor run in its fresh session, teardown after the last drive, and the evidence still on disk', src('maintain-verification-skill/SKILL.md', '4. **Live pass.** Required even when source looks clean.'), (view) => {
-      const wave = Math.max(...FEATURES.map((name) => collectOrder(view, `reader-${name}`)));
+      const readers = FEATURES.map((name) => featureReaders(view, name));
+      if (readers.some((workers) => workers.length !== 1) || new Set(readers.flat()).size !== FEATURES.length) return fail(`source readers ambiguous or missing: ${readers.map((workers) => workers.map((worker) => worker.id).join(', ') || 'none').join('; ')}`);
+      const collected = readers.flat().map((worker) => collectOrder(view, worker.id));
+      if (collected.some((order) => order < 0)) return fail('source readers were not collected');
+      const wave = Math.max(...collected);
       const drives = FEATURES.map((name) => bashes(view).find((call) => new RegExp(`doctor\\.sh && .*drive\\.sh ${name}`).test(String(call.args['command']))));
       const teardown = bashes(view).find((call) => /teardown\.sh/.test(String(call.args['command'])));
       const evidence = FEATURES.every((name) => existsSync(join(view.sandbox, 'evidence', `${name}.txt`)));

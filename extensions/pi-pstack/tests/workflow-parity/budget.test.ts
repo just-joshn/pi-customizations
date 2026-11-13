@@ -2,10 +2,10 @@
 import { join } from 'node:path';
 
 import { describe, expect, test } from 'vitest';
-
 import { budgetFor, stopReason } from './lib/budget.ts';
-import { runWorkflow } from './lib/driver.ts';
-import type { RunSpec } from './lib/driver.ts';
+import type { Meta, RunSpec } from './lib/driver.ts';
+import { budgetOf, runWorkflow } from './lib/driver.ts';
+import { assessHarnessStop } from './lib/integrity.ts';
 
 const FAKE_PI = join(import.meta.dirname, 'fixtures/fake-pi.mjs');
 const spec: RunSpec = { family: 'budget-test', runId: 'budget-test', history: [{ message: 'init', files: { 'README.md': 'x\n' } }], prompt: () => '/noop', scenario: () => ({ actors: {} }) };
@@ -31,13 +31,62 @@ describe('stopReason', () => {
 });
 
 describe('budgetFor', () => {
+  test('fixture timeouts apply only to scripted runs, never to a real model', () => {
+    const fixture = { ...spec, timeoutMs: 120_000 };
+    expect(budgetOf(fixture, 'scripted')).toEqual({ idleMs: 120_000, ceilingMs: 120_000 });
+    expect(budgetOf(fixture, 'real')).toEqual(budgetFor(fixture.family));
+  });
+
   test('a fan-out family gets a longer ceiling than a single-agent one, and both share one idle limit', () => {
     expect(budgetFor('feature').ceilingMs).toBeGreaterThan(budgetFor('how-simple').ceilingMs);
     expect(budgetFor('feature').idleMs).toBe(budgetFor('how-simple').idleMs);
   });
 });
 
+describe('stopped-run provenance', () => {
+  const stopped: Meta = { family: spec.family, driver: 'real', base: 'base', parentSessionFile: null, prompt: '/noop', timedOut: true, stopReason: 'ceiling', tmuxSocket: 'socket', piStderr: '' };
+  const fixture = { ...spec, timeoutMs: 120_000 };
+
+  test('only a recorded fixture budget can establish a real run was cut short by the harness', () => {
+    expect(assessHarnessStop({ ...stopped, budget: { idleMs: 120_000, ceilingMs: 120_000 } }, fixture)).toMatchObject({ kind: 'harness-budget' });
+    expect(assessHarnessStop(stopped, fixture)).toBeUndefined();
+  });
+
+  test('a real run that exhausts the product budget remains a timeout', () => {
+    expect(assessHarnessStop({ ...stopped, budget: budgetFor(spec.family) }, fixture)).toBeUndefined();
+    expect(assessHarnessStop(stopped, spec)).toBeUndefined();
+  });
+
+  test('an unrelated recorded override does not establish a fixture timeout', () => {
+    const overridden = { ...stopped, budget: { idleMs: 100, ceilingMs: 100 } };
+    expect(assessHarnessStop(overridden, fixture)).toBeUndefined();
+    expect(assessHarnessStop(overridden, spec)).toBeUndefined();
+  });
+
+  test('an idle stop is reclassified only when its recorded limits match the fixture', () => {
+    expect(assessHarnessStop({ ...stopped, stopReason: 'idle', budget: { idleMs: 120_000, ceilingMs: 120_000 } }, fixture)).toMatchObject({ kind: 'harness-budget' });
+    expect(assessHarnessStop({ ...stopped, stopReason: 'idle', budget: budgetFor(spec.family) }, fixture)).toBeUndefined();
+  });
+
+  test('scripted stops and completed real runs are not reclassified', () => {
+    expect(assessHarnessStop({ ...stopped, driver: 'scripted' }, fixture)).toBeUndefined();
+    expect(assessHarnessStop({ ...stopped, timedOut: false }, fixture)).toBeUndefined();
+  });
+});
+
 describe('the driver under a budget', () => {
+  test('a real-driver parent outlives the scripted fixture limit and records the real budget', async () => {
+    process.env['FAKE_PI_MODE'] = 'busy';
+    process.env['FAKE_PI_BUSY_MS'] = '500';
+    const outcome = await runWorkflow({ ...spec, timeoutMs: 100 }, 'real', { pi: FAKE_PI, model: 'sim/claude-sim', rpcTimeoutMs: 1_500 });
+    try {
+      expect(outcome.meta).toMatchObject({ timedOut: false, budget: budgetFor(spec.family) });
+      expect(outcome.meta.inconclusive?.kind).not.toBe('harness-budget');
+    } finally {
+      outcome.cleanup();
+    }
+  }, 15_000);
+
   test('a run that keeps working past the idle limit, inside the ceiling, is not stopped', async () => {
     const meta = await run('busy', 9_000, { idleMs: 4_000, ceilingMs: 30_000 });
     expect({ timedOut: meta.timedOut, why: meta.stopReason }).toEqual({ timedOut: false, why: undefined });

@@ -19,6 +19,9 @@ const FRAME_SRC = src('swarm/SKILL.md', 'declare `first pass`, `rank all`, or `b
 const AGG_SRC = src('swarm/SKILL.md', 'apply the selection rule declared up front');
 const settleAt = (worker: WorkerView, phase = 'idle'): number => Date.parse(((worker.state?.['settles'] as { phase: string; at: string }[] | undefined) ?? []).find((entry) => entry.phase === phase)?.at ?? '');
 const scoreOf = (worker: WorkerView): number => Number(/score=(\d+)/.exec(worker.finalText)?.[1] ?? Number.NaN);
+const arenaCandidates = (view: RunView) => allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate');
+const candidateCommits = (view: RunView, worker: WorkerView) => view.git.branchCommits[`pstack-run/${view.runs[0]?.id}/${worker.id}`]?.length ?? -1;
+const arenaDropouts = (view: RunView) => arenaCandidates(view).filter((worker) => candidateCommits(view, worker) === 0 && worker.worktree !== null && (view.git.worktreeDirty[worker.worktree] ?? []).length === 0);
 const passes = (view: RunView) => allWorkers(view).filter((worker) => /^PASS/.test(worker.finalText));
 
 // ---- race rules
@@ -71,7 +74,7 @@ function race(rule: Rule): Family {
       phasesBeforeLaunch(`${id}.phases-before-launch`, src('swarm/SKILL.md', 'Add one `TODO.md` entry per phase'), SWARM_PHASE_PATTERNS),
       check(`${id}.rule-declared-before-spawning`, `the rule "${rule}" and each arm's model are written into TODO.md before the first worker is claimed`, FRAME_SRC, (view) => {
         const history = view.todoHistory[view.runs[0]?.id ?? ''] ?? [];
-        const first = history.find((snapshot) => snapshot.text.includes(`Race rule: ${rule}.`) && ARMS.every((arm) => snapshot.text.includes(`${arm.id} on ${arm.model}`)));
+        const first = history.find((snapshot) => snapshot.text.includes(`Race rule: ${rule}.`) && allWorkers(view).length === 3 && allWorkers(view).every((arm) => snapshot.text.includes(`${arm.id} on ${String(assignmentOf(arm).model)}`)));
         const claim = Math.min(...view.claims.map((entry) => entry.seq));
         return when(first !== undefined && first.seq < claim, `declared at seq ${first?.seq}, first claim at seq ${claim}`, first === undefined ? 'no TODO.md names the rule and the arms' : `declared at seq ${first.seq}, after the first claim ${claim}`);
       }),
@@ -79,7 +82,8 @@ function race(rule: Rule): Family {
       check(`${id}.identical-briefs-and-named-models`, 'every arm has the same brief and runs on the model its TODO line names, three models', src('swarm/SKILL.md', 'For a model race, name each arm\'s model up front'), (view) => {
         const arms = allWorkers(view);
         const briefs = new Set(arms.map((worker) => worker.brief));
-        const wrong = arms.filter((worker) => assignmentOf(worker).model !== ARMS.find((arm) => arm.id === worker.id)?.model);
+        const declared = (view.todoHistory[view.runs[0]?.id ?? ''] ?? []).find((snapshot) => snapshot.text.includes(`Race rule: ${rule}.`));
+        const wrong = arms.filter((worker) => !declared?.text.includes(`${worker.id} on ${String(assignmentOf(worker).model)}`));
         return when(arms.length === 3 && briefs.size === 1 && wrong.length === 0 && new Set(arms.map((worker) => assignmentOf(worker).model)).size === 3, '3 arms, one brief, three named models', `${arms.length} arms, ${briefs.size} distinct briefs, wrong models: ${wrong.map((worker) => worker.id).join(', ')}`);
       }),
       worktreeIsolation(`${id}.separate-writable-outputs`, src('swarm/SKILL.md', 'Give each worker its own writable output when it writes')),
@@ -100,15 +104,16 @@ function race(rule: Rule): Family {
         }
         const allCollected = arms.every((worker) => collectOrder(view, worker.id) !== -1);
         if (rule === 'rank all') {
-          const order = (/Ranking:(.*)/.exec(reply)?.[1] ?? '').match(/arm-[a-z]/g) ?? [];
+          const ranking = /Ranking:(.*)/.exec(reply)?.[1] ?? '';
+          const order = [...ranking.matchAll(/\d+\.\s+([\w-]+)\s*\(/g)].map((match) => match[1]);
           return when(allCollected && JSON.stringify(order) === JSON.stringify(byScore.map((worker) => worker.id)), `ranking ${order.join(' > ')} matches the scores ${byScore.map((worker) => scoreOf(worker)).join(' > ')}`, `ranking ${order.join(',')} vs by score ${byScore.map((worker) => worker.id).join(',')}; all collected ${allCollected}`);
         }
-        return when(allCollected && reply.includes(`Best: ${byScore[0]?.id}`) && !/Best: arm-c/.test(reply), `best passing arm is ${byScore[0]?.id}`, `best passing ${byScore[0]?.id}; reply: ${/Best: (\S+)/.exec(reply)?.[1]}; all collected ${allCollected}`);
+        return when(allCollected && reply.includes(`Best: ${byScore[0]?.id}`), `best passing arm is ${byScore[0]?.id}`, `best passing ${byScore[0]?.id}; reply: ${/Best: (\S+)/.exec(reply)?.[1]}; all collected ${allCollected}`);
       }),
       check(`${id}.report-states-the-rule-and-gaps`, 'the report is one table with the race rule and the gaps, not raw worker dumps', src('swarm/SKILL.md', 'Return one consolidated in-chat report with a result table'), (view) => {
         const reply = finalReply(view);
         const dumps = allWorkers(view).filter((worker) => worker.finalText !== '' && reply.includes(worker.finalText));
-        return when(reply.includes(`Race rule: ${rule}`) && /\| arm-a \|/.test(reply) && /Gaps:/.test(reply) && dumps.length === 0, 'rule, table and gaps present, no pasted worker result', `reply: ${reply.slice(0, 120)}; pasted: ${dumps.map((worker) => worker.id).join(',')}`);
+        return when(reply.includes(`Race rule: ${rule}`) && allWorkers(view).length === 3 && allWorkers(view).every((worker) => reply.includes(`| ${worker.id} |`)) && /Gaps:/.test(reply) && dumps.length === 0, 'rule, table and gaps present, no pasted worker result', `reply: ${reply.slice(0, 120)}; pasted: ${dumps.map((worker) => worker.id).join(',')}`);
       }),
     ],
     negatives: [
@@ -179,14 +184,18 @@ Race rule: none, this was a coverage partition.`);
   checks: [
     phasesBeforeLaunch('swarm-second-miss.phases-before-launch', src('swarm/SKILL.md', 'Add one `TODO.md` entry per phase'), SWARM_PHASE_PATTERNS),
     check('swarm-second-miss.respawned-exactly-once', 'the slice whose result missed the SHA and method was respawned once, after the first result was collected, and never a third time', src('swarm/SKILL.md', 'respawn that worker once. After a second miss, record a gap'), (view) => {
-      const ids = allWorkers(view).map((worker) => worker.id).filter((id) => /^slice-3/.test(id));
-      const respawn = spawnOrder(view, 'slice-3b');
-      return when(JSON.stringify(ids) === JSON.stringify(['slice-3', 'slice-3b']) && respawn > collectOrder(view, 'slice-3') && collectOrder(view, 'slice-3') !== -1, `workers ${ids.join(', ')}; the respawn at ${respawn} follows the first collect`, `slice-3 workers ${ids.join(', ')}; respawn ${respawn}; first collect ${collectOrder(view, 'slice-3')}`);
+      const workers = allWorkers(view).filter((worker) => /src\/checkout\.js/.test(worker.brief ?? '')).sort((a, b) => spawnOrder(view, a.id) - spawnOrder(view, b.id));
+      const [initial, retry] = workers;
+      if (workers.length !== 2 || initial === undefined || retry === undefined) return fail(`expected exactly two checkout attempts, got ${workers.length}`);
+      const first = collectOrder(view, initial.id);
+      const respawn = spawnOrder(view, retry.id);
+      return when(first !== -1 && respawn > first, 'exactly two checkout attempts, the retry follows collection', `retry ${respawn}; first collect ${first}`);
     }),
     check('swarm-second-miss.miss-is-judged-from-the-result', 'both results of that slice really lack the SHA or the method, and the other slices carry both', src('swarm/SKILL.md', 'Drop a result that does not record the SHAs and method its brief names'), (view) => {
       const complete = (worker: WorkerView) => worker.finalText.includes(view.base) && worker.finalText.includes(METHOD);
-      const by = (id: string) => allWorkers(view).find((worker) => worker.id === id);
-      return when(!complete(by('slice-3') as WorkerView) && !complete(by('slice-3b') as WorkerView) && complete(by('slice-1') as WorkerView) && complete(by('slice-2') as WorkerView), 'slice-3 and slice-3b miss, slice-1 and slice-2 carry both', 'the recorded results do not split as expected');
+      const checkout = allWorkers(view).filter((worker) => /src\/checkout\.js/.test(worker.brief ?? ''));
+      const slices = ['src/cart.js', 'src/money.js'].map((file) => allWorkers(view).filter((worker) => (worker.brief ?? '').includes(file)));
+      return when(checkout.length === 2 && checkout.every((worker) => !complete(worker)) && slices.every((workers) => workers.length === 1 && workers.every(complete)), 'two checkout misses and two complete independent slices', 'the recorded results do not split as expected');
     }),
     check('swarm-second-miss.gap-is-not-a-pass', 'the report records the second miss as a gap, never as PASS, and does not claim full coverage', src('swarm/SKILL.md', 'A gap does not count as a pass'), (view) => {
       const reply = finalReply(view);
@@ -194,10 +203,12 @@ Race rule: none, this was a coverage partition.`);
       return when(row === 'GAP' && /coverage is incomplete/i.test(reply) && !/all slices (pass|covered)|coverage is complete/i.test(reply), 'the checkout slice is a GAP and coverage is called incomplete', `row says ${row}; reply: ${reply.slice(0, 120)}`);
     }),
     check('swarm-second-miss.dropout-leaves-n-minus-one', 'a worker that never finished was aborted, the swarm proceeded with the rest and the report notes the dropout', src('swarm/SKILL.md', 'If a worker drops out, proceed with N-1 and note it.'), (view) => {
-      const dropped = allWorkers(view).find((worker) => worker.id === 'slice-4');
-      const aborted = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === 'slice-4' && !call.isError);
+      const drops = allWorkers(view).filter((worker) => /src\/extra\.js/.test(worker.brief ?? ''));
+      const [dropped] = drops;
+      if (drops.length !== 1 || dropped === undefined) return fail(`expected one extra-flow worker, got ${drops.length}`);
+      const aborted = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === dropped.id && !call.isError);
       const reply = finalReply(view);
-      return when(aborted && dropped?.finalText !== 'late' && /slice-4 dropped out/.test(reply) && /proceeded with 3 workers/.test(reply), 'slice-4 was aborted before it answered, and the report notes the dropout and N-1', `aborted ${aborted}; final text ${dropped?.finalText}; reply notes ${/slice-4 dropped out/.test(reply)}`);
+      return when(aborted && dropped.finalText !== 'late' && reply.includes(`${dropped.id} dropped out`) && /proceeded with 3 workers/.test(reply), 'the extra-flow worker was aborted before answering and the report notes N-1', `aborted ${aborted}; final text ${dropped.finalText}; dropout ${dropped.id}`);
     }),
     check('swarm-second-miss.report-is-consolidated', 'one result table with gaps and dropouts, no pasted worker result', src('swarm/SKILL.md', 'Return one consolidated in-chat report with a result table, issue one-liners, gaps or dropouts'), (view) => {
       const reply = finalReply(view);
@@ -264,28 +275,37 @@ const arenaDropout: Family = {
   checks: [
     phasesBeforeLaunch('arena-dropout.phases-before-launch', src('arena/SKILL.md', 'Add one `TODO.md` entry per phase'), ARENA_PHASES.map((phase) => new RegExp(phase))),
     check('arena-dropout.the-dropout-left-nothing', 'candidate-3 left no commit and no file in its worktree, while the other two committed', src('arena/SKILL.md', 'If a candidate produces no output, proceed with N-1 and note the dropout.'), (view) => {
-      const commits = (id: string) => view.git.branchCommits[`pstack-run/${AR_RUN}/${id}`]?.length ?? -1;
-      const tree = allWorkers(view).find((worker) => worker.id === 'candidate-3')?.worktree ?? '';
-      return when(commits('candidate-3') === 0 && (view.git.worktreeDirty[tree] ?? []).length === 0 && commits('candidate-1') >= 1 && commits('candidate-2') >= 1, 'candidate-3 has 0 commits and a clean tree; candidate-1 and candidate-2 committed', `commits ${commits('candidate-1')}/${commits('candidate-2')}/${commits('candidate-3')}`);
+      const candidates = arenaCandidates(view);
+      const dropouts = arenaDropouts(view);
+      return when(candidates.length === 3 && dropouts.length === 1 && candidates.filter((worker) => candidateCommits(view, worker) >= 1).length === 2, 'one empty clean candidate and two committed survivors', `dropouts ${dropouts.map((worker) => worker.id).join(',')}`);
     }),
     check('arena-dropout.judge-sees-only-the-survivors', 'the judge is spawned after all three candidates were collected, and its brief labels only the two that produced output', src('arena/SKILL.md', 'The judge sees the rubric and the candidates by path label'), (view) => {
-      const judge = allWorkers(view).find((worker) => worker.id === 'judge');
-      const labels = (judge?.brief ?? '').match(/- candidate-\d: /g) ?? [];
-      const lastCollect = Math.max(...['candidate-1', 'candidate-2', 'candidate-3'].map((id) => collectOrder(view, id)));
-      return when(JSON.stringify(labels) === JSON.stringify(['- candidate-1: ', '- candidate-2: ']) && spawnOrder(view, 'judge') > lastCollect, 'judge labels candidate-1 and candidate-2 only, after every collect', `labels ${labels.join('')}; judge at ${spawnOrder(view, 'judge')}, last collect ${lastCollect}`);
+      const judges = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'judge');
+      const candidates = arenaCandidates(view);
+      const dropouts = arenaDropouts(view);
+      const [judge] = judges;
+      if (judges.length !== 1 || judge === undefined || candidates.length !== 3 || dropouts.length !== 1) return fail('expected one judge, two survivors and one dropout');
+      const labels = [...(judge.brief ?? '').matchAll(/^- ([\w-]+): (.+)$/gm)];
+      const survivors = candidates.filter((worker) => !dropouts.includes(worker));
+      const collects = candidates.map((worker) => collectOrder(view, worker.id));
+      return when(labels.length === 2 && survivors.every((worker) => labels.some((label) => label[1] === worker.id && label[2] === worker.worktree)) && collects.every((at) => at !== -1) && spawnOrder(view, judge.id) > Math.max(...collects), 'only two surviving paths labeled after all candidate collects', `labels ${labels.map((label) => label[1]).join(',')}`);
     }),
     check('arena-dropout.not-respawned-and-not-waited-on', 'no replacement candidate was spawned, and exactly three candidates exist', src('arena/SKILL.md', 'proceed with N-1'), (view) => {
       const candidates = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'candidate');
       return when(candidates.length === 3, '3 candidates, no respawn', `${candidates.map((worker) => worker.id).join(', ')}`);
     }),
     check('arena-dropout.parent-read-only-survivors', 'the parent read both surviving candidates and did not read the dropout\'s empty tree', src('arena/SKILL.md', 'Read every candidate end to end before picking'), (view) => {
-      const read = (id: string) => view.parent.toolCalls.some((call) => call.name === 'read' && String(call.args['path']).includes(`/workers/${id}/worktree/src/pad.js`));
-      return when(read('candidate-1') && read('candidate-2') && !read('candidate-3'), 'candidate-1 and candidate-2 read, candidate-3 not', `read ${[1, 2, 3].map((n) => `c${n}:${read(`candidate-${n}`)}`).join(' ')}`);
+      const dropouts = arenaDropouts(view);
+      const candidates = arenaCandidates(view);
+      const read = (worker: WorkerView) => view.parent.toolCalls.some((call) => call.name === 'read' && call.args['path'] === `${worker.worktree}/src/pad.js`);
+      return when(candidates.length === 3 && dropouts.length === 1 && candidates.every((worker) => read(worker) === !dropouts.includes(worker)), 'only the two survivors were read', `dropouts ${dropouts.map((worker) => worker.id).join(',')}`);
     }),
     check('arena-dropout.note-names-the-dropout', 'the synthesis note names the dropout and the count it proceeded with, and the base is a survivor', src('arena/SKILL.md', 'any convergence or dropouts'), (view) => {
       const reply = finalReply(view);
-      const base = /Base: (candidate-\d)/.exec(reply)?.[1];
-      return when(/Dropouts: candidate-3 produced no output/.test(reply) && /proceeded with 2 candidates/.test(reply) && (base === 'candidate-1' || base === 'candidate-2'), `note names candidate-3 and 2 survivors; base ${base}`, `reply: ${reply.slice(0, 200)}`);
+      const base = /Base: ([\w-]+)/.exec(reply)?.[1];
+      const dropouts = arenaDropouts(view);
+      const survivors = arenaCandidates(view).filter((worker) => candidateCommits(view, worker) >= 1);
+      return when(dropouts.length === 1 && survivors.length === 2 && dropouts.every((worker) => reply.includes(`Dropouts: ${worker.id} produced no output`)) && /proceeded with 2 candidates/.test(reply) && survivors.some((worker) => worker.id === base), `note names the dropout and two survivors; base ${base}`, `reply: ${reply.slice(0, 200)}`);
     }),
     check('arena-dropout.synthesis-verified', 'a passing test receipt verifies the synthesized artifact', src('arena/SKILL.md', 'Verify the synthesized artifact like any other output'), (view) => when(view.runs[0]?.receipts.some((receipt) => receipt.target === 'arena-verify' && receipt.kind === 'test' && receipt.verdict === 'pass') === true, 'receipt arena-verify passes', 'no passing arena-verify receipt')),
   ],
