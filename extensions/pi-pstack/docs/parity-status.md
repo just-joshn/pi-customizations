@@ -43,12 +43,13 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 
 | Result | Platform | Commit | Pi | Node | Tests | Run |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | darwin | `6075831296e5` | 1.5.2 | v26.13.0 | 2585 passed, 0 failed, 93 skipped | local at 2026-11-13T06:05:11.769Z |
+| 1 | darwin | `6075831296e5` | 1.5.2 | v26.13.0 | 2585 passed, 0 failed, 93 skipped | local at 2026-11-13T06:18:03.128Z |
+| 2 | linux | `b1137d8e6a40` | 1.5.0 | v22.21.0 | 2543 passed, 0 failed, 121 skipped | https://github.com/just-joshn/pstack-parity-sandbox/actions/runs/43376251681 |
 
 | Kind | PASS | FAIL | INCONCLUSIVE | N/A |
 | --- | --- | --- | --- | --- |
 | structural | 150 | 0 | 0 | 40 |
-| behavioral | 96 | 0 | 5 | 0 |
+| behavioral | 97 | 0 | 4 | 0 |
 
 ### Behavioral requirements
 
@@ -95,7 +96,7 @@ Computed from the Vitest result files below, by `node scripts/build-parity-manif
 | `ORCHESTRATE-TOPOLOGY` Orchestrate keeps one owner per PR within three levels | 13.4 | PASS | vendor/upstream-pstack/skills/poteto-mode/playbooks/orchestrate.md:9-11 |  |
 | `CONTAINER-WORKERS` Container workers run or report ContainerUnavailable | 9.6 | INCONCLUSIVE | vendor/upstream-pstack/skills/swarm/SKILL.md:27-27 | declared coverage gap: Still open: (1) the real-model proof (deepseek api_key, claude-subscription OAuth, gh auth status against GitHub) is an opt-in test (tests/container/model-smoke.test.ts, PSTACK_E2E_REAL_MODELS=1) that needs the operator's credentials and is not run by the merge gate; (2) a worker's OAuth token is not refreshed while it runs, so a worker lives about as long as the access token it was given had left at spawn; (3) providers registered by a git: package source or only by models.json are not found, and a forge token holds the scopes of the operator's gh login unless PSTACK_CONTAINER_FORGE_TOKEN names a narrower one; (4) src/automation/settle.ts, outside this change, still reads a container worker's session file by path and follows symlinks. |
 | `WF-HOW-READONLY` how and reviewers run with read-only tools, enforced by the worker | 12.1 | PASS | vendor/upstream-pstack/skills/how/SKILL.md:11-11 |  |
-| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | INCONCLUSIVE | specification 15.1 | missing: tests/security/linux-readonly-sandbox.test.ts::read-only commands and network reads run, while writes and Unix sockets are refused (G12); missing: tests/security/linux-readonly-sandbox-missing.test.ts::without bubblewrap the readonly command fails closed and never runs |
+| `SECURITY-READONLY-LINUX` The Linux readonly sandbox fails closed and blocks writes and sockets | 15.1 | PASS | specification 15.1 |  |
 | `WORKER-CAPABILITY-BOUNDARY` A worker's tools, MCP and environment are limited by its assignment | 15.1 | INCONCLUSIVE | specification 15.1 | declared coverage gap: A worker runs as the operator's user and can read any file that user can read. The boundary removes tools and variables, not file access. |
 | `WF-TEACH` teach composes how and why into one plain account | 12.1 | PASS | vendor/upstream-pstack/skills/teach/SKILL.md:11-11 |  |
 | `WF-ARCHITECT-ARENA` architect requests structurally distinct designs through arena | 12.2 | PASS | vendor/upstream-pstack/skills/architect/SKILL.md:29-29 |  |
