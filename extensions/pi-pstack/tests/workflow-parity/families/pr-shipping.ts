@@ -84,7 +84,7 @@ export function verifierScript(ctx: Ctx, parent: Parent, options: { id: string; 
   const workerDir = parent.workerDir(options.id);
   const ws = '/tmp/workspace';
   const forgeCli = 'gh';
-  worker.bash(`node ${ctx.pkg}/tests/workflow-parity/fixtures/credential-isolation.mjs`);
+  if (existsSync(join(ctx.sandbox, 'forge'))) worker.bash(`node ${ctx.pkg}/tests/workflow-parity/fixtures/credential-isolation.mjs`);
   worker.bash(`cd ${ws} && test "$(git rev-parse HEAD)" = ${options.head}`);
   worker.bash(`cd ${ws} && node --test ${options.testFile}; true`);
   proofSteps(worker, ctx, { id: `${options.id}-run`, target: `pr-${options.pr}`, command: `node --test ${options.testFile}`, cwd: ws, kind: 'test', gitDir: ws, dir: join(workerDir, 'evidence') }, join(workerDir, 'evidence'));
@@ -249,7 +249,7 @@ export function verifierChecks(prefix: string, mode: 'head' | 'patch'): Check[] 
           ...(caps['forge'] !== true || caps['env'] !== 'minimal' || caps['externalWrite'] !== false || caps['mcp'] !== 'inherit' ? [`${worker.id} capabilities ${JSON.stringify(caps)}`] : []),
           ...(worker.id === state.prs[String(n)]?.author ? [`${worker.id} is the author`] : []),
           ...(worker.session?.cwd !== '/tmp/workspace' ? [`${worker.id} session ran in ${String(worker.session?.cwd)}, not the container clone`] : []),
-          ...(!worker.session?.toolCalls.some((call) => call.name === 'bash' && String(call.args['command']).endsWith('/fixtures/credential-isolation.mjs') && call.resultText.includes('CREDENTIAL-ISOLATION PASS:')) ? [`${worker.id} has no passing credential isolation probe`] : []),
+          ...(view.driver === 'scripted' && !worker.session?.toolCalls.some((call) => call.name === 'bash' && String(call.args['command']).endsWith('/fixtures/credential-isolation.mjs') && call.resultText.includes('CREDENTIAL-ISOLATION PASS:')) ? [`${worker.id} has no passing credential isolation probe`] : []),
           ...(view.runs.flatMap((run) => run.events).find((event) => event['workerId'] === worker.id && event['kind'] === 'spawn' && ((event['data'] as { container?: { image?: { id?: string } } }).container?.image?.id ?? '') !== '') === undefined ? [`${worker.id} has no container spawn event with an image id`] : []),
         ];
       });
@@ -348,14 +348,18 @@ export const shippingFamily: Family = {
     { name: 'a verifier ran in a worktree instead of a container', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'verifier-22', (assignment) => (assignment['workspace'] = { mode: 'worktree', inputCommit: (assignment['workspace'] as { inputCommit: string }).inputCommit })), fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'] },
     {
       name: 'a verifier omitted the credential isolation probe',
-      mutate: (sandbox) => {
-        const dir = join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers/verifier-21');
-        for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.jsonl'))) {
-          const path = join(dir, file);
-          writeFileSync(path, readFileSync(path, 'utf8').replaceAll('CREDENTIAL-ISOLATION PASS:', 'CREDENTIAL-ISOLATION OMITTED:'));
-        }
-      },
+      mutate: omitCredentialIsolationProbe,
       fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'],
+    },
+    {
+      name: 'a real-model verifier is not required to run a scripted fixture probe',
+      mutate: (sandbox, view) => {
+        omitCredentialIsolationProbe(sandbox, view);
+        const file = join(sandbox, 'meta.json');
+        writeFileSync(file, JSON.stringify({ ...JSON.parse(readFileSync(file, 'utf8')), driver: 'real' }));
+      },
+      fails: [],
+      passes: ['ship.one-container-verifier-per-pr-with-the-forge-capability'],
     },
     { name: 'a verifier had no forge capability', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'verifier-23', (assignment) => ((assignment['capabilities'] as Record<string, unknown>)['forge'] = false)), fails: ['ship.one-container-verifier-per-pr-with-the-forge-capability'] },
     { name: 'a verifier receipt was forged away', mutate: (sandbox) => rmSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'verification/receipts/verifier-22-run.json'), { force: true }), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
@@ -594,6 +598,16 @@ export function testAt(view: Pick<RunView, 'sandbox'>, sha: string, file: string
 function rewriteSessionSafe(sandbox: string, from: string, to: string): void {
   const file = parentSession(sandbox);
   writeFileSync(file, readFileSync(file, 'utf8').replaceAll(from, to));
+}
+
+function omitCredentialIsolationProbe(sandbox: string, view: RunView): void {
+  for (const { runId, worker } of view.runs.flatMap((run) => run.workers.map((worker) => ({ runId: run.id, worker })))) {
+    const dir = join(sandbox, 'repo/.pi/pstack/runs', runId, 'workers', worker.id);
+    for (const file of readdirSync(dir, { recursive: true, encoding: 'utf8' }).filter((file) => file.endsWith('.jsonl'))) {
+      const path = join(dir, file);
+      writeFileSync(path, readFileSync(path, 'utf8').replaceAll('CREDENTIAL-ISOLATION PASS:', 'CREDENTIAL-ISOLATION OMITTED:'));
+    }
+  }
 }
 
 export const shippingFamilies: Family[] = [shippingFamily, shippingFreshnessFamily, shippingNoEngineFamily, shippingNoForgeTokenFamily];
