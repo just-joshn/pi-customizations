@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+// Verifies the pi-x-subscription-oauth extension (grok-build and cursor providers, /usage) through
+// the installed `pi` CLI against local peers. See ../SKILL.md. The run lifecycle, Pi drivers,
+// evidence, and command line live in ../../_shared/verify-harness.mjs; per-run setup and the
+// egress invariant in ../lib/context.mjs; one module per feature in ../drives/.
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { createRun, destroyRun, runCli } from '../../_shared/verify-harness.mjs';
+import { checkEgress, PREFIX, SCRIPT_NAME, SCRUBBED_ENV, STUBS, setup } from '../lib/context.mjs';
+import { BILLING_FIXTURE, EXTENSION, GROK_IDS, grokCredential, REPO_ROOT, scrub } from '../lib/fixtures.mjs';
+import { reply } from '../lib/peers.mjs';
+
+const FEATURES = ['login', 'cursor-login', 'chat', 'model-catalog', 'usage', 'cursor-ask'];
+const modules = Object.fromEntries(await Promise.all(FEATURES.map(async (name) => [name, await import(`../drives/${name}.mjs`)])));
+
+async function doctor(check) {
+  await check('openssl on PATH (scratch CA)', () => execFileSync('openssl', ['version'], { encoding: 'utf8' }).trim());
+  await check('extension source and fixtures present', () => {
+    assert.ok(existsSync(join(EXTENSION, 'src/index.ts')));
+    assert.ok(existsSync(join(EXTENSION, 'node_modules')), 'run `bun install --frozen-lockfile` at the repo root');
+    return EXTENSION;
+  });
+  await check('proxy + scratch CA reach /usage through the installed pi', async () => {
+    const run = await createRun({ prefix: PREFIX, feature: 'doctor' });
+    try {
+      const ctx = await setup({ run, evidence: { step: (_name, fn) => fn() } });
+      ctx.peers.route('GET cli-chat-proxy.grok.com/v1/billing', reply(200, BILLING_FIXTURE));
+      await ctx.auth.write({ 'grok-build': grokCredential('doctor') });
+      const listed = await ctx.pi(['--offline', '--list-models', 'grok-build']);
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      const count = listed.stdout.split('\n').filter((line) => line.startsWith('grok-build ')).length;
+      assert.equal(count, GROK_IDS.length, `listed ${count} grok-build ids`);
+      const usage = await ctx.pi(['--offline', '-p', '/usage']);
+      assert.match(usage.stderr, /GrokBuild: 15%/, `${usage.stdout}${usage.stderr}`);
+      assert.deepEqual(ctx.peers.refused(), []);
+      assert.deepEqual(await ctx.guardLog(), []);
+      const resolved = execFileSync('sh', ['-c', 'command -v cursor-agent; command -v security'], { env: ctx.env(), encoding: 'utf8' }).trim().split('\n');
+      assert.ok(
+        resolved.every((path) => path.startsWith(STUBS)),
+        `stubs do not shadow: ${resolved.join(', ')}`,
+      );
+      return `${count} grok-build ids; /usage answered by the peer; cursor-agent and security resolve to stubs`;
+    } finally {
+      await destroyRun(run);
+    }
+  });
+}
+
+await runCli({
+  scriptName: SCRIPT_NAME,
+  prefix: PREFIX,
+  evidenceRoot: join(REPO_ROOT, 'artifacts/verify-pi-x-subscription-oauth'),
+  scrub,
+  scrubbedEnv: SCRUBBED_ENV,
+  drives: Object.fromEntries(FEATURES.map((name) => [name, modules[name].default])),
+  setup,
+  check: (ctx, feature) => checkEgress(ctx, modules[feature].egress),
+  doctor,
+});

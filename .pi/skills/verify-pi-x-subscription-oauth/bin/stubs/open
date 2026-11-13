@@ -1,0 +1,4 @@
+#!/bin/sh
+# Browser-opener stub: records the URL Pi would open in $VERIFY_X_RUN_ROOT/open.log.
+: "${VERIFY_X_RUN_ROOT:?verify stub: VERIFY_X_RUN_ROOT is not set}"
+printf '%s\n' "$*" >> "$VERIFY_X_RUN_ROOT/open.log"

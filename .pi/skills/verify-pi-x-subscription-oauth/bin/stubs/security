@@ -1,0 +1,17 @@
+#!/bin/sh
+# macOS keychain stub for `security find-generic-password -s <service> -a <account> -w`.
+# Logs its argv to $VERIFY_X_RUN_ROOT/security.log and prints keychain/<service>, or fails like a
+# missing item (exit 44).
+: "${VERIFY_X_RUN_ROOT:?verify stub: VERIFY_X_RUN_ROOT is not set}"
+printf '%s\n' "$*" >> "$VERIFY_X_RUN_ROOT/security.log"
+service=''
+while [ $# -gt 0 ]; do
+  [ "$1" = -s ] && service="$2"
+  shift
+done
+item="$VERIFY_X_RUN_ROOT/keychain/$service"
+if [ -z "$service" ] || [ ! -f "$item" ]; then
+  echo 'security: SecKeychainSearchCopyNext: The specified item could not be found in the keychain.' >&2
+  exit 44
+fi
+cat "$item"
