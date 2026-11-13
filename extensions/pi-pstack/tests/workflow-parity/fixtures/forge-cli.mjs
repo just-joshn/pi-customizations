@@ -52,7 +52,14 @@ function lock() {
   }
 }
 
-const load = () => JSON.parse(readFileSync(join(DIR, 'state.json'), 'utf8'));
+const load = () => {
+  if (WHO.container && process.platform === 'linux') {
+    // Host renames can leave the bind mount caching both the old directory entry and the old file size.
+    const refreshed = sh('stat', ['--cached=never', '--format=%s', DIR, join(DIR, 'state.json')]);
+    if (refreshed.status !== 0) die(1, `forge: cannot refresh shared state metadata: ${refreshed.stderr || refreshed.error}`);
+  }
+  return JSON.parse(readFileSync(join(DIR, 'state.json'), 'utf8'));
+};
 function save(state) {
   const tmp = join(DIR, `state.${process.pid}.tmp`);
   writeFileSync(tmp, JSON.stringify(state, null, 2));
