@@ -80,12 +80,17 @@ test('an owner can force-push its own branch with a lease pinned to its last pus
 });
 test('the operator catch-up can say clean and combine gates with countersigns', () => {
   const value = view();
-  value.parent.messages = [{ order: 20, role: 'assistant', text: 'PR 31 and PR 32 are merged. Both verdicts are clean. Gates and countersigns: none. Parked follow-ups: docs.' }];
+  value.parent.messages = [{ order: 20, role: 'assistant', text: 'PR 31 and PR 32 are merged. Both verifier lanes were clean. Gates and countersigns: none. Parked follow-ups: docs.' }];
   value.parent.toolCalls.push({ order: 0, name: 'read', args: { path: '/generated/skills/ketchup/SKILL.md' }, resultText: '', isError: false });
   expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: true });
   const reply = value.parent.messages[0];
   if (reply === undefined) throw new Error('Missing reply');
-  reply.text = 'PR 31 and PR 32 are merged. Both verdicts are clean. Parked follow-ups: docs.';
+  reply.text = 'PR 31 and PR 32 are merged. Both verifier lanes were clean. Parked follow-ups: docs.';
+  expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: false });
+  reply.text = 'PR 31 and PR 32 are merged. Gates and countersigns: none. Parked follow-ups: docs.';
+  expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: false });
+  reply.text = 'PR 31 and PR 32 are merged. Both verifier lanes were clean. Gates and countersigns: none. Parked follow-ups: docs.';
+  value.parent.toolCalls = [];
   expect(run('reply-catches-the-operator-up', value)).toMatchObject({ ok: false });
 });
 test('a failing lane, an ambiguous duplicate, and an audit after the go still fail', () => {

@@ -389,8 +389,9 @@ export const autopilotFullFamily: Family = {
     }),
     check('autopilot.full.reply-catches-the-operator-up', 'the reply covers each PR\'s state and verdict, what merged, countersigns, open operator gates and parked follow-ups', AF('**Reply:** catch the operator up'), (view) => {
       const reply = finalReply(view);
-      const missing = [/PR 31[\s\S]*PR 32[\s\S]*merged|merged[\s\S]*PR 31[\s\S]*PR 32/i, /verified PASS|verdict[\s\S]{0,80}clean|clean[\s\S]{0,80}verdict/i, /countersign/i, /operator gates|gates and countersigns/i, /parked follow.ups/i].filter((pattern) => !pattern.test(reply)).map(String);
-      return when(missing.length === 0 && openedAt(view.parent, 'generated/skills/ketchup/SKILL.md') !== -1, 'ketchup read, every part present', `missing ${missing.join(', ')}`);
+      const missing = [/PR 31[\s\S]*PR 32[\s\S]*merged|merged[\s\S]*PR 31[\s\S]*PR 32/i, /verified PASS|(?:verdict|verifier lanes?)[\s\S]{0,80}clean|clean[\s\S]{0,80}verdict/i, /countersign/i, /operator gates|gates and countersigns/i, /parked follow.ups/i].filter((pattern) => !pattern.test(reply)).map(String);
+      if (openedAt(view.parent, 'generated/skills/ketchup/SKILL.md') === -1) missing.push('ketchup skill was not opened');
+      return when(missing.length === 0, 'ketchup read, every part present', `missing ${missing.join(', ')}`);
     }),
   ],
   negatives: [
