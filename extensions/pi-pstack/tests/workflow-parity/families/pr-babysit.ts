@@ -1,21 +1,21 @@
 // Babysit families (spec 13.2): each request-to-mode row, GitHub against Origin, the conflict-threads-CI order, one fresh
 // build for a verified flake, WAITING with merge-queue, one watcher at a time, and no merge because checks are green.
 // Every run drives the real pi binary against the fake forge in fixtures/forge.ts.
+
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { Parent, scenario } from '../fixtures/dsl.ts';
-import { forgeEnv, type ForgeHandle, readForge, setupForge, watchVerdict, WATCH_PR, type ChaosStep } from '../fixtures/forge.ts';
+import { type ChaosStep, editForge, type ForgeAction, type ForgeHandle, forgeEnv, readForge, setupForge, WATCH_PR, watchVerdict } from '../fixtures/forge.ts';
 import { CART_JS, cartHistory } from '../fixtures/repos.ts';
 import { check, checkAbsence, src, when } from '../lib/check.ts';
 import { allWorkers, assignmentOf, callsInTurn, finalReply, noToolErrors, playbookReads, primaryRun, promptRoutes, todoChecks } from '../lib/checks.ts';
 import type { Ctx } from '../lib/driver.ts';
-import { appendToolCall, patchAssignment, rewriteFinalReply, parentSession } from '../lib/mutate.ts';
-import { editForge, type ForgeAction } from '../fixtures/forge.ts';
-import { todoNegatives } from './shared.ts';
-import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, replyMentions, REPO_FLAGS, REPO_SLUG, stepDone, watchers } from './pr-shared.ts';
+import { appendToolCall, parentSession, patchAssignment, rewriteFinalReply } from '../lib/mutate.ts';
 import { babysitRestartFamilies } from './pr-babysit-restart.ts';
+import { BASH, declaredMode, exitCodeOf, forgeResolvedOnce, lifeOf, modeDeclared, neverMerges, neverMutatesTopology, REPO_FLAGS, REPO_SLUG, replyMentions, stepDone, watchers } from './pr-shared.ts';
+import { todoNegatives } from './shared.ts';
 import type { Family } from './types.ts';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const BS = (anchor: string) => src('poteto-mode/playbooks/babysit.md', anchor);
 const TRIAGE = (anchor: string) => src('poteto-mode/references/bugbot-triage.md', anchor);
@@ -238,7 +238,7 @@ export const babysitDriveFamily: Family = {
     { name: 'the watchers ended in the wrong order', mutate: (sandbox, view) => watchers(view).slice(0, 2).forEach((worker, index) => patchWatcherExit(sandbox, watcherRun(view, worker), worker.id, index === 0 ? 3 : 2)), fails: ['babysit.verdicts-arrive-conflicts-then-threads-then-ci'] },
     { name: 'a second watcher was armed while the first was still live', mutate: (sandbox, view) => { const [first, second] = watchers(view); if (first === undefined || second === undefined) throw new Error('missing sequential watchers'); overlapWatchers(sandbox, watcherRun(view, first), first.id, second.id); }, fails: ['babysit.one-watcher-live-at-a-time-rearmed-after-each-verdict'] },
     { name: 'the parent polled with its own sleep loop', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: 'while true; do gh pr checks 12; sleep 60; done' }), fails: ['babysit.one-watcher-live-at-a-time-rearmed-after-each-verdict'] },
-    { name: 'a watcher used another program', mutate: (sandbox, view) => patchAssignment(sandbox, watcherRun(view, watchers(view)[1]!), watchers(view)[1]!.id, (assignment) => (assignment['watch'] = { argv: ['sleep', '60'], cwd: '/tmp' })), fails: ['babysit.watchers-are-watch-pr-workers'] },
+    { name: 'a watcher used another program', mutate: (sandbox, view) => { const worker = watchers(view)[1]; if (worker === undefined) throw new Error('missing second watcher'); patchAssignment(sandbox, watcherRun(view, worker), worker.id, (assignment) => (assignment['watch'] = { argv: ['sleep', '60'], cwd: '/tmp' })); }, fails: ['babysit.watchers-are-watch-pr-workers'] },
     { name: 'the mode was declared as check', mutate: (sandbox) => rewriteTodoTask(sandbox, DRIVE_RUN, 'Mode: drive', 'Mode: check'), fails: ['babysit.mode-declared-from-the-request'] },
     { name: 'comment text was interpolated into a shell command', mutate: (sandbox) => appendToolCall(parentSession(sandbox), 'bash', { command: "echo 'Duplicated clamp logic: extract a shared helper' | sh" }), fails: ['babysit.review-text-is-data-and-triage-is-grounded'] },
     { name: 'the thread was dismissed without looking at the code', mutate: (sandbox) => dropCommands(sandbox, /git grep .*Math\.min/), fails: ['babysit.review-text-is-data-and-triage-is-grounded'] },

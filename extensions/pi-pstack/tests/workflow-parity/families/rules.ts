@@ -185,16 +185,17 @@ Race rule: none, this was a coverage partition.`);
     phasesBeforeLaunch('swarm-second-miss.phases-before-launch', src('swarm/SKILL.md', 'Add one `TODO.md` entry per phase'), SWARM_PHASE_PATTERNS),
     check('swarm-second-miss.respawned-exactly-once', 'the slice whose result missed the SHA and method was respawned once, after the first result was collected, and never a third time', src('swarm/SKILL.md', 'respawn that worker once. After a second miss, record a gap'), (view) => {
       const workers = allWorkers(view).filter((worker) => /src\/checkout\.js/.test(worker.brief ?? '')).sort((a, b) => spawnOrder(view, a.id) - spawnOrder(view, b.id));
-      if (workers.length !== 2) return fail(`expected exactly two checkout attempts, got ${workers.length}`);
-      const first = collectOrder(view, workers[0]!.id);
-      const respawn = spawnOrder(view, workers[1]!.id);
+      const [initial, retry] = workers;
+      if (workers.length !== 2 || initial === undefined || retry === undefined) return fail(`expected exactly two checkout attempts, got ${workers.length}`);
+      const first = collectOrder(view, initial.id);
+      const respawn = spawnOrder(view, retry.id);
       return when(first !== -1 && respawn > first, 'exactly two checkout attempts, the retry follows collection', `retry ${respawn}; first collect ${first}`);
     }),
     check('swarm-second-miss.miss-is-judged-from-the-result', 'both results of that slice really lack the SHA or the method, and the other slices carry both', src('swarm/SKILL.md', 'Drop a result that does not record the SHAs and method its brief names'), (view) => {
       const complete = (worker: WorkerView) => worker.finalText.includes(view.base) && worker.finalText.includes(METHOD);
       const checkout = allWorkers(view).filter((worker) => /src\/checkout\.js/.test(worker.brief ?? ''));
       const slices = ['src/cart.js', 'src/money.js'].map((file) => allWorkers(view).filter((worker) => (worker.brief ?? '').includes(file)));
-      return when(checkout.length === 2 && checkout.every((worker) => !complete(worker)) && slices.every((workers) => workers.length === 1 && complete(workers[0]!)), 'two checkout misses and two complete independent slices', 'the recorded results do not split as expected');
+      return when(checkout.length === 2 && checkout.every((worker) => !complete(worker)) && slices.every((workers) => workers.length === 1 && workers.every(complete)), 'two checkout misses and two complete independent slices', 'the recorded results do not split as expected');
     }),
     check('swarm-second-miss.gap-is-not-a-pass', 'the report records the second miss as a gap, never as PASS, and does not claim full coverage', src('swarm/SKILL.md', 'A gap does not count as a pass'), (view) => {
       const reply = finalReply(view);
@@ -203,8 +204,8 @@ Race rule: none, this was a coverage partition.`);
     }),
     check('swarm-second-miss.dropout-leaves-n-minus-one', 'a worker that never finished was aborted, the swarm proceeded with the rest and the report notes the dropout', src('swarm/SKILL.md', 'If a worker drops out, proceed with N-1 and note it.'), (view) => {
       const drops = allWorkers(view).filter((worker) => /src\/extra\.js/.test(worker.brief ?? ''));
-      if (drops.length !== 1) return fail(`expected one extra-flow worker, got ${drops.length}`);
-      const dropped = drops[0]!;
+      const [dropped] = drops;
+      if (drops.length !== 1 || dropped === undefined) return fail(`expected one extra-flow worker, got ${drops.length}`);
       const aborted = view.parent.toolCalls.some((call) => call.name === 'pstack_worker' && call.args['action'] === 'abort' && call.args['workerId'] === dropped.id && !call.isError);
       const reply = finalReply(view);
       return when(aborted && dropped.finalText !== 'late' && reply.includes(`${dropped.id} dropped out`) && /proceeded with 3 workers/.test(reply), 'the extra-flow worker was aborted before answering and the report notes N-1', `aborted ${aborted}; final text ${dropped.finalText}; dropout ${dropped.id}`);
@@ -282,8 +283,8 @@ const arenaDropout: Family = {
       const judges = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'judge');
       const candidates = arenaCandidates(view);
       const dropouts = arenaDropouts(view);
-      if (judges.length !== 1 || candidates.length !== 3 || dropouts.length !== 1) return fail('expected one judge, two survivors and one dropout');
-      const judge = judges[0]!;
+      const [judge] = judges;
+      if (judges.length !== 1 || judge === undefined || candidates.length !== 3 || dropouts.length !== 1) return fail('expected one judge, two survivors and one dropout');
       const labels = [...(judge.brief ?? '').matchAll(/^- ([\w-]+): (.+)$/gm)];
       const survivors = candidates.filter((worker) => !dropouts.includes(worker));
       const collects = candidates.map((worker) => collectOrder(view, worker.id));
@@ -304,7 +305,7 @@ const arenaDropout: Family = {
       const base = /Base: ([\w-]+)/.exec(reply)?.[1];
       const dropouts = arenaDropouts(view);
       const survivors = arenaCandidates(view).filter((worker) => candidateCommits(view, worker) >= 1);
-      return when(dropouts.length === 1 && survivors.length === 2 && reply.includes(`Dropouts: ${dropouts[0]!.id} produced no output`) && /proceeded with 2 candidates/.test(reply) && survivors.some((worker) => worker.id === base), `note names the dropout and two survivors; base ${base}`, `reply: ${reply.slice(0, 200)}`);
+      return when(dropouts.length === 1 && survivors.length === 2 && dropouts.every((worker) => reply.includes(`Dropouts: ${worker.id} produced no output`)) && /proceeded with 2 candidates/.test(reply) && survivors.some((worker) => worker.id === base), `note names the dropout and two survivors; base ${base}`, `reply: ${reply.slice(0, 200)}`);
     }),
     check('arena-dropout.synthesis-verified', 'a passing test receipt verifies the synthesized artifact', src('arena/SKILL.md', 'Verify the synthesized artifact like any other output'), (view) => when(view.runs[0]?.receipts.some((receipt) => receipt.target === 'arena-verify' && receipt.kind === 'test' && receipt.verdict === 'pass') === true, 'receipt arena-verify passes', 'no passing arena-verify receipt')),
   ],

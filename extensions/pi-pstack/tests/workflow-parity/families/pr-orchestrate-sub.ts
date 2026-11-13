@@ -184,8 +184,9 @@ function treeOf(view: RunView): Tree {
   const candidates = rootRun?.workers.filter((worker) => (worker.assignment as { capabilities?: { spawn?: boolean } }).capabilities?.spawn === true) ?? [];
   if (candidates.length !== 1) throw new Error(`Expected one subcoordinator, candidates: ${candidates.map((worker) => worker.id).join(', ')}`);
   const subWorker = candidates[0];
-  const runsDir = subWorker?.worktree ? join(subWorker.worktree, '.pi', 'pstack', 'runs') : '';
-  const runs = existsSync(runsDir) ? readdirSync(runsDir).filter((id) => existsSync(join(runsDir, id, 'run.json'))).map((id) => loadRun(subWorker!.worktree!, id)) : [];
+  const worktree = subWorker?.worktree;
+  const runsDir = worktree ? join(worktree, '.pi', 'pstack', 'runs') : '';
+  const runs = worktree && existsSync(runsDir) ? readdirSync(runsDir).filter((id) => existsSync(join(runsDir, id, 'run.json'))).map((id) => loadRun(worktree, id)) : [];
   const owned = runs.filter((run) => run.runJson?.['parentSessionFile'] === subWorker?.state?.['sessionFile']);
   if (owned.length !== 1) throw new Error(`Expected one coordinator-owned run, candidates: ${runs.map((run) => run.id).join(', ')}`);
   const subRun = owned[0];
@@ -315,7 +316,7 @@ export const orchestrateSubFamily: Family = {
       const live = calls.find((call) => call.name === 'bash' && /^gh pr view 61 .*&& gh pr view 62/.test(String(call.args['command'])))?.order ?? -1;
       const rollup = existsSync(join(view.runs[0]?.dir ?? '', 'sub-rollup.md')) ? readFileSync(join(view.runs[0]?.dir ?? '', 'sub-rollup.md'), 'utf8') : '';
       const reply = finalReply(view);
-      return when(watchers.length === 1 && JSON.stringify(collects) === JSON.stringify(watchers.map((worker) => worker.id)) && cat !== -1 && live > cat && /PR 61 and PR 62 are merged/.test(rollup) && failed.length === 1 && reply.includes(failed[0]!.id) && tree.subWorker !== undefined && reply.includes(tree.subWorker.id) && !reply.trim().endsWith('?'), `the watcher woke the root once the rollup existed; rollup read at ${cat}, live state at ${live}; only ${collects.join(', ')} collected; reply names ${tree.subWorker?.id} and the replaced owner`, `collects ${JSON.stringify(collects)}; rollup read ${cat}; live ${live}; rollup ${rollup.slice(0, 60)}; reply ${reply.slice(0, 80)}`);
+      return when(watchers.length === 1 && JSON.stringify(collects) === JSON.stringify(watchers.map((worker) => worker.id)) && cat !== -1 && live > cat && /PR 61 and PR 62 are merged/.test(rollup) && failed.length === 1 && failed.every((worker) => reply.includes(worker.id)) && tree.subWorker !== undefined && reply.includes(tree.subWorker.id) && !reply.trim().endsWith('?'), `the watcher woke the root once the rollup existed; rollup read at ${cat}, live state at ${live}; only ${collects.join(', ')} collected; reply names ${tree.subWorker?.id} and the replaced owner`, `collects ${JSON.stringify(collects)}; rollup read ${cat}; live ${live}; rollup ${rollup.slice(0, 60)}; reply ${reply.slice(0, 80)}`);
     }),
     noToolErrors('orchestrate.sub.no-tool-errors', OR('**Ask the user only for a real decision or a blocker,**')),
   ],

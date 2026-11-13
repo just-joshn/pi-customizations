@@ -64,7 +64,9 @@ export const concurrencyFamily: Family = {
     check('worker-concurrency.distinct-resolved-models', 'the workers ran on the models their assignments named: three distinct physical models, each recorded by the host and in the worker session', SRC, (view) => {
       const states = statesOf(view);
       const problems = states.flatMap(({ id, state }) => {
-        const want = String(assignmentOf(allWorkers(view).find((worker) => worker.id === id)!).model);
+        const worker = allWorkers(view).find((entry) => entry.id === id);
+        if (worker === undefined) return [`${id}: worker state has no assignment`];
+        const want = String(assignmentOf(worker).model);
         const got = state.model === undefined ? '' : `${state.model.provider}/${state.model.id}`;
         const sessionModels = allWorkers(view).find((worker) => worker.id === id)?.session?.models ?? [];
         return [...(got === want ? [] : [`${id}: host recorded ${got}, assignment says ${want}`]), ...(sessionModels.length === 1 && sessionModels[0] === want ? [] : [`${id}: session answered with ${sessionModels.join() || 'nothing'}`])];

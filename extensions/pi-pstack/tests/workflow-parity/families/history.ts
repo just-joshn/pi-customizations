@@ -367,7 +367,10 @@ export const reflectFamily: Family = {
       const lenses = ['tooling', 'judgment', 'divergent'];
       const matches = lenses.map((lens) => reviewers.filter((worker) => new RegExp(`\\b(?:Lens:\\s*${lens}|applying the ${lens} lens)\\b`, 'i').test(worker.brief ?? '')));
       if (reviewers.length !== 3 || matches.some((workers) => workers.length !== 1) || new Set(matches.flat()).size !== 3) return fail('expected exactly one reviewer for each tooling, judgment and divergent lens');
-      const by = (lens: string) => String(assignmentOf(matches[lenses.indexOf(lens)]![0]!).model);
+      const by = (lens: string) => {
+        const worker = matches[lenses.indexOf(lens)]?.[0];
+        return worker === undefined ? '' : String(assignmentOf(worker).model);
+      };
       // The lines are the run's own models.json (the scripted roles for a scripted run, the real model for a real one); a spec may carry a level.
       const on = (id: string, line: string) => expectedModels(view, line).includes(by(id));
       return when(on('tooling', 'reflect tooling') && on('judgment', 'reflect judgment, divergent, synthesizer') && on('divergent', 'reflect judgment, divergent, synthesizer'), `tooling ${by('tooling')}, judgment ${by('judgment')}, divergent ${by('divergent')}`, `tooling ${by('tooling')} (line ${expectedModels(view, 'reflect tooling').join('|')}), judgment ${by('judgment')}, divergent ${by('divergent')} (line ${expectedModels(view, 'reflect judgment, divergent, synthesizer').join('|')})`);

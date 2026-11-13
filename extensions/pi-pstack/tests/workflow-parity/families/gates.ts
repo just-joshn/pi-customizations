@@ -76,8 +76,8 @@ export const gatesFamily: Family = {
   checks: [
     check('gates.deslop-before-the-commit', 'the committing worker opened the deslop skill and removed the slop before its first commit, and the committed file has none of it', DESLOP, (view) => {
       const implementations = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'poteto' && /src\/coupon\.js/.test(worker.brief ?? ''));
-      if (implementations.length !== 1) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
-      const impl = implementations[0]!;
+      const [impl] = implementations;
+      if (implementations.length !== 1 || impl === undefined) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
       const calls = impl?.session?.toolCalls ?? [];
       const read = calls.find((call) => call.name === 'read' && String(call.args['path']).endsWith('deslop/SKILL.md'));
       const commit = calls.find((call) => call.name === 'bash' && /git .*commit/.test(String(call.args['command'])));
@@ -201,9 +201,11 @@ export const featureContestedFamily: Family = {
     panelCheck('feature-contested.reviewers-from-two-families', 'the adversaries are role reviewer, each in its own worktree, on the "interrogate reviewers" line, from at least two families', src('interrogate/SKILL.md', 'Read the `interrogate reviewers` line in place of `arena runners`'), { role: 'reviewer', line: 'interrogate reviewers', mode: 'worktree' }),
     check('feature-contested.adversaries-start-from-the-delivered-commit', 'the reviewers were spawned after the implementation was collected, and each starts at the implementation head', src('interrogate/SKILL.md', 'Copy the scope\'s uncommitted changes into each worktree'), (view) => {
       const implementations = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'poteto' && /src\/coupon\.js/.test(worker.brief ?? ''));
-      if (implementations.length !== 1) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
-      const head = branchCommits(view, view.runs[0]!.id, implementations[0]!.id).at(-1);
-      const collected = collectOrder(view, implementations[0]!.id);
+      const [impl] = implementations;
+      const run = view.runs.find((entry) => impl !== undefined && entry.workers.includes(impl));
+      if (implementations.length !== 1 || impl === undefined || run === undefined) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
+      const head = branchCommits(view, run.id, impl.id).at(-1);
+      const collected = collectOrder(view, impl.id);
       const problems = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'reviewer').flatMap((worker) => [...(assignmentOf(worker).workspace?.inputCommit === head ? [] : [`${worker.id} starts at ${assignmentOf(worker).workspace?.inputCommit}, not ${head}`]), ...(spawnOrder(view, worker.id) > collected ? [] : [`${worker.id} spawned before impl was collected`])]);
       return when(head !== undefined && problems.length === 0, `both reviewers start at ${head?.slice(0, 10)} after the implementation`, problems.join('; ') || 'no implementation head');
     }),
@@ -214,8 +216,10 @@ export const featureContestedFamily: Family = {
     }),
     check('feature-contested.no-fix-was-applied', 'interrogate reported without fixing: the implementation branch holds only its own commit and the main checkout is untouched', src('interrogate/SKILL.md', 'Report the findings. Do not apply fixes.'), (view) => {
       const implementations = allWorkers(view).filter((worker) => assignmentOf(worker).role === 'poteto' && /src\/coupon\.js/.test(worker.brief ?? ''));
-      if (implementations.length !== 1) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
-      const commits = branchCommits(view, view.runs[0]!.id, implementations[0]!.id);
+      const [impl] = implementations;
+      const run = view.runs.find((entry) => impl !== undefined && entry.workers.includes(impl));
+      if (implementations.length !== 1 || impl === undefined || run === undefined) return fail(`expected one coupon implementation worker, got ${implementations.length}`);
+      const commits = branchCommits(view, run.id, impl.id);
       return when(commits.length === 1 && view.git.dirty.length === 0 && view.git.commitsSinceBase.length === 0, '1 commit on the branch, main clean', `${commits.length} commits on the impl branch; dirty ${view.git.dirty.join(',')}`);
     }),
     settledAndCollected('feature-contested.settled-and-collected', src('poteto-mode/SKILL.md', 'A `pstack-worker` wake message reports each worker that settles')),

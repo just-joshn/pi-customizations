@@ -99,7 +99,7 @@ export const maintainVerificationFamily: Family = {
     }),
     check('maintain-verification-skill.one-reader-per-feature-file', 'one readonly reader per feature file', src('maintain-verification-skill/SKILL.md', '2. **Source wave.** One read-only subagent per feature file'), (view) => {
       const readers = FEATURES.map((name) => featureReaders(view, name));
-      if (readers.some((workers) => workers.length !== 1) || new Set(readers.flat()).size !== FEATURES.length) return fail(FEATURES.map((name, i) => `${name}: ${readers[i]!.map((worker) => worker.id).join(', ') || 'none'}`).join('; '));
+      if (readers.some((workers) => workers.length !== 1) || new Set(readers.flat()).size !== FEATURES.length) return fail(FEATURES.map((name, i) => `${name}: ${readers[i]?.map((worker) => worker.id).join(', ') || 'none'}`).join('; '));
       return workersCheck('', '', [], { role: 'general', min: 3, max: 3, mode: 'readonly', rootPath: true }).run({ ...view, runs: view.runs.map((run) => ({ ...run, workers: run.workers.filter((worker) => readers.flat().includes(worker)) })) });
     }),
     spawnedTogether('maintain-verification-skill.readers-concurrent', src('maintain-verification-skill/SKILL.md', 'launched concurrently'), ['general']),
