@@ -31,8 +31,7 @@ jobs:
           bwrap --version
       - name: Install the locked dependencies
         # The snapshot carries the workspace bun.lock, so this resolves exactly what the local run installed and fails if the lock is out of date.
-        # Hoisted, because the container tests mount Pi's node_modules and the isolated linker's symlinks leave that directory.
-        run: bun install --frozen-lockfile --linker hoisted --filter '@justjoshn/pi-pstack'
+        run: bun install --frozen-lockfile --filter '@justjoshn/pi-pstack'
       - name: No new lint diagnostics
         run: |
           # Biome is pinned to the version lint-baseline.json was recorded with; the script refuses any other.
@@ -43,7 +42,13 @@ jobs:
           # The worker, container, and Pi-load tests drive a managed Pi install laid out as <agent>/{bin/pi,install/releases/<v>/...}.
           # It lives outside ~/.pi/agent so the standalone-shim test, which compares against the newest Pi installed there, skips.
           agent="$HOME/pi-e2e/agent"
-          modules="$(cd ../.. && pwd)/node_modules"
+          # A container mounts Pi's whole node_modules directory, so Pi needs a flat install, not the isolated linker's symlinks into a store.
+          # The same lockfile, installed hoisted from the manifests alone, gives the same versions in that layout.
+          ws="$HOME/pi-e2e/ws"
+          mkdir -p "$ws"
+          (cd ../.. && git ls-files -z package.json bun.lock ':(glob)extensions/*/package.json' ':(glob)skills/*/package.json' | xargs -0 tar -cf -) | tar -xf - -C "$ws"
+          (cd "$ws/extensions/pi-pstack" && bun install --frozen-lockfile --linker hoisted --filter '@justjoshn/pi-pstack')
+          modules="$ws/node_modules"
           version=$(node -p "JSON.parse(require('node:fs').readFileSync('$modules/@earendil-works/pi-coding-agent/package.json','utf8')).version")
           mkdir -p "$agent/bin" "$agent/install/releases/$version"
           ln -s "$modules/.bin/pi" "$agent/bin/pi"
