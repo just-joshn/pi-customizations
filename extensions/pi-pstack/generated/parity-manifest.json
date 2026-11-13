@@ -7,52 +7,46 @@
   "requirementsDigest": "28b2b8e005662b6b51ee38a832e6340438ef417b6deb620e0cbc762baca1db9b",
   "run": {
     "platform": "darwin",
-    "startedAt": "2026-11-13T00:39:59.269Z",
-    "generatedAt": "2026-11-13T00:46:01.316Z",
-    "commit": "2ddb0e05c8b5a5c8576d6d9fad5ca9b1383f15b3",
+    "startedAt": "2026-11-13T00:55:37.550Z",
+    "generatedAt": "2026-11-13T01:00:40.612Z",
+    "commit": "e7c6cb0ab6e9ebdebcf959c720106937fd235be7",
     "dirty": false,
     "changes": [],
     "sourceDigest": "7aabebe4d085f795271f0a51ce128f0355b43ce40001f03997c0ef237a77901c",
     "resultsSource": "local",
     "totalTests": 2666,
-    "passedTests": 2571,
-    "failedTests": 2,
-    "failures": [
-      "tests/packaging/statechart-suite.test.ts::the upstream statechart suite passes against the generated skill",
-      "tests/workflow-parity/verification.test.ts::statechart scripted run: every check passes"
-    ],
+    "passedTests": 2573,
+    "failedTests": 0,
+    "failures": [],
     "skippedTests": 93
   },
   "runs": [
     {
       "platform": "darwin",
-      "startedAt": "2026-11-13T00:39:59.269Z",
-      "generatedAt": "2026-11-13T00:46:01.316Z",
-      "commit": "2ddb0e05c8b5a5c8576d6d9fad5ca9b1383f15b3",
+      "startedAt": "2026-11-13T00:55:37.550Z",
+      "generatedAt": "2026-11-13T01:00:40.612Z",
+      "commit": "e7c6cb0ab6e9ebdebcf959c720106937fd235be7",
       "dirty": false,
       "changes": [],
       "sourceDigest": "7aabebe4d085f795271f0a51ce128f0355b43ce40001f03997c0ef237a77901c",
       "resultsSource": "local",
       "totalTests": 2666,
-      "passedTests": 2571,
-      "failedTests": 2,
-      "failures": [
-        "tests/packaging/statechart-suite.test.ts::the upstream statechart suite passes against the generated skill",
-        "tests/workflow-parity/verification.test.ts::statechart scripted run: every check passes"
-      ],
+      "passedTests": 2573,
+      "failedTests": 0,
+      "failures": [],
       "skippedTests": 93
     }
   ],
   "counts": {
     "structural": {
-      "PASS": 149,
-      "FAIL": 1,
+      "PASS": 150,
+      "FAIL": 0,
       "INCONCLUSIVE": 0,
       "N/A": 40
     },
     "behavioral": {
-      "PASS": 95,
-      "FAIL": 1,
+      "PASS": 96,
+      "FAIL": 0,
       "INCONCLUSIVE": 5,
       "N/A": 0
     }
@@ -25182,17 +25176,17 @@
         {
           "file": "tests/packaging/statechart-suite.test.ts",
           "name": "the upstream statechart suite passes against the generated skill",
-          "outcome": "failed",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: the upstream statechart suite passes against the generated skill"
+      "status": "PASS",
+      "reason": "1 linked test(s) ran and passed"
     },
     {
       "id": "SRC/pstack/automations/benny/FOR_AGENTS.md",
@@ -30906,17 +30900,17 @@
         {
           "file": "tests/workflow-parity/verification.test.ts",
           "name": "statechart scripted run: every check passes",
-          "outcome": "failed",
+          "outcome": "passed",
           "byRun": [
             {
               "platform": "darwin",
-              "outcome": "failed"
+              "outcome": "passed"
             }
           ]
         }
       ],
-      "status": "FAIL",
-      "reason": "1 linked test(s) failed: statechart scripted run: every check passes"
+      "status": "PASS",
+      "reason": "5 linked test(s) ran and passed"
     },
     {
       "id": "MX-PR-REVIEW",
