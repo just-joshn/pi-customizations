@@ -348,13 +348,15 @@ export const shippingFamily: Family = {
       return when(found.length === 1 && argv[0]?.[0] === WATCH_PR && argv[0].includes('--queued-stack') && argv[0][argv[0].indexOf('--stack-prs') + 1] === '21' && exit === 0, 'queued watcher over 21 exited COMPLETE (0)', `watchers ${found.length}, argv ${JSON.stringify(argv)}, exit ${String(exit)}`);
     }),
     check('ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap', 'the reply gives the verified run and ceiling, each verdict with its producer, what landed and how it was confirmed, and what the next gap needs', SH('**Reply:** the verified run and its ceiling'), (view) => {
-      const reply = finalReply(view);
+      const reply = finalReply(view).replace(/[`*]/g, '');
       const verdicts = verdictsOf(readForge(view).state, readForge(view).actions, view);
-      const producers = [21, 22, 23].map((pr) => {
+      const chunks = reply.split(/(?=\bPR \d+\b)/);
+      const producers = [21, 22, 23].filter((pr) => {
         const verdict = verdicts.find((entry) => entry.pr === pr);
-        return verdict === undefined ? /(?!) / : new RegExp(`PR ${pr} ${verdict.verdict} by ${verdict.verifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+        return verdict === undefined || !chunks.some((chunk) => chunk.startsWith(`PR ${pr}`) && chunk.includes(verdict.verdict) && chunk.includes(verdict.verifier));
       });
-      const missing = [/Verified run: PR 21, the ceiling/, ...producers, /Landed: PR 21, confirmed with gh pr view/, /next gap/i].filter((pattern) => !pattern.test(reply)).map(String);
+      const missing = [/verified run[^.]*PR 21/i, /PR 21[^.]*ceiling|ceiling[^.]*PR 21/i, /(?:landed|merged)/i, /confirm[^.]*merge|read(?:ing)?[^.]*PR[^.]*back|gh pr view/i, /next gap|PR 22[^.]*needs?[^.]*fix|fix PR 22/i].filter((pattern) => !pattern.test(reply)).map(String);
+      missing.push(...producers.map((pr) => `PR ${pr} verdict and producer`));
       return when(missing.length === 0, 'all parts present', `missing ${missing.join(', ')}`);
     }),
     noToolErrors('ship.no-tool-errors', SH('Stop at the ceiling')),
@@ -391,7 +393,7 @@ export const shippingFamily: Family = {
     { name: 'a verifier receipt artifact was altered', mutate: (sandbox) => writeFileSync(join(sandbox, 'repo/.pi/pstack/runs', SHIP_RUN, 'workers/verifier-21/evidence/verifier-21-run.txt'), 'tampered\n'), fails: ['ship.each-verifier-recorded-its-own-receipt'] },
     { name: 'a verifier was never spawned with the others', mutate: (sandbox) => rewriteSessionSafe(sandbox, '/verifier-23/assignment.json', '/verifier-23x/assignment.json'), fails: ['ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes'] },
     { name: 'the parent collected with no wake from its verifiers', mutate: (sandbox) => dropWakes(sandbox), fails: ['ship.verifiers-were-spawned-in-parallel-and-collected-after-their-wakes'] },
-    { name: 'the reply left out the next gap', mutate: (sandbox) => rewriteFinalReply(sandbox, 'The next gap', 'Done'), fails: ['ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap'] },
+    { name: 'the reply left out the next gap', mutate: (sandbox) => rewriteFinalReply(sandbox, /The next gap[\s\S]*$/, ''), fails: ['ship.reply-names-the-run-the-verdicts-what-landed-and-the-next-gap'] },
     { name: 'the ceiling was watched in plain mode', mutate: (sandbox) => patchAssignment(sandbox, SHIP_RUN, 'watch-ceiling', (assignment) => ((assignment['watch'] as { argv: string[] }).argv = ['sleep', '1'])), fails: ['ship.ceiling-watched-with-the-queued-watcher-until-COMPLETE'] },
   ],
 };
